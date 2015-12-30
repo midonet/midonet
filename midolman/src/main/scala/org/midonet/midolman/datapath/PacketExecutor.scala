@@ -67,14 +67,11 @@ sealed class PacketExecutor(dpState: DatapathState,
                             families: OvsNetlinkFamilies,
                             numHandlers: Int, index: Int,
                             channelFactory: NetlinkChannelFactory,
-                            metrics: PacketPipelineMetrics,
-                            executesRecircPackets: Boolean = false)
+                            metrics: PacketPipelineMetrics)
     extends EventHandler[PacketContextHolder]
     with LifecycleAware with StatePacketExecutor {
 
-    val log = Logger(LoggerFactory.getLogger(
-        s"org.midonet.datapath.${if (executesRecircPackets) "recirc-" else ""}" +
-        s"packet-executor-$index"))
+    val log = Logger(LoggerFactory.getLogger(s"packet-executor-$index"))
 
     private val datapathId = dpState.datapath.getIndex
 
@@ -95,9 +92,7 @@ sealed class PacketExecutor(dpState: DatapathState,
     override def onEvent(event: PacketContextHolder, sequence: Long,
                          endOfBatch: Boolean): Unit = {
         val context = event.packetExecRef
-        if (sequence % numHandlers == index
-                && (context ne null)
-                && (executesRecircPackets || !context.isRecirc)) {
+        if (sequence % numHandlers == index) {
             event.packetExecRef = null
             val actions = context.packetActions
             val packet = context.packet

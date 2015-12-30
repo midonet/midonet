@@ -62,6 +62,10 @@ public class Packet {
         return eth;
     }
 
+    public void setEthernet(Ethernet eth) {
+        this.eth = eth;
+    }
+
     public byte[] getData() {
         return eth.serialize();
     }

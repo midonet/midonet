@@ -45,8 +45,7 @@ import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort, InternalPort}
-import org.midonet.packets.util.AddressConversions._
-import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, MAC, TCP, UDP}
+import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
 import org.midonet.util.UnixClock
 
@@ -218,53 +217,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def applyPacketActions(packet: Ethernet,
                            actions: JList[FlowAction]): Ethernet = {
         val eth = Ethernet.deserialize(packet.serialize())
-        var ip: IPv4 = null
-        var tcp: TCP = null
-        var udp: UDP = null
-        var icmp: ICMP = null
-        eth.getEtherType match {
-            case IPv4.ETHERTYPE =>
-                ip = eth.getPayload.asInstanceOf[IPv4]
-                ip.getProtocol match {
-                    case TCP.PROTOCOL_NUMBER =>
-                        tcp = ip.getPayload.asInstanceOf[TCP]
-                    case UDP.PROTOCOL_NUMBER =>
-                        udp = ip.getPayload.asInstanceOf[UDP]
-                    case ICMP.PROTOCOL_NUMBER =>
-                        icmp = ip.getPayload.asInstanceOf[ICMP]
-                }
-        }
-
-        // TODO(guillermo) incomplete, but it should cover testing needs
-        actions collect { case a: FlowActionSetKey => a } foreach {
-            _.getFlowKey match {
-                case key: FlowKeyEthernet =>
-                    if (key.eth_dst != null)
-                        eth.setDestinationMACAddress(key.eth_dst)
-                    if (key.eth_src != null)
-                        eth.setSourceMACAddress(key.eth_src)
-                case key: FlowKeyIPv4 =>
-                    if (key.ipv4_dst != 0)
-                        ip.setDestinationAddress(key.ipv4_dst)
-                    if (key.ipv4_src != 0)
-                        ip.setSourceAddress(key.ipv4_src)
-                    if (key.ipv4_ttl != 0)
-                        ip.setTtl(key.ipv4_ttl)
-                case key: FlowKeyTCP =>
-                    if (key.tcp_dst != 0) tcp.setDestinationPort(key.tcp_dst)
-                    if (key.tcp_src != 0) tcp.setSourcePort(key.tcp_src)
-                case key: FlowKeyUDP =>
-                    if (key.udp_dst != 0) udp.setDestinationPort(key.udp_dst)
-                    if (key.udp_src != 0) udp.setSourcePort(key.udp_src)
-                case key: FlowKeyICMPError =>
-                    throw new IllegalArgumentException(
-                        s"ICMP should be handled in userspace")
-                case key: FlowKeyTunnel =>  /* ignore tunnel keys */
-                case unmatched =>
-                    throw new IllegalArgumentException(s"Won't translate $unmatched")
-            }
-        }
-
+        actions collect {
+            case a: FlowActionSetKey => a.getFlowKey
+        } foreach (FlowKeyApplier.apply(_, eth))
         eth
     }
 

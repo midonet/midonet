@@ -137,7 +137,7 @@ class FlowProcessor(dpState: DatapathState,
             flowMask
         } else null
         writeFlow(datapathId, flowMatch.getKeys, actions, mask, index)
-        context.log.debug("Created datapath flow")
+        context.log.debug(s"Created datapath flow for $flowMatch")
     }
 
     private def writeFlow(

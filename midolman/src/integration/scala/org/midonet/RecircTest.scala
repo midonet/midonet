@@ -17,7 +17,7 @@
 package org.midonet
 
 import java.nio.channels.spi.SelectorProvider
-import java.util.UUID
+import java.util.{Arrays, UUID}
 import java.util.concurrent.ThreadLocalRandom
 
 import scala.util.control.NonFatal
@@ -42,7 +42,7 @@ import org.midonet.netlink._
 import org.midonet.netlink.rtnetlink.{NeighOps, Link, LinkOps}
 import org.midonet.odp._
 import org.midonet.odp.FlowMatch.Field
-import org.midonet.odp.flows.{FlowKeys, FlowActionOutput}
+import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowActionOutput}
 import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort}
 import org.midonet.odp.util.TapWrapper
 import org.midonet.packets._
@@ -69,8 +69,8 @@ class RecircTest extends FeatureSpec
     val channelFactory = new NetlinkChannelFactory()
 
     var tapWrapper: TapWrapper = _
-    var channel: NetlinkChannel = _
     var families: OvsNetlinkFamilies = _
+    var channel: NetlinkChannel = _
     var protocol: OvsProtocol = _
     var writer: NetlinkWriter = _
     var reader: NetlinkReader = _
@@ -81,10 +81,14 @@ class RecircTest extends FeatureSpec
     var packetExecutor : PacketExecutor  = _
 
     var tapDpPort: DpPort = _
-    var vxlanRecirdPort: DpPort = _
+    var vxlanRecircPort: DpPort = _
     var recircPort: DpPort = _
 
     var veth: Link = _
+
+    var injectorInput: DpPort = _
+    var injectorOutput: DpPort = _
+    var injector: Link = _
 
     val tapVport = UUID.randomUUID()
 
@@ -93,10 +97,9 @@ class RecircTest extends FeatureSpec
         families = OvsNetlinkFamilies.discover(channel)
         protocol = new OvsProtocol(channel.getLocalAddress.getPid,
                                    families)
+        protocol.prepareDatapathCreate(dpName, buf)
         writer = new NetlinkWriter(channel)
         reader = new NetlinkReader(channel)
-
-        protocol.prepareDatapathCreate(dpName, buf)
         datapath = NetlinkUtil.rpc(buf, writer, reader, Datapath.buildFrom)
 
         tapWrapper = try {
@@ -104,12 +107,6 @@ class RecircTest extends FeatureSpec
         } catch { case NonFatal(e) =>
             new TapWrapper(tapName, false)
         }
-
-        protocol.prepareDpPortCreate(
-            datapath.getIndex,
-            new NetDevPort(tapWrapper.getName),
-            buf)
-        tapDpPort = NetlinkUtil.rpc(buf, writer, reader, DpPort.buildFrom)
 
         val LinkOps.Veth(hostSide, _) = LinkOps.createVethPair(
             recircConfig.recircHostName,
@@ -126,18 +123,18 @@ class RecircTest extends FeatureSpec
             recircConfig.recircMnMac)
         veth = hostSide
 
-        protocol.prepareDpPortCreate(
-            datapath.getIndex,
-            VxLanTunnelPort.make(
-                "tnvxlan-recirc", config.datapath.vxlanRecirculateUdpPort),
-            buf)
-        vxlanRecirdPort = NetlinkUtil.rpc(buf, writer, reader, DpPort.buildFrom)
+        val LinkOps.Veth(input, _) = LinkOps.createVethPair(
+            "injector-input",
+            "injector-output",
+            up = true)
+        injector = input
 
-        protocol.prepareDpPortCreate(
-            datapath.getIndex,
-            new NetDevPort(recircConfig.recircMnName),
-            buf)
-        recircPort = NetlinkUtil.rpc(buf, writer, reader, DpPort.buildFrom)
+        tapDpPort = createPort(new NetDevPort(tapWrapper.getName))
+        injectorInput = createPort(new NetDevPort("injector-input"))
+        injectorOutput = createPort(new NetDevPort("injector-output"))
+        vxlanRecircPort = createPort(VxLanTunnelPort.make(
+                "tnvxlan-recirc", config.datapath.vxlanRecirculateUdpPort))
+        recircPort = createPort(new NetDevPort(recircConfig.recircMnName))
 
         dpState = new DatapathState {
             override def getVportForDpPortNumber(portNum: Integer): UUID = null
@@ -151,9 +148,9 @@ class RecircTest extends FeatureSpec
                 Map(tapVport -> tapDpPort.getPortNo).get(vportId).orNull
 
             override def datapath: Datapath = RecircTest.this.datapath
-            override def tunnelRecircVxLanPort = vxlanRecirdPort.asInstanceOf[VxLanTunnelPort]
+            override def tunnelRecircVxLanPort = vxlanRecircPort.asInstanceOf[VxLanTunnelPort]
             override def hostRecircPort = recircPort.asInstanceOf[NetDevPort]
-            override def tunnelRecircOutputAction = vxlanRecirdPort.toOutputAction
+            override def tunnelRecircOutputAction = vxlanRecircPort.toOutputAction
             override def hostRecircOutputAction = recircPort.toOutputAction
         }
 
@@ -184,8 +181,7 @@ class RecircTest extends FeatureSpec
             numHandlers = 1,
             index = 0,
             channelFactory,
-            new PacketPipelineMetrics(new MetricRegistry, 1),
-            executesRecircPackets = true)
+            new PacketPipelineMetrics(new MetricRegistry, 1))
     }
 
     override def afterAll(): Unit = {
@@ -193,7 +189,8 @@ class RecircTest extends FeatureSpec
         protocol.prepareDatapathDel(datapath.getIndex, null, buf)
         writer.write(buf)
         tapWrapper.remove()
-        LinkOps.deleteLink(veth)
+        LinkOps.deleteLink(veth.getName)
+        LinkOps.deleteLink(injector)
     }
 
     feature("Packets are recirculated") {
@@ -221,7 +218,7 @@ class RecircTest extends FeatureSpec
         val innerSrcIp = IPv4Addr.random
         val innerDstIp = IPv4Addr.random
 
-        val packet =
+        val packetf = () =>
             { eth src encapSrcMac dst encapDstMac } <<
                 { ip4 src encapSrcIp dst encapDstIp } <<
                     { udp src encapSrcUdp.toShort dst encapDstUdp.toShort } <<
@@ -229,15 +226,15 @@ class RecircTest extends FeatureSpec
                             { eth src innerSrcMac dst innerDstMac } <<
                                 { ip4 src innerSrcIp dst innerDstIp } <<
                                     { tcp src 123 dst 456 }
-        val inner = packet.packet
+        val inner = packetf().packet
             .getPayload.asInstanceOf[IPv4]
             .getPayload.asInstanceOf[UDP]
             .getPayload.asInstanceOf[VXLAN]
             .getPayload.asInstanceOf[Ethernet]
 
-        val fmatch = FlowMatches.fromEthernetPacket(packet)
-        fmatch.addKey(FlowKeys.inPort(tapDpPort.getPortNo))
-        val context = new PacketContext(1L, new Packet(packet, fmatch), fmatch)
+        val fmatch = FlowMatches.fromEthernetPacket(packetf())
+        fmatch.addKey(FlowKeys.inPort(injectorInput.getPortNo))
+        val context = new PacketContext(1L, new Packet(packetf(), fmatch), fmatch)
 
         context.decap(inner, vni)
 
@@ -255,6 +252,24 @@ class RecircTest extends FeatureSpec
         flowProcessor.onEvent(holder, 0, endOfBatch = true)
         packetExecutor.onEvent(holder, 0, endOfBatch = true)
 
+        // From packet execution
+        expectDecapPacket(innerSrcMac, innerDstMac, innerSrcIp, innerDstIp)
+        // From flow matching
+        protocol.preparePacketExecute(
+            datapath.getIndex,
+            new Packet(packetf(), FlowMatches.fromEthernetPacket(packetf())),
+            Arrays.asList(FlowActions.output(injectorOutput.getPortNo)),
+            buf)
+        writer.write(buf)
+        buf.clear()
+        expectDecapPacket(innerSrcMac, innerDstMac, innerSrcIp, innerDstIp)
+    }
+
+    private def expectDecapPacket(
+            innerSrcMac: MAC,
+            innerDstMac: MAC,
+            innerSrcIp: IPv4Addr,
+            innerDstIp: IPv4Addr): Unit = {
         val innerEth = Ethernet.deserialize(tapWrapper.recv())
         innerEth.getSourceMACAddress should be (innerSrcMac)
         innerEth.getDestinationMACAddress should be (innerDstMac)
@@ -271,15 +286,16 @@ class RecircTest extends FeatureSpec
         val innerDstMac = MAC.random()
         val innerSrcIp = IPv4Addr.random
         val innerDstIp = IPv4Addr.random
-        val packet =
+        val packetf = () =>
             { eth src innerSrcMac dst innerDstMac } <<
                 { ip4 src innerSrcIp dst innerDstIp } <<
                     { tcp src 123 dst 456 }
-        val fmatch = FlowMatches.fromEthernetPacket(packet)
-        fmatch.addKey(FlowKeys.inPort(tapDpPort.getPortNo))
+
+        val fmatch = FlowMatches.fromEthernetPacket(packetf())
+        fmatch.addKey(FlowKeys.inPort(injectorInput.getPortNo))
         fmatch.fieldSeen(Field.SrcPort)
         fmatch.fieldSeen(Field.DstPort)
-        val context = new PacketContext(1L, new Packet(packet, fmatch), fmatch)
+        val context = new PacketContext(1L, new Packet(packetf(), fmatch), fmatch)
         context.wcmatch.setSrcPort(9876)
         context.wcmatch.setDstPort(80)
         val vni = 4624
@@ -311,6 +327,35 @@ class RecircTest extends FeatureSpec
         flowProcessor.onEvent(holder, 0, endOfBatch = true)
         packetExecutor.onEvent(holder, 0, endOfBatch = true)
 
+        // From packet execution
+        expectEncapPacket(encapSrcMac, encapDstMac, encapSrcIp, encapDstIp,
+                          encapSrcUdp, vni, innerSrcMac, innerDstMac,
+                          innerSrcIp, innerDstIp)
+        // From flow matching
+        fmatch.addKey(FlowKeys.inPort(injectorInput.getPortNo))
+        protocol.preparePacketExecute(
+            datapath.getIndex,
+            new Packet(packetf(), FlowMatches.fromEthernetPacket(packetf())),
+            Arrays.asList(FlowActions.output(injectorOutput.getPortNo)),
+            buf)
+        writer.write(buf)
+        buf.clear()
+        expectEncapPacket(encapSrcMac, encapDstMac, encapSrcIp, encapDstIp,
+                          encapSrcUdp, vni, innerSrcMac, innerDstMac,
+                          innerSrcIp, innerDstIp)
+    }
+
+    private def expectEncapPacket(
+            encapSrcMac: MAC,
+            encapDstMac: MAC,
+            encapSrcIp: IPv4Addr,
+            encapDstIp: IPv4Addr,
+            encapSrcUdp: Int,
+            vni: Int,
+            innerSrcMac: MAC,
+            innerDstMac: MAC,
+            innerSrcIp: IPv4Addr,
+            innerDstIp: IPv4Addr): Unit = {
         val outerEth = Ethernet.deserialize(tapWrapper.recv())
         outerEth.getSourceMACAddress should be (encapSrcMac)
         outerEth.getDestinationMACAddress should be (encapDstMac)
@@ -332,5 +377,16 @@ class RecircTest extends FeatureSpec
         val innerTcp = innerIp.getPayload.asInstanceOf[TCP]
         innerTcp.getSourcePort should be (9876)
         innerTcp.getDestinationPort should be (80)
+    }
+
+    private def createPort(port: DpPort): DpPort = {
+        val channel = channelFactory.create(blocking = true)
+        val writer = new NetlinkWriter(channel)
+        val reader = new NetlinkReader(channel)
+        protocol.prepareDpPortCreate(
+            datapath.getIndex,
+            port,
+            buf)
+        NetlinkUtil.rpc(buf, writer, reader, DpPort.buildFrom)
     }
 }

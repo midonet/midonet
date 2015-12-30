@@ -168,6 +168,13 @@ object IPv6Addr {
         apply(buildQuadWord(addr, 0), buildQuadWord(addr, 8))
     }
 
+    def fromInts(addr: Array[Int]): IPv6Addr = {
+        if (addr == null || addr.length != 4)
+            throw illegalIPv6Bytes
+        apply((addr(0).toLong << 32) | (addr(1) & 0xFFFFFFFFL),
+              (addr(2).toLong << 32) | (addr(3) & 0xFFFFFFFFL))
+    }
+
     // TODO: Verify each piece is valid 1-4 digit hex.
     @JsonCreator
     def fromString(s: String): IPv6Addr = {

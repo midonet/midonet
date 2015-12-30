@@ -227,13 +227,12 @@ class MidolmanModule(injector: Injector,
             metrics: PacketPipelineMetrics) = {
         val threads = Math.max(config.outputChannels, 1)
         val processors = new Array[EventProcessor](threads)
-        val fpHandler = new AggregateEventPollerHandler(
-            flowProcessor,
-            new EventPollerHandlerAdapter(
-                new PacketExecutor(
-                    dpState, families, 1, 0, channelFactory, metrics,
-                    executesRecircPackets = true)))
         if (threads  == 1) {
+            val fpHandler = new AggregateEventPollerHandler(
+                flowProcessor,
+                new EventPollerHandlerAdapter(
+                    new PacketExecutor(
+                        dpState, families, 1, 0, channelFactory, metrics)))
             processors(0) = new BackChannelEventProcessor(
                 ringBuffer, fpHandler, flowProcessor)
         } else {
@@ -244,7 +243,7 @@ class MidolmanModule(injector: Injector,
                 processors(i) = new BatchEventProcessor(ringBuffer, barrier, pexec)
             }
             processors(numPacketHandlers) = new BackChannelEventProcessor(
-                ringBuffer, fpHandler, flowProcessor)
+                ringBuffer, flowProcessor, flowProcessor)
         }
         processors
     }

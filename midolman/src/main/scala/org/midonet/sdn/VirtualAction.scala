@@ -19,7 +19,7 @@ import java.nio.ByteBuffer
 import java.util.UUID
 
 import org.midonet.odp.flows.FlowAction
-import org.midonet.packets.{MAC, IPv4Addr}
+import org.midonet.packets.{Ethernet, MAC, IPv4Addr}
 
 /** This objects holds various classes representing "virtual" flow actions
  *  returned as part of a Simulation. These objects are then translated by
