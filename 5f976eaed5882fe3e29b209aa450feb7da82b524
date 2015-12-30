@@ -140,6 +140,30 @@
       "revId": "5f976eaed5882fe3e29b209aa450feb7da82b524",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_2a3c7f93",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-30T21:13:32Z",
+      "side": 1,
+      "message": "No side effect, afaik. Only that each operator will add an additional subscriber, so slightly more inefficient since it creates many more objects (including all makeAction functions), but it should be ok other than that. Alternatively you could create a single Observer instance to handle all three notifications.",
+      "parentUuid": "1a930d6b_11044c7d",
+      "range": {
+        "startLine": 245,
+        "startChar": 16,
+        "endLine": 248,
+        "endChar": 75
+      },
+      "revId": "5f976eaed5882fe3e29b209aa450feb7da82b524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
