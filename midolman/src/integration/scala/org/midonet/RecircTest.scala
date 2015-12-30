@@ -183,8 +183,7 @@ class RecircTest extends FeatureSpec
             numHandlers = 1,
             index = 0,
             channelFactory,
-            new PacketPipelineMetrics(new MetricRegistry, 1),
-            executesRecircPackets = true)
+            new PacketPipelineMetrics(new MetricRegistry, 1))
     }
 
     override def afterAll(): Unit = {
