@@ -355,6 +355,30 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_b19ff84f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-30T16:11:14Z",
+      "side": 1,
+      "message": "understood.",
+      "parentUuid": "1a930d6b_4b446574",
+      "range": {
+        "startLine": 357,
+        "startChar": 12,
+        "endLine": 357,
+        "endChar": 35
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_55823e01",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
