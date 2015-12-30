@@ -34,6 +34,7 @@ import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.packets._
+import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
 import org.midonet.sdn.flows.VirtualActions.{Decap, Encap}
 import org.midonet.util.Clearable
@@ -75,6 +76,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
     // The original packet's flow match, which is either the inner packet if
     // encap'ing or the outer if decap'ing. Taken from a Stash.
     var recircMatch: FlowMatch = _
+    var recircPayload: Ethernet = _
 
     var flow: ManagedFlow = _
 
@@ -86,6 +88,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
         if (recircMatch ne null)
             origMatch.reset(recircMatch)
         recircMatch = null
+        recircPayload = null
         flow = null
         virtualFlowActions.clear()
         flowActions.clear()
@@ -121,21 +124,18 @@ trait FlowContext extends Clearable { this: PacketContext =>
         virtualFlowActions.add(Encap(vni))
         recircMatch = SimulationStashes.PooledMatches.get()
         recircMatch.reset(origMatch)
-        recircMatch.propagateSeenFieldsFrom(wcmatch)
+        recircMatch.allFieldsSeen()
+        recircPayload = packet.getEthernet
+        val outer: Ethernet = { eth src srcMac dst dstMac } <<
+                              { ip4 src srcIp dst dstIp ttl ttl diff_serv tos } <<
+                              { udp src srcPort.toShort dst dstPort.toShort } <<
+                              { vxlan vni vni setPayload recircPayload }
+        packet.setEthernet(outer)
         // Forget original flow keys, and reset the original match to
         // the encapsulation headers
         origMatch.clear()
-        origMatch.setEthSrc(srcMac)
-        origMatch.setEthDst(dstMac)
-        origMatch.setEtherType(IPv4.ETHERTYPE)
-        origMatch.setNetworkSrc(srcIp)
-        origMatch.setNetworkDst(dstIp)
-        origMatch.setNetworkProto(UDP.PROTOCOL_NUMBER)
-        origMatch.setNetworkTOS(tos)
-        origMatch.setNetworkTTL(ttl)
-        origMatch.setIpFragmentType(IPFragmentType.None)
-        origMatch.setSrcPort(srcPort)
-        origMatch.setDstPort(dstPort)
+        val keys = FlowKeys.fromEthernetPacket(outer)
+        origMatch.addKeys(keys)
         wcmatch.reset(origMatch)
         diffBaseMatch.reset(origMatch)
     }
@@ -149,8 +149,12 @@ trait FlowContext extends Clearable { this: PacketContext =>
         virtualFlowActions.add(Decap(vni))
         recircMatch = SimulationStashes.PooledMatches.get()
         recircMatch.reset(origMatch)
-        recircMatch.propagateSeenFieldsFrom(wcmatch)
-        // Reset the original match to the encapsulation headers
+        recircMatch.allFieldsSeen()
+
+        recircPayload = packet.getEthernet
+        packet.setEthernet(inner)
+
+        // Reset the original match to the inner packet headers
         origMatch.clear()
         val keys = FlowKeys.fromEthernetPacket(inner)
         origMatch.addKeys(keys)

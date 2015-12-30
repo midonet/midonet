@@ -465,6 +465,10 @@ public class FlowMatch {
         seenFields |= that.seenFields;
     }
 
+    public void allFieldsSeen() {
+        seenFields = usedFields;
+    }
+
     /**
      * @return the set of Fields that have been set in this instance.
      */
@@ -1016,14 +1020,8 @@ public class FlowMatch {
 
             case OpenVSwitch.FlowKey.Attr.IPv6:
                 FlowKeyIPv6 ipv6 = as(flowKey, FlowKeyIPv6.class);
-                int[] intSrc = ipv6.ipv6_src;
-                int[] intDst = ipv6.ipv6_dst;
-                setNetworkSrc(new IPv6Addr(
-                    (((long) intSrc[0]) << 32) | (intSrc[1] & 0xFFFFFFFFL),
-                    (((long) intSrc[2]) << 32) | (intSrc[3] & 0xFFFFFFFFL)));
-                setNetworkDst(new IPv6Addr(
-                    (((long) intDst[0]) << 32) | (intDst[1] & 0xFFFFFFFFL),
-                    (((long) intDst[2]) << 32) | (intDst[3] & 0xFFFFFFFFL)));
+                setNetworkSrc(IPv6Addr.fromInts(ipv6.ipv6_src));
+                setNetworkDst(IPv6Addr.fromInts(ipv6.ipv6_dst));
                 setNetworkProto(ipv6.ipv6_proto);
                 setIpFragmentType(IPFragmentType.fromByte(ipv6.ipv6_frag));
                 setNetworkTTL(ipv6.ipv6_hlimit);
