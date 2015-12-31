@@ -36,6 +36,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.containers.schedulers.ContainerScheduler.{UpState, ScheduledState, State}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.containers.Context
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.reactivex._
 

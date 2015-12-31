@@ -47,6 +47,7 @@ import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.containers.schedulers.ContainerScheduler._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.{ContainersConfig, containerLog}
+import org.midonet.containers.{Context, ObjectTracker}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc5}
 
 object ContainerScheduler {

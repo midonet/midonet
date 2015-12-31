@@ -28,6 +28,8 @@ import rx.Observable
 import rx.observers.TestObserver
 import rx.subjects.BehaviorSubject
 
+import org.midonet.containers.{Context, ObjectTracker, CollectionTracker}
+
 @RunWith(classOf[JUnitRunner])
 class CollectionTrackerTest extends FlatSpec with SchedulersTest with BeforeAndAfter
                             with Matchers with GivenWhenThen {

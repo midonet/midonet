@@ -17,30 +17,15 @@
 package org.midonet.cluster.services.containers
 
 import java.util.UUID
-import java.util.concurrent.ExecutorService
 
 import javax.annotation.Nullable
 
 import com.google.common.base.MoreObjects
-import com.typesafe.scalalogging.Logger
 
-import rx.Scheduler
-
-import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.State.{ContainerStatus, ContainerServiceStatus}
-import org.midonet.cluster.models.Topology.{ServiceContainer, ServiceContainerGroup}
+import org.midonet.cluster.models.Topology.ServiceContainer
 
 package object schedulers {
-
-    /**
-      * Wraps context variables such as the backend storage, executor and
-      * logger.
-      */
-    case class Context(store: Storage,
-                       stateStore: StateStorage,
-                       executor: ExecutorService,
-                       scheduler: Scheduler,
-                       log: Logger)
 
     trait SchedulerEvent
     case class ScheduleEvent(container: ServiceContainer,
