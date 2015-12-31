@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutorService
 
 import javax.inject.Named
 
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 
@@ -47,7 +46,6 @@ import org.midonet.containers.IPSecContainer.VpnHelperScriptPath
 import org.midonet.midolman.containers.{ContainerHandler, ContainerHealth, ContainerPort}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
-import org.midonet.util.concurrent._
 import org.midonet.util.functors._
 
 case class IPSecServiceDef(name: String,
@@ -222,17 +220,20 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
 
     override def logSource = "org.midonet.containers.ipsec"
 
-    private val timeout = vt.config.zookeeper.sessionTimeout seconds
     private val healthSubject = PublishSubject.create[ContainerHealth]
     private implicit val ec = ExecutionContext.fromExecutor(executor)
-    private val containerScheduler = Schedulers.from(executor)
+    private val scheduler = Schedulers.from(executor)
+    private val context = Context(vt.store, vt.stateStore, executor,
+                                  Schedulers.from(vt.vtExecutor), log)
 
     private var vpnServiceSubscription: Subscription = _
     private var config: IPSecConfig = null
 
     private case class VpnServiceUpdateEvent(port: Port,
                                              router: Router,
-                                             vpnService: VpnService)
+                                             routerPorts: List[Port],
+                                             vpnService: VpnService,
+                                             connections: List[IPSecSiteConnection])
 
     /**
       * @see [[ContainerHandler.create]]
@@ -384,20 +385,49 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             }))
             .distinctUntilChanged()
 
+        val routerPortsObservable = routerObservable.
+            flatMap(makeFunc1(r => {
+                val portIds = r.getPortIdsList
+                // The tracker for the ports in the router.
+                val routerPortTracker = new CollectionStoreTracker[Port](context)
+                routerPortTracker.watch(portIds.toSet)
+                routerPortTracker.observable
+                    .observeOn(context.scheduler)
+                    .map[List[Port]](makeFunc1(_.values.toList))
+
+            }))
+            .distinctUntilChanged()
+
+        val connectionsObservable = vpnServiceObservable.
+            flatMap(makeFunc1(vpn => {
+                val connectionsId = vpn.getIpsecSiteConnectionIdsList
+                // The tracker for the ipsec connections on the vpn service.
+                val connectionsTracker =
+                    new CollectionStoreTracker[IPSecSiteConnection](context)
+                connectionsTracker.watch(connectionsId.toSet)
+                connectionsTracker.observable
+                    .observeOn(context.scheduler)
+                    .map[List[IPSecSiteConnection]](makeFunc1(_.values.toList))
+            }))
+            .distinctUntilChanged()
+
        Observable
-           .combineLatest[Port, Router, VpnService, VpnServiceUpdateEvent](
+           .combineLatest[Port, Router, List[Port], VpnService,
+                          List[IPSecSiteConnection], VpnServiceUpdateEvent](
                 portObservable,
                 routerObservable,
+                routerPortsObservable,
                 vpnServiceObservable,
-                makeFunc3(buildEvent))
-           .distinctUntilChanged()
+                connectionsObservable,
+                makeFunc5(buildEvent))
            .onBackpressureBuffer()
-           .observeOn(containerScheduler)
+           .observeOn(scheduler)
     }
 
-    private def buildEvent(port: Port, router: Router, vpnService: VpnService):
+    private def buildEvent(port: Port, router: Router, routerPorts: List[Port],
+                           vpnService: VpnService, connections: List[IPSecSiteConnection]):
     VpnServiceUpdateEvent = {
-        VpnServiceUpdateEvent(port, router, vpnService)
+        VpnServiceUpdateEvent(port, router, routerPorts, vpnService, connections)
     }
 
     /*
@@ -408,16 +438,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     private def onVpnServiceUpdate(updateEvent: VpnServiceUpdateEvent,
                                    p: Promise[Option[String]]): Unit = {
         updateEvent match {
-            case VpnServiceUpdateEvent(port, router, vpn) =>
+            case VpnServiceUpdateEvent(port, router, routerPorts, vpn, connections) =>
                 try {
-                    // TODO: retrieve routerPorts and connections asynchronously
-                    val routerPorts = vt.store
-                        .getAll(classOf[Port], router.getPortIdsList)
-                        .await(timeout).toList
-                    val connections = vt.store
-                        .getAll(classOf[IPSecSiteConnection],
-                                vpn.getIpsecSiteConnectionIdsList)
-                        .await(timeout).toList
                     val externalAddress = vpn.getExternalIp.asIPv4Address
                     val externalMac = routerPorts
                         .find(_.getPortAddress.asIPv4Address == externalAddress)
@@ -471,3 +493,5 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         }
     }
 }
+
+

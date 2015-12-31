@@ -161,3 +161,17 @@ abstract class CollectionTracker[M <: ObjectTracker[ME], ME >: Null]
 
 }
 
+/**
+  * Generic implementation for a simple collection tracker that monitor
+  * object from the store without any special handling.
+  */
+class CollectionStoreTracker[T >: Null](context: Context)
+                               (implicit ct: ClassTag[T])
+    extends CollectionTracker[ObjectStoreTracker[T], T](context: Context) {
+
+    protected override def newMember(uuid: UUID): ObjectStoreTracker[T] = {
+        new ObjectStoreTracker[T](uuid, context)
+    }
+
+}
+
