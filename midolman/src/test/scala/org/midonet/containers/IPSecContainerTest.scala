@@ -774,7 +774,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             var vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
                 externalIp = Some(port.getPortAddress.asIPv4Address))
-            val conn = createIpsecSiteConnection(
+            var conn = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
                 localCidr = Some(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
@@ -880,16 +880,50 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-g ${port.getPortAddress.asIPv4Address} " +
                 s"-c ${conn.getName}"
 
+            When("The ipsec site connection is set to admin state DOWN")
+            vt.store.update(conn.toBuilder.setAdminStateUp(false).build())
+            conn = vt.store.get(classOf[IPSecSiteConnection], conn.getId).await()
+
+            Then("The container is torn down")
+            container.commands should have size 18
+
+            When("Resetting the connection to admin state UP")
+            vt.store.update(conn.toBuilder.setAdminStateUp(true).build())
+            conn = vt.store.get(classOf[IPSecSiteConnection], conn.getId).await()
+
+            Then("The container should call the setup commands")
+            container.commands should have size 22
+            container.commands(18) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns -n ${port.getInterfaceName}"
+            container.commands(19) shouldBe
+                s"/usr/lib/midolman/vpn-helper makens " +
+                s"-n ${port.getInterfaceName} " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-G ${port.getPortMac} " +
+                s"-l ${port.getPortAddress.asIPv4Address} " +
+                s"-i $namespaceSubnet " +
+                s"-m ${port.getPortMac}"
+            container.commands(20) shouldBe
+                s"/usr/lib/midolman/vpn-helper start_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(21) shouldBe
+                s"/usr/lib/midolman/vpn-helper init_conns " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-c ${conn.getName}"
+
             When("Calling the delete method of the container")
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 18
-            container.commands(16) shouldBe
+            container.commands should have size 24
+            container.commands(22) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
-            container.commands(17) shouldBe
+            container.commands(23) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
         }
@@ -994,7 +1028,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 externalIp = Some(port.getPortAddress.asIPv4Address))
             val ike = createIkePolicy()
             val ipsec = createIpsecPolicy()
-            val conn1 = createIpsecSiteConnection(
+            var conn1 = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
                 localCidr = Some(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
@@ -1061,19 +1095,90 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
-            container.commands(9) shouldBe
+            container.commands(9).startsWith(
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
+            container.commands(9).contains(s"-c ${conn1.getName}") shouldBe true
+            container.commands(9).contains(s"-c ${conn2.getName}") shouldBe true
+
+            When("The first ipsec connection is set to admin state DOWN")
+            vt.store.update(conn1.toBuilder.setAdminStateUp(false).build())
+            conn1 = vt.store.get(classOf[IPSecSiteConnection], conn1.getId).await()
+
+            Then("The container is torn down and setup with only one connection")
+            container.commands should have size 16
+            container.commands(10) shouldBe
+                s"/usr/lib/midolman/vpn-helper stop_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(11) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+            container.commands(12) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+            container.commands(13) shouldBe
+                s"/usr/lib/midolman/vpn-helper makens " +
+                s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
-                s"-c ${conn1.getName} " +
-                s"-c ${conn2.getName}"
+                s"-G ${port.getPortMac} " +
+                s"-l ${port.getPortAddress.asIPv4Address} " +
+                s"-i $namespaceSubnet " +
+                s"-m ${port.getPortMac}"
+            container.commands(14) shouldBe
+                s"/usr/lib/midolman/vpn-helper start_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(15).startsWith(
+                s"/usr/lib/midolman/vpn-helper init_conns " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
+            container.commands(15).contains(s"-c ${conn2.getName}") shouldBe true
+
+            When("Resetting the first ipsec connection to admin state UP")
+            vt.store.update(conn1.toBuilder.setAdminStateUp(true).build())
+            conn1 = vt.store.get(classOf[IPSecSiteConnection], conn1.getId).await()
+
+            Then("The container is torn down and setup with both connection")
+            container.commands should have size 22
+            container.commands(16) shouldBe
+                s"/usr/lib/midolman/vpn-helper stop_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(17) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+            container.commands(18) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+            container.commands(19) shouldBe
+                s"/usr/lib/midolman/vpn-helper makens " +
+                s"-n ${port.getInterfaceName} " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-G ${port.getPortMac} " +
+                s"-l ${port.getPortAddress.asIPv4Address} " +
+                s"-i $namespaceSubnet " +
+                s"-m ${port.getPortMac}"
+            container.commands(20) shouldBe
+                s"/usr/lib/midolman/vpn-helper start_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(21).startsWith(
+                s"/usr/lib/midolman/vpn-helper init_conns " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
+            container.commands(21).contains(s"-c ${conn1.getName}") shouldBe true
+            container.commands(21).contains(s"-c ${conn2.getName}") shouldBe true
 
             When("Calling the delete method of the container")
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 12
+            container.commands should have size 24
         }
 
         scenario("Container should fail if router has no external port") {
