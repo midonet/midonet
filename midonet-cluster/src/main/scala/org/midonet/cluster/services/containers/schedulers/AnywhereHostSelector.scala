@@ -30,6 +30,7 @@ import rx.{Observable, Subscriber, Subscription}
 
 import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.containers.{Context, CollectionTracker}
 import org.midonet.util.functors._
 
 /**

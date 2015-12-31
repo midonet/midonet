@@ -31,6 +31,7 @@ import rx.Observable.OnSubscribe
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.{ContainersConfig, containersLog}
+import org.midonet.containers.{Context, ObjectTracker}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /** This service is responsible for scheduling each [[ServiceContainer]]

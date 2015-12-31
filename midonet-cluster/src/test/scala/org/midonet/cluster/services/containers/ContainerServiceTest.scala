@@ -43,6 +43,7 @@ import org.midonet.cluster.services.containers.schedulers._
 import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.containers
 import org.midonet.containers.Container
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
@@ -100,7 +101,7 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
         protected override def newScheduler(): ServiceScheduler = {
             val executor = new SameThreadButAfterExecutorService
             val scheduler = Schedulers.from(executor)
-            val context = schedulers.Context(
+            val context = containers.Context(
                 backend.store, backend.stateStore, executor, scheduler,
                 Logger(LoggerFactory.getLogger("container-service-test")))
             events = PublishSubject.create[SchedulerEvent]
