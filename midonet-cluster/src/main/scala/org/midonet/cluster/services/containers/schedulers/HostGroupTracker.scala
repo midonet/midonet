@@ -24,6 +24,7 @@ import rx.Observable
 
 import org.midonet.cluster.models.Topology.HostGroup
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.containers.{Context, ObjectTracker, CollectionTracker}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc2}
 
 /** Processes notifications for the container service running at the hosts in

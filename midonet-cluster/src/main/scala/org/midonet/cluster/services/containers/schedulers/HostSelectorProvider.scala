@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.containers.schedulers
 
 import org.midonet.cluster.models.Topology.ServiceContainerGroup
+import org.midonet.containers.Context
 
 /**
   * Builds the correct type of [[HostSelector]] given a service container group.
