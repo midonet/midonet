@@ -122,7 +122,7 @@ class ObservablePathChildrenCacheTest extends Suite
             o.getOnCompletedEvents should have size 0
             o.getOnErrorEvents should have size 1
             o.getOnErrorEvents
-             .get(0).isInstanceOf[PathCacheDisconnectedException] shouldBe true
+             .get(0).isInstanceOf[PathCacheClosedException] shouldBe true
         }
     }
 
@@ -189,7 +189,7 @@ class ObservablePathChildrenCacheTest extends Suite
         ts.getOnNextEvents should have size nItems
         ts.getOnErrorEvents should have size 1
         assert(ts.getOnErrorEvents
-                 .get(0).isInstanceOf[PathCacheDisconnectedException])
+                 .get(0).isInstanceOf[PathCacheClosedException])
 
         // Review all the emitted observables and ensure that they are all
         // erroring
@@ -378,7 +378,7 @@ class ObservablePathChildrenCacheTest extends Suite
             subscribers.foreach { s =>
                 s.getOnErrorEvents should have size 1
                 s.getOnErrorEvents.get(0)
-                 .isInstanceOf[PathCacheDisconnectedException] shouldBe true
+                 .isInstanceOf[PathCacheClosedException] shouldBe true
             }
         }
 
