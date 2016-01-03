@@ -52,7 +52,7 @@ import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
-import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException}
+import org.midonet.cluster.util.{PathCacheClosedException, NodeObservable, NodeObservableClosedException}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeFunc1
@@ -480,6 +480,20 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         }
     }
 
+    /** This method recovers a class cache for the given class, updating the
+      * internal caches and metrics as appropriate.
+      */
+    private def recoverClassObservable[T](clazz: Class[T],
+                                          failedCache: ClassSubscriptionCache[T]) = {
+        makeFunc1[Throwable, Observable[Observable[T]]] {
+            case e: PathCacheClosedException =>
+                metrics.count(e)
+                classCaches.remove(clazz, failedCache)
+                observable(clazz)
+            case t: Throwable => Observable.error[Observable[T]](t)
+        }
+    }
+
     /** Produce the instance of [[T]] deserialized from the event.
       *
       * Metrics-aware.
@@ -660,7 +674,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         assertBuilt()
         assert(isRegistered(clazz))
 
-        classCaches.getOrElse(clazz, {
+        val cache = classCaches.getOrElse(clazz, {
             val onLastUnsubscribe: ClassSubscriptionCache[_] => Unit = c => {
                 classCaches.remove(clazz)
             }
@@ -669,7 +683,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                                                 metrics)
             classCaches.putIfAbsent(clazz, cc).getOrElse(cc)
         }).asInstanceOf[ClassSubscriptionCache[T]]
-          .observable
+        cache.observable.onErrorResumeNext(recoverClassObservable(clazz, cache))
     }
 
     // We should have public subscription methods, but we don't currently

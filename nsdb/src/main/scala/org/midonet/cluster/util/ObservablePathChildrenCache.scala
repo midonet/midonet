@@ -317,7 +317,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
       * loss. The parent and child observables will emit a
       * PathCacheDisconnectedException signalling that the observables are
       * no longer listening ZK updates. */
-    def close(): Unit = failWith(new PathCacheDisconnectedException())
+    def close(): Unit = failWith(new PathCacheClosedException())
 
     /** Expose the ChildData of the children under the given absolute path. */
     def child(path: String): ChildData = cache.getCurrentData(path)
@@ -382,6 +382,9 @@ class ObservablePathChildrenCache(onSubscribe: OnSubscribeToPathChildren)
 /** Signals that the parent node has been deleted */
 class ParentDeletedException(path: String)
     extends RuntimeException(s"Parent $path removed")
+
+/** Signals that the underlying cache connection was closed. */
+class PathCacheClosedException extends RuntimeException
 
 /** Signals that the underlying cache has lost the connection to ZK. */
 class PathCacheDisconnectedException extends RuntimeException
