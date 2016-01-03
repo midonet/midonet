@@ -112,43 +112,25 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
  *
  * @param clazz Class to deserialize to.
  * @param path Path of parent node to watch.
- * @param onLastUnsubscribe A function that is called when the last subscriber
- *                          unsubscribes. This is used to pass the ids of caches
- *                          to garbage collect to ZOOM.
  */
 private[storage]
 class ClassSubscriptionCache[T](val clazz: Class[T],
                                 path: String,
                                 curator: CuratorFramework,
-                                onLastUnsubscribe:
-                                    (ClassSubscriptionCache[_]) => Unit,
-                                zoomMerics: ZoomMetrics) {
+                                zoomMetrics: ZoomMetrics) {
 
     private val pathCache = ObservablePathChildrenCache.create(curator, path,
-                                                               zoomMerics)
-    private val refCount = new AtomicInteger()
-
-    private val decSubscribers = makeAction0 (
-        if (refCount.decrementAndGet() == 0) {
-            pathCache.close()
-            onLastUnsubscribe(ClassSubscriptionCache.this)
-        }
-    )
-    private val incSubscribers = makeAction0(refCount.incrementAndGet())
-
+                                                               zoomMetrics)
     private val deserializer = makeFunc1 {
         obs: Observable[ChildData] =>
             obs.map[T](DeserializerCache.deserializer(clazz))
     }
 
     val observable = pathCache.map[Observable[T]](deserializer)
-                              .doOnSubscribe(incSubscribers)
-                              .doOnUnsubscribe(decSubscribers)
-
-    def subscriptionCount = refCount.get
 
     def close() = pathCache.close()
 
+    def isStarted = pathCache.isStarted
 }
 
 /**
