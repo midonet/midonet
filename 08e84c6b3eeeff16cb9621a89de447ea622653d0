@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_1849c7d0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T18:28:42Z",
+      "side": 1,
+      "message": "nit: moving as a plain val into weightSubscriber seems cleaner",
+      "range": {
+        "startLine": 117,
+        "startChar": 4,
+        "endLine": 117,
+        "endChar": 43
+      },
+      "revId": "08e84c6b3eeeff16cb9621a89de447ea622653d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f83b1336",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T18:28:42Z",
+      "side": 1,
+      "message": "should we selfHealing this one? My main concern is that we could get in a situation where the weight future fails because we fail to can\u0027t read the host\u0027s.  Although ZOOM should be taking care of establishing a connection first, so it doesn\u0027t seem a huge problem? I\u0027ll not -1 for this, if there is anything to tweak we can do in a later patch.",
+      "range": {
+        "startLine": 180,
+        "startChar": 12,
+        "endLine": 180,
+        "endChar": 54
+      },
+      "revId": "08e84c6b3eeeff16cb9621a89de447ea622653d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
