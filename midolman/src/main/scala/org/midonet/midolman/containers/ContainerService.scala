@@ -22,7 +22,7 @@ import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 import scala.async.Async.async
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Promise, ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
@@ -44,7 +44,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.ContainerMapper.{Changed, Created, Deleted, Notification}
 import org.midonet.midolman.topology.{ContainerMapper, DeviceMapper, VirtualTopology}
 import org.midonet.util.concurrent._
-import org.midonet.util.functors.makeAction0
+import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.util.reactivex._
 
 object ContainerService {
@@ -105,8 +105,8 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private val scheduler = Schedulers.from(executor)
     private implicit val ec = ExecutionContext.fromExecutor(executor)
 
-    private val mapper = new ContainerMapper(hostId, vt)
-    private val observable = Observable.create(mapper)
+    private val containerMapper = new ContainerMapper(hostId, vt)
+    private val containerObservable = Observable.create(containerMapper)
 
     private val provider =
         new ContainerHandlerProvider(reflections, vt, executor, log)
@@ -114,6 +114,31 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     // The handlers map is concurrent because reads may be performed from
     // the handler notification thread.
     private val handlers = new ConcurrentHashMap[UUID, Handler]
+
+    private val weightReady = Promise[Unit]
+    private val weightSubscriber = new Subscriber[Int] {
+        override def onNext(weight: Int): Unit = {
+            try {
+                setServiceStatus(weight)
+                weightReady.trySuccess(())
+            } catch {
+                case NonFatal(e) =>
+                    log.warn("Failed to update the container service status", e)
+                    weightReady tryFailure e
+            }
+        }
+
+        override def onError(e: Throwable): Unit = {
+            log.warn("Unexpected error on the container weight update stream", e)
+            weightReady tryFailure e
+        }
+
+        override def onCompleted(): Unit = {
+            log.warn("Container weight update stream completed unexpectedly")
+            weightReady tryFailure new IllegalStateException(
+                "Container weight update stream has completed")
+        }
+    }
 
     private val belt = new ConveyorBelt(Throwable => {})
 
@@ -147,30 +172,37 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         log info s"Starting Containers service for host $hostId"
 
         try {
+            // Subscribe to the current host to update the host status with
+            // the current weight.
+            vt.store.observable(classOf[Host], hostId)
+                .map[Int](makeFunc1(_.getContainerWeight))
+                .distinctUntilChanged()
+                .onBackpressureBuffer(NotificationBufferSize, makeAction0 {
+                    log error "Notification buffer overflow"
+                })
+                .observeOn(scheduler)
+                .subscribe(weightSubscriber)
+
             // Subscribe to the observable stream of the current host. The
             // subscription is done on the containers executor with a
             // back-pressure buffer to ensure that all notifications are
             // cached if the container executor is busy for a longer interval.
-            observable
+            containerObservable
                 .onBackpressureBuffer(NotificationBufferSize, makeAction0 {
                     log error "Notification buffer overflow"
                 })
                 .observeOn(scheduler)
                 .subscribe(containerSubscriber)
 
-            // Report the status of the containers service at this host.
-            val serviceStatus = ContainerServiceStatus.newBuilder()
-                                                      .setWeight(1)
-                                                      .build()
-            vt.stateStore.addValue(classOf[Host], hostId, ContainerKey,
-                                   serviceStatus.toString)
-                         .await(StorageTimeout)
+            // Wait for the status of the containers service at this host.
+            weightReady.future.await(StorageTimeout)
 
             notifyStarted()
         } catch {
             case NonFatal(e) =>
                 log.warn("Failed to start the Containers service", e)
                 // Unsubscribe from all notifications.
+                weightSubscriber.unsubscribe()
                 containerSubscriber.unsubscribe()
                 notifyFailed(e)
         }
@@ -178,24 +210,15 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
     override protected def doStop(): Unit = {
         log info "Stopping Containers service: deleting all containers"
-        try {
-            // Report the status of the containers service at this host.
-            vt.stateStore.removeValue(classOf[Host], hostId, ContainerKey,
-                                      value = null)
-                         .await()
-
-        } catch {
-            case NonFatal(e) =>
-                log.warn("Failed to update the status of the container service", e)
-                notifyFailed(e)
-        }
+        clearServiceStatus()
 
         try {
             // Unsubscribe from all notifications.
+            weightSubscriber.unsubscribe()
             containerSubscriber.unsubscribe()
 
             // Complete the mapper notification stream.
-            mapper.complete().await(vt.config.containers.shutdownGraceTime seconds)
+            containerMapper.complete().await(vt.config.containers.shutdownGraceTime seconds)
 
             // Shutdown gracefully all containers
             val futures = for (handler <- handlers.values().asScala) yield async {
@@ -237,6 +260,33 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                                      errorStatus: Boolean, message: String): Unit = {
         log.error(message, t)
         if (errorStatus) setStatus(cp, t)
+    }
+
+    @throws[Throwable]
+    private def setServiceStatus(weight: Int): Unit = {
+        log debug s"Container service is running with weight $weight"
+        val serviceStatus = ContainerServiceStatus.newBuilder()
+            .setWeight(weight)
+            .build()
+        vt.stateStore.addValue(classOf[Host], hostId, ContainerKey,
+                               serviceStatus.toString)
+                     .await(StorageTimeout)
+    }
+
+    /** Clears the container service status for this host.
+      */
+    private def clearServiceStatus(): Unit = {
+        try {
+            // Report the status of the containers service at this host.
+            vt.stateStore.removeValue(classOf[Host], hostId, ContainerKey,
+                                      value = null)
+                         .await(StorageTimeout)
+        } catch {
+            case NonFatal(e) =>
+                log.warn("Failed to update the status of the container service", e)
+                notifyFailed(e)
+        }
+
     }
 
     @throws[Throwable]
