@@ -170,7 +170,7 @@ class JmxZoomMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
                           })
         registry.register(metricPrefix + "TypeObservableList",
                           gauge { () =>
-                              val classes = zoom.existingClassObservables
+                              val classes = zoom.startedClassObservables
                               classes.foldLeft(
                                   new StringBuilder)((builder, clazz) => {
                                     builder.append(clazz.getName + "\n")

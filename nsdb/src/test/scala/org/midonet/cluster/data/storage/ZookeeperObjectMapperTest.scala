@@ -22,11 +22,13 @@ import scala.concurrent.duration._
 import org.junit.runner.RunWith
 import org.scalatest.GivenWhenThen
 import org.scalatest.junit.JUnitRunner
+
+import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.StorageTestClasses._
-import org.midonet.cluster.util.{MidonetBackendTest, ClassAwaitableObserver, PathCacheDisconnectedException}
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.cluster.util.MidonetBackendTest
+import org.midonet.util.reactivex.{AwaitableObserver, TestAwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
@@ -71,8 +73,8 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             When("The observer unsubscribes")
             sub.unsubscribe()
 
-            Then("The storage does not return the same observable instance")
-            storage.observable(classOf[PojoBridge], bridge.id) ne obs shouldBe true
+            Then("The storage returns the same observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
 
             When("The observer resubscribes")
             storage.observable(classOf[PojoBridge], bridge.id)
@@ -115,8 +117,8 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             When("The first subscription unsubscribes")
             sub1.unsubscribe()
 
-            Then("The storage does not return the same observable instance")
-            storage.observable(classOf[PojoBridge], bridge.id) ne obs shouldBe true
+            Then("The storage returns the same observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
 
             When("The observer resubscribes")
             storage.observable(classOf[PojoBridge], bridge.id)
@@ -126,23 +128,85 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             observer.awaitOnNext(3, timeout)
             observer.getOnNextEvents should have size 3
 
-            And("The storage does not return the same observable instance")
-            storage.observable(classOf[PojoBridge], bridge.id) ne obs shouldBe true
+            And("The storage returns the same observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
         }
 
-        scenario("Test subscribe all with GC") {
-            val obs = new ClassAwaitableObserver[PojoBridge](0)
-            val sub = storage.observable(classOf[PojoBridge]).subscribe(obs)
+        scenario("Test class observable recovers after close") {
+            Given("A bridge")
+            val bridge = createPojoBridge()
+            storage.create(bridge)
 
-            val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
-            zoom.subscriptionCount(classOf[PojoBridge]) shouldBe Option(1)
+            And("An observer")
+            val observer = new TestAwaitableObserver[Observable[PojoBridge]]
+
+            And("A storage observable")
+            val obs = storage.observable(classOf[PojoBridge])
+
+            When("The observer subscribes to the observable")
+            val sub = obs.subscribe(observer)
+
+            Then("The observer receives the current bridge observable")
+            observer.awaitOnNext(1, timeout)
+            observer.getOnNextEvents should have size 1
+
+            When("The observer unsubscribes")
             sub.unsubscribe()
-            zoom.subscriptionCount(classOf[PojoBridge]) shouldBe None
 
-            obs.getOnCompletedEvents should have size 0
-            obs.getOnErrorEvents should have size 1
-            assert(obs.getOnErrorEvents.get(0)
-                       .isInstanceOf[PathCacheDisconnectedException])
+            Then("The storage returns the same observable instance")
+            storage.observable(classOf[PojoBridge]) eq obs shouldBe true
+
+            When("The observer resubscribes")
+            storage.observable(classOf[PojoBridge]).subscribe(observer)
+
+            Then("The observer receives the current bridge observable")
+            observer.awaitOnNext(2, timeout)
+            observer.getOnNextEvents should have size 2
+
+            And("The storage returns a different observable instance")
+            storage.observable(classOf[PojoBridge]) ne obs shouldBe true
+        }
+
+        scenario("Test class observable is reused by concurrent subscribers") {
+            Given("A bridge")
+            val bridge = createPojoBridge()
+            storage.create(bridge)
+
+            And("An observer")
+            val observer = new TestAwaitableObserver[Observable[PojoBridge]]
+
+            And("A storage observable")
+            val obs = storage.observable(classOf[PojoBridge])
+
+            When("The observer subscribes to the observable")
+            val sub1 = obs.subscribe(observer)
+
+            Then("The observer receives the current bridge observable")
+            observer.awaitOnNext(1, timeout)
+            observer.getOnNextEvents should have size 1
+
+            When("The observer subscribes a second time to the observable")
+            val sub2 = obs.subscribe(observer)
+
+            Then("The observer receives the current bridge observable")
+            observer.awaitOnNext(2, timeout)
+            observer.getOnNextEvents should have size 2
+
+            When("The first subscription unsubscribes")
+            sub1.unsubscribe()
+
+            Then("The storage returns the same observable instance")
+            storage.observable(classOf[PojoBridge]) eq obs shouldBe true
+
+            When("The observer resubscribes")
+            storage.observable(classOf[PojoBridge]).subscribe(observer)
+
+            Then("The observer receives the current bridge observable")
+            observer.awaitOnNext(3, timeout)
+            observer.getOnNextEvents should have size 3
+
+            And("The storage returns the same observable instance")
+            storage.observable(classOf[PojoBridge]) eq obs shouldBe true
         }
     }
 

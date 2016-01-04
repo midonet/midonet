@@ -201,8 +201,8 @@ class ZoomMetricsTest extends FeatureSpec
             zoom.classObservableCount shouldBe 1
 
             And("The list of class observers is correct")
-            zoom.existingClassObservables should contain theSameElementsAs
-                Set(classOf[PojoBridge])
+            zoom.startedClassObservables should contain theSameElementsAs
+            Set(classOf[PojoBridge])
 
             When("A 2nd observer subscribes to the bridge")
             val observer2 = new TestAwaitableObserver[Observable[PojoBridge]]
@@ -212,8 +212,8 @@ class ZoomMetricsTest extends FeatureSpec
             zoom.classObservableCount shouldBe 1
 
             And("The list of class observers is correct")
-            zoom.existingClassObservables should contain theSameElementsAs
-                Set(classOf[PojoBridge])
+            zoom.startedClassObservables should contain theSameElementsAs
+            Set(classOf[PojoBridge])
 
             When("We create a 2nd bridge")
             val bridge2 = createPojoBridge()
@@ -226,8 +226,8 @@ class ZoomMetricsTest extends FeatureSpec
             zoom.classObservableCount shouldBe 1
 
             And("The list of class observers is correct")
-            zoom.existingClassObservables should contain theSameElementsAs
-                Set(classOf[PojoBridge])
+            zoom.startedClassObservables should contain theSameElementsAs
+            Set(classOf[PojoBridge])
 
             When("We create a router")
             val router = createPojoRouter()
@@ -238,15 +238,15 @@ class ZoomMetricsTest extends FeatureSpec
             val obs2 = zoom.observable(classOf[PojoRouter])
             val sub3 = obs2.subscribe(observer3)
 
-            Then("We get nofitied of the router observable")
+            Then("We get notified of the router observable")
             observer3.awaitOnNext(1, timeout) shouldBe true
 
             And("The number of class watchers is 2")
             zoom.classObservableCount shouldBe 2
 
             And("The list of class observers is correct")
-            zoom.existingClassObservables should contain theSameElementsAs
-                Set(classOf[PojoBridge], classOf[PojoRouter])
+            zoom.startedClassObservables should contain theSameElementsAs
+            Set(classOf[PojoBridge], classOf[PojoRouter])
 
             And("When the 3 subscriber unsubscribes")
             sub3.unsubscribe()
@@ -255,7 +255,9 @@ class ZoomMetricsTest extends FeatureSpec
             zoom.classObservableCount shouldBe 1
 
             And("The list of class observers is correct")
-            zoom.existingClassObservables should contain theSameElementsAs
+            zoom.allClassObservables should contain theSameElementsAs
+                Set(classOf[PojoBridge], classOf[PojoRouter])
+            zoom.startedClassObservables should contain theSameElementsAs
                 Set(classOf[PojoBridge])
 
             And("When the two remaining subscribers unsubscribe")
@@ -266,7 +268,7 @@ class ZoomMetricsTest extends FeatureSpec
             zoom.classObservableCount shouldBe 0
 
             And("The list of subscribers is empty")
-            zoom.existingClassObservables shouldBe Set.empty
+            zoom.startedClassObservables shouldBe Set.empty
         }
 
         scenario("Triggered object watchers") {

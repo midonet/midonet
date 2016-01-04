@@ -52,7 +52,7 @@ import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
-import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException}
+import org.midonet.cluster.util.{PathCacheClosedException, NodeObservable, NodeObservableClosedException}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeFunc1
@@ -126,8 +126,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     private implicit val executionContext = fromExecutorService(executor)
 
     private val simpleNameToClass = new mutable.HashMap[String, Class[_]]()
-    private val nodeObservables = new TrieMap[Key, NodeObservable]
-    private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
+    private val objectObservables = new TrieMap[Key, ObjectObservable]
+    private val classObservables = new TrieMap[Class[_], ClassObservable]
 
     /* Functions and variables to expose metrics using JMX in class
        ZoomMetrics. */
@@ -140,23 +140,25 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
            .addListener(metrics.zkConnectionStateListener())
 
     private[storage] def objectObservableCount: Int =
-        nodeObservables.values.count(_.isStarted)
-    private[storage] def classObservableCount: Int = classCaches.size
-
+        objectObservables.values.count(_.node.isStarted)
+    private[storage] def classObservableCount: Int =
+        classObservables.values.count(_.cache.isStarted)
     private[storage] def objectObservableCounters: Map[Class[_], Int] = {
         val map = new mutable.HashMap[Class[_], Int]
-        val it = nodeObservables.iterator
+        val it = objectObservables.iterator
         while (it.hasNext) {
             val (key, obs) = it.next()
-            if (obs.isStarted) {
+            if (obs.node.isStarted) {
                 map(key.clazz) = map.getOrElse(key.clazz, 0) + 1
             }
         }
         map.toMap
     }
 
-    private[storage] def existingClassObservables: Set[Class[_]] =
-        classCaches.keySet.toSet
+    private[storage] def allClassObservables: Set[Class[_]] =
+        classObservables.keySet.toSet
+    private[storage] def startedClassObservables: Set[Class[_]] =
+        classObservables.filter(_._2.cache.isStarted).keySet.toSet
 
     private[storage] def zkConnectionState: String =
         curator.getZookeeperClient.getZooKeeper.getState.toString
@@ -464,22 +466,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         }
     }
 
-    /** This method recovers a node observable for the given key, updating
-      * internal caches and metrics as appropriate.
-      */
-    private def recoverNodeObservable[T](k: Key, failedObs: NodeObservable) = {
-        makeFunc1[Throwable, Observable[T]] {
-            case e: NodeObservableClosedException =>
-                metrics.count(e)
-                nodeObservables.remove(k, failedObs)
-                observable[T](k.clazz.asInstanceOf[Class[T]], k.id)
-            case e: NoNodeException =>
-                metrics.count(e)
-                Observable.error[T](new NotFoundException(k.clazz, k.id))
-            case t: Throwable => Observable.error[T](t)
-        }
-    }
-
     /** Produce the instance of [[T]] deserialized from the event.
       *
       * Metrics-aware.
@@ -636,17 +622,28 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         val key = Key(clazz, getIdString(clazz, id))
         val path = objectPath(clazz, id)
 
-        val obs = nodeObservables.getOrElse(key, {
-            val nodeObservable = NodeObservable.create(curator, path,
-                                                       completeOnDelete = true,
-                                                       metrics)
-            nodeObservables.putIfAbsent(key, nodeObservable)
-                           .getOrElse(nodeObservable)
-        })
-        obs.map[Notification[T]](deserializerOf(clazz))
-           .dematerialize().asInstanceOf[Observable[T]]
-           .onErrorResumeNext(recoverNodeObservable(key, obs))
-           .asInstanceOf[Observable[T]]
+        objectObservables.getOrElse(key, {
+            val nodeObs = NodeObservable.create(curator, path,
+                                                completeOnDelete = true,
+                                                metrics)
+            val objObs = nodeObs
+                .map[Notification[T]](deserializerOf(clazz))
+                .dematerialize().asInstanceOf[Observable[T]]
+                .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                    case e: NodeObservableClosedException =>
+                        metrics.count(e)
+                        objectObservables.remove(key, ObjectObservable(nodeObs))
+                        observable(clazz, id)
+                    case e: NoNodeException =>
+                        metrics.count(e)
+                        Observable.error(new NotFoundException(clazz, id))
+                    case e: Throwable =>
+                        metrics.count(e)
+                        Observable.error(e)
+                }))
+            val entry = ObjectObservable(nodeObs, objObs)
+            objectObservables.putIfAbsent(key, entry).getOrElse(entry)
+        }).obj.asInstanceOf[Observable[T]]
     }
 
     /**
@@ -660,16 +657,22 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         assertBuilt()
         assert(isRegistered(clazz))
 
-        classCaches.getOrElse(clazz, {
-            val onLastUnsubscribe: ClassSubscriptionCache[_] => Unit = c => {
-                classCaches.remove(clazz)
-            }
-            val cc = new ClassSubscriptionCache(clazz, classPath(clazz),
-                                                curator, onLastUnsubscribe,
-                                                metrics)
-            classCaches.putIfAbsent(clazz, cc).getOrElse(cc)
-        }).asInstanceOf[ClassSubscriptionCache[T]]
-          .observable
+        classObservables.getOrElse(clazz, {
+            val cache = new ClassSubscriptionCache(clazz, classPath(clazz),
+                                                   curator, metrics)
+            val obs = cache.observable
+                .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                    case e: PathCacheClosedException =>
+                        metrics.count(e)
+                        classObservables.remove(clazz, ClassObservable(cache))
+                        observable(clazz)
+                    case e: Throwable =>
+                        metrics.count(e)
+                        Observable.error(e)
+                }))
+            val entry = ClassObservable(cache, obs)
+            classObservables.putIfAbsent(clazz, entry).getOrElse(entry)
+        }).clazz.asInstanceOf[Observable[Observable[T]]]
     }
 
     // We should have public subscription methods, but we don't currently
@@ -683,15 +686,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     @VisibleForTesting
     protected[storage] def getNodeChildren(path: String): Seq[String] = {
         curator.getChildren.forPath(path).asScala
-    }
-
-    /**
-     * @return The number of subscriptions to the given class. If the
-     *         corresponding entry does not exist, None is returned.
-     */
-    @VisibleForTesting
-    protected[storage] def subscriptionCount[T](clazz: Class[T]): Option[Int] = {
-        classCaches.get(clazz).map(_.subscriptionCount)
     }
 
     @inline
@@ -718,7 +712,7 @@ object ZookeeperObjectMapper {
         def idOf(obj: Obj) = obj.asInstanceOf[Message].getField(idFieldDesc)
     }
 
-    private [storage] final class JavaClassInfo(clazz: Class[_])
+    private[storage] final class JavaClassInfo(clazz: Class[_])
         extends ClassInfo(clazz) {
 
         val idField = clazz.getDeclaredField(FieldBinding.ID_FIELD)
@@ -726,6 +720,24 @@ object ZookeeperObjectMapper {
         idField.setAccessible(true)
 
         def idOf(obj: Obj) = idField.get(obj)
+    }
+
+    private[storage] case class ObjectObservable(node: NodeObservable,
+                                                 obj: Observable[_] = null) {
+        override def equals(other: Any): Boolean = other match {
+            case o: ObjectObservable => o.node eq node
+            case _ => false
+        }
+        override def hashCode: Int = node.hashCode
+    }
+
+    private[storage] case class ClassObservable(cache: ClassSubscriptionCache[_],
+                                                clazz: Observable[_] = null) {
+        override def equals(other: Any): Boolean = other match {
+            case o: ClassObservable => o.cache eq cache
+            case _ => false
+        }
+        override def hashCode: Int = cache.hashCode
     }
 
     protected val log = LoggerFactory.getLogger("org.midonet.nsdb")
