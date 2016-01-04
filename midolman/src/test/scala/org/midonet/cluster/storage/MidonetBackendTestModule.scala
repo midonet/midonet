@@ -17,6 +17,8 @@ package org.midonet.cluster.storage
 
 import com.typesafe.config.Config
 import org.apache.curator.framework.CuratorFramework
+import org.mockito.Mockito
+import org.mockito.Mockito._
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.storage.{StateTableStorage, InMemoryStorage, StateStorage, Storage}
@@ -35,21 +37,19 @@ object MidonetBackendTest  {
 class MidonetTestBackend extends MidonetBackend {
 
     private val inMemoryZoom: InMemoryStorage = new InMemoryStorage()
+    inMemoryZoom.registerTable(classOf[Topology.Network], classOf[IPv4Addr],
+                               classOf[MAC], MidonetBackend.Ip4MacTable,
+                               classOf[Ip4MacStateTable])
+    inMemoryZoom.registerTable(classOf[Topology.Port], classOf[MAC],
+                               classOf[IPv4Addr], MidonetBackend.PeeringTable,
+                               classOf[MacIp4StateTable])
 
-    {
-        inMemoryZoom.registerTable(classOf[Topology.Network], classOf[IPv4Addr],
-            classOf[MAC], MidonetBackend.Ip4MacTable,
-            classOf[Ip4MacStateTable])
-        inMemoryZoom.registerTable(classOf[Topology.Port], classOf[MAC],
-            classOf[IPv4Addr], MidonetBackend.PeeringTable,
-            classOf[MacIp4StateTable])
-    }
-
+    private val mockCurator: CuratorFramework = mock(classOf[CuratorFramework])
 
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
     override def stateTableStore: StateTableStorage = inMemoryZoom
-    override def curator: CuratorFramework = null
+    override def curator: CuratorFramework = mockCurator
     override def reactor: Reactor = null
     override def connection: ZkConnection = null
     override def connectionWatcher: ZkConnectionAwareWatcher = null
@@ -70,7 +70,9 @@ object MidonetBackendTestModule {
 class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
     extends MidonetBackendModule(new MidonetBackendConfig(cfg)) {
 
-    override protected def bindCuratorFramework() = null
+    override protected def bindCuratorFramework() = {
+        mock(classOf[CuratorFramework])
+    }
 
     override protected  def backend(curatorFramework: CuratorFramework) =
         new MidonetTestBackend

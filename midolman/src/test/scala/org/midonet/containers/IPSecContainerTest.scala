@@ -1399,7 +1399,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainer(vt, null)
 
             And("A container port for the VPN service")
             val cp = ContainerPort(portId = port.getId.asJava,
