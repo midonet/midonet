@@ -262,7 +262,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
 
         val totalWeight = hosts.foldLeft(0L)((seed, host) =>
                                                 seed + host._2.status.getWeight)
-        val randomWeight = random.nextLong() % totalWeight
+        val randomWeight = Math.abs(random.nextLong()) % totalWeight
         var sumWeight = 0L
         var selectedId: UUID = null
 
