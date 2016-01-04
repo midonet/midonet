@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_98e777e4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T18:11:10Z",
+      "side": 1,
+      "message": "isConnected?",
+      "range": {
+        "startLine": 393,
+        "startChar": 45,
+        "endLine": 393,
+        "endChar": 63
+      },
+      "revId": "5bd9cda29215aec0d6ec3609636fafe9f715d4d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d8d00ffa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T18:11:10Z",
+      "side": 1,
+      "message": "nit: object?",
+      "range": {
+        "startLine": 402,
+        "startChar": 6,
+        "endLine": 402,
+        "endChar": 30
+      },
+      "revId": "5bd9cda29215aec0d6ec3609636fafe9f715d4d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
