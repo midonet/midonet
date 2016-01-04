@@ -22,6 +22,30 @@
       "revId": "7a8341feab277e6c2352964c5ff33a449dc7de6b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_1be2a49f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T11:36:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_a0408357",
+      "range": {
+        "startLine": 123,
+        "startChar": 8,
+        "endLine": 124,
+        "endChar": 35
+      },
+      "revId": "7a8341feab277e6c2352964c5ff33a449dc7de6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
