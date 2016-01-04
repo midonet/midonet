@@ -17,6 +17,7 @@
 package org.midonet.containers
 
 import java.io.File
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 
@@ -27,6 +28,7 @@ import scala.concurrent.duration._
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
+import com.google.common.hash.Hashing
 import com.google.inject.Inject
 
 import org.apache.commons.io.FileUtils
@@ -55,6 +57,12 @@ case class IPSecServiceDef(name: String,
                            namespaceGatewayIp: IPv4Addr,
                            namespaceGatewayMac: String)
 
+object IPSecConfig {
+    val nameHash = Hashing.murmur3_32()
+    def sanitizeName(name: String): String =
+        name.replaceAll("[^\\w]", "_") + nameHash.hashString(name, UTF_8).toString
+}
+
 /**
   * Represents a complete configuration of a VPN service, including all of the
   * individual connections. This class contains the functions necessary to
@@ -63,6 +71,7 @@ case class IPSecServiceDef(name: String,
 case class IPSecConfig(script: String,
                        ipsecService: IPSecServiceDef,
                        connections: Seq[IPSecSiteConnection]) {
+    import IPSecConfig._
 
     def getSecretsFileContents = {
         val contents = new StringBuilder
@@ -135,7 +144,7 @@ case class IPSecConfig(script: String,
                |""".stripMargin
         for (c <- connections if !c.hasAdminStateUp || c.getAdminStateUp) {
             contents append
-                s"""conn ${c.getName}
+                s"""conn ${sanitizeName(c.getName)}
                    |    leftnexthop=%defaultroute
                    |    rightnexthop=%defaultroute
                    |    left=${ipsecService.localEndpointIp}
@@ -180,7 +189,7 @@ case class IPSecConfig(script: String,
                                     s"-n ${ipsecService.name} " +
                                     s"-p ${ipsecService.filepath} " +
                                     s"-g ${ipsecService.namespaceGatewayIp}")
-        connections foreach (c => cmd append s" -c ${c.getName}")
+        connections foreach (c => cmd append s" -c ${sanitizeName(c.getName)}")
         cmd.toString
     }
 
