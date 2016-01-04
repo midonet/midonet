@@ -80,7 +80,7 @@ project.ext {
         metrics: ["io.dropwizard.metrics:metrics-core:3.1.0",
                  "io.dropwizard.metrics:metrics-ganglia:3.1.0"],
         mockit: "org.jmockit:jmockit:1.12",
-        rx: "io.reactivex:rxjava:1.0.14",
+        rx: "io.reactivex:rxjava:1.0.16",
         jackson_annotations: "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}",
         jackson_core: "com.fasterxml.jackson.core:jackson-core:${versions.jackson}",
         jackson_databind: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}",
