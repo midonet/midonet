@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_fbfb1045",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T11:42:24Z",
+      "side": 1,
+      "message": "not needed, use routerPortTracker.isReady",
+      "range": {
+        "startLine": 383,
+        "startChar": 0,
+        "endLine": 383,
+        "endChar": 40
+      },
+      "revId": "0f77d932824b6abfe235ea03b6de5f0a52a62f14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5b9a5c15",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 412,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T11:42:24Z",
+      "side": 1,
+      "message": "collectionTracker already takes care of this.",
+      "range": {
+        "startLine": 412,
+        "startChar": 32,
+        "endLine": 412,
+        "endChar": 45
+      },
+      "revId": "0f77d932824b6abfe235ea03b6de5f0a52a62f14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3b95a8e4",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T11:42:24Z",
+      "side": 1,
+      "message": "not needed, use connetionsTracker.isReady",
+      "range": {
+        "startLine": 413,
+        "startChar": 0,
+        "endLine": 413,
+        "endChar": 56
+      },
+      "revId": "0f77d932824b6abfe235ea03b6de5f0a52a62f14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_bb76f8d6",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T11:42:24Z",
+      "side": 1,
+      "message": "seems to me, that vpnService connectionsTracker.isReady will only ever be true when vpnServiceReady is true, so vpnServiceReady isn\u0027t needed.",
+      "range": {
+        "startLine": 416,
+        "startChar": 28,
+        "endLine": 416,
+        "endChar": 43
+      },
+      "revId": "0f77d932824b6abfe235ea03b6de5f0a52a62f14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_fba95025",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T11:42:24Z",
+      "side": 1,
+      "message": "I\u0027d declare this up with the tracker.\n\nval routerPortTracker \u003d new CollectionStoreTracker[Port](context)\nval routerPortObservable \u003d routerPortTracker.observable.map(makeFunc1 { ports \u003d\u003e\n                    log.debug(s\"RouterPorts updated ${ports.keys}\")\n                    routerPortsReady \u003d true\n                    ports.values.toList\n                })\n\nThen just pass the observable in here.",
+      "range": {
+        "startLine": 424,
+        "startChar": 33,
+        "endLine": 428,
+        "endChar": 19
+      },
+      "revId": "0f77d932824b6abfe235ea03b6de5f0a52a62f14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_1ba70451",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T11:42:24Z",
+      "side": 1,
+      "message": "likewise.",
+      "range": {
+        "startLine": 429,
+        "startChar": 15,
+        "endLine": 433,
+        "endChar": 19
+      },
+      "revId": "0f77d932824b6abfe235ea03b6de5f0a52a62f14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3b63e81b",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T11:42:24Z",
+      "side": 1,
+      "message": "onBackpressureLatest makes more sense.",
+      "range": {
+        "startLine": 446,
+        "startChar": 13,
+        "endLine": 446,
+        "endChar": 33
+      },
+      "revId": "0f77d932824b6abfe235ea03b6de5f0a52a62f14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_9b7214e4",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T11:42:24Z",
+      "side": 1,
+      "message": "add brackets to make precedence explicit",
+      "revId": "0f77d932824b6abfe235ea03b6de5f0a52a62f14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
