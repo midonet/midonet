@@ -19,15 +19,15 @@ package org.midonet.cluster.services.containers
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import com.google.common.util.concurrent.Service
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-
+import org.apache.curator.framework.recipes.leader.LeaderLatch.CloseMode
 import org.junit.runner.RunWith
 import org.reflections.Reflections
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
-
 import rx.schedulers.Schedulers
 import rx.subjects.{PublishSubject, Subject}
 
@@ -36,10 +36,11 @@ import org.midonet.cluster._
 import org.midonet.cluster.data.storage.{CreateOp, InMemoryStorage}
 import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
 import org.midonet.cluster.models.Topology.{Host, ServiceContainer}
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.services.containers.ContainerService.MaximumFailures
 import org.midonet.cluster.services.containers.ContainerServiceTest.ContainerServiceTestDelegate
 import org.midonet.cluster.services.containers.schedulers._
+import org.midonet.cluster.services.{LeaderLatchProvider, MidonetBackend, MockLeaderLatch, MockLeaderLatchProvider}
 import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
@@ -86,15 +87,20 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
     private val reflections =
         new Reflections("org.midonet.cluster.services.containers")
 
-    private class TestService(backend: MidonetBackend, config: ClusterConfig)
+    private class TestService(backend: MidonetBackend,
+                              reflections: Reflections,
+                              latchProvider: LeaderLatchProvider,
+                              config: ClusterConfig)
         extends ContainerService(new Context(UUID.randomUUID()), backend,
-                                 reflections, config) {
+                                 reflections, latchProvider, config) {
         def create(container: ServiceContainer) = delegateOf(container)
         def get(container: ServiceContainer) = delegate(container)
     }
 
-    private class MockService(backend: MidonetBackend, config: ClusterConfig)
-        extends TestService(backend, config) {
+    private class MockService(backend: MidonetBackend,
+                              latchProvider: LeaderLatchProvider,
+                              config: ClusterConfig)
+        extends TestService(backend, reflections, latchProvider, config) {
 
         var events: Subject[SchedulerEvent, SchedulerEvent] = _
 
@@ -119,40 +125,76 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
         """.stripMargin))
     private var backend: MidonetBackend = _
 
+    private var latchProvider: LeaderLatchProvider = _
+
+    private def leaderLatch(): MockLeaderLatch = {
+        latchProvider.get(ContainerService.latchPath(config))
+                     .asInstanceOf[MockLeaderLatch]
+    }
+
     before {
         backend = new MidonetTestBackend()
         backend.startAsync().awaitRunning()
+        latchProvider = new MockLeaderLatchProvider(backend, config)
     }
 
     after {
         backend.stopAsync().awaitTerminated()
     }
 
-    private def newService(): MockService = {
-        new MockService(backend, config)
+    private def newService(andStartIt: Boolean): MockService = {
+        val s = new MockService(backend, latchProvider, config)
+        if (andStartIt) {
+            s.startAsync().awaitRunning(10, TimeUnit.SECONDS)
+            leaderLatch().isLeader()
+        }
+        s
     }
 
     feature("Test service lifecycle") {
-        scenario("Service starts and stops") {
-            Given("A container service")
-            val service = newService()
+        scenario("Service starts, goes through leadership cycles, and stops") {
+            Given("A container service that is started, and assigned as leader")
+            val service = newService(andStartIt = false)
 
-            When("The service is started")
+            leaderLatch().listeners should have size 1
+            leaderLatch().isStarted shouldBe false
+
             service.startAsync().awaitRunning(10, TimeUnit.SECONDS)
+            leaderLatch().isStarted shouldBe true
+            leaderLatch().isLeader()
 
             Then("The service should be subscribed to scheduling notifications")
             service.isSubscribed shouldBe true
+
+            When("The leader role is taken over by another node")
+            leaderLatch().notLeader()
+
+            Then("The scheduling should stop")
+            service.isSubscribed shouldBe false
+            leaderLatch().listeners should have size 1
+
+            When("Leadership is recovered")
+            leaderLatch().isLeader()
+
+            Then("Scheduling should resume")
+            leaderLatch().listeners should have size 1
+            eventually {
+                service.isSubscribed shouldBe true
+            }
 
             When("The service is stopped")
             service.stopAsync().awaitTerminated(10, TimeUnit.SECONDS)
 
             Then("The service should be unsubscribed from scheduling notifications")
             service.isSubscribed shouldBe false
+            leaderLatch().listeners shouldBe empty
+            leaderLatch().isStarted shouldBe false
+            leaderLatch().closeMode shouldBe CloseMode.SILENT
         }
 
         scenario("Service is enabled in the default configuration schema") {
-            Given("A container service")
-            val service = newService()
+            Given("A container service that is started")
+            val service = newService(andStartIt = true)
 
             Then("The service is enabled")
             service.isEnabled shouldBe true
@@ -162,8 +204,7 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
     feature("Test service processes container notifications") {
         scenario("Service loads the container delegate") {
             Given("A container service")
-            val service = newService()
-            service.startAsync().awaitRunning()
+            val service = newService(andStartIt = true)
 
             And("A container and host")
             val container = createServiceContainer(
@@ -179,8 +220,7 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
 
         scenario("Service handles schedule events") {
             Given("A container service")
-            val service = newService()
-            service.startAsync().awaitRunning()
+            val service = newService(andStartIt = true)
 
             And("A container and host")
             val container = createServiceContainer(
@@ -236,8 +276,7 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
 
         scenario("Service handles delegate exceptions") {
             Given("A container service")
-            val service = newService()
-            service.startAsync().awaitRunning()
+            val service = newService(andStartIt = true)
 
             And("A container and host")
             val container = createServiceContainer(
@@ -302,22 +341,28 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
 
         scenario("Service handles scheduler error") {
             Given("A container service")
-            val service = newService()
-            service.startAsync().awaitRunning()
+            val service = newService(andStartIt = true)
 
-            When("The scheduler emits an error")
-            service.events onError new Throwable()
-
-            Then("The service should be unsubscribed")
-            eventually {
-                service.isSubscribed shouldBe false
+            When("The scheduler emits errors below limit they are tolerated")
+            while(service.schedulerObserverErrorCount < MaximumFailures) {
+                val left = MaximumFailures - service.schedulerObserverErrorCount
+                service.events onError new Throwable(s"Recoverable, left $left")
+                eventually { service.isSubscribed shouldBe true }
             }
+
+            When("The scheduler emits one error too many")
+            service.events onError new Throwable(s"Non recoverable")
+
+            Then("We give up")
+            eventually { service.isSubscribed shouldBe false }
+
+            service.state() shouldBe Service.State.FAILED
+            service.stopAsync()
         }
 
         scenario("Service handles scheduler completion") {
             Given("A container service")
-            val service = newService()
-            service.startAsync().awaitRunning()
+            val service = newService(andStartIt = true)
 
             When("The scheduler completes")
             service.events.onCompleted()
@@ -332,7 +377,8 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
     feature("Service uses the container scheduler") {
         scenario("Service schedules container") {
             Given("A container service")
-            val service = new TestService(backend, config)
+            val service = new TestService(backend, reflections, latchProvider,
+                                          config)
 
             And("A container and a host")
             val group = createServiceContainerGroup()
@@ -350,6 +396,7 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
 
             When("Starting the container service")
             service.startAsync().awaitRunning()
+            leaderLatch().isLeader()
 
             Then("The service should be subscribed")
             service.isSubscribed shouldBe true

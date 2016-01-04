@@ -24,8 +24,9 @@ import scala.collection.mutable
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory.getLogger
+import rx.subscriptions.CompositeSubscription
 
-import rx.{Subscriber, Observable}
+import rx.{Subscription, Subscriber, Observable}
 import rx.Observable.OnSubscribe
 
 import org.midonet.cluster.models.Topology.ServiceContainer
