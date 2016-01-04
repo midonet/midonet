@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_a0408357",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T09:58:06Z",
+      "side": 1,
+      "message": "This might be on the paranoid side, but typically you should awaitTermination(timeout) and shutdownNow if the pool doesn\u0027t terminate in time.  The shutdown() alone prevents new tasks from being scheduled, but doesn\u0027t stop currently running ones.",
+      "range": {
+        "startLine": 123,
+        "startChar": 8,
+        "endLine": 124,
+        "endChar": 35
+      },
+      "revId": "7a8341feab277e6c2352964c5ff33a449dc7de6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
