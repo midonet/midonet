@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_d6c0e17e",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T12:50:19Z",
+      "side": 1,
+      "message": "sure. sounds good to me.",
+      "parentUuid": "fa81d914_d60f012d",
+      "range": {
+        "startLine": 416,
+        "startChar": 28,
+        "endLine": 416,
+        "endChar": 43
+      },
+      "revId": "0f77d932824b6abfe235ea03b6de5f0a52a62f14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_fba95025",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 3
