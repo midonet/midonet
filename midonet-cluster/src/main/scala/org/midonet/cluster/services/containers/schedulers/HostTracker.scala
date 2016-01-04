@@ -26,6 +26,7 @@ import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
 import org.midonet.cluster.models.State.ContainerServiceStatus
 import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.containers.{Context, ObjectTracker}
 import org.midonet.util.functors._
 
 /** Processes notifications for the container service running on the

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services.containers.schedulers
+package org.midonet.containers
 
 import java.util.UUID
 

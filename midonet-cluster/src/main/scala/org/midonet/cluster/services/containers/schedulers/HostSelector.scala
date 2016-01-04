@@ -20,6 +20,7 @@ import java.util.UUID
 
 import org.midonet.cluster.models.Topology.ServiceContainerGroup
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.containers.ObjectTracker
 
 object HostSelector {
 

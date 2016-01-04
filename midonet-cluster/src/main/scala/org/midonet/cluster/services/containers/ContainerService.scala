@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.containers
 
-import java.util.concurrent.{TimeUnit, Executors}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
@@ -28,14 +28,15 @@ import com.typesafe.scalalogging.Logger
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
-import rx.{Subscription, Subscriber}
 import rx.schedulers.Schedulers
+import rx.{Subscriber, Subscription}
 
 import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.containers.schedulers._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.{ClusterConfig, containersLog}
+import org.midonet.containers
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.makeAction0
 
@@ -78,7 +79,7 @@ class ContainerService @Inject()(nodeContext: Context,
                                                                  config, log)
     private val delegates = new TrieMap[String, ContainerDelegate]
 
-    private val context = schedulers.Context(backend.store, backend.stateStore,
+    private val context = containers.Context(backend.store, backend.stateStore,
                                              eventExecutor, eventScheduler, log)
 
     @volatile private var scheduler: ServiceScheduler = null
