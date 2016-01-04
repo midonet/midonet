@@ -53,3 +53,31 @@ class ServiceContainer(resource_base.ResourceBase):
     def port_id(self, port_id):
         self.dto['portId'] = port_id
         return self
+
+    def get_status(self):
+        return self.dto['statusCode']
+
+    def status(self, status):
+        self.dto['statusCode'] = status
+        return self
+
+    def get_host_id(self):
+        return self.dto['hostId']
+
+    def host_id(self, host_id):
+        self.dto['hostId'] = host_id
+        return self
+
+    def get_namespace_name(self):
+        return self.dto['namespaceName']
+
+    def namespace_name(self, namespace_name):
+        self.dto['namespaceName'] = namespace_name
+        return self
+
+    def get_interface_name(self):
+        return self.dto['interfaceName']
+
+    def interface_name(self, interface_name):
+        self.dto['interfaceName'] = interface_name
+        return self

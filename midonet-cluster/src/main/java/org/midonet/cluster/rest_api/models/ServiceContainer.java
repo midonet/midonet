@@ -28,10 +28,9 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.State;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-
-import static org.midonet.cluster.rest_api.ResourceUris.SERVICE_CONTAINER_GROUPS;
 
 @ZoomClass(clazz = Topology.ServiceContainer.class)
 // Ignore unknown props. so that we don't need to create a DTO in the client
@@ -55,6 +54,16 @@ public class ServiceContainer extends UriResource {
     @ZoomField(name = "service_type")
     public String serviceType;
 
+    public State.ContainerStatus.Code statusCode;
+
+    public String statusMessage;
+
+    public UUID hostId;
+
+    public String namespaceName;
+
+    public String interfaceName;
+
     public ServiceContainer() {
         super();
     }
@@ -66,6 +75,10 @@ public class ServiceContainer extends UriResource {
 
     public URI getPort() {
         return absoluteUri(ResourceUris.PORTS(), portId);
+    }
+
+    public URI getServiceContainerGroup() {
+        return absoluteUri(ResourceUris.SERVICE_CONTAINER_GROUPS(), serviceGroupId);
     }
 
     @JsonIgnore
@@ -82,23 +95,23 @@ public class ServiceContainer extends UriResource {
                             portId);
     }
 
-    public URI getServiceContainerGroup() {
-        return absoluteUri(SERVICE_CONTAINER_GROUPS(),
-                           serviceGroupId);
-    }
-
     public boolean equals(Object that) {
         if (this == that) {
             return true;
         }
-        if (that == null || this.getClass() != that.getClass()) {
+        if (that == null || getClass() != that.getClass()) {
             return false;
         }
-        ServiceContainer thatSC = (ServiceContainer)that;
-        return Objects.equals(this.id, thatSC.id)
-               && Objects.equals(this.serviceType, thatSC.serviceType)
-               && Objects.equals(this.serviceGroupId, thatSC.serviceGroupId)
-               && Objects.equals(this.configurationId, thatSC.configurationId)
-               && Objects.equals(this.portId, thatSC.portId);
+        ServiceContainer sc = (ServiceContainer)that;
+        return Objects.equals(id, sc.id) &&
+               Objects.equals(serviceType, sc.serviceType) &&
+               Objects.equals(serviceGroupId, sc.serviceGroupId) &&
+               Objects.equals(configurationId, sc.configurationId) &&
+               Objects.equals(portId, sc.portId) &&
+               Objects.equals(statusCode, sc.statusCode) &&
+               Objects.equals(statusMessage, sc.statusMessage) &&
+               Objects.equals(hostId, sc.hostId) &&
+               Objects.equals(namespaceName, sc.namespaceName) &&
+               Objects.equals(interfaceName, sc.namespaceName);
     }
 }

@@ -29,7 +29,8 @@ message ContainerStatus {
         STARTING = 1;
         RUNNING = 2;
         STOPPING = 3;
-        ERROR = 4;
+        STOPPED = 4;
+        ERROR = 5;
     }
     optional Code status_code = 1;
     optional string status_message = 2;
