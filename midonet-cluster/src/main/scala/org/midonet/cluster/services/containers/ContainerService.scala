@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.containers
 
-import java.util.concurrent.{TimeUnit, Executors}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
@@ -24,17 +24,16 @@ import scala.util.control.NonFatal
 import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-
+import org.apache.curator.framework.recipes.leader.LeaderLatchListener
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
-
-import rx.{Subscription, Subscriber}
 import rx.schedulers.Schedulers
+import rx.{Subscriber, Subscription}
 
 import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.containers.schedulers._
-import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
+import org.midonet.cluster.services.{ClusterService, LeaderLatchProvider, MidonetBackend, Minion}
 import org.midonet.cluster.{ClusterConfig, containersLog}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.makeAction0
@@ -44,6 +43,12 @@ object ContainerService {
     private val SchedulingBufferSize = 0x1000
     private val MaximumFailures = 0x100
     private val ShutdownTimeoutSeconds = 5
+
+    @VisibleForTesting
+    @inline
+    def latchPath(config: ClusterConfig) = {
+        s"${config.backend.rootKey}/containers/leader-latch"
+    }
 
 }
 
@@ -57,6 +62,7 @@ object ContainerService {
 class ContainerService @Inject()(nodeContext: Context,
                                  backend: MidonetBackend,
                                  reflections: Reflections,
+                                 latchProvider: LeaderLatchProvider,
                                  config: ClusterConfig)
     extends Minion(nodeContext) {
 
@@ -80,6 +86,18 @@ class ContainerService @Inject()(nodeContext: Context,
 
     private val context = schedulers.Context(backend.store, backend.stateStore,
                                              eventExecutor, eventScheduler, log)
+
+    // A Curator latch used to elect a leader among all ContainerService minions
+    private val leaderLatch = latchProvider.get(latchPath(config))
+    private val leaderLatchListener = new LeaderLatchListener {
+        override def isLeader(): Unit = {
+            startScheduling()
+        }
+        override def notLeader(): Unit = {
+            stopScheduling()
+        }
+    }
+    leaderLatch.addListener(leaderLatchListener)
 
     @volatile private var scheduler: ServiceScheduler = null
     @volatile private var schedulerSubscription: Subscription = null
@@ -106,12 +124,13 @@ class ContainerService @Inject()(nodeContext: Context,
       * notifications.
       */
     @VisibleForTesting
-    def isSubscribed = !schedulerSubscription.isUnsubscribed
+    def isSubscribed = {
+        schedulerSubscription != null && !schedulerSubscription.isUnsubscribed
+    }
 
     protected override def doStart(): Unit = {
         log info "Starting container management service"
-        startScheduling()
-
+        leaderLatch.start()
         notifyStarted()
     }
 
@@ -123,6 +142,8 @@ class ContainerService @Inject()(nodeContext: Context,
             schedulerSubscription.unsubscribe()
         if (scheduler ne null)
             scheduler.complete()
+        leaderLatch.close()
+        leaderLatch.removeListener(leaderLatchListener)
         eventExecutor.shutdown()
         delegateExecutor.shutdown()
         if (!eventExecutor.awaitTermination(ShutdownTimeoutSeconds,
@@ -160,14 +181,17 @@ class ContainerService @Inject()(nodeContext: Context,
         })
     }
 
-    private def startScheduling(): Unit = {
+    private def stopScheduling(): Unit = {
         if (schedulerSubscription ne null) {
             schedulerSubscription.unsubscribe()
         }
         if (scheduler ne null) {
             scheduler.complete()
         }
+    }
 
+    private def startScheduling(): Unit = {
+        stopScheduling()
         scheduler = newScheduler()
         schedulerSubscription = scheduler.observable
             .onBackpressureBuffer(SchedulingBufferSize, makeAction0 {
@@ -198,4 +222,5 @@ class ContainerService @Inject()(nodeContext: Context,
                          s"event: $event", e)
         }
     }
+
 }
