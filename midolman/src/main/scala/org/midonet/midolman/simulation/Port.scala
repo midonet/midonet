@@ -89,6 +89,7 @@ object Port {
             if (p.hasHostId) p.getHostId else null,
             if (p.hasInterfaceName) p.getInterfaceName else null,
             p.getAdminStateUp, p.getPortGroupIdsList, false,
+            p.hasServiceContainerId,
             if (p.hasRouterId) p.getRouterId else null,
             if (p.hasPortSubnet) fromV4Proto(p.getPortSubnet) else null,
             if (p.hasPortAddress) toIPv4Addr(p.getPortAddress) else null,
@@ -142,6 +143,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     def adminStateUp: Boolean
     def portGroups: JArrayList[UUID] = new JArrayList(0)
     def isActive: Boolean = false
+    def isContainer: Boolean = false
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
     def servicePorts: JList[UUID]
@@ -371,6 +373,7 @@ case class RouterPort(override val id: UUID,
                       override val adminStateUp: Boolean = true,
                       override val portGroups: JArrayList[UUID] = new JArrayList(0),
                       override val isActive: Boolean = false,
+                      override val isContainer: Boolean = false,
                       routerId: UUID,
                       portSubnet: IPv4Subnet,
                       portAddress: IPv4Addr,
