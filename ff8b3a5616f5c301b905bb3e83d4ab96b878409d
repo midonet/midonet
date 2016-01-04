@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_1b1d44be",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/CollectionTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T11:10:20Z",
+      "side": 1,
+      "message": "Should this be:\n\norg.midonet.cluster.data or\norg.midoner.cluster.util\n\n?",
+      "range": {
+        "startLine": 17,
+        "startChar": 8,
+        "endLine": 17,
+        "endChar": 30
+      },
+      "revId": "ff8b3a5616f5c301b905bb3e83d4ab96b878409d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
