@@ -173,6 +173,8 @@ case class IPSecConfig(script: String,
         contents.toString()
     }
 
+    val prepareHostCmd = s"$script prepare"
+
     val makeNsCmd =
         s"$script makens " +
         s"-n ${ipsecService.name} " +
@@ -318,6 +320,10 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     protected[containers] def setup(config: IPSecConfig): Unit = {
         val name = config.ipsecService.name
         log info s"Setting up IPSec container $name"
+
+        // prepare the host
+        execCmd(config.prepareHostCmd)
+
         // Try clean namespace.
         execCmd(config.cleanNsCmd)
 
@@ -438,9 +444,12 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                 makeFunc5((routerPorts, connections, vpn, port, router) => {
                     VpnServiceUpdateEvent(routerPorts, connections, vpn, port, router)
                 }))
-            .filter(makeFunc1(_ => {
+            .distinctUntilChanged()
+            .filter(makeFunc1(event => {
                val ready = routerPortTracker.isReady &&
-                           connectionsTracker.isReady && vpnServiceReady
+                                  connectionsTracker.isReady &&
+                                  vpnServiceReady &&
+                                  event.port.hasInterfaceName
                log.debug(s"VPN service ready: $ready")
                ready
             } ))
