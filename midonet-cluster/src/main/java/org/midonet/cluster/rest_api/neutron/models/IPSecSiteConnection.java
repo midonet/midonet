@@ -34,7 +34,7 @@ public class IPSecSiteConnection extends ZoomObject {
     @ZoomField(name = "name")
     public String name;
 
-    @JsonProperty("apdmin_state_up")
+    @JsonProperty("admin_state_up")
     @ZoomField(name = "admin_state_up")
     public Boolean adminStateUp;
 
