@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_58609f35",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T19:04:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_d8956f89",
+      "revId": "ba91dc600bde594a98cd491015ca33d03babcb7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_98ca17a0",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2016-01-04T17:00:48Z",
       "side": 1,
       "message": "schedulerSubscription could be nulled between the first and second clause.",
+      "range": {
+        "startLine": 128,
+        "startChar": 8,
+        "endLine": 128,
+        "endChar": 29
+      },
+      "revId": "ba91dc600bde594a98cd491015ca33d03babcb7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3874cbfc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T19:04:38Z",
+      "side": 1,
+      "message": "It\u0027s a private var, and nobody in the class does null it\n\nI will guard anyway, for our future selves.",
+      "parentUuid": "fa81d914_98ca17a0",
       "range": {
         "startLine": 128,
         "startChar": 8,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_787e43e6",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/MockLeaderLatch.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T19:04:38Z",
+      "side": 1,
+      "message": "was, removing",
+      "parentUuid": "fa81d914_78a003f5",
+      "range": {
+        "startLine": 37,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 11
+      },
+      "revId": "ba91dc600bde594a98cd491015ca33d03babcb7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_98a5b706",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/MockLeaderLatch.scala",
         "patchSetId": 1
@@ -76,6 +142,30 @@
       "writtenOn": "2016-01-04T17:00:48Z",
       "side": 1,
       "message": "var are private by default, no?",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 7
+      },
+      "revId": "ba91dc600bde594a98cd491015ca33d03babcb7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_58797ffb",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/MockLeaderLatch.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T19:04:38Z",
+      "side": 1,
+      "message": "not as params afaik, see usage in ContainerServiceTest",
+      "parentUuid": "fa81d914_98a5b706",
       "range": {
         "startLine": 40,
         "startChar": 4,
