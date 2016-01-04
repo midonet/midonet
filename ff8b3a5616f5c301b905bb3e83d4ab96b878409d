@@ -22,6 +22,30 @@
       "revId": "ff8b3a5616f5c301b905bb3e83d4ab96b878409d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f64a4554",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/CollectionTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T12:22:11Z",
+      "side": 1,
+      "message": "Well, the point of moving to nsdb was to share it with midolman, so I put a name that didn\u0027t contain cluster in the package. org.midonet.util?",
+      "parentUuid": "fa81d914_1b1d44be",
+      "range": {
+        "startLine": 17,
+        "startChar": 8,
+        "endLine": 17,
+        "endChar": 30
+      },
+      "revId": "ff8b3a5616f5c301b905bb3e83d4ab96b878409d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
