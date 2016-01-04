@@ -91,6 +91,29 @@
       "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_00586f55",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/ObjectTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T09:49:44Z",
+      "side": 1,
+      "message": "would we want the selfHealingObservable here?",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 63
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
