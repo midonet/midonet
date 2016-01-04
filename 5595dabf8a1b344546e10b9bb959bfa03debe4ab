@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_3bba08e2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 686,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-04T10:30:32Z",
+      "side": 1,
+      "message": "not sure about this solution: every call to .observable will generate a new Observable instance with the onErrorResumeNext, it seems like we should actually be caching the self healing observable itself no?",
+      "range": {
+        "startLine": 686,
+        "startChar": 25,
+        "endLine": 686,
+        "endChar": 42
+      },
+      "revId": "5595dabf8a1b344546e10b9bb959bfa03debe4ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
