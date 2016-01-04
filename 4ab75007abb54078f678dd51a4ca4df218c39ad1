@@ -466,6 +466,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_d67381e5",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 848,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T14:51:59Z",
+      "side": 1,
+      "message": "Yes, we want to. The update in the store should trigger the container update upon any change implicitly (without calling the update method), and not return any future.",
+      "parentUuid": "fa81d914_204bb3b1",
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_60cccb36",
         "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
         "patchSetId": 4
@@ -477,6 +495,30 @@
       "writtenOn": "2016-01-04T09:34:52Z",
       "side": 1,
       "message": "typo (ContaINter)",
+      "range": {
+        "startLine": 1007,
+        "startChar": 32,
+        "endLine": 1007,
+        "endChar": 51
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5636b104",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T14:51:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_60cccb36",
       "range": {
         "startLine": 1007,
         "startChar": 32,
@@ -512,6 +554,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_1655191d",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 1019,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T14:51:59Z",
+      "side": 1,
+      "message": "It has a 30s timeout by default, I think it\u0027s enough instead of modifying each await.",
+      "parentUuid": "fa81d914_80d1bfcf",
+      "range": {
+        "startLine": 1019,
+        "startChar": 32,
+        "endLine": 1019,
+        "endChar": 40
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_a0d6c3c3",
         "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
         "patchSetId": 4
@@ -523,6 +589,24 @@
       "writtenOn": "2016-01-04T09:34:52Z",
       "side": 1,
       "message": "ditto",
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_36313d0c",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 1073,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T14:51:59Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "fa81d914_a0d6c3c3",
       "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
