@@ -144,7 +144,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
 
     }
 
-    feature("Test service lifecyle") {
+    feature("Test service lifecycle") {
         scenario("Service starts and stops") {
             Given("A container service")
             val service = new ContainerService(vt, hostId, vt.vtExecutor,

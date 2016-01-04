@@ -49,7 +49,7 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         extends Matchers {
         def shouldBeScheduleFor(container: ServiceContainer, hostId: UUID): Unit = {
             event match {
-                case ScheduleEvent(c, h) =>
+                case Schedule(c, h) =>
                     c shouldBe container
                     h shouldBe hostId
                 case _ => fail()
@@ -58,7 +58,7 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
 
         def shouldBeUnscheduleFor(container: ServiceContainer, hostId: UUID): Unit = {
             event match {
-                case UnscheduleEvent(c, h) =>
+                case Unschedule(c, h) =>
                     c shouldBe container
                     h shouldBe hostId
                 case _ => fail()
@@ -67,7 +67,7 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
 
         def shouldBeUpFor(container: ServiceContainer, hostId: UUID): Unit = {
             event match {
-                case UpEvent(c, s) =>
+                case Up(c, s) =>
                     c shouldBe container
                     s.getHostId.asJava shouldBe hostId
                 case _ => fail()
@@ -76,7 +76,7 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
 
         def shouldBeDownFor(container: ServiceContainer, hostId: UUID): Unit = {
             event match {
-                case DownEvent(c, s) =>
+                case Down(c, s) =>
                     c shouldBe container
                     if (s ne null) s.getHostId.asJava shouldBe hostId
                 case _ => fail()
