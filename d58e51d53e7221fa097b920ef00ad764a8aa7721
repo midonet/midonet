@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_40c7c712",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T09:35:46Z",
+      "side": 1,
+      "message": "hmm, here\u0027s a bug. there can be multiple vpn services (for different subnets). We need to get ipsec site connections from them all. Not sure if this should be handled now though.",
+      "range": {
+        "startLine": 381,
+        "startChar": 20,
+        "endLine": 383,
+        "endChar": 68
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_80e8df7d",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T09:35:46Z",
+      "side": 1,
+      "message": "have this as the outer observable, each time router is updated in vpnServiceObservable, add the new list to watch().",
+      "range": {
+        "startLine": 392,
+        "startChar": 20,
+        "endLine": 392,
+        "endChar": 37
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_e0d7dbbd",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T09:35:46Z",
+      "side": 1,
+      "message": "it\u0027d be better to make this the top outer observable (in the place of connectionsObservable), and then when you load the vpn service in vpnServiceObservable have an onNext which passes the ipsecSiteConnectionIdList to connectionsTracker.watch().",
+      "range": {
+        "startLine": 405,
+        "startChar": 20,
+        "endLine": 405,
+        "endChar": 38
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_e050bb60",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-04T09:35:46Z",
+      "side": 1,
+      "message": "would be less code to just inline the construction of the event.",
+      "range": {
+        "startLine": 422,
+        "startChar": 26,
+        "endLine": 422,
+        "endChar": 36
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
