@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_7bd1e0cc",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T12:37:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_00c4ef3e",
+      "range": {
+        "startLine": 349,
+        "startChar": 12,
+        "endLine": 349,
+        "endChar": 60
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_80837fcb",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 4
@@ -96,6 +120,54 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_3bee888c",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T12:37:29Z",
+      "side": 1,
+      "message": "that needs changes on the translator. Maybe do the change on a later patch with all related changes together?",
+      "parentUuid": "fa81d914_409507e3",
+      "range": {
+        "startLine": 380,
+        "startChar": 16,
+        "endLine": 383,
+        "endChar": 70
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_369bfdca",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T12:37:29Z",
+      "side": 1,
+      "message": "It complains about typing. Not sure what\u0027s the problem (maybe flatmap doesn\u0027t like if we return two observables with different types?",
+      "parentUuid": "fa81d914_80837fcb",
+      "range": {
+        "startLine": 380,
+        "startChar": 16,
+        "endLine": 383,
+        "endChar": 70
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_800c5f96",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 4
@@ -107,6 +179,30 @@
       "writtenOn": "2016-01-04T09:34:52Z",
       "side": 1,
       "message": "the function is a one liner so you might as well create it here",
+      "range": {
+        "startLine": 392,
+        "startChar": 26,
+        "endLine": 392,
+        "endChar": 36
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_fb80708d",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T12:37:29Z",
+      "side": 1,
+      "message": "Changed on the following patch as Ivan had the same comment (don\u0027t changing here to avoid unnecessary merge conflicts if that\u0027s ok)",
+      "parentUuid": "fa81d914_800c5f96",
       "range": {
         "startLine": 392,
         "startChar": 26,
@@ -142,6 +238,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_1b7e24af",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T12:37:29Z",
+      "side": 1,
+      "message": "changed to onBackpressureLatest which makes more sense on a later patch.",
+      "parentUuid": "fa81d914_6065ab44",
+      "range": {
+        "startLine": 394,
+        "startChar": 32,
+        "endLine": 394,
+        "endChar": 34
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c025770b",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 4
@@ -153,6 +273,30 @@
       "writtenOn": "2016-01-04T09:34:52Z",
       "side": 1,
       "message": "why do this? it\u0027s already known to be this case always",
+      "range": {
+        "startLine": 410,
+        "startChar": 8,
+        "endLine": 411,
+        "endChar": 60
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_16b6f93d",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T12:37:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_c025770b",
       "range": {
         "startLine": 410,
         "startChar": 8,
@@ -211,6 +355,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_36821d53",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T12:37:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_e0227b00",
+      "range": {
+        "startLine": 429,
+        "startChar": 32,
+        "endLine": 429,
+        "endChar": 33
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_a01163ae",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 4
@@ -222,6 +390,30 @@
       "writtenOn": "2016-01-04T09:34:52Z",
       "side": 1,
       "message": "wrap",
+      "range": {
+        "startLine": 457,
+        "startChar": 19,
+        "endLine": 458,
+        "endChar": 20
+      },
+      "revId": "4ab75007abb54078f678dd51a4ca4df218c39ad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_56879161",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T12:37:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_a01163ae",
       "range": {
         "startLine": 457,
         "startChar": 19,
