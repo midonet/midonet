@@ -164,6 +164,30 @@
       "revId": "5f976eaed5882fe3e29b209aa450feb7da82b524",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c0949746",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T07:36:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_2a3c7f93",
+      "range": {
+        "startLine": 245,
+        "startChar": 16,
+        "endLine": 248,
+        "endChar": 75
+      },
+      "revId": "5f976eaed5882fe3e29b209aa450feb7da82b524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
