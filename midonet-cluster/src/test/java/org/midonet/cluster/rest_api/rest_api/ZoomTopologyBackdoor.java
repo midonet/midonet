@@ -125,10 +125,22 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
         try {
             return Await.result(
                 backend.store().get(Host.class, toProto(hostId)), TIMEOUT)
-                               .getFloodingProxyWeight();
+                    .getFloodingProxyWeight();
             // for backwards compatibility
         } catch (Exception e) {
             throw new RuntimeException("Can't retrieve flooding proxy weight");
+        }
+    }
+
+    @Override
+    public Integer getContainerWeight(UUID hostId) {
+        try {
+            return Await.result(
+                backend.store().get(Host.class, toProto(hostId)), TIMEOUT)
+                    .getContainerWeight();
+            // for backwards compatibility
+        } catch (Exception e) {
+            throw new RuntimeException("Can't retrieve container weight");
         }
     }
 
@@ -141,6 +153,18 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
             backend.store().update(h);
         } catch (Exception e) {
             throw new RuntimeException("Can't retrieve flooding proxy weight");
+        }
+    }
+
+    @Override
+    public void setContainerWeight(UUID hostId, int weight) {
+        try {
+            Host h = Await.result(
+                backend.store().get(Host.class, toProto(hostId)), TIMEOUT);
+            h = h.toBuilder().setContainerWeight(weight).build();
+            backend.store().update(h);
+        } catch (Exception e) {
+            throw new RuntimeException("Can't retrieve container weight");
         }
     }
 

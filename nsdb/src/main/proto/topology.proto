@@ -161,6 +161,7 @@ message Host {
     optional string name = 2;
 
     optional int32 flooding_proxy_weight = 3 [default = 1];
+    optional int32 container_weight = 4 [default = 1];
 
     // Backreferences
     repeated UUID tunnel_zone_ids = 101;
