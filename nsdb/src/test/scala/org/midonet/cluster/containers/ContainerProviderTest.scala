@@ -22,6 +22,7 @@ import com.google.inject.Guice
 import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
+import org.reflections.Reflections
 import org.scalatest.{GivenWhenThen, Matchers, FlatSpec}
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
@@ -46,8 +47,10 @@ object ContainerProviderTest {
 class ContainerProviderTest extends FlatSpec with Matchers
                                            with GivenWhenThen {
 
+    val reflections = new Reflections("org.midonet.cluster.containers")
+
     private class TestContainerProvider(log: Logger)
-        extends ContainerProvider("org.midonet.cluster.containers", log)(classTag[AnyRef]) {
+        extends ContainerProvider(reflections, log)(classTag[AnyRef]) {
 
         protected override val injector = Guice.createInjector()
 

@@ -27,6 +27,8 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
 
+import org.reflections.Reflections
+
 import rx.Observable
 import rx.functions.Func1
 import rx.subjects.PublishSubject
@@ -169,6 +171,7 @@ object VirtualToPhysicalMapper extends MidolmanLogging {
 
 class VirtualToPhysicalMapper(backend: MidonetBackend,
                               vt: VirtualTopology,
+                              reflections: Reflections,
                               hostId: UUID)
     extends AbstractService with MidolmanLogging {
 
@@ -183,9 +186,10 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
     // we cannot use the virtual topology thread since it will block the
     // notifications for all topology devices, and it may overflow the internal
     // buffers of the ObserveOn RX operator.
-    private val containerService =
-        new ContainerService(vt, hostId, Executors.newSingleThreadExecutor(
-            new NamedThreadFactory("containers", isDaemon = true)))
+    val containersExecutor = Executors.newSingleThreadExecutor(
+        new NamedThreadFactory("containers", isDaemon = true))
+    private val containersService =
+        new ContainerService(vt, hostId, containersExecutor, reflections)
 
     private val activePorts = new ConcurrentHashMap[UUID, Boolean]
     private val portsActiveSubject = PublishSubject.create[LocalPortActive]
@@ -205,7 +209,7 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
                 return
         }
         try {
-            containerService.startAsync().awaitRunning()
+            containersService.startAsync().awaitRunning()
         } catch {
             case NonFatal(e) =>
                 log.error("Failed to start the Containers service", e)
@@ -221,7 +225,7 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
         clearPortsActive().await()
 
         try {
-            containerService.stopAsync().awaitTerminated()
+            containersService.stopAsync().awaitTerminated()
         } catch {
             case NonFatal(e) =>
         }
