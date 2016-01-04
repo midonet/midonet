@@ -217,8 +217,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 if (event.getResultCode == Code.OK.intValue()) {
                     if (event.getStat.getMzxid > zxid) {
                         createOnError(new ConcurrentModificationException(
-                            s"${clazz.getSimpleName} with ID $id was modified " +
-                            "during the transaction."))
+                            s"${clazz.getSimpleName} with ID " +
+                            s"${getIdString(clazz, id)} was modified during " +
+                            s"the transaction."))
                     } else {
                         createOnNext(
                             ObjSnapshot(deserialize(event.getData, clazz).asInstanceOf[Obj],
