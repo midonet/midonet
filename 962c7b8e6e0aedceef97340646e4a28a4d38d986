@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_d6ac6138",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "NPE check for vpnServiceSubscription",
+      "range": {
+        "startLine": 289,
+        "startChar": 12,
+        "endLine": 289,
+        "endChar": 48
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d6fe2138",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "Router ports",
+      "range": {
+        "startLine": 374,
+        "startChar": 28,
+        "endLine": 374,
+        "endChar": 39
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f6fb2545",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "IPSec site connections",
+      "range": {
+        "startLine": 382,
+        "startChar": 28,
+        "endLine": 382,
+        "endChar": 48
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_566871f5",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "return Observable.empty when there is no VPN service as Galo suggested",
+      "range": {
+        "startLine": 407,
+        "startChar": 20,
+        "endLine": 409,
+        "endChar": 72
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3695bde4",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "VPN service",
+      "range": {
+        "startLine": 414,
+        "startChar": 40,
+        "endLine": 414,
+        "endChar": 50
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_766d7504",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "Not needed, the elements are observables",
+      "range": {
+        "startLine": 420,
+        "startChar": 16,
+        "endLine": 420,
+        "endChar": 39
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_569a3115",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "Remove or add additional information",
+      "range": {
+        "startLine": 431,
+        "startChar": 20,
+        "endLine": 431,
+        "endChar": 58
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_9672e9e3",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "New line",
+      "range": {
+        "startLine": 435,
+        "startChar": 83,
+        "endLine": 435,
+        "endChar": 101
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f69245f5",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "VPN service ready:",
+      "range": {
+        "startLine": 436,
+        "startChar": 27,
+        "endLine": 436,
+        "endChar": 42
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_36bcdd6c",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-04T14:47:05Z",
+      "side": 1,
+      "message": "IPSec",
+      "range": {
+        "startLine": 485,
+        "startChar": 33,
+        "endLine": 485,
+        "endChar": 38
+      },
+      "revId": "962c7b8e6e0aedceef97340646e4a28a4d38d986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
