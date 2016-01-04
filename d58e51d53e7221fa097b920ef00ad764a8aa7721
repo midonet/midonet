@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_bb3ef827",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T11:13:31Z",
+      "side": 1,
+      "message": "Agreed. I\u0027d do that on a later patch as the translation only supports one vpn service and that needs to be changed too. I\u0027d create a jira for that.",
+      "parentUuid": "fa81d914_40c7c712",
+      "range": {
+        "startLine": 381,
+        "startChar": 20,
+        "endLine": 383,
+        "endChar": 68
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_80e8df7d",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-04T09:35:46Z",
       "side": 1,
       "message": "have this as the outer observable, each time router is updated in vpnServiceObservable, add the new list to watch().",
+      "range": {
+        "startLine": 392,
+        "startChar": 20,
+        "endLine": 392,
+        "endChar": 37
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_9b1134af",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T11:13:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_80e8df7d",
       "range": {
         "startLine": 392,
         "startChar": 20,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_bb25180c",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T11:13:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_e0d7dbbd",
+      "range": {
+        "startLine": 405,
+        "startChar": 20,
+        "endLine": 405,
+        "endChar": 38
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_e050bb60",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_7b0c8095",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T11:13:31Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "fa81d914_e050bb60",
+      "range": {
+        "startLine": 422,
+        "startChar": 26,
+        "endLine": 422,
+        "endChar": 36
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_00586f55",
         "filename": "nsdb/src/main/scala/org/midonet/containers/ObjectTracker.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2016-01-04T09:49:44Z",
       "side": 1,
       "message": "would we want the selfHealingObservable here?",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 63
+      },
+      "revId": "d58e51d53e7221fa097b920ef00ad764a8aa7721",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_bb6c3838",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/ObjectTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-04T11:13:31Z",
+      "side": 1,
+      "message": "We should move also the selfHealing*Observables to nsdb. Should I do it in this patch?",
+      "parentUuid": "fa81d914_00586f55",
       "range": {
         "startLine": 65,
         "startChar": 4,
