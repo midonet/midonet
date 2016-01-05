@@ -42,9 +42,8 @@ import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.util.IPAddressUtil._
-import org.midonet.cluster.util.logging.ProtoTextPrettifier._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.containers.IPSecContainer.VpnHelperScriptPath
+import org.midonet.cluster.util.logging.ProtoTextPrettifier._
 import org.midonet.midolman.containers.{ContainerHandler, ContainerHealth, ContainerPort}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
@@ -73,10 +72,11 @@ case class IPSecConfig(script: String,
                        ipsecService: IPSecServiceDef,
                        connections: Seq[IPSecSiteConnection]) {
     import IPSecConfig._
+    import IPSecContainer._
 
     def getSecretsFileContents = {
         val contents = new StringBuilder
-        for (c <- connections if (!c.hasAdminStateUp || c.getAdminStateUp)) {
+        for (c <- connections if isSiteConnectionUp(c)) {
             contents append
             s"""${ipsecService.localEndpointIp} ${c.getPeerAddress} : PSK "${c.getPsk}"
                |""".stripMargin
@@ -143,7 +143,7 @@ case class IPSecConfig(script: String,
                |    keylife=60m
                |    keyingtries=%forever
                |""".stripMargin
-        for (c <- connections if !c.hasAdminStateUp || c.getAdminStateUp) {
+        for (c <- connections if isSiteConnectionUp(c)) {
             contents append
                 s"""conn ${sanitizeName(c.getName)}
                    |    leftnexthop=%defaultroute
@@ -192,7 +192,9 @@ case class IPSecConfig(script: String,
                                     s"-n ${ipsecService.name} " +
                                     s"-p ${ipsecService.filepath} " +
                                     s"-g ${ipsecService.namespaceGatewayIp}")
-        connections foreach (c => cmd append s" -c ${sanitizeName(c.getName)}")
+        for (c <- connections if isSiteConnectionUp(c)) {
+            cmd append s" -c ${sanitizeName(c.getName)}"
+        }
         cmd.toString
     }
 
@@ -219,6 +221,14 @@ object IPSecContainer {
 
     final val VpnHelperScriptPath = "/usr/lib/midolman/vpn-helper"
 
+    def isVpnServiceUp(vpn: VpnService) = {
+        !vpn.hasAdminStateUp || vpn.getAdminStateUp
+    }
+
+    def isSiteConnectionUp(conn: IPSecSiteConnection) = {
+        !conn.hasAdminStateUp || conn.getAdminStateUp
+    }
+
 }
 
 /**
@@ -228,6 +238,8 @@ object IPSecContainer {
 class IPSecContainer @Inject()(vt: VirtualTopology,
                                @Named("container") executor: ExecutorService)
     extends ContainerHandler with ContainerCommons {
+
+    import IPSecContainer._
 
     override def logSource = "org.midonet.containers.ipsec"
 
@@ -243,8 +255,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     private case class VpnServiceUpdateEvent(routerPorts: List[Port],
                                              connections: List[IPSecSiteConnection],
                                              vpnService: VpnService,
-                                             port: Port,
-                                             router: Router)
+                                             port: Port)
 
     /**
       * @see [[ContainerHandler.create]]
@@ -442,7 +453,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                 portObservable,
                 routerObservable,
                 makeFunc5((routerPorts, connections, vpn, port, router) => {
-                    VpnServiceUpdateEvent(routerPorts, connections, vpn, port, router)
+                    VpnServiceUpdateEvent(routerPorts, connections, vpn, port)
                 }))
             .distinctUntilChanged()
             .filter(makeFunc1(event => {
@@ -465,53 +476,50 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     private def onVpnServiceUpdate(event: VpnServiceUpdateEvent,
                                    p: Promise[Option[String]]): Unit = {
         try {
-            val externalAddress = event.vpnService.getExternalIp.asIPv4Address
-            val externalMac = event.routerPorts
+            val VpnServiceUpdateEvent(routerPorts, conns, vpn, port) = event
+            val externalAddress = vpn.getExternalIp.asIPv4Address
+            val externalMac = routerPorts
                 .find(_.getPortAddress.asIPv4Address == externalAddress)
                 .map(_.getPortMac)
                 .getOrElse {
                     p.tryFailure(IPSecException(
-                        s"VPN service ${event.vpnService.getId.asJava} router " +
-                        s"${event.vpnService.getRouterId.asJava} does not have " +
+                        s"VPN service ${vpn.getId.asJava} router " +
+                        s"${vpn.getRouterId.asJava} does not have " +
                         "a port that matches the VPN external address " +
                         s"$externalAddress", null))
                     return
                 }
-            val portAddress = event.port.getPortAddress.asIPv4Address
+            val portAddress = port.getPortAddress.asIPv4Address
             val namespaceAddress = portAddress.next
             val namespaceSubnet = new IPv4Subnet(namespaceAddress,
-                                                 event.port.getPortSubnet
+                                                 port.getPortSubnet
                                                      .getPrefixLength)
             val path =
-                s"${FileUtils.getTempDirectoryPath}/${event.port.getInterfaceName}"
-            val serviceDef = IPSecServiceDef(event.port.getInterfaceName,
+                s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
+            val serviceDef = IPSecServiceDef(port.getInterfaceName,
                                              path,
                                              externalAddress,
                                              externalMac,
                                              namespaceSubnet,
                                              portAddress,
-                                             event.port.getPortMac)
+                                             port.getPortMac)
              // Cleanup current setup before if existed
             cleanup(config)
 
-            if (event.vpnService.hasAdminStateUp && !event.vpnService.getAdminStateUp || {
-                event.connections.forall(conn => conn.hasAdminStateUp &&
-                                                 !conn.getAdminStateUp)}) {
+            if (!isVpnServiceUp(vpn) || conns.forall(!isSiteConnectionUp(_))) {
                 log.info(
-                    s"VPN service ${makeReadable(event.vpnService)} has admin state " +
+                    s"VPN service ${makeReadable(vpn)} has admin state " +
                     "DOWN or all IPSec connections have admin state DOWN")
                 // So we don't clean up on a non-setup container
                 config = null
                 p.trySuccess(None)
             } else {
                 // Create the new config and setup the new connections
-                config = IPSecConfig(VpnHelperScriptPath, serviceDef,
-                                     event.connections)
+                config = IPSecConfig(VpnHelperScriptPath, serviceDef, conns)
                 setup(config)
                 p.trySuccess(Some(config.ipsecService.name))
             }
-            healthSubject onNext ContainerHealth(Code.RUNNING,
-                                                 event.port.getInterfaceName)
+            healthSubject onNext ContainerHealth(Code.RUNNING, port.getInterfaceName)
         } catch {
             case NonFatal(e) => p.tryFailure(e)
         }

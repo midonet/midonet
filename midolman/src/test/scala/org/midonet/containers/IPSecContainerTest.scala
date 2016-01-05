@@ -1204,6 +1204,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
             container.commands(18).contains(
+                s"-c ${IPSecConfig.sanitizeName(conn1.getName)}") shouldBe false
+            container.commands(18).contains(
                 s"-c ${IPSecConfig.sanitizeName(conn2.getName)}") shouldBe true
 
             When("Resetting the first ipsec connection to admin state UP")
