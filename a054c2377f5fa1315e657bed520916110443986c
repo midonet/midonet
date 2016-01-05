@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_5e7967fb",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-05T13:11:13Z",
+      "side": 1,
+      "message": "This is used in two places, can it be put on top?",
+      "range": {
+        "startLine": 75,
+        "startChar": 4,
+        "endLine": 75,
+        "endChar": 27
+      },
+      "revId": "a054c2377f5fa1315e657bed520916110443986c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_7e7e2be6",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-05T13:11:13Z",
+      "side": 1,
+      "message": "Minor comment: This adds a lot of details to the info msg",
+      "range": {
+        "startLine": 511,
+        "startChar": 34,
+        "endLine": 511,
+        "endChar": 54
+      },
+      "revId": "a054c2377f5fa1315e657bed520916110443986c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
