@@ -158,7 +158,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                     log.error("Port {} unknown", portId)
             }
 
-        case BgpPort(port,_,_) if port.isExterior =>
+        case BgpPort(port,_,_) if port.isExterior && !port.isContainer =>
             if (activePorts.contains(port.id) &&
                 !portHandlers.contains(port.id)) {
                 bgpPortIdx += 1
