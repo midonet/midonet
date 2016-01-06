@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.l4lb.HealthMonitor
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
@@ -67,12 +66,7 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[DatapathController]), DatapathController.Name),
             (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name))
-        if (config.healthMonitor.enable)
-            actors += (
-                (propsFor(classOf[HealthMonitor])
-                 .withDispatcher("actors.pinned-dispatcher"),
-                 HealthMonitor.Name)
-            )
+
         if (config.openstack.metadata.enabled)
             actors += (
                 /*

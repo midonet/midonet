@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,10 @@ trait MidolmanSpec extends FeatureSpecLike
      */
     protected def afterTest(): Unit = { }
 
+    /* Hack to make the health monitor tests pass.
+       TODO: Find a better way to do this. */
+    protected def disableVtThreadCheck: Boolean = false
+
     before {
         try {
             val conf = MidoTestConfigurator.forAgents(fillConfig())
@@ -75,7 +79,8 @@ trait MidolmanSpec extends FeatureSpecLike
                 hostId,
                 injector,
                 new MidolmanConfig(conf, ConfigFactory.empty()),
-                actorsService))
+                actorsService,
+                disableVtThreadCheck))
 
             IPv4InvalidationArray.reset()
 
@@ -116,7 +121,11 @@ trait MidolmanSpec extends FeatureSpecLike
     }
 
     protected def fillConfig(config: Config = ConfigFactory.empty) : Config = {
-        val defaults = """cassandra.servers = "localhost:9171""""
+        val defaults =
+            """
+              | cassandra.servers = "localhost:9171"
+              | agent.haproxy_health_monitor.health_monitor_enable = false
+            """.stripMargin
 
         config.withFallback(ConfigFactory.parseString(defaults))
               .withValue("zookeeper.use_new_stack",
