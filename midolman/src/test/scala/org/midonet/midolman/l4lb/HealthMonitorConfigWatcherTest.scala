@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,52 +19,76 @@ import java.util.{Random, UUID}
 
 import scala.collection.immutable.{HashMap => IMap}
 import scala.collection.mutable.{HashMap => MMap}
-import scala.concurrent.duration._
-
-import akka.actor.{Props, ActorRef, ActorSystem}
-import akka.testkit.TestKit
+import scala.reflect._
 
 import org.junit.runner.RunWith
+import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.scalatest.junit.JUnitRunner
+import rx.observers.TestObserver
+import rx.subjects.PublishSubject
+import rx.{Observable, Subscriber}
 
-import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated}
-import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
+import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, HealthMonitorMessage}
 import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, Vip => SimVip}
 import org.midonet.midolman.state.l4lb.{HealthMonitorType, LBStatus, VipSessionPersistence}
+import org.midonet.midolman.topology.PoolHealthMonitorMapper._
+import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{HealthMonitor => SimHealthMonitor, PoolHealthMonitor, PoolHealthMonitorMap}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
-
+import org.midonet.util.functors._
 
 @RunWith(classOf[JUnitRunner])
-class HealthMonitorConfigWatcherTest
-    extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
-    with MidolmanSpec {
+class HealthMonitorConfigWatcherTest extends MidolmanSpec {
 
     val random = new Random()
-    var watcher: ActorRef = null
+    var watcher: TestableHealthMonitorConfigWatcher = null
 
     val uuidOne = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val uuidTwo = UUID.fromString("00000000-0000-0000-0000-000000000002")
     val uuidThree = UUID.fromString("00000000-0000-0000-0000-000000000003")
 
-    class TestableHealthMonitorConfigWatcher
-        extends HealthMonitorConfigWatcher("/doesnt/matter", "/dont/care", testActor) {
-        override def preStart(): Unit = {
-            // Override preStart to not subscribe to the VT for pool health
-            // monitor mappings, which will introduce additional notifications.
+    var phmSubject: PublishSubject[PoolHealthMonitorMap] = _
+
+    override def disableVtThreadCheck: Boolean = true
+
+    class TestableHealthMonitorConfigWatcher()
+        extends HealthMonitorConfigWatcher("/doesnt/matter", "/dont/care",
+                                   new SameThreadButAfterExecutorService()) {
+
+        class TestDeviceState[D <: Device](id: UUID)(implicit tag: ClassTag[D])
+            extends DeviceState[D](id) {
+
+            override def observable: Observable[D] = tag.runtimeClass match {
+                case x if x == classOf[PoolHealthMonitorMap] =>
+                    phmSubject = PublishSubject.create[PoolHealthMonitorMap]()
+                    phmSubject.asObservable().asInstanceOf[Observable[D]]
+
+                case x if x == classOf[SimLoadBalancer] =>
+                    Observable.empty[SimLoadBalancer]()
+                              .asInstanceOf[Observable[D]]
+
+                case _ => Observable.empty()
+            }
+        }
+
+        override def call(child: Subscriber[_ >: HealthMonitorMessage])
+        : Unit = {
+            val phmState =
+                new TestDeviceState[PoolHealthMonitorMap](PoolHealthMonitorMapKey)
+
+            phmState.observable
+                    .flatMap[HealthMonitorMessage](makeFunc1(handleUpdate))
+                    .subscribe(hmConfigBus)
+            hmConfigBus.subscribe(child)
         }
     }
 
     protected override def beforeTest(): Unit = {
-        watcher = actorSystem.actorOf(Props(new TestableHealthMonitorConfigWatcher()))
+        watcher = new TestableHealthMonitorConfigWatcher()
     }
 
-    protected override def afterTest(): Unit = {
-        actorSystem.stop(watcher)
-    }
-
-    def generateFakeData(poolId: UUID): PoolHealthMonitor = {
+    private def generateFakeData(poolId: UUID): PoolHealthMonitor = {
         val hm = new SimHealthMonitor(UUID.randomUUID(),
                                       adminStateUp = true,
                                       HealthMonitorType.TCP,
@@ -89,7 +113,7 @@ class HealthMonitorConfigWatcherTest
         PoolHealthMonitor(hm, lb, Array(vip), Array[SimPoolMember]())
     }
 
-    def generateFakeMap(): MMap[UUID, PoolHealthMonitor] = {
+    private def generateFakeMap(): MMap[UUID, PoolHealthMonitor] = {
         val map = new MMap[UUID, PoolHealthMonitor]()
         map.put(uuidOne, generateFakeData(uuidOne))
         map.put(uuidTwo, generateFakeData(uuidTwo))
@@ -97,51 +121,59 @@ class HealthMonitorConfigWatcherTest
         map
     }
 
+    private def observerAndSubscribe(): TestObserver[HealthMonitorMessage] = {
+        val observer = new TestObserver[HealthMonitorMessage]()
+        Observable.create(watcher).subscribe(observer)
+        observer
+    }
+
     feature("The config watcher only sends us updates if it is the leader") {
         scenario("config watcher is not the leader") {
             Given("A pool-health monitor mapping")
             val map = IMap(generateFakeMap().toSeq:_*)
+            val observer = observerAndSubscribe()
             When("We send it to the config watcher")
-            watcher ! PoolHealthMonitorMap(map)
+            phmSubject onNext PoolHealthMonitorMap(map)
             Then("We should expect nothing in return")
-            expectNoMsg(50 milliseconds)
+            observer.getOnCompletedEvents should have size 0
             And("We send more updates")
-            watcher ! PoolHealthMonitorMap(map)
+            phmSubject onNext PoolHealthMonitorMap(map)
             Then("We should expect nothing in return")
-            expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(new IMap[UUID, PoolHealthMonitor]())
-            expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(map)
-            expectNoMsg(50 milliseconds)
+            observer.getOnCompletedEvents should have size 0
+            phmSubject onNext PoolHealthMonitorMap(new IMap[UUID, PoolHealthMonitor]())
+            observer.getOnCompletedEvents should have size 0
+            phmSubject onNext PoolHealthMonitorMap(map)
+            observer.getOnCompletedEvents should have size 0
             map(uuidOne).healthMonitor.delay = 2
-            watcher ! PoolHealthMonitorMap(map)
-            expectNoMsg(50 milliseconds)
+            phmSubject onNext PoolHealthMonitorMap(map)
+            observer.getOnCompletedEvents should have size 0
         }
         scenario("config watcher becomes the leader after several updates " +
                  "are sent") {
             Given("A pool-health monitor mapping")
             val map = generateFakeMap()
+            val observer = observerAndSubscribe()
             When("We send it to the config watcher")
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            phmSubject onNext PoolHealthMonitorMap(IMap(map.toSeq:_*))
             Then("We should expect nothing in return")
-            expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
-            expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(new IMap[UUID, PoolHealthMonitor]())
-            expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
-            expectNoMsg(50 milliseconds)
+            observer.getOnNextEvents should have size 0
+            phmSubject onNext PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            observer.getOnNextEvents should have size 0
+            phmSubject onNext PoolHealthMonitorMap(new IMap[UUID, PoolHealthMonitor]())
+            observer.getOnNextEvents should have size 0
+            phmSubject onNext PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            observer.getOnNextEvents should have size 0
             map(uuidOne).healthMonitor.delay = 2
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            phmSubject onNext PoolHealthMonitorMap(IMap(map.toSeq:_*))
             When("We become the leader node")
-            watcher ! BecomeHaproxyNode
+            watcher.becomeHaproxyNode
             val res = new MMap[UUID, PoolConfig]
             Then("We should receive the correct map")
-            val conf1 = expectMsgType[ConfigAdded]
+            val conf1 = observer.getOnNextEvents.get(0).asInstanceOf[ConfigAdded]
             res put (conf1.poolId, conf1.config)
-            val conf2 = expectMsgType[ConfigAdded]
+            val conf2 = observer.getOnNextEvents.get(1).asInstanceOf[ConfigAdded]
             res put (conf2.poolId, conf2.config)
-            val conf3 = expectMsgType[ConfigAdded]
+            val conf3 = observer.getOnNextEvents.get(2).asInstanceOf[ConfigAdded]
             res put (conf3.poolId, conf3.config)
             res(uuidOne).healthMonitor.delay shouldEqual 2
             res(uuidTwo).healthMonitor.delay shouldEqual 1
@@ -151,37 +183,39 @@ class HealthMonitorConfigWatcherTest
 
     feature("The config watcher updates based on changes") {
         scenario("pool config is deleted") {
-            watcher ! BecomeHaproxyNode
+            watcher.becomeHaproxyNode()
             Given("A pool-health monitor mapping")
             val map = generateFakeMap()
+            val observer = observerAndSubscribe()
             When("We send it to the config watcher")
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
-            Then("We should recieve the ConfigAdded for each mapping")
-            expectMsgType[ConfigAdded]
-            expectMsgType[ConfigAdded]
-            expectMsgType[ConfigAdded]
+            phmSubject onNext PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            Then("We should receive the ConfigAdded for each mapping")
+            observer.getOnNextEvents should have size 3
+            for (i <- 0 to 2) observer.getOnNextEvents.get(i).getClass shouldBe
+                                  classOf[ConfigAdded]
             map remove uuidTwo
             And("We remove one of the maps")
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            phmSubject onNext PoolHealthMonitorMap(IMap(map.toSeq:_*))
             Then("We should receive the deletion back")
-            val conf = expectMsgType[ConfigDeleted]
+            val conf = observer.getOnNextEvents.get(3).asInstanceOf[ConfigDeleted]
             conf.id shouldEqual uuidTwo
         }
         scenario("pool config is updated") {
-            watcher ! BecomeHaproxyNode
+            watcher.becomeHaproxyNode()
             Given("A pool-health monitor mapping")
             val map = generateFakeMap()
+            val observer = observerAndSubscribe()
             When("We send it to the config watcher")
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            phmSubject onNext PoolHealthMonitorMap(IMap(map.toSeq:_*))
             Then("We should recieve the ConfigAdded for each mapping")
-            expectMsgType[ConfigAdded]
-            expectMsgType[ConfigAdded]
-            expectMsgType[ConfigAdded]
+            observer.getOnNextEvents should have size 3
+            for (i <- 0 to 2) observer.getOnNextEvents.get(i).getClass shouldBe
+                                  classOf[ConfigAdded]
             And("We update one of the maps")
             map(uuidTwo).healthMonitor.delay = 10
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            phmSubject onNext PoolHealthMonitorMap(IMap(map.toSeq:_*))
             Then("We should receive the update notification back")
-            val conf = expectMsgType[ConfigUpdated]
+            val conf = observer.getOnNextEvents.get(3).asInstanceOf[ConfigUpdated]
             conf.config.healthMonitor.delay shouldEqual 10
         }
     }
