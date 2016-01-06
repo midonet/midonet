@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.midonet.midolman.l4lb
 
 import java.io._
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, TimeUnit}
 
 import scala.collection.JavaConversions._
+import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
 
-import akka.actor.{Actor, ActorRef, Props}
-
+import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.{Logger, LoggerFactory}
+import rx.schedulers.Schedulers
+import rx.{Observable, Observer, Scheduler, Subscription}
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.util.ZkOpLock
@@ -40,25 +41,25 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.conf.HostIdGenerator
-import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
-import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
-import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.util.concurrent.toFutureOps
+import org.midonet.util.concurrent.{NamedThreadFactory, toFutureOps}
+import org.midonet.util.functors.makeRunnable
 
-object HealthMonitor extends Referenceable {
-    override val Name = "HealthMonitor"
+object HealthMonitor {
+    trait HealthMonitorMessage
     case class ConfigUpdated(poolId: UUID, config: PoolConfig, routerId: UUID)
-    case class ConfigDeleted(id: UUID)
+        extends HealthMonitorMessage
+    case class ConfigDeleted(id: UUID) extends HealthMonitorMessage
     case class ConfigAdded(poolId: UUID, config: PoolConfig, routerId: UUID)
+        extends HealthMonitorMessage
     case class RouterChanged(poolId: UUID, config: PoolConfig, routerId: UUID)
+        extends HealthMonitorMessage
 
     var ipCommand = new IP()
     private final val lockOpNumber = new AtomicInteger(1)
 
     private val log: Logger
-        = LoggerFactory.getLogger(classOf[HealthMonitor])
+        = LoggerFactory.getLogger("org.midonet.haproxy")
 
     def isRunningHaproxyPid(pid: Int, pidFilePath: String,
                             confFilePath: String): Boolean = {
@@ -121,7 +122,7 @@ object HealthMonitor extends Referenceable {
                 return
             log.error("Unable to kill haproxy process " + pid)
         } else {
-            log.info("pid " + pid + " does not match up with contents " +
+            log.info("PID " + pid + " does not match up with contents " +
                       " of " + pidFilePath)
         }
     }
@@ -155,7 +156,6 @@ object HealthMonitor extends Referenceable {
 
         // If we got this far, we have pid. Lets make sure it matches what
         // we expect in /proc/PID/cmdline
-
         val haproxyPid = getHaproxyPid(pidFilePath) match {
             case Some(pid) => pid
             case None => return
@@ -207,44 +207,47 @@ object HealthMonitor extends Referenceable {
     }
 }
 
-/*
- * parent class to manage the haproxy instances running on the system.
- * It accepts notifications that a config has been added, deleted, or changed,
- * then updates, creates, or destroys haproxy instances accordingly.
- */
+/**
+  * Parent class to manage the haproxy instances running on the system.
+  * It accepts notifications that a config has been added, deleted, or changed,
+  * then updates, creates, or destroys haproxy instances accordingly.
+  */
 class HealthMonitor @Inject() (config: MidolmanConfig,
                                backend: MidonetBackend,
                                lockFactory: ZookeeperLockFactory,
                                curator: CuratorFramework,
                                backendCfg: MidonetBackendConfig)
-    extends Actor with ActorLogWithoutPath {
+    extends AbstractService {
 
     import HealthMonitor._
 
-    val namespaceSuffix: String = "_hm"
+    protected val namespaceSuffix: String = "_hm"
     private var hostId: UUID = null
-    val store = backend.store
+    private val store = backend.store
+    private val timeoutInSec = 10
+    private val checkHealthPeriodInSec = 1
+    private val haProxies = new TrieMap[UUID, HaproxyHealthMonitor]()
 
-    val seqDispenser = new SequenceDispenser(curator, backendCfg)
+    private val seqDispenser = new SequenceDispenser(curator, backendCfg)
 
-    private var watcher: ActorRef = null
+    protected var watcher: HealthMonitorConfigWatcher = _
+    private var executor: ScheduledExecutorService = _
+    private var scheduler: Scheduler = _
+    private var subscription: Subscription = _
 
     val ipCom = HealthMonitor.ipCommand
 
     def getHostId = HostIdGenerator.getIdFromPropertiesFile
 
     private val hmLatchListener = new LeaderLatchListener {
-
-        override def isLeader() = watcher ! BecomeHaproxyNode
+        override def isLeader() = watcher.becomeHaproxyNode()
         override def notLeader() = {
             // There is nothing to be done in this case.
-            log.warn("HealthMonitor actor is no longer the leader.")
+            log.info("HealthMonitor service is no longer the leader.")
         }
     }
 
-    def getWatcher = context.actorOf(HealthMonitorConfigWatcher.props(
-            config.healthMonitor.haproxyFileLoc, namespaceSuffix, self)
-            .withDispatcher(context.props.dispatcher))
+    private var hmLatch: LeaderLatch = null
 
     private def setPoolMappingStatus(poolId: UUID, status: PoolHMMappingStatus)
     : Unit = {
@@ -255,116 +258,195 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
             }
         } catch {
             case NonFatal(e) =>
-                log.error("Unable to set the mapping status for pool {}",
-                          poolId, e)
+                log.warn(s"Unable to set the mapping status for pool $poolId", e)
         }
     }
 
-    override def preStart(): Unit = {
-        if (config.healthMonitor.namespaceCleanup) {
-            cleanupNamespaces()
+    private def stopHealthMonitor(): Unit = {
+        if (subscription ne null) {
+            subscription.unsubscribe()
+            stopAsync().awaitTerminated(timeoutInSec, TimeUnit.SECONDS)
         }
-        watcher = getWatcher
+    }
+
+    protected def getWatcher(config: MidolmanConfig, executor: ExecutorService)
+    : HealthMonitorConfigWatcher =
+        new HealthMonitorConfigWatcher(config.healthMonitor.haproxyFileLoc,
+                                       namespaceSuffix, executor)
+
+    override def doStart(): Unit = {
         log.info("Starting Health Monitor")
-        hostId = getHostId
-        if (curator == null) {
-            watcher ! BecomeHaproxyNode
-        } else {
-            val hmLatch = new LeaderLatch(curator,
-                                          config.zookeeper.rootKey +
-                                          "/lb/hm-latch")
-            hmLatch.addListener(hmLatchListener)
-            hmLatch.start()
+
+        executor = Executors.newSingleThreadScheduledExecutor(
+            new NamedThreadFactory("HaProxy", isDaemon = true))
+        scheduler = Schedulers.from(executor)
+        watcher = getWatcher(config, executor)
+
+        val observer = new Observer[HealthMonitorMessage]() {
+            override def onCompleted(): Unit = {
+                log.warn("Health monitor configuration stream completed " +
+                         "unexpectedly, stopping the health monitor")
+                stopHealthMonitor()
+            }
+            override def onError(e: Throwable): Unit = {
+                log.warn("Health monitor configuration stream experienced " +
+                         "an error, stopping the health monitor", e)
+                stopHealthMonitor()
+            }
+            override def onNext(msg: HealthMonitorMessage): Unit =
+                handleUpdate(msg)
+        }
+
+        executor.submit(makeRunnable {
+            try {
+                if (config.healthMonitor.namespaceCleanup) {
+                    cleanupNamespaces()
+                }
+                hostId = getHostId
+                subscription = Observable.create(watcher).subscribe(observer)
+                hmLatch = new LeaderLatch(curator, config.zookeeper.rootKey +
+                                                   "/lb/hm-latch")
+                hmLatch.addListener(hmLatchListener)
+                hmLatch.start()
+                notifyStarted()
+            } catch {
+                case NonFatal(e) =>
+                    log.warn("Unable to start the health monitor")
+                    notifyFailed(e)
+            }
+        })
+    }
+
+    override def doStop(): Unit = {
+        executor.submit(makeRunnable {
+            subscription.unsubscribe()
+            haProxies.keySet.foreach(stopHaProxy)
+
+            try {
+                hmLatch.close()
+                executor.shutdown()
+            } catch {
+                case NonFatal(e) =>
+                    log.warn("Unable to properly stop the health monitor", e)
+
+            } finally {
+                notifyStopped()
+            }
+        })
+    }
+
+    private def checkHaProxyHealth(poolId: UUID): Unit = {
+        haProxies.get(poolId) match {
+            case Some(haProxy) =>
+                if (!haProxy.checkHealthAndSetMemberStatus()) {
+                    stopHaProxy(poolId)
+                } else {
+                    executor.schedule(makeRunnable(checkHaProxyHealth(poolId)),
+                                      checkHealthPeriodInSec,
+                                      TimeUnit.SECONDS)
+                }
+            case None =>
         }
     }
 
-    def receive = {
+    protected def getHaProxy(config: PoolConfig, routerId: UUID)
+    : HaproxyHealthMonitor =
+        new HaproxyHealthMonitor(config, routerId, store, hostId, lockFactory,
+                                 seqDispenser)
+
+    protected def startHaProxy(poolId: UUID, config: PoolConfig,
+                              routerId: UUID) = {
+        val haProxy = getHaProxy(config, routerId)
+        try {
+            haProxy.startAsync().awaitRunning(timeoutInSec, TimeUnit.SECONDS)
+            haProxies.put(poolId, haProxy)
+            executor.schedule(makeRunnable(checkHaProxyHealth(poolId)),
+                              checkHealthPeriodInSec,
+                              TimeUnit.SECONDS)
+        } catch {
+            case NonFatal(e) => stopHaProxy(poolId)
+        }
+    }
+
+    private def stopHaProxy(poolId: UUID): Unit = {
+        try {
+            val haProxy = haProxies.remove(poolId).foreach(
+                _.stopAsync.awaitTerminated(timeoutInSec, TimeUnit.SECONDS))
+        } catch {
+            case NonFatal(e) =>
+                log.info(s"Unable to stop health monitor proxy for pool: $poolId")
+        }
+    }
+
+    private def handleUpdate(update: AnyRef): Unit = update match {
         case ConfigUpdated(poolId, poolConf, routerId) =>
-            context.child(poolId.toString) match {
-                case Some(child) if !poolConf.isConfigurable =>
-                    log.info("received unconfigurable update for pool {}",
-                        poolId.toString)
-                    context.stop(child)
-
-                case Some(child) =>
-                    log.info("received configurable update for pool {}",
-                        poolId.toString)
-                    child ! ConfigUpdate(poolConf)
-
+            haProxies.get(poolId) match {
+                case Some(haProxy) if !poolConf.isConfigurable =>
+                    log.info("Received unconfigurable update for pool {}",
+                             poolId.toString)
+                    stopHaProxy(poolId)
+                case Some(haProxy) =>
+                    log.info("Received configurable update for pool {}",
+                             poolId.toString)
+                    if (!haProxy.updateConfig(poolConf)) {
+                        stopHaProxy(poolId)
+                    }
                 case None if poolConf.isConfigurable && routerId != null =>
-                    log.info("received configurable update for non-existing" +
+                    log.info("Received configurable update for non-existing" +
                              "pool {}", poolId.toString)
-                    startChildHaproxyMonitor(poolId, poolConf, routerId)
-
-                case _ =>
-                    log.info("received unconfigurable update for non-existing" +
+                    startHaProxy(poolId, poolConf, routerId)
+                case None =>
+                    log.info("Received unconfigurable update for non-existing" +
                              "pool {}", poolId.toString)
                     setPoolMappingStatus(poolId, INACTIVE)
             }
 
         case ConfigAdded(poolId, poolConfig, routerId) =>
-            context.child(poolId.toString) match {
-                case Some(child) => log.error("Request to add health monitor" +
-                    "that already exists: " + poolId.toString)
-
+            haProxies.get(poolId) match {
+                case Some(haProxy) =>
+                    log.error("Request to add health monitor" +
+                              "that already exists: " + poolId.toString)
                 case None if !poolConfig.isConfigurable || routerId == null =>
-                    log.info("received unconfigurable add for pool {}",
-                        poolId.toString)
-                    setPoolMappingStatus(poolId, INACTIVE)
-
-                case None =>
-                    log.info("received configurable add for pool {}",
+                    log.info("Received unconfigurable add for pool {}",
                              poolId.toString)
-                    startChildHaproxyMonitor(poolId, poolConfig, routerId)
+                    setPoolMappingStatus(poolId, INACTIVE)
+                case None =>
+                    log.info("Received configurable add for pool {}",
+                             poolId.toString)
+                    startHaProxy(poolId, poolConfig, routerId)
             }
 
         case ConfigDeleted(poolId) =>
-            context.child(poolId.toString) match {
-                case Some(child) =>
-                    log.info("received delete for pool {}",
+            haProxies.get(poolId) match {
+                case Some(haProxy) =>
+                    log.info("Received delete for pool {}",
                              poolId.toString)
-                    context.stop(child)
-
+                    stopHaProxy(poolId)
                 case None =>
-                    log.info("received delete for non-existent pool {}",
+                    log.info("Received delete for non-existent pool {}",
                              poolId.toString)
                     setPoolMappingStatus(poolId, INACTIVE)
             }
 
         case RouterChanged(poolId, poolConfig, routerId) =>
-            context.child(poolId.toString) match {
-                case Some(child) if routerId == null =>
-                    log.info("router removed for pool {}", poolId.toString)
-                    child ! RouterRemoved
+            haProxies.get(poolId) match {
+                case Some(haProxy) if routerId == null =>
+                    log.info("Router removed for pool {}", poolId.toString)
+                    haProxy.removeRouter()
 
-                case Some(child) =>
-                    log.info("router added for pool {}", poolId.toString)
-                    child ! RouterAdded(routerId)
+                case Some(haProxy) =>
+                    log.info("Router added for pool {}", poolId.toString)
+                    haProxy.newRouter(routerId)
 
                 case None if poolConfig.isConfigurable && routerId != null =>
-                    log.info("router added for non-existent pool {}",
+                    log.info("Router added for non-existent pool {}",
                              poolId.toString)
-                    startChildHaproxyMonitor(poolId, poolConfig, routerId)
-
-                case _ =>
-                    log.info("router changed for unconfigurable and non-" +
+                    startHaProxy(poolId, poolConfig, routerId)
+                case None =>
+                    log.info("Router changed for unconfigurable and non-" +
                              "existent pool {}", poolId.toString)
                     setPoolMappingStatus(poolId, INACTIVE)
             }
-
-        case SetupFailure => context.stop(sender)
-
-        case SockReadFailure => context.stop(sender)
-    }
-
-    def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
-                                 routerId: UUID) = {
-        context.actorOf(
-            Props(
-                new HaproxyHealthMonitor(config, self, routerId, store, hostId,
-                                         lockFactory, seqDispenser)
-            ).withDispatcher(context.props.dispatcher),
-            config.id.toString)
     }
 
     def cleanupNamespaces() = {
