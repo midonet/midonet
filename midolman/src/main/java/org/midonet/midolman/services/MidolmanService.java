@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.host.services.HostService;
+import org.midonet.midolman.l4lb.HealthMonitor;
 import org.midonet.midolman.state.PeerResolver;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 
@@ -62,6 +63,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject
     PeerResolver resolver;
+
+    @Inject(optional = true)
+    HealthMonitor healthMonitor;
 
     private JmxReporter jmxReporter = null;
 
@@ -135,6 +139,8 @@ public class MidolmanService extends AbstractService {
 
     private List<Service> services() {
         ArrayList<Service> services = new ArrayList<>(5);
+        if (healthMonitor != null)
+            services.add(healthMonitor);
         services.add(datapathConnectionService);
         services.add(selectLoopService);
         if (hostService != null)

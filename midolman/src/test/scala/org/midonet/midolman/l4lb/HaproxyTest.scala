@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,17 @@ package org.midonet.midolman.l4lb
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ExecutorService, TimeUnit}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-import akka.actor.{Actor, ActorRef, Props}
-import akka.testkit.TestActorRef
 import com.typesafe.config.ConfigFactory
+import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
 import org.mockito.Mockito
-import org.mockito.Mockito.{mock, times, verify, spy}
+import org.mockito.Mockito.{mock, spy, times, verify}
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.SpanSugar
@@ -40,16 +39,16 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.SequenceDispenser.SequenceType
+import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, SequenceDispenser}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.{HealthMonitor => HMSystem}
+import org.midonet.midolman.layer3
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.{MockScheduler, layer3}
-import org.midonet.packets.{MAC, IPv4Addr, IPv4Subnet}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
@@ -60,7 +59,7 @@ class HaproxyTest extends MidolmanSpec
                           with SpanSugar
                           with MidonetEventually {
 
-    var hmSystem: ActorRef = _
+    var hmSystem: TestableHealthMonitor = _
     var backend: MidonetBackend = _
     var conf = mock(classOf[MidolmanConfig])
     var lockFactory: ZookeeperLockFactory = _
@@ -69,6 +68,8 @@ class HaproxyTest extends MidolmanSpec
 
     val vipIp1 = "10.0.0.1"
     val vipIp2 = "10.0.0.2"
+
+    override def disableVtThreadCheck: Boolean = true
 
     def makeRouter(): UUID = {
         val rid = UUID.randomUUID()
@@ -146,40 +147,34 @@ class HaproxyTest extends MidolmanSpec
         backend.store.get(classOf[topVip], vipId).value.get.get
     }
 
-    class TestableHealthMonitor extends HMSystem(conf, backend, lockFactory,
-                                                 curator = null, backendCfg) {
+    class TestableHealthMonitor(curator: CuratorFramework)
+        extends HMSystem(conf, backend, lockFactory, curator, backendCfg) {
+        override def getHostId = hostId
 
-        override val seqDispenser = new SequenceDispenser(null, backendCfg) {
-            private val mockCounter = new AtomicInteger(100)
-            def reset(): Unit = mockCounter.set(100)
-            override def next(which: SequenceType): Future[Int] = {
-                Future.successful(mockCounter.incrementAndGet())
-            }
-
-            override def current(which: SequenceType): Future[Int] = {
-                Future.successful(mockCounter.get())
+        override def getWatcher(config: MidolmanConfig,
+                                executor: ExecutorService)
+        : HealthMonitorConfigWatcher = {
+            new HealthMonitorConfigWatcher(config.healthMonitor.haproxyFileLoc,
+                                           namespaceSuffix, executor) {
+                currentLeader = true
             }
         }
 
-        override def getHostId = hostId
-
-        override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
-                                              routerId: UUID) = {
+        override def getHaProxy(config: PoolConfig, routerId: UUID)
+        : HaproxyHealthMonitor = {
             poolConfig = config
-            context.actorOf(
-                Props(
-                    new HaproxyHealthMonitor(config, self, routerId, store,
-                                             hostId, lockFactory,
-                                             seqDispenser) {
-                        override def writeConf(config: PoolConfig): Unit = {}
 
-                        override def receive = ({
-                            case HaproxyHealthMonitor.CheckHealth =>
-                                checkHealthReceived += 1
-                        }: Actor.Receive) orElse super.receive
-                    }
-                ).withDispatcher(context.props.dispatcher),
-                config.id.toString)
+            val seqDispenser = mock(classOf[SequenceDispenser])
+            Mockito.when(seqDispenser.next(OverlayTunnelKey))
+                   .thenReturn(Future(1))
+            new HaproxyHealthMonitor(config, routerId, backend.store,
+                                     hostId, lockFactory, seqDispenser) {
+                override def writeConf(config: PoolConfig): Unit = { }
+                override def checkHealthAndSetMemberStatus(): Boolean = {
+                    checkHealthReceived += 1
+                    true
+                }
+            }
         }
     }
 
@@ -195,11 +190,8 @@ class HaproxyTest extends MidolmanSpec
                                    org.mockito.Matchers.anyObject()))
                .thenReturn(true)
         HMSystem.ipCommand = mock(classOf[IP])
-        hmSystem = TestActorRef(Props(new TestableHealthMonitor()))(actorSystem)
-    }
-
-    override def afterTest(): Unit = {
-        actorSystem.stop(hmSystem)
+        hmSystem = new TestableHealthMonitor(mock(classOf[CuratorFramework]))
+        hmSystem.startAsync().awaitRunning(10, TimeUnit.SECONDS)
     }
 
     private def checkCreateNameSpace(hmName: String): Unit = {
@@ -243,10 +235,9 @@ class HaproxyTest extends MidolmanSpec
     private def checkHaproxyStarted(hmName: String, vipIp: String, poolId: UUID,
                                     routerId: UUID, routerLbCount: Int = 1)
     : Unit = {
-
         val topoRouter = getRouter(routerId)
         topoRouter.getPortIdsCount shouldBe routerLbCount
-        verify(HMSystem.ipCommand, times(1)).execIn(hmName, haProxyCmdLine)
+        verify(HMSystem.ipCommand).execIn(hmName, haProxyCmdLine)
         checkCreateNameSpace(hmName)
 
         val port = topoRouter.getPortIdsList.asScala
@@ -280,15 +271,14 @@ class HaproxyTest extends MidolmanSpec
     }
 
     private def checkHaproxyStopped(hmName: String, poolId: UUID, routerId: UUID,
-                                    routerPortCount: Int = 0)
-    : Unit = {
+                                    routerPortCount: Int = 0): Unit = {
         val router = getRouter(routerId)
         router.getPortIdsCount shouldBe routerPortCount
         verify(HMSystem.ipCommand).namespaceExist(hmName)
         getPool(poolId).getMappingStatus shouldBe INACTIVE
     }
 
-    feature("Actor messages are handled correctly") {
+    feature("Updates are handled correctly") {
         scenario("ConfigUpdate") {
             Given("One router")
             val routerId = makeRouter()
@@ -410,18 +400,11 @@ class HaproxyTest extends MidolmanSpec
             val poolId = makePool(hmId, lbId, vipId)
             val hmName = poolId.toString.substring(0, 8) + "_hm"
 
-            /* The mock scheduler used in unit tests inhibates scheduled
-               messages by default, runAll ensures that all messages are
-               sent. */
-            actorSystem.scheduler.asInstanceOf[MockScheduler].runAll()
-
             Then("Eventually an HA proxy should be started")
             eventually {
                 checkHaproxyStarted(hmName, vipIp1, poolId, routerId)
                 checkHealthReceived should be >= 1
             }
-
-
         }
     }
 

@@ -21,17 +21,18 @@ import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
-import akka.actor.{OneForOneStrategy, SupervisorStrategy, ActorSystem}
+import akka.actor.{ActorSystem, OneForOneStrategy, SupervisorStrategy}
 import com.codahale.metrics.MetricRegistry
-import com.google.inject.{Key, Injector, AbstractModule}
 import com.google.inject.name.Names
+import com.google.inject.{AbstractModule, Injector, Key}
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
 import org.reflections.Reflections
-import org.slf4j.{LoggerFactory, Logger}
+import org.slf4j.{Logger, LoggerFactory}
 
+import org.midonet.Util
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
@@ -39,24 +40,24 @@ import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath._
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
+import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.scanner.{DefaultInterfaceScanner, InterfaceScanner}
 import org.midonet.midolman.host.services.HostService
 import org.midonet.midolman.io._
-import org.midonet.midolman.logging.{FlowTracingSchema, FlowTracingAppender}
+import org.midonet.midolman.l4lb.HealthMonitor
+import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
 import org.midonet.midolman.monitoring._
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
-import org.midonet.netlink.{NetlinkUtil, NetlinkProtocol, NetlinkChannelFactory}
+import org.midonet.netlink.{NetlinkChannelFactory, NetlinkProtocol, NetlinkUtil}
 import org.midonet.odp.OvsNetlinkFamilies
-import org.midonet.Util
-import org.midonet.util.concurrent._
-import org.midonet.util.eventloop.{Reactor, SimpleSelectLoop, SelectLoop}
 import org.midonet.util._
+import org.midonet.util.concurrent._
+import org.midonet.util.eventloop.{Reactor, SelectLoop, SimpleSelectLoop}
 
 class MidolmanModule(injector: Injector,
                      config: MidolmanConfig,
@@ -151,6 +152,8 @@ class MidolmanModule(injector: Injector,
         bind(classOf[PeerResolver]).toInstance(resolver)
 
         bind(classOf[MidolmanService]).asEagerSingleton()
+
+        bindHealthMonitor()
     }
 
     protected def hostId() =
@@ -394,4 +397,10 @@ class MidolmanModule(injector: Injector,
             System.exit(-1)
             akka.actor.SupervisorStrategy.stop
         })
+
+    protected def bindHealthMonitor(): Unit = {
+        if (config.healthMonitor.enable) {
+            bind(classOf[HealthMonitor]).asEagerSingleton()
+        }
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.midonet.midolman
 
-import java.util.{UUID, LinkedList}
 import java.util.concurrent.ConcurrentHashMap
+import java.util.{LinkedList, UUID}
 
-import org.midonet.midolman.monitoring.NullFlowRecorder
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Injector
-import com.lmax.disruptor.{SequenceBarrier, RingBuffer}
-import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
+import com.lmax.disruptor.{RingBuffer, SequenceBarrier}
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
@@ -38,21 +36,23 @@ import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.FlowTracingAppender
+import org.midonet.midolman.monitoring.NullFlowRecorder
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.{MidolmanActorsService, SelectLoopService}
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockFlowProcessor, MockDatapathChannel, MockUpcallDatapathConnectionManager}
+import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockInterfaceScanner, MockUpcallDatapathConnectionManager}
 import org.midonet.netlink.NetlinkChannelFactory
-import org.midonet.odp.{Flow, FlowMatch, Datapath, OvsNetlinkFamilies}
-import org.midonet.odp.family.{PacketFamily, FlowFamily, PortFamily, DatapathFamily}
+import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
+import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
 
 class MockMidolmanModule(override val hostId: UUID,
                          injector: Injector,
                          config: MidolmanConfig,
-                         actorService: MidolmanActorsService)
+                         actorService: MidolmanActorsService,
+                         disableVtThreadCheck: Boolean = false)
         extends MidolmanModule(injector, config, new MetricRegistry) {
 
     val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
@@ -92,7 +92,7 @@ class MockMidolmanModule(override val hostId: UUID,
             simBackChannel,
             new MetricRegistry,
             new SameThreadButAfterExecutorService,
-            () => threadId == Thread.currentThread().getId,
+            () => disableVtThreadCheck || threadId == Thread.currentThread().getId,
             new SameThreadButAfterExecutorService)
     }
 
@@ -155,4 +155,7 @@ class MockMidolmanModule(override val hostId: UUID,
             .getConfig("midolman")
             .withValue("akka.scheduler.implementation",
                        ConfigValueFactory.fromAnyRef(classOf[MockScheduler].getName)))
+
+    /* This is to prevent a health monitor from being bound in unit tests. */
+    protected override def bindHealthMonitor(): Unit = {}
 }
