@@ -37,6 +37,7 @@ class PoolConfig(val id: UUID,
                  val adminStateUp: Boolean,
                  val l4lbFileLocs: String,
                  val nsPostFix: String) {
+
     import PoolConfig._
 
     private final val log: Logger
