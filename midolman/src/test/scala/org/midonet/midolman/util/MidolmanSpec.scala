@@ -116,7 +116,11 @@ trait MidolmanSpec extends FeatureSpecLike
     }
 
     protected def fillConfig(config: Config = ConfigFactory.empty) : Config = {
-        val defaults = """cassandra.servers = "localhost:9171""""
+        val defaults =
+            """
+              |cassandra.servers = "localhost:9171"
+              |agent.haproxy_health_monitor.health_monitor_enable = false
+            """.stripMargin
 
         config.withFallback(ConfigFactory.parseString(defaults))
               .withValue("zookeeper.use_new_stack",

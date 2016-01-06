@@ -16,11 +16,10 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
 
-import akka.actor.{ActorRef, Actor, Props}
-import akka.testkit.TestActorRef
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
 import org.mockito.Mockito
@@ -39,7 +38,7 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.{HealthMonitor => HMSystem}
-import org.midonet.midolman.{MockScheduler, layer3}
+import org.midonet.midolman.layer3
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
@@ -54,7 +53,7 @@ class HaproxyTest extends MidolmanSpec
                           with SpanSugar
                           with MidonetEventually {
 
-    var hmSystem: ActorRef = _
+    var hmSystem: TestableHealthMonitor = _
     var backend: MidonetBackend = _
     var conf = mock(classOf[MidolmanConfig])
     var lockFactory: ZookeeperLockFactory = _
@@ -141,22 +140,17 @@ class HaproxyTest extends MidolmanSpec
                                                  curator = null) {
         override def getHostId = hostId
 
-        override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
-                                              routerId: UUID) = {
+        override def getHaProxy(config: PoolConfig, routerId: UUID)
+        : HaproxyHealthMonitor = {
             poolConfig = config
-            context.actorOf(
-                Props(
-                    new HaproxyHealthMonitor(config, self, routerId, store,
-                                             hostId, lockFactory) {
-                        override def writeConf(config: PoolConfig): Unit = {}
-
-                        override def receive = ({
-                            case HaproxyHealthMonitor.CheckHealth =>
-                                checkHealthReceived += 1
-                        }: Actor.Receive) orElse super.receive
-                    }
-                ).withDispatcher(context.props.dispatcher),
-                config.id.toString)
+            new HaproxyHealthMonitor(config, routerId, backend.store,
+                                     hostId, lockFactory) {
+                override def writeConf(config: PoolConfig): Unit = { }
+                override def checkHealth(): Boolean = {
+                    checkHealthReceived += 1
+                    true
+                }
+            }
         }
     }
 
@@ -172,11 +166,8 @@ class HaproxyTest extends MidolmanSpec
                                    org.mockito.Matchers.anyObject()))
                .thenReturn(true)
         HMSystem.ipCommand = mock(classOf[IP])
-        hmSystem = TestActorRef(Props(new TestableHealthMonitor()))(actorSystem)
-    }
-
-    override def afterTest(): Unit = {
-        actorSystem.stop(hmSystem)
+        hmSystem = new TestableHealthMonitor()
+        hmSystem.startAsync().awaitRunning(10, TimeUnit.SECONDS)
     }
 
     private def checkCreateNameSpace(hmName: String): Unit = {
@@ -375,18 +366,11 @@ class HaproxyTest extends MidolmanSpec
             val poolId = makePool(hmId, lbId, vipId)
             val hmName = poolId.toString.substring(0, 8) + "_hm"
 
-            /* The mock scheduler used in unit tests inhibates scheduled
-               messages by default, runAll ensures that all messages are
-               sent. */
-            actorSystem.scheduler.asInstanceOf[MockScheduler].runAll()
-
             Then("Eventually an HA proxy should be started")
             eventually {
                 checkHaproxyStarted(hmName, vipIp1, poolId, routerId)
                 checkHealthReceived should be >= 1
             }
-
-
         }
     }
 
