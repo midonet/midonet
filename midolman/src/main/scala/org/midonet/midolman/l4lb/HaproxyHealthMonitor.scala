@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,11 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.concurrent.duration._
+import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
-import akka.actor._
+import com.google.common.util.concurrent.AbstractService
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage._
@@ -34,11 +35,9 @@ import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{SequenceDispenser, IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{CheckHealth, ConfigUpdate, _}
-import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, SequenceDispenser}
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.AfUnix
@@ -46,11 +45,12 @@ import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.process.ProcessHelper
 
 /**
- * Actor that represents the interaction with Haproxy for health monitoring.
- * Creating this actor is basically synonymous with creating a health monitor,
- * so we handle all of the setup in preStart, and all of the cleanup in
- * postStop. Other than that, the only options for interaction with this
- * actor is telling it to stop/start monitoring, and receiving updates.
+ * A service that represents the interaction with an Haproxy for health monitoring.
+ * Creating this service is basically synonymous with creating a health monitor,
+ * so we handle all of the setup in doStart, and all of the cleanup in
+ * doStop. Other than that, the only options for interaction with this
+ * service is telling it to stop/start monitoring, and receiving configuration
+  * updates.
  *
  * All operations that need to be performed atomically are done by
  * acquiring a ZooKeeper lock. This is to prevent races with the
@@ -61,28 +61,6 @@ import org.midonet.util.process.ProcessHelper
  * violating this principle will be refactored out of here shortly (MNA-1068).
 */
 object HaproxyHealthMonitor {
-    def props(config: PoolConfig, manager: ActorRef, routerId: UUID,
-              store: Storage, hostId: UUID, lockFactory: ZookeeperLockFactory,
-              sequenceDispenser: SequenceDispenser):
-        Props = Props(new HaproxyHealthMonitor(config, manager, routerId,
-                                               store, hostId, lockFactory,
-                                               sequenceDispenser))
-
-    sealed trait HHMMessage
-    // This is a way of alerting the manager that setup has failed
-    case object SetupFailure extends HHMMessage
-    // This is a way of alerting the manager that it was unable to get
-    // health information from Haproxy
-    case object SockReadFailure extends HHMMessage
-    // Tells this actor that the config for the health monitor has changed.
-    case class ConfigUpdate(conf: PoolConfig) extends HHMMessage
-    // Tells this actor to poll haproxy once for health info.
-    case object CheckHealth extends HHMMessage
-    // Tells this actor that its router has been removed
-    case object RouterRemoved
-    // Tells this actor that it now has a router
-    case class RouterAdded(newRouterId: UUID)
-
     // Constants for linking namespace to router port
     val NameSpaceIp = IPv4Addr.fromString("169.254.17.42")
     val RouterIp = IPv4Addr.fromString("169.254.17.41")
@@ -102,22 +80,21 @@ object HaproxyHealthMonitor {
 }
 
 class HaproxyHealthMonitor(var config: PoolConfig,
-                           val manager: ActorRef,
                            var routerId: UUID,
                            val store: Storage,
                            val hostId: UUID,
                            val lockFactory: ZookeeperLockFactory,
                            val seqDispenser: SequenceDispenser)
-    extends Actor with ActorLogWithoutPath with Stash {
+    extends AbstractService {
 
-
-    implicit def system: ActorSystem = context.system
-    implicit def executor = system.dispatcher
+    import HaproxyHealthMonitor._
 
     private var currentUpNodes = Set.empty[UUID]
     private var currentDownNodes = Set.empty[UUID]
     private val healthMonitorName = config.id.toString.substring(0,8) +
                                     config.nsPostFix
+    private val log = LoggerFactory.getLogger("org.midonet.haproxy")
+
     private var routerPortId: UUID = null
     private var routeId: UUID = null
     private var namespaceName: String = null
@@ -148,110 +125,130 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         }
     }
 
-    override def preStart(): Unit = {
+    override def doStart(): Unit = {
         try {
             writeConf(config)
-            namespaceName = createNamespace(healthMonitorName,
-                                            config.vip.ip)
+            namespaceName = createNamespace(healthMonitorName, config.vip.ip)
             hookNamespaceToRouter()
             restartHaproxy(healthMonitorName, config.haproxyConfFileLoc,
                            config.haproxyPidFileLoc)
-            system.scheduler.scheduleOnce(1 second, self, CheckHealth)
             setPoolMappingStatus(config.id, ACTIVE, rethrowException = true)
+            notifyStarted()
         } catch {
             case NonFatal(e) =>
                 log.error("Unable to create Health Monitor for " +
                           config.haproxyConfFileLoc + ": " + e.getMessage)
                 setPoolMappingStatus(config.id, ERROR)
-                manager ! SetupFailure
+                notifyFailed(e)
         }
     }
 
-    override def postStop(): Unit = {
-        unhookNamespaceFromRouter()
-        HealthMonitor.cleanAndDeleteNamespace(healthMonitorName,
-                                              config.nsPostFix,
-                                              config.l4lbFileLocs)
-        setPoolMappingStatus(config.id, INACTIVE)
+    override def doStop(): Unit = {
+        try {
+            unhookNamespaceFromRouter()
+            HealthMonitor.cleanAndDeleteNamespace(healthMonitorName,
+                                                  config.nsPostFix,
+                                                  config.l4lbFileLocs)
+            setPoolMappingStatus(config.id, INACTIVE)
+        } catch {
+            case NonFatal(e) =>
+                log.warn("Unable to stop the health monitor properly", e)
+        } finally {
+            notifyStopped()
+        }
     }
 
-    def receive = {
-        case ConfigUpdate(conf) =>
-            try {
-                writeConf(conf)
-                if (conf.isConfigurable){
-                    startHaproxy(healthMonitorName)
-                } else {
-                    killHaproxyIfRunning(healthMonitorName,
-                                         conf.haproxyConfFileLoc,
-                                         conf.haproxyPidFileLoc)
-                }
-                HealthMonitor.zkLock(lockFactory) {
-                    // The vip may have changed. If so, we need to change the
-                    // routes on the router.
-                    if (config.vip != conf.vip) {
-                        if (routeId != null) {
-                            store.delete(classOf[Route], routeId)
-                            deleteIpTableRules(healthMonitorName, config.vip.ip)
-                        }
-                        if (routerId != null && routerPortId != null) {
-                            store.create(createVipRoute(conf.vip.ip))
-                            createIpTableRules(healthMonitorName, conf.vip.ip)
-                        }
+    /**
+      * Returns true iff the new configuration was handled successfully.
+      */
+    def updateConfig(conf: PoolConfig): Boolean = {
+        var success = true
+
+        try {
+            writeConf(conf)
+            if (conf.isConfigurable){
+                startHaproxy(healthMonitorName)
+            } else {
+                killHaproxyIfRunning(healthMonitorName,
+                                     conf.haproxyConfFileLoc,
+                                     conf.haproxyPidFileLoc)
+            }
+            HealthMonitor.zkLock(lockFactory) {
+                // The vip may have changed. If so, we need to change the
+                // routes on the router.
+                if (config.vip != conf.vip) {
+                    val ops = new ListBuffer[PersistenceOp]()
+
+                    if (routeId != null) {
+                        ops += DeleteOp(classOf[Route], routeId, ignoreIfNotExists = true)
+                        deleteIpTableRules(healthMonitorName, config.vip.ip)
                     }
-                    setPoolMappingStatus(config.id, ACTIVE, lockNeeded = false,
-                                         rethrowException = true)
+                    if (routerId != null && routerPortId != null) {
+                        ops += CreateOp(createVipRoute(conf.vip.ip))
+                        createIpTableRules(healthMonitorName, conf.vip.ip)
+                    }
+                    store.multi(ops)
                 }
-            } catch {
-                case NonFatal(e) =>
-                    log.info("Unable to update Health Monitor for " +
-                              config.haproxyConfFileLoc)
-                    setPoolMappingStatus(config.id, ERROR)
-                    manager ! SetupFailure
-            } finally {
-                config = conf
-            }
-
-        case CheckHealth =>
-            try {
-                val statusInfo = getHaproxyStatus(config.haproxySockFileLoc)
-                val (upNodes, downNodes) = parseResponse(statusInfo)
-                val newUpNodes = upNodes diff currentUpNodes
-                val newDownNodes = downNodes diff currentDownNodes
-
-                setMembersStatus(newUpNodes, newDownNodes)
-                currentUpNodes = upNodes
-                currentDownNodes = downNodes
-            } catch {
-                case NonFatal(e) =>
-                    log.info("Unable to retrieve health information for "
-                              + config.haproxySockFileLoc)
-                    setPoolMappingStatus(config.id, ERROR)
-                    manager ! SockReadFailure
-            }
-            system.scheduler.scheduleOnce(1 second, self, CheckHealth)
-
-        case RouterAdded(newRouterId) =>
-            routerId = newRouterId
-            try {
-                hookNamespaceToRouter()
-                setPoolMappingStatus(config.id, ACTIVE,
+                setPoolMappingStatus(config.id, ACTIVE, lockNeeded = false,
                                      rethrowException = true)
-            } catch {
-                case NonFatal(e) =>
-                    log.info("Unable to add router: {}", routeId)
             }
+        } catch {
+            case NonFatal(e) =>
+                log.info("Unable to update Health Monitor for " +
+                         config.haproxyConfFileLoc)
+                setPoolMappingStatus(config.id, ERROR)
+                success = false
+        } finally {
+            config = conf
+        }
+        success
+    }
 
-        case RouterRemoved =>
-            try {
-                unhookNamespaceFromRouter()
-                setPoolMappingStatus(config.id, INACTIVE,
-                                     rethrowException = true)
-                routerId = null
-            } catch {
-                case NonFatal(e) =>
-                    log.info("Unable to remove router: {}", routerId)
-            }
+    /**
+      * Returns true iff the HA proxy is working properly.
+      */
+    def checkHealthAndSetMemberStatus(): Boolean = {
+        try {
+            val statusInfo = getHaproxyStatus(config.haproxySockFileLoc)
+            val (upNodes, downNodes) = parseResponse(statusInfo)
+            val newUpNodes = upNodes diff currentUpNodes
+            val newDownNodes = downNodes diff currentDownNodes
+
+            currentUpNodes = upNodes
+            currentDownNodes = downNodes
+            setMembersStatus(newUpNodes, newDownNodes)
+            true
+        } catch {
+            case NonFatal(e) =>
+                log.info("Unable to retrieve health information for "
+                         + config.haproxySockFileLoc)
+                setPoolMappingStatus(config.id, ERROR)
+                false
+        }
+    }
+
+    def newRouter(newRouterId: UUID): Unit = {
+        routerId = newRouterId
+        try {
+            hookNamespaceToRouter()
+            setPoolMappingStatus(config.id, ACTIVE,
+                                 rethrowException = true)
+        } catch {
+            case NonFatal(e) =>
+                log.info("Unable to add router: {}", routeId)
+        }
+    }
+
+     def removeRouter(): Unit = {
+        try {
+            unhookNamespaceFromRouter()
+            setPoolMappingStatus(config.id, INACTIVE,
+                                 rethrowException = true)
+            routerId = null
+        } catch {
+            case NonFatal(e) =>
+                log.info("Unable to remove router: {}", routerId)
+        }
     }
 
     /**
@@ -445,7 +442,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     /*
      * Asks the given socket for haproxy info. This creates a new channel
-     * Everytime because Haproxy will close the connection after a write/read
+     * everytime because Haproxy will close the connection after a write/read.
      * If necessary, we can get around this by maintaining a connection
      * by operation in "command line mode" for haproxy.
      */
@@ -531,7 +528,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 }
 
 class IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
-
     def exec(s: String) =
         ProcessHelper.executeCommandLine(s).returnValue
 

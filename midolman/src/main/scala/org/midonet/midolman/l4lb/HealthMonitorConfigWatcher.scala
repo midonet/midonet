@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,35 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.collection.immutable.{Map => IMap, Set => ISet}
 import scala.collection.mutable
 import scala.collection.mutable.{HashSet => MSet, Map => MMap}
+import scala.collection.JavaConverters._
+import scala.reflect._
 
-import akka.actor.{ActorRef, Props}
+import org.slf4j.LoggerFactory
+import rx.Observable.OnSubscribe
+import rx.schedulers.Schedulers
+import rx.subjects.PublishSubject
+import rx.{Scheduler, Observable, Subscriber}
 
-import org.midonet.midolman.Referenceable
-import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.l4lb.HealthMonitor.HealthMonitorMessage
 import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, Vip => SimVip}
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.topology.PoolHealthMonitorMapper.PoolHealthMonitorMapKey
-import org.midonet.midolman.topology.TopologyActor
+import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.topology.VirtualTopology.{Device, Key}
 import org.midonet.midolman.topology.devices.{PoolHealthMonitor, PoolHealthMonitorMap}
-import org.midonet.util.concurrent.ReactiveActor.{OnError, OnCompleted}
+import org.midonet.util.functors._
 
 /**
- * This actor is responsible for providing the configuration data to
- * Health monitoring service.
- */
+  * This class is responsible for providing the configuration data to the
+  * Health monitor.
+  */
 object HealthMonitorConfigWatcher {
-    def props(fileLocs: String, suffix: String, manager: ActorRef): Props = {
-        Props(new HealthMonitorConfigWatcher(fileLocs, suffix, manager))
-    }
 
     def convertDataMapToConfigMap(
             map: IMap[UUID, PoolHealthMonitor],
@@ -54,13 +59,14 @@ object HealthMonitorConfigWatcher {
         IMap(newMap.toSeq: _*)
     }
 
-    val lbIdToRouterIdMap: MMap[UUID, UUID] = MMap.empty
+    private val lbIdToRouterIdMap: MMap[UUID, UUID] = MMap.empty
 
-    def getRouterId(loadBalancerId: UUID) =
+    private def getRouterId(loadBalancerId: UUID) =
         lbIdToRouterIdMap.get(loadBalancerId).orNull
 
-    def convertDataToPoolConfig(poolId: UUID, fileLocs: String, suffix: String,
-            data: PoolHealthMonitor): PoolConfig = {
+    def convertDataToPoolConfig(poolId: UUID, fileLocs: String,
+                                suffix: String, data: PoolHealthMonitor)
+    : PoolConfig = {
         if (data == null) {
             null
         } else if (data.loadBalancer == null ||
@@ -98,85 +104,138 @@ object HealthMonitorConfigWatcher {
                     ISet(members.toSeq:_*), hm, true, fileLocs, suffix)
         }
     }
-
-    // Notifies the watcher that it is now the haproxy node, and can send
-    // updates regarding config changes.
-    case object BecomeHaproxyNode
 }
 
 class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
-                                 val manager: ActorRef)
-        extends Referenceable with TopologyActor with ActorLogWithoutPath {
+                                 executor: ExecutorService)
+    extends OnSubscribe[HealthMonitorMessage] {
 
     import HealthMonitor._
     import HealthMonitorConfigWatcher._
 
-    var poolIdtoConfigMap: IMap[UUID, PoolConfig] = IMap.empty
+    private var poolIdtoConfigMap: IMap[UUID, PoolConfig] = IMap.empty
+    protected var currentLeader: Boolean = false
 
-    var currentLeader: Boolean = false
+    private val log = LoggerFactory.getLogger("org.midonet.hm-config-watcher")
 
-    override val Name = "HealthMonitorConfigWatcher"
+    /* Configuration changes are published on this observable
+       (ConfigAdded/ConfigUpdated/ConfigDeleted/RouterChanged). */
+    private[l4lb] val hmConfigBus = PublishSubject.create[HealthMonitorMessage]()
 
-    override def preStart(): Unit = {
-        subscribe[PoolHealthMonitorMap](PoolHealthMonitorMapKey)
+    private val scheduler: Scheduler = Schedulers.from(executor)
+    private val lbSubject = PublishSubject.create[Observable[SimLoadBalancer]]()
+    private val subscribed = new AtomicBoolean(false)
+    private val devices = new mutable.HashMap[Key, DeviceState[_]]
+
+    protected class DeviceState[D <: Device](id: UUID)(implicit tag: ClassTag[D]) {
+        private val mark = PublishSubject.create[D]()
+        def observable: Observable[D] = VirtualTopology.observable[D](id)(tag)
+                                                       .observeOn(scheduler)
+                                                       .subscribeOn(scheduler)
+                                                       .takeUntil(mark)
+        def complete(): Unit = mark.onCompleted()
     }
 
-    private  def handleDeletedMapping(poolId: UUID) {
-        log.debug("handleDeletedMapping deleting {}", poolId)
-        if (currentLeader)
-            manager ! ConfigDeleted(poolId)
+    private def stopConfigWatcher(): Unit =
+        devices.values.foreach(_.complete())
+
+    protected def phmObservable(): Observable[PoolHealthMonitorMap] = {
+        val phmState = new DeviceState[PoolHealthMonitorMap](PoolHealthMonitorMapKey)
+        val key = Key(scala.reflect.classTag[PoolHealthMonitorMap],
+                      PoolHealthMonitorMapKey)
+        devices.put(key, phmState)
+        phmState.observable
     }
 
-    private def handleAddedMapping(poolId: UUID,
-                                   data: PoolHealthMonitor) {
-        log.debug("handleAddedMapping added {}", poolId)
-        val poolConfig = convertDataToPoolConfig(poolId, fileLocs, suffix, data)
-        if (currentLeader) {
-            manager ! ConfigAdded(poolId, poolConfig,
-                getRouterId(poolConfig.loadBalancerId))
+    override def call(child: Subscriber[_ >: HealthMonitorMessage]): Unit = {
+        if (subscribed.compareAndSet(false, true)) {
+            Observable.merge(Observable.merge(lbSubject), phmObservable())
+                      .flatMap[HealthMonitorMessage](makeFunc1(handleUpdate))
+                      .doOnUnsubscribe(makeAction0(stopConfigWatcher()))
+                      .subscribe(hmConfigBus)
+            hmConfigBus.subscribe(child)
+        } else {
+            throw new IllegalStateException(
+                "At most one subscriber at a time is supported")
         }
     }
 
-    private def handleUpdatedMapping(poolId: UUID, data: PoolConfig) {
-        if (currentLeader)
-            manager ! ConfigUpdated(poolId, data,
-                getRouterId(data.loadBalancerId))
+    private  def handleDeletedMapping(poolId: UUID)
+    : Option[HealthMonitorMessage] = {
+        log.debug("handleDeletedMapping deleting {}", poolId)
+
+        if (currentLeader) {
+            Some(ConfigDeleted(poolId))
+        } else {
+            None
+        }
     }
 
-    private def handleMappingChange(
-                mappings: IMap[UUID, PoolHealthMonitor]) {
+    private def handleAddedMapping(poolId: UUID,
+                                   data: PoolHealthMonitor)
+    : Option[HealthMonitorMessage] = {
+        log.debug("handleAddedMapping added {}", poolId)
+
+        if (currentLeader) {
+            val poolConfig = convertDataToPoolConfig(poolId, fileLocs, suffix,
+                                                     data)
+            Some(ConfigAdded(poolId, poolConfig,
+                             getRouterId(poolConfig.loadBalancerId)))
+        } else {
+            None
+        }
+    }
+
+    private def handleUpdatedMapping(poolId: UUID, data: PoolConfig)
+    : Option[HealthMonitorMessage] = {
+        if (currentLeader) {
+            Some(ConfigUpdated(poolId, data, getRouterId(data.loadBalancerId)))
+        } else {
+            None
+        }
+    }
+
+    private def handleMappingChange(mappings: IMap[UUID, PoolHealthMonitor])
+    : Observable[HealthMonitorMessage] = {
+        val msgs = new mutable.ListBuffer[HealthMonitorMessage]()
 
         val convertedMap = convertDataMapToConfigMap(mappings, fileLocs, suffix)
         val loadBalancerIds = convertedMap.values.map(_.loadBalancerId).toSet
         for (loadBalancerId <- loadBalancerIds
              if !lbIdToRouterIdMap.contains(loadBalancerId)) {
-            subscribe[SimLoadBalancer](loadBalancerId)
+            val lbState = new DeviceState[SimLoadBalancer](loadBalancerId)
+            devices.put(Key(classTag[SimLoadBalancer], loadBalancerId), lbState)
+            lbSubject onNext lbState.observable
         }
         for (loadBalancerId <- lbIdToRouterIdMap.keySet
              if !loadBalancerIds.contains(loadBalancerId)) {
-            unsubscribe[SimLoadBalancer](loadBalancerId)
+            devices.remove(Key(classTag[SimLoadBalancer], loadBalancerId))
+                   .foreach(_.complete())
         }
 
-        val oldPoolSet = this.poolIdtoConfigMap.keySet
+        val oldPoolSet = poolIdtoConfigMap.keySet
         val newPoolSet = convertedMap.keySet
 
         val added = newPoolSet -- oldPoolSet
         val deleted = oldPoolSet -- newPoolSet
 
-        added.foreach(x => handleAddedMapping(x, mappings.get(x).orNull))
-        deleted.foreach(handleDeletedMapping)
+        val addedMsgs =
+            added.map(id => handleAddedMapping(id, mappings.get(id).orNull))
+        val deletedMsgs = deleted.map(id => handleDeletedMapping(id))
+        msgs ++= (addedMsgs ++ deletedMsgs).filter(_.isDefined).map(_.get)
+
         // The config data might have been changed. Check for those.
         for (pool <- convertedMap.keySet) {
-            (convertedMap.get(pool), this.poolIdtoConfigMap.get(pool)) match {
+            (convertedMap.get(pool), poolIdtoConfigMap.get(pool)) match {
                 case (Some(p), Some(o)) if p != null && o != null =>
                     if (!o.equals(p)) {
-                        handleUpdatedMapping(pool, p)
+                        handleUpdatedMapping(pool, p).foreach(msgs += _)
                     }
                 case _ =>
             }
         }
 
-        this.poolIdtoConfigMap = convertedMap
+        poolIdtoConfigMap = convertedMap
 
         // clear out any load balancer mappings that aren't used anymore.
         // This seems gross and expensive, I know, but if we don't do it we
@@ -189,25 +248,31 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
             if (lbIdIsNotBeingUsed)
                 lbIdToRouterIdMap remove lbId
         }
+        Observable.from(msgs.toSeq.asJava)
     }
 
-    override def receive = {
+    protected def handleUpdate(update: Device)
+    : Observable[HealthMonitorMessage] = update match {
 
         case PoolHealthMonitorMap(mapping) =>
             log.debug(s"${mapping.size} mappings received")
             handleMappingChange(mapping)
 
         case loadBalancer: SimLoadBalancer =>
-            log.debug("load balancer {} received", loadBalancer.id)
+            log.debug("Load balancer {} received", loadBalancer.id)
 
             def notifyChangedRouter(loadBalancer: SimLoadBalancer,
-                                    routerId: UUID) = {
+                                    routerId: UUID)
+            : Observable[HealthMonitorMessage] = {
                 lbIdToRouterIdMap put (loadBalancer.id, routerId)
                 // Notify every pool that is attached to this load balancer
                 if (currentLeader) {
-                    this.poolIdtoConfigMap filter
-                        (kv => kv._2.loadBalancerId == loadBalancer.id) foreach
-                        (kv => manager ! RouterChanged(kv._1, kv._2, routerId))
+                    val msgs = poolIdtoConfigMap filter
+                        (kv => kv._2.loadBalancerId == loadBalancer.id) map
+                        (kv => RouterChanged(kv._1, kv._2, routerId))
+                    Observable.from(msgs.toSeq.asJava)
+                } else {
+                    Observable.empty()
                 }
             }
             val newRouterId = if (loadBalancer.adminStateUp)
@@ -221,20 +286,19 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                 case None =>
                     notifyChangedRouter(loadBalancer, newRouterId)
 
-                case _ =>
+                case _ => Observable.empty()
             }
 
-        case BecomeHaproxyNode =>
-            log.debug("{} has become the HM leader", self.path.name)
-            currentLeader = true
-            this.poolIdtoConfigMap foreach(kv =>
-                manager ! ConfigAdded(kv._1, kv._2,
-                    getRouterId(kv._2.loadBalancerId)))
-
-        case OnCompleted => // ignore
-
-        case OnError(e) => log.warn("Device error", e)
-
-        case m => log.warn(s"Unknown message received: $m")
+        case x =>
+            log.warn(s"Unknown update received: $x")
+            Observable.empty()
     }
+
+    def becomeHaproxyNode(): Unit = executor.submit(makeRunnable {
+        log.debug("HAProxy health monitor is now leader")
+        currentLeader = true
+        poolIdtoConfigMap foreach(kv =>
+            hmConfigBus onNext ConfigAdded(kv._1, kv._2,
+                                           getRouterId(kv._2.loadBalancerId)))
+    })
 }
