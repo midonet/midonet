@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.midonet.midolman
 
 import java.util.{UUID, LinkedList}
@@ -52,7 +51,8 @@ import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
 class MockMidolmanModule(override val hostId: UUID,
                          injector: Injector,
                          config: MidolmanConfig,
-                         actorService: MidolmanActorsService)
+                         actorService: MidolmanActorsService,
+                         disableVtThreadCheck: Boolean = false)
         extends MidolmanModule(injector, config, new MetricRegistry) {
 
     val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
@@ -92,7 +92,7 @@ class MockMidolmanModule(override val hostId: UUID,
             simBackChannel,
             new MetricRegistry,
             new SameThreadButAfterExecutorService,
-            () => threadId == Thread.currentThread().getId,
+            () => disableVtThreadCheck || threadId == Thread.currentThread().getId,
             new SameThreadButAfterExecutorService)
     }
 
@@ -155,4 +155,7 @@ class MockMidolmanModule(override val hostId: UUID,
             .getConfig("midolman")
             .withValue("akka.scheduler.implementation",
                        ConfigValueFactory.fromAnyRef(classOf[MockScheduler].getName)))
+
+    /* This is to prevent a health monitor from being bound in unit tests. */
+    protected override def bindHealthMonitor(): Unit = {}
 }
