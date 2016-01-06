@@ -16,14 +16,15 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-import akka.actor.{Actor, ActorRef, Props}
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
+import org.midonet.cluster.data.storage.Storage
 import org.mockito.Matchers._
 import org.mockito.Mockito
 import org.mockito.Mockito._
@@ -31,15 +32,14 @@ import org.scalatest.OneInstancePerTest
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
+import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{SetupFailure, ConfigUpdate, RouterAdded, RouterRemoved}
-import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
+import org.midonet.midolman.l4lb.HealthMonitor._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.MidonetEventually
 
@@ -50,27 +50,12 @@ class HealthMonitorTest extends MidolmanSpec
                                 with OneInstancePerTest
                                 with MockitoSugar {
 
-    // A no-op actor to act as a mock of the HaproxyHealthMonitor
-    class HaproxyFakeActor extends Actor {
-        override def preStart(): Unit = {
-            actorStarted += 1
-        }
-        def receive = {
-            case ConfigUpdate(conf) => configUpdates += 1
-            case RouterAdded(id) => routerAdded += 1
-            case RouterRemoved => routerRemoved += 1
-        }
-
-        override def postStop(): Unit = {
-            actorStopped += 1
-        }
-    }
-
-    var healthMonitorUT: ActorRef = _
-    var haproxyFakeActor: ActorRef = _
-    var backend: MidonetBackend = _
-    var lockFactory: ZookeeperLockFactory = _
     var lock: InterProcessSemaphoreMutex = _
+    var lockFactory: ZookeeperLockFactory = _
+    var backend: MidonetBackend = _
+
+    var healthMonitorUT: HealthMonitorUT = _
+    var haproxyFakeActor: FakeHaproxy = _
 
     // Accounting
     var actorStarted = 0
@@ -79,21 +64,61 @@ class HealthMonitorTest extends MidolmanSpec
     var routerAdded = 0
     var routerRemoved = 0
 
+    val routerId = UUID.randomUUID()
+
+    class FakeHaproxy(config: PoolConfig, routerId: UUID, store: Storage,
+                      hostId: UUID, lockFactory: ZookeeperLockFactory)
+
+        extends HaproxyHealthMonitor(config, routerId, store, hostId,
+                                     lockFactory) {
+
+        var injectFailure = false
+
+        override def doStart(): Unit = {
+            actorStarted += 1
+            notifyStarted()
+        }
+        override def doStop(): Unit = {
+            actorStopped += 1
+            notifyStopped()
+        }
+        override def updateConfig(conf: PoolConfig): Boolean = {
+            configUpdates += 1
+            !injectFailure
+        }
+        override def newRouter(id: UUID) = routerAdded += 1
+        override def removeRouter() = routerRemoved += 1
+    }
+
+    class HealthMonitorUT(config: MidolmanConfig, backend: MidonetBackend,
+                          lockFactory: ZookeeperLockFactory,
+                          curator: CuratorFramework)
+        extends HealthMonitor(config, backend, lockFactory, curator) {
+
+        def emitUpdate(update: HealthMonitorMessage): Unit =
+            watcher.observable onNext update
+
+        override def getHaProxy(config: PoolConfig, routerId: UUID)
+        : HaproxyHealthMonitor = {
+            haproxyFakeActor = new FakeHaproxy(config, routerId, backend.store,
+                                               hostId, lockFactory)
+            haproxyFakeActor
+        }
+    }
+
     override def beforeTest(): Unit = {
+        lock = mock[InterProcessSemaphoreMutex]
+        lockFactory = mock[ZookeeperLockFactory]
+        Mockito.when(lockFactory.createShared(ZookeeperLockFactory.ZOOM_TOPOLOGY))
+            .thenReturn(lock)
+        Mockito.when(lock.acquire(anyLong(), anyObject())).thenReturn(true)
         backend = injector.getInstance(classOf[MidonetBackend])
 
         val config = injector.getInstance(classOf[MidolmanConfig])
-        lockFactory = mock[ZookeeperLockFactory]
-        val curator = mock[CuratorFramework]
+        healthMonitorUT = new HealthMonitorUT(config, backend, lockFactory,
+                                              mock[CuratorFramework])
 
-        lock = mock[InterProcessSemaphoreMutex]
-        Mockito.when(lockFactory.createShared(ZookeeperLockFactory.ZOOM_TOPOLOGY))
-               .thenReturn(lock)
-        Mockito.when(lock.acquire(anyLong(), anyObject())).thenReturn(true)
-
-        healthMonitorUT = actorSystem.actorOf(
-            Props(new HealthMonitorUT(config, backend, lockFactory, curator))
-        )
+        healthMonitorUT.startAsync().awaitRunning(10, TimeUnit.SECONDS)
     }
 
     private def storePool(poolId: UUID): Pool = {
@@ -108,35 +133,32 @@ class HealthMonitorTest extends MidolmanSpec
         pool.getMappingStatus
     }
 
-    def sendMsgToHealthMonitor(msg: Any): Unit =
-        healthMonitorUT.tell(msg, haproxyFakeActor)
-
     feature("HealthMonitor handles added configurations correctly") {
         scenario ("A config is added with no router") {
             val poolId = UUID.randomUUID()
             storePool(poolId)
 
             When ("A config is added with no router")
-            healthMonitorUT ! ConfigAdded(poolId,
-                  createFakePoolConfig(poolId), routerId = null)
+            healthMonitorUT.emitUpdate(
+                ConfigAdded(poolId, createFakePoolConfig(poolId),
+                            routerId = null))
 
             Then ("The pool status should be updated to INACTIVE")
             eventually { getPoolStatus(poolId) shouldBe INACTIVE }
 
             And("The lock should have been acquired to perform this operation")
-            verify(lock, times(1)).acquire(anyLong(), anyObject())
+            verify (lock, times(1)).acquire(anyLong(), anyObject())
             And("The lock should have been released")
-            verify(lock, times(1)).release()
+            verify (lock, times(1)).release()
         }
 
         scenario ("A config is added with no router and a disabled pool") {
             val poolId = UUID.randomUUID()
             storePool(poolId)
-            val routerId = UUID.randomUUID()
 
             When("A config is added with no router and admin state down")
-            healthMonitorUT ! ConfigAdded(poolId,
-                createFakePoolConfig(poolId, adminStateUp = false), routerId)
+            healthMonitorUT.emitUpdate(ConfigAdded(poolId,
+                createFakePoolConfig(poolId, adminStateUp = false), routerId))
 
             Then ("The pool status should be updated to INACTIVE")
             eventually { getPoolStatus(poolId) shouldBe INACTIVE }
@@ -145,16 +167,15 @@ class HealthMonitorTest extends MidolmanSpec
         scenario("A config is added with an active pool") {
             val pool1Id = UUID.randomUUID()
             storePool(pool1Id)
-            val routerId = UUID.randomUUID()
 
             When("A config is added with an active pool")
             val config1 = createFakePoolConfig(pool1Id)
-            healthMonitorUT ! ConfigAdded(pool1Id, config1, routerId)
+            healthMonitorUT.emitUpdate(ConfigAdded(pool1Id, config1, routerId))
 
             Then("Eventually an HA proxy is started")
             eventually {
                 getPoolStatus(pool1Id) shouldBe ACTIVE
-                           actorStarted shouldBe 1
+                actorStarted shouldBe 1
             }
 
             val pool2Id = UUID.randomUUID()
@@ -162,8 +183,8 @@ class HealthMonitorTest extends MidolmanSpec
             val config2 = createFakePoolConfig(pool2Id)
 
             When("We send a config for the 1st pool again and one for a new pool")
-            healthMonitorUT ! ConfigAdded(pool1Id, config1, routerId)
-            healthMonitorUT ! ConfigAdded(pool2Id, config2, routerId)
+            healthMonitorUT.emitUpdate(ConfigAdded(pool1Id, config1, routerId))
+            healthMonitorUT.emitUpdate(ConfigAdded(pool2Id, config2, routerId))
 
             Then("Only two HA proxies should have been started")
             eventually {
@@ -179,23 +200,23 @@ class HealthMonitorTest extends MidolmanSpec
             val poolId = UUID.randomUUID()
             storePool(poolId)
             val config = createFakePoolConfig(poolId)
-            val routerId = UUID.randomUUID()
 
             When ("We send a new configuration to the health monitor")
-            healthMonitorUT ! ConfigAdded(poolId, config, routerId)
+            healthMonitorUT.emitUpdate(ConfigAdded(poolId, config, routerId))
 
             Then("An haproxy actor is created")
-            eventually {actorStarted shouldBe 1 }
+            eventually { actorStarted shouldBe 1 }
 
             When("We send a configuration update")
-            healthMonitorUT ! ConfigUpdated(poolId, config, routerId)
+            healthMonitorUT.emitUpdate(ConfigUpdated(poolId, config, routerId))
 
             Then("The new configuration should have been received")
             eventually { configUpdates shouldBe 1 }
 
             When("We send a new configuration with the pool disabled")
-            healthMonitorUT ! ConfigUpdated(poolId,
-                createFakePoolConfig(poolId, adminStateUp = false), routerId)
+            haproxyFakeActor.injectFailure = true
+            healthMonitorUT.emitUpdate(ConfigUpdated(poolId,
+                createFakePoolConfig(poolId, adminStateUp = false), routerId))
 
             Then("Eventually the HA proxy should be stopped")
             eventually { actorStopped shouldBe 1 }
@@ -207,21 +228,22 @@ class HealthMonitorTest extends MidolmanSpec
             val config = createFakePoolConfig(poolId)
 
             When ("An update is sent with a null router ID")
-            healthMonitorUT ! ConfigUpdated(poolId, config, routerId = null)
+            healthMonitorUT.emitUpdate(ConfigUpdated(poolId, config,
+                                                     routerId = null))
 
             Then("The status of the pool should be set to inactive")
             eventually { getPoolStatus(poolId) shouldBe INACTIVE }
 
-            val routerId = UUID.randomUUID()
             When("An update is sent with a non-null router ID")
-            healthMonitorUT ! ConfigUpdated(poolId, config, routerId)
+            healthMonitorUT.emitUpdate(ConfigUpdated(poolId, config, routerId))
 
             Then("Eventually an HA proxy should be started")
             eventually {actorStarted shouldBe 1 }
 
             When("We send an update with a disabled pool")
-            healthMonitorUT ! ConfigUpdated(poolId,
-                createFakePoolConfig(poolId, adminStateUp = false), routerId)
+            haproxyFakeActor.injectFailure = true
+            healthMonitorUT.emitUpdate(ConfigUpdated(poolId,
+                createFakePoolConfig(poolId, adminStateUp = false), routerId))
 
             Then("Eventually the HA proxy should be stopped")
             eventually { actorStopped shouldBe 1 }
@@ -234,7 +256,7 @@ class HealthMonitorTest extends MidolmanSpec
             storePool(poolId)
 
             When("We send a config delete message")
-            healthMonitorUT ! ConfigDeleted(poolId)
+            healthMonitorUT.emitUpdate(ConfigDeleted(poolId))
 
             Then("Eventually the pool is disabled")
             eventually { getPoolStatus(poolId) shouldBe INACTIVE }
@@ -245,15 +267,14 @@ class HealthMonitorTest extends MidolmanSpec
             storePool(poolId)
 
             When("We send a config add")
-            healthMonitorUT ! ConfigAdded(poolId,
-                createFakePoolConfig(poolId),
-                routerId = UUID.randomUUID())
+            healthMonitorUT.emitUpdate(ConfigAdded(poolId,
+                createFakePoolConfig(poolId), routerId))
 
             Then("Eventually an HA proxy is started")
             eventually {actorStarted shouldBe 1 }
 
             When("We send a config delete message")
-            healthMonitorUT ! ConfigDeleted(poolId)
+            healthMonitorUT.emitUpdate(ConfigDeleted(poolId))
 
             Then("Eventually the pool is disabled")
             eventually { actorStopped shouldBe 1 }
@@ -264,24 +285,25 @@ class HealthMonitorTest extends MidolmanSpec
         scenario("A router is added") {
             When("We send a router added message")
             val poolId = UUID.randomUUID()
-            healthMonitorUT ! RouterChanged(poolId,
-                                            createFakePoolConfig(poolId),
-                                            routerId = UUID.randomUUID())
+            healthMonitorUT.emitUpdate(
+                RouterChanged(poolId, createFakePoolConfig(poolId), routerId))
 
             Then("Eventually an HA proxy is started")
-            eventually {actorStarted shouldBe 1 }
+            eventually { actorStarted shouldBe 1 }
         }
 
         scenario ("A config and then a router is added") {
             Given ("A config")
             val poolId = UUID.randomUUID()
-            healthMonitorUT ! ConfigAdded(poolId, createFakePoolConfig(poolId),
-                                          routerId = UUID.randomUUID())
+            healthMonitorUT.emitUpdate(ConfigAdded(poolId,
+                                                   createFakePoolConfig(poolId),
+                                                   routerId))
             eventually {actorStarted shouldBe 1 }
 
             When ("The router is added")
-            healthMonitorUT ! RouterChanged(poolId, createFakePoolConfig(poolId),
-                                            routerId = UUID.randomUUID())
+            healthMonitorUT.emitUpdate(RouterChanged(poolId,
+                                                     createFakePoolConfig(poolId),
+                                                     routerId))
 
             Then ("The RouterAdded msg should be sent")
             eventually { routerAdded shouldBe 1 }
@@ -291,67 +313,31 @@ class HealthMonitorTest extends MidolmanSpec
             Given ("A config with a router")
             val poolId = UUID.randomUUID()
             val routerId = UUID.randomUUID()
-            healthMonitorUT ! ConfigAdded(poolId, createFakePoolConfig(poolId),
-                                          routerId)
+            healthMonitorUT.emitUpdate(ConfigAdded(poolId,
+                                                   createFakePoolConfig(poolId),
+                                                   routerId))
 
-            eventually {actorStarted shouldBe 1 }
+            eventually { actorStarted shouldBe 1 }
 
             When ("The router is deleted")
-            healthMonitorUT ! RouterChanged(poolId, createFakePoolConfig(poolId),
-                                            routerId = null)
+            healthMonitorUT.emitUpdate(RouterChanged(poolId,
+                                                     createFakePoolConfig(poolId),
+                                                     routerId = null))
 
             Then ("The RouterRemoved msg should be sent")
             eventually { routerRemoved shouldBe 1 }
         }
 
-
-
         scenario ("A router is updated with an inactive pool") {
             When ("A router is updated")
             val poolId = UUID.randomUUID()
             storePool(poolId)
-            healthMonitorUT ! RouterChanged(poolId,
-                                            createFakePoolConfig(poolId),
-                                            routerId = null)
+            healthMonitorUT.emitUpdate(RouterChanged(poolId,
+                                                     createFakePoolConfig(poolId),
+                                                     routerId = null))
 
             Then ("The state should be set to INACTIVE")
             eventually { getPoolStatus(poolId) shouldBe INACTIVE }
-        }
-    }
-
-    feature("Other messages are handled properly") {
-        scenario("Setup failure") {
-            val poolId = UUID.randomUUID()
-
-            When("We send a config added message")
-            healthMonitorUT ! ConfigAdded(poolId, createFakePoolConfig(poolId),
-                                          routerId = UUID.randomUUID())
-
-            Then("Eventually an HA proxy is started")
-            eventually {actorStarted shouldBe 1 }
-
-            When("We send a setup failure message")
-            sendMsgToHealthMonitor(SetupFailure)
-
-            Then("Eventually the HA proxy is stopped")
-            eventually { actorStopped shouldBe 1 }
-        }
-
-        scenario("SockRead failure") {
-            val poolId = UUID.randomUUID()
-
-            When("We send a config added message")
-            healthMonitorUT ! ConfigAdded(poolId, createFakePoolConfig(poolId),
-                                          routerId = UUID.randomUUID())
-
-            Then("Eventually an HA proxy is started")
-            eventually {actorStarted shouldBe 1 }
-
-            When("We send a socket read failure message")
-            sendMsgToHealthMonitor(SetupFailure)
-
-            Then("Eventually the HA proxy is stopped")
-            eventually { actorStopped shouldBe 1 }
         }
     }
 
@@ -368,22 +354,5 @@ class HealthMonitorTest extends MidolmanSpec
         new PoolConfig(poolId, loadBalancerId = UUID.randomUUID(), Set(vip),
                Set(member1, member2, member3), healthMonitor, adminStateUp, "",
                "_MN")
-    }
-
-    /*
-     * This is a testable version of the HaproxyHealthMonitor. This overrides
-     * the functions that would block and perform IO.
-     */
-    class HealthMonitorUT(config: MidolmanConfig, backend: MidonetBackend,
-                          lockFactory: ZookeeperLockFactory,
-                          curator: CuratorFramework)
-        extends HealthMonitor(config, backend, lockFactory, curator) {
-
-        override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
-                                              routerId: UUID) = {
-            haproxyFakeActor = context.actorOf(
-                Props(new HaproxyFakeActor), poolId.toString)
-            haproxyFakeActor
-        }
     }
 }

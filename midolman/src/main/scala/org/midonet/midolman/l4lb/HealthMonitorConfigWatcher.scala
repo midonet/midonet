@@ -16,30 +16,32 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.collection.immutable.{Map => IMap, Set => ISet}
 import scala.collection.mutable
 import scala.collection.mutable.{HashSet => MSet, Map => MMap}
+import scala.reflect.ClassTag
 
-import akka.actor.{ActorRef, Props}
+import org.slf4j.LoggerFactory
+import rx.Observable.OnSubscribe
+import rx.subjects.PublishSubject
+import rx.{Observer, Subscriber, Subscription}
 
-import org.midonet.midolman.Referenceable
-import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.l4lb.HealthMonitor.HealthMonitorMessage
 import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, Vip => SimVip}
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.topology.PoolHealthMonitorMapper.PoolHealthMonitorMapKey
-import org.midonet.midolman.topology.TopologyActor
+import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.topology.VirtualTopology.{Device, Key}
 import org.midonet.midolman.topology.devices.{PoolHealthMonitor, PoolHealthMonitorMap}
-import org.midonet.util.concurrent.ReactiveActor.{OnError, OnCompleted}
 
 /**
- * This actor is responsible for providing the configuration data to
- * Health monitoring service.
- */
+  * This class is responsible for providing the configuration data to the
+  * Health monitor.
+  */
 object HealthMonitorConfigWatcher {
-    def props(fileLocs: String, suffix: String, manager: ActorRef): Props = {
-        Props(new HealthMonitorConfigWatcher(fileLocs, suffix, manager))
-    }
 
     def convertDataMapToConfigMap(
             map: IMap[UUID, PoolHealthMonitor],
@@ -98,15 +100,10 @@ object HealthMonitorConfigWatcher {
                     ISet(members.toSeq:_*), hm, true, fileLocs, suffix)
         }
     }
-
-    // Notifies the watcher that it is now the haproxy node, and can send
-    // updates regarding config changes.
-    case object BecomeHaproxyNode
 }
 
-class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
-                                 val manager: ActorRef)
-        extends Referenceable with TopologyActor with ActorLogWithoutPath {
+class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String)
+    extends OnSubscribe[HealthMonitorMessage] {
 
     import HealthMonitor._
     import HealthMonitorConfigWatcher._
@@ -115,16 +112,77 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
 
     var currentLeader: Boolean = false
 
-    override val Name = "HealthMonitorConfigWatcher"
+    val Name = "HealthMonitorConfigWatcher"
 
-    override def preStart(): Unit = {
-        subscribe[PoolHealthMonitorMap](PoolHealthMonitorMapKey)
+    private val log =
+        LoggerFactory.getLogger("org.midonet.healthmonitor-configwatcher")
+
+    /* Configuration changes are published on this observable
+       (ConfigAdded/ConfigUpdated/ConfigDeleted/RouterChanged). */
+    private[l4lb] val observable = PublishSubject.create[HealthMonitorMessage]()
+
+    private val subscribed = new AtomicBoolean(false)
+
+    override def call(child: Subscriber[_ >: HealthMonitorMessage]): Unit = {
+        observable.subscribe(child)
+
+        if (subscribed.compareAndSet(false, true)) {
+            subscribe[PoolHealthMonitorMap](PoolHealthMonitorMapKey)
+        }
+    }
+
+    private val subscriptions = new ConcurrentHashMap[Key, Subscription]
+
+    protected val observer = new Observer[AnyRef]() {
+        override def onCompleted(): Unit =
+            log.warn("A device update stream completed unexpectedly")
+
+        override def onError(e: Throwable): Unit =
+            log.warn("Device error", e)
+
+        override def onNext(update: AnyRef): Unit = handleUpdate(update)
+    }
+
+    /**
+      * Subscribes to notifications for the specified device.
+      */
+    protected def subscribe[D <: Device](id: UUID)(implicit tag: ClassTag[D])
+    : Unit = {
+        val key = Key(tag, id)
+        subscriptions.get(key) match {
+            case null =>
+                subscriptions.put(key,
+                                  VirtualTopology.observable[D](id)(tag)
+                                                 .subscribe(observer))
+            case subscription if subscription.isUnsubscribed =>
+                subscriptions.put(key,
+                                  VirtualTopology.observable[D](id)(tag)
+                                                 .subscribe(observer))
+            case _ =>
+        }
+
+    }
+
+    /**
+      * Unsubscribes from notifications from the specified device. The method
+      * returns `true` if the actor was subscribed to the device, `false`
+      * otherwise.
+      */
+    protected def unsubscribe[D <: Device](id: UUID)(implicit tag: ClassTag[D])
+    : Boolean = {
+        subscriptions.get(Key(tag, id)) match {
+            case null => false
+            case subscription =>
+                subscription.unsubscribe()
+                true
+        }
     }
 
     private  def handleDeletedMapping(poolId: UUID) {
         log.debug("handleDeletedMapping deleting {}", poolId)
-        if (currentLeader)
-            manager ! ConfigDeleted(poolId)
+        if (currentLeader) {
+            observable onNext ConfigDeleted(poolId)
+        }
     }
 
     private def handleAddedMapping(poolId: UUID,
@@ -132,20 +190,19 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
         log.debug("handleAddedMapping added {}", poolId)
         val poolConfig = convertDataToPoolConfig(poolId, fileLocs, suffix, data)
         if (currentLeader) {
-            manager ! ConfigAdded(poolId, poolConfig,
-                getRouterId(poolConfig.loadBalancerId))
+            observable onNext ConfigAdded(poolId, poolConfig,
+                                  getRouterId(poolConfig.loadBalancerId))
         }
     }
 
     private def handleUpdatedMapping(poolId: UUID, data: PoolConfig) {
-        if (currentLeader)
-            manager ! ConfigUpdated(poolId, data,
-                getRouterId(data.loadBalancerId))
+        if (currentLeader) {
+            observable onNext ConfigUpdated(poolId, data,
+                                            getRouterId(data.loadBalancerId))
+        }
     }
 
-    private def handleMappingChange(
-                mappings: IMap[UUID, PoolHealthMonitor]) {
-
+    private def handleMappingChange(mappings: IMap[UUID, PoolHealthMonitor]) {
         val convertedMap = convertDataMapToConfigMap(mappings, fileLocs, suffix)
         val loadBalancerIds = convertedMap.values.map(_.loadBalancerId).toSet
         for (loadBalancerId <- loadBalancerIds
@@ -191,7 +248,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
         }
     }
 
-    override def receive = {
+    private def handleUpdate(update: AnyRef) = update match {
 
         case PoolHealthMonitorMap(mapping) =>
             log.debug(s"${mapping.size} mappings received")
@@ -207,7 +264,8 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                 if (currentLeader) {
                     this.poolIdtoConfigMap filter
                         (kv => kv._2.loadBalancerId == loadBalancer.id) foreach
-                        (kv => manager ! RouterChanged(kv._1, kv._2, routerId))
+                        (kv => observable onNext
+                                   RouterChanged(kv._1, kv._2, routerId))
                 }
             }
             val newRouterId = if (loadBalancer.adminStateUp)
@@ -224,17 +282,14 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                 case _ =>
             }
 
-        case BecomeHaproxyNode =>
-            log.debug("{} has become the HM leader", self.path.name)
-            currentLeader = true
-            this.poolIdtoConfigMap foreach(kv =>
-                manager ! ConfigAdded(kv._1, kv._2,
-                    getRouterId(kv._2.loadBalancerId)))
+        case x => log.warn(s"Unknown update received: $x")
+    }
 
-        case OnCompleted => // ignore
-
-        case OnError(e) => log.warn("Device error", e)
-
-        case m => log.warn(s"Unknown message received: $m")
+    private[l4lb] def becomeHaproxyNode(): Unit = {
+        log.debug("We have become the health monitor leader")
+        currentLeader = true
+        this.poolIdtoConfigMap foreach(kv =>
+            observable onNext ConfigAdded(kv._1, kv._2,
+                                          getRouterId(kv._2.loadBalancerId)))
     }
 }
