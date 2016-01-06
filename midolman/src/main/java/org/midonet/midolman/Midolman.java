@@ -29,6 +29,7 @@ import scala.concurrent.Promise$;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Service;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.jna.LastErrorException;
@@ -51,6 +52,7 @@ import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.l4lb.HealthMonitor;
 import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
@@ -188,7 +190,15 @@ public class Midolman {
             new MidonetBackendModule(config.zookeeper(), metricRegistry),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
-            new LegacyClusterModule()
+            new LegacyClusterModule(),
+            new AbstractModule() {
+                @Override
+                protected void configure() {
+                    if (config.healthMonitor().enable()) {
+                        bind(HealthMonitor.class).asEagerSingleton();
+                    }
+                }
+            }
         );
 
         injector = injector.createChildInjector(

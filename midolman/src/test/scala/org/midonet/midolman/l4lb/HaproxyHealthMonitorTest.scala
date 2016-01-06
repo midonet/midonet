@@ -26,7 +26,6 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SetupFailure
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.netlink.UnixDomainChannel
 import org.midonet.util.MidonetEventually

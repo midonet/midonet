@@ -67,12 +67,7 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[DatapathController]), DatapathController.Name),
             (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name))
-        if (config.healthMonitor.enable)
-            actors += (
-                (propsFor(classOf[HealthMonitor])
-                 .withDispatcher("actors.pinned-dispatcher"),
-                 HealthMonitor.Name)
-            )
+
         if (config.openstack.metadata.enabled)
             actors += (
                 /*

@@ -30,6 +30,7 @@ import com.google.inject.name.Names
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
 import org.apache.curator.framework.CuratorFramework
+import org.midonet.midolman.l4lb.HealthMonitor
 import org.reflections.Reflections
 import org.slf4j.{LoggerFactory, Logger}
 
