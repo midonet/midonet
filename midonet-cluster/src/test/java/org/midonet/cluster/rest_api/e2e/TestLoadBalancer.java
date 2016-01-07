@@ -31,6 +31,7 @@ import static org.junit.Assert.assertNull;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_LOAD_BALANCER_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_LOAD_BALANCER_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VIP_JSON;
 
 @RunWith(Enclosed.class)
@@ -92,8 +93,16 @@ public class TestLoadBalancer {
             DtoRouter router = createStockRouter();
             DtoLoadBalancer assignedLoadBalancer = createStockLoadBalancer();
             router.setLoadBalancerId(assignedLoadBalancer.getId());
+
             // We need to use v2 for the load balancer assignments.
             router = updateRouterV2(router);
+
+            // Ensure that the router cannot be deleted, because it has lbs
+            // attached
+            dtoResource.deleteAndVerifyError(router.getUri(),
+                                             APPLICATION_ROUTER_JSON_V3(),
+                                             CONFLICT.getStatusCode());
+
             assignedLoadBalancer = getLoadBalancer(assignedLoadBalancer.getUri());
             assertEquals(router.getId(), assignedLoadBalancer.getRouterId());
             assertEquals(router.getUri(), assignedLoadBalancer.getRouter());
