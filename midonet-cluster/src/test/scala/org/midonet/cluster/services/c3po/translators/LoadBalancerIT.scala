@@ -139,10 +139,8 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
     }
 
     "C3PO" should "be able to set up Load Balancer." in {
-        val networkId = UUID.randomUUID()
-        val subnetId = UUID.randomUUID()
-        createTenantNetwork(2, networkId, external = false)
-        createSubnet(3, subnetId, networkId, "10.0.1.0/24")
+        val networkId = createTenantNetwork(2, external = false)
+        val subnetId = createSubnet(3, networkId, "10.0.1.0/24")
 
         // Create a Router.
         val routerId = UUID.randomUUID()
@@ -314,10 +312,8 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
     }
 
     it should "handle Pool-related operations" in {
-        val networkId = UUID.randomUUID()
-        val subnetId = UUID.randomUUID()
-        createTenantNetwork(2, networkId, external = false)
-        createSubnet(3, subnetId, networkId, "10.10.0.0/24")
+        val networkId = createTenantNetwork(2, external = false)
+        val subnetId = createSubnet(3, networkId, "10.10.0.0/24")
 
         // Create a Router.
         val routerId = UUID.randomUUID()
@@ -468,10 +464,8 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
 
     "VIPTranslator" should "add an ARP table entry if when the VIP is on an " +
     "external Network" in {
-        val extNwId = UUID.randomUUID()
         val tntRtr1Id = UUID.randomUUID()
         val rtrGwPortId = UUID.randomUUID()
-        val subnetId = UUID.randomUUID()
         val poolId = UUID.randomUUID()
         val vip1Id = UUID.randomUUID()
         val vip2Id = UUID.randomUUID()
@@ -481,8 +475,8 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         val lbId = loadBalancerId(tntRtr1Id)
 
         // Create a tenant router with a gateway via external network.
-        createTenantNetwork(2, extNwId, external = true)
-        createSubnet(3, subnetId, extNwId, "10.0.1.0/24")
+        val extNwId = createTenantNetwork(2, external = true)
+        val subnetId = createSubnet(3, extNwId, "10.0.1.0/24")
         createRouterGatewayPort(4, rtrGwPortId, extNwId, tntRtr1Id,
                                 "10.0.1.1", rtrGwPortMac, subnetId)
         createRouter(5, tntRtr1Id, rtrGwPortId)

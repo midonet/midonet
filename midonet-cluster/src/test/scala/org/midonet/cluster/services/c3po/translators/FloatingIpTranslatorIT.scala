@@ -198,7 +198,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    macAddr = fipMac,
                                    fixedIps = List(IPAlloc(
                                            fipIp, extSubnetId)),
-                                   deviceOwner = DeviceOwner.ROUTER_GATEWAY,
+                                   deviceOwner = DeviceOwner.FLOATINGIP,
                                    // Neutron sets FIP ID as device ID.
                                    deviceId = fipId)
         val fipJson = floatingIpJson(id = fipId,
