@@ -803,6 +803,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-c ${IPSecConfig.sanitizeName(conn.getName)}"
 
             When("Calling the delete method of the container")
+            val vpnServiceSubscription = container.vpnServiceSubscription
             container.delete().await()
 
             Then("The container should call the cleanup commands")
@@ -813,6 +814,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.commands(6) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
+
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
         }
 
         scenario("Container reconfigures the namespace on update") {
@@ -974,6 +979,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-c ${IPSecConfig.sanitizeName(conn.getName)}"
 
             When("Calling the delete method of the container")
+            val vpnServiceSubscription = container.vpnServiceSubscription
             container.delete().await()
 
             Then("The container should call the cleanup commands")
@@ -985,6 +991,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.commands(27) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
+
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
         }
 
         scenario("Container reconfigures the namespace on update, starting " +
@@ -1069,10 +1079,15 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-c ${IPSecConfig.sanitizeName(conn.getName)}"
 
             When("Calling the delete method of the container")
+            val vpnServiceSubscription = container.vpnServiceSubscription
             container.delete().await()
 
             Then("The container should call the cleanup commands")
             container.commands should have size 7
+
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
         }
 
         scenario("Container reconfigures the namespace on new ipsec connection") {
@@ -1249,10 +1264,15 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-c ${IPSecConfig.sanitizeName(conn2.getName)}") shouldBe true
 
             When("Calling the delete method of the container")
+            val vpnSubscription = container.vpnServiceSubscription
             container.delete().await()
 
             Then("The container should call the cleanup commands")
             container.commands should have size 28
+
+            And("The container should unsubscribe from the observable")
+            vpnSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
         }
 
         scenario("Container should fail if router has no external port") {
@@ -1301,10 +1321,15 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val container = new TestIPSecContainer(vt, executor)
 
             Then("Calling the delete method of the container should succeed")
+            val vpnServiceSubscription = container.vpnServiceSubscription
             container.delete().await()
 
             And("The container should not call any commands")
             container.commands shouldBe empty
+
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription shouldBe null
+            container.vpnServiceSubscription shouldBe null
         }
 
         scenario("Container should handle errors on delete") {
@@ -1345,13 +1370,22 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             Then("Calling the delete method while a command should fail")
             container.throwOn = 6
+            val vpnServiceSubscription = container.vpnServiceSubscription
             intercept[Exception] {
                 container.delete().await()
             }
 
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe false
+            container.vpnServiceSubscription should not be null
+
             And("A second attempt that does not fail should succeed")
             container.delete().await()
             container.commands should have size 8
+
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
         }
 
         scenario("Container should notify the running state") {
@@ -1398,7 +1432,15 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             obs.getOnNextEvents should have size 1
             obs.getOnNextEvents.get(0) shouldBe ContainerHealth(Code.RUNNING, "if-eth")
 
+            val vpnServiceSubscription = container.vpnServiceSubscription
             container.delete().await()
+
+            Then("The container should call the cleanup commands")
+            container.commands should have size 7
+
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
         }
 
 
@@ -1448,10 +1490,15 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             regexp.pattern.matcher(splits(9)).matches shouldBe true
 
             When("Calling the delete method of the container")
+            val vpnServiceSubscription = container.vpnServiceSubscription
             container.delete().await()
 
             Then("The container should call the cleanup commands")
             container.commands should have size 7
+
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
         }
 
     }
