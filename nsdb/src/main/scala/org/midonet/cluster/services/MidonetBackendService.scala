@@ -172,7 +172,7 @@ object MidonetBackend {
                              classOf[Port], "mirror_ids", CASCADE)
 
 
-        store.declareBinding(classOf[Router], "load_balancer_id", CASCADE,
+        store.declareBinding(classOf[Router], "load_balancer_id", ERROR,
                              classOf[LoadBalancer], "router_id", CLEAR)
 
         store.declareBinding(classOf[Pool], "vip_ids", CASCADE,
