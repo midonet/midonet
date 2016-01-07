@@ -33,7 +33,7 @@ import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronPort
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, Port, Route, Rule}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create => CreateOp, Delete => DeleteOp, Operation, Update => UpdateOp}
 import org.midonet.cluster.services.c3po.OpType
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
@@ -43,7 +43,7 @@ import org.midonet.cluster.util.SequenceDispenser.{OverlayTunnelKey, SequenceTyp
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util._
 import org.midonet.midolman.state.MacPortMap
-import org.midonet.packets.{ARP, MAC}
+import org.midonet.packets.{IPv4Addr, ARP, MAC}
 
 trait OpMatchers {
     /**
@@ -990,6 +990,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     }
 
     "DELETE VIF port with fixed IPs" should "delete the MidoNet Port" in {
+        when(storage.getAll(classOf[IPAddrGroup], Seq()))
+            .thenReturn(Future.successful(Seq()))
         val midoOps = translator.translate(
                 DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain (DeleteOp(classOf[Port], portId))
@@ -999,11 +1001,6 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
 
     "DELETE VIF port with fixed IPs" should "delete DHCP host entries and " +
     "chains." in {
-        bind(portId, vifPortWithFipsAndSgs)
-
-        val midoOps = translator.translate(DeleteOp(classOf[NeutronPort],
-                                                          portId))
-
         val ipAddrGrp1 = mIPAddrGroupFromTxt(s"""
             id { $sgId1 }
             inbound_chain_id { $ipAddrGroup1InChainId }
@@ -1014,6 +1011,13 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             inbound_chain_id { $ipAddrGroup2InChainId }
             outbound_chain_id { $ipAddrGroup2OutChainId }
             """)
+
+        bind(portId, vifPortWithFipsAndSgs)
+        when(storage.getAll(classOf[IPAddrGroup], Seq(sgId1, sgId2)))
+            .thenReturn(Future.successful(Seq(ipAddrGrp1, ipAddrGrp2)))
+
+        val midoOps = translator.translate(DeleteOp(classOf[NeutronPort],
+                                                    portId))
 
         midoOps should contain only(
             DeleteOp(classOf[Port], portId),
@@ -1035,6 +1039,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         bind(fipId2, floatingIp2)
         bind(tntRouterId, nTntRouter)
         bind(gwPortId, nGwPort)
+        when(storage.getAll(classOf[IPAddrGroup], Seq()))
+            .thenReturn(Future.successful(Seq()))
 
         val midoOps = translator.translate(
                 DeleteOp(classOf[NeutronPort], portId))
@@ -1313,12 +1319,15 @@ class RouterInterfacePortTranslationTest extends PortTranslatorTest {
     protected val peerPortId = routerInterfacePortPeerId(portWithPeerId)
     protected val routerIfPortBase = portBase(portId = portWithPeerId,
                                               adminStateUp = true)
-    protected val routerIfPortIp = IPAddressUtil.toProto("127.0.0.2")
+    protected val routerIfPortIpStr = "127.0.0.2"
+    protected val routerIfPortIp = IPAddressUtil.toProto(routerIfPortIpStr)
+    protected val routerIfPortMac = "01:01:01:02:02:02"
     protected val routerIfPort = nPortFromTxt(routerIfPortBase + s"""
         fixed_ips {
             ip_address { $routerIfPortIp }
             subnet_id { $nIpv4Subnet1Id }
         }
+        mac_address: "$routerIfPortMac"
         device_owner: ROUTER_INTERFACE
         device_id: "$deviceId"
         """)
@@ -1357,7 +1366,12 @@ class RouterInterfacePortCreateTranslationTest
         bind(networkId, nNetworkBase)
         bind(networkId, mNetworkWithIpv4Subnet)
         val midoOps = translator.translate(CreateOp(routerIfPort))
-        midoOps should contain only CreateOp(mBridgePortBaseWithPeer)
+        midoOps should contain only (
+            CreateNode(arpEntryPath(networkId, routerIfPortIpStr,
+                                    routerIfPortMac)),
+            CreateNode(macEntryPath(networkId, routerIfPortMac,
+                                    portWithPeerId)),
+            CreateOp(mBridgePortBaseWithPeer))
     }
 }
 
@@ -1398,8 +1412,11 @@ class RouterInterfacePortUpdateDeleteTranslationTest
                                                     peerPortId)),
                 DeleteOp(classOf[Rule],
                                sameSubnetSnatRuleId(postRouteChainId,
-                                                    peerPortId))
-                )
+                                                    peerPortId)),
+                DeleteNode(arpEntryPath(networkId, routerIfPortIpStr,
+                                        routerIfPortMac)),
+                DeleteNode(macEntryPath(networkId, routerIfPortMac,
+                                        portWithPeerId)))
     }
 }
 
@@ -1480,18 +1497,18 @@ class RemotePortTranslationTest extends PortTranslatorTest {
     "Remote port CREATE" should "only add ARP and MAC seedings" in {
         val midoOps = translator.translate(CreateOp(remotePort))
 
-        midoOps should have size 2
-        midoOps should contain (CreateNode(remotePortArpEntryPath))
-        midoOps should contain (CreateNode(remotePortMacEntryPath))
+        midoOps should contain only(
+            CreateNode(remotePortArpEntryPath),
+            CreateNode(remotePortMacEntryPath))
     }
 
     "Remote port DELETE" should "remote ARP and MAC seedigns" in {
         val midoOps = translator.translate(
             DeleteOp(classOf[NeutronPort], portId))
 
-        midoOps should have size 2
-        midoOps should contain (DeleteNode(remotePortArpEntryPath))
-        midoOps should contain (DeleteNode(remotePortMacEntryPath))
+        midoOps should contain only (
+            DeleteNode(remotePortArpEntryPath),
+            DeleteNode(remotePortMacEntryPath))
     }
 
 }

@@ -37,7 +37,7 @@ import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
+class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
     import RouterInterfaceTranslator._
 
     private val tenantNetworkId = UUID.randomUUID()
@@ -51,7 +51,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
     "RouterInterfaceTranslator" should "handle translation for interfaces on " +
                                        "non-edge routers." in {
         createTenantNetwork(2, tenantNetworkId)
-        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24", "10.0.0.1")
+        createSubnet(3, tenantNetworkId, "10.0.0.0/24", subnetId, "10.0.0.1")
         createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
         createRouter(5, routerId)
 
@@ -112,7 +112,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
 
     it should "handle translation for interfaces on edge routers" in {
         createUplinkNetwork(2, uplinkNetworkId)
-        createSubnet(3, subnetId, uplinkNetworkId, "10.0.0.0/24")
+        createSubnet(3, uplinkNetworkId, "10.0.0.0/24", subnetId)
         createDhcpPort(4, dhcpPortId, uplinkNetworkId, subnetId, "10.0.0.2")
         createRouter(5, routerId)
 
@@ -152,7 +152,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
 
         // Create two tenant routers with gateways via external network.
         createTenantNetwork(2, extNwId, external = true)
-        createSubnet(3, subnetId, extNwId, "10.0.0.0/16")
+        createSubnet(3, extNwId, "10.0.0.0/16", subnetId)
         createDhcpPort(4, dhcpPortId, extNwId, subnetId, "10.0.1.2")
         createRouterGatewayPort(5, extNwGwPort1Id, extNwId, tntRtr1Id,
                                 "10.0.2.1", "ab:cd:ef:00:00:02", subnetId)
@@ -203,7 +203,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
 
     it should "get the router correctly even if not set on the port" in {
         createTenantNetwork(2, tenantNetworkId)
-        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
+        createSubnet(3, tenantNetworkId, "10.0.0.0/24", subnetId)
         createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
         createRouter(5, routerId)
 
@@ -221,23 +221,32 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
     }
 
     it should "convert VIF port on tenant network to RIF port on create" in {
-        createTenantNetwork(2, tenantNetworkId)
-        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
-        createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
-        createRouter(5, routerId)
+        createTenantNetwork(10, tenantNetworkId)
+        createSubnet(20, tenantNetworkId, "10.0.0.0/24", subnetId)
+        createDhcpPort(30, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        createRouter(40, routerId)
+        val sgId = createSecurityGroup(50)
 
         val rifMac = "ab:cd:ef:01:02:03"
         val rifIp = "10.0.0.3"
 
         // Create VIF port.
+        val chainIds = Seq(inChainId(rifPortId.asProto),
+                           outChainId(rifPortId.asProto),
+                           antiSpoofChainId(rifPortId.asProto))
         val json = portJson(rifPortId, tenantNetworkId, name = null,
                             deviceOwner = DeviceOwner.COMPUTE, macAddr = rifMac,
-                            fixedIps = List(IPAlloc(rifIp, subnetId)))
-        insertCreateTask(6, PortType, json, rifPortId)
-        val (inFilterId, outFilterId) = eventually {
+                            fixedIps = Seq(IPAlloc(rifIp, subnetId)),
+                            securityGroups = Seq(sgId))
+        insertCreateTask(60, PortType, json, rifPortId)
+        eventually {
             val nPortF = storage.get(classOf[NeutronPort], rifPortId)
             val dhcpF = storage.get(classOf[Dhcp], subnetId)
-            val mPort = storage.get(classOf[Port], rifPortId).await()
+            val ipGrpF = storage.get(classOf[IPAddrGroup], sgId)
+            val mPortF = storage.get(classOf[Port], rifPortId)
+
+            chainIds.map(storage.exists(classOf[Chain], _))
+                .map(_.await()) shouldBe Seq(true, true, true)
 
             val nPort = nPortF.await()
             nPort.hasDeviceOwner shouldBe true
@@ -249,15 +258,23 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
             dhcp.getHosts(0).getMac shouldBe rifMac
             dhcp.getHosts(0).getIpAddress.getAddress shouldBe rifIp
 
-            (UUIDUtil.fromProto(mPort.getInboundFilterId),
-                UUIDUtil.fromProto(mPort.getOutboundFilterId))
+            val ipGrp = ipGrpF.await()
+            ipGrp.getIpAddrPortsCount shouldBe 1
+            ipGrp.getIpAddrPorts(0).getIpAddress.getAddress shouldBe rifIp
+
+            val mPort = mPortF.await()
+            mPort.hasInboundFilterId shouldBe true
+            mPort.hasOutboundFilterId shouldBe true
         }
 
-        createRouterInterface(7, routerId, rifPortId, subnetId)
+        createRouterInterface(70, routerId, rifPortId, subnetId)
         eventually {
             val mPortF = storage.get(classOf[Port], rifPortId)
             val dhcpF = storage.get(classOf[Dhcp], subnetId)
-            val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
+            val ipGrpF = storage.get(classOf[IPAddrGroup], sgId)
+            val nPortF = storage.get(classOf[NeutronPort], rifPortId)
+
+            val nPort = nPortF.await()
             nPort.hasDeviceOwner shouldBe true
             nPort.getDeviceOwner shouldBe DeviceOwner.ROUTER_INTERFACE
             nPort.getDeviceId shouldBe routerId.toString
@@ -268,17 +285,21 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
             val mPort = mPortF.await()
             mPort.hasInboundFilterId shouldBe false
             mPort.hasOutboundFilterId shouldBe false
-            List(storage.exists(classOf[Chain], inFilterId),
-                 storage.exists(classOf[Chain], outFilterId))
-                .map(_.await()) shouldBe List(false, false)
+            chainIds.map(storage.exists(classOf[Chain], _))
+                .map(_.await()) shouldBe Seq(false, false, false)
 
             // Should also delete DHCP host for port's IP allocation.
             val dhcp = dhcpF.await()
             dhcp.getHostsCount shouldBe 0
+
+            // Should remove port address from IPAddrGroup.
+            // TODO: This doesn't actually happen. See issue 1533982
+//            val ipGrp = ipGrpF.await()
+//            ipGrp.getIpAddrPortsCount shouldBe 0
         }
 
         // Should be able to delete the port with no error (MNA-766)
-        insertDeleteTask(8, PortType, rifPortId)
+        insertDeleteTask(80, PortType, rifPortId)
         eventually {
             val rtrPortId = routerInterfacePortPeerId(rifPortId.asProto)
             List(storage.exists(classOf[Port], rifPortId),
@@ -290,7 +311,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
     it should "convert non-RIF port on uplink network to RIF ports " +
               "on create" in {
         createUplinkNetwork(2, tenantNetworkId)
-        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
+        createSubnet(3, tenantNetworkId, "10.0.0.0/24", subnetId)
         createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
         createRouter(5, routerId)
 
@@ -320,8 +341,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
     it should "create SNAT rules on router chains for same subnet traffic " +
               "on create" in {
         createTenantNetwork(2, tenantNetworkId)
-        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24",
-                     gatewayIp="10.0.0.1")
+        createSubnet(3, tenantNetworkId, "10.0.0.0/24", subnetId, "10.0.0.1")
         createRouter(4, routerId)
         val json = portJson(rifPortId, tenantNetworkId, null,
                             deviceOwner = DeviceOwner.ROUTER_INTERFACE,
@@ -396,8 +416,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         }
 
         createTenantNetwork(10, tenantNetworkId)
-        createSubnet(20, subnetId, tenantNetworkId, "10.0.0.0/16",
-                     gatewayIp="10.0.1.1")
+        createSubnet(20, tenantNetworkId, "10.0.0.0/16", subnetId, "10.0.1.1")
 
         // Create a router interface with a different IP than the subnet's
         // gateway.

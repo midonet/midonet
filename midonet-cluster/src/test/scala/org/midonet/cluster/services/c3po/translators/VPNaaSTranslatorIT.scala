@@ -255,8 +255,8 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
     }
 
     private def setupRouter1(firstTaskId: Int): Unit = {
-        createSubnet(firstTaskId, router1SubnetId, externalNetworkId,
-                     router1SubnetCidr, router1GatewayIp)
+        createSubnet(firstTaskId, externalNetworkId,
+                     router1SubnetCidr, router1SubnetId, router1GatewayIp)
         createRouterGatewayPort(firstTaskId + 1, router1GatewayPortId,
                                 externalNetworkId,
                                 router1Id, router1GatewayIp,
@@ -299,7 +299,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
 
         val localEndpointIp = IPSubnetUtil.fromAddr(rtrGwIp)
         val rules = storage.getAll(classOf[Rule],
-                                   redirectChain.getRuleIdsList()).await()
+                                   redirectChain.getRuleIdsList).await()
             .filter((r: Rule) => {
                         VpnServiceTranslator.isRedirectForEndpointRule(r, localEndpointIp) &&
                             r.getTransformRuleData.getTargetPortId == rtrPort.getId
