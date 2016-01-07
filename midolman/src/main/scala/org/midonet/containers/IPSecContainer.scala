@@ -285,16 +285,14 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
       * @see [[ContainerHandler.delete]]
       */
     override def delete(): Future[Unit] = {
-        if (config eq null) {
-            log info s"IPSec container not started: ignoring"
-            return Future.successful(())
-        }
-
-        log info s"Deleting IPSec container ${config.ipsecService.name}"
-
         try {
-            cleanup(config)
-            config = null
+            if (config != null) {
+                log info s"Deleting IPSec container ${config.ipsecService.name}"
+                cleanup(config)
+                config = null
+            }
+            else log info s"IPSec container not started: ignoring"
+
             unsubscribeVpnService()
             vpnServiceSubscription = null
             Future.successful(())
@@ -505,7 +503,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
 
             if (!isVpnServiceUp(vpn) || conns.forall(!isSiteConnectionUp(_))) {
                 log.info(
-                    s"VPN service ${vpn.getId} has admin state " +
+                    s"VPN service ${vpn.getId.asJava} has admin state " +
                     "DOWN or all IPSec connections have admin state DOWN")
                 // So we don't clean up on a non-setup container
                 config = null
