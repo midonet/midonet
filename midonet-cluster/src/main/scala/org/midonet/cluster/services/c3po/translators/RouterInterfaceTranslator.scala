@@ -173,17 +173,11 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
 
         // If it's a VIF port, remove chains from the Midonet port. Unless it's
         // on an uplink network, in which case there's no Midonet port.
-        if (!isUplink && nPort.getDeviceOwner == DeviceOwner.COMPUTE) {
-            midoOps += Delete(classOf[Chain], inChainId(nPort.getId))
-            midoOps += Delete(classOf[Chain], outChainId(nPort.getId))
+        if (!isUplink && PortManager.isVifPort(nPort)) {
+            midoOps ++= deleteSecurityChainsOps(nPort.getId)
+            midoOps ++= removeIpsFromIpAddrGroupsOps(nPort)
 
-            val mPort = storage.get(classOf[Port], nPort.getId).await()
-            midoOps += Update(mPort.toBuilder
-                                  .clearInboundFilterId()
-                                  .clearOutboundFilterId()
-                                  .build())
-
-            // Also need to delete DHCP hosts.
+            // Delete DHCP hosts.
             val dhcps = mutable.Map[UUID, Dhcp.Builder]()
             updateDhcpEntries(nPort, dhcps, delDhcpHost)
             midoOps ++= dhcps.values.map(bldr => Update(bldr.build()))

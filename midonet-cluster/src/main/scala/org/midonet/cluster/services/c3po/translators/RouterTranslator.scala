@@ -154,13 +154,6 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ops += Create(defaultRoute)
         ops ++= snatOps
 
-        // Add gateway port IP/MAC address to the external network's ARP table.
-        gwMac foreach { mac =>
-            val arpPath = arpEntryPath(
-                    nGwPort.getNetworkId, gwIpAddr.getAddress, mac)
-            ops += CreateNode(arpPath, null)
-        }
-
         ops.toList
     }
 

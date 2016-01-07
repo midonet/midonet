@@ -28,6 +28,7 @@ import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkT
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.MAC
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.concurrent.toFutureOps
@@ -148,6 +149,44 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
             p.hasHostId shouldBe false
             p.hasInterfaceName shouldBe false
             hf.await().getPortIdsCount shouldBe 0
+        }
+    }
+
+    // TODO: Fix issue 1533982 and enable this test. Should also
+    // test adding more than one port to the security group.
+    it should "handle upgrades to VIF's security groups" ignore {
+        val nwId = createTenantNetwork(10)
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+        val sgId = createSecurityGroup(30)
+
+        val p1Id = UUID.randomUUID()
+        val p1Json = portJson(p1Id, nwId,
+                              fixedIps = Seq(IPAlloc("10.0.0.3", snId)))
+        insertCreateTask(40, PortType, p1Json, p1Id)
+        eventually {
+            val ipGrpF = storage.get(classOf[IPAddrGroup], sgId)
+            storage.exists(classOf[Port], p1Id).await() shouldBe true
+            ipGrpF.await().getIpAddrPortsCount shouldBe 0
+        }
+
+        // Add a security group.
+        val p1v2Json = portJson(p1Id, nwId,
+                                fixedIps = Seq(IPAlloc("10.0.0.3", snId)),
+                                securityGroups = Seq(sgId))
+        insertUpdateTask(50, PortType, p1v2Json, p1Id)
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 1
+            ipGrp.getIpAddrPorts(0).getIpAddress.getAddress shouldBe "10.0.0.3"
+            ipGrp.getIpAddrPorts(0).getPortIdsCount shouldBe 1
+            ipGrp.getIpAddrPorts(0).getPortIds(0).asJava shouldBe p1Id
+        }
+
+        // Remove the security group.
+        insertUpdateTask(60, PortType, p1Json, p1Id)
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 0
         }
     }
 

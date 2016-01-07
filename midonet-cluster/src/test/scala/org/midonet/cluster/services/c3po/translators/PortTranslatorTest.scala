@@ -23,6 +23,7 @@ import scala.concurrent.Future
 
 import com.google.protobuf.Message
 import com.typesafe.config.ConfigFactory
+
 import org.junit.runner.RunWith
 import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
@@ -32,9 +33,11 @@ import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronPort
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, Port, Route, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Dhcp, Port, Route, Rule, _}
 import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
+import org.midonet.cluster.services.c3po.neutron.{Create => CreateOp, Delete => DeleteOp}
 import org.midonet.cluster.services.c3po.{OpType, midonet, neutron}
+import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.SequenceDispenser.{OverlayTunnelKey, SequenceType}
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
@@ -985,6 +988,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     }
 
     "DELETE VIF port with fixed IPs" should "delete the MidoNet Port" in {
+        when(storage.getAll(classOf[IPAddrGroup], Seq()))
+            .thenReturn(Future.successful(Seq()))
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain (midonet.Delete(classOf[Port], portId))
@@ -996,9 +1001,6 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     "chains." in {
         bind(portId, vifPortWithFipsAndSgs)
 
-        val midoOps = translator.translate(neutron.Delete(classOf[NeutronPort],
-                                                          portId))
-
         val ipAddrGrp1 = mIPAddrGroupFromTxt(s"""
             id { $sgId1 }
             inbound_chain_id { $ipAddrGroup1InChainId }
@@ -1009,6 +1011,13 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             inbound_chain_id { $ipAddrGroup2InChainId }
             outbound_chain_id { $ipAddrGroup2OutChainId }
             """)
+
+        bind(portId, vifPortWithFipsAndSgs)
+        when(storage.getAll(classOf[IPAddrGroup], Seq(sgId1, sgId2)))
+            .thenReturn(Future.successful(Seq(ipAddrGrp1, ipAddrGrp2)))
+
+        val midoOps = translator.translate(DeleteOp(classOf[NeutronPort],
+                                                    portId))
 
         midoOps should contain only(
             midonet.Delete(classOf[Port], portId),
@@ -1030,6 +1039,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         bind(fipId2, floatingIp2)
         bind(tntRouterId, nTntRouter)
         bind(gwPortId, nGwPort)
+        when(storage.getAll(classOf[IPAddrGroup], Seq()))
+            .thenReturn(Future.successful(Seq()))
 
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
@@ -1304,12 +1315,15 @@ class RouterInterfacePortTranslationTest extends PortTranslatorTest {
     protected val peerPortId = routerInterfacePortPeerId(portWithPeerId)
     protected val routerIfPortBase = portBase(portId = portWithPeerId,
                                               adminStateUp = true)
-    protected val routerIfPortIp = IPAddressUtil.toProto("127.0.0.2")
+    protected val routerIfPortIpStr = "127.0.0.2"
+    protected val routerIfPortIp = IPAddressUtil.toProto(routerIfPortIpStr)
+    protected val routerIfPortMac = "01:01:01:02:02:02"
     protected val routerIfPort = nPortFromTxt(routerIfPortBase + s"""
         fixed_ips {
             ip_address { $routerIfPortIp }
             subnet_id { $nIpv4Subnet1Id }
         }
+        mac_address: "$routerIfPortMac"
         device_owner: ROUTER_INTERFACE
         device_id: "$deviceId"
         """)
@@ -1346,8 +1360,13 @@ class RouterInterfacePortCreateTranslationTest
     "Router interface port CREATE" should "create a normal Network port" in {
         bind(networkId, nNetworkBase)
         bind(networkId, mNetworkWithIpv4Subnet)
-        val midoOps = translator.translate(neutron.Create(routerIfPort))
-        midoOps should contain only midonet.Create(mBridgePortBaseWithPeer)
+        val midoOps = translator.translate(CreateOp(routerIfPort))
+        midoOps should contain only (
+            CreateNode(arpEntryPath(networkId, routerIfPortIpStr,
+                                    routerIfPortMac)),
+            CreateNode(macEntryPath(networkId, routerIfPortMac,
+                                    portWithPeerId)),
+            midonet.Create(mBridgePortBaseWithPeer))
     }
 }
 
@@ -1387,8 +1406,11 @@ class RouterInterfacePortUpdateDeleteTranslationTest
                                                     peerPortId)),
                 midonet.Delete(classOf[Rule],
                                sameSubnetSnatRuleId(postRouteChainId,
-                                                    peerPortId))
-                )
+                                                    peerPortId)),
+                DeleteNode(arpEntryPath(networkId, routerIfPortIpStr,
+                                        routerIfPortMac)),
+                DeleteNode(macEntryPath(networkId, routerIfPortMac,
+                                        portWithPeerId)))
     }
 }
 
@@ -1432,7 +1454,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
 
     "Router gateway port  DELETE" should "delete the MidoNet Port" in {
         val midoOps = translator.translate(
-                neutron.Delete(classOf[NeutronPort], portId))
+            DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain (midonet.Delete(classOf[Port], portId))
     }
 }

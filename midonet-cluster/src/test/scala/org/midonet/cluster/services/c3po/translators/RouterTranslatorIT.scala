@@ -94,18 +94,14 @@ class RouterTranslatorIT extends C3POMinionTestBase {
     it should "handle extra routes CRUD" in {
 
         // Create external network.
-        val extNwId = UUID.randomUUID()
-        val extNwSubnetId = UUID.randomUUID()
-        createTenantNetwork(2, extNwId, external = true)
-        createSubnet(3, extNwSubnetId, extNwId, "200.0.0.0/24",
-                     gatewayIp = "200.0.0.1")
+        val extNwId = createTenantNetwork(2, external = true)
+        val extNwSubnetId = createSubnet(3, extNwId, "200.0.0.0/24",
+                                         gatewayIp = "200.0.0.1")
 
         // Create a tenant network
-        val nwId = UUID.randomUUID()
-        val subnetId = UUID.randomUUID()
-        createTenantNetwork(4, nwId, external = false)
-        createSubnet(5, subnetId, nwId, "192.168.1.0/24",
-                     gatewayIp = "192.168.1.1")
+        val nwId = createTenantNetwork(4, external = false)
+        val subnetId = createSubnet(5, nwId, "192.168.1.0/24",
+                                    gatewayIp = "192.168.1.1")
 
         // Create a router with gateway
         val routerId = UUID.randomUUID()
@@ -162,12 +158,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
     }
 
     it should "handle router gateway CRUD" in {
-        val uplNetworkId = UUID.randomUUID()
-        val uplNwSubnetId = UUID.randomUUID()
         val uplNwDhcpPortId = UUID.randomUUID()
 
-        val extNwId = UUID.randomUUID()
-        val extNwSubnetId = UUID.randomUUID()
         val extNwDhcpPortId = UUID.randomUUID()
 
         val hostId = UUID.randomUUID()
@@ -180,8 +172,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val extNwGwPortId = UUID.randomUUID()
 
         // Create uplink network.
-        createUplinkNetwork(2, uplNetworkId)
-        createSubnet(3, uplNwSubnetId, uplNetworkId, "10.0.0.0/16")
+        val uplNetworkId = createUplinkNetwork(2)
+        val uplNwSubnetId = createSubnet(3, uplNetworkId, "10.0.0.0/16")
         createDhcpPort(4, uplNwDhcpPortId, uplNetworkId,
                        uplNwSubnetId, "10.0.0.1")
 
@@ -196,9 +188,9 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         createRouterInterface(7, edgeRtrId, edgeRtrUplNwIfPortId, uplNwSubnetId)
 
         // Create external network.
-        createTenantNetwork(8, extNwId, external = true)
-        createSubnet(9, extNwSubnetId, extNwId, "10.0.1.0/24",
-                     gatewayIp = "10.0.1.2")
+        val extNwId = createTenantNetwork(8, external = true)
+        val extNwSubnetId = createSubnet(9, extNwId, "10.0.1.0/24",
+                                         gatewayIp = "10.0.1.2")
         createDhcpPort(10, extNwDhcpPortId, extNwId,
                        extNwSubnetId, "10.0.1.0")
         createRouterInterfacePort(11, edgeRtrExtNwIfPortId, extNwId, edgeRtrId,
@@ -327,11 +319,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
     it should "Preserve router properties on update" in {
         // Create external network and subnet.
-        val nwId = UUID.randomUUID()
-        createTenantNetwork(10, nwId, external = true)
-
-        val snId = UUID.randomUUID()
-        createSubnet(20, snId, nwId, "10.0.1.0/24", "10.0.1.1")
+        val nwId = createTenantNetwork(10, external = true)
+        val snId = createSubnet(20, nwId, "10.0.1.0/24", gatewayIp = "10.0.1.1")
 
         // Create router with gateway port.
         val rtrId = UUID.randomUUID()
