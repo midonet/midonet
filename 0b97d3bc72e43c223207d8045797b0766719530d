@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_327ea2af",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/MidonetBackendTestModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-07T10:21:27Z",
+      "side": 1,
+      "message": "Not used",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 26
+      },
+      "revId": "0b97d3bc72e43c223207d8045797b0766719530d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_b249b28d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-07T10:21:27Z",
+      "side": 1,
+      "message": "I just realized a mistake here: this should be an Observer (I forgot to change it)",
+      "range": {
+        "startLine": 107,
+        "startChar": 40,
+        "endLine": 107,
+        "endChar": 50
+      },
+      "revId": "0b97d3bc72e43c223207d8045797b0766719530d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_2dd8031d",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/ContainerServiceTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-07T10:21:27Z",
+      "side": 1,
+      "message": "Minor comment: we should have a test making the node not a leader and then a leader again, to check if the scheduling is restarted properly.",
+      "range": {
+        "startLine": 81,
+        "startChar": 6,
+        "endLine": 81,
+        "endChar": 26
+      },
+      "revId": "0b97d3bc72e43c223207d8045797b0766719530d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
