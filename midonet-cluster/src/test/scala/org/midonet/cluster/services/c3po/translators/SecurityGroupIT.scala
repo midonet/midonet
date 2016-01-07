@@ -46,14 +46,11 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val existRule = ruleJson(existRuleId, sgId,
                                  direction = RuleDirection.INGRESS)
 
+        createSecurityGroup(2, sgId, rules = List(existRule))
+
         val newRuleId = UUID.randomUUID()
         val newRuleJson = ruleJson(newRuleId, sgId,
                                    direction = RuleDirection.EGRESS)
-
-        val sg1Json = sgJson(name = "sg1", id = sgId, desc = "Security group",
-                             tenantId = "tenant", rules = List(existRule))
-
-        insertCreateTask(2, SecurityGroupType, sg1Json, sgId)
         insertCreateTask(3, SecurityGroupRuleType, newRuleJson, newRuleId)
 
         eventually {
@@ -81,12 +78,9 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val existRuleId = UUID.randomUUID()
         val existRule = ruleJson(existRuleId, sgId)
 
-        val sg1Json = sgJson(name = "sg1", id = sgId, desc = "Security group",
-                             tenantId = "tenant", rules = List(existRule))
+        createSecurityGroup(2, sgId, rules = List(existRule))
 
-        insertCreateTask(2, SecurityGroupType, sg1Json, sgId)
         insertDeleteTask(3, SecurityGroupRuleType, existRuleId)
-
         eventually {
             val outChain = storage.get(classOf[Chain],
                                        outChainId(sgId)).await()
@@ -109,13 +103,8 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val rule2Json = ruleJson(rule2Id, sg1Id, etherType = EtherType.IPV6,
                                  remoteSgId = sg2Id)
 
-        val sg1Json = sgJson(name = "sg1", id = sg1Id,
-                             desc = "Security group", tenantId = "tenant",
-                             rules = List(rule1Json, rule2Json))
-        val sg2Json = sgJson(name ="sg2", id = sg2Id, tenantId = "tenant",
-                             rules = List())
-        insertCreateTask(2, SecurityGroupType, sg1Json, sg1Id)
-        insertCreateTask(3, SecurityGroupType, sg2Json, sg2Id)
+        createSecurityGroup(2, sg1Id, rules = List(rule1Json, rule2Json))
+        createSecurityGroup(3, sg2Id, rules = List())
 
         val ipg1 = eventually(storage.get(classOf[IPAddrGroup], sg1Id).await())
         val ChainPair(inChain1, outChain1) = getChains(ipg1)
