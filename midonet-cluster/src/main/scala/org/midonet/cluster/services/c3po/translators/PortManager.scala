@@ -23,8 +23,8 @@ import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
-import org.midonet.cluster.models.Topology.{Dhcp, Host, Port, PortOrBuilder}
-import org.midonet.cluster.services.c3po.C3POStorageManager.Update
+import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Delete, Update}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
@@ -34,7 +34,7 @@ import org.midonet.util.concurrent.toFutureOps
 /**
  * Contains port-related operations shared by multiple translator classes.
  */
-trait PortManager extends RouteManager {
+trait PortManager extends ChainManager with RouteManager {
 
     protected def newTenantRouterGWPort(id: UUID,
                                         routerId: UUID,
@@ -156,6 +156,32 @@ trait PortManager extends RouteManager {
             h => h.getMac == mac && h.getIpAddress == ipAddr)
         if (remove >= 0) dhcp.removeHosts(remove)
     }
+
+    /** Operations to delete a port's security chains (in, out, antispoof). */
+    protected def deleteSecurityChainsOps(portId: UUID)
+    : Seq[Operation[Chain]] = {
+        Seq(Delete(classOf[Chain], inChainId(portId)),
+            Delete(classOf[Chain], outChainId(portId)),
+            Delete(classOf[Chain], antiSpoofChainId(portId)))
+    }
+
+    /** Operations to remove a port's IP addresses from its IPAddrGroups */
+    protected def removeIpsFromIpAddrGroupsOps(port: NeutronPort)
+    : Seq[Operation[IPAddrGroup]] = {
+        // Remove the fixed IPs from IP Address Groups
+        val ips = port.getFixedIpsList.asScala.map(_.getIpAddress)
+        for (sgId <- port.getSecurityGroupsList.asScala.toList) yield {
+            val addrGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            val addrGrpBldr = addrGrp.toBuilder
+            for (ipPort <- addrGrpBldr.getIpAddrPortsBuilderList.asScala) {
+                if (ips.contains(ipPort.getIpAddress)) {
+                    val idx = ipPort.getPortIdsList.indexOf(port.getId)
+                    if (idx >= 0) ipPort.removePortIds(idx)
+                }
+            }
+            Update(addrGrpBldr.build())
+        }
+    }
 }
 
 object PortManager {
@@ -173,6 +199,10 @@ object PortManager {
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.LOADBALANCER
     def isRemoteSitePort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.REMOTE_SITE
+
+    def hasMacAndArpTableEntries(nPort: NeutronPortOrBuilder): Boolean =
+        isVifPort(nPort) || isRouterInterfacePort(nPort) ||
+        isRouterGatewayPort(nPort) || isRemoteSitePort(nPort)
 
     /** ID of Router Interface port peer. */
     def routerInterfacePortPeerId(portId: UUID): UUID =

@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionWatcher}
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.StateTableStorage
@@ -408,14 +408,14 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                            name: String = null,
                            adminStateUp: Boolean = true,
                            macAddr: String = MAC.random().toString,
-                           fixedIps: List[IPAlloc] = null,
+                           fixedIps: Seq[IPAlloc] = null,
                            deviceId: UUID = null,
                            deviceOwner: DeviceOwner = null,
                            tenantId: String = "tenant",
-                           securityGroups: List[UUID] = null,
+                           securityGroups: Seq[UUID] = null,
                            hostId: UUID = null,
                            ifName: String = null,
-                           allowedAddrPairs: List[AddrPair] = null,
+                           allowedAddrPairs: Seq[AddrPair] = null,
                            portSecurityEnabled: Boolean = true): JsonNode = {
         val p = nodeFactory.objectNode
         p.put("id", id.toString)
@@ -455,13 +455,14 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         p
     }
 
-    protected def sgJson(name: String, id: UUID,
+    protected def sgJson(id: UUID,
+                         name: String = null,
                          desc: String = null,
                          tenantId: String = null,
-                         rules: List[JsonNode] = List()): JsonNode = {
+                         rules: Seq[JsonNode] = Seq()): JsonNode = {
         val sg = nodeFactory.objectNode
-        sg.put("name", name)
         sg.put("id", id.toString)
+        sg.put("name", if (name != null) name else s"security-group-$id")
         if (desc != null) sg.put("description", desc)
         if (tenantId != null) sg.put("tenant_id", tenantId)
         if (rules != null)
@@ -865,10 +866,12 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         nwId
     }
 
-    protected def createUplinkNetwork(taskId: Int, nwId: UUID): Unit = {
+    protected def createUplinkNetwork(taskId: Int,
+                                      nwId: UUID = UUID.randomUUID()): UUID = {
         val json = networkJson(nwId, name = "uplink-network-" + nwId,
                                uplink = true)
         insertCreateTask(taskId, NetworkType, json, nwId)
+        nwId
     }
 
     protected def createRouter(taskId: Int, routerId: UUID,
@@ -879,12 +882,13 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         insertCreateTask(taskId, RouterType, json, routerId)
     }
 
-    protected def createSubnet(taskId: Int, subnetId: UUID,
-                               networkId: UUID, cidr: String,
-                               gatewayIp: String = null): Unit = {
+    protected def createSubnet(taskId: Int, networkId: UUID, cidr: String,
+                               subnetId: UUID = UUID.randomUUID(),
+                               gatewayIp: String = null): UUID = {
         val json = subnetJson(subnetId, networkId, cidr = cidr,
                               gatewayIp = gatewayIp)
         insertCreateTask(taskId, SubnetType, json, subnetId)
+        subnetId
     }
 
     protected def createDhcpPort(taskId: Int, portId: UUID, networkId: UUID,
@@ -914,13 +918,24 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                             deviceOwner = DeviceOwner.ROUTER_INTERFACE, macAddr = macAddr,
                             fixedIps = List(IPAlloc(ipAddr, subnetId)),
                             hostId = hostId, ifName = ifName)
-        insertCreateTask(taskId, PortType, json, portId)
+        insertCreateTask(taskId, NeutronResourceType.Port, json, portId)
     }
 
     protected def createRouterInterface(taskId: Int, routerId: UUID,
                                         portId: UUID, subnetId: UUID): Unit = {
         val json = routerInterfaceJson(routerId, portId, subnetId)
-        insertCreateTask(taskId, RouterInterfaceType, json, routerId)
+        insertCreateTask(taskId, NeutronResourceType.RouterInterface,
+                         json, routerId)
+    }
+
+    protected def createSecurityGroup(taskId: Int,
+                                      sgId: UUID = UUID.randomUUID(),
+                                      name: String = null, desc: String = null,
+                                      tenantId: String = null,
+                                      rules: Seq[JsonNode] = Seq()): UUID = {
+        val json = sgJson(sgId, name, desc, tenantId, rules)
+        insertCreateTask(taskId, NeutronResourceType.SecurityGroup, json, sgId)
+        sgId
     }
 
 }
