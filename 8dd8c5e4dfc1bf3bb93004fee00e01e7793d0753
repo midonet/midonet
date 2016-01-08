@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_d3462523",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-08T14:59:55Z",
+      "side": 1,
+      "message": "We use a more descriptive commit msg. explaining the change briefly \u003c50 chars, then ref the jira issue below with \n\nRef.: MNA-795\n\nThanks Antonio!",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 30
+      },
+      "revId": "8dd8c5e4dfc1bf3bb93004fee00e01e7793d0753",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_933cad95",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-08T14:59:55Z",
+      "side": 1,
+      "message": "should be \u003c72 chars",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 90
+      },
+      "revId": "8dd8c5e4dfc1bf3bb93004fee00e01e7793d0753",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
