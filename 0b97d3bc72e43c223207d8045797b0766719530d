@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_785e38eb",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/MidonetBackendTestModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-08T10:40:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_327ea2af",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 26
+      },
+      "revId": "0b97d3bc72e43c223207d8045797b0766719530d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b249b28d",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_b858b0fb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-08T10:40:37Z",
+      "side": 1,
+      "message": "I\u0027ll do it in a separate patch, it requiers also storing the subscription and using that one for the unsubscribe so better to do it in its own patch",
+      "parentUuid": "fa81d914_b249b28d",
+      "range": {
+        "startLine": 107,
+        "startChar": 40,
+        "endLine": 107,
+        "endChar": 50
+      },
+      "revId": "0b97d3bc72e43c223207d8045797b0766719530d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_2dd8031d",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/ContainerServiceTest.scala",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2016-01-07T10:21:27Z",
       "side": 1,
       "message": "Minor comment: we should have a test making the node not a leader and then a leader again, to check if the scheduling is restarted properly.",
+      "range": {
+        "startLine": 81,
+        "startChar": 6,
+        "endLine": 81,
+        "endChar": 26
+      },
+      "revId": "0b97d3bc72e43c223207d8045797b0766719530d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d85d64eb",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/ContainerServiceTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-08T10:40:37Z",
+      "side": 1,
+      "message": "Good idea, adding it.",
+      "parentUuid": "fa81d914_2dd8031d",
       "range": {
         "startLine": 81,
         "startChar": 6,
