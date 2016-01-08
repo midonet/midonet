@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
@@ -54,10 +54,28 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
         midoOps.toList
     }
 
-    /* The translator will keep around the Load Balancer when the last Pool
-     * is deleted in order to keep the implementation simple. */
     override protected def translateDelete(id: UUID)
-    : OperationList = List(Delete(classOf[Pool], id))
+    : OperationList = {
+        val pool = try storage.get(classOf[Pool], id).await() catch {
+            case e: NotFoundException =>
+                // log.debug("Tried to delete a non existent pool {}", id)
+                return List.empty // idempotent deletes
+        }
+
+        val delPool = Delete(classOf[Pool], id)
+        val maybeDelLB = if (pool.hasLoadBalancerId) {
+            val lbId = pool.getLoadBalancerId
+            val lb = storage.get(classOf[LoadBalancer], lbId).await()
+            if (lb.getPoolIdsCount == 1) {
+                List(Delete(classOf[LoadBalancer], lbId))
+            } else {
+                List.empty
+            }
+        } else {
+            List.empty
+        }
+        delPool +: maybeDelLB
+    }
 
     override protected def translateUpdate(nPool: NeutronLoadBalancerPool)
     : OperationList = {
