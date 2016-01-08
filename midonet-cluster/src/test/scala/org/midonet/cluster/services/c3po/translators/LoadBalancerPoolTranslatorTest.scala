@@ -170,20 +170,3 @@ class LoadBalancerPoolTranslatorUpdateTest
     }
 }
 
-/**
- * Tests a Neutron Load Balancer Pool Delete translation.
- */
-@RunWith(classOf[JUnitRunner])
-class LoadBalancerPoolTranslatorDeleteTest
-        extends LoadBalancerPoolTranslatorTestBase {
-    before {
-        initMockStorage()
-        translator = new LoadBalancerPoolTranslator(storage)
-    }
-
-    "Pool Delete" should "delete the corresponding MidoNet Pool." in {
-        val midoOps = translator.translate(
-                neutron.Delete(classOf[NeutronLoadBalancerPool], poolId))
-        midoOps should contain only midonet.Delete(classOf[Pool], poolId)
-    }
-}
