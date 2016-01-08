@@ -26,6 +26,7 @@ import javax.inject.Named
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.hash.Hashing
 import com.google.inject.Inject
 
@@ -246,7 +247,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     private val context = Context(vt.store, vt.stateStore, executor,
                                   Schedulers.from(vt.vtExecutor), log)
 
-    private var vpnServiceSubscription: Subscription = _
+    @VisibleForTesting
+    private[containers] var vpnServiceSubscription: Subscription = _
     private var config: IPSecConfig = null
 
     private case class VpnServiceUpdateEvent(routerPorts: List[Port],
@@ -285,16 +287,14 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
       * @see [[ContainerHandler.delete]]
       */
     override def delete(): Future[Unit] = {
-        if (config eq null) {
-            log info s"IPSec container not started: ignoring"
-            return Future.successful(())
-        }
-
-        log info s"Deleting IPSec container ${config.ipsecService.name}"
-
         try {
-            cleanup(config)
-            config = null
+            if (config != null) {
+                log info s"Deleting IPSec container ${config.ipsecService.name}"
+                cleanup(config)
+                config = null
+            }
+            else log info s"IPSec container not started: ignoring"
+
             unsubscribeVpnService()
             vpnServiceSubscription = null
             Future.successful(())
@@ -505,7 +505,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
 
             if (!isVpnServiceUp(vpn) || conns.forall(!isSiteConnectionUp(_))) {
                 log.info(
-                    s"VPN service ${vpn.getId} has admin state " +
+                    s"VPN service ${vpn.getId.asJava} has admin state " +
                     "DOWN or all IPSec connections have admin state DOWN")
                 // So we don't clean up on a non-setup container
                 config = null
