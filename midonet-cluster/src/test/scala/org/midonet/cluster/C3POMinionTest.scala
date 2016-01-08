@@ -543,7 +543,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         ri
     }
 
-
     protected def networkJson(id: UUID, tenantId: String = "tenant",
                               name: String = null,
                               shared: Boolean = false,
