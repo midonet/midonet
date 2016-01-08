@@ -543,6 +543,12 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         ri
     }
 
+    protected def poolJson(id: UUID, routerId: UUID): JsonNode = {
+        val p = nodeFactory.objectNode()
+        p.put("id", id.toString)
+        p.put("router_id", routerId.toString)
+        p
+    }
 
     protected def networkJson(id: UUID, tenantId: String = "tenant",
                               name: String = null,
