@@ -16,10 +16,14 @@
 
 package org.midonet.packets;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static junitparams.JUnitParamsRunner.*;
@@ -74,6 +78,32 @@ public class TestIPv4Subnet {
     public void testDefaultMask() {
         IPv4Subnet subnet = IPv4Subnet.fromCidr("1.1.1.1");
         Assert.assertEquals("1.1.1.1/32", subnet.toString());
+    }
+
+    @Test
+    public void testSubnetIterator() {
+        IPv4Subnet subnet = IPv4Subnet.fromCidr("1.1.1.1/30");
+        Iterator<IPv4Subnet> it = IPv4Subnet.iterator(subnet, 31);
+        Assert.assertTrue(it.hasNext());
+        Assert.assertEquals("1.1.1.0/31", it.next().toString());
+        Assert.assertTrue(it.hasNext());
+        Assert.assertEquals("1.1.1.2/31", it.next().toString());
+        Assert.assertFalse(it.hasNext());
+        ExpectedException exception = ExpectedException.none();
+        exception.expect(NoSuchElementException.class);
+        it.hasNext();
+    }
+
+    @Test
+    public void testSubnetOverlap() {
+        IPv4Subnet subnet1 = IPv4Subnet.fromCidr("1.1.0.0/25");
+        IPv4Subnet subnet2 = IPv4Subnet.fromCidr("1.1.1.0/25");
+        IPv4Subnet subnet3 = IPv4Subnet.fromCidr("1.1.1.0/30");
+        IPv4Subnet subnet4 = IPv4Subnet.fromCidr("1.1.0.0/16");
+        Assert.assertFalse(subnet1.overlaps(subnet2));
+        Assert.assertTrue(subnet2.overlaps(subnet3));
+        Assert.assertTrue(subnet3.overlaps(subnet2));
+        Assert.assertTrue(subnet4.overlaps(subnet1));
     }
 
     public static Object[] validCidrs() {

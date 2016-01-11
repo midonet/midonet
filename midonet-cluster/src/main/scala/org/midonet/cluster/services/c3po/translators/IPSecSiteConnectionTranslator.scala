@@ -21,9 +21,10 @@ import scala.collection.JavaConverters._
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, NeutronSubnet, VpnService}
-import org.midonet.cluster.models.Topology.ServiceContainer
+import org.midonet.cluster.models.Topology.{Port, ServiceContainer}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.containers
 import org.midonet.util.concurrent.toFutureOps
 
 class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
@@ -79,7 +80,10 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
                                      localCidr: IPSubnet): OperationList = {
         val container = storage.get(classOf[ServiceContainer],
                                     vpn.getContainerId).await()
-        val routerPortId = container.getPortId
+        val routerPort = storage.get(classOf[Port],
+                                     container.getPortId).await()
+        val routerPortId = routerPort.getId
+        val routerPortSubnet = routerPort.getPortSubnet
 
         cnxn.getPeerCidrsList.asScala.map(
             (peerCidr: IPSubnet) => {
@@ -88,7 +92,7 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
                         id = UUIDUtil.randomUuidProto,
                         ipSecSiteCnxnId = cnxn.getId,
                         nextHopPortId = routerPortId,
-                        nextHopGwIpAddr = VpnServiceTranslator.VpnContainerPortAddr,
+                        nextHopGwIpAddr = containers.containerPortAddress(routerPortSubnet),
                         srcSubnet = localCidr,
                         dstSubnet = peerCidr))
             }).toList

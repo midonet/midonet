@@ -16,6 +16,8 @@
 
 package org.midonet.packets;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -113,6 +115,16 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
     }
 
     /**
+     * Checks whether this or other subnets have an overlap in their subnet
+     * ranges.
+     */
+    public boolean overlaps(IPv4Subnet other) {
+        return containsAddress(other.toNetworkAddress()) ||
+               containsAddress(other.toBroadcastAddress()) ||
+               other.containsAddress(toNetworkAddress());
+    }
+
+    /**
      * Regex pattern representing IPv4 CIDR
      */
     public static String IPV4_CIDR_PATTERN =
@@ -133,6 +145,43 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
      */
     public static boolean isValidIpv4Cidr(String cidr) {
         return cidr != null && ipv4CidrPattern.matcher(cidr).matches();
+    }
+
+    /**
+     * Constructs an iterator over an IPv4Subnet in increments of prefix length.
+     * The iterator will stop when a FULL block of prefixLen is not available
+     * within the range.
+     *
+     * @param range Subnet to iterate through
+     * @param prefixLen Steps within the subnet. This prefix length MUST be
+     *                  lower than the prefix of the range subnet.
+     * @return
+     */
+    public static Iterator<IPv4Subnet> iterator(IPv4Subnet range, int prefixLen) {
+
+        class IPv4SubnetIterator implements Iterator<IPv4Subnet> {
+            private int blockLen;
+            private int addr;
+
+            private IPv4SubnetIterator() {
+                this.blockLen = 1 << (Integer.SIZE - prefixLen);
+                this.addr = range.toNetworkAddress().addr() - this.blockLen;
+            }
+
+            public boolean hasNext() {
+                return range.containsAddress(
+                    new IPv4Addr(addr + 2 * blockLen - 1));
+            }
+
+            public IPv4Subnet next() {
+                if (hasNext())
+                    return new IPv4Subnet(addr += blockLen, prefixLen);
+                else
+                    throw new NoSuchElementException();
+            }
+        }
+
+        return new IPv4SubnetIterator();
     }
 
     public static boolean addrMatch(int ip1, int ip2, int prefixLen) {
