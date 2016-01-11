@@ -17,22 +17,22 @@
 package org.midonet.midolman.logging
 
 import java.util.UUID
-import java.util.concurrent.Executor
+import java.util.concurrent.{Executor, Executors}
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.concurrent.Future
 
-import com.google.common.util.concurrent.MoreExecutors
-import com.datastax.driver.core.{BoundStatement, PreparedStatement, ResultSet, ResultSetFuture, Session}
-
-import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
-import org.slf4j.{LoggerFactory}
+import com.datastax.driver.core.{BatchStatement, Session}
+import org.slf4j.LoggerFactory
+import rx.Observer
+import rx.schedulers.Schedulers
+import rx.subjects.PublishSubject
 
 import org.midonet.conf.HostIdGenerator
-import org.midonet.cluster.backend.cassandra.CassandraClient
-import org.midonet.util.concurrent.CallingThreadExecutionContext
+import org.midonet.util.concurrent.{CallingThreadExecutionContext, NamedThreadFactory}
+import org.midonet.util.functors.makeAction1
 
 class FlowTracingAppender(sessionFuture: Future[Session])
         extends AppenderBase[ILoggingEvent] {
@@ -50,13 +50,46 @@ class FlowTracingAppender(sessionFuture: Future[Session])
     @volatile
     var session: Session = null
 
-    @volatile
-    var lastAppendErrored = false
-
     var schema: FlowTracingSchema = null
-    val errorListenerExecutor: Executor = MoreExecutors.sameThreadExecutor()
+
+    private val executor: Executor = Executors.newSingleThreadExecutor(
+        new NamedThreadFactory("flow-tracing-appender", isDaemon = true)
+    )
+
+    /* This is per-se an unbounded queue, but we'll achieve the bounds using
+     * the observeOn operator below (which has a 128 slot internal buffer).
+     */
+    private val queue = PublishSubject.create[BatchStatement]()
+
+    /** Consumer of the queue of [[BatchStatement]] that will synchronously
+      * push items to Cassandra, guaranteeing that the local order matches
+      * that of the events stored in Cassandra.
+      *
+      * The backpressure policy is to DROP events if it cannot keep up.
+      */
+    private val loggingEventObserver = new Observer[BatchStatement] {
+        override def onCompleted(): Unit = {
+            log.error("Unexpected, the FlowTracingAppender should never emit " +
+                      "an onComplete")
+        }
+        override def onError(e: Throwable): Unit = {
+            log.error("Unexpected, the FlowTracingAppender should never emit " +
+                      "an onError", e)
+        }
+        override def onNext(e: BatchStatement): Unit = syncSendToCassandra(e)
+    }
+
+    /** Log a warning alerting that we're dropping events as the Cassandra
+      * thread cannot keep up.
+      */
+    private val onDrop = makeAction1[BatchStatement] { e =>
+        log.info(s"Backpressure triggered")
+    }
 
     override def start(): Unit = {
+        queue.onBackpressureDrop(onDrop)
+             .observeOn(Schedulers.from(executor))
+             .subscribe(loggingEventObserver)
         sessionFuture.onSuccess {
             case s =>
                 schema = new FlowTracingSchema(s)
@@ -65,24 +98,8 @@ class FlowTracingAppender(sessionFuture: Future[Session])
         super.start()
     }
 
-    class ErrorListener(f: ResultSetFuture) extends Runnable {
-        override def run() {
-            try {
-                f.get()
-                lastAppendErrored = false
-            } catch {
-                case e: Throwable =>
-                    if (!lastAppendErrored) {
-                        log.error("Error sending trace data to cassandra", e)
-                    }
-                    lastAppendErrored = true
-            }
-        }
-    }
-
-    override def append(event: ILoggingEvent) {
+    override def append(event: ILoggingEvent): Unit = {
         import FlowTracingContext._
-        if (session ne null) {
             val mdc = event.getMDCPropertyMap
 
             val requestIds = mdc.get(TraceRequestIdKey).split(",")
@@ -93,7 +110,8 @@ class FlowTracingAppender(sessionFuture: Future[Session])
                 val flowTraceId = UUID.fromString(mdc.get(FlowTraceIdKey))
 
                 try {
-                    val f1 = session.executeAsync(
+                    val batch = new BatchStatement()
+                    batch.addAll(Seq(
                         schema.bindFlowInsertStatement(
                             traceId, flowTraceId,
                             mdc.get(EthSrcKey), mdc.get(EthDstKey),
@@ -101,23 +119,25 @@ class FlowTracingAppender(sessionFuture: Future[Session])
                             mdc.get(NetworkSrcKey), mdc.get(NetworkDstKey),
                             intOrVal(mdc.get(NetworkProtoKey), 0),
                             intOrVal(mdc.get(SrcPortKey), 0),
-                            intOrVal(mdc.get(DstPortKey), 0)))
-                    f1.addListener(new ErrorListener(f1), errorListenerExecutor)
-                    val f2 = session.executeAsync(
+                            intOrVal(mdc.get(DstPortKey), 0)),
                         schema.bindDataInsertStatement(
                             traceId, flowTraceId,
-                            hostId, event.getFormattedMessage))
-                    f2.addListener(new ErrorListener(f2), errorListenerExecutor)
-                    lastAppendErrored = false
+                            hostId, event.getFormattedMessage)
+                    ))
+                    queue.onNext(batch)
                 } catch {
                     case e: Throwable =>
-                        if (!lastAppendErrored) {
-                            log.error("Error sending trace data to cassandra", e)
-                        }
-                        lastAppendErrored = true
+                        log.error("Error sending trace data to cassandra", e)
                 }
                 i -= 1
             }
+    }
+
+    /** Synchronously sends the event to Cassandra, error handling included.
+      */
+    private def syncSendToCassandra(st: BatchStatement) {
+        if (session ne null) {
+            session execute st
         }
     }
 
