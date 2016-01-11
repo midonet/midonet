@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_8955591f",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/package.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-11T10:38:33Z",
+      "side": 1,
+      "message": "It should be safe to make this range smaller, but used the whole reserved subnet. rfc.",
+      "revId": "8e46256326913ce60a35eb1e4cad9443cc3b0715",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
