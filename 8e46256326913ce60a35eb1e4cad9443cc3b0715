@@ -39,6 +39,30 @@
       "revId": "8e46256326913ce60a35eb1e4cad9443cc3b0715",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8c69e78d",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/package.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-11T11:47:39Z",
+      "side": 1,
+      "message": "Right, it\u0027s not ok. I\u0027ll check for the port subnet start and end.",
+      "parentUuid": "fa81d914_4cc1af7f",
+      "range": {
+        "startLine": 54,
+        "startChar": 12,
+        "endLine": 56,
+        "endChar": 13
+      },
+      "revId": "8e46256326913ce60a35eb1e4cad9443cc3b0715",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
