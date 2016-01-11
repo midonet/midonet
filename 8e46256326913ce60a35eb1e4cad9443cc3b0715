@@ -16,6 +16,29 @@
       "revId": "8e46256326913ce60a35eb1e4cad9443cc3b0715",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4cc1af7f",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/package.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T11:15:44Z",
+      "side": 1,
+      "message": "So this assumes that router ports have only /30 subnets, is that right? Say, if we have a port with 169.254.0.100/24, this allows us to allocate 169.254.0.0/30 even though that subnet range is taken. Is this okay?",
+      "range": {
+        "startLine": 54,
+        "startChar": 12,
+        "endLine": 56,
+        "endChar": 13
+      },
+      "revId": "8e46256326913ce60a35eb1e4cad9443cc3b0715",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
