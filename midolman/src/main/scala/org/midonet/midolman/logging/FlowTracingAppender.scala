@@ -17,22 +17,21 @@
 package org.midonet.midolman.logging
 
 import java.util.UUID
-import java.util.concurrent.Executor
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
-import com.google.common.util.concurrent.MoreExecutors
-import com.datastax.driver.core.{BoundStatement, PreparedStatement, ResultSet, ResultSetFuture, Session}
-
-import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
-import org.slf4j.{LoggerFactory}
+import com.datastax.driver.core.exceptions.DriverException
+import com.datastax.driver.core.{Session, Statement}
+import org.jctools.queues.SpmcArrayQueue
+import org.slf4j.LoggerFactory
 
 import org.midonet.conf.HostIdGenerator
-import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.util.concurrent.CallingThreadExecutionContext
+import org.midonet.util.concurrent.WakerUpper.Parkable
 
 class FlowTracingAppender(sessionFuture: Future[Session])
         extends AppenderBase[ILoggingEvent] {
@@ -50,74 +49,84 @@ class FlowTracingAppender(sessionFuture: Future[Session])
     @volatile
     var session: Session = null
 
-    @volatile
-    var lastAppendErrored = false
-
     var schema: FlowTracingSchema = null
-    val errorListenerExecutor: Executor = MoreExecutors.sameThreadExecutor()
+
+    /* Dedicated thread that sends messages to Cassandra in the same order as
+     * they are emitted by the simulation thread (within a given simulation).
+     */
+    private val sender = new Thread("flow-tracing-appender") with Parkable {
+        override def run(): Unit = while (true) {
+            try {
+                queue.poll() match {
+                    case null => park()
+                    case st => session execute st
+                }
+            } catch {
+                case NonFatal(t: InterruptedException) =>
+                    log.warn("Interrupted")
+                    interrupt()
+                case NonFatal(t: DriverException) =>
+                    log.warn("Failed to send log message to Cassandra " +
+                             s"${t.getMessage}")
+                case NonFatal(t) =>
+                    log.error("Unexpected error", t)
+            }
+        }
+        override def shouldWakeUp(): Boolean = queue.peek() != null
+    }
+
+    val QueueSize = 100000
+    private val queue = new SpmcArrayQueue[Statement](QueueSize)
 
     override def start(): Unit = {
-        sessionFuture.onSuccess {
-            case s =>
+        sender.setDaemon(true)
+        sessionFuture.onComplete {
+            case Success(s) =>
                 schema = new FlowTracingSchema(s)
                 session = s
+                sender.start()
+            case Failure(t) =>
+                log.warn("Failed to start session to Cassandra", t)
         }(CallingThreadExecutionContext)
         super.start()
     }
 
-    class ErrorListener(f: ResultSetFuture) extends Runnable {
-        override def run() {
+    override def append(event: ILoggingEvent): Unit = {
+        import FlowTracingContext._
+        val mdc = event.getMDCPropertyMap
+
+        val requestIds = mdc.get(TraceRequestIdKey).split(",")
+        var i = requestIds.length - 1
+
+        while (i >= 0) {
+            val traceId = UUID.fromString(requestIds(i))
+            val flowTraceId = UUID.fromString(mdc.get(FlowTraceIdKey))
+
             try {
-                f.get()
-                lastAppendErrored = false
+
+                val st1 = schema.bindFlowInsertStatement(
+                    traceId, flowTraceId,
+                    mdc.get(EthSrcKey), mdc.get(EthDstKey),
+                    intOrVal(mdc.get(EtherTypeKey), 0),
+                    mdc.get(NetworkSrcKey), mdc.get(NetworkDstKey),
+                    intOrVal(mdc.get(NetworkProtoKey), 0),
+                    intOrVal(mdc.get(SrcPortKey), 0),
+                    intOrVal(mdc.get(DstPortKey), 0))
+
+                val st2 = schema.bindDataInsertStatement(
+                    traceId, flowTraceId,
+                    hostId, event.getFormattedMessage)
+
+                if (!queue.offer(st1) || !queue.offer(st2)) {
+                    log.warn("Backpressure triggered on queue of flow " +
+                             "tracing events emitted to Cassandra (curr. " +
+                             s"bound: $QueueSize)")
+                }
             } catch {
                 case e: Throwable =>
-                    if (!lastAppendErrored) {
-                        log.error("Error sending trace data to cassandra", e)
-                    }
-                    lastAppendErrored = true
+                    log.error("Error building statements", e)
             }
-        }
-    }
-
-    override def append(event: ILoggingEvent) {
-        import FlowTracingContext._
-        if (session ne null) {
-            val mdc = event.getMDCPropertyMap
-
-            val requestIds = mdc.get(TraceRequestIdKey).split(",")
-            var i = requestIds.length - 1
-
-            while (i >= 0) {
-                val traceId = UUID.fromString(requestIds(i))
-                val flowTraceId = UUID.fromString(mdc.get(FlowTraceIdKey))
-
-                try {
-                    val f1 = session.executeAsync(
-                        schema.bindFlowInsertStatement(
-                            traceId, flowTraceId,
-                            mdc.get(EthSrcKey), mdc.get(EthDstKey),
-                            intOrVal(mdc.get(EtherTypeKey), 0),
-                            mdc.get(NetworkSrcKey), mdc.get(NetworkDstKey),
-                            intOrVal(mdc.get(NetworkProtoKey), 0),
-                            intOrVal(mdc.get(SrcPortKey), 0),
-                            intOrVal(mdc.get(DstPortKey), 0)))
-                    f1.addListener(new ErrorListener(f1), errorListenerExecutor)
-                    val f2 = session.executeAsync(
-                        schema.bindDataInsertStatement(
-                            traceId, flowTraceId,
-                            hostId, event.getFormattedMessage))
-                    f2.addListener(new ErrorListener(f2), errorListenerExecutor)
-                    lastAppendErrored = false
-                } catch {
-                    case e: Throwable =>
-                        if (!lastAppendErrored) {
-                            log.error("Error sending trace data to cassandra", e)
-                        }
-                        lastAppendErrored = true
-                }
-                i -= 1
-            }
+            i -= 1
         }
     }
 
