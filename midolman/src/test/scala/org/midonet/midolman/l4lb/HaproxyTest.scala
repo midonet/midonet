@@ -174,7 +174,7 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
              * This is not expected: a single pool-health monitor config
              * should result in a single mapper notification.
              */
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName)
 
             backend.store.delete(classOf[topPool], poolId)
             backend.store.delete(classOf[topHM], hmId)
@@ -182,7 +182,7 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 0 }
 
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName)
+            verify(HMSystem.ipCommand).namespaceExist(poolName)
         }
         scenario("ports and routes are created on separate routers") {
 
@@ -210,7 +210,7 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
 
             val poolName1 = poolId1.toString.substring(0, 8) + "_hm"
 
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName1)
 
             val lbId2 = makeLB(routerId2)
             val hmId2 = makeHM(2, 2, 2)
@@ -224,8 +224,8 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 1 }
 
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName2)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName2)
 
             backend.store.delete(classOf[topPool], poolId1)
             backend.store.delete(classOf[topHM], hmId1)
@@ -235,8 +235,8 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 1 }
 
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName1)
-            verify(HMSystem.ipCommand, times(2)).namespaceExist(poolName2)
+            verify(HMSystem.ipCommand).namespaceExist(poolName1)
+            verify(HMSystem.ipCommand, Mockito.never()).namespaceExist(poolName2)
 
             backend.store.delete(classOf[topPool], poolId2)
             backend.store.delete(classOf[topHM], hmId2)
@@ -246,8 +246,8 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 0 }
 
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName1)
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName2)
+            verify(HMSystem.ipCommand).namespaceExist(poolName1)
+            verify(HMSystem.ipCommand).namespaceExist(poolName2)
         }
     }
 
@@ -269,7 +269,7 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 1 }
 
             val poolName1 = poolId1.toString.substring(0, 8) + "_hm"
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName1)
 
             val hmId2 = makeHM(2, 2, 2)
             val vipId2 = makeVip(80, "10.0.0.2")
@@ -279,8 +279,8 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 2 }
 
             val poolName2 = poolId2.toString.substring(0, 8) + "_hm"
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
-            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName2)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName2)
 
             backend.store.delete(classOf[topPool], poolId1)
             backend.store.delete(classOf[topHM], hmId1)
@@ -288,9 +288,9 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 1 }
 
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
-            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName2)
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName1)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName2)
+            verify(HMSystem.ipCommand).namespaceExist(poolName1)
             verify(HMSystem.ipCommand, times(0)).namespaceExist(poolName2)
 
             backend.store.delete(classOf[topPool], poolId2)
@@ -299,10 +299,10 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 0 }
 
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
-            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName2)
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName1)
-            verify(HMSystem.ipCommand, times(1)).namespaceExist(poolName2)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand).ensureNamespace(poolName2)
+            verify(HMSystem.ipCommand).namespaceExist(poolName1)
+            verify(HMSystem.ipCommand).namespaceExist(poolName2)
         }
     }
 }
