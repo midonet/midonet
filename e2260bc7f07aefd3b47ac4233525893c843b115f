@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_1a2609b8",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/package.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T20:10:51Z",
+      "side": 1,
+      "message": "It looks good now, thanks!\n\nMinor comment for future work: *maybe* iterating over all possible /30 subnets is inefficient. An alternative would be to make a range search using a red-back tree. I attach the algorithm below (not tested) just in case. I\u0027m not sure about the tradeoffs here, so maybe this is just as good or better. Anyway, it can be left for future work.\n\n    private def findLocalSubnet(router: Router): IPv4Subnet \u003d {\n        // Finds an available 169.254.x.y/30 (0xA9FE.x.y/30) subnet within the\n        // 169.254.0.0/16 range excluding the subnets of the router ports that\n        // already have been allocated within the same range. The method works\n        // by storing the allocated subnets in an ordered map, where the key is\n        // the beginning of an allocated range, and the value is end, and then\n        // iterating through the allocated ranges to find an available /30\n        // range with a 0xA9FE prefix.\n        val ports \u003d storage.getAll(classOf[Port], router.getPortIdsList).await()\n        val subnets \u003d new util.TreeMap[Int, Int]()\n        for (port \u003c- ports if port.getPortSubnet.getVersion \u003d\u003d IPVersion.V4) {\n            val address \u003d IPv4Addr.stringToInt(port.getPortSubnet.getAddress)\n            val subnetBegin \u003d\n                address \u0026\n                (0xFFFFFFFF \u003c\u003c (32 - port.getPortSubnet.getPrefixLength))\n            val subnetEnd \u003d\n                address |\n                (0xFFFFFFFF \u003e\u003e\u003e port.getPortSubnet.getPrefixLength)\n            subnets.put(subnetBegin, subnetEnd)\n        }\n        // We begin the iteration from the first eligible address: 169.254.0.0\n        // and the last eligible subnet address is: 169.254.255.252.\n        var selection \u003d 0xA9FE0000\n        while (selection \u003c 0xA9FEFFFC) {\n            // Get the first allocated range at an address equal to or greater\n            // than the selected subnet.\n            val subnet \u003d subnets.ceilingEntry(selection)\n            // If such an entry is not allocated or its beginning address is\n            // greater than the end of the /30 we selected, return the current\n            // selection.\n            if ((subnet eq null) || subnet.getKey \u003e selection + 3)\n                return new IPv4Subnet(selection, 30)\n            // Else, select the beginning of next /30 greater than the end of\n            // the current entry range.\n            selection \u003d (subnet.getValue \u0026 0xFFFFFFFC) + 4\n        }\n        null\n    }",
+      "range": {
+        "startLine": 54,
+        "startChar": 12,
+        "endLine": 58,
+        "endChar": 13
+      },
+      "revId": "e2260bc7f07aefd3b47ac4233525893c843b115f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
