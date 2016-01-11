@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_afe93d1c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-11T16:30:18Z",
+      "side": 1,
+      "message": "All load-balancer mdts tests pass except test_haproxy_failback and test_health_monitoring_backend_failback.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 9
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
