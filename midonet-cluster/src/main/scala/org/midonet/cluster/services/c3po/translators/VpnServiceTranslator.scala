@@ -18,15 +18,14 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.{UUID => JUUID}
 
-import scala.collection.JavaConverters._
-
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.{VpnService, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, VpnService}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, SequenceDispenser}
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
+import org.midonet.containers
 import org.midonet.packets.MAC
 import org.midonet.util.concurrent.toFutureOps
 
@@ -77,11 +76,19 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         }
 
         val containerId = JUUID.randomUUID
-        val routerPort = createRouterPort(routerId)
+
+        var routerPort: Port = null
+        try {
+            routerPort = createRouterPort(router)
+        } catch {
+            case nse: NoSuchElementException =>
+                log.error(s"No free subnet for container of vpn service ${vpn.getId.asJava}")
+                throw nse
+        }
 
         val vpnRoute = newNextHopPortRoute(id = vpnContainerRouteId(containerId),
                                            nextHopPortId = routerPort.getId,
-                                           dstSubnet = VpnLinkLocalSubnet)
+                                           dstSubnet = routerPort.getPortSubnet)
         val localRoute = newLocalRoute(routerPort.getId,
                                        routerPort.getPortAddress)
 
@@ -195,14 +202,20 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         case _ => super.retainHighLevelModel(op)
     }
 
-    private def createRouterPort(routerId: UUID): Port = {
-        // TODO: Make sure port address and subnet are available (MI-300).
+    @throws[NoSuchElementException]
+    private def createRouterPort(router: Router): Port = {
+        val currentPorts = storage
+            .getAll(classOf[Port], router.getPortIdsList).await()
+
+        val subnet = containers.findUnusedSubnet(currentPorts)
+        val routerAddr = containers.routerPortAddress(subnet)
+
         val portId = JUUID.randomUUID
         val builder = Port.newBuilder
             .setId(portId)
-            .setRouterId(routerId)
-            .setPortSubnet(VpnLinkLocalSubnet)
-            .setPortAddress(VpnRouterPortAddr)
+            .setRouterId(router.getId)
+            .setPortSubnet(subnet)
+            .setPortAddress(routerAddr)
             .setPortMac(MAC.random().toString)
         assignTunnelKey(builder, sequenceDispenser)
         builder.build()
@@ -258,9 +271,6 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
 }
 
 protected[translators] object VpnServiceTranslator {
-    val VpnLinkLocalSubnet = IPSubnetUtil.toProto("169.254.42.0/30")
-    val VpnRouterPortAddr = IPAddressUtil.toProto("169.254.42.1")
-    val VpnContainerPortAddr = IPAddressUtil.toProto("169.254.42.2")
 
     /** ID of route directing traffic addressed to 169.254.x.x/30 to the VPN. */
     def vpnContainerRouteId(containerId: UUID): UUID =

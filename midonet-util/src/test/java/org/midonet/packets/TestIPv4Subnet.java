@@ -16,10 +16,14 @@
 
 package org.midonet.packets;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static junitparams.JUnitParamsRunner.*;
@@ -74,6 +78,20 @@ public class TestIPv4Subnet {
     public void testDefaultMask() {
         IPv4Subnet subnet = IPv4Subnet.fromCidr("1.1.1.1");
         Assert.assertEquals("1.1.1.1/32", subnet.toString());
+    }
+
+    @Test
+    public void testSubnetIterator() {
+        IPv4Subnet subnet = IPv4Subnet.fromCidr("1.1.1.1/30");
+        Iterator<IPv4Subnet> it = IPv4Subnet.iterator(subnet, 31);
+        Assert.assertTrue(it.hasNext());
+        Assert.assertEquals("1.1.1.0/31", it.next().toString());
+        Assert.assertTrue(it.hasNext());
+        Assert.assertEquals("1.1.1.2/31", it.next().toString());
+        Assert.assertFalse(it.hasNext());
+        ExpectedException exception = ExpectedException.none();
+        exception.expect(NoSuchElementException.class);
+        it.hasNext();
     }
 
     public static Object[] validCidrs() {
