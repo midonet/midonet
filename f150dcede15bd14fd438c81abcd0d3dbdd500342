@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_4cac4fee",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-11T11:03:07Z",
+      "side": 1,
+      "message": "Can we? Maybe we shouldn\u0027t allow creating a pool without load balancer id (as it doesn\u0027t make sense as an isolated entity?).",
+      "parentUuid": "fa81d914_d3cf05af",
+      "range": {
+        "startLine": 66,
+        "startChar": 25,
+        "endLine": 66,
+        "endChar": 52
+      },
+      "revId": "f150dcede15bd14fd438c81abcd0d3dbdd500342",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b3f37109",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
         "patchSetId": 2
