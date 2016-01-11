@@ -17,19 +17,22 @@
 package org.midonet.midolman.logging
 
 import java.util.UUID
-import java.util.concurrent.Executor
+import scala.collection.JavaConversions._
+import java.util.concurrent.{Executor, Executors}
 
 import scala.concurrent.Future
 
-import com.google.common.util.concurrent.MoreExecutors
-import com.datastax.driver.core.ResultSetFuture
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
-import com.datastax.driver.core.Session
+import com.datastax.driver.core.{BatchStatement, Session}
 import org.slf4j.LoggerFactory
+import rx.Observer
+import rx.schedulers.Schedulers
+import rx.subjects.PublishSubject
 
 import org.midonet.conf.HostIdGenerator
 import org.midonet.util.concurrent.CallingThreadExecutionContext
+import org.midonet.util.functors.makeAction1
 
 class FlowTracingAppender(sessionFuture: Future[Session])
         extends AppenderBase[ILoggingEvent] {
@@ -46,13 +49,40 @@ class FlowTracingAppender(sessionFuture: Future[Session])
     @volatile
     var session: Session = null
 
-    @volatile
-    var lastAppendErrored = false
-
     var schema: FlowTracingSchema = null
-    val errorListenerExecutor: Executor = MoreExecutors.directExecutor()
+
+    private val executor: Executor = Executors.newSingleThreadExecutor()
+    private val queue = PublishSubject.create[ILoggingEvent]()
+
+    /** Consumer of the queue of [[ILoggingEvent]] that will synchronously
+      * push items to Cassandra, guaranteeing that the local order matches
+      * that of the events stored in Cassandra.
+      *
+      * The backpressure policy is to DROP events if it cannot keep up.
+      */
+    private val loggingEventObserver = new Observer[ILoggingEvent] {
+        override def onCompleted(): Unit = {
+            log.error("Unexpected, the FlowTracingAppender should never emit " +
+                      "an onComplete")
+        }
+        override def onError(e: Throwable): Unit = {
+            log.error("Unexpected, the FlowTracingAppender should never emit " +
+                      "an onError")
+        }
+        override def onNext(e: ILoggingEvent): Unit = syncSendToCassandra(e)
+    }
+
+    /** Log a warning alerting that we're dropping events as the Cassandra
+      * thread cannot keep up.
+      */
+    private val onDrop = makeAction1[ILoggingEvent] { e =>
+        log.info(s"Backpressure triggered - dropping $e")
+    }
 
     override def start(): Unit = {
+        queue.onBackpressureDrop(onDrop)
+             .observeOn(Schedulers.from(executor))
+             .subscribe(loggingEventObserver)
         sessionFuture.onSuccess {
             case s =>
                 schema = new FlowTracingSchema(s)
@@ -61,23 +91,13 @@ class FlowTracingAppender(sessionFuture: Future[Session])
         super.start()
     }
 
-    class ErrorListener(f: ResultSetFuture) extends Runnable {
-        override def run() {
-            try {
-                f.get()
-                lastAppendErrored = false
-            } catch {
-                case e: Throwable =>
-                    if (!lastAppendErrored) {
-                        log.error("Error sending trace data to cassandra", e)
-                    }
-                    lastAppendErrored = true
-            }
-        }
-    }
+    override def append(event: ILoggingEvent): Unit = queue.onNext(event)
 
-    override def append(event: ILoggingEvent) {
+    /** Synchronously sends the event to Cassandra, error handling included.
+      */
+    private def syncSendToCassandra(event: ILoggingEvent) {
         import FlowTracingContext._
+
         if (session ne null) {
             val mdc = event.getMDCPropertyMap
 
@@ -89,7 +109,8 @@ class FlowTracingAppender(sessionFuture: Future[Session])
                 val flowTraceId = UUID.fromString(mdc.get(FlowTraceIdKey))
 
                 try {
-                    val f1 = session.executeAsync(
+                    val batch = new BatchStatement()
+                    batch.addAll(Seq(
                         schema.bindFlowInsertStatement(
                             traceId, flowTraceId,
                             mdc.get(EthSrcKey), mdc.get(EthDstKey),
@@ -97,20 +118,15 @@ class FlowTracingAppender(sessionFuture: Future[Session])
                             mdc.get(NetworkSrcKey), mdc.get(NetworkDstKey),
                             intOrVal(mdc.get(NetworkProtoKey), 0),
                             intOrVal(mdc.get(SrcPortKey), 0),
-                            intOrVal(mdc.get(DstPortKey), 0)))
-                    f1.addListener(new ErrorListener(f1), errorListenerExecutor)
-                    val f2 = session.executeAsync(
+                            intOrVal(mdc.get(DstPortKey), 0)),
                         schema.bindDataInsertStatement(
                             traceId, flowTraceId,
-                            hostId, event.getFormattedMessage))
-                    f2.addListener(new ErrorListener(f2), errorListenerExecutor)
-                    lastAppendErrored = false
+                            hostId, event.getFormattedMessage)
+                    ))
+                    session.execute(batch)
                 } catch {
                     case e: Throwable =>
-                        if (!lastAppendErrored) {
-                            log.error("Error sending trace data to cassandra", e)
-                        }
-                        lastAppendErrored = true
+                        log.error("Error sending trace data to cassandra", e)
                 }
                 i -= 1
             }
