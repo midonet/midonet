@@ -24,17 +24,16 @@ import scala.util.control.NonFatal
 import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-
+import org.apache.curator.framework.recipes.leader.LeaderLatchListener
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
-
 import rx.schedulers.Schedulers
-import rx.{Subscriber, Subscription}
+import rx.{Observer, Subscription}
 
 import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.containers.schedulers._
-import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
+import org.midonet.cluster.services.{ClusterService, LeaderLatchProvider, MidonetBackend, Minion}
 import org.midonet.cluster.{ClusterConfig, containersLog}
 import org.midonet.containers
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -42,9 +41,15 @@ import org.midonet.util.functors.makeAction0
 
 object ContainerService {
 
-    private val SchedulingBufferSize = 0x1000
-    private val MaximumFailures = 0x100
-    private val ShutdownTimeoutSeconds = 5
+    val SchedulingBufferSize = 0x1000
+    val MaximumFailures = 0x100
+    val ShutdownTimeoutSeconds = 5
+
+    @VisibleForTesting
+    @inline
+    def latchPath(config: ClusterConfig) = {
+        s"${config.backend.rootKey}/containers/leader-latch"
+    }
 
 }
 
@@ -58,6 +63,7 @@ object ContainerService {
 class ContainerService @Inject()(nodeContext: Context,
                                  backend: MidonetBackend,
                                  reflections: Reflections,
+                                 latchProvider: LeaderLatchProvider,
                                  config: ClusterConfig)
     extends Minion(nodeContext) {
 
@@ -82,11 +88,25 @@ class ContainerService @Inject()(nodeContext: Context,
     private val context = containers.Context(backend.store, backend.stateStore,
                                              eventExecutor, eventScheduler, log)
 
+    // A Curator latch used to elect a leader among all ContainerService minions
+    private val leaderLatch = latchProvider.get(latchPath(config))
+    private val leaderLatchListener = new LeaderLatchListener {
+        override def isLeader(): Unit = {
+            log.info("I'm container manager leader \\o/, start watching..")
+            startScheduling()
+        }
+        override def notLeader(): Unit = {
+            log.info("I'm not container manager leader, stop watching..")
+            stopScheduling()
+        }
+    }
+    leaderLatch.addListener(leaderLatchListener, eventExecutor)
+
     @volatile private var scheduler: ServiceScheduler = null
     @volatile private var schedulerSubscription: Subscription = null
     @volatile private var errorCount = 0
 
-    private val schedulerObserver = new Subscriber[SchedulerEvent] {
+    private val schedulerObserver = new Observer[SchedulerEvent] {
         override def onNext(event: SchedulerEvent): Unit = {
             handleEvent(event)
         }
@@ -94,36 +114,50 @@ class ContainerService @Inject()(nodeContext: Context,
             log info "Containers notification stream closed"
         }
         override def onError(e: Throwable): Unit = {
-            log.error("Unexpected error on the container notification stream", e)
-            // Increment the error count, and restart the scheduling.
             errorCount += 1
+            log.warn(s"Unexpected error $errorCount on the container " +
+                     s"notification stream", e)
             if (errorCount < MaximumFailures) {
                 startScheduling()
+            } else {
+                log.error("Too many errors emitted by container notification " +
+                          "stream, closing and giving up leadership.  This is" +
+                          " a non recoverable error, please restart this " +
+                          "Cluster node.")
+                notifyFailed(e)
+                doStop()
             }
         }
     }
+
+    @VisibleForTesting
+    def schedulerObserverErrorCount = errorCount
 
     /** Indicates whether the service is subscribed to container scheduling
       * notifications.
       */
     @VisibleForTesting
-    def isSubscribed = !schedulerSubscription.isUnsubscribed
+    def isSubscribed = {
+        val oldSubscription = schedulerSubscription
+        oldSubscription != null && !oldSubscription.isUnsubscribed
+    }
 
     protected override def doStart(): Unit = {
         log info "Starting container management service"
-        startScheduling()
-
+        leaderLatch.start()
         notifyStarted()
     }
 
     protected override def doStop(): Unit = {
         log info "Stopping container management service"
         val schedulerSubscription = this.schedulerSubscription
-        val scheduler = this.scheduler
         if (schedulerSubscription ne null)
             schedulerSubscription.unsubscribe()
+        val scheduler = this.scheduler
         if (scheduler ne null)
             scheduler.complete()
+        leaderLatch.close()
+        leaderLatch.removeListener(leaderLatchListener)
         eventExecutor.shutdown()
         delegateExecutor.shutdown()
         if (!eventExecutor.awaitTermination(ShutdownTimeoutSeconds,
@@ -161,18 +195,23 @@ class ContainerService @Inject()(nodeContext: Context,
         })
     }
 
-    private def startScheduling(): Unit = {
+    private def stopScheduling(): Unit = {
         if (schedulerSubscription ne null) {
             schedulerSubscription.unsubscribe()
+            schedulerSubscription = null
         }
         if (scheduler ne null) {
             scheduler.complete()
+            scheduler = null
         }
+    }
 
+    private def startScheduling(): Unit = {
+        stopScheduling()
         scheduler = newScheduler()
         schedulerSubscription = scheduler.observable
             .onBackpressureBuffer(SchedulingBufferSize, makeAction0 {
-                log error "Scheduling buffer overflow"
+                log error s"Scheduling buffer overflow (>$SchedulingBufferSize)"
             })
             .observeOn(delegateScheduler)
             .subscribe(schedulerObserver)
@@ -199,4 +238,5 @@ class ContainerService @Inject()(nodeContext: Context,
                          s"event: $event", e)
         }
     }
+
 }

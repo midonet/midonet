@@ -85,6 +85,7 @@ dependencies {
                 libraries.jersey_test_core,
                 libraries.jersey_test_grizzly,
                 libraries.mockit,
+                libraries.test_frameworks,
                 libraries.scalatest,
                 libraries.sqlite
 }
