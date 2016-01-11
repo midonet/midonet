@@ -16,13 +16,20 @@
 
 package org.midonet
 
+import java.util.NoSuchElementException
 import java.util.concurrent.ExecutorService
+
+import scala.collection.JavaConversions._
 
 import com.typesafe.scalalogging.Logger
 
 import rx.Scheduler
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet}
+import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet}
 
 package object containers {
 
@@ -35,5 +42,34 @@ package object containers {
                        executor: ExecutorService,
                        scheduler: Scheduler,
                        log: Logger)
+
+    private val LinkLocalSubnetRange = "169.254.0.0/16"
+    private val SubnetPrefix = 30
+    private val RouterAddressOffset = 1
+    private val ContainerAddressOffset = 2
+
+    @throws[NoSuchElementException]
+    def findUnusedSubnet(ports: Seq[Port]): IPSubnet = {
+        def valid(s: IPv4Subnet): Boolean = {
+            ports forall { p =>
+               !s.containsAddress(IPv4Addr(p.getPortAddress.getAddress))
+            }
+        }
+
+        IPSubnetUtil.toProto(
+            IPv4Subnet.iterator(IPv4Subnet.fromCidr(LinkLocalSubnetRange),
+                                SubnetPrefix)
+                .find(valid).get.toString)
+    }
+
+    def routerPortAddress(subnet: IPSubnet): IPAddress = {
+        val s = IPv4Subnet.fromCidr(subnet.getAddress + "/" + SubnetPrefix)
+        IPAddressUtil.toProto(IPv4Addr(s.getIntAddress + RouterAddressOffset))
+    }
+
+    def containerPortAddress(subnet: IPSubnet): IPAddress = {
+        val s = IPv4Subnet.fromCidr(subnet.getAddress + "/" + SubnetPrefix)
+        IPAddressUtil.toProto(IPv4Addr(s.getIntAddress + ContainerAddressOffset))
+    }
 
 }
