@@ -22,6 +22,494 @@
       "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4f8601bb",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Added import not used",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 40
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6f93c5fa",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Same here",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 47
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_2f89cdca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Put below",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 46
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_cf9af113",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Access to some internal variables (including this one) is no longer synchronizes. Some calls are made from the observable thread, some from you executor.",
+      "range": {
+        "startLine": 232,
+        "startChar": 4,
+        "endLine": 232,
+        "endChar": 77
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4f51a161",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "If you add a new executor, use a NamedThreadFactory and give it a name. Also make it a deamon thread and stop in doStop.",
+      "range": {
+        "startLine": 234,
+        "startChar": 16,
+        "endLine": 234,
+        "endChar": 71
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0f3b293b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Shouldn\u0027t you store the subscription and unsubscribe in doStop?",
+      "range": {
+        "startLine": 269,
+        "startChar": 8,
+        "endLine": 269,
+        "endChar": 18
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ef35f546",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Here you need an observerOn with back-pressure buffer. Otherwise this will hog the VT thread with synchronous I/O (e.g. waiting up to 10 seconds for a ha proxy service to start, write to ZK, etc)",
+      "range": {
+        "startLine": 269,
+        "startChar": 34,
+        "endLine": 269,
+        "endChar": 71
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6f774503",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "()",
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0fa5e952",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Does this need to be public?",
+      "range": {
+        "startLine": 308,
+        "startChar": 4,
+        "endLine": 308,
+        "endChar": 21
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4ff52182",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Parentheses not needed. The same for other case options below.",
+      "range": {
+        "startLine": 335,
+        "startChar": 38,
+        "endLine": 335,
+        "endChar": 64
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ef8335ca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Should this be private?",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 111,
+        "endChar": 25
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0f8969eb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "This too?",
+      "range": {
+        "startLine": 113,
+        "startChar": 8,
+        "endLine": 113,
+        "endChar": 21
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6fc4a540",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Since this is not an actor, this is not needed (?)",
+      "range": {
+        "startLine": 115,
+        "startChar": 4,
+        "endLine": 115,
+        "endChar": 43
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_efb095df",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Maybe this should be:\n\norg.midonet.haproxy.health-monitor\n\nor just:\n\norg.midonet.haproxy",
+      "range": {
+        "startLine": 118,
+        "startChar": 33,
+        "endLine": 118,
+        "endChar": 72
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_cfe2f1d4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "Maybe this observable should support only one subscriber, since any subsequent subscriber after the first will get an inconsistent flow of updates. In this case this like could go in the if below.",
+      "range": {
+        "startLine": 127,
+        "startChar": 8,
+        "endLine": 127,
+        "endChar": 35
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0fede9c3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "And add an else here throwing an exception.",
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4f3c4130",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "How about unsubscribe? When the child (or the last child if you want to support multiple subscribers) unsubscribes you have to undo all these subscriptions.\n\nSuggestion for a single subscriber: Use a CompositeSubscription and do an:\n\n  child.add(compositeSubscription)\n\nAnd then you can add/remove each additional subscription to the composite one. I think that when the child unsubcribes, it will also unsubscribe all subscriptions from the composite one (but you have to test it).",
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8f4639be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "If the composite subscriptions works, you don\u0027t need this.",
+      "range": {
+        "startLine": 134,
+        "startChar": 4,
+        "endLine": 134,
+        "endChar": 72
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_af121db2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "service",
+      "range": {
+        "startLine": 168,
+        "startChar": 30,
+        "endLine": 168,
+        "endChar": 35
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6f4905d0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "I think you should have two methods here: one that receives notifications from the pool health monitor (i.e. handleMappingChange and one that receives updates from the load balancer). In this way, you don\u0027t need to keep track of all these subscriptions.",
+      "range": {
+        "startLine": 251,
+        "startChar": 4,
+        "endLine": 251,
+        "endChar": 61
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_2f6d4d33",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "This looks like a public method, similar to call.",
+      "range": {
+        "startLine": 288,
+        "startChar": 4,
+        "endLine": 288,
+        "endChar": 18
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_af793dfe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 1,
+      "message": "HAProxy health monitor is now leader",
+      "range": {
+        "startLine": 289,
+        "startChar": 18,
+        "endLine": 289,
+        "endChar": 59
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

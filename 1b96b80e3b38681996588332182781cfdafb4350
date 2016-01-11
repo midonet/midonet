@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_8f03990e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-11T19:59:38Z",
+      "side": 0,
+      "message": "So previously, we used to re-schedule a health check even in case of failure. Now, if a health check fails we stop the child ha proxy:\n\n                if (!haProxy.checkHealth()) {\n                    stopHaProxy(poolId)\n                } else {\n                    executor.schedule(makeRunnable(checkHaProxyHealth(poolId)),\n                                      checkHealthPeriodInSec,\n                                      TimeUnit.SECONDS)\n                }\n\nIs that all right?",
+      "range": {
+        "startLine": 228,
+        "startChar": 12,
+        "endLine": 228,
+        "endChar": 70
+      },
+      "revId": "1b96b80e3b38681996588332182781cfdafb4350",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
