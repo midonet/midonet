@@ -56,13 +56,13 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         setupRouter1(20)
 
         // setup first vpn service on router
-        val vpn1Json = vpnServiceJson(vpn1Id, router1Id, router1SubnetId,
+        val vpn1Json = vpnServiceJson(vpn1Id, router1Id,
                                       externalV4Ip = Some(router1GatewayIp))
         insertCreateTask(30, VpnServiceType, vpn1Json, vpn1Id)
         eventually(verifyContainer(router1Id, Seq(vpn1Id), router1GatewayIp))
 
         // setup second vpn service on router
-        val vpn2Json = vpnServiceJson(vpn2Id, router1Id, router1SubnetId,
+        val vpn2Json = vpnServiceJson(vpn2Id, router1Id,
                                       externalV4Ip = Some(router1GatewayIp))
         insertCreateTask(40, VpnServiceType, vpn2Json, vpn2Id)
         eventually(verifyContainer(router1Id, Seq(vpn1Id, vpn2Id), router1GatewayIp))
@@ -72,7 +72,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         eventually(verifyContainer(router1Id, Seq(vpn2Id), router1GatewayIp))
 
         // update the second vpn
-        val vpn2JsonV2 = vpnServiceJson(vpn2Id, router1Id, router1SubnetId,
+        val vpn2JsonV2 = vpnServiceJson(vpn2Id, router1Id,
                                         name = Some("renamed-vpn2"),
                                         description = Some("new description"),
                                         adminStateUp = false,
@@ -88,7 +88,6 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
             // Only the above fields should be changed.
             vpn2.getExternalIp.getAddress shouldBe router1GatewayIp
             vpn2.getRouterId.asJava shouldBe router1Id
-            vpn2.getSubnetId.asJava shouldBe router1SubnetId
         }
 
         insertDeleteTask(70, VpnServiceType, vpn2Id)
@@ -99,7 +98,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         createTenantNetwork(10, externalNetworkId, external = true)
         setupRouter1(20)
 
-        val vpn1Json = vpnServiceJson(vpn1Id, router1Id, router1SubnetId,
+        val vpn1Json = vpnServiceJson(vpn1Id, router1Id,
                                       externalV4Ip = Some(router1GatewayIp))
         insertCreateTask(30, VpnServiceType, vpn1Json, vpn1Id)
 
@@ -193,7 +192,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         storage.update(router.toBuilder()
                            .setLocalRedirectChainId(chain.getId).build)
 
-        val vpn1Json = vpnServiceJson(vpn1Id, router1Id, router1SubnetId,
+        val vpn1Json = vpnServiceJson(vpn1Id, router1Id,
                                       externalV4Ip = Some(router1GatewayIp))
         insertCreateTask(30, VpnServiceType, vpn1Json, vpn1Id)
         eventually(verifyContainer(router1Id, Seq(vpn1Id),
