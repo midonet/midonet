@@ -318,20 +318,13 @@ class Router(override val id: UUID,
             return null
         }
 
+        val hasNextHop = rt.nextHopGateway != 0 && rt.nextHopGateway != -1
+        val ip = if (hasNextHop) IPv4Addr(rt.nextHopGateway) else ipDest
         val peer = if (outPort.isInterior) tryGet[Port](outPort.peerId) else null
-        var mac = getPeerMac(peer, ipDest)
+        var mac = getPeerMac(peer, ip)
+
         if (mac eq null) {
-            val nextHopInt = rt.nextHopGateway
-            val nextHopIP =
-                if (nextHopInt == 0 || nextHopInt == -1) {
-                    ipDest // last hop
-                } else {
-                    val ip = IPv4Addr(nextHopInt)
-                    mac = getPeerMac(peer, ip)
-                    ip
-                }
-            if (mac eq null)
-                mac = getMacForIP(outPort, nextHopIP, context)
+            mac = getMacForIP(outPort, ip, context)
         }
         mac
     }
