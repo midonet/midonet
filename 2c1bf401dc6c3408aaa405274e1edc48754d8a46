@@ -22,6 +22,30 @@
       "revId": "2c1bf401dc6c3408aaa405274e1edc48754d8a46",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6074b2cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-12T11:49:39Z",
+      "side": 1,
+      "message": "Unrelated to this patch but I can fix it. \n\nI assume the cassandra client will be logging these errors though? Ivan do you know?",
+      "parentUuid": "fa81d914_cfa031f7",
+      "range": {
+        "startLine": 85,
+        "startChar": 22,
+        "endLine": 85,
+        "endChar": 31
+      },
+      "revId": "2c1bf401dc6c3408aaa405274e1edc48754d8a46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
