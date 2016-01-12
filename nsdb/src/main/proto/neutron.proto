@@ -315,8 +315,7 @@ message VpnService {
     optional string name = 3;
     optional string description = 4;
     optional bool admin_state_up = 5;
-    optional UUID subnet_id = 6;
-    optional UUID router_id = 7;
+    optional UUID router_id = 6;
 
     // filled in during translation
     optional IPAddress external_ip = 20;
@@ -336,23 +335,21 @@ message IPSecSiteConnection {
     optional string peer_address = 6;
     optional string peer_id = 7;
     repeated IPSubnet peer_cidrs = 8;
-    optional RouteMode route_mode = 9;
-    optional uint32 mtu = 10;
-    optional Initiator initiator = 11;
-    optional AuthMode auth_mode = 12;
-    optional string psk = 13;
+    repeated IPSubnet local_cidrs = 9;
+    optional RouteMode route_mode = 10;
+    optional uint32 mtu = 11;
+    optional Initiator initiator = 12;
+    optional AuthMode auth_mode = 13;
+    optional string psk = 14;
 
-    optional DpdAction dpd_action = 14;
-    optional uint32 dpd_interval = 15; // milliseconds
-    optional uint32 dpd_timeout = 16; // milliseconds
+    optional DpdAction dpd_action = 15;
+    optional uint32 dpd_interval = 16; // milliseconds
+    optional uint32 dpd_timeout = 17; // milliseconds
 
-    optional UUID vpnservice_id = 19;
+    optional UUID vpnservice_id = 18;
 
     optional IkePolicy ikepolicy = 20;
     optional IPSecPolicy ipsecpolicy = 21;
-
-    // filled in during translation
-    optional IPSubnet local_cidr = 30;
 
     // Backrefs
     repeated UUID route_ids = 101;

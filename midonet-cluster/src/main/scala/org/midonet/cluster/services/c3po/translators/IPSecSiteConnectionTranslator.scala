@@ -19,8 +19,8 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, NeutronSubnet, VpnService}
+import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.Topology.{Port, ServiceContainer}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
@@ -35,11 +35,8 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
     override protected def translateCreate(cnxn: IPSecSiteConnection)
     : OperationList = {
         val vpn = storage.get(classOf[VpnService], cnxn.getVpnserviceId).await()
-        val subnet = storage.get(classOf[NeutronSubnet], vpn.getSubnetId).await()
-        val localCidr = subnet.getCidr
 
-        List(Update(cnxn.toBuilder.setLocalCidr(localCidr).build)) ++
-            createRemoteRouteOps(cnxn, vpn, localCidr)
+        createRemoteRouteOps(cnxn, vpn)
     }
 
     override protected def translateDelete(id: UUID): OperationList = {
@@ -61,12 +58,11 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
         op: Operation[IPSecSiteConnection])
     : List[Operation[IPSecSiteConnection]] = op match {
         case Update(cnxn, _) =>
-            // Override update to make sure only certain fields are update,
+            // Override update to make sure only certain fields are updated,
             // to avoid overwriting route_ids, which Neutron doesn't know about.
             val oldCnxn = storage.get(classOf[IPSecSiteConnection],
                                       cnxn.getId).await()
             val newCnxn = cnxn.toBuilder()
-                .setLocalCidr(oldCnxn.getLocalCidr)
                 .addAllRouteIds(oldCnxn.getRouteIdsList()).build()
             List(Update(newCnxn))
         case _ => super.retainHighLevelModel(op)
@@ -76,8 +72,7 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
       * local CIDRs and peer CIDRs.
       */
     private def createRemoteRouteOps(cnxn: IPSecSiteConnection,
-                                     vpn: VpnService,
-                                     localCidr: IPSubnet): OperationList = {
+                                     vpn: VpnService): OperationList = {
         val container = storage.get(classOf[ServiceContainer],
                                     vpn.getContainerId).await()
         val routerPort = storage.get(classOf[Port],
@@ -85,17 +80,21 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
         val routerPortId = routerPort.getId
         val routerPortSubnet = routerPort.getPortSubnet
 
-        cnxn.getPeerCidrsList.asScala.map(
-            (peerCidr: IPSubnet) => {
-                Create(
-                    newNextHopPortRoute(
-                        id = UUIDUtil.randomUuidProto,
-                        ipSecSiteCnxnId = cnxn.getId,
-                        nextHopPortId = routerPortId,
-                        nextHopGwIpAddr = containers.containerPortAddress(routerPortSubnet),
-                        srcSubnet = localCidr,
-                        dstSubnet = peerCidr))
-            }).toList
+        val localPeerCidrPairs = for {
+            localCidr <- cnxn.getLocalCidrsList.asScala;
+            peerCidr <- cnxn.getPeerCidrsList.asScala
+        } yield (localCidr, peerCidr)
+
+        localPeerCidrPairs.map { case (localCidr, peerCidr) =>
+            Create(
+                newNextHopPortRoute(
+                    id = UUIDUtil.randomUuidProto,
+                    ipSecSiteCnxnId = cnxn.getId,
+                    nextHopPortId = routerPortId,
+                    nextHopGwIpAddr = containers.containerPortAddress(routerPortSubnet),
+                    srcSubnet = localCidr,
+                    dstSubnet = peerCidr))
+        }.toList
     }
 }
 

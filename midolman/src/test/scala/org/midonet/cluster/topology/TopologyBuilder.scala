@@ -965,8 +965,6 @@ trait TopologyBuilder {
             builder.setDescription(description.get)
         if (adminStateUp.isDefined)
             builder.setAdminStateUp(adminStateUp.get)
-        if (subnetId.isDefined)
-            builder.setSubnetId(subnetId.get.asProto)
         if (routerId.isDefined)
             builder.setRouterId(routerId.get.asProto)
         if (externalIp.isDefined)
@@ -982,7 +980,7 @@ trait TopologyBuilder {
                                   adminStateUp: Option[Boolean] = None,
                                   peerAddress: Option[String] = None,
                                   peerId: Option[String] = None,
-                                  localCidr: Option[IPv4Subnet] = None,
+                                  localCidrs: Seq[IPv4Subnet] = Seq.empty,
                                   peerCidrs: Seq[IPv4Subnet] = Seq.empty,
                                   routeMode: Option[RouteMode] = None,
                                   mtu: Option[Int] = None,
@@ -1031,10 +1029,9 @@ trait TopologyBuilder {
             builder.setIpsecpolicy(ipsecPolicy.get)
         if (vpnServiceId.isDefined)
             builder.setVpnserviceId(vpnServiceId.get.asProto)
-        if (localCidr.isDefined)
-            builder.setLocalCidr(localCidr.get.asProto)
 
         builder.addAllPeerCidrs(peerCidrs.map(_.asProto).asJava)
+        builder.addAllLocalCidrs(localCidrs.map(_.asProto).asJava)
         builder.build()
     }
 }

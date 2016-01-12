@@ -102,7 +102,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             mtu = Some(random.nextInt()),
             peerAddress = Some(IPv4Addr.random.toString),
             psk = Some(random.nextString(10)),
-            localCidr = Some(randomIPv4Subnet),
+            localCidrs = Seq(randomIPv4Subnet),
             peerCidrs = Seq(randomIPv4Subnet),
             ikePolicy = Some(ike),
             ipsecPolicy = Some(ipsec))
@@ -157,7 +157,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                    |    left=${vpn.localEndpointIp}
                    |    leftid=${vpn.localEndpointIp}
                    |    auto=start
-                   |    leftsubnets={ ${conn.getLocalCidr.getAddress}/${conn.getLocalCidr.getPrefixLength} }
+                   |    leftsubnets={ ${conn.getLocalCidrs(0).asJava } }
                    |    leftupdown="ipsec _updown --route yes"
                    |    right=${conn.getPeerAddress}
                    |    rightid=${conn.getPeerAddress}
@@ -213,7 +213,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 mtu = Some(random.nextInt()),
                 peerAddress = Some(IPv4Addr.random.toString),
                 psk = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(ike),
                 ipsecPolicy = Some(ipsec))
@@ -227,7 +227,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 mtu = Some(random.nextInt()),
                 peerAddress = Some(IPv4Addr.random.toString),
                 psk = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet, randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(ike),
                 ipsecPolicy = Some(ipsec))
@@ -241,8 +241,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 mtu = Some(random.nextInt()),
                 peerAddress = Some(IPv4Addr.random.toString),
                 psk = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
-                peerCidrs = Seq(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet, randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet, randomIPv4Subnet),
                 ikePolicy = Some(ike),
                 ipsecPolicy = Some(ipsec))
 
@@ -265,7 +265,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    left=${vpn.localEndpointIp}
                     |    leftid=${vpn.localEndpointIp}
                     |    auto=add
-                    |    leftsubnets={ ${conn1.getLocalCidr.getAddress}/${conn1.getLocalCidr.getPrefixLength} }
+                    |    leftsubnets={ ${conn1.getLocalCidrs(0).asJava } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn1.getPeerAddress}
                     |    rightid=${conn1.getPeerAddress}
@@ -288,7 +288,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    left=${vpn.localEndpointIp}
                     |    leftid=${vpn.localEndpointIp}
                     |    auto=start
-                    |    leftsubnets={ ${conn2.getLocalCidr.getAddress}/${conn2.getLocalCidr.getPrefixLength} }
+                    |    leftsubnets={ ${IPSecConfig.subnetsString(conn2.getLocalCidrsList) } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn2.getPeerAddress}
                     |    rightid=${conn2.getPeerAddress}
@@ -311,11 +311,11 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    left=${vpn.localEndpointIp}
                     |    leftid=${vpn.localEndpointIp}
                     |    auto=start
-                    |    leftsubnets={ ${conn3.getLocalCidr.getAddress}/${conn3.getLocalCidr.getPrefixLength} }
+                    |    leftsubnets={ ${IPSecConfig.subnetsString(conn3.getLocalCidrsList) } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn3.getPeerAddress}
                     |    rightid=${conn3.getPeerAddress}
-                    |    rightsubnets={ ${conn3.getPeerCidrs(0).asJava } }
+                    |    rightsubnets={ ${IPSecConfig.subnetsString(conn3.getPeerCidrsList) } }
                     |    mtu=${conn3.getMtu}
                     |    dpdaction=restart
                     |    dpddelay=${conn3.getDpdInterval}
@@ -368,7 +368,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 mtu = Some(random.nextInt()),
                 peerAddress = Some(IPv4Addr.random.toString),
                 psk = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(ike),
                 ipsecPolicy = Some(ipsec))
@@ -383,7 +383,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 mtu = Some(random.nextInt()),
                 peerAddress = Some(IPv4Addr.random.toString),
                 psk = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(ike),
                 ipsecPolicy = Some(ipsec))
@@ -398,7 +398,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 mtu = Some(random.nextInt()),
                 peerAddress = Some(IPv4Addr.random.toString),
                 psk = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(ike),
                 ipsecPolicy = Some(ipsec))
@@ -421,7 +421,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    left=${vpn.localEndpointIp}
                     |    leftid=${vpn.localEndpointIp}
                     |    auto=add
-                    |    leftsubnets={ ${conn1.getLocalCidr.getAddress}/${conn1.getLocalCidr.getPrefixLength} }
+                    |    leftsubnets={ ${conn1.getLocalCidrs(0).asJava } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn1.getPeerAddress}
                     |    rightid=${conn1.getPeerAddress}
@@ -444,7 +444,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    left=${vpn.localEndpointIp}
                     |    leftid=${vpn.localEndpointIp}
                     |    auto=start
-                    |    leftsubnets={ ${conn3.getLocalCidr.getAddress}/${conn3.getLocalCidr.getPrefixLength} }
+                    |    leftsubnets={ ${conn3.getLocalCidrs(0).asJava } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn3.getPeerAddress}
                     |    rightid=${conn3.getPeerAddress}
@@ -501,7 +501,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 mtu = Some(random.nextInt()),
                 peerAddress = Some(IPv4Addr.random.toString),
                 psk = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(ike),
                 ipsecPolicy = Some(ipsec))
@@ -749,7 +749,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 externalIp = Some(port.getPortAddress.asIPv4Address))
             val conn = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(createIkePolicy()),
                 ipsecPolicy = Some(createIpsecPolicy()),
@@ -834,7 +834,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 externalIp = Some(port.getPortAddress.asIPv4Address))
             var conn = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(createIkePolicy()),
                 ipsecPolicy = Some(createIpsecPolicy()),
@@ -1014,7 +1014,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 adminStateUp = Some(false))
             val conn = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(createIkePolicy()),
                 ipsecPolicy = Some(createIpsecPolicy()),
@@ -1106,7 +1106,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val ipsec = createIpsecPolicy()
             var conn1 = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(ike),
                 ipsecPolicy = Some(ipsec),
@@ -1139,7 +1139,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             When("Adding a new ipsec connection to the vpn service")
             val conn2 = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(ike),
                 ipsecPolicy = Some(ipsec),
@@ -1288,7 +1288,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 externalIp = Some(IPv4Addr.random))
             val conn = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(createIkePolicy()),
                 ipsecPolicy = Some(createIpsecPolicy()),
@@ -1346,7 +1346,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 externalIp = Some(port.getPortAddress.asIPv4Address))
             val conn = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(createIkePolicy()),
                 ipsecPolicy = Some(createIpsecPolicy()),
@@ -1402,7 +1402,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 externalIp = Some(port.getPortAddress.asIPv4Address))
             val conn = createIpsecSiteConnection(
                 name = Some(random.nextString(10)),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(createIkePolicy()),
                 ipsecPolicy = Some(createIpsecPolicy()),
@@ -1459,7 +1459,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 adminStateUp = Some(true))
             val conn = createIpsecSiteConnection(
                 name = Some("foo@#1z s$%^@___"),
-                localCidr = Some(randomIPv4Subnet),
+                localCidrs = Seq(randomIPv4Subnet),
                 peerCidrs = Seq(randomIPv4Subnet),
                 ikePolicy = Some(createIkePolicy()),
                 ipsecPolicy = Some(createIpsecPolicy()),

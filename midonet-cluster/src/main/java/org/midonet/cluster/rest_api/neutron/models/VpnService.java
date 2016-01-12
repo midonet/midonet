@@ -35,10 +35,6 @@ public class VpnService extends ZoomObject {
     @ZoomField(name = "router_id")
     public UUID routerId;
 
-    @JsonProperty("subnet_id")
-    @ZoomField(name = "subnet_id")
-    public UUID subnetId;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -55,14 +51,13 @@ public class VpnService extends ZoomObject {
                Objects.equals(description, that.description) &&
                Objects.equals(adminStateUp, that.adminStateUp) &&
                Objects.equals(tenantId, that.tenantId) &&
-               Objects.equals(routerId, that.routerId) &&
-               Objects.equals(subnetId, that.subnetId);
+               Objects.equals(routerId, that.routerId);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, name, description, adminStateUp, tenantId,
-                            routerId, subnetId);
+                            routerId);
     }
 
     @Override
@@ -75,7 +70,6 @@ public class VpnService extends ZoomObject {
             .add("adminStateUp", adminStateUp)
             .add("tenantId", tenantId)
             .add("routerId", routerId)
-            .add("subnetId", subnetId)
             .toString();
     }
 }

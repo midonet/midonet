@@ -675,7 +675,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected def vpnServiceJson(id: UUID,
                                  routerId: UUID,
-                                 subnetId: UUID,
                                  adminStateUp: Boolean = true,
                                  description: Option[String] = None,
                                  externalV4Ip: Option[String] = None,
@@ -686,7 +685,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         val vpn = nodeFactory.objectNode
         vpn.put("id", id.toString)
         vpn.put("router_id", routerId.toString)
-        vpn.put("subnet_id", subnetId.toString)
         vpn.put("admin_state_up", adminStateUp)
         vpn.put("description", description.getOrElse(s"VPNService with ID $id"))
         vpn.put("external_v4_ip", externalV4Ip.orNull)

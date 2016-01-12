@@ -62,6 +62,16 @@ object IPSecConfig {
     val nameHash = Hashing.murmur3_32()
     def sanitizeName(name: String): String =
         name.replaceAll("[^\\w]", "_") + nameHash.hashString(name, UTF_8).toString
+
+    def subnetString(sub: Commons.IPSubnet) =
+        s"${sub.getAddress}/${sub.getPrefixLength}"
+
+    def subnetsString(subnets: java.util.List[Commons.IPSubnet]): String = {
+        if (subnets.isEmpty) return ""
+        val ss = new StringBuilder(subnetString(subnets.get(0)))
+        Range(1, subnets.size()) foreach (i => s",${subnetString(subnets.get(i))}")
+        ss.toString()
+    }
 }
 
 /**
@@ -82,16 +92,6 @@ case class IPSecConfig(script: String,
                |""".stripMargin
         }
         contents.toString()
-    }
-
-    def subnetString(sub: Commons.IPSubnet) =
-        s"${sub.getAddress}/${sub.getPrefixLength}"
-
-    def subnetsString(subnets: java.util.List[Commons.IPSubnet]): String = {
-        if (subnets.isEmpty) return ""
-        val ss = new StringBuilder(subnetString(subnets.get(0)))
-        Range(1, subnets.size()) foreach (i => s",${subnetString(subnets.get(i))}")
-        ss.toString()
     }
 
     def initiatorToConfig(initiator: Initiator): String = {
@@ -151,7 +151,7 @@ case class IPSecConfig(script: String,
                    |    left=${ipsecService.localEndpointIp}
                    |    leftid=${ipsecService.localEndpointIp}
                    |    auto=${initiatorToConfig(c.getInitiator)}
-                   |    leftsubnets={ ${subnetString(c.getLocalCidr)} }
+                   |    leftsubnets={ ${subnetsString(c.getLocalCidrsList)} }
                    |    leftupdown="ipsec _updown --route yes"
                    |    right=${c.getPeerAddress}
                    |    rightid=${c.getPeerAddress}

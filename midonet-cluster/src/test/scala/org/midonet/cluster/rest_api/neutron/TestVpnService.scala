@@ -128,7 +128,6 @@ class TestVpnService extends FeatureSpec
         dto.name = dto.id + "-name"
         dto.description = dto.id + "-desc"
         dto.routerId = router.id
-        dto.subnetId = subnet.id
 
         val response = vpnServiceResource.`type`(NEUTRON_VPN_SERVICE_JSON_V1)
             .post(classOf[ClientResponse], dto)
