@@ -22,6 +22,30 @@
       "revId": "e2260bc7f07aefd3b47ac4233525893c843b115f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c0747e9e",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/package.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-12T09:42:15Z",
+      "side": 1,
+      "message": "I thought of doing something alike but didn\u0027t expect so many ports in a router and so many /30 subnets taken by containers to do it.\n\nLooking at your solution, it seems much better so I can just add it into the patch if you agree.",
+      "parentUuid": "fa81d914_1a2609b8",
+      "range": {
+        "startLine": 54,
+        "startChar": 12,
+        "endLine": 58,
+        "endChar": 13
+      },
+      "revId": "e2260bc7f07aefd3b47ac4233525893c843b115f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
