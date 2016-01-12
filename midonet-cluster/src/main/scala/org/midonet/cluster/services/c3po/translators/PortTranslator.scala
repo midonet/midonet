@@ -21,7 +21,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, UpdateValidator}
-import org.midonet.cluster.models.Commons.{IPAddress, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
@@ -361,23 +361,26 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             .build())
 
         for (fixedIp <- nPort.getFixedIpsList.asScala) {
-            portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
-                .setCondition(anyFragCondition()
-                                  .setNwSrcIp(IPSubnetUtil.fromAddr(fixedIp.getIpAddress))
-                                  .setDlSrc(mac))
-                .build())
+            addIpMacPair(portCtx.antiSpoofRules, spoofChainId,
+                         IPSubnetUtil.fromAddr(fixedIp.getIpAddress), mac)
         }
 
         for (ipAddr <- nPort.getAllowedAddressPairsList.asScala) {
-            portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
-                .setCondition(anyFragCondition().setNwSrcIp(ipAddr.getIpAddress)
-                                  .setDlSrc(ipAddr.getMacAddress))
-                .build())
+            addIpMacPair(portCtx.antiSpoofRules, spoofChainId,
+                         ipAddr.getIpAddress, ipAddr.getMacAddress)
         }
 
         portCtx.antiSpoofRules += Create(dropRuleBuilder(spoofChainId)
                                              .setCondition(anyFragCondition())
                                              .build())
+    }
+
+    private def addIpMacPair(antiSpoofRules: ListBuffer[MidoOp[Rule]],
+                             spoofChainId: UUID,
+                             ip: IPSubnet, mac: String) = {
+        antiSpoofRules += Create(returnRule(spoofChainId)
+            .setCondition(anyFragCondition().setNwSrcIp(ip).setDlSrc(mac))
+            .build())
     }
 
     private def buildSecurityGroupJumpRules(nPort: NeutronPort,
