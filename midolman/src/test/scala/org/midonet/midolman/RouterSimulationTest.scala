@@ -97,6 +97,7 @@ class RouterSimulationTest extends MidolmanSpec {
     private def setKey[T <: FlowKey](action: FlowAction) =
         action.asInstanceOf[FlowActionSetKey].getFlowKey.asInstanceOf[T]
 
+    /*
     scenario("Balances routes") {
         val routeDst = "21.31.41.51"
         val gateways = List("180.0.1.40", "180.0.1.41", "180.0.1.42")
@@ -429,6 +430,59 @@ class RouterSimulationTest extends MidolmanSpec {
         simRes4 should be (AddVirtualWildcardFlow)
         pktCtx4.virtualFlowActions should have size 3
         pktCtx4.virtualFlowActions.get(2) should be (ToPortAction(ressurected))
+    }
+    */
+
+    scenario("Route to next hop with entry in ARP table") {
+        /*
+         *   *-------------*         *------------*
+         *   |             |         |            |
+         *   |   Router    RP1-----BP1   Bridge   BP3------RP3
+         *   |             |         |            |
+         *   *-------------*         *----BP2-----*
+         *                                 |
+         *                                 |
+         *                                RP2
+         *
+         *   RP1 -> Mac 0a:0a:0a:0a:0a:0a, IP 1.1.1.1
+         *   RP2 -> Mac 0a:0b:0b:0b:0b:0b, IP 1.1.1.2
+         *   RP3 -> Mac 0a:0c:0c:0c:0c:0c, IP 1.1.1.3
+         */
+
+        val bridge = newBridge("weird bridge")
+
+        val bp1 = newBridgePort(bridge)
+        val rp1Mac = MAC.fromString("0A:0A:0A:0A:0A:0A")
+        val rp1 = newRouterPort(router, rp1Mac, "1.1.1.1", "1.1.1.0", 24)
+        linkPorts(rp1, bp1)
+        feedArpTable(simRouter, IPv4Addr.fromString("1.1.1.1"), rp1Mac)
+
+        val bp2 = newBridgePort(bridge)
+        val rp2Mac = MAC.fromString("0A:0B:0B:0B:0B:0B")
+        val rp2 = newRouterPort(router, rp2Mac, "1.1.1.2", "1.1.1.0", 24)
+        linkPorts(rp2, bp2)
+        feedArpTable(simRouter, IPv4Addr.fromString("1.1.1.2"), rp2Mac)
+
+        val bp3 = newBridgePort(bridge)
+        val rp3Mac = MAC.fromString("0A:0C:0C:0C:0C:0C")
+        val rp3 = newRouterPort(router, rp3Mac, "1.1.1.3", "1.1.1.0", 24)
+        linkPorts(rp3, bp3)
+        feedArpTable(simRouter, IPv4Addr.fromString("1.1.1.3"), rp3Mac)
+
+        newRoute(router, "0.0.0.0", 0, "1.1.1.0", 24,
+            NextHop.LOCAL, rp1, "1.1.1.2", 2)
+
+        val ttl = 8.toByte
+
+        val fromMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val port = fetchDevice[RouterPort](port1)
+        val pkt = { eth src fromMac dst port.portMac } <<
+                  { ip4 src fromIp dst IPv4Addr.fromString("1.1.1.3") ttl ttl } <<
+                  { udp src 1234 dst 4321 }
+
+        val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
+        simRes should not be Drop
     }
 
     private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,
