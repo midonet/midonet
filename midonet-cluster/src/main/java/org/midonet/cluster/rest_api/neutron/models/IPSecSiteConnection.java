@@ -50,6 +50,10 @@ public class IPSecSiteConnection extends ZoomObject {
     @ZoomField(name = "peer_cidrs", converter = IPSubnetUtil.Converter.class)
     public List<String> peerCidrs;
 
+    @JsonProperty("local_cidrs")
+    @ZoomField(name = "local_cidrs", converter = IPSubnetUtil.Converter.class)
+    public List<String> localCidrs;
+
     @JsonProperty("route_mode")
     @ZoomField(name = "route_mode")
     public RouteMode routeMode;
@@ -430,6 +434,7 @@ public class IPSecSiteConnection extends ZoomObject {
             .add("peerAddress", peerAddress)
             .add("peerId", peerId)
             .add("peerCidrs", peerCidrs)
+            .add("localCidrs", localCidrs)
             .add("routeMode", routeMode)
             .add("mtu", mtu)
             .add("initiator", initiator)

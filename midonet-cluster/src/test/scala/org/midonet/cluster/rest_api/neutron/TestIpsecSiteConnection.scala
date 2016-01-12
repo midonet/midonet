@@ -18,18 +18,16 @@ package org.midonet.cluster.rest_api.neutron
 
 import java.util.{ArrayList, UUID}
 
-import com.sun.jersey.api.client.{ClientResponse, WebResource}
+import com.google.common.collect.Lists
 import com.sun.jersey.api.client.ClientResponse.Status
+import com.sun.jersey.api.client.{ClientResponse, WebResource}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
-import com.google.common.collect.Lists
-
+import org.midonet.cluster.rest_api.neutron.models.IPSecSiteConnection.{Status => NeutronStatus, _}
 import org.midonet.cluster.rest_api.neutron.models._
-import org.midonet.cluster.rest_api.neutron.models.IPSecSiteConnection._
-import org.midonet.cluster.rest_api.neutron.models.IPSecSiteConnection.{Status => NeutronStatus}
 import org.midonet.cluster.rest_api.rest_api.FuncJerseyTest
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
@@ -136,7 +134,6 @@ class TestIpsecSiteConnection extends FeatureSpec
         vpnService.name = vpnService.id + "-name"
         vpnService.description = vpnService.id + "-desc"
         vpnService.routerId = router.id
-        vpnService.subnetId = subnet.id
 
         val response = vpnServiceResource.`type`(NEUTRON_VPN_SERVICE_JSON_V1)
             .post(classOf[ClientResponse], vpnService)
@@ -146,7 +143,10 @@ class TestIpsecSiteConnection extends FeatureSpec
         ipsecSiteConnection.id = UUID.randomUUID
         ipsecSiteConnection.peerAddress = "100.100.100.1"
         ipsecSiteConnection.peerId = "foobar"
-        ipsecSiteConnection.peerCidrs = Lists.newArrayList("192.168.10.0/24")
+        ipsecSiteConnection.peerCidrs = Lists.newArrayList("192.168.10.0/24",
+                                                           "192.168.11.0/24")
+        ipsecSiteConnection.localCidrs = Lists.newArrayList("192.168.20.0/24",
+                                                            "192.168.21.0/24")
         ipsecSiteConnection.routeMode = RouteMode.STATIC
         ipsecSiteConnection.mtu = 1234
         ipsecSiteConnection.initiator = Initiator.RESPONSE_ONLY
