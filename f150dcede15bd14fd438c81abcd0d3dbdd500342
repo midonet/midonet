@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_b5b6eeda",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-12T08:07:40Z",
+      "side": 1,
+      "message": "loadBalancerId is already annotated to disallow null in the MidoNet Pool API object.  Not a big deal but I think it\u0027s better to remove this check (or at least don\u0027t treat the case where \u0027hasLoadBalancerId\u0027 \u003d\u003d false to be an acceptable case).",
+      "parentUuid": "fa81d914_4cac4fee",
+      "range": {
+        "startLine": 66,
+        "startChar": 25,
+        "endLine": 66,
+        "endChar": 52
+      },
+      "revId": "f150dcede15bd14fd438c81abcd0d3dbdd500342",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b3f37109",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
         "patchSetId": 2
