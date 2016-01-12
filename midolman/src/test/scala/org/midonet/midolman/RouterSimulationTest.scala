@@ -18,16 +18,17 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.helpers.NOPLogger
 
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
-import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
-import org.midonet.midolman.simulation.{Router => SimRouter, RouterPort, RouteBalancer}
+import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.midonet.midolman.simulation.{RouteBalancer, Router => SimRouter, RouterPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
@@ -429,6 +430,71 @@ class RouterSimulationTest extends MidolmanSpec {
         simRes4 should be (AddVirtualWildcardFlow)
         pktCtx4.virtualFlowActions should have size 3
         pktCtx4.virtualFlowActions.get(2) should be (ToPortAction(ressurected))
+    }
+
+    scenario("Route's next hop gateway takes precedence over ARP table") {
+        /*
+         *   *-------------*         *------------*
+         *   |             |         |            |
+         * RPIn   Router   RP1-----BP1   Bridge   BP3------RP3
+         *   |             |         |            |
+         *   *-------------*         *----BP2-----*
+         *                                 |
+         *                                 |
+         *                                RP2
+         *
+         *   RP1 -> Mac 0a:0a:0a:0a:0a:0a, IP 1.1.1.1
+         *   RP2 -> Mac 0a:0b:0b:0b:0b:0b, IP 1.1.1.2
+         *   RP3 -> Mac 0a:0c:0c:0c:0c:0c, IP 1.1.1.3
+         */
+        val bridge = newBridge("weird bridge")
+
+        val bp1 = newBridgePort(bridge)
+        val rpInMac = MAC.fromString("01:01:01:01:01:01")
+        val rp1Mac = MAC.fromString("0A:0A:0A:0A:0A:0A")
+        val rpIn = newRouterPort(router, rpInMac, "1.1.1.0", "1.1.1.0", 24)
+        val rp1 = newRouterPort(router, rp1Mac, "1.1.1.1", "1.1.1.0", 24)
+        linkPorts(rp1, bp1)
+        feedArpTable(simRouter, IPv4Addr.fromString("1.1.1.1"), rp1Mac)
+
+        val r2 = newRouter("router2")
+        val bp2 = newBridgePort(bridge)
+        val rp2Mac = MAC.fromString("0A:0B:0B:0B:0B:0B")
+        val rp2 = newRouterPort(r2, rp2Mac, "1.1.1.2", "1.1.1.0", 24)
+        linkPorts(rp2, bp2)
+        feedArpTable(simRouter, IPv4Addr.fromString("1.1.1.2"), rp2Mac)
+
+        val r3 = newRouter("router3")
+        val bp3 = newBridgePort(bridge)
+        val rp3Mac = MAC.fromString("0A:0C:0C:0C:0C:0C")
+        val rp3 = newRouterPort(r3, rp3Mac, "1.1.1.3", "1.1.1.0", 24)
+        linkPorts(rp3, bp3)
+        feedArpTable(simRouter, IPv4Addr.fromString("1.1.1.3"), rp3Mac)
+
+        val ttl = 8.toByte
+        val fromMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val pkt = { eth src fromMac dst rpInMac } <<
+                  { ip4 src fromIp dst IPv4Addr("1.1.1.3") ttl ttl } <<
+                  { icmp.echo request }
+
+        // If route has no next hop gateway, next hop should be packet's
+        // dest IP (1.1.1.3), and packet should end up in router 3.
+        val routeId = newRoute(router, "0.0.0.0", 0, "1.1.1.0", 24,
+                               NextHop.PORT, rp1, null, 2)
+        val (pktCtx, simRes) = simulateDevice(simRouter, pkt, rpIn)
+        simRes shouldBe NoOp
+        pktCtx.currentDevice shouldBe r3
+
+        // If route has next hop gateway, next hop should be the next hop
+        // gateway (1.1.1.2), and packet should end up in router 2, which drops
+        // it due to having no route to packet's dest IP (1.1.1.3).
+        deleteRoute(routeId)
+        newRoute(router, "0.0.0.0", 0, "1.1.1.0", 24,
+                 NextHop.PORT, rp1, "1.1.1.2", 2)
+        val (pktCtx2, simRes2) = simulateDevice(simRouter, pkt, rpIn)
+        simRes2 shouldBe ShortDrop
+        pktCtx2.currentDevice shouldBe r2
     }
 
     private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,
