@@ -94,6 +94,29 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_7b3467de",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-12T12:34:32Z",
+      "side": 1,
+      "message": "should users be allowed to configure this?",
+      "range": {
+        "startLine": 157,
+        "startChar": 12,
+        "endLine": 157,
+        "endChar": 39
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_cf9af113",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 3
