@@ -209,6 +209,53 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_63c1192e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:06:44Z",
+      "side": 1,
+      "message": "This is a random idea but:\n\n- As noted in the other file, the observers are actually doing transformations + actions.  This indicates that you could compose on the source rx streams, applying transformations on the stream, then subscribing the \"actors\" (observers who do the actions).\n\n- A problem you have here is that the handleUpdate may block, so you may hog the VT thread. The solution I think goes in line with the note above.  Get the source observable, transform it into relevant actions, then pass those to a different observer that executes them on its own scheduler. Basically:\n\n\nObservable.create(watcher).flatMap(notificationToActions).observeOn(myScheduler).subscribe(actionPerformer)",
+      "parentUuid": "fa81d914_ef35f546",
+      "range": {
+        "startLine": 269,
+        "startChar": 34,
+        "endLine": 269,
+        "endChar": 71
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_23a00190",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:06:44Z",
+      "side": 1,
+      "message": "Why would this happen?",
+      "range": {
+        "startLine": 273,
+        "startChar": 8,
+        "endLine": 273,
+        "endChar": 30
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_6f774503",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 3
@@ -220,6 +267,29 @@
       "writtenOn": "2016-01-11T19:59:38Z",
       "side": 1,
       "message": "()",
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_43adf587",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:06:44Z",
+      "side": 1,
+      "message": "can throw, and you\u0027d miss the notifyStopped",
+      "range": {
+        "startLine": 286,
+        "startChar": 16,
+        "endLine": 286,
+        "endChar": 21
+      },
       "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -265,6 +335,29 @@
         "startChar": 38,
         "endLine": 335,
         "endChar": 64
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c3b005e0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:06:44Z",
+      "side": 1,
+      "message": "This is bad.  You\u0027re locking the thread when processing an onNext on the source observable.  It should instead schedule it on a separate scheduler, see note above.",
+      "range": {
+        "startLine": 338,
+        "startChar": 19,
+        "endLine": 338,
+        "endChar": 39
       },
       "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -640,6 +733,23 @@
         "endLine": 289,
         "endChar": 59
       },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c399e56f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:06:44Z",
+      "side": 1,
+      "message": "is this change related to the patch?",
       "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
