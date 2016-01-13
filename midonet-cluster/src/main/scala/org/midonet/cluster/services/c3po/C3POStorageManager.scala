@@ -175,6 +175,7 @@ class C3POStorageManager(storage: Storage) {
         for (task <- txn.tasks) try {
             val newState = C3POState.at(task.taskId)
             val midoOps = toPersistenceOps(task) :+ UpdateOp(newState)
+            log.info(s"$midoOps")
             storage.multi(midoOps)
             log.info(s"Executed a C3PO task with ID: ${task.taskId}.")
         } catch {
