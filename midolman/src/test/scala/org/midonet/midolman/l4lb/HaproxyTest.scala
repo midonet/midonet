@@ -16,11 +16,16 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{TestActorRef, TestKit}
+import com.typesafe.config.ConfigFactory
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
+import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.util.SequenceDispenser.SequenceType
 import org.mockito.Mockito.{mock, times, verify}
 import org.mockito.{Matchers, Mockito}
 import org.scalatest._
@@ -38,6 +43,7 @@ import org.midonet.midolman.l4lb.{HealthMonitor => HMSystem}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
 
+import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
 class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
@@ -109,8 +115,24 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
         backend.store.get(classOf[Port], portId).value.get.get
     }
 
+    protected val backendCfg = new MidonetBackendConfig(
+        ConfigFactory.parseString(""" zookeeper.root_key = '/' """))
+
     class TestableHealthMonitor extends HMSystem(conf, backend, lockFactory,
-                                                 curator = null) {
+                                                 curator = null, backendCfg) {
+
+        override val seqDispenser = new SequenceDispenser(null, backendCfg) {
+            private val mockCounter = new AtomicInteger(100)
+            def reset(): Unit = mockCounter.set(100)
+            override def next(which: SequenceType): Future[Int] = {
+                Future.successful(mockCounter.incrementAndGet())
+            }
+
+            override def current(which: SequenceType): Future[Int] = {
+                Future.successful(mockCounter.get())
+            }
+        }
+
         override def getHostId = hostId
 
         override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
@@ -118,7 +140,8 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             context.actorOf(
                 Props(
                     new HaproxyHealthMonitor(config, self, routerId, store,
-                                             hostId, lockFactory) {
+                                             hostId, lockFactory,
+                                             seqDispenser) {
                         override def writeConf(config: PoolConfig): Unit = {}
                     }
                 ).withDispatcher(context.props.dispatcher),
@@ -165,7 +188,11 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             getRouter(routerId).getRouteIdsCount shouldBe 0
 
             val portId = getRouter(routerId).getPortIdsList.get(0)
-            eventually(to) { getPort(portId.asJava).getRouteIdsCount shouldBe 1 }
+            eventually(to) {
+                val port = getPort(portId.asJava)
+                port.getRouteIdsCount shouldBe 1
+                port.getTunnelKey should be > 0L
+            }
 
             /* TODO: find out why the mapper sends 3 notifications.
              * This is not expected: a single pool-health monitor config
