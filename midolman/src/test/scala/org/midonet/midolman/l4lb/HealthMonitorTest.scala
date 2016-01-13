@@ -15,12 +15,14 @@
  */
 package org.midonet.midolman.l4lb
 
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.UUID
 
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
 
 import akka.actor.{Actor, ActorRef, Props}
+import com.typesafe.config.ConfigFactory
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
@@ -36,7 +38,10 @@ import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.util.SequenceDispenser.SequenceType
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{SetupFailure, ConfigUpdate, RouterAdded, RouterRemoved}
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
@@ -370,6 +375,9 @@ class HealthMonitorTest extends MidolmanSpec
                "_MN")
     }
 
+    protected val backendCfg = new MidonetBackendConfig(
+        ConfigFactory.parseString(""" zookeeper.root_key = '/' """))
+
     /*
      * This is a testable version of the HaproxyHealthMonitor. This overrides
      * the functions that would block and perform IO.
@@ -377,7 +385,10 @@ class HealthMonitorTest extends MidolmanSpec
     class HealthMonitorUT(config: MidolmanConfig, backend: MidonetBackend,
                           lockFactory: ZookeeperLockFactory,
                           curator: CuratorFramework)
-        extends HealthMonitor(config, backend, lockFactory, curator) {
+        extends HealthMonitor(config, backend, lockFactory, curator,
+                              backendCfg) {
+
+        override val seqDispenser = new SequenceDispenser(null, backendCfg)
 
         override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
                                               routerId: UUID) = {
