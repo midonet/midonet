@@ -52,6 +52,7 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -62,6 +63,7 @@ import static org.midonet.cluster.rest_api.rest_api.FuncTest._injector;
 import static org.midonet.cluster.rest_api.rest_api.FuncTest.appDesc;
 import static org.midonet.cluster.rest_api.rest_api.FuncTest.objectMapper;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_LOAD_BALANCER_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_LINK_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_COLLECTION_JSON_V3;
@@ -399,7 +401,15 @@ public class TestRouter {
             assertEquals(resRouter.isAdminStateUp(),
                          updatedRouter.isAdminStateUp());
 
-            // Delete the router
+            // Delete the router, and fail because there is a LB
+            dtoResource.deleteAndVerifyError(resRouter.getUri(),
+                                             APPLICATION_ROUTER_JSON_V3(),
+                                             CONFLICT.getStatusCode());
+            // Delete the LB
+            dtoResource.deleteAndVerifyNoContent(
+                lb2.getUri(), APPLICATION_LOAD_BALANCER_JSON());
+
+            // Now you can delete the router
             dtoResource.deleteAndVerifyNoContent(resRouter.getUri(),
                     APPLICATION_ROUTER_JSON_V3());
 
