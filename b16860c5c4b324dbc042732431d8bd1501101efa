@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_b017d9a2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-13T09:03:22Z",
+      "side": 1,
+      "message": "Why not do storage.getAll(classOf[IPAddrGroup], sg_ids) here instead?",
+      "revId": "b16860c5c4b324dbc042732431d8bd1501101efa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_9079f5fe",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-13T09:03:22Z",
+      "side": 1,
+      "message": "Since MI-368 is not publicly accessible, do we have anything else to reference?  Also, why do you want to even keep the commented code below?",
+      "revId": "b16860c5c4b324dbc042732431d8bd1501101efa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
