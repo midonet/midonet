@@ -15,10 +15,16 @@
  */
 package org.midonet.midolman.l4lb
 
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.UUID
+
+import scala.concurrent.{Future, Await}
+import scala.concurrent.duration.Duration
 
 import akka.actor.{Actor, ActorRef, Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
+import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
 import org.mockito.Mockito.{verify => mverify, reset, timeout => mtimeo}
 import org.scalatest._
@@ -28,13 +34,20 @@ import org.scalatest.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.time.{Seconds, Span}
 
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.RouterAdded
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.RouterRemoved
-import org.midonet.midolman.l4lb.HealthMonitor.ConfigAdded
-import org.midonet.midolman.l4lb.HealthMonitor.ConfigUpdated
-import org.midonet.midolman.l4lb.HealthMonitor.RouterChanged
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
+import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.models.Topology.Pool
+import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus
+import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.util.SequenceDispenser.SequenceType
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{SetupFailure, ConfigUpdate, RouterAdded, RouterRemoved}
+import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.util.MidonetEventually
 
 @Ignore
 @RunWith(classOf[JUnitRunner])
@@ -173,14 +186,21 @@ class HealthMonitorTest extends FeatureSpec
                 "_MN")
     }
 
+    protected val backendCfg = new MidonetBackendConfig(
+        ConfigFactory.parseString(""" zookeeper.root_key = '/' """))
+
     /*
      * This is a testable version of the HaproxyHealthMonitor. This overrides
      * the functions that would block and perform IO.
      */
+     *
     class HealthMonitorUT extends HealthMonitor {
         override def preStart(): Unit = {
             client = mockClient
         }
+
+        override val seqDispenser = new SequenceDispenser(null, backendCfg)
+
         override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
                                               routerId: UUID) = {
             haproxyFakeActor = context.actorOf(
