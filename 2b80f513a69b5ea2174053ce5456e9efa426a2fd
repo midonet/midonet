@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_03dbfded",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:44:00Z",
+      "side": 1,
+      "message": "maybe worth having in IPSubnetUtil",
+      "range": {
+        "startLine": 66,
+        "startChar": 3,
+        "endLine": 67,
+        "endChar": 51
+      },
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_23d801ef",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:44:00Z",
+      "side": 1,
+      "message": "1 to subnets.size() also works",
+      "range": {
+        "startLine": 72,
+        "startChar": 8,
+        "endLine": 72,
+        "endChar": 32
+      },
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
