@@ -117,6 +117,167 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_832b6dea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:26:30Z",
+      "side": 1,
+      "message": "this may will throw, and skip the notifyFailed",
+      "range": {
+        "startLine": 141,
+        "startChar": 16,
+        "endLine": 141,
+        "endChar": 36
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c3356547",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:26:30Z",
+      "side": 1,
+      "message": "ditto, possibly other methods above",
+      "range": {
+        "startLine": 151,
+        "startChar": 8,
+        "endLine": 151,
+        "endChar": 28
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_033f7d26",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:26:30Z",
+      "side": 1,
+      "message": "maybe worth doing a multi.",
+      "range": {
+        "startLine": 174,
+        "startChar": 19,
+        "endLine": 179,
+        "endChar": 37
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c383a5ca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:26:30Z",
+      "side": 1,
+      "message": "may rethrow",
+      "range": {
+        "startLine": 190,
+        "startChar": 16,
+        "endLine": 190,
+        "endChar": 36
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_e31189ad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:26:30Z",
+      "side": 1,
+      "message": "name seems misleading, it also setsMemberStatus",
+      "range": {
+        "startLine": 198,
+        "startChar": 4,
+        "endLine": 201,
+        "endChar": 19
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_631d99bd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:26:30Z",
+      "side": 1,
+      "message": "ditto, may throw and skip the 2 steps below, would that be right?",
+      "range": {
+        "startLine": 208,
+        "startChar": 12,
+        "endLine": 208,
+        "endChar": 28
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_a37eb1e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T12:26:30Z",
+      "side": 1,
+      "message": "may rethrow",
+      "range": {
+        "startLine": 216,
+        "startChar": 16,
+        "endLine": 216,
+        "endChar": 36
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_cf9af113",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 3
