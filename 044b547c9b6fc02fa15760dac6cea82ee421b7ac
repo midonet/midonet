@@ -1,0 +1,251 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_c3b6458a",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/storage/jgroups/AbstractZooKeeperPing.java",
+        "patchSetId": 14
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "Delete class since it\u0027s not used.",
+      "range": {
+        "startLine": 36,
+        "startChar": 22,
+        "endLine": 36,
+        "endChar": 43
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_63a75950",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/storage/jgroups/JGroupsZkClient.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 5
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4690a395",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/HeartBeatEnabled.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "We should probably use the same executor service as in the merged map. Feel free to make the one in MergedMap a:\nnew ScheduledThreadPoolExecutor(1, NamedThreadFactory(\"MergedMap\", true)).",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 73
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c6a57305",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/HeartBeatEnabled.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "This can be removed because the problem is solved, isn\u0027t it?",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 88
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_464b4359",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "lastTimestamp seems better to me",
+      "range": {
+        "startLine": 58,
+        "startChar": 20,
+        "endLine": 58,
+        "endChar": 29
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_834a8d81",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "remove blank line",
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_a34f9191",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "s\"You are not subscribed to the requested topic: $topic\" avoids creating strings",
+      "range": {
+        "startLine": 105,
+        "startChar": 24,
+        "endLine": 105,
+        "endChar": 81
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c3448576",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "move to line above",
+      "range": {
+        "startLine": 122,
+        "startChar": 13,
+        "endLine": 122,
+        "endChar": 35
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_86fffb00",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "You mean connect to another broker right? This is actually something simple to do and could be completed.",
+      "range": {
+        "startLine": 178,
+        "startChar": 8,
+        "endLine": 178,
+        "endChar": 43
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c620139e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "I think handleMessage given the comment above is fine.",
+      "range": {
+        "startLine": 185,
+        "startChar": 16,
+        "endLine": 185,
+        "endChar": 45
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_864d3b75",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-13T13:57:54Z",
+      "side": 1,
+      "message": "Align with the start of the 1st sentence.",
+      "range": {
+        "startLine": 297,
+        "startChar": 11,
+        "endLine": 300,
+        "endChar": 55
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
