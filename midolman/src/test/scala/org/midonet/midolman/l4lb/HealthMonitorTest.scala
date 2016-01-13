@@ -16,8 +16,14 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 
-import scala.concurrent.Await
+import com.typesafe.config.ConfigFactory
+import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.util.SequenceDispenser.SequenceType
+
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
 
 import akka.actor.{Actor, ActorRef, Props}
@@ -370,6 +376,9 @@ class HealthMonitorTest extends MidolmanSpec
                "_MN")
     }
 
+    protected val backendCfg = new MidonetBackendConfig(
+        ConfigFactory.parseString(""" zookeeper.root_key = '/' """))
+
     /*
      * This is a testable version of the HaproxyHealthMonitor. This overrides
      * the functions that would block and perform IO.
@@ -377,7 +386,20 @@ class HealthMonitorTest extends MidolmanSpec
     class HealthMonitorUT(config: MidolmanConfig, backend: MidonetBackend,
                           lockFactory: ZookeeperLockFactory,
                           curator: CuratorFramework)
-        extends HealthMonitor(config, backend, lockFactory, curator) {
+        extends HealthMonitor(config, backend, lockFactory, curator,
+                              backendCfg) {
+
+        override val seqDispenser = new SequenceDispenser(null, backendCfg) {
+            private val mockCounter = new AtomicInteger(0)
+            def reset(): Unit = mockCounter.set(0)
+            override def next(which: SequenceType): Future[Int] = {
+                Future.successful(mockCounter.incrementAndGet())
+            }
+
+            override def current(which: SequenceType): Future[Int] = {
+                Future.successful(mockCounter.get())
+            }
+        }
 
         override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
                                               routerId: UUID) = {
