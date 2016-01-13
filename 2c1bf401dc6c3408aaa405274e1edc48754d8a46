@@ -133,6 +133,24 @@
       "revId": "2c1bf401dc6c3408aaa405274e1edc48754d8a46",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_61767140",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-13T17:51:33Z",
+      "side": 1,
+      "message": "yeah, I\u0027m working on a PoC for a batched version using also Duarte\u0027s suggestion (accumulate all events for a sim, then send all at once).",
+      "parentUuid": "fa81d914_0313fd5c",
+      "revId": "2c1bf401dc6c3408aaa405274e1edc48754d8a46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
