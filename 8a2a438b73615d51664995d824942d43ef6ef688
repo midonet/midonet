@@ -22,6 +22,30 @@
       "revId": "8a2a438b73615d51664995d824942d43ef6ef688",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_83a1adab",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-01-13T11:42:36Z",
+      "side": 1,
+      "message": "the outport match is not enough when a flow is originated\nfrom external network.\n\neg. with devstack public/private topology,\nyou can ssh from the hypervisor to VM\u0027s fixed-ip.\nin that case, applying snat to the return traffic\nis not appropriate.",
+      "parentUuid": "fa98f980_92c91c5d",
+      "range": {
+        "startLine": 259,
+        "startChar": 13,
+        "endLine": 259,
+        "endChar": 32
+      },
+      "revId": "8a2a438b73615d51664995d824942d43ef6ef688",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
