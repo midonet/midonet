@@ -113,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_54edaac2",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-14T14:49:40Z",
+      "side": 1,
+      "message": "If you have an vpnservice with subnet_id, it will complain when deserializing. As we haven\u0027t released an official package (not even branched), I thought it would be fine (current users would have to remove the current objects though). \n\nOther than that, I\u0027d prefer to have clean models than have obsolete fields in here?",
+      "parentUuid": "fa81d914_14bc12bb",
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_34b116e2",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 2
@@ -124,6 +142,24 @@
       "writtenOn": "2016-01-14T14:41:01Z",
       "side": 1,
       "message": "again, don\u0027t change numbers.",
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d4d8ba1f",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-14T14:49:40Z",
+      "side": 1,
+      "message": "Same. It may be better to have better organized models before release than maintain compatibility with users that used nightly packages?",
+      "parentUuid": "fa81d914_34b116e2",
       "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
