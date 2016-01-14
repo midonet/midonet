@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_57c84f74",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-14T04:17:16Z",
+      "side": 1,
+      "message": "Mostly because I just copied and pasted. But that sounds like a good idea.",
+      "parentUuid": "fa81d914_b017d9a2",
+      "revId": "b16860c5c4b324dbc042732431d8bd1501101efa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_9079f5fe",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2016-01-13T09:03:22Z",
       "side": 1,
       "message": "Since MI-368 is not publicly accessible, do we have anything else to reference?  Also, why do you want to even keep the commented code below?",
+      "revId": "b16860c5c4b324dbc042732431d8bd1501101efa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d7ab5f87",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-14T04:17:16Z",
+      "side": 1,
+      "message": "I\u0027ll open a Launchpad bug for 367/368. I\u0027m keeping the commented code there because it should happen, and we should check it. Once the bug is fixed, it should be uncommented.",
+      "parentUuid": "fa81d914_9079f5fe",
       "revId": "b16860c5c4b324dbc042732431d8bd1501101efa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
