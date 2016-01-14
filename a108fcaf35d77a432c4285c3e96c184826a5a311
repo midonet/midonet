@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_b29a7912",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/RouterSimulationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2016-01-14T12:25:07Z",
+      "side": 1,
+      "message": "this assert seems too coarse.",
+      "revId": "a108fcaf35d77a432c4285c3e96c184826a5a311",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
