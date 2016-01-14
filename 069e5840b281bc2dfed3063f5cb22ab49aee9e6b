@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_15b6dad9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-14T04:17:16Z",
+      "side": 1,
+      "message": "No longer used. Delete.",
+      "range": {
+        "startLine": 502,
+        "startChar": 16,
+        "endLine": 502,
+        "endChar": 38
+      },
+      "revId": "069e5840b281bc2dfed3063f5cb22ab49aee9e6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
