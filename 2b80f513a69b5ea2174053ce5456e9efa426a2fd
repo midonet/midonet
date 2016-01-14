@@ -93,6 +93,40 @@
       "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_14bc12bb",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-14T14:41:01Z",
+      "side": 1,
+      "message": "Do not change numbers in protobufs. In fact, that reminds me of another thing. What happens to client whose models stored in zookeeper do have subnet_id? We should maintain compatability with these. It should be automatic, but this should be tested (manually even) before submitting this.",
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_34b116e2",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-14T14:41:01Z",
+      "side": 1,
+      "message": "again, don\u0027t change numbers.",
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
