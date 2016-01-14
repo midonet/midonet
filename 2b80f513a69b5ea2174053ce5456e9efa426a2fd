@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_929bb5c8",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-14T09:12:45Z",
+      "side": 1,
+      "message": "Or remove alltogether. There is an implicit asJava in that provides string repr.",
+      "parentUuid": "fa81d914_03dbfded",
+      "range": {
+        "startLine": 66,
+        "startChar": 3,
+        "endLine": 67,
+        "endChar": 51
+      },
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_23d801ef",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-13T12:44:00Z",
       "side": 1,
       "message": "1 to subnets.size() also works",
+      "range": {
+        "startLine": 72,
+        "startChar": 8,
+        "endLine": 72,
+        "endChar": 32
+      },
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d2a52d05",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-14T09:12:45Z",
+      "side": 1,
+      "message": "Ok. I\u0027ll apply both comments on another patch as there\u0027s is a bug precisely in this line (missing ss append inside the foreach).",
+      "parentUuid": "fa81d914_23d801ef",
       "range": {
         "startLine": 72,
         "startChar": 8,
