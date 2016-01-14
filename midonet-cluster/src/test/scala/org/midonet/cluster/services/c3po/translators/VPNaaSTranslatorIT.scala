@@ -31,8 +31,8 @@ import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouteManager.localRouteId
 import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
-import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, toProto}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.util.concurrent.toFutureOps
 
 
@@ -238,7 +238,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
             }.get
             route.getIpsecSiteConnectionId.asJava shouldBe cnxnId
             route.getNextHop shouldBe NextHop.PORT
-            route.getNextHopGateway shouldBe VpnContainerPortAddr
+            route.getNextHopGateway shouldBe IPAddressUtil.toProto("169.254.0.2")
             route.getNextHopPortId shouldBe vpnRtrPort.getId
             route.hasRouterId shouldBe false
         }
@@ -333,8 +333,8 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
             contain only toProto(rtrId)
 
         rtrPort.getRouterId shouldBe router.getId
-        rtrPort.getPortAddress shouldBe VpnRouterPortAddr
-        rtrPort.getPortSubnet shouldBe VpnLinkLocalSubnet
+        rtrPort.getPortAddress shouldBe IPAddressUtil.toProto("169.254.0.1")
+        rtrPort.getPortSubnet shouldBe IPSubnetUtil.toProto("169.254.0.0/30")
         rtrPort.getRouteIdsList should contain only(localRt.getId, vpnRt.getId)
         rtrPort.hasPortMac shouldBe true
 
@@ -349,6 +349,6 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         vpnRt.getNextHopPortId shouldBe rtrPort.getId
         vpnRt.hasNextHopGateway shouldBe false
         vpnRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-        vpnRt.getDstSubnet shouldBe VpnLinkLocalSubnet
+        vpnRt.getDstSubnet shouldBe IPSubnetUtil.toProto("169.254.0.0/30")
     }
 }
