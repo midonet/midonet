@@ -68,15 +68,17 @@ class ZkNatBlockAllocatorTest extends FeatureSpecLike
 
         val ipPath = ZkNatBlockAllocator.natIpPath(device, ip)
         s = curator.checkExists().forPath(ipPath)
-        s.getNumChildren should be (NatBlock.TOTAL_BLOCKS)
+        s.getNumChildren should be (1)
 
         var owned = 0
+        var created = 0
         var i = 0
         while (i < NatBlock.TOTAL_BLOCKS) {
             val blockPath = ZkNatBlockAllocator.blockPath(device, ip, i)
-            var s = curator.checkExists().forPath(devicePath)
-            s = curator.checkExists().forPath(blockPath)
-            s should not be null
+            var s = curator.checkExists().forPath(blockPath)
+            if (s ne null) {
+                created += 1
+            }
             val ownershipPath = ZkNatBlockAllocator.ownershipPath(device, ip, i)
             s = curator.checkExists().forPath(ownershipPath)
             if (s ne null) {
@@ -85,6 +87,7 @@ class ZkNatBlockAllocatorTest extends FeatureSpecLike
             i += 1
         }
         owned should be (1)
+        created should be (owned)
     }
 
     scenario ("Allocates blocks") {
@@ -146,7 +149,6 @@ class ZkNatBlockAllocatorTest extends FeatureSpecLike
                 result.tpPortEnd should (be >= 127 and be <= 767)
                 results.add(result)
             }
-
         } catch { case NoFreeNatBlocksException => }
 
         results.size should be (11)

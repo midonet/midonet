@@ -43,14 +43,15 @@ out the allocation. The directory structure is as follows:
  * `/nat/{device}/{ip}/{block_index}/taken`, the ownership node, which is
    ephemeral.
 
-To allocate a block, we load the block directories that are within the specified
-range. For each of these, we check if it has children or not. If it doesn't, it
-means the block is free (the ephemeral node was explicitly removed or the host
-is down). We use the [`Pzxid`](https://github.com/apache/zookeeper/blob/trunk/src/zookeeper.jute#L40) -
-the `zxid` of the latest change to the children of that node - to check if the
-node has been used (`Pzxid` is greater than `Czxid`, the `zxid` upon node creation)
-or not. We collect the unused nodes and randomly select one. If there are no unused
-nodes, we choose the least recently used one, with the lower `Pzxid`.
+To allocate a block, we check the list of children of the specified IP directory.
+If this list doesn't contain all the paths of the blocks that are within the
+specified range, then there are free blocks and we randomly choose one.
+Otherwise, we load all block nodes for the range and, for each of these, we check
+if it has children. If it doesn't, it means the block is free (the ephemeral node
+was explicitly removed or the host is down). We use the [`Pzxid`](https://github.com/apache/zookeeper/blob/trunk/src/zookeeper.jute#L40) -
+the `zxid` of the latest change to the children of that node - to order the nodes
+according to the last time they were claimed and we choose the least recently
+used one, namely the one with the lower `Pzxid`.
 
 Freeing a block is trivially implemented by deleting the corresponding ownership
 node.
