@@ -22,6 +22,30 @@
       "revId": "1b96b80e3b38681996588332182781cfdafb4350",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6048322e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-15T16:47:18Z",
+      "side": 0,
+      "message": "Previously when an exception was caught while processing a checkHealth message, a SockReadFailure was sent to the HealthMonitor. When receiving this message, the HM would stop the HA proxy. So it seems to me that this behaviour is maintained. Do you agree?",
+      "parentUuid": "fa81d914_8f03990e",
+      "range": {
+        "startLine": 228,
+        "startChar": 12,
+        "endLine": 228,
+        "endChar": 70
+      },
+      "revId": "1b96b80e3b38681996588332182781cfdafb4350",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
