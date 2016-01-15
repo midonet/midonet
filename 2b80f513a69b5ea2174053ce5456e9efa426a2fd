@@ -149,6 +149,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_43ba4adf",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-15T13:47:56Z",
+      "side": 1,
+      "message": "Note that we haven\u0027t released 5.1 version yet, so VpnService is still under development and number changing is ok.",
+      "parentUuid": "fa81d914_e3741e9e",
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_34b116e2",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 2
