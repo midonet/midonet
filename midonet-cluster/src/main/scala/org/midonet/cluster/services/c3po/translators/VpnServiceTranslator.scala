@@ -43,16 +43,18 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         val routerId = vpn.getRouterId
         val router = storage.get(classOf[Router], routerId).await()
 
-        // Nothing to do if the router already has a VPNService.
-        // We only support one container per router now
         val existing = storage.getAll(classOf[VpnService],
                                       router.getVpnServiceIdsList).await()
         existing.headOption match {
             case Some(existingVpnService) =>
-                return List(Update(vpn.toBuilder()
-                                       .setContainerId(existingVpnService.getContainerId)
-                                       .setExternalIp(existingVpnService.getExternalIp)
-                                       .build()))
+                // We only support one container per router now
+                // so no need to create it again. Update the fields of the
+                // vpn service from the first one created.
+                val newVpn = vpn.toBuilder
+                    .setContainerId(existingVpnService.getContainerId)
+                    .setExternalIp(existingVpnService.getExternalIp)
+                    .build
+                return List(Update(newVpn))
             case None =>
         }
 
