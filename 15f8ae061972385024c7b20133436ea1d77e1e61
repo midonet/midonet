@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_7d545154",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-15T03:54:48Z",
+      "side": 1,
+      "message": "MI is a private JIRA project.  Could you point to the public LP number?",
+      "revId": "15f8ae061972385024c7b20133436ea1d77e1e61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_bd4ec9bf",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HealthMonitorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-15T03:54:48Z",
+      "side": 1,
+      "message": "Excuse my ignorance but why not just do:\n\nval sequenceDispenser \u003d new SequenceDispenser(curator, backendCfg)",
+      "revId": "15f8ae061972385024c7b20133436ea1d77e1e61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
