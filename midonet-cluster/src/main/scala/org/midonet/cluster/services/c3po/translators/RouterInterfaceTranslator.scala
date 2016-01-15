@@ -100,7 +100,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
             // port has the DHCP's gateway IP.
             if (rtrPort.getPortAddress == ns.getGatewayIp) {
                 midoOps ++= createMetadataServiceRoute(
-                    rtrPort.getId, nPort.getNetworkId, ns.getCidr)
+                    rtrPort.getId, ri.getSubnetId, ns.getCidr)
             }
 
             midoOps ++= updateGatewayRoutesOps(rtrPort.getPortAddress, ns.getId)
@@ -229,21 +229,18 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
     }
 
     private def createMetadataServiceRoute(routerPortId: UUID,
-                                           networkId: UUID,
+                                           subnetId: UUID,
                                            subnetAddr: IPSubnet)
     : Option[Operation[Route]] = {
-        // If a DHCP port exists, add a Meta Data Service Route. This requires
-        // fetching all ports from ZK. We await the futures in parallel to
-        // reduce latency, but this may still become a problem when a Network
-        // has many ports. Consider giving the Network a specific reference to
-        // its DHCP Port.
-        val mNetwork = storage.get(classOf[Network], networkId).await()
-        val portIds = mNetwork.getPortIdsList.asScala
-        val ports = storage.getAll(classOf[NeutronPort], portIds).await()
-        val dhcpPortOpt = ports.find(
-            port => isDhcpPort(port) && port.getFixedIpsCount > 0)
-        dhcpPortOpt.map(p => Create(newMetaDataServiceRoute(
-            subnetAddr, routerPortId, p.getFixedIps(0).getIpAddress)))
+        // If a DHCP port exists, add a Meta Data Service Route. We can tell by
+        // looking at the Dhcp's server address. If it has no associated DHCP
+        // port, then its serverAdress field will be the same as its gatewayIp.
+        // Otherwise it will be the address of the DHCP port.
+        val dhcp = storage.get(classOf[Dhcp], subnetId).await()
+        if (dhcp.getServerAddress == dhcp.getDefaultGateway) None else {
+            Some(Create(newMetaDataServiceRoute(
+                subnetAddr, routerPortId, dhcp.getServerAddress)))
+        }
     }
 
     override protected def translateDelete(id: UUID): OperationList = {
