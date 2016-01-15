@@ -493,7 +493,7 @@ class EnumAttr(SingleAttr):
         v = self.set_inv(obj, value)
         api_val = self._cli_to_api(v)
         if (not self.optional) and not api_val:
-            raise Exception("Invalid value field %s: %s" % (self.name, api_val))
+            raise Exception("Invalid value field %s: %s" % (self.name, value))
         func = obj.reflect(self.setter)
         func(api_val)
 
