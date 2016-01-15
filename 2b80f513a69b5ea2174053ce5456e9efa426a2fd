@@ -167,6 +167,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_0ea799be",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-15T19:36:53Z",
+      "side": 1,
+      "message": "I guess they matter if we want to support rolling upgrades?",
+      "parentUuid": "fa81d914_e3741e9e",
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_34b116e2",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 2
