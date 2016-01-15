@@ -15,32 +15,42 @@
  */
 package org.midonet.api.host.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.VendorMediaType;
-import org.midonet.api.host.HostInterfacePort;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.cluster.auth.AuthRole;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.event.topology.PortEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.host.VirtualPortMapping;
-
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.host.HostInterfacePort;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.event.topology.PortEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 
 /**
  * REST API handler for host interface port mapping.
@@ -64,8 +74,8 @@ public class HostInterfacePortResource extends AbstractResource {
 
     @POST
     @RolesAllowed({AuthRole.ADMIN})
-    @Consumes({ VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON,
-                   MediaType.APPLICATION_JSON })
+    @Consumes({ APPLICATION_HOST_INTERFACE_PORT_JSON,
+                   APPLICATION_JSON })
     public Response create(HostInterfacePort map)
             throws StateAccessException, SerializationException {
 
@@ -98,8 +108,8 @@ public class HostInterfacePortResource extends AbstractResource {
 
     @GET
     @RolesAllowed({AuthRole.ADMIN})
-    @Produces({VendorMediaType
-            .APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON})
+    @Produces({APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+               APPLICATION_JSON})
     public List<HostInterfacePort> list()
             throws StateAccessException, SerializationException {
 
@@ -119,6 +129,8 @@ public class HostInterfacePortResource extends AbstractResource {
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{portId}")
+    @Produces({APPLICATION_HOST_INTERFACE_PORT_JSON,
+               APPLICATION_JSON})
     public HostInterfacePort get(@PathParam("portId") UUID portId)
         throws StateAccessException, SerializationException {
 
