@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "fa81d914_3d273966",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/RouterSimulationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-15T03:40:51Z",
+      "side": 1,
+      "message": "Why are these tests commented out?",
+      "revId": "a108fcaf35d77a432c4285c3e96c184826a5a311",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_bd2089f8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/RouterSimulationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-15T03:40:51Z",
+      "side": 1,
+      "message": "For this change, I would expect the following cases to be tested:\n\n1. Bridge ARP peeking logic when matching a route with no gateway IP\n\n2. Bridge ARP peeking logic when matching a route with gateway IP\n\n3. Bridge ARP peeking logic when nothing matches and ARP packet is generated\n\nYou can verify that the correct packets egress out of the correct bridge ports.",
+      "revId": "a108fcaf35d77a432c4285c3e96c184826a5a311",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b29a7912",
         "filename": "midolman/src/test/scala/org/midonet/midolman/RouterSimulationTest.scala",
         "patchSetId": 2
