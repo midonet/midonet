@@ -17,13 +17,15 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.TreeSet
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
-import org.midonet.cluster.models.Topology.{Port, ServiceContainer}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
+import org.midonet.cluster.models.Topology.{Port, Route, ServiceContainer}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Delete, Create, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers
 import org.midonet.util.concurrent.toFutureOps
 
@@ -36,7 +38,7 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
     : OperationList = {
         val vpn = storage.get(classOf[VpnService], cnxn.getVpnserviceId).await()
 
-        createRemoteRouteOps(cnxn, vpn)
+        createRemoteRoutes(cnxn, vpn).map(Create(_))
     }
 
     override protected def translateDelete(id: UUID): OperationList = {
@@ -62,17 +64,24 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
             // to avoid overwriting route_ids, which Neutron doesn't know about.
             val oldCnxn = storage.get(classOf[IPSecSiteConnection],
                                       cnxn.getId).await()
+            val vpn = storage.get(classOf[VpnService], cnxn.getVpnserviceId).await()
+            val (delRoutes, addRoutes, keepRoutes) = updateRemoteRoutes(cnxn, vpn)
+
             val newCnxn = cnxn.toBuilder()
-                .addAllRouteIds(oldCnxn.getRouteIdsList()).build()
-            List(Update(newCnxn))
+              //  .addAllRouteIds((addRoutes.map(_.getId) ++ keepRoutes.map(_.getId)).toIterable)
+                .build()
+            List(Update(newCnxn)) ++
+                addRoutes.map(Create(_)) ++
+                delRoutes.map(r => Delete(classOf[Route], r.getId))
+
         case _ => super.retainHighLevelModel(op)
     }
 
     /** Generate options to create routes for Cartesian product of cnxn's
       * local CIDRs and peer CIDRs.
       */
-    private def createRemoteRouteOps(cnxn: IPSecSiteConnection,
-                                     vpn: VpnService): OperationList = {
+    private def createRemoteRoutes(cnxn: IPSecSiteConnection,
+                                  vpn: VpnService): List[Route] = {
         val container = storage.get(classOf[ServiceContainer],
                                     vpn.getContainerId).await()
         val routerPort = storage.get(classOf[Port],
@@ -86,15 +95,36 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
         } yield (localCidr, peerCidr)
 
         localPeerCidrPairs.map { case (localCidr, peerCidr) =>
-            Create(
-                newNextHopPortRoute(
-                    id = UUIDUtil.randomUuidProto,
-                    ipSecSiteCnxnId = cnxn.getId,
-                    nextHopPortId = routerPortId,
-                    nextHopGwIpAddr = containers.containerPortAddress(routerPortSubnet),
-                    srcSubnet = localCidr,
-                    dstSubnet = peerCidr))
+            newNextHopPortRoute(
+                id = UUIDUtil.randomUuidProto,
+                ipSecSiteCnxnId = cnxn.getId,
+                nextHopPortId = routerPortId,
+                nextHopGwIpAddr = containers.containerPortAddress(routerPortSubnet),
+                srcSubnet = localCidr,
+                dstSubnet = peerCidr)
         }.toList
+    }
+
+    private def updateRemoteRoutes(cnxn: IPSecSiteConnection,
+                                   vpn: VpnService): (List[Route],
+                                                      List[Route],
+                                                      List[Route]) = {
+        val portOrdering = Ordering.fromLessThan[Route](
+            (a: Route, b: Route) => {
+                a.getIpsecSiteConnectionId != b.getIpsecSiteConnectionId ||
+                a.getSrcSubnet != b.getSrcSubnet ||
+                a.getDstSubnet != b.getDstSubnet
+
+            })
+        val oldRoutes = TreeSet.empty[Route](portOrdering) ++
+                        storage.getAll(classOf[Route], cnxn.getRouteIdsList).await()
+        val newRoutes = TreeSet.empty[Route](portOrdering) ++
+                        createRemoteRoutes(cnxn, vpn)
+
+        // Return (routes to delete, routes to create, routes to keep)
+        ((oldRoutes -- newRoutes).toList,
+            (newRoutes -- oldRoutes).toList,
+            (oldRoutes & newRoutes).toList)
     }
 }
 
