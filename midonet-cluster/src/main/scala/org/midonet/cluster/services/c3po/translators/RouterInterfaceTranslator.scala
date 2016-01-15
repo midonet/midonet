@@ -16,7 +16,6 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
@@ -24,14 +23,12 @@ import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update}
+import org.midonet.cluster.services.c3po.midonet.{Create, MidoOp, Update}
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
-import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
+import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.util.concurrent.toFutureOps
 
 object RouterInterfaceTranslator {
@@ -103,7 +100,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
             // port has the DHCP's gateway IP.
             if (rtrPort.getPortAddress == ns.getGatewayIp) {
                 midoOps ++= createMetadataServiceRoute(
-                    rtrPort.getId, nPort.getNetworkId, ns.getCidr)
+                    rtrPort.getId, ri.getSubnetId, ns.getCidr)
             }
 
             // Add dynamic SNAT rules and the reverse SNAT on the router chains
@@ -230,21 +227,18 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
     }
 
     private def createMetadataServiceRoute(routerPortId: UUID,
-                                           networkId: UUID,
+                                           subnetId: UUID,
                                            subnetAddr: IPSubnet)
     : Option[MidoOp[Route]] = {
-        // If a DHCP port exists, add a Meta Data Service Route. This requires
-        // fetching all ports from ZK. We await the futures in parallel to
-        // reduce latency, but this may still become a problem when a Network
-        // has many ports. Consider giving the Network a specific reference to
-        // its DHCP Port.
-        val mNetwork = storage.get(classOf[Network], networkId).await()
-        val portIds = mNetwork.getPortIdsList.asScala
-        val ports = storage.getAll(classOf[NeutronPort], portIds).await()
-        val dhcpPortOpt = ports.find(
-            port => isDhcpPort(port) && port.getFixedIpsCount > 0)
-        dhcpPortOpt.map(p => Create(newMetaDataServiceRoute(
-            subnetAddr, routerPortId, p.getFixedIps(0).getIpAddress)))
+        // If a DHCP port exists, add a Meta Data Service Route. We can tell by
+        // looking at the Dhcp's server address. If it has no associated DHCP
+        // port, then its serverAdress field will be the same as its gatewayIp.
+        // Otherwise it will be the address of the DHCP port.
+        val dhcp = storage.get(classOf[Dhcp], subnetId).await()
+        if (dhcp.getServerAddress == dhcp.getDefaultGateway) None else {
+            Some(Create(newMetaDataServiceRoute(
+                subnetAddr, routerPortId, dhcp.getServerAddress)))
+        }
     }
 
     override protected def translateDelete(id: UUID): MidoOpList = {

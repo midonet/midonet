@@ -63,6 +63,13 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             nwPort.hasPeerId shouldBe false
         }
 
+        // Add a Midonet-only port to verify fix for issue 1533629
+        val mPort = Port.newBuilder
+            .setId(UUIDUtil.randomUuidProto)
+            .setNetworkId(UUIDUtil.toProto(tenantNetworkId))
+            .build()
+        storage.create(mPort)
+
         // Creating a RouterInterface should result on a port being created on
         // the router and linked to the network port.
         createRouterInterface(7, routerId, rifPortId, subnetId)
