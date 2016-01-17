@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_7ec7e445",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-17T22:17:30Z",
+      "side": 1,
+      "message": "Done, keeping a single keystone config.",
+      "parentUuid": "9ad9bd40_8c2e2bf9",
+      "revId": "79029924525560ef6464a4cf48d9960dc9ad17a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_91d3a45e",
         "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-09-02T03:55:58Z",
       "side": 1,
       "message": "tenanr -\u003e tenant",
+      "revId": "79029924525560ef6464a4cf48d9960dc9ad17a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5eca2050",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-17T22:17:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_91d3a45e",
       "revId": "79029924525560ef6464a4cf48d9960dc9ad17a7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
