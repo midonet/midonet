@@ -78,7 +78,7 @@ makens() {
         echo "no ip specified for VPN endpoint (-l)"
         exit 1
     elif [ -z ${LOCAL_INTF_IP} ]; then
-        echo "no ip specified for interface (-l)"
+        echo "no ip specified for interface (-i)"
         exit 1
     fi
     DP=$NAME
