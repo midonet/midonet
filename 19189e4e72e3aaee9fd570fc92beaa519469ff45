@@ -149,6 +149,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_4a7c1621",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-18T16:15:11Z",
+      "side": 1,
+      "message": "I don\u0027t follow. where does /nat/owned_blocked/agent_id/device-ip come from? how would create an ordered list of blocks to pick the least recently used one?",
+      "parentUuid": "fa81d914_2ad0c24f",
+      "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b190aded",
         "filename": "midolman/src/test/scala/org/midonet/midolman/state/ZkNatBlockAllocatorTest.scala",
         "patchSetId": 1
