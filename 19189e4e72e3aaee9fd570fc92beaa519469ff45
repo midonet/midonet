@@ -131,6 +131,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_2ad0c24f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-18T15:23:15Z",
+      "side": 1,
+      "message": "Hmm, ok. There\u0027s seems to be an easy optimization here then. Instead of /device/ip/block/ownership_node, denote ownership with /device/ip/block. If /device/ip/block exists, the block is in use, if it doesn\u0027t, it is not.\n\nIn fact, /device/ip/block doesn\u0027t even need to be ephemeral. An agent could acquire a block with a multi.\ncreate(/nat/device/ip/block)\nupdate(/nat/owned_blocked/agent_id/device-ip)\n\nThis way, a rebooting agent could reacquire it\u0027s blocks, and recycling could clean up block allocations for agents which have permanently gone away. This isn\u0027t a change for now though.",
+      "parentUuid": "fa81d914_14e96780",
+      "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b190aded",
         "filename": "midolman/src/test/scala/org/midonet/midolman/state/ZkNatBlockAllocatorTest.scala",
         "patchSetId": 1
