@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_b12c2dad",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortTracker.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-18T10:21:19Z",
+      "side": 1,
+      "message": "What I meant was that in the following situation the observable of the port tracker never emits a notification:\n1) The port state is emitted and postStateReady is set to true at line 53.\n2) The port is emitted and portUpdated is executed.\n3) line 80 is executed since currentPort is null, portStateReady is now false.\n\nAt this point the port update is filtered since function isReady returns false. If the port state is never updated then the port tracker never emits a notification. Is my scenario clearer?",
+      "range": {
+        "startLine": 80,
+        "startChar": 12,
+        "endLine": 80,
+        "endChar": 34
+      },
+      "revId": "f07281a45a92cbec40eff02d621c7f4f9d972328",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_31183d81",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-18T10:21:19Z",
+      "side": 1,
+      "message": "Is this really needed since it is true whenever we receive a notification?",
+      "range": {
+        "startLine": 217,
+        "startChar": 8,
+        "endLine": 217,
+        "endChar": 37
+      },
+      "revId": "f07281a45a92cbec40eff02d621c7f4f9d972328",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_7109d530",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-18T10:21:19Z",
+      "side": 1,
+      "message": "Is this really needed since it is true whenever we receive a notification?",
+      "range": {
+        "startLine": 251,
+        "startChar": 8,
+        "endLine": 251,
+        "endChar": 37
+      },
+      "revId": "f07281a45a92cbec40eff02d621c7f4f9d972328",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
