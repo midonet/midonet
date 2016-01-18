@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_7122b5ba",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-18T10:50:56Z",
+      "side": 1,
+      "message": "routeOrdering? this could be a class val, right?",
+      "range": {
+        "startLine": 98,
+        "startChar": 12,
+        "endLine": 98,
+        "endChar": 24
+      },
+      "revId": "7bf2c23a5d5dd7f24afb2595e2ee50e5b5b1d33b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_543affcd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-18T10:50:56Z",
+      "side": 1,
+      "message": "I believe you can write:\n\n        val oldRoutes \u003d TreeSet(storage.getAll(classOf[Route], oldCnxn.getRouteIdsList).await(): _*)(portOrdering)\n        val newRoutes \u003d TreeSet(createRemoteRoutes(cnxn, vpn): _*)(portOrdering)",
+      "range": {
+        "startLine": 106,
+        "startChar": 8,
+        "endLine": 109,
+        "endChar": 53
+      },
+      "revId": "7bf2c23a5d5dd7f24afb2595e2ee50e5b5b1d33b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
