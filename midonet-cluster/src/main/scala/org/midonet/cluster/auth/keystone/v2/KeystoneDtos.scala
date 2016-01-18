@@ -27,7 +27,8 @@ case class Access @JsonCreator()(
     @(JsonProperty @getter @param)("token") token: Token,
     @(JsonProperty @getter @param)("serviceCatalog") serviceCatalog: JList[ServiceEntry],
     @(JsonProperty @getter @param)("user") user: User,
-    @(JsonProperty @getter @param)("metadata") metadata: Metadata)
+    @(JsonProperty @getter @param)("metadata") metadata: Metadata,
+    @(JsonProperty @getter @param)("trust") trust: Trust)
 
 trait Auth
 
@@ -115,6 +116,12 @@ case class TokenAuth @JsonCreator()(
     @(JsonProperty @getter @param)("token") token: Token,
     @(JsonProperty @getter @param)("tenantName") tenantName: String)
     extends Auth
+
+case class Trust @JsonCreator()(
+    @(JsonProperty @getter @param)("id") id: String,
+    @(JsonProperty @getter @param)("trustee_user_id") trusteeUserId: String,
+    @(JsonProperty @getter @param)("trustor_user_id") trustorUserId: String,
+    @(JsonProperty @getter @param)("impersonation") impersonation: Boolean)
 
 case class User @JsonCreator()(
     @(JsonProperty @getter @param)("id") id: String,
