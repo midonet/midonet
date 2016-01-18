@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_f1cce537",
+        "filename": "docs/nat-leasing.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-18T09:55:07Z",
+      "side": 1,
+      "message": "Meaning specifying the range? If so, it\u0027s clearer to specify it here.",
+      "range": {
+        "startLine": 46,
+        "startChar": 68,
+        "endLine": 46,
+        "endChar": 80
+      },
+      "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d1ee018b",
+        "filename": "docs/nat-leasing.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-18T09:55:07Z",
+      "side": 1,
+      "message": "..., namely the one with the lowest \u0027Pzxid\u0027.",
+      "range": {
+        "startLine": 54,
+        "startChar": 9,
+        "endLine": 54,
+        "endChar": 10
+      },
+      "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_b190aded",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/ZkNatBlockAllocatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-18T09:55:07Z",
+      "side": 1,
+      "message": "shouldBe 1 (and same comment for the should be below.",
+      "range": {
+        "startLine": 67,
+        "startChar": 25,
+        "endLine": 67,
+        "endChar": 38
+      },
+      "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
