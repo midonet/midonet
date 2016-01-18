@@ -16,12 +16,14 @@
 
 package org.midonet.midolman.monitoring
 
+import scala.collection.JavaConverters._
+
 import java.nio.ByteBuffer
 import java.util.{ArrayList, List, UUID}
 
 import uk.co.real_logic.sbe.codec.java._
 
-import org.midonet.cluster.flowhistory.{proto, ActionEncoder, BinarySerialization}
+import org.midonet.cluster.flowhistory.{ActionEncoder, BinarySerialization}
 import org.midonet.cluster.flowhistory.proto.{SimulationResult => SbeSimResult,
                                               RuleResult => SbeRuleResult,
                                               DeviceType => SbeDeviceType,
@@ -31,6 +33,7 @@ import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.config.FlowHistoryConfig
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger._
@@ -57,7 +60,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                             BinarySerialization.MessageTemplateVersion)
             .blockLength(FLOW_SUMMARY.sbeBlockLength)
             .templateId(FLOW_SUMMARY.sbeTemplateId)
-            .schemaId(FLOW_SUMMARY.sbeSchemaId)
+            .schemaId(FLOW_SUMMARY.sbeSchemaVersion)
             .version(FLOW_SUMMARY.sbeSchemaVersion)
         bufferOffset += MESSAGE_HEADER.size
 
@@ -130,22 +133,18 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
 
     private def encodeIcmpData(pktContext: PacketContext): Unit = {
         var i = 0
-        val data = pktContext.origMatch.getIcmpData
-        if (data != null) {
-            val iter = FLOW_SUMMARY.flowMatchIcmpDataCount(data.length)
-            while (i < data.length) {
-                iter.next().data(data(i))
-                i += 1
-            }
-        } else {
-            FLOW_SUMMARY.flowMatchIcmpDataCount(0)
+        val data = pktContext.origMatch.getIcmpData()
+        val iter = FLOW_SUMMARY.flowMatchIcmpDataCount(data.length)
+        while (i < data.length) {
+            iter.next().data(data(i))
+            i += 1
         }
     }
 
     private def encodeMAC(address: MAC, setter: (Int, Short) => Unit): Unit = {
         if (address != null) {
             var i = 0
-            val bytes = address.getAddress
+            var bytes = address.getAddress
             while (i < bytes.length) {
                 setter(i, bytes(i))
                 i += 1
@@ -158,13 +157,15 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                          setter: (Int, Long) => Unit): Unit = {
         if (address != null) {
             address match {
-                case ip4: IPv4Addr =>
+                case ip4: IPv4Addr => {
                     typeSetter(InetAddrType.IPv4)
                     setter(0, ip4.addr)
-                case ip6: IPv6Addr =>
+                }
+                case ip6: IPv6Addr => {
                     typeSetter(InetAddrType.IPv6)
                     setter(0, ip6.upperWord)
                     setter(1, ip6.lowerWord)
+                }
             }
         }
     }
@@ -200,19 +201,12 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
         }
     }
 
-    private def encodeBoolean(value: Boolean): BooleanType = value match {
-        case true => BooleanType.T
-        case false => BooleanType.F
-    }
-
     private def encodeRules(pktContext: PacketContext): Unit = {
         var i = 0
         val rules = pktContext.traversedRules
         val results = pktContext.traversedRuleResults
-        val rulesMatched = pktContext.traversedRulesMatched
-        val rulesApplied = pktContext.traversedRulesApplied
         val iter = FLOW_SUMMARY.traversedRulesCount(rules.size)
-        while (i < rules.size) {
+        while (iter.hasNext && (i < rules.size)) {
             val r = rules.get(i)
             val rule = iter.next()
             rule.rule(0, r.getMostSignificantBits)
@@ -230,12 +224,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                     rule.result(SbeRuleResult.REJECT)
                 case RuleResult.Action.RETURN =>
                     rule.result(SbeRuleResult.RETURN)
-                case RuleResult.Action.REDIRECT =>
-                    rule.result(SbeRuleResult.REDIRECT)
-                case _ =>
             }
-            rule.matched(encodeBoolean(rulesMatched.get(i)))
-            rule.applied(encodeBoolean(rulesApplied.get(i)))
             i += 1
         }
     }
@@ -253,8 +242,6 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                 case t: RouterDeviceTag => deviceStaging.add(t)
                 case t: PortDeviceTag => deviceStaging.add(t)
                 case t: ChainDeviceTag => deviceStaging.add(t)
-                case t: MirrorDeviceTag => deviceStaging.add(t)
-                case _ =>
             }
             i += 1
         }
@@ -282,8 +269,6 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                     dev.`type`(SbeDeviceType.PORT)
                 case t: ChainDeviceTag =>
                     dev.`type`(SbeDeviceType.CHAIN)
-                case t: MirrorDeviceTag =>
-                    dev.`type`(SbeDeviceType.MIRROR)
                 case _ =>
             }
             i += 1
@@ -302,8 +287,8 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                 case a: FlowActionPopVLAN =>
                     actionEnc.popVlan()
                 case a: FlowActionPushVLAN =>
-                    actionEnc.pushVlan(a.getTagProtocolIdentifier,
-                                       a.getTagControlIdentifier)
+                    actionEnc.pushVlan(a.getTagProtocolIdentifier(),
+                                       a.getTagControlIdentifier())
                 case a: FlowActionUserspace =>
                     actionEnc.userspace(a.uplinkPid,
                                         if (a.userData == null) 0
