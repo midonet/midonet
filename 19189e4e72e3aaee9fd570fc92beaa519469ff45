@@ -185,6 +185,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_aa4672bd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-18T16:56:50Z",
+      "side": 1,
+      "message": "I still doesn\u0027t see how you would build the lru list. Also, you need ephemerals, otherwise you would leak ports if an agent dies.",
+      "parentUuid": "fa81d914_2aed22c4",
+      "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_ca048680",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
         "patchSetId": 1
@@ -196,6 +214,24 @@
       "writtenOn": "2016-01-18T16:38:59Z",
       "side": 1,
       "message": "If you delete the ownershipPath and the block path in a multi, it means you will only go into chooseLruBlock() when mixing with older agents. Would mean less nodes hanging around if nat sees bursty traffic.\n\nMakes sense especially since there\u0027s only ever one node \nunder block path.",
+      "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ca12c6b3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-18T16:56:50Z",
+      "side": 1,
+      "message": "i don\u0027t want to delete the block path, because that\u0027s the one that allows me to build the lru list.",
+      "parentUuid": "fa81d914_ca048680",
       "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
