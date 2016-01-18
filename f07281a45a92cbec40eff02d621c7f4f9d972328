@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_54af5fe3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortTracker.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-18T10:49:06Z",
+      "side": 1,
+      "message": "Ok, I understand now! The following line:\n\n  portStateSubject onNext hostId.asNullableString\n\nalways generates a notification, even if the port state has not changed. This is because the portStateObservable uses an Observable.switchOnNext, which will switch to an observable that is backed either by a BehaviorSubject (and emit a notification when switched to) if hostId is not null, or it emits Observable.just(.. no state..) if hostId is null.\n\nEssentially, after this line, we are guaranteed to get another notification from the hostStateObservable regardless of the value of hostId.",
+      "parentUuid": "fa81d914_b12c2dad",
+      "range": {
+        "startLine": 80,
+        "startChar": 12,
+        "endLine": 80,
+        "endChar": 34
+      },
+      "revId": "f07281a45a92cbec40eff02d621c7f4f9d972328",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_31183d81",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_3474ab98",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-18T10:49:06Z",
+      "side": 1,
+      "message": "Well, I commented that I will remove this, but I kept it to test the functionality and keep the coverage. If you agree, let\u0027s keep it/",
+      "parentUuid": "fa81d914_31183d81",
+      "range": {
+        "startLine": 217,
+        "startChar": 8,
+        "endLine": 217,
+        "endChar": 37
+      },
+      "revId": "f07281a45a92cbec40eff02d621c7f4f9d972328",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_7109d530",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2016-01-18T10:21:19Z",
       "side": 1,
       "message": "Is this really needed since it is true whenever we receive a notification?",
+      "range": {
+        "startLine": 251,
+        "startChar": 8,
+        "endLine": 251,
+        "endChar": 37
+      },
+      "revId": "f07281a45a92cbec40eff02d621c7f4f9d972328",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_54683fba",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-18T10:49:06Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "fa81d914_7109d530",
       "range": {
         "startLine": 251,
         "startChar": 8,
