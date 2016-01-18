@@ -167,6 +167,41 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_2aed22c4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-18T16:38:59Z",
+      "side": 1,
+      "message": "The idea is that you write 2 znodes. \n\nZnode 1 is /nat/owned_blocked/agent_id/device-ip exists so that gc can see which agents own which blocks without having to do a full scan. It can then clean up for agents which have been down for more than an hour. It also allows a agent to reclaim blocks on reboot. It also removes the need for ephemerals.\n\nZnode 2 is /nat/device_id/ip/block, which claims the block for the agent.\n\nThinking about this more, /nat/device_id/ip/block should be /nat/device_id/ip/block/ownership_node so that backward compatibility is maintained. Which actually removes the optimisation in terms of node count. So actually, it\u0027s not something to be done in this patch.",
+      "parentUuid": "fa81d914_4a7c1621",
+      "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ca048680",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-18T16:38:59Z",
+      "side": 1,
+      "message": "If you delete the ownershipPath and the block path in a multi, it means you will only go into chooseLruBlock() when mixing with older agents. Would mean less nodes hanging around if nat sees bursty traffic.\n\nMakes sense especially since there\u0027s only ever one node \nunder block path.",
+      "revId": "19189e4e72e3aaee9fd570fc92beaa519469ff45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b190aded",
         "filename": "midolman/src/test/scala/org/midonet/midolman/state/ZkNatBlockAllocatorTest.scala",
         "patchSetId": 1
