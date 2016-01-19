@@ -67,7 +67,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
             it("activates the onError() callback if made from failed()") {
                 val cb = new InspectableCallback
                 val req = requestFor(cb)
-                val runnable = req failed new NetlinkException(10, "foo")
+                val runnable = req failed new NetlinkException(10, "foo", 0)
 
                 (0 to 3) foreach { _ =>
                     runnable.run
@@ -83,7 +83,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
             req addAnswerFragment (ByteBuffer allocate 256)
             val runnable1 = req.successful()
             val runnable2 = req.expired()
-            val runnable3 = req failed new NetlinkException(10, "foo")
+            val runnable3 = req failed new NetlinkException(10, "foo", 0)
 
             runnable1.run
             cb.calls should be (1,0)
@@ -98,7 +98,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
             val req = requestFor(cb)
             req addAnswerFragment (ByteBuffer allocate 256)
             val runnable2 = req.expired()
-            val runnable3 = req failed new NetlinkException(10, "foo")
+            val runnable3 = req failed new NetlinkException(10, "foo", 0)
             val runnable1 = req.successful()
 
             runnable2.run
@@ -113,7 +113,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
             val cb = new InspectableCallback
             val req = requestFor(cb)
             req addAnswerFragment (ByteBuffer allocate 256)
-            val runnable3 = req failed new NetlinkException(10, "foo")
+            val runnable3 = req failed new NetlinkException(10, "foo", 0)
             val runnable1 = req.successful()
             val runnable2 = req.expired()
 

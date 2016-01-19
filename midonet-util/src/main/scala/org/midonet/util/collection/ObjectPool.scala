@@ -16,13 +16,17 @@
 
 package org.midonet.util.collection
 
+import java.util.Arrays
+
+import org.midonet.Util
+
 trait ObjectPool[T >: Null] {
     def take: T
-
     def offer(element: T)
+}
 
+trait BoundedObjectPool[T >: Null] extends ObjectPool[T] {
     def available: Int
-
     def capacity: Int
 }
 
@@ -56,14 +60,12 @@ trait PooledObject {
 
 final class NoOpPool[T >: Null](factory: ObjectPool[T] => T) extends ObjectPool[T] {
     override def take: T = factory(this)
-    override def available: Int = Int.MaxValue
     override def offer(element: T): Unit = { }
-    override def capacity: Int = Int.MaxValue
 }
 
 final class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
-                                                  val factory: ObjectPool[T] => T)
-    extends ObjectPool[T] {
+                                                  val factory: BoundedObjectPool[T] => T)
+    extends BoundedObjectPool[T] {
 
     var available = capacity
     private val pool = new Array[T](capacity)
@@ -89,4 +91,66 @@ final class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
             pool(available) = element
             available += 1
         }
+}
+
+object IndexableObjectPool {
+    trait Indexable {
+        private[IndexableObjectPool] var indexOrNextFree = -1
+
+        def index: Int = indexOrNextFree
+    }
+}
+
+final class IndexableObjectPool[T >: Null <: IndexableObjectPool.Indexable : Manifest](
+        val initialCapacity: Int,
+        val factory: ObjectPool[T] => T) extends ObjectPool[T] {
+
+    private var pool = new Array[T](Util.findNextPositivePowerOfTwo(initialCapacity))
+    private var free = -1
+
+    fill(0)
+
+    def take: T =
+        if (free >= 0) {
+            doTake()
+        } else {
+            val oldLength = pool.length
+            val newCapacity = Util.findNextPositivePowerOfTwo(
+                oldLength + (oldLength / 2))
+            if (newCapacity < 0)
+                throw new Exception("Out of memory for new ManagedFlows")
+
+            val newPool = new Array[T](newCapacity)
+            Array.copy(pool, 0, newPool, 0, oldLength)
+            pool = newPool
+            fill(oldLength)
+            doTake()
+        }
+
+    def offer(element: T): Unit = {
+        val index = element.indexOrNextFree
+        element.indexOrNextFree = free
+        free = index
+    }
+
+    def get(index: Int): T =
+        pool(index)
+
+    private def doTake(): T = {
+        val index = free
+        val element = pool(index)
+        free = element.indexOrNextFree
+        element.indexOrNextFree = index
+        element
+    }
+
+    private def fill(from: Int): Unit = {
+        var i = from
+        while (i < pool.length / 2) { // Pre-allocate some objects
+            pool(i) = factory(this)
+            pool(i).indexOrNextFree = i - 1
+            i += 1
+        }
+        free = i - 1
+    }
 }

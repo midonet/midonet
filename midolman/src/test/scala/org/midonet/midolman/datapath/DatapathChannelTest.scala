@@ -58,7 +58,7 @@ class DatapathChannelTest extends MidolmanSpec {
                                 new Stats(0, 0, 0, 0), new MegaflowStats(0, 0))
     private val fp = new FlowProcessor(
         new DatapathStateDriver(datapath), ovsFamilies, 1024, 2048, factory,
-        factory.selectorProvider, clock)
+        factory.selectorProvider, simBackChannel, clock)
     val ringBuffer = RingBuffer.createSingleProducer[PacketContextHolder](
         DisruptorDatapathChannel.Factory, capacity)
     var processor: BackChannelEventProcessor[PacketContextHolder] = _

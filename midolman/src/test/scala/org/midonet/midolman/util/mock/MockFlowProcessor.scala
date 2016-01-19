@@ -23,7 +23,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import rx.Observer
 
-import org.midonet.midolman.DatapathStateDriver
+import org.midonet.midolman.{ShardedSimulationBackChannel, DatapathStateDriver}
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.util.{MockSelectorProvider, MockNetlinkChannelFactory}
 import org.midonet.netlink.NetlinkMessage
@@ -41,6 +41,7 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
                                                      new PacketFamily(0), 0, 0),
                               10000, 1023, new MockNetlinkChannelFactory,
                               new MockSelectorProvider,
+                              new ShardedSimulationBackChannel(() => { }),
                               new MockClock) {
     var flowDelCb: Flow => Unit = _
 

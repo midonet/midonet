@@ -40,7 +40,8 @@ object NetlinkRequestBroker {
 
     private object timeoutException extends NetlinkException(
         ErrorCode.ETIMEOUT,
-        "Timeout while waiting for Nelink replies") {
+        "Timeout while waiting for Nelink replies",
+        0) {
 
         override def fillInStackTrace() = this
     }

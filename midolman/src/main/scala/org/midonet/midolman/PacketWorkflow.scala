@@ -64,6 +64,8 @@ object PacketWorkflow {
     case class RestartWorkflow(context: PacketContext, error: Throwable)
         extends BackChannelMessage
 
+    case class DuplicateFlow(index: Int) extends BackChannelMessage
+
     sealed trait GeneratedPacket extends BackChannelMessage {
         val eth: Ethernet
         val cookie: Long
@@ -278,6 +280,7 @@ class PacketWorkflow(
         case RestartWorkflow(pktCtx, error) => restart(pktCtx, error)
         case m: GeneratedPacket => startWorkflow(generatedPacketContext(m))
         case m: FlowStateBatch => replicator.importFromStorage(m)
+        case DuplicateFlow(index) => duplicateFlow(index)
     }
 
     override def process(): Unit = {
