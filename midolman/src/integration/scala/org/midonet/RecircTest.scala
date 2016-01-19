@@ -28,7 +28,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.{FlowTranslator, DatapathState}
+import org.midonet.midolman.{ShardedSimulationBackChannel, FlowTranslator, DatapathState}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath.{PacketExecutor, FlowProcessor}
@@ -176,6 +176,7 @@ class RecircTest extends FeatureSpec
             maxRequestSize = 1024,
             channelFactory,
             SelectorProvider.provider(),
+            new ShardedSimulationBackChannel(() => { }),
             NanoClock.DEFAULT)
         packetExecutor = new PacketExecutor(
             dpState,
