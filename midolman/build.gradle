@@ -271,7 +271,7 @@ rpm.doFirst {
         '-d', 'libreswan >= 1.15.0',
         '-d', 'iproute',
         '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
-    if (project.rhelTarget == "7") {
+    if (project.rhelTarget == "el7") {
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
