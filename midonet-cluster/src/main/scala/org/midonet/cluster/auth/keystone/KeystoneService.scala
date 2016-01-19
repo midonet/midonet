@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth._
-import org.midonet.cluster.auth.keystone.v2.{KeystoneAccess, KeystoneConfig, KeystoneClient}
+import org.midonet.cluster.auth.keystone.v2.KeystoneAccess
 import org.midonet.cluster.keystoneLog
 import org.midonet.cluster.rest_api.models.Tenant
 
