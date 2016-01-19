@@ -21,6 +21,8 @@ import java.nio.channels.spi.SelectorProvider
 import java.nio.{BufferOverflowException, ByteBuffer}
 import java.util.ArrayList
 
+import org.midonet.midolman.PacketWorkflow.DuplicateFlow
+
 import scala.util.control.NonFatal
 
 import com.lmax.disruptor.{Sequencer, LifecycleAware, EventPoller}
@@ -28,7 +30,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import rx.Observer
 
-import org.midonet.midolman.DatapathState
+import org.midonet.midolman.{SimulationBackChannel, DatapathState}
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink._
@@ -59,6 +61,7 @@ class FlowProcessor(dpState: DatapathState,
                     maxRequestSize: Int,
                     channelFactory: NetlinkChannelFactory,
                     selectorProvider: SelectorProvider,
+                    backChannel: SimulationBackChannel,
                     clock: NanoClock)
     extends EventPoller.Handler[PacketContextHolder]
     with DisruptorBackChannel
@@ -105,13 +108,16 @@ class FlowProcessor(dpState: DatapathState,
         val context = event.flowCreateRef
         event.flowCreateRef = null
         if (context.flow ne null) {
+            // We use the same index for linked flows: if there is a problem
+            // with any of them, we remove both.
+            val index = context.flow.index
             try {
-                createFlow(context.origMatch, context.flowActions, context)
+                createFlow(context.origMatch, context.flowActions, context, index)
                 if (context.isRecirc) {
                     // Note we created the after-recirc flow first, so new
                     // packets will still go to midolman before recirculation.
                     createFlow(
-                        context.recircMatch, context.recircFlowActions, context)
+                        context.recircMatch, context.recircFlowActions, context, index)
                 }
             } catch { case t: Throwable =>
                 context.log.error("Failed to create datapath flow", t)
@@ -123,22 +129,27 @@ class FlowProcessor(dpState: DatapathState,
     }
 
     private def createFlow(flowMatch: FlowMatch, actions: ArrayList[FlowAction],
-                           context: PacketContext): Unit = {
+                           context: PacketContext, index: Int): Unit = {
         val mask = if (supportsMegaflow) {
             flowMask.clear()
             flowMask.calculateFor(flowMatch, actions)
             context.log.debug(s"Applying mask $flowMask")
             flowMask
         } else null
-        writeFlow(datapathId, flowMatch.getKeys, actions, mask)
+        writeFlow(datapathId, flowMatch.getKeys, actions, mask, index)
         context.log.debug("Created datapath flow")
     }
 
-    private def writeFlow(datapathId: Int, keys: ArrayList[FlowKey],
-                          actions: ArrayList[FlowAction], mask: FlowMask): Unit =
+    private def writeFlow(
+            datapathId: Int,
+            keys: ArrayList[FlowKey],
+            actions: ArrayList[FlowAction],
+            mask: FlowMask,
+            index: Int): Unit =
         try {
             createProtocol.prepareFlowCreate(
                 datapathId, keys, actions, mask, writeBuf)
+            writeBuf.putInt(NetlinkMessage.NLMSG_SEQ_OFFSET, index)
             writer.write(writeBuf)
         } catch { case e: BufferOverflowException =>
             val capacity = writeBuf.capacity()
@@ -147,7 +158,7 @@ class FlowProcessor(dpState: DatapathState,
             val newCapacity = capacity * 2
             writeBuf = BytesUtil.instance.allocateDirect(newCapacity)
             log.debug(s"Increasing buffer size to $newCapacity")
-            writeFlow(datapathId, keys, actions, mask)
+            writeFlow(datapathId, keys, actions, mask, index)
         } finally {
             writeBuf.clear()
         }
@@ -227,6 +238,7 @@ class FlowProcessor(dpState: DatapathState,
         } catch {
             case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
                 log.debug("Tried to add duplicate DP flow")
+                backChannel.tell(DuplicateFlow(ne.seq))
             case e: NetlinkException =>
                 log.warn("Failed to create flow", e)
             case NonFatal(e) =>
