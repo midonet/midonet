@@ -59,15 +59,15 @@ trait FlowExpirationIndexer extends FlowIndexer {
     import FlowExpirationIndexer._
 
     val log: Logger
-    val maxFlows: Int
+    val preallocFlows: Int
 
     private val expirationQueues = new Array[ArrayDeque[ManagedFlow]](maxType)
 
     {
-        expirationQueues(ERROR_CONDITION_EXPIRATION.typeId) = new ArrayDeque(maxFlows / 3)
-        expirationQueues(FLOW_EXPIRATION.typeId) = new ArrayDeque(maxFlows)
-        expirationQueues(STATEFUL_FLOW_EXPIRATION.typeId) = new ArrayDeque(maxFlows)
-        expirationQueues(TUNNEL_FLOW_EXPIRATION.typeId) = new ArrayDeque(maxFlows / 3)
+        expirationQueues(ERROR_CONDITION_EXPIRATION.typeId) = new ArrayDeque(preallocFlows / 3)
+        expirationQueues(FLOW_EXPIRATION.typeId) = new ArrayDeque(preallocFlows)
+        expirationQueues(STATEFUL_FLOW_EXPIRATION.typeId) = new ArrayDeque(preallocFlows)
+        expirationQueues(TUNNEL_FLOW_EXPIRATION.typeId) = new ArrayDeque(preallocFlows / 3)
     }
 
     abstract override def registerFlow(flow: ManagedFlow): Unit = {
@@ -103,7 +103,7 @@ trait FlowExpirationIndexer extends FlowIndexer {
             excessFlows += expirationQueues(i).size()
             i += 1
         }
-        excessFlows -= maxFlows
+        excessFlows -= preallocFlows
 
         if (excessFlows > 0) {
             log.debug(s"Evicting $excessFlows excess flows")
