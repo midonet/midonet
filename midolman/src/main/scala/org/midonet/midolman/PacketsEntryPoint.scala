@@ -156,6 +156,14 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
         val dhcpConfig = new DhcpConfigFromNsdb(vt)
 
+        val connTrackShard = connTrackStateTable.addShard(
+            log = shardLogger(connTrackStateTable))
+        val natShard = natStateTable.addShard(
+            log = shardLogger(natStateTable))
+        val traceShard = traceStateTable.addShard(
+            log = shardLogger(traceStateTable))
+        val backChannelProcessor = backChannel.registerProcessor()
+        val storage = storageFactory.create()
         Props(new PacketWorkflow(
             NUM_WORKERS,
             index,
@@ -166,13 +174,13 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             clock,
             dpChannel,
             dhcpConfig,
-            backChannel.registerProcessor(),
+            backChannelProcessor,
             flowProcessor,
-            connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
-            natStateTable.addShard(log = shardLogger(natStateTable)),
-            traceStateTable.addShard(log = shardLogger(traceStateTable)),
+            connTrackShard,
+            natShard,
+            traceShard,
             peerResolver,
-            storageFactory.create(),
+            storage,
             natLeaser,
             metrics,
             flowRecorder,
