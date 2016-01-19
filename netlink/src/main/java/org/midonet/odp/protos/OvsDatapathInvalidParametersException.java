@@ -22,6 +22,6 @@ public class OvsDatapathInvalidParametersException extends NetlinkException {
     static final long serialVersionUID = 1L;
 
     public OvsDatapathInvalidParametersException(String message) {
-        super(-1, message);
+        super(-1, message, 0);
     }
 }
