@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.auth.keystone.v2
+package org.midonet.cluster.auth.keystone
 
 import com.sun.jersey.api.client.UniformInterfaceException
 

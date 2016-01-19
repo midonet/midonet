@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.auth.keystone.v2
+package org.midonet.cluster.auth.keystone
 
 import com.typesafe.config.Config
 
@@ -22,6 +22,7 @@ import org.midonet.cluster.AuthConfig
 
 class KeystoneConfig(conf: Config) extends AuthConfig(conf) {
 
+    def version = conf.getInt(s"$Prefix.keystone.version")
     def tenantName = conf.getString(s"$Prefix.keystone.tenant_name")
     def userName = conf.getString(s"$Prefix.keystone.user_name")
     def password = conf.getString(s"$Prefix.keystone.user_password")
