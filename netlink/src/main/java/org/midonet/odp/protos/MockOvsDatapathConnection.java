@@ -244,7 +244,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     private void fireDeviceNotFound(Callback<?> callback) {
-        callback.onError(new NetlinkException(ENODEV));
+        callback.onError(new NetlinkException(ENODEV, 0));
     }
 
     @Override
@@ -273,7 +273,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         if (removed != null) {
             callback.onSuccess(removed);
         } else {
-            callback.onError(new NetlinkException(ENOENT));
+            callback.onError(new NetlinkException(ENOENT, 0));
         }
     }
 
@@ -296,7 +296,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
             flowCallback.onSuccess(match);
         }
         else{
-            flowCallback.onError(new NetlinkException(ENOENT));
+            flowCallback.onError(new NetlinkException(ENOENT, 0));
         }
     }
 

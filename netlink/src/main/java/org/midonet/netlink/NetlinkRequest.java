@@ -124,7 +124,7 @@ public abstract class NetlinkRequest implements Runnable {
     public Runnable expired() {
         ErrorCode er = ErrorCode.ETIMEOUT;
         String msg = "request #" + seq + " timeout";
-        return failed(new NetlinkException(er, msg));
+        return failed(new NetlinkException(er, msg, 0));
     }
 
     protected void changeState(State nextState, Object data) {
