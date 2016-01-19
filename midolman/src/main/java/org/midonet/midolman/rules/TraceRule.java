@@ -39,26 +39,19 @@ public class TraceRule extends Rule {
 
     private long hits;
 
-    public TraceRule(UUID requestId, Condition condition, long limit) {
-        // never actually sets the result action
-        super(condition, Action.CONTINUE);
-        this.requestId = requestId;
-        this.limit = limit;
-        this.hits = 0;
-    }
-
-    // Default constructor for the Jackson deserialization.
-    // This constructor is also used by ZoomConvert.
-    public TraceRule() {
-        super();
-    }
-
+    // Called from TraceRequestChainMapper. As the tracerule isn't
+    // being deserialized from zoom, we need to set the id.
     public TraceRule(UUID requestId, Condition condition, long limit,
                      UUID chainId) {
         super(condition, Action.CONTINUE, chainId);
+        this.id = requestId;
         this.requestId = requestId;
         this.limit = limit;
         this.hits = 0;
+    }
+
+    public TraceRule() {
+        super();
     }
 
     public UUID getRequestId() {
