@@ -17,12 +17,15 @@
 package org.midonet.util.collection
 
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, FeatureSpec}
+import org.midonet.Util
+import org.scalatest.{OneInstancePerTest, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
+import scala.collection.mutable
+
 @RunWith(classOf[JUnitRunner])
-class ObjectPoolTest extends FeatureSpec with Matchers {
-    val capacity = 10
+class ObjectPoolTest extends FeatureSpec with Matchers with OneInstancePerTest {
+    val capacity = 32
 
     feature ("ObjectPool pools objects") {
         var created = 0
@@ -46,7 +49,6 @@ class ObjectPoolTest extends FeatureSpec with Matchers {
             pool.take should be (null)
             pool.available should be (0)
         }
-
     }
 
     feature ("PooledObjects are pooled") {
@@ -74,6 +76,55 @@ class ObjectPoolTest extends FeatureSpec with Matchers {
         scenario ("Can't have negative reference count") {
             intercept[IllegalArgumentException] {
                 pool.take.unref()
+            }
+        }
+    }
+
+    feature ("IndexableObjectPool pools objects") {
+        var created = 0
+        val max = Util.findNextPositivePowerOfTwo(capacity * 5)
+        val pool = new IndexableObjectPool[IndexableObjectPool.Indexable](
+            initialCapacity = capacity,
+            max = max,
+            indexMask = 7 << 28,
+            _ => {
+                created += 1
+                new Object with IndexableObjectPool.Indexable
+            }
+        )
+
+        scenario ("objects are pre-allocated") {
+            created should be (capacity)
+        }
+
+        scenario ("mask is applied to index") {
+            val obj = pool.take
+            obj.index >>> 28 should be (7)
+            pool.get(obj.index) should be (obj)
+            pool.offer(obj)
+            obj.index >>> 28 should be (0)
+        }
+
+        scenario ("objects have an index") {
+            val indexes = 0 until (capacity * 4)
+            indexes map { _ =>
+                pool.take.index & ~(7 << 28)
+            } sortBy identity should be (indexes)
+        }
+
+        scenario ("the pool is bounded") {
+            intercept[Exception] {
+                (0 until max + 1) foreach { _ => pool.take }
+            }
+        }
+
+        scenario ("objects are reused") {
+            val set = mutable.Set[IndexableObjectPool.Indexable]()
+            (0 until capacity * 4) foreach { _ => set += pool.take }
+            set foreach { x => pool.get(x.index) should be (x)}
+            set foreach pool.offer
+            (0 until capacity * 4) foreach { _ =>
+                set should contain (pool.take)
             }
         }
     }
