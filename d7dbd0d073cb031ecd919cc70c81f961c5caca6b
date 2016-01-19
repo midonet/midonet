@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_32baf80a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-01-19T11:45:25Z",
+      "side": 1,
+      "message": "Is 128 big enough? Should this be configurable instead?",
+      "range": {
+        "startLine": 60,
+        "startChar": 49,
+        "endLine": 60,
+        "endChar": 52
+      },
+      "revId": "d7dbd0d073cb031ecd919cc70c81f961c5caca6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
