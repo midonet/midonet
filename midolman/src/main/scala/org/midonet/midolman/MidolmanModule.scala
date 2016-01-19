@@ -97,12 +97,18 @@ class MidolmanModule(injector: Injector,
         bind(classOf[VirtualPortsResolver]).to(classOf[DatapathStateDriver])
         bind(classOf[UnderlayResolver]).to(classOf[DatapathStateDriver])
 
+        val as = actorSystem()
+        bind(classOf[ActorSystem]).toInstance(as)
+        bind(classOf[SupervisorStrategy]).toInstance(crashStrategy())
+        val backChannel = simulationBackChannel(as)
+        bind(classOf[SimulationBackChannel]).toInstance(backChannel)
+
         val capacity = Util.findNextPositivePowerOfTwo(
             config.datapath.globalIncomingBurstCapacity)
         val ringBuffer = RingBuffer
             .createMultiProducer(DisruptorDatapathChannel.Factory, capacity)
         val barrier = ringBuffer.newBarrier()
-        val fp = flowProcessor(dpState, families, channelFactory)
+        val fp = flowProcessor(dpState, families, channelFactory, backChannel)
         val channel = datapathChannel(
             ringBuffer, barrier, fp, dpState, families, channelFactory, metrics)
         bind(classOf[FlowProcessor]).toInstance(fp)
@@ -129,11 +135,7 @@ class MidolmanModule(injector: Injector,
         bind(classOf[DatapathInterface]).toInstance(
             datapathInterface(scanner, dpState, dpConnectionManager))
 
-        val as = actorSystem()
-        bind(classOf[ActorSystem]).toInstance(as)
-        bind(classOf[SupervisorStrategy]).toInstance(crashStrategy())
-        val backChannel = simulationBackChannel(as)
-        bind(classOf[SimulationBackChannel]).toInstance(backChannel)
+
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
         bind(classOf[FlowRecorder]).toInstance(flowRecorder(host))
@@ -204,7 +206,8 @@ class MidolmanModule(injector: Injector,
     protected def flowProcessor(
             dpState: DatapathState,
             families: OvsNetlinkFamilies,
-            channelFactory: NetlinkChannelFactory) =
+            channelFactory: NetlinkChannelFactory,
+            backChannel: SimulationBackChannel) =
         new FlowProcessor(
             dpState,
             families,
@@ -212,6 +215,7 @@ class MidolmanModule(injector: Injector,
             maxRequestSize = 512,
             channelFactory,
             SelectorProvider.provider,
+            backChannel,
             NanoClock.DEFAULT)
 
     protected def createProcessors(
