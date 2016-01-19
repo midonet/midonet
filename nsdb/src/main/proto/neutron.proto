@@ -318,7 +318,6 @@ message VpnService {
     optional UUID router_id = 6;
 
     // filled in during translation
-    optional IPAddress external_ip = 20;
     optional UUID container_id = 21;
 
     // backreferences

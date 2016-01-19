@@ -86,7 +86,6 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
             vpn2.getDescription shouldBe "new description"
 
             // Only the above fields should be changed.
-            vpn2.getExternalIp.getAddress shouldBe router1GatewayIp
             vpn2.getRouterId.asJava shouldBe router1Id
         }
 

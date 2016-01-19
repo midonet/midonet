@@ -39,7 +39,7 @@ import rx.{Observable, Subscription}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.{DpdAction, IkePolicy, Initiator}
-import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
+import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.util.IPAddressUtil._
@@ -402,7 +402,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         val vpnServiceTracker =
             new CollectionStoreTracker[VpnService](context)
         val vpnServiceObservable = vpnServiceTracker.observable
-            .map[IPAddr](makeFunc1 { vpnServices =>
+            .map[Boolean](makeFunc1 { vpnServices =>
                 log.debug(s"VPN services updated ${vpnServices.keys}")
                 // Update the list of ipsec connections to watch (only for
                 // those vpn services with adminStateUp
@@ -415,29 +415,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                                   "administrative state is down")
                 }
                 connectionsTracker watch connections
-                // All VPN services have the same connectivity information
-                // except their associated site connections. Just pick the head
-                // and emit the IPv4Address.
-                if (vpnServices.nonEmpty) {
-                    val externalIps = vpnServices.values.flatMap(value => {
-                        if (value.hasExternalIp) Seq(value.getExternalIp.asIPAddress)
-                        else Seq.empty
-                    }).toSet
-                    if (externalIps.isEmpty) {
-                        log warn s"VPN service(s) for port ${cp.portId} do " +
-                                 "not have an external IP addresses set: " +
-                                 "VPN is left unconfigured"
-                        null
-                    } else if (externalIps.size > 1) {
-                        log warn s"VPN services for port ${cp.portId} have " +
-                                 "more than one external IP address (" +
-                                 s"$externalIps): VPN is left unconfigured"
-                        null
-                    } else {
-                        externalIps.head
-                    }
-                }
-                else null
+                true
             })
             .distinctUntilChanged()
 
@@ -469,15 +447,32 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             .distinctUntilChanged()
             .doOnNext(makeAction1(routerUpdated))
 
+        val neutronGwPortObservable = vt.store
+            .observable(classOf[NeutronRouter], cp.configurationId)
+            .observeOn(context.scheduler)
+            .flatMap[NeutronPort](makeFunc1 { r: NeutronRouter =>
+                log.debug(s"Neutron router updated ${r.getId.asJava}")
+                vt.store.observable(classOf[NeutronPort], r.getGwPortId.asJava)
+            })
+            .map[IPAddr](makeFunc1 { p: NeutronPort =>
+                log.debug(s"Neutron gateway port updated ${p.getId.asJava}")
+                if (p.getFixedIpsCount > 0)
+                    p.getFixedIps(0).getIpAddress.asIPAddress
+                else null
+            })
+            .distinctUntilChanged()
+
+        // Mapper combining midonet and neutron models for vpn
         Observable
-            .combineLatest[List[Port], List[IPSecSiteConnection], IPAddr,
-                          Port, Router, VpnServiceUpdateEvent](
+            .combineLatest[List[Port], List[IPSecSiteConnection], Boolean,
+                          Port, Router, IPAddr, VpnServiceUpdateEvent](
                 routerPortObservable,
                 connectionsObservable,
                 vpnServiceObservable,
                 portObservable,
                 routerObservable,
-                makeFunc5((routerPorts, connections, externalIp, port, router) => {
+                neutronGwPortObservable,
+                makeFunc6((routerPorts, connections, vpn, port, router, externalIp) => {
                     VpnServiceUpdateEvent(routerPorts, connections, externalIp, port)
                 }))
             .distinctUntilChanged()
@@ -506,7 +501,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             val VpnServiceUpdateEvent(routerPorts, conns, externalIp, port) = event
 
             if (externalIp eq null) {
-                // No external IP means no VPN service whatsoever.
+                log.warn(s"Router ${port.getRouterId.asJava} does not have " +
+                         "an external gateway ip. Shutting down connections.")
                 p.trySuccess(None)
                 cleanup(config)
                 config = null
@@ -517,10 +513,10 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                 .find(_.getPortAddress.asIPv4Address == externalIp)
                 .map(_.getPortMac)
                 .getOrElse {
-                    p.tryFailure(IPSecException(
-                        s"VPN service on router ${port.getRouterId.asJava} " +
-                        s"does not have a port that matches the VPN external " +
-                        s"address $externalIp", null))
+                    log.warn(s"VPN service on router ${port.getRouterId.asJava} " +
+                             "does not have a port that matches the router external " +
+                             s"address $externalIp. Shutting down connections.")
+                    p.trySuccess(None)
                     cleanup(config)
                     config = null
                     return

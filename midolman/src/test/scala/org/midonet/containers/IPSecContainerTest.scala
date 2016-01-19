@@ -20,6 +20,7 @@ import java.io.File
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 
+import scala.collection.JavaConverters._
 import scala.util.Random
 
 import org.apache.commons.io.FileUtils
@@ -29,13 +30,13 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.CreateOp
+import org.midonet.cluster.data.storage.{NotFoundException, UpdateOp, CreateOp}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.IkeVersion
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.cluster.models.Topology.Router
+import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.topology.TopologyBuilder._
 import org.midonet.cluster.util.IPAddressUtil._
@@ -751,13 +752,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
     feature("IPSec container implements the handler interface") {
         scenario("Container doesn't configure anything on router without VPN services") {
-            Given("A router with a port")
+            Given("A router with a port (both midonet and neutron)")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
 
             And("A container")
             val container = new TestIPSecContainer(vt, executor)
@@ -790,13 +796,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         }
 
         scenario("Container deletes the namespace upon router update without VPN services") {
-            Given("A router with a port")
+            Given("A router with a port (both midonet and neutron)")
             var router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
             router = vt.store.get(classOf[Router], router.getId).await()
 
             And("A VPN configuration")
@@ -879,13 +890,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         }
 
         scenario("Container configures the namespace on create") {
-            Given("A router with a port")
+            Given("A router with a port (both midonet and neutron)")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
             And("A VPN configuration")
             val vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
@@ -964,13 +980,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         }
 
         scenario("Container reconfigures the namespace on update") {
-            Given("A router with a port")
+            Given("A router with a port (both midonet and neutron)")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
             And("A VPN configuration")
             var vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
@@ -1143,13 +1164,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         scenario("Container reconfigures the namespace on update, starting " +
                  "with administative state DOWN") {
 
-            Given("A router with a port")
+            Given("A router with a port (both midonet and neutron)")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
             And("A VPN configuration")
             var vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
@@ -1234,13 +1260,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         }
 
         scenario("Container reconfigures the namespace on new IPSec connection") {
-            Given("A router with a port")
+            Given("A router with a port (both midonet and neutron)")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
             And("A VPN configuration with one ipsec connection")
             val vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
@@ -1419,13 +1450,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         }
 
          scenario("Container reconfigures the namespace on new VPN service") {
-             Given("A router with a port")
+             Given("A router with a port (both midonet and neutron)")
              val router = createRouter()
              val port = createRouterPort(routerId = Some(router.getId.asJava),
                                          portAddress = IPv4Addr.random,
                                          portMac = MAC.random(),
                                          interfaceName = Some("if-eth"))
-             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+             val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+             val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+             val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                     gwPortId = Option(neutronPort.getId.asJava))
+             vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                                CreateOp(neutronPort), CreateOp(neutronRouter)))
              And("A VPN configuration with one ipsec connection")
              var vpn1 = createVpnService(
                  routerId = Some(router.getId.asJava),
@@ -1607,13 +1643,14 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
              container.vpnServiceSubscription shouldBe null
         }
 
-        scenario("Container should fail if router has no external port") {
-            Given("A router with a port")
+        scenario("Container should fail if neutron router (configuration) does not exists") {
+            Given("A router with a port (both midonet and neutron)")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+
             And("A VPN configuration")
             val vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
@@ -1639,94 +1676,76 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    groupId = null,
                                    configurationId = router.getId.asJava)
 
-            When("Calling the create method of the container")
-            intercept[IPSecException] {
+            When("Calling the create method of the container should fail")
+            intercept[NotFoundException] {
                 container.create(cp).await()
             }
+        }
+
+        scenario("Container should not fail if neutron router has no external ip") {
+            Given("A router with a port (both midonet and neutron)")
+            val router = createRouter()
+            var port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        portMac = MAC.random(),
+                                        interfaceName = Some("if-eth"))
+            var neutronPort = createNeutronPort()
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
+            neutronPort = vt.store.get(classOf[NeutronPort], neutronPort.getId).await()
+            port = vt.store.get(classOf[Port], port.getId).await()
+
+            And("A VPN configuration")
+            val vpn = createVpnService(
+                routerId = Some(router.getId.asJava),
+                externalIp = Some(IPv4Addr.random))
+            val conn = createIpsecSiteConnection(
+                name = Some(random.nextString(10)),
+                localCidrs = Seq(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(createIkePolicy()),
+                ipsecPolicy = Some(createIpsecPolicy()),
+                vpnServiceId = Some(vpn.getId.asJava))
+            vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
+
+            And("A container")
+            val container = new TestIPSecContainer(vt, executor)
+
+            And("A container port for the VPN service")
+            val cp = ContainerPort(portId = port.getId.asJava,
+                                   hostId = null,
+                                   interfaceName = "if-vpn",
+                                   containerId = null,
+                                   serviceType = null,
+                                   groupId = null,
+                                   configurationId = router.getId.asJava)
+
+            When("Calling the create method of the container shouldn't fail")
+            container.create(cp).await()
 
             And("The container should not call the setup commands")
             container.commands should have size 0
-        }
 
-        scenario("Container should ignore a VPN service without external IP") {
-            Given("A router with a port")
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portMac = MAC.random(),
-                                        interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
-            And("A VPN configuration")
-            val vpn = createVpnService(
-                routerId = Some(router.getId.asJava),
-                externalIp = None)
-            val conn = createIpsecSiteConnection(
-                name = Some(random.nextString(10)),
-                localCidrs = Seq(randomIPv4Subnet),
-                peerCidrs = Seq(randomIPv4Subnet),
-                ikePolicy = Some(createIkePolicy()),
-                ipsecPolicy = Some(createIpsecPolicy()),
-                vpnServiceId = Some(vpn.getId.asJava))
-            vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
+            When("Adding an external ip to the neutron gw port")
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            neutronPort = neutronPort.toBuilder.addAllFixedIps(Set(ipAllocation).asJava).build
+            port = port.toBuilder.setPortAddress(ipAllocation.getIpAddress).build
+            vt.store.multi(Seq(UpdateOp(neutronPort), UpdateOp(port)))
 
-            And("A container")
-            val container = new TestIPSecContainer(vt, executor)
+            And("The container should call the setup commands")
+            container.commands should have size 5
 
-            And("A container port for the VPN service")
-            val cp = ContainerPort(portId = port.getId.asJava,
-                                   hostId = null,
-                                   interfaceName = "if-vpn",
-                                   containerId = null,
-                                   serviceType = null,
-                                   groupId = null,
-                                   configurationId = router.getId.asJava)
+            When("Deleting the container")
+            val vpnServiceSubscription = container.vpnServiceSubscription
+            container.delete().await()
 
-            When("Calling the create method of the container")
-            container.create(cp).await()
+            Then("The container should call the cleanup commands")
+            container.commands should have size 7
 
-            Then("The container should not call the setup commands")
-            container.commands should have size 0
-        }
-
-        scenario("Container should ignore multiple VPN services with distinct external IP addresses") {
-            Given("A router with a port")
-            val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId.asJava),
-                                        portMac = MAC.random(),
-                                        interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
-            And("A VPN configuration")
-            val vpn1 = createVpnService(
-                routerId = Some(router.getId.asJava),
-                externalIp = Some(IPv4Addr.random))
-            val vpn2 = createVpnService(
-                routerId = Some(router.getId.asJava),
-                externalIp = Some(IPv4Addr.random))
-            val conn = createIpsecSiteConnection(
-                name = Some(random.nextString(10)),
-                localCidrs = Seq(randomIPv4Subnet),
-                peerCidrs = Seq(randomIPv4Subnet),
-                ikePolicy = Some(createIkePolicy()),
-                ipsecPolicy = Some(createIpsecPolicy()),
-                vpnServiceId = Some(vpn1.getId.asJava))
-            vt.store.multi(Seq(CreateOp(vpn1), CreateOp(vpn2), CreateOp(conn)))
-
-            And("A container")
-            val container = new TestIPSecContainer(vt, executor)
-
-            And("A container port for the VPN service")
-            val cp = ContainerPort(portId = port.getId.asJava,
-                                   hostId = null,
-                                   interfaceName = "if-vpn",
-                                   containerId = null,
-                                   serviceType = null,
-                                   groupId = null,
-                                   configurationId = router.getId.asJava)
-
-            When("Calling the create method of the container")
-            container.create(cp).await()
-
-            Then("The container should not call the setup commands")
-            container.commands should have size 0
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
         }
 
         scenario("Container should ignore delete if not started") {
@@ -1746,13 +1765,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         }
 
         scenario("Container should handle errors on delete") {
-            Given("A router with a port")
+            Given("A router with a port (both midonet and neutron)")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
             And("A VPN configuration")
             val vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
@@ -1802,13 +1826,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         }
 
         scenario("Container should notify the running state") {
-            Given("A router with a port")
+            Given("A router with a port (both midonet and neutron)")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
             And("A VPN configuration")
             val vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
@@ -1858,13 +1887,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
 
         scenario("Container starts, event with weird name") {
-            Given("A router with a port")
+            Given("A router with a port (both midonet and neutron)")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
-            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            val ipAllocation = createIPAllocation(ipAddress = port.getPortAddress)
+            val neutronPort = createNeutronPort(fixedIps = Option(Set(ipAllocation)))
+            val neutronRouter = createNeutronRouter(id = router.getId.asJava,
+                                                    gwPortId = Option(neutronPort.getId.asJava))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port),
+                               CreateOp(neutronPort), CreateOp(neutronRouter)))
             And("A VPN configuration")
             var vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
