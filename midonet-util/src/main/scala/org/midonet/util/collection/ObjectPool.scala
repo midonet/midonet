@@ -18,11 +18,8 @@ package org.midonet.util.collection
 
 trait ObjectPool[T >: Null] {
     def take: T
-
     def offer(element: T)
-
     def available: Int
-
     def capacity: Int
 }
 
@@ -56,32 +53,29 @@ trait PooledObject {
 
 final class NoOpPool[T >: Null](factory: ObjectPool[T] => T) extends ObjectPool[T] {
     override def take: T = factory(this)
-    override def available: Int = Int.MaxValue
     override def offer(element: T): Unit = { }
+    override def available: Int = Int.MaxValue
     override def capacity: Int = Int.MaxValue
 }
 
-final class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
-                                                  val factory: ObjectPool[T] => T)
+final class ArrayObjectPool[T >: Null : Manifest](
+        val initialCapacity: Int,
+        val factory: ObjectPool[T] => T,
+        val max: Int = Int.MaxValue)
     extends ObjectPool[T] {
 
-    var available = capacity
-    private val pool = new Array[T](capacity)
-
-    {
-        var i = 0
-        while (i < capacity) {
-            pool(i) = factory(this)
-            i += 1
-        }
-    }
+    var available = initialCapacity
+    var capacity = initialCapacity
+    private var pool = new Array[T](capacity)
+    fill(0)
 
     def take: T =
-        if (available == 0) {
-            null
-        } else {
+        if (available > 0) {
             available -= 1
             pool(available)
+        } else {
+            grow()
+            take
         }
 
     def offer(element: T): Unit =
@@ -89,4 +83,26 @@ final class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
             pool(available) = element
             available += 1
         }
+
+    private def fill(from: Int): Unit = {
+        var i = from
+        while (i < pool.length) {
+            pool(i) = factory(this)
+            i += 1
+        }
+    }
+
+    private def grow(): Unit = {
+        val oldCapacity = pool.length
+        val growBy = oldCapacity / 2
+        val newCapacity = oldCapacity + growBy
+        if (newCapacity < 0 || newCapacity > max)
+            throw new Exception("Out of memory for new ManagedFlows " + newCapacity)
+
+        val newPool = new Array[T](newCapacity)
+        Array.copy(pool, 0, newPool, 0, oldCapacity)
+        pool = newPool
+        available += growBy
+        capacity = newCapacity
+    }
 }
