@@ -41,7 +41,7 @@ class FlowControllerTest extends MidolmanSpec {
 
     override def beforeTest(): Unit =
         flowController = TestActorRef(new {
-             val id = 0
+             val workerId = 0
              val flowProcessor = FlowControllerTest.this.flowProcessor
              val flowInvalidator = FlowControllerTest.this.simBackChannel
              val config = FlowControllerTest.this.config

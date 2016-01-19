@@ -58,8 +58,8 @@ object FlowExpirationIndexer {
 trait FlowExpirationIndexer extends FlowIndexer {
     import FlowExpirationIndexer._
 
-    val log: Logger
-    val maxFlows: Int
+    protected val log: Logger
+    protected val maxFlows: Int
 
     private val expirationQueues = new Array[ArrayDeque[ManagedFlow]](maxType)
 
