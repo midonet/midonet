@@ -265,13 +265,23 @@ rpm.doFirst {
         '-d', 'quagga >= 0.99.23',
         '-d', 'iproute',
         '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
-    project.packaging.fpmOpts.addAll([
-        '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
-        '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
-        '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
-        '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
-        '--depends', 'python-setproctitle',
-        '--depends', 'java-1.8.0-openjdk-headless'])
+    if (project.rhelTarget == "el7") {
+        project.packaging.fpmOpts.addAll([
+            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
+            '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
+            '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
+            '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
+            '--depends', 'python-setproctitle',
+            '--depends', 'java-1.8.0-openjdk-headless'])
+    } else { // (project.rhelTarget == "sles12")
+        project.packaging.fpmOpts.addAll([
+            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
+            '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
+            '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
+            '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
+            '--depends', 'iproute2',
+            '--depends', 'java >= 1.7.0'])
+    }
 }
 
 debian.doLast {
