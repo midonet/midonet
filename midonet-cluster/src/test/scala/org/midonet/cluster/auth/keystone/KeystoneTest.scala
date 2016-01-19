@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.auth.keystone.v2
+package org.midonet.cluster.auth.keystone
 
 import java.text.SimpleDateFormat
 import java.util
@@ -25,6 +25,7 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.{Response, UriInfo}
 
+import scala.Error
 import scala.annotation.meta.{getter, param}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -43,8 +44,9 @@ import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Serve
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec}
 
-import org.midonet.cluster.auth.keystone.v2.KeystoneTest.DateFormat.DateFormat
-import org.midonet.cluster.auth.keystone.v2.KeystoneTest.{DateFormat, Error, KeystoneContextListener, KeystoneError}
+import org.midonet.cluster.auth.keystone.KeystoneTest.{Error, KeystoneError, KeystoneContextListener, DateFormat}
+import org.midonet.cluster.auth.keystone.KeystoneTest.DateFormat.DateFormat
+import org.midonet.cluster.auth.keystone.v2._
 
 object KeystoneTest {
 

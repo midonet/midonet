@@ -28,7 +28,7 @@ import com.google.inject.servlet.RequestScoped
 
 import org.apache.commons.lang3.StringUtils
 
-import org.midonet.cluster.auth.keystone.v2.{KeystoneException, KeystoneUnauthorizedException, KeystoneConnectionException}
+import org.midonet.cluster.auth.keystone.{KeystoneConnectionException, KeystoneUnauthorizedException, KeystoneException}
 import org.midonet.cluster.auth.AuthService
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.ResponseUtils._

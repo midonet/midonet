@@ -21,6 +21,7 @@ import com.typesafe.config.ConfigFactory
 import org.scalatest.{GivenWhenThen, FlatSpec, Matchers}
 import org.slf4j.bridge.SLF4JBridgeHandler
 
+import org.midonet.cluster.auth.keystone.{KeystoneClient, KeystoneUnauthorizedException, KeystoneException, KeystoneConfig}
 import org.midonet.conf.MidoTestConfigurator
 
 /**
