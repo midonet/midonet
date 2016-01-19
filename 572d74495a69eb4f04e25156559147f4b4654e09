@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_d5b0a68d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-19T17:13:03Z",
+      "side": 1,
+      "message": "is it missing here too?",
+      "revId": "572d74495a69eb4f04e25156559147f4b4654e09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
