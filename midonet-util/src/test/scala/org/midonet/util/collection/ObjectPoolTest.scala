@@ -20,9 +20,11 @@ import org.junit.runner.RunWith
 import org.scalatest.{Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
+import scala.collection.mutable
+
 @RunWith(classOf[JUnitRunner])
 class ObjectPoolTest extends FeatureSpec with Matchers {
-    val capacity = 10
+    val capacity = 32
 
     feature ("ObjectPool pools objects") {
         var created = 0
@@ -46,7 +48,6 @@ class ObjectPoolTest extends FeatureSpec with Matchers {
             pool.take should be (null)
             pool.available should be (0)
         }
-
     }
 
     feature ("PooledObjects are pooled") {
@@ -74,6 +75,36 @@ class ObjectPoolTest extends FeatureSpec with Matchers {
         scenario ("Can't have negative reference count") {
             intercept[IllegalArgumentException] {
                 pool.take.unref()
+            }
+        }
+    }
+
+    feature ("IndexableObjectPool pools objects") {
+        var created = 0
+        val pool = new IndexableObjectPool[IndexableObjectPool.Indexable](capacity, _ => {
+            created += 1
+            new Object with IndexableObjectPool.Indexable
+        })
+
+        scenario ("objects are pre-allocated") {
+            created should be (capacity)
+        }
+
+        scenario ("objects have an index") {
+            val indexes = 0 until capacity * 4
+            indexes map { _ => pool.take.index } sortBy identity should be (indexes)
+        }
+
+        scenario ("the pool is unbounded") {
+            (0 until capacity * 4) foreach { _ => pool.take should not be null }
+        }
+
+        scenario ("objects are reused") {
+            val set = mutable.Set[IndexableObjectPool.Indexable]()
+            (0 until capacity * 4) foreach { _ => set += pool.take }
+            set foreach pool.offer
+            (0 until capacity * 4) foreach { _ =>
+                set should contain (pool.take)
             }
         }
     }
