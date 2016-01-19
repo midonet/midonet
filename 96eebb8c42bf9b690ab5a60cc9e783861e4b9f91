@@ -22,6 +22,30 @@
       "revId": "96eebb8c42bf9b690ab5a60cc9e783861e4b9f91",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_9283a403",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-19T12:50:11Z",
+      "side": 1,
+      "message": "true, missed this. It\u0027s the same in master.",
+      "parentUuid": "fa81d914_d2e7dc10",
+      "range": {
+        "startLine": 283,
+        "startChar": 33,
+        "endLine": 283,
+        "endChar": 39
+      },
+      "revId": "96eebb8c42bf9b690ab5a60cc9e783861e4b9f91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
