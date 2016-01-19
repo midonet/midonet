@@ -203,6 +203,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_956e2e00",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-19T17:05:30Z",
+      "side": 1,
+      "message": "Sounds right. So I undertand we are not getting the benefits of protobufs binary serialization (where numbers matter) anywhere then? \n\nWe are diverging from the patch. Anyway, seems we agree that changing the numbers while developing is ok.",
+      "parentUuid": "fa81d914_52d12c56",
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_34b116e2",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 2
