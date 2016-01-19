@@ -125,7 +125,8 @@ class MockMidolmanModule(override val hostId: UUID,
     protected override def flowProcessor(
             dpState: DatapathState,
             families: OvsNetlinkFamilies,
-            channelFactory: NetlinkChannelFactory) =
+            channelFactory: NetlinkChannelFactory,
+            backChannel: SimulationBackChannel) =
         new MockFlowProcessor(flowsTable)
 
     protected override def datapathChannel(

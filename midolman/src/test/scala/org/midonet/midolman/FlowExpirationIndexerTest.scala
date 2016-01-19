@@ -31,8 +31,8 @@ class FlowExpirationIndexerTest extends MidolmanSpec {
 
     class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowIndexer {
         val log = Logger(NOPLogger.NOP_LOGGER)
-
-        val maxFlows = 4
+        val workerId = 0
+        val preallocFlows = 4
 
         override def removeFlow(flow: ManagedFlow): Unit =
             flowsRemoved += flow
