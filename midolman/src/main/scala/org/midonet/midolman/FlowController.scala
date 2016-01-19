@@ -19,10 +19,10 @@ package org.midonet.midolman
 import java.util.ArrayList
 
 import akka.actor.{Actor, ActorSystem}
-
 import org.jctools.queues.SpscArrayQueue
 
 import org.midonet.ErrorCode._
+import org.midonet.Util
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.flows.{FlowIndexer, FlowTagIndexer}
@@ -33,7 +33,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
+import org.midonet.util.collection.ArrayObjectPool
 import org.midonet.util.concurrent.{DisruptorBackChannel, NanoClock}
 import org.midonet.util.concurrent.WakerUpper.Parkable
 import org.midonet.util.functors.Callback0
@@ -51,19 +51,26 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     protected val clock: NanoClock
     protected val flowProcessor: FlowProcessor
     protected val datapathId: Int
-    val metrics: PacketPipelineMetrics
+    protected val workerId: Int
+    protected val metrics: PacketPipelineMetrics
 
     implicit val system: ActorSystem
 
-    val maxFlows = ((config.datapath.maxFlowCount / config.simulationThreads) * 1.2).toInt
+    protected val preallocFlows = config.datapath.maxFlowCount / config.simulationThreads
 
-    val meters = new MeterRegistry(maxFlows)
+    private var curIndex = -1
+    private var numFlows = 0
+    private var indexToFlow = new Array[ManagedFlow](
+        Util.findNextPositivePowerOfTwo(preallocFlows))
+    private var mask = indexToFlow.length - 1
+    private val indexShift = 28 // Leave 4 bits for the work ID
+    private val maxFlows = (1 << indexShift) - 1
+
+    val meters = new MeterRegistry(preallocFlows)
     Metering.registerAsMXBean(meters)
 
     private val managedFlowPool = new ArrayObjectPool[ManagedFlow](
-        maxFlows, new ManagedFlow(_))
-    private val oversubscriptionManagedFlowPool = new NoOpPool[ManagedFlow](
-        new ManagedFlow(_))
+        preallocFlows, new ManagedFlow(_), maxFlows)
     private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
         flowProcessor.capacity)
     private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
@@ -72,11 +79,11 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         flowProcessor.capacity)
 
     def addFlow(context: PacketContext, expiration: Expiration): Unit = {
-        val flow = takeFlow()
+        val flow = managedFlowPool.take
         if (context.isRecirc) {
             // Since linked flows are deleted later, and we have to delete
             // the inner packets flow first, make that the main ManagedFlow
-            val outerFlow = takeFlow()
+            val outerFlow = managedFlowPool.take
             outerFlow.reset(
                 context.origMatch, NO_TAGS, NO_CALLBACKS, 0L, expiration, clock.tick)
             flow.reset(
@@ -92,14 +99,30 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         context.log.debug(s"Added flow $flow")
     }
 
-    private def takeFlow() = {
-        val flow = managedFlowPool.take
-        if (flow ne null)
-            flow
-        else
-            oversubscriptionManagedFlowPool.take
-    }
+    /**
+     * Note: by the time this method is called, the flow associated with the
+     * index might already have been re-used, so we might remove a non-duplicate
+     * flow. This is okay.
+     */
+    def duplicateFlow(index: Int): Unit = {
+        if ((index >>> indexShift) != workerId)
+            return
 
+        val flow = indexToFlow(index & mask)
+        if (!flow.removed) {
+            log.debug(s"Removing duplicate flow $flow")
+            super.removeFlow(flow)
+            clearFlowIndex(flow)
+            flow.callbacks.runAndClear()
+            flow.removed = true
+            var flowsRemoved = 1
+            if (flow.linkedFlow ne null) {
+                flowsRemoved += 1
+            }
+            metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
+            flow.unref()
+        }
+    }
 
     override def shouldProcess() = completedFlowOperations.size > 0
 
@@ -110,6 +133,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
 
     override def registerFlow(flow: ManagedFlow): Unit = {
         super.registerFlow(flow)
+        indexFlow(flow)
         meters.trackFlow(flow.flowMatch, flow.tags)
         metrics.dpFlowsMetric.mark()
         flow.ref()
@@ -118,6 +142,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     override def removeFlow(flow: ManagedFlow): Unit =
         if (!flow.removed) {
             super.removeFlow(flow)
+            clearFlowIndex(flow)
             flow.callbacks.runAndClear()
             flow.removed = true
             removeFlowFromDatapath(flow)
@@ -212,6 +237,32 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
                                        flow.flowMatch, flowOp)) {
             processCompletedFlowOperations()
             Thread.`yield`()
+        }
+    }
+
+    private def indexFlow(flow: ManagedFlow): Unit = {
+        numFlows += 1
+        ensureCapacity()
+        var index = 0
+        do {
+            curIndex += 1
+            index = curIndex & mask
+        } while (indexToFlow(index) ne null)
+        indexToFlow(index) = flow
+        flow.index = index | (workerId << indexShift)
+    }
+
+    private def clearFlowIndex(flow: ManagedFlow): Unit = {
+        indexToFlow(flow.index & mask) = null
+        numFlows -= 1
+    }
+
+    private def ensureCapacity(): Unit = {
+        if (numFlows > indexToFlow.length) {
+            val newIndexToFlow = new Array[ManagedFlow](indexToFlow.length * 2)
+            Array.copy(indexToFlow, 0, newIndexToFlow, 0, indexToFlow.length)
+            indexToFlow = newIndexToFlow
+            mask = indexToFlow.length - 1
         }
     }
 }

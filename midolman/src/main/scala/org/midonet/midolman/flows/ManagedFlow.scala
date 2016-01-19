@@ -37,8 +37,11 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
     val flowMatch = new FlowMatch()
     var expirationType = 0
     var absoluteExpirationNanos = 0L
+    // To synchronize create operation with delete operations
     var sequence = 0L
-    var removed = false
+    // To access this object from a netlink sequence number, used for duplicate detection
+    var index = 0
+    var removed = true
     var linkedFlow: ManagedFlow = null
 
     def reset(flowMatch: FlowMatch, flowTags: ArrayList[FlowTag],
