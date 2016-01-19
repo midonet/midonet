@@ -17,12 +17,12 @@
 package org.midonet.util.collection
 
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, FeatureSpec}
+import org.scalatest.{OneInstancePerTest, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ObjectPoolTest extends FeatureSpec with Matchers {
-    val capacity = 10
+class ObjectPoolTest extends FeatureSpec with Matchers with OneInstancePerTest {
+    val capacity = 32
 
     feature ("ObjectPool pools objects") {
         var created = 0
@@ -46,7 +46,6 @@ class ObjectPoolTest extends FeatureSpec with Matchers {
             pool.take should be (null)
             pool.available should be (0)
         }
-
     }
 
     feature ("PooledObjects are pooled") {
