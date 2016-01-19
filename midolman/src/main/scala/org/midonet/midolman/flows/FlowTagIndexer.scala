@@ -24,7 +24,7 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 trait FlowTagIndexer extends FlowIndexer {
     private val tagToFlows = new HashMap[FlowTag, Set[ManagedFlow]]()
-    val log: Logger
+    protected val log: Logger
 
     abstract override def registerFlow(flow: ManagedFlow): Unit = {
         super.registerFlow(flow)
