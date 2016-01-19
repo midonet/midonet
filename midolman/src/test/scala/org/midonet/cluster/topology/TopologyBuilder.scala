@@ -25,7 +25,9 @@ import org.midonet.cluster.models.Commons.{Condition, IPAddress, LBStatus}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.{IkeVersion, Phase1NegotiationMode}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
-import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
+import org.midonet.cluster.models.Neutron.NeutronPort._
+import org.midonet.cluster.models.Neutron.NeutronRouter.ExternalGatewayInfo
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
@@ -243,6 +245,76 @@ trait TopologyBuilder {
             builder.setLoadBalancerId(loadBalancerId.get.asProto)
         if (asNumber.isDefined)
             builder.setAsNumber(asNumber.get)
+        builder.build()
+    }
+
+    def createNeutronRouter(id: UUID = UUID.randomUUID,
+                            name: Option[String] = None,
+                            status: Option[String] = None,
+                            tenantId: Option[String] = None,
+                            gwPortId: Option[UUID] = None,
+                            externalGwInfo: Option[ExternalGatewayInfo] = None,
+                            adminStateUp: Boolean = true,
+                            routes: Option[Set[NeutronRoute]] = None): NeutronRouter = {
+        val builder = NeutronRouter.newBuilder
+            .setId(id.asProto)
+            .setAdminStateUp(adminStateUp)
+        if (status.isDefined) builder.setStatus(status.get)
+        if (tenantId.isDefined) builder.setTenantId(tenantId.get)
+        if (gwPortId.isDefined) builder.setGwPortId(gwPortId.get.asProto)
+        if (externalGwInfo.isDefined) builder.setExternalGatewayInfo(externalGwInfo.get)
+        if (routes.isDefined) builder.addAllRoutes(routes.get.asJava)
+        builder.build()
+    }
+
+    def createNeutronPort(id: UUID = UUID.randomUUID(),
+                          networkId: Option[UUID] = None,
+                          tenantId: Option[String] = None,
+                          name: Option[String] = None,
+                          macAddress: Option[String] = None,
+                          adminStateUp: Boolean = true,
+                          fixedIps: Option[Set[IPAllocation]] = None,
+                          deviceOwner: Option[DeviceOwner] = None,
+                          deviceId: Option[String] = None,
+                          status: Option[String] = None,
+                          securityGroups: Option[Set[UUID]] = None,
+                          hostId: Option[String] = None,
+                          profile: Option[BindingProfile] = None,
+                          portSecurityEnabled: Boolean = true,
+                          allowedAddressPairs: Option[Set[AllowedAddressPair]] = None,
+                          extraDhcpOpts: Option[Set[ExtraDhcpOpts]] = None,
+                          floatingIpIds: Option[Set[UUID]] = None): NeutronPort = {
+        val builder = NeutronPort.newBuilder
+            .setId(id.asProto)
+            .setAdminStateUp(adminStateUp)
+            .setPortSecurityEnabled(portSecurityEnabled)
+        if (fixedIps.isDefined)
+            builder.addAllFixedIps(fixedIps.get.asJava)
+        if (networkId.isDefined) builder.setNetworkId(networkId.get.asProto)
+        if (tenantId.isDefined) builder.setTenantId(tenantId.get)
+        if (name.isDefined) builder.setName(name.get)
+        if (macAddress.isDefined) builder.setMacAddress(macAddress.get)
+        if (deviceOwner.isDefined) builder.setDeviceOwner(deviceOwner.get)
+        if (deviceId.isDefined) builder.setDeviceId(deviceId.get)
+        if (status.isDefined) builder.setStatus(status.get)
+        if (securityGroups.isDefined)
+            builder.addAllSecurityGroups(securityGroups.get.map(_.asProto).asJava)
+        if (hostId.isDefined) builder.setHostId(hostId.get)
+        if (profile.isDefined) builder.setProfile(profile.get)
+        if (allowedAddressPairs.isDefined)
+            builder.addAllAllowedAddressPairs(allowedAddressPairs.get.asJava)
+        if (extraDhcpOpts.isDefined)
+            builder.addAllExtraDhcpOpts(extraDhcpOpts.get.asJava)
+        if (floatingIpIds.isDefined)
+            builder.addAllFloatingIpIds(floatingIpIds.get.map(_.asProto).asJava)
+        builder.build()
+    }
+
+    def createIPAllocation(ipAddress: IPAddress = IPv4Addr.random.asProto,
+                           subnetId: Option[UUID] = None): IPAllocation = {
+        val builder = IPAllocation.newBuilder()
+            .setIpAddress(ipAddress)
+        if (subnetId.isDefined) builder.setSubnetId(subnetId.get.asProto)
         builder.build()
     }
 
@@ -967,8 +1039,6 @@ trait TopologyBuilder {
             builder.setAdminStateUp(adminStateUp.get)
         if (routerId.isDefined)
             builder.setRouterId(routerId.get.asProto)
-        if (externalIp.isDefined)
-            builder.setExternalIp(externalIp.get.asProto)
         builder.build()
     }
 

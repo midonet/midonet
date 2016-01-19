@@ -44,6 +44,17 @@ package object functors {
             override def call(t1: T1, t2: T2, t3: T3, t4: T4, t5: T5): R =
                 fn(t1, t2, t3, t4, t5)
         }
+    def makeFunc6[T1, T2, T3, T4, T5, T6, R](fn: (T1, T2, T3, T4, T5, T6) => R) =
+        new Func6[T1, T2, T3, T4, T5, T6, R] {
+            override def call(t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6): R =
+                fn(t1, t2, t3, t4, t5, t6)
+        }
+    def makeFunc7[T1, T2, T3, T4, T5, T6, T7, R](fn: (T1, T2, T3, T4, T5, T6, T7) => R) =
+        new Func7[T1, T2, T3, T4, T5, T6, T7, R] {
+            override def call(t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6, t7: T7): R =
+                fn(t1, t2, t3, t4, t5, t6, t7)
+        }
+
 
     def makeAction0(fn: => Unit) = new Action0 {
         override def call(): Unit = fn

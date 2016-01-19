@@ -39,6 +39,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         with RuleManager {
     import VpnServiceTranslator._
 
+
     override protected def translateCreate(vpn: VpnService): OperationList = {
         val routerId = vpn.getRouterId
         val router = storage.get(classOf[Router], routerId).await()
@@ -51,29 +52,11 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             case Some(existingVpnService) =>
                 return List(Update(vpn.toBuilder()
                                        .setContainerId(existingVpnService.getContainerId)
-                                       .setExternalIp(existingVpnService.getExternalIp)
                                        .build()))
             case None =>
         }
 
-        val neutronRouter = storage.get(classOf[NeutronRouter], routerId).await()
-        if (!neutronRouter.hasGwPortId) {
-            throw new IllegalArgumentException(
-                "Cannot discover gateway port of router")
-        }
-        val neutronGatewayPort = storage.get(classOf[NeutronPort],
-                                             neutronRouter.getGwPortId).await()
-        val externalIp = if (neutronGatewayPort.getFixedIpsCount > 0) {
-            neutronGatewayPort.getFixedIps(0).getIpAddress
-        } else {
-            throw new IllegalArgumentException(
-                "Cannot discover gateway IP of router")
-        }
-
-        if (externalIp.getVersion != IPVersion.V4) {
-            throw new IllegalArgumentException(
-                "Only IPv4 endpoints are currently supported")
-        }
+        val externalIp = getGatewayIp(routerId)
 
         val containerId = JUUID.randomUUID
         val routerPort = createRouterPort(router)
@@ -120,7 +103,6 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
 
         val modifiedVpnService = vpn.toBuilder()
             .setContainerId(sc.getId)
-            .setExternalIp(externalIp)
             .build()
 
         chainOps ++ redirectRules.map(Create(_)) ++
@@ -145,11 +127,12 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         if (otherServices > 0) {
             List() // do nothing
         } else {
+            val externalIp = getGatewayIp(vpn.getRouterId)
             val chainOps = if (router.hasLocalRedirectChainId) {
                 val chainId = router.getLocalRedirectChainId
                 val chain = storage.get(classOf[Chain], chainId).await()
 
-                val rulesToDelete = findRedirectRules(vpn, chain)
+                val rulesToDelete = findRedirectRules(vpn, chain, externalIp)
                 if (rulesToDelete.size == chain.getRuleIdsCount) {
                     List(Update(router.toBuilder
                                     .clearLocalRedirectChainId()
@@ -188,10 +171,32 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             val newVpn = vpn.toBuilder()
                 .addAllIpsecSiteConnectionIds(oldVpn.getIpsecSiteConnectionIdsList)
                 .setContainerId(oldVpn.getContainerId)
-                .setExternalIp(oldVpn.getExternalIp)
                 .build()
             List(Update(newVpn))
         case _ => super.retainHighLevelModel(op)
+    }
+
+    @throws[IllegalArgumentException]
+    def getGatewayIp(routerId: UUID): IPAddress = {
+        val neutronRouter = storage.get(classOf[NeutronRouter], routerId).await()
+        if (!neutronRouter.hasGwPortId) {
+            throw new IllegalArgumentException(
+                "Cannot discover gateway port of router")
+        }
+        val neutronGatewayPort = storage.get(classOf[NeutronPort],
+                                             neutronRouter.getGwPortId).await()
+        val externalIp = if (neutronGatewayPort.getFixedIpsCount > 0) {
+            neutronGatewayPort.getFixedIps(0).getIpAddress
+        } else {
+            throw new IllegalArgumentException(
+                "Cannot discover gateway IP of router")
+        }
+
+        if (externalIp.getVersion != IPVersion.V4) {
+            throw new IllegalArgumentException(
+                "Only IPv4 endpoints are currently supported")
+        }
+        externalIp
     }
 
     @throws[NoSuchElementException]
@@ -213,8 +218,8 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         builder.build()
     }
 
-    private def findRedirectRules(vpn: VpnService, chain: Chain): List[UUID] = {
-        val localEndpointIp = IPSubnetUtil.fromAddr(vpn.getExternalIp)
+    private def findRedirectRules(vpn: VpnService, chain: Chain, externalIp: IPAddress): List[UUID] = {
+        val localEndpointIp = IPSubnetUtil.fromAddr(externalIp)
 
         storage.getAll(classOf[Rule], chain.getRuleIdsList()).await()
             .filter((r:Rule) => {
