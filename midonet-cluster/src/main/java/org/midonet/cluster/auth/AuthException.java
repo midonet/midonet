@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.auth;
 
-public abstract class AuthException extends Exception {
+public class AuthException extends Exception {
 
     private static final long serialVersionUID = 1L;
 

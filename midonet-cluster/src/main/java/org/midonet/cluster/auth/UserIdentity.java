@@ -18,6 +18,8 @@ package org.midonet.cluster.auth;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.base.MoreObjects;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -50,10 +52,12 @@ public class UserIdentity {
 
     @Override
     public String toString() {
-        return "UserIdentity: userId=" + this.userId +
-               ", token=" + this.token +
-               ", tenantId=" + this.tenantId +
-               ", tenantName=" + this.tenantName +
-               ", roles=" + StringUtils.join(this.roles, '|');
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("userId", userId)
+            .add("token", token)
+            .add("tenantId", tenantId)
+            .add("tenantName", tenantName)
+            .add("roles", StringUtils.join(this.roles, '|'))
+            .toString();
     }
 }
