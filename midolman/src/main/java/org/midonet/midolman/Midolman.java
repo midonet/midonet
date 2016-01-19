@@ -242,9 +242,25 @@ public class Midolman {
             .build();
         curator.start();
 
-        CuratorFramework confCurator = curator.usingNamespace(namespace);
+        curator.blockUntilConnected(30, TimeUnit.SECONDS);
+
+        // Used by the conf system, and namespaced at the $root_key
+        CuratorFramework namespacedCurator = curator.usingNamespace(namespace);
+
+        // Used by the NAT allocator, location varies (see below).
+        CuratorFramework gpCurator = namespacedCurator;
+        if (curator.checkExists().forPath("/nat") != null) {
+            // 1.9.8 introduced a bug whereby nat mappings were stored in /nat
+            // without taking the namespace into account.  If we find it, we
+            // will keep using the path.  Otherwise we'll transition back to
+            // the right location by using the namespacedCurator as the GP
+            // curator.
+            log.info("Keeping 1.9.7 legacy /nat path.");
+            gpCurator = curator;
+        }
+
         MidoNodeConfigurator configurator =
-            MidoNodeConfigurator.apply(confCurator,
+            MidoNodeConfigurator.apply(namespacedCurator,
                                        Option.apply(configFilePath));
 
         if (configurator.deployBundledConfig())
@@ -253,7 +269,7 @@ public class Midolman {
         MidolmanConfig config = MidolmanConfigModule.createConfig(configurator);
 
         injector = Guice.createInjector(
-            new GeneralPurposeCuratorModule(curator),
+            new GeneralPurposeCuratorModule(gpCurator),
             new MidolmanConfigModule(config),
             new MidonetBackendModule(config.zookeeper()),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
