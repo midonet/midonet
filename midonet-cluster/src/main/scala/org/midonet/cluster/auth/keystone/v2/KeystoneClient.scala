@@ -17,7 +17,6 @@
 package org.midonet.cluster.auth.keystone.v2
 
 import java.net.URI
-import java.text.ParsePosition
 import java.time.{ZoneOffset, LocalDateTime, ZonedDateTime}
 import java.time.format.{DateTimeParseException, DateTimeFormatter}
 import java.util.logging.Logger
@@ -49,8 +48,6 @@ object KeystoneClient {
       */
     private val TokenExpirationGuard = 1 minute
 
-    private val ZeroPosition = new ParsePosition(0)
-
     /**
       * Contains information about an administrative token.
       */
@@ -58,7 +55,6 @@ object KeystoneClient {
                                   serverIssueTime: Long,
                                   clientIssueTime: Long,
                                   expirationTime: Long)
-
 
     /**
       * Parses the given timestamp from the two supported date formats: ISO8601

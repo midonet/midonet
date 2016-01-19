@@ -27,6 +27,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import scala.Option$;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -50,6 +52,8 @@ public class LoginFilter implements Filter {
 
     private final static Logger log = LoggerFactory
         .getLogger(package$.MODULE$.authLog());
+
+    public final static String HEADER_X_AUTH_PROJECT = "X-Auth-Project";
 
     protected ServletContext servletContext;
 
@@ -104,10 +108,14 @@ public class LoginFilter implements Filter {
         }
 
         try {
-            Token token = service.login(credList[0], credList[1], request);
+            String project = request.getHeader(HEADER_X_AUTH_PROJECT);
+            if (StringUtils.isBlank(project))
+                project = null;
+
+            Token token = service.authenticate(credList[0], credList[1],
+                                               Option$.MODULE$.apply(project));
             // Set the Cookie
-            ResponseUtils.setCookie(response, token.getKey(),
-                                    token.getExpiresString());
+            ResponseUtils.setCookie(response, token.key, token.getExpiresString());
             // Set the Token object as the body of the response.
             ResponseUtils.setEntity(response, token);
         } catch (AuthException ex) {
