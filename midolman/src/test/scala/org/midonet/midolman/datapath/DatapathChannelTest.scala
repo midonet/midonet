@@ -56,11 +56,9 @@ class DatapathChannelTest extends MidolmanSpec {
     val datapathId = 11
     val datapath = new Datapath(datapathId, "midonet",
                                 new Stats(0, 0, 0, 0), new MegaflowStats(0, 0))
-    private val fp = new FlowProcessor(
-        new DatapathStateDriver(datapath), ovsFamilies, 1024, 2048, factory,
-        factory.selectorProvider, clock)
     val ringBuffer = RingBuffer.createSingleProducer[PacketContextHolder](
         DisruptorDatapathChannel.Factory, capacity)
+    var fp: FlowProcessor = _
     var processor: BackChannelEventProcessor[PacketContextHolder] = _
     var barrier: SequenceBarrier = _
     var dpChannel: DisruptorDatapathChannel = _
@@ -76,6 +74,10 @@ class DatapathChannelTest extends MidolmanSpec {
     }
 
     override def beforeTest(): Unit = {
+        fp = new FlowProcessor(
+            new DatapathStateDriver(datapath), ovsFamilies, maxPendingRequests = 1024,
+            maxRequestSize = 2048, factory, factory.selectorProvider,
+            simBackChannel, clock)
         processor = new BackChannelEventProcessor[PacketContextHolder](
             ringBuffer,
             new AggregateEventPollerHandler(
