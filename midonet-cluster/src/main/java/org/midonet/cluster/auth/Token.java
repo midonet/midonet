@@ -20,65 +20,50 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.util.http.HttpSupport;
 
 /**
- * An API token
+ * An API authentication token.
  */
 public class Token {
 
-    private String key;
+    private static DateFormat formatter =
+        new SimpleDateFormat(HttpSupport.SET_COOKIE_EXPIRES_FORMAT);
 
-    private Date expires;
+    public String key;
 
-    public Token(){
+    @JsonIgnore
+    public Date expires;
+
+    static {
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
+
+    public Token() { }
 
     public Token(String key, Date expires) {
         this.key = key;
         this.expires = expires;
     }
 
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public Date getExpires() {
-        return expires;
-    }
-
-    public void setExpires(Date expires) {
-        this.expires = expires;
-    }
-
     @JsonProperty("expires")
     public String getExpiresString(){
-        return getExpiresString(HttpSupport.SET_COOKIE_EXPIRES_FORMAT);
-    }
-
-    public String getExpiresString(String format) {
-        String expiresGmt = null;
         if (expires != null) {
-            DateFormat df = new SimpleDateFormat(format);
-            df.setTimeZone(TimeZone.getTimeZone("GMT"));
-            expiresGmt = df.format(expires);
+            return formatter.format(expires);
+        } else {
+            return null;
         }
-        return expiresGmt;
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("key=");
-        sb.append(key);
-        sb.append(", expires=");
-        sb.append(expires);
-        return sb.toString();
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("key", key)
+            .add("expires", expires)
+            .toString();
     }
 }
