@@ -185,6 +185,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_52d12c56",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-19T11:40:46Z",
+      "side": 1,
+      "message": "I meant that the way we store Protocol buffers objects in ZK do not use these numbers in any way. It is the field name that matters.",
+      "parentUuid": "fa81d914_0ea799be",
+      "revId": "2b80f513a69b5ea2174053ce5456e9efa426a2fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_34b116e2",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 2
