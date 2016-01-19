@@ -106,8 +106,6 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
                     rtrPort.getId, nPort.getNetworkId, ns.getCidr)
             }
 
-            midoOps ++= updateGatewayRoutesOps(rtrPort.getPortAddress, ns.getId)
-
             // Add dynamic SNAT rules and the reverse SNAT on the router chains
             // so that for any traffic that was DNATed back to the same network
             // would still work by forcing it to come back to the router.  One
