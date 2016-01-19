@@ -19,7 +19,6 @@ package org.midonet.midolman
 import java.util.ArrayList
 
 import akka.actor.{Actor, ActorSystem}
-
 import org.jctools.queues.SpscArrayQueue
 
 import org.midonet.ErrorCode._
@@ -33,7 +32,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
+import org.midonet.util.collection.{IndexableObjectPool, ArrayObjectPool}
 import org.midonet.util.concurrent.{DisruptorBackChannel, NanoClock}
 import org.midonet.util.concurrent.WakerUpper.Parkable
 import org.midonet.util.functors.Callback0
@@ -51,19 +50,31 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     protected val clock: NanoClock
     protected val flowProcessor: FlowProcessor
     protected val datapathId: Int
+    protected val workerId: Int
     val metrics: PacketPipelineMetrics
 
     implicit val system: ActorSystem
 
-    val maxFlows = ((config.datapath.maxFlowCount / config.simulationThreads) * 1.2).toInt
+    // Leave some bits to encode the worker id in a flow's index.
+    private val indexShift = 32 - (Math.log(config.simulationThreads) / Math.log(2)).ceil.toInt
+    private val maxFlows = (1 << indexShift) - 1
+    val preallocFlows = Math.min(
+        ((config.datapath.maxFlowCount / config.simulationThreads) * 1.1).toInt,
+        maxFlows
+    )
 
-    val meters = new MeterRegistry(maxFlows)
+    {
+        log.debug(s"indexShift = $indexShift")
+        log.debug(s"maxFlows = $maxFlows")
+        log.debug(s"mask = ${workerId << indexShift}")
+        log.debug(s"clear meask = ${~(workerId << indexShift)}")
+    }
+
+    val meters = new MeterRegistry(preallocFlows)
     Metering.registerAsMXBean(meters)
 
-    private val managedFlowPool = new ArrayObjectPool[ManagedFlow](
-        maxFlows, new ManagedFlow(_))
-    private val oversubscriptionManagedFlowPool = new NoOpPool[ManagedFlow](
-        new ManagedFlow(_))
+    private val managedFlowPool = new IndexableObjectPool[ManagedFlow](
+        preallocFlows, maxFlows, workerId << indexShift, new ManagedFlow(_))
     private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
         flowProcessor.capacity)
     private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
@@ -72,11 +83,11 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         flowProcessor.capacity)
 
     def addFlow(context: PacketContext, expiration: Expiration): Unit = {
-        val flow = takeFlow()
+        val flow = managedFlowPool.take
         if (context.isRecirc) {
             // Since linked flows are deleted later, and we have to delete
             // the inner packets flow first, make that the main ManagedFlow
-            val outerFlow = takeFlow()
+            val outerFlow = managedFlowPool.take
             outerFlow.reset(
                 context.origMatch, NO_TAGS, NO_CALLBACKS, 0L, expiration, clock.tick)
             flow.reset(
@@ -92,14 +103,27 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         context.log.debug(s"Added flow $flow")
     }
 
-    private def takeFlow() = {
-        val flow = managedFlowPool.take
-        if (flow ne null)
-            flow
-        else
-            oversubscriptionManagedFlowPool.take
+    /**
+     * Note: by the time this method is called, the flow associated with the
+     * index might already have been re-used, so we might remove a non-duplicate
+     * flow. This is okay.
+     */
+    def duplicateFlow(index: Int): Unit = {
+        var flow: ManagedFlow = null
+        if ((index >>> indexShift) == workerId &&
+                {flow = managedFlowPool.get(index); flow}.removed) {
+            log.debug(s"Removing duplicate flow $flow")
+            super.removeFlow(flow)
+            flow.callbacks.runAndClear()
+            flow.removed = true
+            var flowsRemoved = 1
+            if (flow.linkedFlow ne null) {
+                flowsRemoved += 1
+            }
+            metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
+            flow.unref()
+        }
     }
-
 
     override def shouldProcess() = completedFlowOperations.size > 0
 

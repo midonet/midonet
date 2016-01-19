@@ -20,6 +20,7 @@ import java.util.ArrayList
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.util.collection.IndexableObjectPool.Indexable
 import org.midonet.util.collection.{ArrayListUtil, ObjectPool, PooledObject}
 import org.midonet.util.functors.Callback0
 
@@ -30,7 +31,7 @@ import org.midonet.util.functors.Callback0
  * Users should refrain from changing attributes after resetting.
  */
 final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
-        extends PooledObject {
+        extends PooledObject with Indexable {
 
     val callbacks = new ArrayList[Callback0]()
     val tags = new ArrayList[FlowTag]
@@ -38,7 +39,7 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
     var expirationType = 0
     var absoluteExpirationNanos = 0L
     var sequence = 0L
-    var removed = false
+    var removed = true
     var linkedFlow: ManagedFlow = null
 
     def reset(flowMatch: FlowMatch, flowTags: ArrayList[FlowTag],
