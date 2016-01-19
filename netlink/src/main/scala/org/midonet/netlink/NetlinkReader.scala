@@ -28,7 +28,7 @@ import org.midonet.netlink.exceptions.NetlinkException
 
 object NetlinkReader {
     object MessageTruncated extends NetlinkException(NetlinkException.GENERIC_IO_ERROR,
-                                                     "Message truncated") {
+                                                     "Message truncated", 0) {
         override def fillInStackTrace() = this
     }
 
@@ -60,8 +60,9 @@ class NetlinkReader(val channel: NetlinkChannel) {
             if (msgType == NLMessageType.ERROR) {
                 val error = dst.getInt(start + NetlinkMessage.NLMSG_ERROR_OFFSET)
                 if (error != 0) {
+                    val seq = dst.getInt(start + NetlinkMessage.NLMSG_SEQ_OFFSET)
                     val errorMessage = cLibrary.lib.strerror(-error)
-                    throw new NetlinkException(-error, errorMessage)
+                    throw new NetlinkException(-error, errorMessage, seq)
                 }
             } else if (isTruncated(dst, nbytes, start) || msgType == NLMessageType.OVERRUN) {
                 throw MessageTruncated
