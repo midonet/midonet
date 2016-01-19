@@ -30,8 +30,7 @@ import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
-import org.midonet.cluster.services.c3po.translators.RouteManager.{gatewayRouteId, localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
-import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
+import org.midonet.cluster.services.c3po.translators.RouteManager.{localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.util.UUIDUtil.RichJavaUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.util.concurrent.toFutureOps
@@ -139,66 +138,6 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         checkEdgeRouterInterface(rifPortId, hostId, deleteTaskId = 8)
 
-    }
-
-    it should "update gateway routes that use the specified subnet" in {
-
-        val extNwId = UUID.randomUUID()
-        val tntRtr1Id = UUID.randomUUID()
-        val tntRtr2Id = UUID.randomUUID()
-        val edgeRtrId = UUID.randomUUID()
-        val extNwGwPort1Id = UUID.randomUUID()
-        val extNwGwPort2Id = UUID.randomUUID()
-
-        // Create two tenant routers with gateways via external network.
-        createTenantNetwork(2, extNwId, external = true)
-        createSubnet(3, extNwId, "10.0.0.0/16", subnetId)
-        createDhcpPort(4, dhcpPortId, extNwId, subnetId, "10.0.1.2")
-        createRouterGatewayPort(5, extNwGwPort1Id, extNwId, tntRtr1Id,
-                                "10.0.2.1", "ab:cd:ef:00:00:02", subnetId)
-        createRouter(6, tntRtr1Id, extNwGwPort1Id)
-        createRouterGatewayPort(7, extNwGwPort2Id, extNwId, tntRtr2Id,
-                                "10.0.3.1", "ab:cd:ef:00:00:03", subnetId)
-        createRouter(8, tntRtr2Id, extNwGwPort2Id)
-
-        // Get the tenant routers' gateway ports' default route IDs.
-        val tr1GwPortId = tenantGwPortId(extNwGwPort1Id.asProto)
-        val tr1DefRtId = gatewayRouteId(tr1GwPortId)
-        val tr2GwPortId = tenantGwPortId(extNwGwPort2Id.asProto)
-        val tr2DefRtId = gatewayRouteId(tr2GwPortId)
-
-        // Checks whether both ports' default routes have nextHopIp as their
-        // next hop gateway (or that it's undefined if nextHopIp is null).
-        def checkRtNextHopIps(nextHopIp: String): Unit = eventually {
-            val Seq(rt1, rt2) = storage.getAll(
-                classOf[Route], Seq(tr1DefRtId, tr2DefRtId)).await()
-            if (nextHopIp != null) {
-                rt1.hasNextHopGateway shouldBe true
-                rt2.hasNextHopGateway shouldBe true
-                rt1.getNextHopGateway.getAddress shouldBe nextHopIp
-                rt2.getNextHopGateway.getAddress shouldBe nextHopIp
-            } else {
-                rt1.hasNextHopGateway shouldBe false
-                rt2.hasNextHopGateway shouldBe false
-            }
-        }
-
-        // No edge router, so the tenant router default routes have no next hop
-        // gateway IP.
-        checkRtNextHopIps(null)
-
-        // Create edge router and connect external network to it.
-        createRouter(9, edgeRtrId, null)
-        createRouterInterfacePort(10, rifPortId, extNwId, edgeRtrId, "10.0.1.1",
-                                  "12:12:12:12:12:12", subnetId)
-        createRouterInterface(11, edgeRtrId, rifPortId, subnetId)
-
-        // Tenant routers' default routes should now have next hop gateway IPs.
-        checkRtNextHopIps("10.0.1.1")
-
-        // Disconnect edge router; should clear routes' next hop gateway IPs.
-        insertDeleteTask(12, PortType, rifPortId)
-        checkRtNextHopIps(null)
     }
 
     it should "get the router correctly even if not set on the port" in {
