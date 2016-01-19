@@ -26,11 +26,14 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.auth.keystone.v2_0.{KeystoneConnectionException, KeystoneInvalidFormatException, KeystoneServerException, KeystoneUnauthorizedException}
-import org.midonet.cluster.auth.{AuthService, InvalidCredentialsException, Tenant => AuthTenant}
+import org.apache.commons.lang3.StringUtils
+
+import org.midonet.cluster.auth.keystone.v2.{KeystoneException, KeystoneUnauthorizedException, KeystoneConnectionException}
+import org.midonet.cluster.auth.AuthService
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.annotation.ApiResource
+import org.midonet.cluster.rest_api.auth.AuthFilter
 import org.midonet.cluster.rest_api.models.Tenant
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -47,15 +50,25 @@ class TenantResource @Inject()(authService: AuthService,
     @Produces(Array(APPLICATION_TENANT_JSON_V2))
     def get(@PathParam("id") id: String): Tenant = {
         wrapException {
-            asResource(authService.getTenant(id.toString))
+            val token = requestContext.getHeader(AuthFilter.HEADER_X_AUTH_TOKEN)
+
+            val tenant = authService.tenant(token, id.toString)
+            tenant.setBaseUri(uriInfo.getBaseUri)
+            tenant
         }
     }
 
     @GET
     @Produces(Array(APPLICATION_TENANT_COLLECTION_JSON_V2))
-    def list(): java.util.List[_ <: Tenant] = {
+    def list(): java.util.List[Tenant] = {
         wrapException {
-            authService.getTenants(requestContext).asScala.map(asResource).asJava
+            val token = requestContext.getHeader(AuthFilter.HEADER_X_AUTH_TOKEN)
+            val marker = Option(requestContext.getParameter("marker"))
+            val limit = parseLimit(requestContext.getParameter("limit"))
+
+            val tenants = authService.tenants(token, marker, limit)
+            tenants foreach { _.setBaseUri(uriInfo.getBaseUri) }
+            tenants.asJava
         }
     }
 
@@ -81,6 +94,13 @@ class TenantResource @Inject()(authService: AuthService,
                            getMessage(TENANT_UNMODIFIABLE))
     }
 
+    private def parseLimit(limit: String): Option[Int] = {
+        if (StringUtils.isEmpty(limit))
+            return None
+        try { Option(Integer.parseInt(limit)) }
+        catch { case e: Exception => None }
+    }
+
     private def wrapException[T](f: => T): T = {
         try {
             f
@@ -88,26 +108,16 @@ class TenantResource @Inject()(authService: AuthService,
             case e: KeystoneConnectionException =>
                 throw new ServiceUnavailableHttpException(
                     "Keystone identity service is not available")
-            case e: KeystoneInvalidFormatException =>
-                throw new BadRequestHttpException(e)
-            case e: KeystoneServerException =>
-                throw new ServiceUnavailableHttpException(
-                    s"Keystone identity service returned an error: " +
-                    s"${e.getMessage}")
             case e: KeystoneUnauthorizedException =>
                 throw new UnauthorizedHttpException(
                     s"Keystone credentials are not valid")
-            case e: InvalidCredentialsException =>
-                throw new UnauthorizedHttpException(
-                    s"Authentication service credentials are not valid")
+            case e: KeystoneException =>
+                throw new ServiceUnavailableHttpException(
+                    s"Keystone identity service returned an error: " +
+                    s"${e.getMessage}")
             case NonFatal(e) =>
                 throw new InternalServerErrorHttpException(e.getMessage)
         }
-    }
-
-    private def asResource(tenant: AuthTenant): Tenant = {
-        new Tenant(uriInfo.getBaseUri, tenant.getId, tenant.getName,
-                   tenant.getDescription, tenant.isEnabled)
     }
 
 }

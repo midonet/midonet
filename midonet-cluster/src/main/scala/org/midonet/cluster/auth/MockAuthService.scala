@@ -17,12 +17,13 @@
 package org.midonet.cluster.auth
 
 import java.util
-import javax.servlet.http.HttpServletRequest
 
 import scala.collection.JavaConversions._
 
 import com.google.inject.Inject
 import com.typesafe.config.Config
+
+import org.midonet.cluster.rest_api.models.Tenant
 
 /**
  * An implementation of the [[AuthService]] that always returns the admin tenant
@@ -30,53 +31,35 @@ import com.typesafe.config.Config
  */
 class MockAuthService @Inject()(conf: Config) extends AuthService {
 
-    val mockAdminTenant = new Tenant {
-        override def getName: String = "admin"
-        override def getId: String = "admin"
-        override def getDescription: String = "Admin Tenant"
-        override def isEnabled: Boolean = true
-    }
-
+    val mockAdminTenant =
+        new Tenant("admin", "admin", "Admin Tenant", true)
     val adminToken = "00000000"
 
     private val tenants = new util.HashMap[String, Tenant]()
 
     // Allow tests to manipulate it
-    def addTenant(id: String, name: String): Unit = tenants.put (
-        id,
-        new Tenant {
-            override def getName: String = id
-            override def getId: String = name
-            override def getDescription: String = name
-            override def isEnabled: Boolean = true
-        }
-    )
+    def addTenant(id: String, name: String): Unit = {
+        tenants.put(id, new Tenant(id, name, name, true))
+    }
 
-    override def getUserIdentityByToken(token: String): UserIdentity = {
-        val uid = new UserIdentity(
-            mockAdminTenant.getId,
-            mockAdminTenant.getName,
-            mockAdminTenant.getId + "-user",
-            token
-        )
+    override def authenticate(username: String, password: String,
+                              tenant: Option[String]): Token = {
+        new Token(adminToken, null)
+    }
+
+    override def authorize(token: String): UserIdentity = {
+        val uid = new UserIdentity(mockAdminTenant.id, mockAdminTenant.name,
+                                   mockAdminTenant.id + "-user", token)
         uid.addRole(AuthRole.ADMIN)
         uid
     }
 
-    override def getTenants(request: HttpServletRequest): util.List[Tenant] = {
-        tenants.values().toList
+    override def tenant(token: String, id: String): Tenant = {
+        new Tenant(id, id, id, true)
     }
 
-    override def getTenant(id: String): Tenant = new Tenant {
-        override def getName: String = id
-        override def getId: String = id
-        override def getDescription: String = id
-        override def isEnabled: Boolean = true
+    override def tenants(token: String, marker: Option[String], limit: Option[Int])
+    : Seq[Tenant] = {
+        tenants.values().toSeq
     }
-
-    override def login(username: String, password: String,
-                       request: HttpServletRequest): Token = {
-        new Token(adminToken, null)
-    }
-
 }

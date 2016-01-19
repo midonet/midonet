@@ -19,6 +19,7 @@ import java.net.URI;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import static org.midonet.cluster.rest_api.ResourceUris.BRIDGES;
@@ -40,16 +41,22 @@ public class Tenant extends UriResource {
     public String description;
     public boolean enabled;
 
-    public Tenant(){
-    }
+    public Tenant() { }
 
-    public Tenant(URI baseUri, String id, String name, String description,
-                  boolean enabled) {
+    public Tenant(String id, String name, String description, boolean enabled) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.enabled = enabled;
-        this.setBaseUri(baseUri);
+    }
+
+    public Tenant(URI baseUri, String id, String name, String description,
+                  boolean enabled) {
+        setBaseUri(baseUri);
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.enabled = enabled;
     }
 
     @Override
@@ -87,11 +94,13 @@ public class Tenant extends UriResource {
 
     @Override
     public String toString() {
-        return "Tenant { id = " + id +
-               ", name = " + name +
-               ", description = " + description +
-               ", enabled = " + enabled +
-               ", uri = " + getUri() + "}";
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("id", id)
+            .add("name", name)
+            .add("description", description)
+            .add("enabled", enabled)
+            .add("uri", getUri())
+            .toString();
     }
 
     @Override
