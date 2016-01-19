@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_728c7036",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortTracker.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-19T12:50:38Z",
+      "side": 1,
+      "message": "OK, got it!",
+      "parentUuid": "fa81d914_54967f95",
+      "range": {
+        "startLine": 80,
+        "startChar": 12,
+        "endLine": 80,
+        "endChar": 34
+      },
+      "revId": "f07281a45a92cbec40eff02d621c7f4f9d972328",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_31183d81",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
         "patchSetId": 3
