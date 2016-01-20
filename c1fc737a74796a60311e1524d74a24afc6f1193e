@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_a6594600",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-20T10:04:31Z",
+      "side": 1,
+      "message": "I think this should be added to the router port (I think there\u0027s logic in the bridge port preventing this to happen)",
+      "revId": "c1fc737a74796a60311e1524d74a24afc6f1193e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
