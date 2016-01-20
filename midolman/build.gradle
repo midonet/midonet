@@ -286,7 +286,7 @@ rpm.doFirst {
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
             '--depends', 'iproute2',
-            '--depends', 'java >= 1.7.0'])
+            '--depends', 'java >= 1.8.0'])
     }
 }
 
