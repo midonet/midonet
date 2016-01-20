@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,34 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state;
+package org.midonet.midolman.state
 
-import org.midonet.util.functors.Callback;
+import scala.concurrent.Future
+
+object NatBlockAllocator {
+    object NoFreeNatBlocksException extends Exception {
+        override def fillInStackTrace(): Throwable = this
+    }
+}
 
 /**
  * Allocated NAT blocks consisting of an IP address and a fixed-size range of
  * 64 contiguous ports.
  */
-public interface NatBlockAllocator {
+trait NatBlockAllocator {
+
     /**
      * Asynchronously allocates a block from the specified range.
      *
-     * @param natBlock The NatRange specifying the allowed range (of any size).
-     * @param callback Used to return the NatBlock identifying the assigned 64
-     *                 port range or NatBlock.NO_BLOCK if none was found.
-     *
-     * TODO: Use java.util.Optional<NatBlock> when we move to Java8
+     * @param natRange The NatRange specifying the allowed range (of any size).
+     * @return         The future completed with the NatBlock identifying the
+     *                 assigned 64 port range or failed with the
+     *                 NoFreeNatBlocksException.
      */
-    void allocateBlockInRange(NatRange natRange,
-                              Callback<NatBlock, Exception> callback);
+    def allocateBlockInRange(natRange: NatRange): Future[NatBlock]
 
     /**
      * Asynchronously frees the specified block.
      */
-    void freeBlock(NatBlock natBlock);
+    def freeBlock(natBlock: NatBlock): Unit
 }
