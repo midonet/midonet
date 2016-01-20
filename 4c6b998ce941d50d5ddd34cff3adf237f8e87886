@@ -96,6 +96,46 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_8c78e390",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-20T15:14:35Z",
+      "side": 1,
+      "message": "nit: maybe a Try().recoverWith(Try()) would\u0027ve been more idiomatic, but don\u0027t bother changing.",
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0c64f3e3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-20T15:14:35Z",
+      "side": 1,
+      "message": "is this right? shouldn\u0027t we choke somehow if the format is not correct?",
+      "range": {
+        "startLine": 76,
+        "startChar": 58,
+        "endLine": 76,
+        "endChar": 60
+      },
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_8608c292",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneDtos.scala",
         "patchSetId": 1
