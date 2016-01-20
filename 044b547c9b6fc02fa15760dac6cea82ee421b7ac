@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_0cd95383",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/HeartBeatEnabled.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2016-01-20T16:21:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_4690a395",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 73
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c6a57305",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/HeartBeatEnabled.scala",
         "patchSetId": 14
@@ -353,6 +377,30 @@
       "writtenOn": "2016-01-13T13:57:54Z",
       "side": 1,
       "message": "You mean connect to another broker right? This is actually something simple to do and could be completed.",
+      "range": {
+        "startLine": 178,
+        "startChar": 8,
+        "endLine": 178,
+        "endChar": 43
+      },
+      "revId": "044b547c9b6fc02fa15760dac6cea82ee421b7ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ecc4ff93",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2016-01-20T16:21:32Z",
+      "side": 1,
+      "message": "I implemented it in a simple way, but what should the logic actually be? Retry indefinitely or a maximum amount of times, and with exponential backoff?",
+      "parentUuid": "fa81d914_86fffb00",
       "range": {
         "startLine": 178,
         "startChar": 8,
