@@ -21,13 +21,12 @@ import scala.collection.JavaConverters._
 import org.midonet.cluster.data.storage.{StateTableStorage, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{NeutronSubnet, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Update, Create, Delete}
-import org.midonet.cluster.services.c3po.midonet.CreateNode
 import org.midonet.cluster.util.IPSubnetUtil
-import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ICMP
 import org.midonet.util.concurrent.toFutureOps
@@ -131,13 +130,6 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         val subnetId = nGwPort.getFixedIps(0).getSubnetId
         val dhcp = storage.get(classOf[Dhcp], subnetId).await()
 
-        // Create port on tenant router and link to the external network port.
-        // Do not create a network route for floating IP because we want the
-        // FIP traffic to go to the uplink router.  The reason is that midolman
-        // agent has a safe-guard mechanism in which the traffic that ingresses
-        // and egresses on the same network port gets dropped.  Thus, we cannot
-        // rely on the ARP/MAC tables of the external network to bounce the
-        // traffic back to the tenant router.
         val trPortId = tenantGwPortId(nr.getGwPortId)
         val gwMac = if (nGwPort.hasMacAddress) Some(nGwPort.getMacAddress)
                     else None
@@ -145,6 +137,13 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                                            dhcp.getSubnetAddress, gwIpAddr,
                                            mac = gwMac)
         val linkOps = linkPortOps(trPort, extNwPort)
+
+        val ns = storage.get(classOf[NeutronSubnet], subnetId).await()
+        val rifRoute = newNextHopPortRoute(
+            nextHopPortId = trPortId,
+            id = routerInterfaceRouteId(trPortId),
+            srcSubnet = IPSubnetUtil.univSubnet4,
+            dstSubnet = ns.getCidr)
 
         val defaultRoute = defaultGwRoute(dhcp, trPortId)
 
@@ -154,6 +153,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ops += Create(trPort)
         ops ++= linkOps
         ops += Create(defaultRoute)
+        ops += Create(rifRoute)
         ops ++= snatOps
 
         ops.toList
