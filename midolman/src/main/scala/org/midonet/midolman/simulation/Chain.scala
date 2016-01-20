@@ -79,7 +79,14 @@ case class Chain(id: UUID,
             val rule = rules.get(i)
             i += 1
             res = rule.process(context)
-            context.recordTraversedRule(rule.id, res)
+
+            if (rule.id == null) {
+                context.log.warn(
+                    s"$rule has no id, this is a bug. Please report.")
+            } else {
+                context.recordTraversedRule(rule.id, res)
+            }
+
             if (res.action eq Action.JUMP)
                 res = jump(context, res.jumpToChain, traversedChains)
         }

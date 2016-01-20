@@ -247,8 +247,10 @@ public class TestRules {
         UUID requestId = UUID.randomUUID();
         UUID requestId2 = UUID.randomUUID();
 
-        Rule rule = new TraceRule(requestId, cond, Long.MAX_VALUE);
-        Rule rule2 = new TraceRule(requestId2, cond, Long.MAX_VALUE);
+        Rule rule = new TraceRule(requestId, cond,
+                                  Long.MAX_VALUE, UUID.randomUUID());
+        Rule rule2 = new TraceRule(requestId2, cond,
+                                   Long.MAX_VALUE, UUID.randomUUID());
 
         Ethernet eth = createTracePacket();
         pktCtx = new PacketContext(1, new Packet(eth, pktMatch),
@@ -299,7 +301,7 @@ public class TestRules {
         UUID requestId = UUID.randomUUID();
 
         long limit = 10;
-        Rule rule = new TraceRule(requestId, cond, 10);
+        Rule rule = new TraceRule(requestId, cond, 10, UUID.randomUUID());
 
         Ethernet eth = createTracePacket();
         PacketContext pktCtx;
