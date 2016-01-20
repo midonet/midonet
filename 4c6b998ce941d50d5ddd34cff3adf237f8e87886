@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_46edeaee",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/v2/KeystoneIntegrationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-20T10:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_e6133e5a",
+      "range": {
+        "startLine": 236,
+        "startChar": 35,
+        "endLine": 236,
+        "endChar": 43
+      },
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_060f722f",
         "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/v2/KeystoneIntegrationTest.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_66bbcee5",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/v2/KeystoneIntegrationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-20T10:31:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_060f722f",
+      "range": {
+        "startLine": 246,
+        "startChar": 35,
+        "endLine": 246,
+        "endChar": 43
+      },
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c6247ab1",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClientTest.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-01-20T09:11:11Z",
       "side": 1,
       "message": "where do you specify that the token is of Fernet type? or the only difference is how the token timestamp is parsed?",
+      "range": {
+        "startLine": 134,
+        "startChar": 52,
+        "endLine": 134,
+        "endChar": 65
+      },
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_26f2b6d2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClientTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-20T10:31:25Z",
+      "side": 1,
+      "message": "Yes, the difference is in the timestamp format, which has microsecond resolution and some ISO8601 parsers don\u0027t handle well.",
+      "parentUuid": "fa81d914_c6247ab1",
       "range": {
         "startLine": 134,
         "startChar": 52,
