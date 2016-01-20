@@ -26,15 +26,15 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{GivenWhenThen, Matchers}
 
 import org.midonet.cluster.auth.keystone.KeystoneTest.DateFormat
-import org.midonet.cluster.auth.keystone.v2.KeystoneVersion
 import org.midonet.conf.MidoTestConfigurator
 
 @RunWith(classOf[JUnitRunner])
 class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
 
-    private def clientWithoutAdmin: KeystoneClient = {
+    private def clientWithoutAdmin(version: Int): KeystoneClient = {
         val configStr =
             s"""
+               |cluster.auth.keystone.version : $version
                |cluster.auth.keystone.protocol : $keystoneProtocol
                |cluster.auth.keystone.host : $keystoneHost
                |cluster.auth.keystone.port : $keystonePort
@@ -44,9 +44,10 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
         new KeystoneClient(new KeystoneConfig(config))
     }
 
-    private def clientWithToken: KeystoneClient = {
+    private def clientWithToken(version: Int): KeystoneClient = {
         val configStr =
             s"""
+               |cluster.auth.keystone.version : $version
                |cluster.auth.keystone.protocol : $keystoneProtocol
                |cluster.auth.keystone.host : $keystoneHost
                |cluster.auth.keystone.port : $keystonePort
@@ -57,9 +58,10 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
         new KeystoneClient(new KeystoneConfig(config))
     }
 
-    private def clientWithPassword: KeystoneClient = {
+    private def clientWithPassword(version: Int): KeystoneClient = {
         val configStr =
             s"""
+               |cluster.auth.keystone.version : $version
                |cluster.auth.keystone.protocol : $keystoneProtocol
                |cluster.auth.keystone.host : $keystoneHost
                |cluster.auth.keystone.port : $keystonePort
@@ -73,7 +75,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
     }
 
     "Client" should "handle get version" in {
-        val client = clientWithoutAdmin
+        val client = clientWithoutAdmin(2)
         val keystoneVersion = client.getVersion
         keystoneVersion.getClass shouldBe classOf[KeystoneVersion]
         keystoneVersion.version.status shouldBe "stable"
@@ -81,12 +83,11 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
     }
 
     "Client" should "handle authentication with password" in {
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
-        keystoneAccess.access.token should not be null
-        keystoneAccess.access.user.userName shouldBe keystoneUser
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+        auth.token should not be null
+        auth.user.name shouldBe keystoneUser
     }
 
     "Client" should "parse ISO8601 date format UTC" in {
@@ -123,65 +124,75 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
         dateFormat = DateFormat.Iso8601
         currentTime = ISO8601Utils.parse("2016-01-01T00:00:00Z",
                                          new ParsePosition(0)).getTime
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
-        keystoneAccess.access.token should not be null
-        keystoneAccess.access.token.issuedAt shouldBe "2016-01-01T00:00:00Z"
-        keystoneAccess.access.token.expires shouldBe "2016-01-01T00:30:00Z"
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+        auth.token should not be null
+        auth.token.issuedAt shouldBe "2016-01-01T00:00:00Z"
+        auth.token.expiresAt shouldBe "2016-01-01T00:30:00Z"
     }
 
     "Client" should "handle ISO8601 date format for Fernet tokens" in {
         dateFormat = DateFormat.Iso8601Micro
         currentTime = ISO8601Utils.parse("2016-01-01T00:00:00Z",
                                          new ParsePosition(0)).getTime
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
-        keystoneAccess.access.token should not be null
-        keystoneAccess.access.token.issuedAt shouldBe "2016-01-01T00:00:00.000000Z"
-        keystoneAccess.access.token.expires shouldBe "2016-01-01T00:30:00.000000Z"
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+        auth.token should not be null
+        auth.token.issuedAt shouldBe "2016-01-01T00:00:00.000000Z"
+        auth.token.expiresAt shouldBe "2016-01-01T00:30:00.000000Z"
+    }
+
+    "Client" should "handle tokens that never expire" in {
+        tokenNeverExpires = true
+        val client = clientWithToken(2)
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+        auth.token should not be null
+        auth.token.expiresAt shouldBe null
+
+        auth = client.validate(auth.token.id, tenantScope = false)
+        auth.token should not be null
+        auth.user.name shouldBe keystoneUser
+        tokenNeverExpires = false
     }
 
     "Client" should "handle authentication with token" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        var keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Authenticating with the token should succeed")
-        keystoneAccess = client.authenticate(keystoneTenant,
-                                             keystoneAccess.access.token.id)
-        keystoneAccess.access.token should not be null
-        keystoneAccess.access.user.userName shouldBe keystoneUser
+        auth = client.authenticate(keystoneTenant, auth.token.id)
+        auth.token should not be null
+        auth.user.name shouldBe keystoneUser
     }
 
     "Client" should "fail authentication for invalid tenant" in {
-        val client = clientWithoutAdmin
+        val client = clientWithoutAdmin(2)
         intercept[KeystoneUnauthorizedException] {
             client.authenticate("no-tenant", keystoneUser, keystonePassword)
         }
     }
 
     "Client" should "fail authentication for invalid user name" in {
-        val client = clientWithoutAdmin
+        val client = clientWithoutAdmin(2)
         intercept[KeystoneUnauthorizedException] {
             client.authenticate(keystoneTenant, "no-user", keystonePassword)
         }
     }
 
     "Client" should "fail authentication for invalid password" in {
-        val client = clientWithoutAdmin
+        val client = clientWithoutAdmin(2)
         intercept[KeystoneUnauthorizedException] {
             client.authenticate(keystoneTenant, keystoneUser, "no-password")
         }
     }
 
     "Client" should "fail authentication for invalid token" in {
-        val client = clientWithoutAdmin
+        val client = clientWithoutAdmin(2)
         intercept[KeystoneUnauthorizedException] {
             client.authenticate(keystoneTenant, "no-token")
         }
@@ -189,95 +200,84 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
 
     "Client" should "validate a valid token for any tenant with admin token" in {
         Given("A valid token")
-        val client = clientWithToken
-        var keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithToken(2)
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Validating the token succeeds")
-        keystoneAccess = client.validate(keystoneAccess.access.token.id,
-                                         tenantScope = false)
-        keystoneAccess.access.token should not be null
-        keystoneAccess.access.user.userName shouldBe keystoneUser
+        auth = client.validate(auth.token.id, tenantScope = false)
+        auth.token should not be null
+        auth.user.name shouldBe keystoneUser
     }
 
     "Client" should "validate a valid token for any tenant with admin password" in {
         Given("A valid token")
-        val client = clientWithPassword
-        var keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithPassword(2)
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Validating the token succeeds")
-        keystoneAccess = client.validate(keystoneAccess.access.token.id,
-                                         tenantScope = false)
-        keystoneAccess.access.token should not be null
-        keystoneAccess.access.user.userName shouldBe keystoneUser
+        auth = client.validate(auth.token.id, tenantScope = false)
+        auth.token should not be null
+        auth.user.name shouldBe keystoneUser
     }
 
     "Client" should "fail validating a token for any tenant when admin " +
                     "credentials not set" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        var keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            keystoneAccess = client.validate(keystoneAccess.access.token.id,
-                                             tenantScope = false)
+            auth = client.validate(auth.token.id, tenantScope = false)
         }
     }
 
     "Client" should "validate a valid token for current tenant with admin " +
                     "token" in {
         Given("A valid token")
-        val client = clientWithToken
-        var keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithToken(2)
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Validating the token succeeds")
-        keystoneAccess = client.validate(keystoneAccess.access.token.id,
+        auth = client.validate(auth.token.id,
                                          tenantScope = true)
-        keystoneAccess.access.token should not be null
-        keystoneAccess.access.user.userName shouldBe keystoneUser
+        auth.token should not be null
+        auth.user.name shouldBe keystoneUser
     }
 
     "Client" should "validate a valid token for current tenant with admin " +
                     "password" in {
         Given("A valid token")
-        val client = clientWithPassword
-        var keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithPassword(2)
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Validating the token succeeds")
-        keystoneAccess = client.validate(keystoneAccess.access.token.id,
-                                         tenantScope = true)
-        keystoneAccess.access.token should not be null
-        keystoneAccess.access.user.userName shouldBe keystoneUser
+        auth = client.validate(auth.token.id, tenantScope = true)
+        auth.token should not be null
+        auth.user.name shouldBe keystoneUser
     }
 
     "Client" should "fail validating a token for current tenant when admin" +
                     " credentials not set" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        var keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            keystoneAccess = client.validate(keystoneAccess.access.token.id,
-                                             tenantScope = true)
+            auth = client.validate(auth.token.id, tenantScope = true)
         }
     }
 
     "Client" should "fail validate a non-existing token with admin token" in {
         Given("A valid token")
-        val client = clientWithToken
+        val client = clientWithToken(2)
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
@@ -287,7 +287,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
 
     "Client" should "fail validate a non-existing token with admin password" in {
         Given("A client")
-        val client = clientWithPassword
+        val client = clientWithPassword(2)
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
@@ -297,157 +297,142 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
 
     "Client" should "fail validate an expired token obtained with admin token" in {
         Given("A valid token")
-        val client = clientWithToken
-        var keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithToken(2)
+        var auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Validating the token succeeds")
-        keystoneAccess = client.validate(keystoneAccess.access.token.id,
-                                         tenantScope = true)
+        auth = client.validate(auth.token.id, tenantScope = true)
 
         When("The token expires")
         currentTime = currentTime + tokenLifetime
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            client.validate(keystoneAccess.access.token.id, tenantScope = false)
+            client.validate(auth.token.id, tenantScope = false)
         }
     }
 
     "Client" should "list users" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Listing the users succeeds")
-        val keystoneUsers = client.listUsers(keystoneAccess.access.token.id)
+        val keystoneUsers = client.listUsers(auth.token.id)
         keystoneUsers.users should not be empty
     }
 
 
     "Client" should "get user by name and by identifier" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Get the user by name succeeds")
         val userByName = client.getUserByName(keystoneUser,
-                                              keystoneAccess.access.token.id)
+                                              auth.token.id)
         userByName.user.name shouldBe keystoneUser
 
         And("Get the user by identifier succeeds")
-        val userById = client.getUserById(userByName.user.id,
-                                          keystoneAccess.access.token.id)
+        val userById = client.getUserById(userByName.user.id, auth.token.id)
         userById.user.name shouldBe keystoneUser
     }
 
     "Client" should "fail get non-existing user name" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Get the user by name fails")
         intercept[KeystoneException] {
-            client.getUserByName("some-name", keystoneAccess.access.token.id)
+            client.getUserByName("some-name", auth.token.id)
         }
     }
 
     "Client" should "fail get non-existing user identifier" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Get the user by identifier fails")
         intercept[KeystoneException] {
-            client.getUserById("some-id", keystoneAccess.access.token.id)
+            client.getUserById("some-id", auth.token.id)
         }
     }
 
     "Client" should "list tenants" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Listing the tenants succeeds")
-        val keystoneTenants = client.listTenants(keystoneAccess.access.token.id)
+        val keystoneTenants = client.listTenants(auth.token.id)
         keystoneTenants.tenants should not be empty
     }
 
     "Client" should "get tenant by name and by identifier" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Get the tenant by name succeeds")
         val tenantByName = client.getTenantByName(keystoneTenant,
-                                                  keystoneAccess.access.token.id)
+                                                  auth.token.id)
         tenantByName.tenant.name shouldBe keystoneTenant
 
         And("Get the tenant by identifier succeeds")
         val tenantById = client.getTenantById(tenantByName.tenant.id,
-                                              keystoneAccess.access.token.id)
+                                              auth.token.id)
         tenantById.tenant.name shouldBe keystoneTenant
     }
 
     "Client" should "fail get non-existing tenant name" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Get the tenant by name fails")
         intercept[KeystoneException] {
-            client.getTenantByName("some-name", keystoneAccess.access.token.id)
+            client.getTenantByName("some-name", auth.token.id)
         }
     }
 
     "Client" should "fail get non-existing tenant identifier" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         Then("Get the tenant by identifier fails")
         intercept[KeystoneException] {
-            client.getTenantById("some-id", keystoneAccess.access.token.id)
+            client.getTenantById("some-id", auth.token.id)
         }
 
     }
 
     "Client" should "get tenant user roles" in {
         Given("A valid token")
-        val client = clientWithoutAdmin
-        val keystoneAccess = client.authenticate(keystoneTenant,
-                                                 keystoneUser,
-                                                 keystonePassword)
+        val client = clientWithoutAdmin(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
 
         When("Get the tenant by name")
-        val tenant = client.getTenantByName(keystoneTenant,
-                                            keystoneAccess.access.token.id)
+        val tenant = client.getTenantByName(keystoneTenant, auth.token.id)
 
         And("Get the user by name")
-        val user = client.getUserByName(keystoneUser,
-                                        keystoneAccess.access.token.id)
+        val user = client.getUserByName(keystoneUser, auth.token.id)
 
         Then("Get the tenant user roles succeeds")
-        val roles = client.getTenantUserRoles(tenant.tenant.id,
-                                              user.user.id,
-                                              keystoneAccess.access.token.id)
+        val roles = client.getTenantUserRoles(tenant.tenant.id, user.user.id,
+                                              auth.token.id)
         roles.roles should not be empty
     }
 
