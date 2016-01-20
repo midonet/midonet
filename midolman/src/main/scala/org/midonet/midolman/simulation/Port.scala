@@ -207,7 +207,11 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         context.addFlowTag(txTag)
         context.outPortId = id
 
-        next(context)
+        if (context.wcmatch.getEthSrc == context.wcmatch.getEthDst) {
+            ingress(context)
+        } else {
+            next(context)
+        }
     }
 
     def egress(context: PacketContext): SimulationResult = {
