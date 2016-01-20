@@ -140,7 +140,14 @@ trait SimDevice {
     final def continue(context: PacketContext, simRes: Result): Result =
         simRes match {
             case ToPortAction(port) =>
-                continue(context, tryGet[Port](port).egress(context))
+                val srcEth = context.wcmatch.getEthSrc
+                val dstEth = context.wcmatch.getEthDst
+                val p = tryGet[Port](port)
+                if (srcEth == dstEth) {
+                    continue(context, p.ingress(context))
+                } else {
+                    continue(context, p.egress(context))
+                }
             case ContinueWith(step) =>
                 continue(context, step(context))
             case f: ForkAction =>
