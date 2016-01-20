@@ -16,6 +16,23 @@
       "revId": "c1fc737a74796a60311e1524d74a24afc6f1193e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_066e9296",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/RouterSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2016-01-20T10:05:27Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand the test. Your patch makes changes in Simulator, and yet you are using \"simulateDevice\" which simulates the device directly, it\u0027s not executing the code path you changed.\n\nAlso, regardless, I don\u0027t see how the asserts and the test really would test the changes.",
+      "revId": "c1fc737a74796a60311e1524d74a24afc6f1193e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
