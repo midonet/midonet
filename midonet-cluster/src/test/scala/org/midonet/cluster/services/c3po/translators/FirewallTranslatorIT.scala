@@ -348,7 +348,7 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
         var r: Rule = null
         if (!adminStateUp) {
             r = storage.get(classOf[Rule], chain.getRuleIds(index)).await()
-            r.getAction shouldBe Action.RETURN
+            r.getAction shouldBe Action.DROP
             index += 1
         }
 
@@ -374,7 +374,7 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         if (!adminStateUp) {
             val r = storage.get(classOf[Rule], chain.getRuleIds(0)).await()
-            r.getAction shouldBe Action.RETURN
+            r.getAction shouldBe Action.DROP
         }
 
         val r = storage.get(classOf[Rule],

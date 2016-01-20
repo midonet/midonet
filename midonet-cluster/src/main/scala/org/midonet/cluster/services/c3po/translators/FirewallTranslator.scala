@@ -43,9 +43,11 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         val chainId = inChainId(fw.getId)
         val rules = new ListBuffer[Rule]
 
-        // If admin state is down, add a RETURN rule
+        // If admin state is down, add a DROP rule
+        // NOTE: Translate rules even if the firewall is down
+        // to avoid re-creating all rules when flipping admin state
         if (!fw.getAdminStateUp) {
-            rules += returnRule(chainId).build()
+            rules += dropRuleBuilder(chainId).build()
         }
 
         // Match on return
@@ -64,9 +66,9 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         val chainId = outChainId(fw.getId)
         val rules = new ListBuffer[Rule]
 
-        // If admin state is down, add a RETURN rule
+        // If admin state is down, add a DROP rule
         if (!fw.getAdminStateUp) {
-            rules += returnRule(chainId).build()
+            rules += dropRuleBuilder(chainId).build()
         }
 
         // Just match forward flow
