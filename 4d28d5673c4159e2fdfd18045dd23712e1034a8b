@@ -1283,6 +1283,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_610658d0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-20T13:01:02Z",
+      "side": 1,
+      "message": "I think haproxy is fine, on the other hand healhmonitor may be too generic, since it doesn\u0027t refer to either haproxy or l4lb? I don\u0027t have a string opinion, but I think that maybe we should have a common prefix for the loggers related to the haproxy health monitoring such that the log level can be changed easily via mn-conf. Now, this requires the user to change 3 different paths to modify the logging level for the whole health monitor. I think it\u0027s fine to have a common prefix like:\n\norg.midonet.haproxy\norg.midonet.haproxy.config-watcher\norg.midonet.haproxy.health-monitor\n\nalthough maybe we don\u0027t need such detailed logging sources. Other opinions are welcomed.",
+      "parentUuid": "fa81d914_5b9323a3",
+      "range": {
+        "startLine": 118,
+        "startChar": 33,
+        "endLine": 118,
+        "endChar": 72
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c3b485f4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
         "patchSetId": 3
@@ -1518,6 +1542,30 @@
       "side": 1,
       "message": "This has become a simple hash map since everything is now scheduled on the same thread. However, I think I do need the subscriptions because we unsubscribe from load balancers, isn\u0027t it?",
       "parentUuid": "fa81d914_8f4639be",
+      "range": {
+        "startLine": 134,
+        "startChar": 4,
+        "endLine": 134,
+        "endChar": 72
+      },
+      "revId": "4d28d5673c4159e2fdfd18045dd23712e1034a8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_e1f968c9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-20T13:01:02Z",
+      "side": 1,
+      "message": "Yes, you\u0027re right.",
+      "parentUuid": "fa81d914_7bf1c7cc",
       "range": {
         "startLine": 134,
         "startChar": 4,
