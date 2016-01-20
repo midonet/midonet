@@ -432,6 +432,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val portFs = storage.getAll(classOf[Port], List(nwGwPortId, trGwPortId))
 
         // Get routes on router gateway port.
+        val trRifRtId = RouteManager.routerInterfaceRouteId(trGwPortId)
         val trLocalRtId = RouteManager.localRouteId(trGwPortId)
         val trGwRtId = RouteManager.gatewayRouteId(trGwPortId)
 
@@ -445,7 +446,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         // validates that there is no network route created for the gw port.
         trGwPort.getRouterId shouldBe UUIDUtil.toProto(rtrId)
         trGwPort.getRouteIdsList.asScala should
-            contain only (trGwRtId, trLocalRtId)
+            contain only (trGwRtId, trRifRtId, trLocalRtId)
 
         // Network port has no routes.
         nwGwPort.getRouteIdsCount shouldBe 0
