@@ -500,6 +500,37 @@ class RouterSimulationTest extends MidolmanSpec {
         pktCtx2.currentDevice shouldBe r2
     }
 
+    /****
+     * TODO(joe): This test has issues that need to be addressed before
+     * being uncommented: (1) It doesn't test the new code and (2) It fails
+     * in VirtualTopologyHelper.
+    scenario("packet should not be dropped if re-entering the router") {
+        val bridge = newBridge("weird bridge")
+        val bp1 = newBridgePort(bridge)
+
+        val rp1Mac = MAC.fromString("0A:0A:0A:0A:0A:0A")
+        val rp1 = newRouterPort(router, rp1Mac, "1.1.1.2", "1.1.1.0", 24)
+        linkPorts(rp1, bp1)
+        feedArpTable(simRouter, IPv4Addr.fromString("1.1.1.3"), rp1Mac)
+
+        val port1dev = fetchDevice[RouterPort](port1)
+
+        val ttl = 1.toByte
+        val fromMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val pkt = { eth src fromMac dst port1dev.portMac} <<
+                  { ip4 src fromIp dst IPv4Addr("1.1.1.3") ttl ttl } <<
+                  { icmp.echo request }
+        newRoute(router, "0.0.0.0", 0, "1.1.1.0", 24, NextHop.PORT,
+                 rp1, null, 2)
+
+        val (pktCtx, simRes) = simulateDevice(simRouter, pkt, port1)
+        pktCtx.flowTags.size shouldBe 1
+        simRes shouldBe ErrorDrop
+        pktCtx.currentDevice shouldBe router
+    }
+     */
+
     private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,
                           fromIp: IPv4Addr, toIp: IPv4Addr, `type`: Byte,
                           code: Byte): Unit = {
