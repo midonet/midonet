@@ -25,7 +25,6 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.{Response, UriInfo}
 
-import scala.Error
 import scala.annotation.meta.{getter, param}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -84,7 +83,7 @@ object KeystoneTest {
     }
 
     case class Auth @JsonCreator()(
-        @(JsonProperty @getter @param)("token") token: Token,
+        @(JsonProperty @getter @param)("token") token: v2.Token,
         @(JsonProperty @getter @param)("passwordCredentials") credentials: PasswordCredentials,
         @(JsonProperty @getter @param)("tenantName") tenantName: String)
 
@@ -201,11 +200,11 @@ class KeystoneTest extends FlatSpec with BeforeAndAfterAll {
 
     private val random = new Random
 
-    private val tokens = new mutable.HashMap[String, (User, Token)]
-    private val tenantsById = new mutable.HashMap[String, Tenant]
-    private val tenantsByName = new mutable.HashMap[String, Tenant]
-    private val usersById = new mutable.HashMap[String, (User, String)]
-    private val usersByUserName = new mutable.HashMap[String, (User, String)]
+    private val tokens = new mutable.HashMap[String, (v2.User, v2.Token)]
+    private val tenantsById = new mutable.HashMap[String, v2.Tenant]
+    private val tenantsByName = new mutable.HashMap[String, v2.Tenant]
+    private val usersById = new mutable.HashMap[String, (v2.User, String)]
+    private val usersByUserName = new mutable.HashMap[String, (v2.User, String)]
     private val usersAdmin = new mutable.HashMap[String, Boolean]
 
     protected val keystoneProtocol = "http"
@@ -219,6 +218,7 @@ class KeystoneTest extends FlatSpec with BeforeAndAfterAll {
     protected var dateFormat: DateFormat = DateFormat.Iso8601
     protected var currentTime = System.currentTimeMillis()
     protected var tokenLifetime = 30 * 60 * 1000L
+    protected var tokenNeverExpires = false
 
     private var server: Server = _
 
@@ -250,8 +250,8 @@ class KeystoneTest extends FlatSpec with BeforeAndAfterAll {
                          name = "admin",
                          description = "Admin tenant"))
         addUser(User(id = UUID.randomUUID.toString,
-                     userName = "admin",
                      name = "admin",
+                     actualName = "admin",
                      enabled = true,
                      email = "admin@example.com",
                      roles = List(Role(id = UUID.randomUUID.toString,
@@ -281,9 +281,9 @@ class KeystoneTest extends FlatSpec with BeforeAndAfterAll {
         tenantsByName += tenant.name -> tenant
     }
 
-    private def addUser(user: User, password: String, isAdmin: Boolean): Unit = {
+    private def addUser(user: v2.User, password: String, isAdmin: Boolean): Unit = {
         usersById += user.id -> (user, password)
-        usersByUserName += user.userName -> (user, password)
+        usersByUserName += user.name -> (user, password)
         usersAdmin += user.id -> isAdmin
     }
 
@@ -308,10 +308,14 @@ class KeystoneTest extends FlatSpec with BeforeAndAfterAll {
         // Check user disabled.
         if (!user.enabled) throw unauthorizedError()
 
-        val token = Token(
+        val expiresAt =
+            if (tokenNeverExpires) null
+            else dateFormat.asString(currentTime + tokenLifetime)
+
+        val token = v2.Token(
             UUID.randomUUID.toString,
             issuedAt = dateFormat.asString(currentTime),
-            expires = dateFormat.asString(currentTime + tokenLifetime),
+            expiresAt = expiresAt,
             tenant = tenant,
             auditIds = null)
         tokens += token.id -> (user, token)
@@ -385,7 +389,7 @@ class KeystoneTest extends FlatSpec with BeforeAndAfterAll {
 
     private def expireTokens(): Unit = {
         for (entry <- tokens.toList) {
-            val expires = KeystoneClient.parseTimestamp(entry._2._2.expires)
+            val expires = KeystoneClient.parseExpiresAt(entry._2._2.expiresAt)
             if (expires <= currentTime) {
                 tokens -= entry._1
             }
