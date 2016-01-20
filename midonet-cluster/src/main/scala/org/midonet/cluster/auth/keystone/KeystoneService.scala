@@ -27,8 +27,8 @@ import com.typesafe.scalalogging.Logger
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.auth
 import org.midonet.cluster.auth._
-import org.midonet.cluster.auth.keystone.v2.KeystoneAccess
 import org.midonet.cluster.keystoneLog
 import org.midonet.cluster.rest_api.models.Tenant
 
@@ -46,13 +46,13 @@ class KeystoneService @Inject()(config: Config) extends AuthService {
       */
     @throws[AuthException]
     def authenticate(username: String, password: String,
-                     someTenant: Option[String]): Token = {
+                     someTenant: Option[String]): auth.Token = {
         log info s"Authenticating user $username for tenant $someTenant"
 
         val tenant = if (someTenant.isEmpty) {
-            if (StringUtils.isBlank(keystoneConfig.tenantName))
+            if (StringUtils.isBlank(keystoneConfig.projectName))
                 throw new InvalidCredentialsException("Project missing")
-            keystoneConfig.tenantName
+            keystoneConfig.projectName
         } else someTenant.get
 
         tokenOf(keystoneClient.authenticate(tenant, username, password))
@@ -96,24 +96,24 @@ class KeystoneService @Inject()(config: Config) extends AuthService {
     }
 
     /**
-      * Returns the token DTO for the given [[KeystoneAccess]] object.
+      * Returns the token DTO for the given [[AuthResponse]] object.
       */
-    private def tokenOf(access: KeystoneAccess): Token = {
-        new Token(access.access.token.id,
-                  new Date(KeystoneClient.parseTimestamp(
-                      access.access.token.expires)))
+    private def tokenOf(response: AuthResponse): auth.Token = {
+        new auth.Token(response.tokenId,
+                       new Date(KeystoneClient.parseExpiresAt(
+                           response.token.expiresAt)))
     }
 
     /**
-      * Returns the user identity for the given [[KeystoneAccess]] object.
+      * Returns the user identity for the given [[AuthResponse]] object.
       */
-    private def identityOf(access: KeystoneAccess): UserIdentity = {
-        val identity = new UserIdentity(access.access.token.tenant.id,
-                                        access.access.token.tenant.name,
-                                        access.access.user.id,
-                                        access.access.token.id)
+    private def identityOf(response: AuthResponse): UserIdentity = {
+        val identity = new UserIdentity(response.project.id,
+                                        response.project.name,
+                                        response.user.id,
+                                        response.tokenId)
 
-        for (role <- access.access.user.roles.asScala) {
+        for (role <- response.roles.asScala) {
             val midoRole = roleOf(role.name)
             if (midoRole.nonEmpty) {
                 identity addRole midoRole.get

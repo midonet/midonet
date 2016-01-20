@@ -23,6 +23,8 @@ import scala.annotation.meta.{param, getter}
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.{JsonInclude, JsonProperty, JsonCreator}
 
+import org.midonet.cluster.auth.keystone
+
 package object v2 {
 
     case class Access @JsonCreator()(
@@ -64,18 +66,6 @@ package object v2 {
     case class KeystoneUsers @JsonCreator()(
         @(JsonProperty @getter @param)("users") users: JList[User])
 
-    case class KeystoneVersion @JsonCreator()(
-        @(JsonProperty @getter @param)("version") version: Version)
-
-    case class Link @JsonCreator()(
-        @(JsonProperty @getter @param)("href") href: String,
-        @(JsonProperty @getter @param)("rel") rel: String,
-        @(JsonProperty @getter @param)("type") `type`: String)
-
-    case class MediaType @JsonCreator()(
-        @(JsonProperty @getter @param)("base") base: String,
-        @(JsonProperty @getter @param)("type") `type`: String)
-
     case class Metadata @JsonCreator()(
         @(JsonProperty @getter @param)("is_admin") isAdmin: Boolean,
         @(JsonProperty @getter @param)("roles") roles: JList[String])
@@ -93,6 +83,7 @@ package object v2 {
         @(JsonProperty @getter @param)("id") id: String,
         @(JsonProperty @getter @param)("name") name: String,
         @(JsonProperty @getter @param)("description") description: String)
+        extends keystone.Role
 
     case class ServiceEntry @JsonCreator()(
         @(JsonProperty @getter @param)("name") name: String,
@@ -105,14 +96,16 @@ package object v2 {
         @(JsonProperty @getter @param)("enabled") enabled: Boolean,
         @(JsonProperty @getter @param)("name") name: String,
         @(JsonProperty @getter @param)("description") description: String)
+        extends keystone.Project
 
     @JsonInclude(Include.NON_NULL)
     case class Token @JsonCreator()(
         @(JsonProperty @getter @param)("id") id: String,
         @(JsonProperty @getter @param)("issued_at") issuedAt: String = null,
-        @(JsonProperty @getter @param)("expires") expires: String = null,
+        @(JsonProperty @getter @param)("expires") expiresAt: String = null,
         @(JsonProperty @getter @param)("tenant") tenant: Tenant = null,
         @(JsonProperty @getter @param)("audit_ids") auditIds: JList[String] = null)
+        extends keystone.Token
 
     case class TokenAuth @JsonCreator()(
         @(JsonProperty @getter @param)("token") token: Token,
@@ -127,18 +120,12 @@ package object v2 {
 
     case class User @JsonCreator()(
         @(JsonProperty @getter @param)("id") id: String,
-        @(JsonProperty @getter @param)("username") userName: String,
-        @(JsonProperty @getter @param)("name") name: String,
+        @(JsonProperty @getter @param)("username") name: String,
+        @(JsonProperty @getter @param)("name") actualName: String,
         @(JsonProperty @getter @param)("enabled") enabled: Boolean,
         @(JsonProperty @getter @param)("email") email: String,
         @(JsonProperty @getter @param)("roles") roles: JList[Role],
         @(JsonProperty @getter @param)("role_links") roleLinks: JList[String])
-
-    case class Version @JsonCreator()(
-        @(JsonProperty @getter @param)("status") status: String,
-        @(JsonProperty @getter @param)("updated") updated: String,
-        @(JsonProperty @getter @param)("media-types") mediaTypes: JList[MediaType],
-        @(JsonProperty @getter @param)("id") id: String,
-        @(JsonProperty @getter @param)("links") links: JList[Link])
+        extends keystone.User
 
 }
