@@ -794,6 +794,9 @@ operation is idempotent.
 In the Firewall object sent as input for create and update, both the firewall
 and the firewall rules are included.
 
+NOTE: A firewall with admin_state_up=False is supposed to block everything.
+http://lists.openstack.org/pipermail/openstack-dev/2016-January/085014.html
+
 ### CREATE
 
 Create two MidoNet chains for the firewall with deterministic IDs generated
@@ -803,7 +806,7 @@ firewall is associated with.
 
 On the pre-routing chain, add the following rules in the order specified:
 
- * Return rule matching on everything if admin_state_up is false.  An
+ * Drop rule matching on everything if admin_state_up is false.  An
    alternative approach would have been to not add any rule when admin_state_up
    is false, but that means in every API request that toggles the
    admin_state_up value, either the entire list of rules would have to be
@@ -828,7 +831,7 @@ On the pre-routing chain, add the following rules in the order specified:
 
 On the post-routing chain, add the following rules in the order specified:
 
-   * Return rule matching on everything if admin_state_up is false.
+   * Drop rule matching on everything if admin_state_up is false.
    * Rule matching on the forward flow to start connection tracking.
 
 'add-router-ids' field contains a list of router IDs that the firewall is
