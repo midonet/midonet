@@ -18,9 +18,12 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+
 import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
+import org.midonet.sdn.flows.FlowTagger.DeviceTag
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
@@ -495,6 +498,34 @@ class RouterSimulationTest extends MidolmanSpec {
         val (pktCtx2, simRes2) = simulateDevice(simRouter, pkt, rpIn)
         simRes2 shouldBe ShortDrop
         pktCtx2.currentDevice shouldBe r2
+    }
+
+    scenario("packet should not enter bridge if outgoing port is also next hop") {
+        val bridge = newBridge("weird bridge")
+        val bp1 = newBridgePort(bridge)
+
+        val rp1Mac = MAC.fromString("0A:0A:0A:0A:0A:0A")
+        val rp1 = newRouterPort(router, rp1Mac, "1.1.1.2", "1.1.1.0", 24)
+        linkPorts(rp1, bp1)
+        feedArpTable(simRouter, IPv4Addr.fromString("1.1.1.3"), rp1Mac)
+        feedArpTable(simRouter, IPv4Addr.fromString("1.1.1.2"), rp1Mac)
+
+        val port1dev = fetchDevice[RouterPort](port1)
+
+        val ttl = 2.toByte
+        val fromMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val pkt = { eth src fromMac dst port1dev.portMac} <<
+                  { ip4 src fromIp dst IPv4Addr("1.1.1.3") ttl ttl } <<
+                  { icmp.echo request }
+        newRoute(router, "0.0.0.0", 0, "1.1.1.0", 24, NextHop.PORT,
+                 rp1, null, 2)
+
+        val (pktCtx, simRes) = simulate(packetContextFor(pkt, port1))
+        simRes.flowTags foreach {
+            case ft: DeviceTag => ft.deviceId() should not be bridge
+            case _ =>
+        }
     }
 
     private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,

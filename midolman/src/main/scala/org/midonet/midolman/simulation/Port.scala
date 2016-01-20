@@ -412,6 +412,15 @@ case class RouterPort(override val id: UUID,
             context.addGeneratedPacket(from.id, ethOpt.get)
     }
 
+    override def egressCommon(context: PacketContext,
+                              next: SimStep): SimulationResult = {
+        if (context.wcmatch.getEthSrc == context.wcmatch.getEthDst) {
+            ingress(context)
+        } else {
+            super.egressCommon(context, next)
+        }
+    }
+
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
         s"portSubnet=$portSubnet portAddress=$portAddress portMac=$portMac " +
