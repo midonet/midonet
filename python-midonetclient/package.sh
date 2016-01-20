@@ -103,7 +103,6 @@ case "$1" in
           echo "Aborted. invalid options: $*"
           exit 1
       fi
-      clean
       build_protobuf_modules
       build_man_pages
       package_deb
@@ -119,7 +118,6 @@ case "$1" in
           echo "Aborted. invalid options: $*"
           exit 1
       fi
-      clean
       build_protobuf_modules
       build_man_pages
       package_rpm
