@@ -17,7 +17,6 @@ package org.midonet.cluster.storage
 
 import com.typesafe.config.Config
 import org.apache.curator.framework.CuratorFramework
-import org.mockito.Mockito
 import org.mockito.Mockito._
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
@@ -50,6 +49,7 @@ class MidonetTestBackend extends MidonetBackend {
     override def stateStore: StateStorage = inMemoryZoom
     override def stateTableStore: StateTableStorage = inMemoryZoom
     override def curator: CuratorFramework = mockCurator
+    override def curatorFastFD: CuratorFramework = mockCurator
     override def reactor: Reactor = null
     override def connection: ZkConnection = null
     override def connectionWatcher: ZkConnectionAwareWatcher = null
@@ -74,7 +74,12 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
         mock(classOf[CuratorFramework])
     }
 
-    override protected  def backend(curatorFramework: CuratorFramework) =
+    override protected def bindCuratorFastFD() = {
+        mock(classOf[CuratorFramework])
+    }
+
+    override protected  def backend(curatorFramework: CuratorFramework,
+                                    curatorFastFD: CuratorFramework) =
         new MidonetTestBackend
 
     override protected def bindLockFactory(): Unit = {

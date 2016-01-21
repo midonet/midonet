@@ -71,7 +71,7 @@ class ConfResourceTest extends FeatureSpec
         
         val context = ClusterNode.Context(HostIdGenerator.getHostId)
         backend = new MidonetBackendService(new MidonetBackendConfig(config),
-                                                zkClient, null)
+                                                zkClient, zkClient, null)
         backend.startAsync().awaitRunning()
         api = new Vladimir(context, backend, zkClient, reflections,
                            new MockAuthService(config),

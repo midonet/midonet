@@ -52,7 +52,8 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
 
     override def configure(): Unit = {
         val curator =  bindCuratorFramework()
-        val storage = backend(curator)
+        val curatorFastFD = bindCuratorFastFD()
+        val storage = backend(curator, curatorFastFD)
         bind(classOf[MidonetBackend]).toInstance(storage)
         bindLockFactory()
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
@@ -62,8 +63,10 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
         bind(classOf[ZookeeperLockFactory]).asEagerSingleton()
     }
 
-    protected def backend(curatorFramework: CuratorFramework): MidonetBackend = {
-        new MidonetBackendService(conf, curatorFramework, metricRegistry) {
+    protected def backend(curatorFramework: CuratorFramework,
+                          curatorFastFD: CuratorFramework): MidonetBackend = {
+        new MidonetBackendService(conf, curatorFramework, curatorFastFD,
+                                  metricRegistry) {
             protected override def setup(storage: StateTableStorage): Unit = {
                 // Setup state tables (note: we do this here because the tables
                 // backed by the replicated maps are not available to the nsdb
@@ -84,6 +87,19 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
             new ExponentialBackoffRetry(
                 conf.retryMs.toInt, conf.maxRetries))
         bind(classOf[CuratorFramework]).toInstance(curator)
+        curator
+    }
+
+    protected def bindCuratorFastFD() = {
+        val curator =
+            CuratorFrameworkFactory.builder()
+                                   .connectString(conf.hosts)
+                                   .sessionTimeoutMs(conf.smallSessionTimeout)
+                                   .retryPolicy(
+                                       new ExponentialBackoffRetry(
+                                           conf.retryMs.toInt, conf.maxRetries))
+                                   .build()
+
         curator
     }
 

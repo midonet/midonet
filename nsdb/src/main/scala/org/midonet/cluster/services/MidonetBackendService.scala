@@ -282,6 +282,9 @@ abstract class MidonetBackend extends AbstractService {
     def stateTableStore: StateTableStorage
     /** The Curator instance being used */
     def curator: CuratorFramework
+    /** A 2nd curator instance with a small session timeout to implement fast
+        failure detection of ephemeral nodes. */
+    def curatorFastFD: CuratorFramework
     /** Provides an executor for handing of asynchronous storage events. */
     def reactor: Reactor
     /** Wraps the legacy ZooKeeper connection around the Curator instance. */
@@ -295,6 +298,7 @@ abstract class MidonetBackend extends AbstractService {
   * services. */
 class MidonetBackendService @Inject() (config: MidonetBackendConfig,
                                        override val curator: CuratorFramework,
+                                       override val curatorFastFD: CuratorFramework,
                                        metricRegistry: MetricRegistry)
     extends MidonetBackend {
 
@@ -311,7 +315,7 @@ class MidonetBackendService @Inject() (config: MidonetBackendConfig,
 
     private val zoom =
         new ZookeeperObjectMapper(s"${config.rootKey}/zoom", namespaceId.toString,
-                                  curator, reactor, connection,
+                                  curator, curatorFastFD, reactor, connection,
                                   connectionWatcher, metricRegistry)
 
     override def store: Storage = zoom
