@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,16 @@ trait CuratorTestFramework extends BeforeAndAfterEach
     protected val zkRoot = "/test"
     protected var zk: TestingServer = _
     implicit protected var curator: CuratorFramework = _
+    protected var failFastCurator: CuratorFramework = _
+
+    /* Override this value and set it to true to enable the 2nd curator
+       instance with a small session timeout. */
+    protected val enableFailFastCurator = false
 
     protected def retryPolicy: RetryPolicy = new RetryNTimes(2, 1000)
-    protected def cnxnTimeoutMs: Int = 2 * 1000
+    protected def cnxnTimeoutMs: Int = 10 * 1000
     protected def sessionTimeoutMs: Int = 10 * 1000
+    protected def failFastSessionTimeout: Int = 5 * 10
 
     override protected def beforeAll(): Unit = {
         super.beforeAll()
@@ -82,8 +88,21 @@ trait CuratorTestFramework extends BeforeAndAfterEach
     override def beforeEach(): Unit = {
         setUpCurator()
         curator.start()
-        if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
+        if (!curator.blockUntilConnected(cnxnTimeoutMs,
+                                         TimeUnit.MILLISECONDS)) {
             fail("Curator did not connect to the test ZK server")
+        }
+        if (enableFailFastCurator) {
+            failFastCurator =
+                CuratorFrameworkFactory.newClient(zk.getConnectString,
+                                                  failFastSessionTimeout,
+                                                  failFastSessionTimeout,
+                                                  retryPolicy)
+            failFastCurator.start()
+            if (!failFastCurator.blockUntilConnected(cnxnTimeoutMs,
+                                                     TimeUnit.MILLISECONDS)) {
+                fail("Fail fast curator did not connect to the test ZK server")
+            }
         }
 
         clearZookeeper()
@@ -96,6 +115,9 @@ trait CuratorTestFramework extends BeforeAndAfterEach
         clearZookeeper()
         teardown()
         curator.close()
+        if (failFastCurator ne null) {
+            failFastCurator.close()
+        }
     }
 
     protected def clearZookeeper(): Unit =

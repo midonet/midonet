@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,7 +215,8 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         }
 
         def removeValue(namespace: String, id: ObjId, key: String, value: String,
-                        keyType: KeyType): Observable[StateResult] = {
+                        keyType: KeyType, failFast: Boolean = false)
+        : Observable[StateResult] = {
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
                 case Some(instance) =>
@@ -708,7 +709,8 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     override def removeValue(clazz: Class[_], id: ObjId, key: String,
-                             value: String): Observable[StateResult] = {
+                             value: String)
+    : Observable[StateResult] = {
         removeValueAs(namespace, clazz, id, key, value)
     }
 
@@ -771,7 +773,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         classes.get(clazz).keyObservableError(namespace, id, key, e)
     }
 
-    override def ownerId = DefaultOwnerId
+    override def ownerId(failFast: Boolean = false) = DefaultOwnerId
 
     val tablesDirectory = new MockDirectory()
 

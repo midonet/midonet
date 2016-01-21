@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,15 +34,22 @@ import org.midonet.cluster.data.storage.KeyType.KeyType
  *  Only one key value is allowed at a time. A client can always add a new value
  *  and it will overwrite any existing value, even if it belongs to a different
  *  client session.
+ *  - [[KeyType.FailFast]]
+ *  Same semantics as [[KeyType.SingleLastWriteWins]] except that state data is
+ *  quickly removed when the entity that created them is deemed to be down.
+ *  This is achieved by using a small ZooKeeper session timeout for this type of
+ *  key.
  *  - [[KeyType.Multiple]]
  *  Multiple key values from different clients are allowed at a time. Keys
  *  supporting multiple values are always last write wins, where a value can
  *  be overwritten by a different client.
  */
 object KeyType extends Enumeration {
-    class KeyType(val isSingle: Boolean, val firstWins: Boolean) extends Val
+    class KeyType(val isSingle: Boolean, val firstWins: Boolean,
+                  val failFast: Boolean = false) extends Val
     final val SingleFirstWriteWins = new KeyType(true, true)
     final val SingleLastWriteWins = new KeyType(true, false)
+    final val FailFast = new KeyType(true, false, true)
     final val Multiple = new KeyType(false, false)
 }
 
@@ -209,8 +216,10 @@ trait StateStorage {
 
     /** Returns a number uniquely identifying the current owner.  Note that
       * this value has nothing to do with the node ID.
+      * The failFast parameter determines whether a session to storage
+      * ensuring fast failover should be used or not.
       */
-    def ownerId: Long
+    def ownerId(failFast: Boolean = false): Long
 
     /** Gets the key type for the given class and key. */
     @throws[IllegalArgumentException]
