@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_65acabee",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-21T12:16:51Z",
+      "side": 1,
+      "message": "nit, does this need to be ipv4?",
+      "range": {
+        "startLine": 254,
+        "startChar": 57,
+        "endLine": 254,
+        "endChar": 65
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_e587bb5f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 473,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-21T12:16:51Z",
+      "side": 1,
+      "message": "nit: connectionsTracker.hasSameCnxns(event)",
+      "range": {
+        "startLine": 473,
+        "startChar": 21,
+        "endLine": 473,
+        "endChar": 90
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_85b99f30",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-21T12:16:51Z",
+      "side": 1,
+      "message": "nit: eq",
+      "range": {
+        "startLine": 492,
+        "startChar": 27,
+        "endLine": 492,
+        "endChar": 29
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_a5b6a33b",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-21T12:16:51Z",
+      "side": 1,
+      "message": "Is this considered normal or some dodgy config? (if the latter, we should log)",
+      "range": {
+        "startLine": 493,
+        "startChar": 16,
+        "endLine": 493,
+        "endChar": 65
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
