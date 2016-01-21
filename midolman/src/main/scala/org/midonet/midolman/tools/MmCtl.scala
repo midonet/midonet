@@ -24,9 +24,7 @@ import scala.util.{Failure, Success, Try}
 
 import com.google.inject.{Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
-
 import org.apache.commons.cli._
-import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, StateAccessException}
@@ -154,10 +152,10 @@ class MmCtl(injector: Injector) {
     }
 
     private def getPortBinder(injector: Injector): PortBinder = {
-        val curator = injector.getInstance(classOf[CuratorFramework])
+        val backend = injector.getInstance(classOf[MidonetBackend])
+        val curator = backend.curator
         curator.start()
 
-        val backend = injector.getInstance(classOf[MidonetBackend])
         MidonetBackend.setupBindings(backend.store, backend.stateStore)
 
         val lockFactory = injector.getInstance(classOf[ZookeeperLockFactory])

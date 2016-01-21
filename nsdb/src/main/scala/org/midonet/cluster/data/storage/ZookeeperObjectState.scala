@@ -103,6 +103,8 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
     protected def curator: CuratorFramework
 
+    protected def curatorFailFast: CuratorFramework
+
     protected def version: AtomicLong
 
     @throws[IllegalStateException]

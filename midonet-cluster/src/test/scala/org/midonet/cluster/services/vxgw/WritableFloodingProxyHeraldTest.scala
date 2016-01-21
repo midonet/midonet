@@ -71,6 +71,7 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             override def store: Storage = _store
             override def stateTableStore: StateTableStorage = ???
             override def curator: CuratorFramework = ???
+            override def failFastCurator: CuratorFramework = ???
             override def reactor: Reactor = ???
             override def connection: ZkConnection = ???
             override def connectionWatcher: ZkConnectionAwareWatcher = ???

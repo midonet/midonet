@@ -125,14 +125,14 @@ public class HostServiceTest {
             bind(InterfaceScanner.class)
                 .to(MockInterfaceScanner.class)
                 .asEagerSingleton();
+            MidonetBackendConfig backendConfig = new MidonetBackendConfig(
+                config.withFallback(MidoTestConfigurator.forAgents()));
             bind(MidonetBackendConfig.class)
-                .toInstance(
-                    new MidonetBackendConfig(config.withFallback(
-                        MidoTestConfigurator.forAgents())));
-            bind(CuratorFramework.class)
-                .toInstance(curator);
-            bind(MidonetBackend.class)
-                .to(MidonetBackendService.class).asEagerSingleton();
+                .toInstance(backendConfig);
+            MidonetBackendService backend =
+                new MidonetBackendService(backendConfig, curator, curator,
+                                          null);
+            bind(MidonetBackend.class).toInstance(backend);
             bind(Reactor.class)
                 .toProvider(ZookeeperConnectionModule.ZookeeperReactorProvider.class)
                 .asEagerSingleton();
@@ -183,7 +183,7 @@ public class HostServiceTest {
 
     @After
     public void teardown() throws Exception {
-        injector.getInstance(CuratorFramework.class).close();
+        injector.getInstance(MidonetBackend.class).curator().close();
     }
 
     @BeforeClass
@@ -490,7 +490,7 @@ public class HostServiceTest {
     }
 
     public CuratorFramework getCurator() {
-        return injector.getInstance(CuratorFramework.class);
+        return injector.getInstance(MidonetBackend.class).curator();
     }
 
     public CuratorFramework getNewCurator() throws Exception {

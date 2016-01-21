@@ -23,6 +23,7 @@ import javax.sql.DataSource
 import scala.util.control.NonFatal
 
 import com.google.inject.Inject
+import com.google.inject.name.Named
 import com.google.protobuf.Message
 
 import org.apache.curator.framework.CuratorFramework
@@ -56,7 +57,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                            config: ClusterConfig,
                            dataSrc: DataSource,
                            backend: MidonetBackend,
-                           curator: CuratorFramework,
+                           @Named("Regular") curator: CuratorFramework,
                            backendCfg: MidonetBackendConfig)
     extends ScheduledMinion(nodeContext, config.c3po) {
 

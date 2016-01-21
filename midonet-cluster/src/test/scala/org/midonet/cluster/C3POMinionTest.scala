@@ -319,7 +319,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         )
 
         pathBldr = new PathBuilder(backendCfg.rootKey)
-        backend = new MidonetBackendService(backendCfg, curator,
+        backend = new MidonetBackendService(backendCfg, curator, curator,
                                             metricRegistry = null) {
             override protected def setup(stateTableStorage: StateTableStorage)
             : Unit = {

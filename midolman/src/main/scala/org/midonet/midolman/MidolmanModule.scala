@@ -29,7 +29,6 @@ import com.google.inject.{Key, Injector, AbstractModule}
 import com.google.inject.name.Names
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
-import org.apache.curator.framework.CuratorFramework
 import org.reflections.Reflections
 import org.slf4j.{LoggerFactory, Logger}
 
@@ -351,10 +350,10 @@ class MidolmanModule(injector: Injector,
         new FlowTracingAppender(cass.connect())
     }
 
-    protected def natAllocator(): NatBlockAllocator =
-        new ZkNatBlockAllocator(
-            injector.getInstance(classOf[CuratorFramework]),
-            UnixClock.DEFAULT)
+    protected def natAllocator(): NatBlockAllocator = {
+        val backend = injector.getInstance(classOf[MidonetBackend])
+        new ZkNatBlockAllocator(backend.curator, UnixClock.DEFAULT)
+    }
 
     protected def bindSelectLoopService(): Unit = {
         bind(classOf[SelectLoop])

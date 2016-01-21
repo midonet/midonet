@@ -75,7 +75,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         MidonetBackend.isCluster = true
 
         zkClient.create().creatingParentsIfNeeded().forPath(backendCfg.rootKey)
-        backend = new MidonetBackendService(backendCfg, zkClient,
+        backend = new MidonetBackendService(backendCfg, zkClient, zkClient,
                                             metricRegistry = null)
         backend.startAsync().awaitRunning()
         fpManager = new FloodingProxyManager(backend)
@@ -359,8 +359,9 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         // Create a private store with the host ID as namespace.
         val hostStore =
             new ZookeeperObjectMapper(backendCfg.rootKey + "/zoom", id.toString,
-                                      backend.curator, backend.reactor,
-                                      backend.connection, backend.connectionWatcher)
+                                      backend.curator, backend.failFastCurator,
+                                      backend.reactor, backend.connection,
+                                      backend.connectionWatcher)
         MidonetBackend.setupBindings(hostStore, hostStore)
         if (isAlive) {
             hostStore.addValue(classOf[Host], id, AliveKey, AliveKey)
