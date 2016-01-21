@@ -22,6 +22,7 @@ import scala.util.control.NonFatal
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
+import com.google.inject.name.Named
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
@@ -282,6 +283,9 @@ abstract class MidonetBackend extends AbstractService {
     def stateTableStore: StateTableStorage
     /** The Curator instance being used */
     def curator: CuratorFramework
+    /** A 2nd curator instance with a small session timeout to implement fast
+        *failure detection of ephemeral nodes. */
+    def curatorFailFast: CuratorFramework
     /** Provides an executor for handing of asynchronous storage events. */
     def reactor: Reactor
     /** Wraps the legacy ZooKeeper connection around the Curator instance. */
@@ -294,8 +298,10 @@ abstract class MidonetBackend extends AbstractService {
 /** Class responsible for providing services to access to the new Storage
   * services. */
 class MidonetBackendService @Inject() (config: MidonetBackendConfig,
-                                       override val curator: CuratorFramework,
-                                       metricRegistry: MetricRegistry)
+        @Named("Regular") override val curator: CuratorFramework,
+        @Named("FailFast") override val curatorFailFast: CuratorFramework,
+        metricRegistry: MetricRegistry)
+
     extends MidonetBackend {
 
     private val log = getLogger("org.midonet.nsdb")
@@ -311,7 +317,7 @@ class MidonetBackendService @Inject() (config: MidonetBackendConfig,
 
     private val zoom =
         new ZookeeperObjectMapper(s"${config.rootKey}/zoom", namespaceId.toString,
-                                  curator, reactor, connection,
+                                  curator, curatorFailFast, reactor, connection,
                                   connectionWatcher, metricRegistry)
 
     override def store: Storage = zoom

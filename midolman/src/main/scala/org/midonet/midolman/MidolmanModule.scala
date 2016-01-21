@@ -353,7 +353,8 @@ class MidolmanModule(injector: Injector,
 
     protected def natAllocator(): NatBlockAllocator =
         new ZkNatBlockAllocator(
-            injector.getInstance(classOf[CuratorFramework]),
+            injector.getInstance(Key.get(classOf[CuratorFramework],
+                                         Names.named("Regular"))),
             UnixClock.DEFAULT)
 
     protected def bindSelectLoopService(): Unit = {

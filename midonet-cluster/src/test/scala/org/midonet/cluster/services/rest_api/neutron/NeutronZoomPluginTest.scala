@@ -63,7 +63,8 @@ class NeutronZoomPluginTest extends FeatureSpec
         """.stripMargin)
         )
         MidonetBackend.isCluster = true
-        backend = new MidonetBackendService(cfg, curator, metricRegistry = null)
+        backend = new MidonetBackendService(cfg, curator, curator,
+                                            metricRegistry = null)
         backend.startAsync().awaitRunning()
 
         val paths = new PathBuilder(zkRoot)

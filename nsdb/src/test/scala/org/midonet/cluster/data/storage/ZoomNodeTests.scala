@@ -32,8 +32,8 @@ class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
     private val Bridge1Path = "/maps/bridge/1"
 
     override protected def setup(): Unit = {
-        zom = new ZookeeperObjectMapper(zkRoot, "host", curator, reactor,
-                                        connection, connectionWatcher)
+        zom = new ZookeeperObjectMapper(zkRoot, "host", curator, curator,
+                                        reactor, connection, connectionWatcher)
         zom.build()
     }
 

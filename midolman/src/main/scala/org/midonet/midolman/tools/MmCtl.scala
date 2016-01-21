@@ -22,7 +22,8 @@ import java.util.concurrent.TimeUnit
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-import com.google.inject.{Guice, Injector}
+import com.google.inject.name.Names
+import com.google.inject.{Key, Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
 
 import org.apache.commons.cli._
@@ -154,7 +155,8 @@ class MmCtl(injector: Injector) {
     }
 
     private def getPortBinder(injector: Injector): PortBinder = {
-        val curator = injector.getInstance(classOf[CuratorFramework])
+        val curator = injector.getInstance(Key.get(classOf[CuratorFramework],
+                                                   Names.named("Regular")))
         curator.start()
 
         val backend = injector.getInstance(classOf[MidonetBackend])

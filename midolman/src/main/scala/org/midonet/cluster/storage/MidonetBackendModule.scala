@@ -22,6 +22,7 @@ import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.AbstractModule
+import com.google.inject.name.Names
 import com.typesafe.config.Config
 
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
@@ -52,7 +53,8 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
 
     override def configure(): Unit = {
         val curator =  bindCuratorFramework()
-        val storage = backend(curator)
+        val failFastCurator = bindFailFastCurator()
+        val storage = backend(curator, failFastCurator)
         bind(classOf[MidonetBackend]).toInstance(storage)
         bindLockFactory()
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
@@ -62,8 +64,10 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
         bind(classOf[ZookeeperLockFactory]).asEagerSingleton()
     }
 
-    protected def backend(curatorFramework: CuratorFramework): MidonetBackend = {
-        new MidonetBackendService(conf, curatorFramework, metricRegistry) {
+    protected def backend(curatorFramework: CuratorFramework,
+                          failFastCurator: CuratorFramework): MidonetBackend = {
+        new MidonetBackendService(conf, curatorFramework, failFastCurator,
+                                  metricRegistry) {
             protected override def setup(storage: StateTableStorage): Unit = {
                 // Setup state tables (note: we do this here because the tables
                 // backed by the replicated maps are not available to the nsdb
@@ -83,7 +87,22 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
             conf.hosts,
             new ExponentialBackoffRetry(
                 conf.retryMs.toInt, conf.maxRetries))
-        bind(classOf[CuratorFramework]).toInstance(curator)
+        bind(classOf[CuratorFramework])
+            .annotatedWith(Names.named("Regular"))
+            .toInstance(curator)
+        curator
+    }
+
+    protected def bindFailFastCurator() = {
+        val curator = CuratorFrameworkFactory.newClient(
+            conf.hosts,
+            conf.failFastSessionTimeout,
+            conf.failFastSessionTimeout,
+            new ExponentialBackoffRetry(
+                conf.retryMs.toInt, conf.maxRetries))
+        bind(classOf[CuratorFramework])
+            .annotatedWith(Names.named("FailFast"))
+            .toInstance(curator)
         curator
     }
 

@@ -26,6 +26,8 @@ import scala.concurrent.duration.Duration;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import com.google.protobuf.TextFormat;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -130,6 +132,10 @@ public class HostServiceTest {
                     new MidonetBackendConfig(config.withFallback(
                         MidoTestConfigurator.forAgents())));
             bind(CuratorFramework.class)
+                .annotatedWith(Names.named("Regular"))
+                .toInstance(curator);
+            bind(CuratorFramework.class)
+                .annotatedWith(Names.named("FailFast"))
                 .toInstance(curator);
             bind(MidonetBackend.class)
                 .to(MidonetBackendService.class).asEagerSingleton();
@@ -183,7 +189,8 @@ public class HostServiceTest {
 
     @After
     public void teardown() throws Exception {
-        injector.getInstance(CuratorFramework.class).close();
+        injector.getInstance(
+            Key.get(CuratorFramework.class, Names.named("Regular"))).close();
     }
 
     @BeforeClass
@@ -490,7 +497,8 @@ public class HostServiceTest {
     }
 
     public CuratorFramework getCurator() {
-        return injector.getInstance(CuratorFramework.class);
+        return injector.getInstance(Key.get(CuratorFramework.class,
+                                            Names.named("Regular")));
     }
 
     public CuratorFramework getNewCurator() throws Exception {
