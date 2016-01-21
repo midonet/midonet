@@ -28,6 +28,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 import com.google.inject.Inject
+import com.google.inject.name.Named
 import com.google.inject.servlet.RequestScoped
 
 import org.apache.curator.framework.CuratorFramework
@@ -62,7 +63,7 @@ import org.midonet.packets.{IPv4Addr, MAC}
 @AllowDelete
 class BridgeResource @Inject()(resContext: ResourceContext,
                                pathBuilder: PathBuilder,
-                               curator: CuratorFramework)
+                               @Named("Regular") curator: CuratorFramework)
     extends MidonetResource[Bridge](resContext) {
 
     @Path("{id}/ports")

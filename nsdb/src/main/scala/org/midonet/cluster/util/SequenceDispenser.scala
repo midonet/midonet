@@ -21,6 +21,7 @@ import scala.concurrent.Future
 
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.google.inject.Inject
+import com.google.inject.name.Named
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.shared.{SharedCount, VersionedValue}
@@ -52,7 +53,7 @@ object SequenceDispenser {
   *
   * @param curator the curator instance to use.
   */
-class SequenceDispenser @Inject()(curator: CuratorFramework,
+class SequenceDispenser @Inject()(@Named("Regular") curator: CuratorFramework,
                                   backendCfg: MidonetBackendConfig){
 
     class SequenceException(t: SequenceType)
