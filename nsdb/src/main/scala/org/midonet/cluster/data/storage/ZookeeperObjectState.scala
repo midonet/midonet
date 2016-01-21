@@ -103,7 +103,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
     protected def curator: CuratorFramework
 
-    protected def curatorFailFast: CuratorFramework
+    protected def failFastCurator: CuratorFramework
 
     protected def version: AtomicLong
 
@@ -159,7 +159,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
             if (keyType.firstWins) {
                 addSingleValueFirst(clazz, id, key, value)
             } else {
-                addSingleValueLast(clazz, id, key, value)
+                addSingleValueLast(clazz, id, key, value, keyType.failFast)
             }
         } else {
             addMultiValue(clazz, id, key, value)
@@ -180,14 +180,17 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     override def removeValue(clazz: Class[_], id: ObjId, key: String,
-                             value: String): Observable[StateResult] = {
+                             value: String, failFast: Boolean = false)
+    : Observable[StateResult] = {
         assertBuilt()
 
         if (getKeyType(clazz, key).isSingle) {
-            removeValue(clazz, id, key, value, keyPath(namespace, clazz, id, key))
+            removeValue(clazz, id, key, value, keyPath(namespace, clazz, id, key),
+                        failFast)
         } else {
             removeValue(clazz, id, key, value,
-                        valuePath(namespace, clazz, id, key, value))
+                        valuePath(namespace, clazz, id, key, value),
+                        failFast = false)
         }
     }
 
@@ -221,17 +224,20 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                         key: String): Observable[StateKey] = {
         assertBuilt()
 
+        val keyType = getKeyType(clazz, key)
+        val zk = if (keyType.failFast) failFastCurator else curator
+
         if (namespace eq null) {
-            if (getKeyType(clazz, key).isSingle)
+            if (keyType.isSingle)
                 return Observable.just(SingleValueKey(key, None, NoOwnerId))
             else
                 return Observable.just(MultiValueKey(key, Set()))
         }
 
-        if (getKeyType(clazz, key).isSingle) {
+        if (keyType.isSingle) {
             asObservable {
-                curator.getData.inBackground(_)
-                    .forPath(keyPath(namespace, clazz, id, key))
+                zk.getData.inBackground(_)
+                  .forPath(keyPath(namespace, clazz, id, key))
             }.map[Notification[StateKey]](makeFunc1 { event =>
                 if (event.getResultCode == Code.OK.intValue()) {
                     val value = new String(event.getData, StringEncoding)
@@ -250,8 +256,8 @@ trait ZookeeperObjectState extends StateStorage with Storage {
             }).dematerialize[StateKey]
         } else {
             asObservable {
-                curator.getChildren.inBackground(_)
-                    .forPath(keyPath(namespace, clazz, id, key))
+                zk.getChildren.inBackground(_)
+                  .forPath(keyPath(namespace, clazz, id, key))
             }.map[Notification[StateKey]](makeFunc1 { event =>
                 if (event.getResultCode == Code.OK.intValue()) {
                     val values = event.getChildren.asScala.toSet
@@ -313,8 +319,9 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     /**
      * Returns the session identifier.
      */
-    override def ownerId = {
-        curator.getZookeeperClient.getZooKeeper.getSessionId
+    override def ownerId(failFast: Boolean = false) = {
+        val zk = if (failFast) failFastCurator else curator
+        zk.getZookeeperClient.getZooKeeper.getSessionId
     }
 
     @inline
@@ -400,19 +407,23 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
     /** Adds a value for the single last write wins policy. */
     private def addSingleValueLast(clazz: Class[_], id: ObjId, key: String,
-                                   value: String): Observable[StateResult] = {
-        val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
+                                   value: String, failFast: Boolean)
+    : Observable[StateResult] = {
+
+        val zk = if (failFast) failFastCurator else curator
+        val ownerId = zk.getZookeeperClient.getZooKeeper.getSessionId
         val path = keyPath(namespace, clazz, id, key)
 
-        onObjectAndStateExist(clazz, id, key, value, path) flatMap makeFunc1 { event =>
+        onObjectAndStateExist(clazz, id, key, value, path,
+                              failFast) flatMap makeFunc1 { event =>
             if (event.getResultCode == Code.OK.intValue()) {
                 if (event.getStat.getEphemeralOwner == ownerId) {
                     // The node exists and the caller is the owner: set value
                     // as the key data.
                     asObservable {
-                        curator.setData().withVersion(event.getStat.getVersion)
-                            .inBackground(_)
-                            .forPath(path, value.getBytes(StringEncoding))
+                        zk.setData().withVersion(event.getStat.getVersion)
+                          .inBackground(_)
+                          .forPath(path, value.getBytes(StringEncoding))
                     }.map[Notification[StateResult]] {
                         asResult(clazz, id, key, value, ownerId)
                     }.dematerialize[StateResult]
@@ -420,15 +431,15 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     // The value has a different owner: delete the current key
                     // node.
                     asObservable {
-                        curator.delete().withVersion(event.getStat.getVersion)
-                            .inBackground(_).forPath(path)
+                        zk.delete().withVersion(event.getStat.getVersion)
+                          .inBackground(_).forPath(path)
                     } flatMap makeFunc1 { event =>
                         if (event.getResultCode == Code.OK.intValue()) {
                             asObservable {
-                                curator.create()
-                                    .withMode(CreateMode.EPHEMERAL)
-                                    .inBackground(_)
-                                    .forPath(path, value.getBytes(StringEncoding))
+                                zk.create()
+                                  .withMode(CreateMode.EPHEMERAL)
+                                  .inBackground(_)
+                                  .forPath(path, value.getBytes(StringEncoding))
                             }.map[Notification[StateResult]] {
                                 asResult(clazz, id, key, value, ownerId)
                             }.dematerialize[StateResult]
@@ -441,7 +452,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     }
                 }
             } else {
-                addValueOnResult(path, event, clazz, id, key, value)
+                addValueOnResult(path, event, clazz, id, key, value, failFast)
             }
         }
     }
@@ -489,16 +500,18 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
     private def addValueOnResult(path: String, event: CuratorEvent,
                                  clazz: Class[_], id: ObjId, key: String,
-                                 value: String): Observable[StateResult] = {
+                                 value: String, failFast: Boolean = false)
+    : Observable[StateResult] = {
+        val zk = if (failFast) failFastCurator else curator
         if (event.getResultCode == Code.NONODE.intValue()) {
             asObservable {
-                curator.create()
+                zk.create()
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.EPHEMERAL)
                     .inBackground(_)
                     .forPath(path, value.getBytes(StringEncoding))
             }.map[Notification[StateResult]] {
-                asResult(clazz, id, key, value, ownerId)
+                asResult(clazz, id, key, value, ownerId(failFast))
             }.dematerialize[StateResult]
         } else {
             Observable.error[StateResult](makeThrowable(
@@ -509,24 +522,26 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
     /** Removes a value for the multi value policy. */
     private def removeValue(clazz: Class[_], id: ObjId, key: String,
-                            value: String, getPath: => String)
+                            value: String, getPath: => String,
+                            failFast: Boolean)
     : Observable[StateResult] = {
-        val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
+        val zk = if (failFast) failFastCurator else curator
+        val owner = zk.getZookeeperClient.getZooKeeper.getSessionId
         val path = getPath
 
         asObservable {
-            curator.checkExists().inBackground(_).forPath(path)
+            zk.checkExists().inBackground(_).forPath(path)
         } flatMap makeFunc1 { event =>
             if (event.getResultCode == Code.OK.intValue()) {
-                if (event.getStat.getEphemeralOwner == ownerId) {
+                if (event.getStat.getEphemeralOwner == owner) {
                     // The node exists and the caller is the owner: delete the
                     // key node.
                     asObservable {
-                        curator.delete().withVersion(event.getStat.getVersion)
-                               .inBackground(_)
-                               .forPath(path)
+                        zk.delete().withVersion(event.getStat.getVersion)
+                          .inBackground(_)
+                          .forPath(path)
                     }.map[Notification[StateResult]] {
-                        asResult(clazz, id, key, value, ownerId)
+                        asResult(clazz, id, key, value, owner)
                     }.dematerialize[StateResult]
                 } else {
                     // The value has a different owner.
@@ -591,8 +606,10 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         val path = keyPath(namespace, clazz,
                            getIdString(clazz, id), key, version)
 
+        val keyType = getKeyType(index.clazz, index.key)
+        val zk = if (keyType.failFast) failFastCurator else curator
         val obs = singleObservables.getOrElse(index, {
-            val observable = NodeObservable.create(curator, path,
+            val observable = NodeObservable.create(zk, path,
                                                    completeOnDelete = false,
                                                    metrics)
             singleObservables.putIfAbsent(index, observable)
@@ -657,13 +674,15 @@ trait ZookeeperObjectState extends StateStorage with Storage {
       * exist, the observable emits an [[UnmodifiableStateException]] error. */
     @inline
     private def onObjectExists(clazz: Class[_], id: ObjId, key: String,
-                               value: String): Observable[StateResult] = {
+                               value: String, failFast: Boolean)
+    : Observable[StateResult] = {
+        val zk = if (failFast) failFastCurator else curator
         asObservable {
-            curator.checkExists()
-                   .inBackground(_)
-                   .forPath(objectPath(clazz, id, version.get))
+            zk.checkExists()
+              .inBackground(_)
+              .forPath(objectPath(clazz, id, version.get))
         }.map[Notification[StateResult]] {
-            asResult(clazz, id, key, value, ownerId)
+            asResult(clazz, id, key, value, ownerId(failFast))
         }.dematerialize[StateResult]
     }
 
@@ -671,9 +690,11 @@ trait ZookeeperObjectState extends StateStorage with Storage {
       * observable, which when subscribed to asynchronously verifies that the
       * path exists and emits a notification with the result. */
     @inline
-    private def onPathExists(path: String): Observable[CuratorEvent] = {
+    private def onPathExists(path: String, failFast: Boolean = false)
+    : Observable[CuratorEvent] = {
         asObservable {
-            curator.checkExists().inBackground(_).forPath(path)
+            val zk = if (failFast) failFastCurator else curator
+            zk.checkExists().inBackground(_).forPath(path)
         }
     }
 
@@ -683,10 +704,11 @@ trait ZookeeperObjectState extends StateStorage with Storage {
       * result. */
     @inline
     private def onObjectAndStateExist(clazz: Class[_], id: ObjId, key: String,
-                                      value: String, path: String)
+                                      value: String, path: String,
+                                      failFast: Boolean = false)
     : Observable[CuratorEvent] = {
-        onObjectExists(clazz, id, key, value) flatMap makeFunc1 { _ =>
-            onPathExists(path)
+        onObjectExists(clazz, id, key, value, failFast) flatMap makeFunc1 { _ =>
+            onPathExists(path, failFast)
         }
     }
 
