@@ -113,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_bcb5d6ef",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-21T16:05:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_8c78e390",
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_0c64f3e3",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
         "patchSetId": 1
@@ -136,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_9ca572b7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-21T16:05:49Z",
+      "side": 1,
+      "message": "maybe yes: I will throw a KeystoneException",
+      "parentUuid": "fa81d914_0c64f3e3",
+      "range": {
+        "startLine": 76,
+        "startChar": 58,
+        "endLine": 76,
+        "endChar": 60
+      },
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_8608c292",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneDtos.scala",
         "patchSetId": 1
@@ -147,6 +189,30 @@
       "writtenOn": "2016-01-20T11:06:57Z",
       "side": 1,
       "message": "Is this to perform actions on behalf of someone else? How does it change the way we handle actions?",
+      "range": {
+        "startLine": 124,
+        "startChar": 34,
+        "endLine": 124,
+        "endChar": 75
+      },
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_bc107602",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneDtos.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-21T16:05:49Z",
+      "side": 1,
+      "message": "It doesn\u0027t change anything on our side, this is just to implement the Keystone v2 API correctly, where the Access JSON above may include the `trust` field. If not added, the JSON deserialization will fail. We don\u0027t process this value in any way.",
+      "parentUuid": "fa81d914_8608c292",
       "range": {
         "startLine": 124,
         "startChar": 34,
@@ -229,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_3c1ba61c",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClientTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-21T16:05:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_662cae03",
+      "range": {
+        "startLine": 281,
+        "startChar": 35,
+        "endLine": 281,
+        "endChar": 43
+      },
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_a636a650",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClientTest.scala",
         "patchSetId": 1
@@ -240,6 +330,30 @@
       "writtenOn": "2016-01-20T11:06:57Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 291,
+        "startChar": 35,
+        "endLine": 291,
+        "endChar": 43
+      },
+      "revId": "4c6b998ce941d50d5ddd34cff3adf237f8e87886",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5c169af2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClientTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-21T16:05:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_a636a650",
       "range": {
         "startLine": 291,
         "startChar": 35,
