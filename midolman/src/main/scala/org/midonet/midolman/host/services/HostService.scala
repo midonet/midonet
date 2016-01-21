@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,11 +121,11 @@ class HostService (config: MidolmanConfig,
         override def onNext(key: StateKey): Unit = key match {
             case SingleValueKey(_, _, ownerId) =>
                 // Reacquire ownership if the owner identifier has changed.
-                if (stateStore.ownerId != ownerId) {
+                if (stateStore.ownerId() != ownerId) {
                     log.warn("Ownership for the alive state of host has " +
                              "changed (current={} expected={}): reacquiring " +
                              "ownership", Long.box(ownerId),
-                             Long.box(stateStore.ownerId))
+                             Long.box(stateStore.ownerId()))
                     recreateHostOrShutdown()
                 }
             case _ =>
