@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ import org.midonet.util.functors.makeFunc1
 class ZookeeperObjectMapper(protected override val rootPath: String,
                             protected override val namespace: String,
                             protected override val curator: CuratorFramework,
-                            protected override val curatorFailFast: CuratorFramework,
+                            protected override val failFastCurator: CuratorFramework,
                             protected override val reactor: Reactor,
                             protected override val connection: ZkConnection,
                             protected override val connectionWatcher: ZkConnectionAwareWatcher,
