@@ -301,7 +301,7 @@ mainClassName = "org.midonet.midolman.Midolman"
 
 task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine 'sudo', '../misc/run-java-with-env.sh'
-    commandLine += "${project.projectDir}/conf/midolman-env.sh"
+    commandLine += "${project.projectDir}/conf/midolman-env.sh.small"
     commandLine += '-Djava.library.path=/lib:/usr/lib'
     commandLine += '-cp'
     commandLine += sourceSets.main.runtimeClasspath.collect{ it.toString() }.join(':')
