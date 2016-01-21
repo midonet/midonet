@@ -26,6 +26,7 @@ import scala.util.control.NonFatal
 import akka.actor.{Actor, ActorRef, Props}
 
 import com.google.inject.Inject
+import com.google.inject.name.Named
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
@@ -215,7 +216,7 @@ object HealthMonitor extends Referenceable {
 class HealthMonitor @Inject() (config: MidolmanConfig,
                                backend: MidonetBackend,
                                lockFactory: ZookeeperLockFactory,
-                               curator: CuratorFramework,
+                               @Named("Regular") curator: CuratorFramework,
                                backendCfg: MidonetBackendConfig)
     extends Actor with ActorLogWithoutPath {
 

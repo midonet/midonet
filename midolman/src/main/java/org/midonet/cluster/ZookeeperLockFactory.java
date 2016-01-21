@@ -17,6 +17,7 @@ package org.midonet.cluster;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
@@ -39,7 +40,8 @@ public class ZookeeperLockFactory {
     private final PathBuilder paths;
 
     @Inject
-    public ZookeeperLockFactory(CuratorFramework client, PathBuilder paths) {
+    public ZookeeperLockFactory(@Named("Regular") CuratorFramework client,
+                                PathBuilder paths) {
         this.client = client;
         this.paths = paths;
     }

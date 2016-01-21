@@ -27,6 +27,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 
 import com.google.inject.Guice._
+import com.google.inject.name.{Names, Named}
 import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
 import com.google.inject.{Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
@@ -90,7 +91,9 @@ object Vladimir {
             bind(classOf[CorsFilter])
             bind(classOf[PathBuilder]).toInstance(paths)
             bind(classOf[ExecutionContext]).toInstance(ec)
-            bind(classOf[CuratorFramework]).toInstance(curator)
+            bind(classOf[CuratorFramework])
+                .annotatedWith(Names.named("Regular"))
+                .toInstance(curator)
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
             bind(classOf[SequenceDispenser]).toInstance(sequenceDispenser)
@@ -127,7 +130,7 @@ object Vladimir {
 @ClusterService(name = "rest-api")
 class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                          backend: MidonetBackend,
-                         curator: CuratorFramework,
+                         @Named("Regular") curator: CuratorFramework,
                          reflections: Reflections,
                          authService: AuthService,
                          config: ClusterConfig)
