@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ sealed class Snatcher[D](val targetId: UUID,
                     case Failure(e) =>
                         log.warn(s"Failed to write state for key: $t", e)
                 }
-        case SingleValueKey(_ , Some(v), session) if stateStore.ownerId == session =>
+        case SingleValueKey(_ , Some(v), session) if stateStore.ownerId() == session =>
             log.debug(s"I own $typeName $targetId")
             iAmOwner()
         case SingleValueKey(_, Some(v), session) => // Somebody else is the owner
