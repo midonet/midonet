@@ -49,8 +49,8 @@ class VtepStateStorageTest extends FlatSpec with MidonetBackendTest
 
     protected override def setup(): Unit = {
         storage = new ZookeeperObjectMapper(zkRoot, ClusterNamespaceId.toString,
-                                            curator, reactor, connection,
-                                            connectionWatcher)
+                                            curator, curator, reactor,
+                                            connection, connectionWatcher)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }

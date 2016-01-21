@@ -76,8 +76,8 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
     private final val timeout = 5 seconds
 
     private def newStorage(): ZookeeperObjectMapper = {
-        new ZookeeperObjectMapper(zkRoot, namespaceId, curator, reactor,
-                                  connection, connectionWatcher)
+        new ZookeeperObjectMapper(zkRoot, namespaceId, curator, curator,
+                                  reactor, connection, connectionWatcher)
     }
 
     private def setupStorage(): ZookeeperObjectMapper = {

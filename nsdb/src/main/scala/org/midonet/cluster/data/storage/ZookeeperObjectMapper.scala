@@ -107,6 +107,7 @@ import org.midonet.util.functors.makeFunc1
 class ZookeeperObjectMapper(protected override val rootPath: String,
                             protected override val namespace: String,
                             protected override val curator: CuratorFramework,
+                            protected override val curatorFailFast: CuratorFramework,
                             protected override val reactor: Reactor,
                             protected override val connection: ZkConnection,
                             protected override val connectionWatcher: ZkConnectionAwareWatcher,

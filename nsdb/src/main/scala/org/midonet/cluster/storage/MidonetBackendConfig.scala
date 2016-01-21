@@ -29,6 +29,7 @@ import org.midonet.conf.MidoNodeConfigurator
 class MidonetBackendConfig(val conf: Config) {
     def hosts = conf.getString("zookeeper.zookeeper_hosts")
     def sessionTimeout = conf.getDuration("zookeeper.session_timeout", TimeUnit.MILLISECONDS).toInt
+    def failFastSessionTimeout = conf.getDuration("zookeeper.failfast_session_timeout", TimeUnit.MILLISECONDS).toInt
     def graceTime = conf.getDuration("zookeeper.session_gracetime", TimeUnit.MILLISECONDS).toInt
     def rootKey = MidoNodeConfigurator.zkRootKey(conf)
     def maxRetries = conf.getInt("zookeeper.max_retries")
