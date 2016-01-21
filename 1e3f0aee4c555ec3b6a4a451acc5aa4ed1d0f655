@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_9c9f32b4",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-21T14:33:42Z",
+      "side": 1,
+      "message": "FD is a bit ambiguous. Could it be just fastCurator or failoverCurator? The same comment for the other variables where this is used.",
+      "range": {
+        "startLine": 93,
+        "startChar": 18,
+        "endLine": 93,
+        "endChar": 35
+      },
+      "revId": "1e3f0aee4c555ec3b6a4a451acc5aa4ed1d0f655",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_dca9aae0",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-21T14:33:42Z",
+      "side": 1,
+      "message": "We should also set the connection timeout to the same value, otherwise we get a warning from the CuratorZookeeperClient.\n\nThese are the default values:\n\n    private static final int DEFAULT_SESSION_TIMEOUT_MS \u003d Integer.getInteger(\"curator-default-session-timeout\", 60 * 1000);\n    private static final int DEFAULT_CONNECTION_TIMEOUT_MS \u003d Integer.getInteger(\"curator-default-connection-timeout\", 15 * 1000);",
+      "range": {
+        "startLine": 97,
+        "startChar": 35,
+        "endLine": 97,
+        "endChar": 78
+      },
+      "revId": "1e3f0aee4c555ec3b6a4a451acc5aa4ed1d0f655",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
