@@ -121,11 +121,11 @@ class HostService (config: MidolmanConfig,
         override def onNext(key: StateKey): Unit = key match {
             case SingleValueKey(_, _, ownerId) =>
                 // Reacquire ownership if the owner identifier has changed.
-                if (stateStore.ownerId != ownerId) {
+                if (stateStore.ownerId() != ownerId) {
                     log.warn("Ownership for the alive state of host has " +
                              "changed (current={} expected={}): reacquiring " +
                              "ownership", Long.box(ownerId),
-                             Long.box(stateStore.ownerId))
+                             Long.box(stateStore.ownerId()))
                     recreateHostOrShutdown()
                 }
             case _ =>

@@ -34,15 +34,22 @@ import org.midonet.cluster.data.storage.KeyType.KeyType
  *  Only one key value is allowed at a time. A client can always add a new value
  *  and it will overwrite any existing value, even if it belongs to a different
  *  client session.
+ *  - [[KeyType.SingleLastWriteWinsFastFailOver]]
+ *  Same thing as above except that state ephemeral data is quickly removed when
+ *  the entity that created them is deemed to be down. For instance,
+ *  the VPNaaS service adds a state key using this key type such that fast
+ *  failover of the VPN service can be performed.
  *  - [[KeyType.Multiple]]
  *  Multiple key values from different clients are allowed at a time. Keys
  *  supporting multiple values are always last write wins, where a value can
  *  be overwritten by a different client.
  */
 object KeyType extends Enumeration {
-    class KeyType(val isSingle: Boolean, val firstWins: Boolean) extends Val
+    class KeyType(val isSingle: Boolean, val firstWins: Boolean,
+                  val failFast: Boolean = false) extends Val
     final val SingleFirstWriteWins = new KeyType(true, true)
     final val SingleLastWriteWins = new KeyType(true, false)
+    final val SingleLastWriteWinsFastFailOver = new KeyType(true, false, true)
     final val Multiple = new KeyType(false, false)
 }
 
@@ -147,12 +154,16 @@ trait StateStorage {
     /** Removes a value from a key for the object with the specified class and
       * identifier from the state of the current namespace. For single value
       * keys, the `value` is ignored, and any current value is deleted. The
-      * method is asynchronous, returning an observable that when subscribed to
-      * will execute the remove and will emit one notification with the result
+      * failFast parameter determines whether we should use a storage session
+      * which ensures fast failure detection of the entity that inserts the
+      * state data.
+      * The method is asynchronous, returning an observable that when subscribed
+      * to will execute the remove and will emit one notification with the result
       * of the operation. */
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
-    def removeValue(clazz: Class[_], id: ObjId, key: String, value: String)
+    def removeValue(clazz: Class[_], id: ObjId, key: String, value: String,
+                    failFast: Boolean = false)
     : Observable[StateResult]
 
     /** Gets the set of values corresponding to a state key from the state of
@@ -209,8 +220,10 @@ trait StateStorage {
 
     /** Returns a number uniquely identifying the current owner.  Note that
       * this value has nothing to do with the node ID.
+      * The failFast parameter determines whether a session to storage
+      * ensuring fast failover should be used or not.
       */
-    def ownerId: Long
+    def ownerId(failFast: Boolean = false): Long
 
     /** Gets the key type for the given class and key. */
     @throws[IllegalArgumentException]
