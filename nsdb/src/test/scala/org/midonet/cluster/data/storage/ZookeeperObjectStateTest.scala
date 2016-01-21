@@ -32,12 +32,12 @@ import rx.Observable
 import rx.observers.TestObserver
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.backend.zookeeper.{SessionUnawareConnectionWatcher, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.SessionUnawareConnectionWatcher
 import org.midonet.cluster.data.storage.StorageTestClasses.State
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
 import org.midonet.cluster.storage.CuratorZkConnection
 import org.midonet.cluster.util.MidonetBackendTest
-import org.midonet.cluster.data.storage.KeyType.{Multiple, SingleFirstWriteWins, SingleLastWriteWins}
+import org.midonet.cluster.data.storage.KeyType.{Multiple, SingleFirstWriteWins, SingleLastWriteWins, SingleLastWriteWinsFastFailOver}
 import org.midonet.util.reactivex._
 import org.midonet.util.reactivex.AwaitableObserver
 
@@ -48,13 +48,17 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
 
     private var storage: ZookeeperObjectMapper = _
     private var ownerId: Long = _
+    private var failFastOwnerId: Long = _
     private val namespaceId = UUID.randomUUID.toString
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, namespaceId, curator, curator,
-                                            reactor, connection, connectionWatcher)
+        storage = new ZookeeperObjectMapper(zkRoot, namespaceId, curator,
+                                            failFastCurator, reactor,
+                                            connection, connectionWatcher)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
+        failFastOwnerId = failFastCurator.getZookeeperClient.getZooKeeper
+                                                            .getSessionId
         initAndBuildStorage(storage)
     }
 
@@ -62,6 +66,8 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         storage.registerClass(classOf[State])
         storage.registerKey(classOf[State], "first", SingleFirstWriteWins)
         storage.registerKey(classOf[State], "last", SingleLastWriteWins)
+        storage.registerKey(classOf[State], "lastFailFast",
+                            SingleLastWriteWinsFastFailOver)
         storage.registerKey(classOf[State], "multi", Multiple)
 
         storage.build()
@@ -159,70 +165,91 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             .await(timeout) shouldBe MultiValueKey(key, Set())
     }
 
-    def testRemoveNonExistingObject(key: String): Unit = {
+    def testRemoveNonExistingObject(key: String, failFast: Boolean = false)
+    : Unit = {
         Given("A non-existing object identifier")
         val id = UUID.randomUUID()
         Then("Removing a value, the future should return None")
-        storage.removeValue(classOf[State], id, key, null)
+        storage.removeValue(classOf[State], id, key, null, failFast)
             .await(timeout) shouldBe StateResult(NoOwnerId)
     }
 
-    def testAddGetRemoveSingleValue(key: String): Unit = {
-        Given("An object in storage")
-        val obj = new State
-        storage.create(obj)
+    def testAddGetRemoveSingleValue(obj: State, key: String,
+                                    failFast: Boolean = false)
+    : Unit = {
+        val owner = if (failFast) failFastOwnerId else ownerId
 
         Then("Adding a value should return the current session")
         storage.addValue(classOf[State], obj.id, key, "1")
-            .await(timeout) shouldBe StateResult(ownerId)
+            .await(timeout) shouldBe StateResult(owner)
         And("Reading the key should return the added value")
         storage.getKey(classOf[State], obj.id, key)
-            .await(timeout) shouldBe SingleValueKey(key, Some("1"), ownerId)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), owner)
         And("Removing the value should return the current session")
-        storage.removeValue(classOf[State], obj.id, key, null)
-            .await(timeout) shouldBe StateResult(ownerId)
+        storage.removeValue(classOf[State], obj.id, key, null, failFast)
+            .await(timeout) shouldBe StateResult(owner)
         And("Reading the key again should return no value")
         storage.getKey(classOf[State], obj.id, key)
             .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
     }
 
-    def testAddSingleSameClient(key: String): Unit = {
-        Given("An object in storage")
-        val obj = new State
-        storage.create(obj)
+    def testAddSingleSameClient(obj: State, key: String,
+                                failFast: Boolean = false)
+    : Unit = {
+        val owner = if (failFast) failFastOwnerId else ownerId
 
         Then("Adding a value should return the current session")
         storage.addValue(classOf[State], obj.id, key, "1")
-            .await(timeout) shouldBe StateResult(ownerId)
+            .await(timeout) shouldBe StateResult(owner)
         And("Adding a second value should return the current session")
         storage.addValue(classOf[State], obj.id, key, "2")
-            .await(timeout) shouldBe StateResult(ownerId)
+            .await(timeout) shouldBe StateResult(owner)
         And("Reading the key should return the second value")
         storage.getKey(classOf[State], obj.id, key)
-            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), owner)
     }
 
-    def testRemoveSingleDifferentClient(key: String): Unit = {
-        Given("An object in storage")
-        val obj = new State
-        storage.create(obj)
+    def testRemoveSingleDifferentClient(obj: State, key: String,
+                                        failFast: Boolean = false)
+    : Unit = {
+        val owner = if (failFast) failFastOwnerId else ownerId
 
         And("A second storage client")
         val (curator2, _, _, storage2) = newStorage(sameNamespace = true)
 
         Then("Adding a value should return the current session")
         storage.addValue(classOf[State], obj.id, key, "1")
-            .await(timeout) shouldBe StateResult(ownerId)
+            .await(timeout) shouldBe StateResult(owner)
         And("Removing the value from the second client should fail")
         val e = intercept[NotStateOwnerException] {
-            storage2.removeValue(classOf[State], obj.id, key, null)
-                .await(timeout) shouldBe StateResult(ownerId)
+            storage2.removeValue(classOf[State], obj.id, key, null, failFast)
+                .await(timeout) shouldBe StateResult(owner)
         }
 
         e.clazz shouldBe classOf[State].getSimpleName
         e.id shouldBe obj.id.toString
         e.key shouldBe key
-        e.owner shouldBe ownerId
+        e.owner shouldBe owner
+
+        curator2.close()
+    }
+
+    def testAddWithTwoClients(obj: State, key: String,
+                              failFast: Boolean = false): Unit = {
+        val owner = if (failFast) failFastOwnerId else ownerId
+
+        And("A second storage client")
+        val (curator2, ownerId2, _, storage2) = newStorage(sameNamespace = true)
+
+        Then("Adding a value should return the current session")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout) shouldBe StateResult(owner)
+        And("Adding a value from the second client should fail")
+        storage2.addValue(classOf[State], obj.id, key, "2")
+            .await(timeout) shouldBe StateResult(ownerId2)
+        And("Reading the key should return the second value")
+        storage.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId2)
 
         curator2.close()
     }
@@ -241,11 +268,15 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         }
 
         scenario("Add, get, remove value for object") {
-            testAddGetRemoveSingleValue("first")
+            val obj = new State
+            storage.create(obj)
+            testAddGetRemoveSingleValue(obj, "first")
         }
 
         scenario("Add another value for the same client") {
-            testAddSingleSameClient("first")
+            val obj = new State
+            storage.create(obj)
+            testAddSingleSameClient(obj, "first")
         }
 
         scenario("Add another value for a different client") {
@@ -274,29 +305,68 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         }
 
         scenario("Remove another value for a different client") {
-            testRemoveSingleDifferentClient("first")
+            val obj = new State
+            storage.create(obj)
+            testRemoveSingleDifferentClient(obj, "first")
         }
     }
 
     feature("Test single value with last write wins") {
         scenario("Add for non-existing object") {
             testAddNonExistingObject("last")
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Operations involving fail-fast keys work")
+            testAddNonExistingObject("lastFailFast")
         }
 
         scenario("Get for non-existing object") {
             testGetSingleValueNonExistingObject("last")
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Operations involving fail-fast keys work")
+            testGetSingleValueNonExistingObject("lastFailFast")
         }
 
         scenario("Remove for non-existing object") {
             testRemoveNonExistingObject("last")
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Operations involving fail-fast keys work")
+            testRemoveNonExistingObject("lastFailFast", failFast = true)
         }
 
         scenario("Add, get, remove value for object") {
-            testAddGetRemoveSingleValue("last")
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+            testAddGetRemoveSingleValue(obj, "last")
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Operations involving fail-fast keys work")
+            testAddGetRemoveSingleValue(obj, "lastFailFast", failFast = true)
         }
 
         scenario("Add another value for the same client") {
-            testAddSingleSameClient("last")
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            testAddSingleSameClient(obj, "last")
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Operations involving fail-fast keys work")
+            testAddSingleSameClient(obj, "lastFailFast", failFast = true)
         }
 
         scenario("Add another value for a different client") {
@@ -304,25 +374,29 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             val obj = new State
             storage.create(obj)
 
-            And("A second storage client")
-            val (curator2, ownerId2, _, storage2) = newStorage(sameNamespace = true)
+            testAddWithTwoClients(obj, "last")
 
-            Then("Adding a value should return the current session")
-            storage.addValue(classOf[State], obj.id, "last", "1")
-                .await(timeout) shouldBe StateResult(ownerId)
-            And("Adding a value from the second client should fail")
-            storage2.addValue(classOf[State], obj.id, "last", "2")
-                .await(timeout) shouldBe StateResult(ownerId2)
-            And("Reading the key should return the second value")
-            storage.getKey(classOf[State], obj.id, "last")
-                .await(timeout) shouldBe SingleValueKey("last", Some("2"),
-                                                        ownerId2)
+            When("We close the regular curator instance")
+            curator.close()
 
-            curator2.close()
+            Then("Operations involving fail-fast keys work")
+            testAddWithTwoClients(obj, "lastFailFast",
+                                  failFast = true)
         }
 
         scenario("Remove another value for a different client") {
-            testRemoveSingleDifferentClient("last")
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            testRemoveSingleDifferentClient(obj, "last")
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Operations involving fail-fast keys work")
+            testRemoveSingleDifferentClient(obj, "lastFailFast",
+                                            failFast = true)
         }
     }
 
@@ -439,21 +513,173 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         }
     }
 
+    def testSingleObservableDoesNotExist(key: String, failFast: Boolean = false)
+    : Unit = {
+        Given("A random object identifier")
+        val id = UUID.randomUUID()
+
+        When("An observer subscribes to the key")
+        val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+        storage.keyObservable(classOf[State], id, key)
+            .subscribe(obs)
+
+        Then("The observer should complete")
+        obs.awaitCompletion(timeout)
+        if (failFast) {
+            obs.getOnNextEvents.size() match {
+                case 0 =>
+                case 1 => obs.getOnNextEvents.get(0) shouldBe
+                            SingleValueKey(key, None, NoOwnerId)
+                case size if size > 1 => fail()
+            }
+        } else {
+            obs.getOnNextEvents shouldBe empty
+        }
+        obs.getOnCompletedEvents should not be empty
+        obs.getOnErrorEvents shouldBe empty
+    }
+
+    def testSingleObservableNoValue(obj: State, key: String): Unit = {
+        When("An observer subscribes to the key")
+        val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+        storage.keyObservable(classOf[State], obj.id, key)
+            .subscribe(obs)
+
+        Then("The observer receives no value")
+        obs.awaitOnNext(1, timeout) shouldBe true
+        obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+            key, None, NoOwnerId)
+    }
+
+    def testSingleObservableValueExists(obj: State, key: String,
+                                        failFast: Boolean = false): Unit = {
+        And("A key value")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout)
+
+        When("An observer subscribed to the key")
+        val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+        storage.keyObservable(classOf[State], obj.id, key)
+            .subscribe(obs)
+
+        val owner = if (failFast) failFastOwnerId else ownerId
+        Then("The observer receives the value")
+        obs.awaitOnNext(1, timeout) shouldBe true
+        obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+            key, Some("1"), owner)
+    }
+
+    def testSingleObservableValueCreated(obj: State, key: String,
+                                         failFast: Boolean = false): Unit = {
+        When("An observer subscribed to the key")
+        val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+        storage.keyObservable(classOf[State], obj.id, key)
+            .subscribe(obs)
+
+        Then("The observer receives no value")
+        obs.awaitOnNext(1, timeout) shouldBe true
+        obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+            key, None, NoOwnerId)
+
+        When("Adding a key value")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout)
+
+        val owner = if (failFast) failFastOwnerId else ownerId
+
+        Then("The observer receives no value")
+        obs.awaitOnNext(2, timeout) shouldBe true
+        obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
+            key, Some("1"), owner)
+    }
+
+    def testSingleObservableDeleted(obj: State, key: String,
+                                    failFast: Boolean = false): Unit = {
+        And("A key value")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout)
+
+        When("An observer subscribed to the key")
+        val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+        storage.keyObservable(classOf[State], obj.id, key)
+            .subscribe(obs)
+
+        And("The value is deleted")
+        storage.removeValue(classOf[State], obj.id, key, null, failFast)
+            .await(timeout)
+
+        And("A new value is added")
+        storage.addValue(classOf[State], obj.id, key, "2")
+            .await(timeout)
+
+        val owner = if (failFast) failFastOwnerId else ownerId
+
+        Then("The observer receives all updates")
+        obs.awaitOnNext(3, timeout) shouldBe true
+        obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+            key, Some("1"), owner)
+        obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
+            key, None, NoOwnerId)
+        obs.getOnNextEvents.get(2) shouldBe SingleValueKey(
+            key, Some("2"), owner)
+    }
+
+    def testSingleObservableCompletes(obj: State, key: String): Unit = {
+        And("A key value")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout)
+
+        And("An observer subscribed to the key")
+        val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+        storage.keyObservable(classOf[State], obj.id, key)
+            .subscribe(obs)
+        obs.awaitOnNext(1, timeout) shouldBe true
+
+        When("The object is deleted")
+        storage.delete(classOf[State], obj.id)
+
+        Then("The observable should complete")
+        obs.awaitCompletion(1 second)
+    }
+
+    def testSingleObservableIdenticalValues(obj: State, key: String,
+                                            failFast: Boolean = false): Unit = {
+        And("A key value")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout)
+
+        When("An observer subscribed to the key")
+        val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+        storage.keyObservable(classOf[State], obj.id, key)
+            .subscribe(obs)
+
+        And("The same value is added two more times")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout)
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout)
+
+        And("Removing the value")
+        storage.removeValue(classOf[State], obj.id, key, null,
+                            failFast).await(timeout)
+
+        val owner = if (failFast) failFastOwnerId else ownerId
+        Then("The observer receives all updates")
+        obs.awaitOnNext(4, timeout) shouldBe true
+        obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+            key, Some("1"), owner)
+        obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
+            key, Some("1"), owner)
+        obs.getOnNextEvents.get(2) shouldBe SingleValueKey(
+            key, Some("1"), owner)
+        obs.getOnNextEvents.get(3) shouldBe SingleValueKey(
+            key, None, NoOwnerId)
+    }
+
     feature("Test observables for single value") {
         scenario("Object does not exist") {
-            Given("A random object identifier")
-            val id = UUID.randomUUID()
-
-            When("An observer subscribes to the key")
-            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
-            storage.keyObservable(classOf[State], id, "first")
-                .subscribe(obs)
-
-            Then("The observer should complete")
-            obs.awaitCompletion(timeout)
-            obs.getOnNextEvents shouldBe empty
-            obs.getOnCompletedEvents should not be empty
-            obs.getOnErrorEvents shouldBe empty
+            testSingleObservableDoesNotExist("first")
+            testSingleObservableDoesNotExist("lastFailFast", failFast = true)
         }
 
         scenario("Value does not exist") {
@@ -461,15 +687,8 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             val obj = new State
             storage.create(obj)
 
-            When("An observer subscribes to the key")
-            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
-            storage.keyObservable(classOf[State], obj.id, "first")
-                   .subscribe(obs)
-
-            Then("The observer receives no value")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
-                "first", None, NoOwnerId)
+            testSingleObservableNoValue(obj, "first")
+            testSingleObservableNoValue(obj, "lastFailFast")
         }
 
         scenario("Value exists in storage") {
@@ -477,19 +696,9 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             val obj = new State
             storage.create(obj)
 
-            And("A key value")
-            storage.addValue(classOf[State], obj.id, "first", "1")
-                .await(timeout)
-
-            When("An observer subscribed to the key")
-            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
-            storage.keyObservable(classOf[State], obj.id, "first")
-                .subscribe(obs)
-
-            Then("The observer receives the value")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
-                "first", Some("1"), ownerId)
+            testSingleObservableValueExists(obj, "first")
+            testSingleObservableValueExists(obj, "lastFailFast",
+                                            failFast = true)
         }
 
         scenario("Value is created") {
@@ -497,24 +706,9 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             val obj = new State
             storage.create(obj)
 
-            When("An observer subscribed to the key")
-            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
-            storage.keyObservable(classOf[State], obj.id, "first")
-                .subscribe(obs)
-
-            Then("The observer receives no value")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
-                "first", None, NoOwnerId)
-
-            When("Adding a key value")
-            storage.addValue(classOf[State], obj.id, "first", "1")
-                .await(timeout)
-
-            Then("The observer receives no value")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
-                "first", Some("1"), ownerId)
+            testSingleObservableValueCreated(obj, "first")
+            testSingleObservableValueCreated(obj, "lastFailFast",
+                                             failFast = true)
         }
 
         scenario("Value is deleted and recreated") {
@@ -522,31 +716,8 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             val obj = new State
             storage.create(obj)
 
-            And("A key value")
-            storage.addValue(classOf[State], obj.id, "first", "1")
-                .await(timeout)
-
-            When("An observer subscribed to the key")
-            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
-            storage.keyObservable(classOf[State], obj.id, "first")
-                .subscribe(obs)
-
-            And("The value is deleted")
-            storage.removeValue(classOf[State], obj.id, "first", null)
-                .await(timeout)
-
-            And("A new value is added")
-            storage.addValue(classOf[State], obj.id, "first", "2")
-                .await(timeout)
-
-            Then("The observer receives all updates")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
-                "first", Some("1"), ownerId)
-            obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
-                "first", None, NoOwnerId)
-            obs.getOnNextEvents.get(2) shouldBe SingleValueKey(
-                "first", Some("2"), ownerId)
+            testSingleObservableDeleted(obj, "first")
+            testSingleObservableDeleted(obj, "lastFailFast", failFast = true)
         }
 
         scenario("Observable completes on object deletion") {
@@ -554,21 +725,10 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             val obj = new State
             storage.create(obj)
 
-            And("A key value")
-            storage.addValue(classOf[State], obj.id, "first", "1")
-                .await(timeout)
+            testSingleObservableCompletes(obj, "first")
 
-            And("An observer subscribed to the key")
-            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
-            storage.keyObservable(classOf[State], obj.id, "first")
-                .subscribe(obs)
-            obs.awaitOnNext(1, timeout) shouldBe true
-
-            When("The object is deleted")
-            storage.delete(classOf[State], obj.id)
-
-            Then("The observable should complete")
-            obs.awaitCompletion(1 second)
+            storage.create(obj)
+            testSingleObservableCompletes(obj, "lastFailFast")
         }
 
         scenario("Observable notifies identical values") {
@@ -576,35 +736,8 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             val obj = new State
             storage.create(obj)
 
-            And("A key value")
-            storage.addValue(classOf[State], obj.id, "first", "1")
-                .await(timeout)
-
-            When("An observer subscribed to the key")
-            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
-            storage.keyObservable(classOf[State], obj.id, "first")
-                .subscribe(obs)
-
-            And("The same value is added two more times")
-            storage.addValue(classOf[State], obj.id, "first", "1")
-                .await(timeout)
-            storage.addValue(classOf[State], obj.id, "first", "1")
-                .await(timeout)
-
-            And("Removing the value")
-            storage.removeValue(classOf[State], obj.id, "first", null)
-                .await(timeout)
-
-            Then("The observer receives all updates")
-            obs.awaitOnNext(4, timeout) shouldBe true
-            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
-                "first", Some("1"), ownerId)
-            obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
-                "first", Some("1"), ownerId)
-            obs.getOnNextEvents.get(2) shouldBe SingleValueKey(
-                "first", Some("1"), ownerId)
-            obs.getOnNextEvents.get(3) shouldBe SingleValueKey(
-                "first", None, NoOwnerId)
+            testSingleObservableIdenticalValues(obj, "first")
+            testSingleObservableIdenticalValues(obj, "lastFailFast", failFast = true)
         }
     }
 

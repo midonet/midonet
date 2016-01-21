@@ -96,7 +96,7 @@ sealed class Snatcher[D](val targetId: UUID,
                     case Failure(e) =>
                         log.warn(s"Failed to write state for key: $t", e)
                 }
-        case SingleValueKey(_ , Some(v), session) if stateStore.ownerId == session =>
+        case SingleValueKey(_ , Some(v), session) if stateStore.ownerId() == session =>
             log.debug(s"I own $typeName $targetId")
             iAmOwner()
         case SingleValueKey(_, Some(v), session) => // Somebody else is the owner
