@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_1c6ee296",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-21T16:44:45Z",
+      "side": 1,
+      "message": "failFastCurator is good!",
+      "parentUuid": "fa81d914_3c4c8670",
+      "range": {
+        "startLine": 67,
+        "startChar": 26,
+        "endLine": 67,
+        "endChar": 39
+      },
+      "revId": "1e3f0aee4c555ec3b6a4a451acc5aa4ed1d0f655",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_9c9f32b4",
         "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_3c6d6699",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-21T16:44:45Z",
+      "side": 1,
+      "message": "I renamed this to bindFailFastCurator",
+      "parentUuid": "fa81d914_9c9f32b4",
+      "range": {
+        "startLine": 93,
+        "startChar": 18,
+        "endLine": 93,
+        "endChar": 35
+      },
+      "revId": "1e3f0aee4c555ec3b6a4a451acc5aa4ed1d0f655",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_dca9aae0",
         "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-01-21T14:33:42Z",
       "side": 1,
       "message": "We should also set the connection timeout to the same value, otherwise we get a warning from the CuratorZookeeperClient.\n\nThese are the default values:\n\n    private static final int DEFAULT_SESSION_TIMEOUT_MS \u003d Integer.getInteger(\"curator-default-session-timeout\", 60 * 1000);\n    private static final int DEFAULT_CONNECTION_TIMEOUT_MS \u003d Integer.getInteger(\"curator-default-connection-timeout\", 15 * 1000);",
+      "range": {
+        "startLine": 97,
+        "startChar": 35,
+        "endLine": 97,
+        "endChar": 78
+      },
+      "revId": "1e3f0aee4c555ec3b6a4a451acc5aa4ed1d0f655",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_fc72ee7a",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-21T16:44:45Z",
+      "side": 1,
+      "message": "Done. I also now bind the instance, which I had forgotten to do previously.",
+      "parentUuid": "fa81d914_dca9aae0",
       "range": {
         "startLine": 97,
         "startChar": 35,
@@ -105,6 +177,30 @@
       "writtenOn": "2016-01-21T14:58:59Z",
       "side": 1,
       "message": "fail_fast_session_timeout feels more informative?",
+      "range": {
+        "startLine": 31,
+        "startChar": 4,
+        "endLine": 31,
+        "endChar": 17
+      },
+      "revId": "1e3f0aee4c555ec3b6a4a451acc5aa4ed1d0f655",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_1cf42286",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-21T16:44:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_bc6f96c4",
       "range": {
         "startLine": 31,
         "startChar": 4,
