@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_d216f154",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-22T09:54:36Z",
+      "side": 1,
+      "message": "timeout occurs?",
+      "range": {
+        "startLine": 187,
+        "startChar": 68,
+        "endLine": 188,
+        "endChar": 24
+      },
+      "revId": "2e111bf5fec776c1c82d037ae1f8cf66526b1db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f20cd544",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-22T09:54:36Z",
+      "side": 1,
+      "message": "host?",
+      "range": {
+        "startLine": 194,
+        "startChar": 23,
+        "endLine": 194,
+        "endChar": 26
+      },
+      "revId": "2e111bf5fec776c1c82d037ae1f8cf66526b1db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5202010c",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-22T09:54:36Z",
+      "side": 1,
+      "message": "admin_user_name? Although I guess this is coming from another patch.",
+      "range": {
+        "startLine": 234,
+        "startChar": 12,
+        "endLine": 234,
+        "endChar": 21
+      },
+      "revId": "2e111bf5fec776c1c82d037ae1f8cf66526b1db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ad03de0b",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-22T09:54:36Z",
+      "side": 1,
+      "message": "admin_user_password?",
+      "range": {
+        "startLine": 241,
+        "startChar": 12,
+        "endLine": 241,
+        "endChar": 25
+      },
+      "revId": "2e111bf5fec776c1c82d037ae1f8cf66526b1db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
