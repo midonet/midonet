@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_e35c05f0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-22T18:39:15Z",
+      "side": 1,
+      "message": "Or make ZkNatBlockAllocator take the backend.",
+      "parentUuid": "fa81d914_a3868d63",
+      "range": {
+        "startLine": 354,
+        "startChar": 7,
+        "endLine": 355,
+        "endChar": 67
+      },
+      "revId": "d2e74bad17d24c8d2bf80f41f3057f2eb5f37a78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_83834955",
         "filename": "midolman/src/test/scala/org/midonet/cluster/storage/MidonetBackendTestModule.scala",
         "patchSetId": 5
