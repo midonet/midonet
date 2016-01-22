@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fa81d914_0d278a13",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-22T12:53:22Z",
+      "side": 1,
+      "message": "I\u0027m not totally in love with binding 2 curators to the injector. It does force you to use the @named device, but I\u0027m worried about happens if I have an injection of an unnamed curator. Do I get an error?\n\nThis made me wonder whether we should actually not bind Curator at all, and instead force people go use backend.curator / backend.failFastCurator, which is probably safer via explicit-ness.\n\nWhat do you guys think?",
+      "range": {
+        "startLine": 91,
+        "startChar": 13,
+        "endLine": 91,
+        "endChar": 50
+      },
+      "revId": "3b7ed07d9cf550a981afdd48011531269b0bce9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_ad2f5ef5",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/FloodingProxyManagerTest.scala",
         "patchSetId": 4
