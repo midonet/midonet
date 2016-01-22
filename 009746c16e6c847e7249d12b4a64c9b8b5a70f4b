@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_8d753a9a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-01-22T10:42:19Z",
+      "side": 1,
+      "message": "this fill() seems no-op as newCapacity is always oldLength * 2",
+      "revId": "009746c16e6c847e7249d12b4a64c9b8b5a70f4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4d6342dc",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-01-22T10:42:19Z",
+      "side": 1,
+      "message": "it seems the rest of the arary is never used.",
+      "revId": "009746c16e6c847e7249d12b4a64c9b8b5a70f4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
