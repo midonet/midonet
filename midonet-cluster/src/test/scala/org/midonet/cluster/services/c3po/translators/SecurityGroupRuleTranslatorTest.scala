@@ -55,10 +55,17 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
          """.stripMargin
 
     protected def midoSshRule = mRuleFromTxt(
-      s"""
-          id { $sgrId }
-          chain_id { $mChainId }
-       """.stripMargin)
+        s"""
+            id { $sgrId }
+            chain_id { $mChainId }
+        """.stripMargin)
+
+    protected def nSshRule = nSecurityGroupRuleFromTxt(
+        sgRuleBase() + s"""
+            direction: INGRESS
+            port_range_max: 22
+            port_range_min: 22
+        """.stripMargin)
 
     protected val defaultSg = nSecurityGroupFromTxt(sgBase())
 
@@ -74,6 +81,7 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         translator = new SecurityGroupRuleTranslator(storage)
         bind(sgId, defaultSg)
         bind(sgrId, midoSshRule)
+        bind(sgrId, nSshRule)
         bind(mChainId, mChain)
     }
 

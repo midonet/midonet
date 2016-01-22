@@ -18,9 +18,11 @@ package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.services.c3po.midonet._
+import org.midonet.util.concurrent.toFutureOps
 
 class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
     extends NeutronTranslator[SecurityGroupRule] with ChainManager {
@@ -31,7 +33,11 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
      */
     protected override def translateCreate(sgr: SecurityGroupRule)
     : MidoOpList = {
-        List(Create(SecurityGroupRuleManager.translate(sgr)))
+        val sgId = sgr.getSecurityGroupId
+        val sg = storage.get(classOf[SecurityGroup], sgId).await()
+        val updatedSg = sg.toBuilder.addSecurityGroupRules(sgr).build()
+        List(Create(SecurityGroupRuleManager.translate(sgr)),
+             Update(updatedSg))
     }
 
     protected override def translateUpdate(newSgr: SecurityGroupRule)
@@ -41,6 +47,17 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
     }
 
     protected override def translateDelete(sgrId: UUID) : MidoOpList = {
-        List(Delete(classOf[Rule], sgrId))
+        val ops = new MidoOpListBuffer
+        if (storage.exists(classOf[SecurityGroupRule], sgrId).await()) {
+            val sgr = storage.get(classOf[SecurityGroupRule], sgrId).await()
+            val sgId = sgr.getSecurityGroupId
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            val i = sg.getSecurityGroupRulesList.indexOf(sgr)
+            if (i >= 0) {
+                ops += Update(sg.toBuilder.removeSecurityGroupRules(i).build())
+            }
+        }
+        ops += Delete(classOf[Rule], sgrId)
+        ops.toList
     }
 }
