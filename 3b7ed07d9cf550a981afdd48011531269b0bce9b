@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_885fe8e4",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-22T15:16:23Z",
+      "side": 1,
+      "message": ":-) But the thing is that the error appears at runtime. In any case I prepared another patch that will upload shortly.",
+      "parentUuid": "fa81d914_ad64be49",
+      "range": {
+        "startLine": 91,
+        "startChar": 13,
+        "endLine": 91,
+        "endChar": 50
+      },
+      "revId": "3b7ed07d9cf550a981afdd48011531269b0bce9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_ad2f5ef5",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/FloodingProxyManagerTest.scala",
         "patchSetId": 4
@@ -84,6 +108,30 @@
       "writtenOn": "2016-01-22T12:45:50Z",
       "side": 1,
       "message": "This can the failFastCurator. Anyway - not important here - it doesn\u0027t affect the test. Leave it for a future patch.",
+      "range": {
+        "startLine": 362,
+        "startChar": 63,
+        "endLine": 362,
+        "endChar": 70
+      },
+      "revId": "3b7ed07d9cf550a981afdd48011531269b0bce9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4856d0d3",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/FloodingProxyManagerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-22T15:16:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_ad2f5ef5",
       "range": {
         "startLine": 362,
         "startChar": 63,
