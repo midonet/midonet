@@ -19,6 +19,7 @@ import java.util.UUID
 
 import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
+import org.midonet.cluster.data.neutron.NeutronResourceType
 import org.midonet.cluster.data.neutron.NeutronResourceType.{SecurityGroup => SecurityGroupType, SecurityGroupRule => SecurityGroupRuleType}
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron._
@@ -79,6 +80,11 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val existRule = ruleJson(existRuleId, sgId)
 
         createSecurityGroup(2, sgId, rules = List(existRule))
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            sg.getSecurityGroupRulesCount shouldBe 1
+        }
 
         insertDeleteTask(3, SecurityGroupRuleType, existRuleId)
         eventually {
@@ -161,6 +167,39 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
                 storage.getAll(classOf[Rule]))
             val delResults = delFutures.map(_.await())
             delResults.foreach(r => r should be(empty))
+        }
+    }
+
+    "SecurityGroupTranslator" should "have an edited rule list" in {
+        val sgId = UUID.randomUUID()
+
+        val existRuleId = UUID.randomUUID()
+        val existRule = ruleJson(existRuleId, sgId,
+            direction = RuleDirection.INGRESS)
+
+        createSecurityGroup(2, sgId, rules = List(existRule))
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            sg.getSecurityGroupRulesCount shouldBe 1
+        }
+
+        val rule2Id = UUID.randomUUID()
+        val rule2Json = ruleJson(rule2Id, sgId, etherType = EtherType.IPV6,
+            remoteSgId = sgId)
+
+        insertCreateTask(3, SecurityGroupRuleType, rule2Json, rule2Id)
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            sg.getSecurityGroupRulesCount shouldBe 2
+        }
+
+        insertDeleteTask(4, SecurityGroupRuleType, rule2Id)
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            sg.getSecurityGroupRulesCount shouldBe 1
         }
     }
 }
