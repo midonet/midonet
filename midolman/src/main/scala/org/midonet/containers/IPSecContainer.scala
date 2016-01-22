@@ -43,6 +43,7 @@ import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.IPSecContainer._
 import org.midonet.midolman.containers.{ContainerHandler, ContainerHealth, ContainerPort}
@@ -63,13 +64,10 @@ object IPSecConfig {
     def sanitizeName(name: String): String =
         name.replaceAll("[^\\w]", "_") + nameHash.hashString(name, UTF_8).toString
 
-    def subnetString(sub: Commons.IPSubnet) =
-        s"${sub.getAddress}/${sub.getPrefixLength}"
-
     def subnetsString(subnets: java.util.List[Commons.IPSubnet]): String = {
         if (subnets.isEmpty) return ""
-        val ss = new StringBuilder(subnetString(subnets.get(0)))
-        Range(1, subnets.size()) foreach (i => s",${subnetString(subnets.get(i))}")
+        val ss = new StringBuilder(subnets.get(0).asJava.toString)
+        for (i <- 1 until subnets.size) ss append s",${subnets.get(i).asJava}"
         ss.toString()
     }
 }

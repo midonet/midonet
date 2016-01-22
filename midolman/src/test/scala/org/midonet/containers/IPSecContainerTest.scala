@@ -265,11 +265,11 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    left=${vpn.localEndpointIp}
                     |    leftid=${vpn.localEndpointIp}
                     |    auto=add
-                    |    leftsubnets={ ${conn1.getLocalCidrs(0).asJava } }
+                    |    leftsubnets={ ${IPSecConfig.subnetsString(conn1.getLocalCidrsList) } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn1.getPeerAddress}
                     |    rightid=${conn1.getPeerAddress}
-                    |    rightsubnets={ ${conn1.getPeerCidrs(0).asJava } }
+                    |    rightsubnets={ ${IPSecConfig.subnetsString(conn1.getPeerCidrsList) } }
                     |    mtu=${conn1.getMtu}
                     |    dpdaction=clear
                     |    dpddelay=${conn1.getDpdInterval}
@@ -292,7 +292,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn2.getPeerAddress}
                     |    rightid=${conn2.getPeerAddress}
-                    |    rightsubnets={ ${conn2.getPeerCidrs(0).asJava } }
+                    |    rightsubnets={ ${IPSecConfig.subnetsString(conn2.getPeerCidrsList) } }
                     |    mtu=${conn2.getMtu}
                     |    dpdaction=restart-by-peer
                     |    dpddelay=${conn2.getDpdInterval}
@@ -335,6 +335,21 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn1, conn2, conn3))
 
             Then("The configurations should match")
+            IPSecConfig.subnetsString(conn1.getLocalCidrsList) shouldBe
+                s"${conn1.getLocalCidrs(0).asJava}"
+            IPSecConfig.subnetsString(conn1.getPeerCidrsList) shouldBe
+                s"${conn1.getPeerCidrs(0).asJava}"
+
+            IPSecConfig.subnetsString(conn2.getLocalCidrsList) shouldBe
+                s"${conn2.getLocalCidrs(0).asJava},${conn2.getLocalCidrs(1).asJava}"
+            IPSecConfig.subnetsString(conn2.getPeerCidrsList) shouldBe
+                s"${conn2.getPeerCidrs(0).asJava}"
+
+            IPSecConfig.subnetsString(conn3.getLocalCidrsList) shouldBe
+                s"${conn3.getLocalCidrs(0).asJava},${conn3.getLocalCidrs(1).asJava}"
+            IPSecConfig.subnetsString(conn3.getPeerCidrsList) shouldBe
+                s"${conn3.getPeerCidrs(0).asJava},${conn3.getPeerCidrs(1).asJava}"
+
             expectedConf shouldBe conf.getConfigFileContents
             expectedSecrets shouldBe conf.getSecretsFileContents
         }
