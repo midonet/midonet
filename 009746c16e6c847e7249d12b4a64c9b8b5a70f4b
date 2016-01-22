@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_6d2ba694",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-22T14:11:06Z",
+      "side": 1,
+      "message": "exactly, that\u0027s why we want to start filling at oldLength.",
+      "parentUuid": "fa81d914_8d753a9a",
+      "revId": "009746c16e6c847e7249d12b4a64c9b8b5a70f4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_4d6342dc",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2016-01-22T10:42:19Z",
       "side": 1,
       "message": "it seems the rest of the arary is never used.",
+      "revId": "009746c16e6c847e7249d12b4a64c9b8b5a70f4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8d329a0e",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-22T14:11:06Z",
+      "side": 1,
+      "message": "oh, the / 2 wasn\u0027t supposed to be here. i forgot to update this",
+      "parentUuid": "fa81d914_4d6342dc",
       "revId": "009746c16e6c847e7249d12b4a64c9b8b5a70f4b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
