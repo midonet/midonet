@@ -16,33 +16,28 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.concurrent.atomic.AtomicLong
-
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.simulation.Router.RoutingTable
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.IPAddr
 
 /**
  * Handles lookups on the routing table. If multiple routes match, chooses
- * one in a pseudo-random way, to provide basic balancing.
+ * one based on the flow's hash.
  */
-class RouteBalancer[IP <: IPAddr](val rTable: RoutingTable) {
-    val lookups: AtomicLong = new AtomicLong()
+class RouteBalancer(val rTable: RoutingTable) extends AnyVal {
 
-    def lookup(mmatch: FlowMatch, logger: Logger): Route = {
-        val routes = rTable.lookup(mmatch, logger)
+    def lookup(fmatch: FlowMatch, logger: Logger): Route = {
+        val routes = rTable.lookup(fmatch, logger)
         routes.size match {
             case 0 => null
             case 1 =>
                 logger.debug("routing to {}", routes.get(0))
                 routes.get(0)
             case size =>
-                val pos = (lookups.getAndIncrement % size).toInt
-                val ret = routes.get(pos)
-                logger.debug("got multiple routes: {}, round robin to {}",
+                val ret = routes.get(Math.abs(fmatch.connectionHash()) % size)
+                logger.debug("got multiple routes: {}, selected {}",
                              routes, ret)
                 ret
         }
