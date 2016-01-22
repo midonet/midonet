@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_0d6eaa2f",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-22T13:02:09Z",
+      "side": 1,
+      "message": "You do get an error if you do name the instance you want when retrieving the curator from the injector. What you suggest seems safer indeed.",
+      "parentUuid": "fa81d914_0d278a13",
+      "range": {
+        "startLine": 91,
+        "startChar": 13,
+        "endLine": 91,
+        "endChar": 50
+      },
+      "revId": "3b7ed07d9cf550a981afdd48011531269b0bce9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_ad2f5ef5",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/FloodingProxyManagerTest.scala",
         "patchSetId": 4
