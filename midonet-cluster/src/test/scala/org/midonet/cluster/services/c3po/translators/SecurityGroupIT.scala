@@ -40,18 +40,17 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
 
     "SecurityGroupRuleTranslator" should "create rules associated with " +
     "security group" in {
-        val sgId = UUID.randomUUID()
+        val sgId = createSecurityGroup(2)
 
         val existRuleId = UUID.randomUUID()
         val existRule = ruleJson(existRuleId, sgId,
-                                 direction = RuleDirection.INGRESS)
-
-        createSecurityGroup(2, sgId, rules = List(existRule))
+            direction = RuleDirection.INGRESS)
+        insertCreateTask(3, SecurityGroupRuleType, existRule, existRuleId)
 
         val newRuleId = UUID.randomUUID()
         val newRuleJson = ruleJson(newRuleId, sgId,
                                    direction = RuleDirection.EGRESS)
-        insertCreateTask(3, SecurityGroupRuleType, newRuleJson, newRuleId)
+        insertCreateTask(4, SecurityGroupRuleType, newRuleJson, newRuleId)
 
         eventually {
             // check that the chain has the right rule
@@ -79,6 +78,11 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val existRule = ruleJson(existRuleId, sgId)
 
         createSecurityGroup(2, sgId, rules = List(existRule))
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            sg.getSecurityGroupRulesCount shouldBe 1
+        }
 
         insertDeleteTask(3, SecurityGroupRuleType, existRuleId)
         eventually {
@@ -161,6 +165,49 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
                 storage.getAll(classOf[Rule]))
             val delResults = delFutures.map(_.await())
             delResults.foreach(r => r should be(empty))
+        }
+    }
+
+    "SecurityGroupTranslator" should "have an edited rule list" in {
+        val sgId = createSecurityGroup(2)
+
+        val r1Id= UUID.randomUUID()
+        val r1 = ruleJson(r1Id, sgId, direction = RuleDirection.INGRESS)
+
+        insertCreateTask(3, SecurityGroupRuleType, r1, r1Id)
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            sg.getSecurityGroupRulesCount shouldBe 1
+            val sgr1 = storage.get(classOf[SecurityGroupRule], r1Id).await()
+            sg.getSecurityGroupRulesList should contain (sgr1)
+        }
+
+        val r2Id = UUID.randomUUID()
+        val r2 = ruleJson(r2Id, sgId, direction = RuleDirection.INGRESS)
+
+        insertCreateTask(4, SecurityGroupRuleType, r2, r2Id)
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            sg.getSecurityGroupRulesCount shouldBe 2
+        }
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            val sgr1 = storage.get(classOf[SecurityGroupRule], r1Id).await()
+            val sgr2 = storage.get(classOf[SecurityGroupRule], r2Id).await()
+            sg.getSecurityGroupRulesList should contain (sgr1)
+            sg.getSecurityGroupRulesList should contain (sgr2)
+        }
+
+        insertDeleteTask(5, SecurityGroupRuleType, r2Id)
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            val sgr1 = storage.get(classOf[SecurityGroupRule], r1Id).await()
+            sg.getSecurityGroupRulesList should contain (sgr1)
+            sg.getSecurityGroupRulesCount shouldBe 1
         }
     }
 }
