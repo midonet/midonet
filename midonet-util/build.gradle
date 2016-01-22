@@ -23,8 +23,8 @@ dependencies {
             libraries.infinispan, libraries.jackson_core,
             libraries.jackson_databind, libraries.jackson_annotations,
             libraries.jsch, libraries.netty, libraries.protobuf, libraries.rx,
-            libraries.scala, libraries.servlet, libraries.sun_tools,
-            libraries.scala_logging, libraries.jna
+            libraries.scala, libraries.sun_tools, libraries.scala_logging,
+            libraries.jna
 
     testCompile libraries.scalatest, libraries.scalacheck,
                 libraries.hamcrest_lib, libraries.hamcrest_integration,
