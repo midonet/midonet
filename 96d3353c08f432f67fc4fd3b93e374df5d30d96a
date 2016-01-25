@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_ba46ab1f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-25T15:08:00Z",
+      "side": 1,
+      "message": "nitpick: tailers",
+      "range": {
+        "startLine": 16,
+        "startChar": 25,
+        "endLine": 16,
+        "endChar": 33
+      },
+      "revId": "96d3353c08f432f67fc4fd3b93e374df5d30d96a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_da551fc7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-25T15:08:00Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 7
+      },
+      "revId": "96d3353c08f432f67fc4fd3b93e374df5d30d96a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3a62bbad",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/Tailer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-25T15:08:00Z",
+      "side": 1,
+      "message": "tailer",
+      "range": {
+        "startLine": 44,
+        "startChar": 62,
+        "endLine": 44,
+        "endChar": 69
+      },
+      "revId": "96d3353c08f432f67fc4fd3b93e374df5d30d96a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_1a5fb7e6",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/Tailer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-25T15:08:00Z",
+      "side": 1,
+      "message": "tailer",
+      "range": {
+        "startLine": 47,
+        "startChar": 31,
+        "endLine": 47,
+        "endChar": 38
+      },
+      "revId": "96d3353c08f432f67fc4fd3b93e374df5d30d96a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ba6dcb9b",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/Tailer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-25T15:08:00Z",
+      "side": 1,
+      "message": "We shouldn\u0027t schedule anything if we caught an exception since we emitted an error on the observable, isn\u0027t it? Also shouldn\u0027t we schedule the readRunnable instead of this?",
+      "range": {
+        "startLine": 86,
+        "startChar": 16,
+        "endLine": 86,
+        "endChar": 52
+      },
+      "revId": "96d3353c08f432f67fc4fd3b93e374df5d30d96a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
