@@ -234,6 +234,30 @@
       "revId": "96d3353c08f432f67fc4fd3b93e374df5d30d96a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_9a956742",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/Tailer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-25T15:24:49Z",
+      "side": 1,
+      "message": "OK, got it!",
+      "parentUuid": "fa81d914_5a276f64",
+      "range": {
+        "startLine": 86,
+        "startChar": 16,
+        "endLine": 86,
+        "endChar": 52
+      },
+      "revId": "96d3353c08f432f67fc4fd3b93e374df5d30d96a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
