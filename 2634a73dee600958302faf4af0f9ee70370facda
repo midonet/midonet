@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_29bd1b69",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouteBalancer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-25T08:17:06Z",
+      "side": 1,
+      "message": "Packets from the same connection will be using the same route only if the number of matching routes remains the same. Is this the case?",
+      "range": {
+        "startLine": 39,
+        "startChar": 16,
+        "endLine": 39,
+        "endChar": 68
+      },
+      "revId": "2634a73dee600958302faf4af0f9ee70370facda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_49c08fe0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouteBalancer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-25T08:17:06Z",
+      "side": 1,
+      "message": "Multiples routes match: {}, selected: {}",
+      "range": {
+        "startLine": 40,
+        "startChar": 30,
+        "endLine": 40,
+        "endChar": 49
+      },
+      "revId": "2634a73dee600958302faf4af0f9ee70370facda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
