@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_fab4a336",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-25T15:17:19Z",
+      "side": 1,
+      "message": "Nit: I think this change is not needed.",
+      "range": {
+        "startLine": 354,
+        "startChar": 8,
+        "endLine": 355,
+        "endChar": 67
+      },
+      "revId": "e8e73c3cef8805c7acb65749df08cb495e5b0362",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_1a833757",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/HostServiceTest.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-25T15:17:19Z",
+      "side": 1,
+      "message": "Maybe the same here, but not sure.",
+      "range": {
+        "startLine": 128,
+        "startChar": 12,
+        "endLine": 135,
+        "endChar": 59
+      },
+      "revId": "e8e73c3cef8805c7acb65749df08cb495e5b0362",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
