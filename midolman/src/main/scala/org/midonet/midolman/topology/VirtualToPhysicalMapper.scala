@@ -188,8 +188,11 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
     // buffers of the ObserveOn RX operator.
     val containersExecutor = Executors.newSingleThreadExecutor(
         new NamedThreadFactory("containers", isDaemon = true))
+    val ioExecutor = Executors.newSingleThreadScheduledExecutor(
+        new NamedThreadFactory("io", isDaemon = true))
     private val containersService =
-        new ContainerService(vt, hostId, containersExecutor, reflections)
+        new ContainerService(vt, hostId, containersExecutor, ioExecutor,
+                             reflections)
 
     private val activePorts = new ConcurrentHashMap[UUID, Boolean]
     private val portsActiveSubject = PublishSubject.create[LocalPortActive]

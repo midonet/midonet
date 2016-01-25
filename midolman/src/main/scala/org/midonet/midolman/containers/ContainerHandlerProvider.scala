@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.containers
 
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.{ScheduledExecutorService, ExecutorService}
 
 import scala.reflect.classTag
 
@@ -34,7 +34,8 @@ import org.midonet.midolman.topology.VirtualTopology
   */
 class ContainerHandlerProvider(reflections: Reflections,
                                vt: VirtualTopology,
-                               executor: ExecutorService,
+                               serviceExecutor: ExecutorService,
+                               ioExecutor: ScheduledExecutorService,
                                log: Logger)
     extends ContainerProvider[ContainerHandler](reflections, log)(classTag[ContainerHandler]) {
 
@@ -42,7 +43,9 @@ class ContainerHandlerProvider(reflections: Reflections,
         override def configure(): Unit = {
             bind(classOf[VirtualTopology]).toInstance(vt)
             bind(classOf[ExecutorService]).annotatedWith(Names.named("container"))
-                                          .toInstance(executor)
+                                          .toInstance(serviceExecutor)
+            bind(classOf[ScheduledExecutorService]).annotatedWith(Names.named("io"))
+                                                   .toInstance(ioExecutor)
         }
     })
 

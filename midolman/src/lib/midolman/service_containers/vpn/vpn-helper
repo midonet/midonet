@@ -53,11 +53,12 @@ define_paths() {
         echo "location of files not specified (-f)"
         exit 1
     fi
-    IPSEC_DIR=$FILES_PATH/etc
-    CONF_FILE=$IPSEC_DIR/ipsec.conf
-    SECRETS_FILE=$IPSEC_DIR/ipsec.secrets
-    PLUTO_DIR=$FILES_PATH/var/run/pluto
-    mkdir -p $PLUTO_DIR
+    IPSEC_PATH=$FILES_PATH/etc
+    CONF_FILE=$IPSEC_PATH/ipsec.conf
+    SECRETS_FILE=$IPSEC_PATH/ipsec.secrets
+    RUN_PATH=$FILES_PATH/var/run
+    PLUTO_PATH=$RUN_PATH/pluto
+    LOG_FILE=$RUN_PATH/pluto.log
 }
 
 # Create the namespace that will house the VPN service
@@ -100,12 +101,13 @@ makens() {
 # Start the IKE daemon
 start_service() {
     set -e
-    ip netns exec $NAME ipsec pluto --ctlbase $PLUTO_DIR \
+    ip netns exec $NAME ipsec pluto --ctlbase $PLUTO_PATH \
                                     --use-netkey \
                                     --uniqueids \
-                                    --secretsfile $SECRETS_FILE
+                                    --secretsfile $SECRETS_FILE \
+                                    --logfile $LOG_FILE
     set +e
-    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
+    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_PATH \
                                     --listen
     check_return $? 0 3 # We allow return code 3 for weak PSK
     exit 0
@@ -132,11 +134,11 @@ init_conns() {
 
     set -e
     for ((i=0;i<$MAX_CONNS;i++)) do
-        ip netns exec $NAME ipsec addconn --ctlbase ${PLUTO_DIR}.ctl \
+        ip netns exec $NAME ipsec addconn --ctlbase ${PLUTO_PATH}.ctl \
                                           --defaultroutenexthop $GATEWAY_IP \
                                           --config $CONF_FILE \
                                           ${CONNS[$i]}
-        ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
+        ip netns exec $NAME ipsec whack --ctlbase $PLUTO_PATH \
                                         --name ${CONNS[$i]} \
                                         --asynchronous \
                                         --initiate
@@ -165,7 +167,7 @@ cleanns() {
 
 
 stop_service() {
-    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
+    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_PATH \
                                     --shutdown
 }
 

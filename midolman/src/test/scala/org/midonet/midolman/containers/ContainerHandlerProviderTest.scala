@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.containers
 
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 
 import scala.concurrent.Future
 
@@ -41,7 +41,8 @@ object ContainerHandlerProviderTest {
 
     @Container(name = "test-handler", version = 1)
     class TestContainer @Inject()(val vt: VirtualTopology,
-                                  @Named("container") val executor: ExecutorService)
+                                  @Named("container") val containerExecutor: ExecutorService,
+                                  @Named("io") val ioExecutor: ScheduledExecutorService)
         extends ContainerHandler {
         override def create(port: ContainerPort): Future[Option[String]] = ???
         override def updated(port: ContainerPort): Future[Option[String]] = ???
@@ -61,10 +62,11 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
     "Container provider" should "load a container with the VT as argument" in {
         Given("A mock virtual topology")
         val vt = Mockito.mock(classOf[VirtualTopology])
-        val executor = Mockito.mock(classOf[ExecutorService])
+        val executor = Mockito.mock(classOf[ScheduledExecutorService])
 
         And("A provider for the current class path")
-        val provider = new ContainerHandlerProvider(reflections, vt, executor, log)
+        val provider = new ContainerHandlerProvider(reflections, vt, executor,
+                                                    executor, log)
 
         Then("The provider should load all classes")
         provider.current.size should be >= 1
@@ -73,7 +75,8 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
         val container = provider.getInstance("test-handler").asInstanceOf[TestContainer]
         container should not be null
         container.vt shouldBe vt
-        container.executor shouldBe executor
+        container.containerExecutor shouldBe executor
+        container.ioExecutor shouldBe executor
     }
 
 }
