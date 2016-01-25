@@ -376,7 +376,7 @@ class MidolmanModule(injector: Injector,
             injector.getInstance(classOf[ZkConnectionAwareWatcher]),
             simBackChannel,
             metricRegistry,
-            Executors.newSingleThreadExecutor(
+            Executors.newSingleThreadScheduledExecutor(
                 new NamedThreadFactory("devices-service", isDaemon = true)),
             () => vtThread.get < 0 || vtThread.get == Thread.currentThread.getId,
             Executors.newCachedThreadPool(new NamedThreadFactory("devices-io-", true)))
