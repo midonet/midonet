@@ -43,6 +43,7 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             override def connectionWatcher: ZkConnectionAwareWatcher = ???
             override def connection: ZkConnection = ???
             override def curator: CuratorFramework = ???
+            override def failFastCurator: CuratorFramework = ???
             override def stateTableStore: StateTableStorage = ???
             override def reactor: Reactor = ???
             override def doStop(): Unit = ???

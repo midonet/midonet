@@ -157,7 +157,7 @@ public class FuncTest {
             AuthService authService = new MockAuthService(cfg.conf());
 
             MidonetBackendService backend =
-                new MidonetBackendService(cfg.backend(), curator,
+                new MidonetBackendService(cfg.backend(), curator, curator,
                                           null /* metricRegistry */) {
                     @Override
                     public void setup(StateTableStorage storage) {
