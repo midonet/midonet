@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_da76ff3d",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/io/TailerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-25T15:24:49Z",
+      "side": 1,
+      "message": "test the tailer with a file that does not exist/ is deleted and created in the meantime?",
+      "revId": "4186c6ae5bf87904e0271f049a8fdf08330e4df7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
