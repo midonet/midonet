@@ -16,6 +16,24 @@
       "revId": "4186c6ae5bf87904e0271f049a8fdf08330e4df7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_dadb5f19",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/io/TailerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-25T15:39:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_da76ff3d",
+      "revId": "4186c6ae5bf87904e0271f049a8fdf08330e4df7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
