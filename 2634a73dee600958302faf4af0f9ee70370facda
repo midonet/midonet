@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_34d49246",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouteBalancer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-01-25T09:43:23Z",
+      "side": 1,
+      "message": "don\u0027t you need to ensure it unsigned?",
+      "parentUuid": "fa81d914_29bd1b69",
+      "range": {
+        "startLine": 39,
+        "startChar": 16,
+        "endLine": 39,
+        "endChar": 68
+      },
+      "revId": "2634a73dee600958302faf4af0f9ee70370facda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_49c08fe0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouteBalancer.scala",
         "patchSetId": 1
