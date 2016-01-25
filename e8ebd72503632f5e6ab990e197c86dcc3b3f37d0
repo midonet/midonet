@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_098f77cd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-25T08:27:21Z",
+      "side": 1,
+      "message": "Or:\n  val i \u003d sg.getSecurityGroupRulesList.indexOf(sgrId)\n  if (i \u003e\u003d 0)\n      ops +\u003d Update(sg.toBuilder.removeSecurityGroupRules(i).build()",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 49
+      },
+      "revId": "e8ebd72503632f5e6ab990e197c86dcc3b3f37d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_69b71387",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-25T08:27:21Z",
+      "side": 1,
+      "message": "Is this used?",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 59
+      },
+      "revId": "e8ebd72503632f5e6ab990e197c86dcc3b3f37d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_09a69753",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-25T08:27:21Z",
+      "side": 1,
+      "message": "I made a change to this function that allows you to omit the sgId argument, which will cause createSecurityGroup to use a random UUID and return it, so you can delete the first line of the function and do this:\n\n  val sgId \u003d createSecurityGroup(2, rules \u003d List(existRule))",
+      "range": {
+        "startLine": 180,
+        "startChar": 8,
+        "endLine": 180,
+        "endChar": 61
+      },
+      "revId": "e8ebd72503632f5e6ab990e197c86dcc3b3f37d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_29643b21",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-25T08:27:21Z",
+      "side": 1,
+      "message": "Should probably check the actual value. Also in the other two eventually blocks.",
+      "range": {
+        "startLine": 184,
+        "startChar": 12,
+        "endLine": 184,
+        "endChar": 52
+      },
+      "revId": "e8ebd72503632f5e6ab990e197c86dcc3b3f37d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
