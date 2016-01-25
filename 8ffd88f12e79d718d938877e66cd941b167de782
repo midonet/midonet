@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_4fb7af86",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-25T14:39:32Z",
+      "side": 1,
+      "message": "No, it doesn\u0027t have to be: I changed to IPAddr since libreswan supports IPv6 as `left` addresses (https://libreswan.org/man/ipsec.conf.5.html). However, not that we don\u0027t support IPv6 yet, since the VPN helper script makes many assumptions that the addresses are IPv4 (e.g. when setting the routes).",
+      "parentUuid": "fa81d914_65acabee",
+      "range": {
+        "startLine": 254,
+        "startChar": 57,
+        "endLine": 254,
+        "endChar": 65
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_e587bb5f",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-21T12:16:51Z",
       "side": 1,
       "message": "nit: connectionsTracker.hasSameCnxns(event)",
+      "range": {
+        "startLine": 473,
+        "startChar": 21,
+        "endLine": 473,
+        "endChar": 90
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_9a3ac7cb",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 473,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-25T14:39:32Z",
+      "side": 1,
+      "message": "the connection tracker is",
+      "parentUuid": "fa81d914_e587bb5f",
       "range": {
         "startLine": 473,
         "startChar": 21,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_cfaabf18",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-25T14:39:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_85b99f30",
+      "range": {
+        "startLine": 492,
+        "startChar": 27,
+        "endLine": 492,
+        "endChar": 29
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_a5b6a33b",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2016-01-21T12:16:51Z",
       "side": 1,
       "message": "Is this considered normal or some dodgy config? (if the latter, we should log)",
+      "range": {
+        "startLine": 493,
+        "startChar": 16,
+        "endLine": 493,
+        "endChar": 65
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_cf81df90",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-25T14:39:32Z",
+      "side": 1,
+      "message": "It shouldn\u0027t need logging, since this happens when there are no VPN services (we set this to null). However, I added above additional log messages to test for inconsistent inputs.",
+      "parentUuid": "fa81d914_a5b6a33b",
       "range": {
         "startLine": 493,
         "startChar": 16,
