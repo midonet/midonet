@@ -19,22 +19,25 @@ package org.midonet.containers
 import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.UUID
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit, ExecutorService}
 
 import javax.inject.Named
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.hash.Hashing
 import com.google.inject.Inject
+import com.typesafe.scalalogging.Logger
 
 import org.apache.commons.io.FileUtils
+import org.slf4j.LoggerFactory
 
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
-import rx.{Observable, Subscription}
+import rx.{Observer, Observable, Subscription}
 
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
@@ -49,7 +52,9 @@ import org.midonet.containers.IPSecContainer._
 import org.midonet.midolman.containers.{ContainerHandler, ContainerHealth, ContainerPort}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
+import org.midonet.util.concurrent._
 import org.midonet.util.functors._
+import org.midonet.util.io.Tailer
 
 case class IPSecServiceDef(name: String,
                            filepath: String,
@@ -201,11 +206,19 @@ case class IPSecConfig(script: String,
 
     val cleanNsCmd = s"$script cleanns -n ${ipsecService.name}"
 
-    val confDir = s"${ipsecService.filepath}/etc/"
+    val confDir = s"${ipsecService.filepath}/etc"
 
-    val confPath = s"${ipsecService.filepath}/etc/ipsec.conf"
+    val confPath = s"$confDir/ipsec.conf"
 
-    val secretsPath = s"${ipsecService.filepath}/etc/ipsec.secrets"
+    val secretsPath = s"$confDir/ipsec.secrets"
+
+    val runDir = s"${ipsecService.filepath}/var/run"
+
+    val plutoDir = s"$runDir/pluto"
+
+    val logPath = s"$runDir/pluto.log"
+
+    val createLogCmd = s"mkfifo -m 0600 $logPath"
 }
 
 case class IPSecException(message: String, cause: Throwable = null)
@@ -218,6 +231,8 @@ case class IPSecAdminStateDownException(routerId: UUID)
 object IPSecContainer {
 
     final val VpnHelperScriptPath = "/usr/lib/midolman/vpn-helper"
+    final val IPSecLogDelay = 250 millis
+    final val IPSecLogTimeout = 3 seconds
 
     def isVpnServiceUp(vpn: VpnService) = {
         !vpn.hasAdminStateUp || vpn.getAdminStateUp
@@ -234,20 +249,34 @@ object IPSecContainer {
   */
 @Container(name = Containers.IPSEC_CONTAINER, version = 1)
 class IPSecContainer @Inject()(vt: VirtualTopology,
-                               @Named("container") executor: ExecutorService)
+                               @Named("container") containerExecutor: ExecutorService,
+                               @Named("io") ioExecutor: ScheduledExecutorService)
     extends ContainerHandler with ContainerCommons {
 
     override def logSource = "org.midonet.containers.ipsec"
 
     private val healthSubject = PublishSubject.create[ContainerHealth]
-    private implicit val ec = ExecutionContext.fromExecutor(executor)
-    private val scheduler = Schedulers.from(executor)
-    private val context = Context(vt.store, vt.stateStore, executor,
+    private implicit val ec = ExecutionContext.fromExecutor(containerExecutor)
+    private val scheduler = Schedulers.from(containerExecutor)
+    private val context = Context(vt.store, vt.stateStore, containerExecutor,
                                   Schedulers.from(vt.vtExecutor), log)
 
     @VisibleForTesting
-    private[containers] var vpnServiceSubscription: Subscription = _
+    private[containers] var vpnServiceSubscription: Subscription = null
     private var config: IPSecConfig = null
+
+    private val ipsecLog =
+        Logger(LoggerFactory.getLogger("org.midonet.containers.ipsec.ipsec-pluto"))
+    private var logTailer: Tailer = null
+    private val logObserver = new Observer[String] {
+        override def onNext(line: String): Unit = {
+            ipsecLog debug line
+        }
+        override def onCompleted(): Unit = { }
+        override def onError(e: Throwable): Unit = {
+            log warn s"Reading IPSec log failed: ${e.getMessage}"
+        }
+    }
 
     private case class VpnServiceUpdateEvent(routerPorts: List[Port],
                                              connections: List[IPSecSiteConnection],
@@ -268,8 +297,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                        makeAction1(createPromise.tryFailure(_)),
                        makeAction0 {
                            createPromise.trySuccess(None)
-                           log.error(s"Stream complete for container port " +
-                                     s"$port without any update")
+                           log warn "Stream completed for container port " +
+                                    s"$port without any update"
                        })
         createPromise.future
     }
@@ -313,9 +342,9 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
 
     @inline
     private def unsubscribeVpnService(): Unit = {
-        if (vpnServiceSubscription != null &&
-            !vpnServiceSubscription.isUnsubscribed)
+        if (vpnServiceSubscription ne null) {
             vpnServiceSubscription.unsubscribe()
+        }
     }
 
     /*
@@ -327,26 +356,41 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         val name = config.ipsecService.name
         log info s"Setting up IPSec container $name"
 
-        // prepare the host
+        // Prepare the host.
         execCmd(config.prepareHostCmd)
 
-        // Try clean namespace.
+        // Try to clean namespace.
         execCmd(config.cleanNsCmd)
 
         val rootDirectory = new File(config.ipsecService.filepath)
         if (rootDirectory.exists()) {
-            log debug s"Directory ${config.ipsecService.filepath} already exists: deleting"
+            log debug s"Directory ${config.ipsecService.filepath} already " +
+                      "exists: deleting"
             FileUtils.cleanDirectory(rootDirectory)
         }
 
         val etcDirectory = new File(config.confDir)
         FileUtils.forceMkdir(etcDirectory)
 
+        val plutoDirectory = new File(config.plutoDir)
+        FileUtils.forceMkdir(plutoDirectory)
+
         log info s"Writing configuration to ${config.confPath}"
         writeFile(config.getConfigFileContents, config.confPath)
 
         log info s"Writing secrets to ${config.secretsPath}"
         writeFile(config.getSecretsFileContents, config.secretsPath)
+
+        // Create the log FIFO file.
+        execCmd(config.createLogCmd)
+
+        // Create the tailer to read the log file.
+        if (logTailer ne null) {
+            logTailer.close()
+        }
+        logTailer = new Tailer(new File(config.logPath), ioExecutor, logObserver,
+                               IPSecLogDelay.toMillis, TimeUnit.MILLISECONDS)
+        logTailer.start()
 
         // Execute the first command from each pair of the following sequence,
         try {
@@ -370,11 +414,21 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         execCmd(config.stopServiceCmd)
         execCmd(config.cleanNsCmd)
         try {
+            if (logTailer ne null) {
+                logTailer.close().await(IPSecLogTimeout)
+            }
+        } catch {
+            case NonFatal(e) =>
+                log.info("Failed to close the IPSec log reader", e)
+        } finally {
+            logTailer = null
+        }
+        try {
             FileUtils.deleteDirectory(new File(config.ipsecService.filepath))
         } catch {
             case NonFatal(e) =>
-                log.warn(s"Failed to deleted temporary directory " +
-                         s"${config.confDir}", e)
+                log.warn("Failed to delete temporary directory " +
+                         s"${config.ipsecService.filepath}", e)
         }
     }
 
@@ -383,7 +437,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
      * updates of the router, port and vpn service associated to this vpn
      * container.
      */
-    private def vpnServiceObservable(cp: ContainerPort): Observable[VpnServiceUpdateEvent] = {
+    private def vpnServiceObservable(cp: ContainerPort)
+    : Observable[VpnServiceUpdateEvent] = {
         val routerPortTracker = new CollectionStoreTracker[Port](context)
         val routerPortObservable = routerPortTracker.observable
             .map[List[Port]](makeFunc1 { ports =>
@@ -443,7 +498,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
 
         def routerUpdated(router: Router): Unit = {
             val routerPortsIds = router.getPortIdsList.toSet
-            log.debug(s"Router ${router.getId.asJava} updated with ports $routerPortsIds")
+            log.debug(s"Router ${router.getId.asJava} updated with ports " +
+                      s"$routerPortsIds")
             routerPortTracker watch routerPortsIds
 
             if (router.getVpnServiceIdsList.isEmpty) {
@@ -555,7 +611,13 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             }
             healthSubject onNext ContainerHealth(Code.RUNNING, port.getInterfaceName)
         } catch {
-            case NonFatal(e) => p.tryFailure(e)
+            case NonFatal(e) =>
+                try { cleanup(config) }
+                catch {
+                    case NonFatal(t) =>
+                        log.warn("VPN service container cleanup failed", t)
+                }
+                p.tryFailure(e)
         }
     }
 }

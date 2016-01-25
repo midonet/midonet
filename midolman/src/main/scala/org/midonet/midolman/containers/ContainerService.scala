@@ -17,7 +17,7 @@
 package org.midonet.midolman.containers
 
 import java.util.UUID
-import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
+import java.util.concurrent.{ScheduledExecutorService, ConcurrentHashMap, ExecutorService}
 
 import scala.async.Async.async
 import scala.collection.JavaConverters._
@@ -62,7 +62,8 @@ object ContainerService {
   * argument.
   */
 class ContainerService(vt: VirtualTopology, hostId: UUID,
-                       executor: ExecutorService,
+                       serviceExecutor: ExecutorService,
+                       ioExecutor: ScheduledExecutorService,
                        reflections: Reflections)
     extends AbstractService with MidolmanLogging {
 
@@ -102,14 +103,15 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         }
     }
 
-    private val scheduler = Schedulers.from(executor)
-    private implicit val ec = ExecutionContext.fromExecutor(executor)
+    private val scheduler = Schedulers.from(serviceExecutor)
+    private implicit val ec = ExecutionContext.fromExecutor(serviceExecutor)
 
     private val containerMapper = new ContainerMapper(hostId, vt)
     private val containerObservable = Observable.create(containerMapper)
 
     private val provider =
-        new ContainerHandlerProvider(reflections, vt, executor, log)
+        new ContainerHandlerProvider(reflections, vt, serviceExecutor,
+                                     ioExecutor, log)
 
     // The handlers map is concurrent because reads may be performed from
     // the handler notification thread.
