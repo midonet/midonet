@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_8adef23d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-26T08:53:03Z",
+      "side": 1,
+      "message": "nit: should this be a { } instead? (so we pass a closure, not a value - for lazy evaluation). I may be wrong, but I believe () will evaluate, {} won\u0027t.",
+      "range": {
+        "startLine": 74,
+        "startChar": 15,
+        "endLine": 74,
+        "endChar": 16
+      },
+      "revId": "d36d1ebbff5a1b8cdbd541f2d87833cb2fade2c7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
