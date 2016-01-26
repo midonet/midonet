@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.midonet.cluster.storage
 
 import com.typesafe.config.Config
 import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.state.ConnectionState
 import org.mockito.Mockito._
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
@@ -26,6 +27,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.{MAC, IPv4Addr}
 import org.midonet.util.eventloop.Reactor
+import rx.subjects.BehaviorSubject
 
 /* In the main source tree to allow usage by other module's tests, without
  * creating a jar. */
@@ -44,6 +46,8 @@ class MidonetTestBackend extends MidonetBackend {
                                classOf[MacIp4StateTable])
 
     private val mockCurator: CuratorFramework = mock(classOf[CuratorFramework])
+    val connectionState =
+        BehaviorSubject.create[ConnectionState](ConnectionState.CONNECTED)
 
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
@@ -53,6 +57,8 @@ class MidonetTestBackend extends MidonetBackend {
     override def reactor: Reactor = null
     override def connection: ZkConnection = null
     override def connectionWatcher: ZkConnectionAwareWatcher = null
+    override def failFastConnectionState =
+        connectionState.asObservable()
 
     override def doStart(): Unit = {
         MidonetBackend.setupBindings(store, stateStore)
