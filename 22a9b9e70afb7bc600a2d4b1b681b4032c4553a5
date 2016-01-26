@@ -22,6 +22,30 @@
       "revId": "22a9b9e70afb7bc600a2d4b1b681b4032c4553a5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0a77623b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T09:22:20Z",
+      "side": 1,
+      "message": "Yes! :-p",
+      "parentUuid": "fa81d914_eae20e00",
+      "range": {
+        "startLine": 78,
+        "startChar": 60,
+        "endLine": 78,
+        "endChar": 70
+      },
+      "revId": "22a9b9e70afb7bc600a2d4b1b681b4032c4553a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
