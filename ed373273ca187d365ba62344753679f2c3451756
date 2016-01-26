@@ -1,0 +1,174 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_aa801647",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/dhcp/Opt121.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "Why not just use the Guava\u0027s Objects here for cleanliness?\n\n        return Objects.equal(rtDstSubnet, o.rtDstSubnet)\n                \u0026\u0026 Objects.equal(gateway, other.gateway)",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ea912e9b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "Unused",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_2a8c267f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "Not a big deal, but it might be cleaner if you just added opt121DefaultRoute to opt121Routes instead of doing bytes.appendAll.",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0a912299",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "Wrong import location",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8af432f3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "why not just use scala\u0027s List?",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_aaf736f4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "Not sure what the consequence of defining this inside the while loop.  Was it because you wanted to directly access \u0027i\u0027?  If so, why not just do so in getByte()?",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_cadd4a72",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "Consider instead:\n\nval b1 \u003d if (maskLen \u003e 0) getByte() else 0\n\nand remove the initialization above",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6ad45e47",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "Feels like there should be a cleaner way to achieve this.  Is the format.  How about something like:\n\nIPv4Addr.fromBytes(Array(b1, b2, b3, b4))",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4aea3a10",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "There is enum defined for this: CLASSLESS_ROUTES",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6aed3e25",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T07:52:28Z",
+      "side": 1,
+      "message": "break?  Or just count the number of matches and verify that it\u0027s only one?",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
