@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.data.dhcp;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import org.midonet.cluster.data.Entity;
@@ -31,6 +32,13 @@ public class Opt121 {
 
     public IPv4Addr getGateway() {
         return gateway;
+    }
+
+    public Opt121() {}
+
+    public Opt121(IPv4Subnet rtDstSubnet, IPv4Addr gateway) {
+        this.rtDstSubnet = rtDstSubnet;
+        this.gateway = gateway;
     }
 
     public Opt121 setGateway(IPv4Addr gateway) {
@@ -53,5 +61,16 @@ public class Opt121 {
             "gateway=" + gateway +
             ", rtDstSubnet=" + rtDstSubnet +
             '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Opt121 other = (Opt121)o;
+        return Objects.equals(rtDstSubnet, other.rtDstSubnet) &&
+               Objects.equals(gateway, other.gateway);
+
     }
 }
