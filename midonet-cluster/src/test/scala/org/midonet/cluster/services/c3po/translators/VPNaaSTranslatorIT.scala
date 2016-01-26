@@ -104,8 +104,8 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
 
         // Create and verify a connection.
         val cnxn1Id = UUID.randomUUID()
-        val cnxn1LocalCidrs = Seq(router1SubnetCidr)
-        val cnxn1PeerCidrs = Seq("20.0.1.0/24", "20.0.2.0/24")
+        var cnxn1LocalCidrs = Seq("10.0.1.0/24")
+        var cnxn1PeerCidrs = Seq("20.0.1.0/24", "20.0.2.0/24")
         val cnxn1IkeJson = ikePolicyJson()
         val cnxn1IpSecJson = ipSecPolicyJson()
         val cnxn1Json = ipSecSiteConnectionJson(
@@ -122,8 +122,8 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         // Create a second connection on the same VPN and verify that they
         // coexist.
         val cnxn2Id = UUID.randomUUID()
-        val cnxn2LocalCidrs = Seq(router1SubnetCidr)
-        val cnxn2PeerCidrs = Seq("40.0.1.0/24", "40.0.2.0/24", "40.0.2.0/24")
+        val cnxn2LocalCidrs = Seq("10.0.1.0/24", "10.0.2.0/24")
+        val cnxn2PeerCidrs = Seq("40.0.1.0/24", "40.0.2.0/24", "40.0.3.0/24")
         val cnxn2IkeJson = ikePolicyJson()
         val cnxn2IpSecJson = ipSecPolicyJson()
         val cnxn2Json = ipSecSiteConnectionJson(
@@ -137,6 +137,9 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         verifyCnxn(cnxn1Id, router1Id, cnxn1LocalCidrs, cnxn1PeerCidrs,
                    numOtherRoutes = 2 + cnxn2.getRouteIdsCount)
 
+        // Update cidrs so 1 route is kept, 1 route is deleted, 1 route is added
+        cnxn1LocalCidrs = Seq("10.0.1.0/24")
+        cnxn1PeerCidrs = Seq("20.0.1.0/24", "20.0.3.0/24")
         val cnxn1V2Json = ipSecSiteConnectionJson(
             cnxn1Id, vpn1Id, cnxn1LocalCidrs, cnxn1PeerCidrs,
             cnxn1IkeJson, cnxn1IpSecJson, adminStateUp = false,
