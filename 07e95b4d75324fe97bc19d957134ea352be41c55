@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_dd9ef653",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T14:20:17Z",
+      "side": 1,
+      "message": "nop, this is internal",
+      "parentUuid": "fa81d914_5d93e64e",
+      "range": {
+        "startLine": 127,
+        "startChar": 53,
+        "endLine": 127,
+        "endChar": 63
+      },
+      "revId": "07e95b4d75324fe97bc19d957134ea352be41c55",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_dd77d639",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/TimedExpirationMap.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-26T14:14:37Z",
       "side": 1,
       "message": "assuming this is thread safe and you don\u0027t need a putIfAbsent?",
+      "range": {
+        "startLine": 247,
+        "startChar": 11,
+        "endLine": 247,
+        "endChar": 49
+      },
+      "revId": "07e95b4d75324fe97bc19d957134ea352be41c55",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_7db18ae0",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/TimedExpirationMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T14:20:17Z",
+      "side": 1,
+      "message": "well, in practice it doesn\u0027t need to be thread-safe, but you\u0027re right, it should be consistent with the rest of the class. i\u0027ll update",
+      "parentUuid": "fa81d914_dd77d639",
       "range": {
         "startLine": 247,
         "startChar": 11,
