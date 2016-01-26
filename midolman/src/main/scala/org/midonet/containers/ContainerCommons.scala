@@ -18,6 +18,7 @@ package org.midonet.containers
 
 import java.io._
 
+import scala.collection.generic.Growable
 import scala.sys.process._
 import scala.util.control.NonFatal
 
@@ -43,14 +44,26 @@ trait ContainerCommons extends MidolmanLogging {
         }
     }
 
-    /*
+    /**
      * Executes a command and logs the output.
      */
     @throws[Exception]
     def execCmd(cmd: String): Int = {
         log.info(s"Execute: $cmd")
-        val cmdLogger = ProcessLogger(line => log.info(line),
-                                      line => log.error(line))
+        val cmdLogger = ProcessLogger(line => log.debug(line),
+                                      line => log.debug(line))
+        cmd ! cmdLogger
+    }
+
+    /**
+      * Executes a command, and appends the output to the specified list
+      * arguments.
+      */
+    @throws[Exception]
+    def execCmd(cmd: String, out: Growable[String], err: Growable[String]): Int = {
+        log.info(s"Execute: $cmd")
+        val cmdLogger = ProcessLogger(line => { out += line; log.debug(line) },
+                                      line => { err += line; log.debug(line) })
         cmd ! cmdLogger
     }
 

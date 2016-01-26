@@ -23,11 +23,13 @@ import java.util.concurrent.{ScheduledExecutorService, TimeUnit, ExecutorService
 
 import javax.inject.Named
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.MoreObjects
 import com.google.common.hash.Hashing
 import com.google.inject.Inject
 
@@ -217,6 +219,9 @@ case class IPSecConfig(script: String,
     val logPath = s"$runDir/pluto.log"
 
     val createLogCmd = s"mkfifo -m 0600 $logPath"
+
+    val statusCmd = s"ip netns exec ${ipsecService.name} ipsec whack " +
+                    s"--status --ctlbase $plutoDir"
 }
 
 case class IPSecException(message: String, cause: Throwable = null)
@@ -230,6 +235,7 @@ object IPSecContainer {
 
     final val VpnHelperScriptPath = "/usr/lib/midolman/vpn-helper"
     final val IPSecLogDelay = 250 millis
+    final val IPSecStatusInterval = 2 seconds
 
     def isVpnServiceUp(vpn: VpnService) = {
         !vpn.hasAdminStateUp || vpn.getAdminStateUp
@@ -273,10 +279,41 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         }
     }
 
+    private val statusObservable =
+        Observable.interval(IPSecStatusInterval.toMillis,
+                            IPSecStatusInterval.toMillis, TimeUnit.MILLISECONDS,
+                            scheduler)
+    private val statusObserver = new Observer[java.lang.Long] {
+        override def onNext(tick: java.lang.Long): Unit = {
+            if (config eq null) {
+                return
+            }
+            val status = checkStatus()
+            log trace s"IPSec container health: $status"
+            healthSubject onNext status
+        }
+
+        override def onCompleted(): Unit = {
+            log warn "Container health scheduling completed unexpectedly"
+        }
+
+        override def onError(e: Throwable): Unit = {
+            log.error("Container health scheduling error", e)
+        }
+    }
+    private var statusSubscription: Subscription = null
+
     private case class VpnServiceUpdateEvent(routerPorts: List[Port],
                                              connections: List[IPSecSiteConnection],
                                              externalIp: IPAddr,
-                                             port: Port)
+                                             port: Port) {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("routerPorts", routerPorts.map(_.getId.asJava))
+            .add("connections", connections.map(_.getId.asJava))
+            .add("externalIp", externalIp)
+            .add("port", port.getId.asJava)
+            .toString
+    }
 
     /**
       * @see [[ContainerHandler.create]]
@@ -292,8 +329,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                        makeAction1(createPromise.tryFailure(_)),
                        makeAction0 {
                            createPromise.trySuccess(None)
-                           log warn "Stream completed for container port " +
-                                    s"$port without any update"
+
                        })
         createPromise.future
     }
@@ -387,6 +423,12 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                                IPSecLogDelay.toMillis, TimeUnit.MILLISECONDS)
         logTailer.start()
 
+        // Schedule the status check.
+        if (statusSubscription ne null) {
+            statusSubscription.unsubscribe()
+        }
+        statusSubscription = statusObservable subscribe statusObserver
+
         // Execute the first command from each pair of the following sequence,
         try {
             execCmds(Seq((config.makeNsCmd, config.cleanNsCmd),
@@ -403,8 +445,13 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
      */
     @throws[Exception]
     protected[containers] def cleanup(config: IPSecConfig): Unit = {
-        if (config eq null)
+        if (statusSubscription ne null) {
+            statusSubscription.unsubscribe()
+            statusSubscription = null
+        }
+        if (config eq null) {
             return
+        }
         log info "Cleaning up IPSec container"
         execCmd(config.stopServiceCmd)
         execCmd(config.cleanNsCmd)
@@ -556,6 +603,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         try {
             val VpnServiceUpdateEvent(routerPorts, conns, externalIp, port) = event
 
+            log debug s"VPN service updated $event"
+
             if (externalIp eq null) {
                 // No external IP means no VPN service whatsoever.
                 p.trySuccess(None)
@@ -604,7 +653,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                 setup(config)
                 p.trySuccess(Some(config.ipsecService.name))
             }
-            healthSubject onNext ContainerHealth(Code.RUNNING, port.getInterfaceName)
+            healthSubject onNext checkStatus()
         } catch {
             case NonFatal(e) =>
                 try { cleanup(config) }
@@ -613,6 +662,31 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                         log.warn("VPN service container cleanup failed", t)
                 }
                 p.tryFailure(e)
+        }
+    }
+
+    /**
+      * Synchronous method that checks the current status of the IPSec process,
+      * and returns the status as a string.
+      */
+    private def checkStatus(): ContainerHealth = {
+        if (null == config) {
+            return ContainerHealth(Code.STOPPED, "")
+        }
+        val out = new ListBuffer[String]
+        val err = new ListBuffer[String]
+        if (execCmd(config.statusCmd, out, err) == 0) {
+            val builder = out.foldLeft(new StringBuilder)((builder, line) => {
+                builder append line
+                builder append '\n'
+            })
+            ContainerHealth(Code.RUNNING, builder.toString())
+        } else {
+            val builder = err.foldLeft(new StringBuilder)((builder, line) => {
+                builder append line
+                builder append '\n'
+            })
+            ContainerHealth(Code.ERROR, builder.toString())
         }
     }
 }
