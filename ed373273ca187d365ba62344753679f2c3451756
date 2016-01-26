@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_8a42720e",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/dhcp/Opt121.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-26T10:03:02Z",
+      "side": 1,
+      "message": "I like to put the \u0026\u0026 and the end and align the \"Objects\". But either way it\u0027s preferable to this.",
+      "parentUuid": "fa81d914_aa801647",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_ea912e9b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
         "patchSetId": 1
@@ -81,6 +99,29 @@
       "writtenOn": "2016-01-26T07:52:28Z",
       "side": 1,
       "message": "why not just use scala\u0027s List?",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_cad1cafc",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-26T10:03:02Z",
+      "side": 1,
+      "message": "Need to iterate through a byte buffer? Why not ByteBuffer?\n\n  val bb \u003d ByteBuffer.wrap(bytes)\n  while (bb.hasRemaining) {\n    val maskLen \u003d bb.get()\n    var mask \u003d 0\n    for (i \u003c- 0 to 3) {\n      mask \u003c\u003c\u003d 8\n      if (maskLen \u003e i * 8) mask |\u003d bb.get()\n    }\n    val opt121 \u003d new Opt121\n    opt121.setRtDstSubnet(new IPv4Subnet(mask, maskLen))\n    opt121.setGateway(IPv4Addr(bb.getInt()))\n    opt121Routes.add(opt121)\n  }\n\n...or something like that. I haven\u0027t tested it.",
+      "range": {
+        "startLine": 438,
+        "startChar": 8,
+        "endLine": 438,
+        "endChar": 17
+      },
       "revId": "ed373273ca187d365ba62344753679f2c3451756",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -166,6 +207,29 @@
       "writtenOn": "2016-01-26T07:52:28Z",
       "side": 1,
       "message": "break?  Or just count the number of matches and verify that it\u0027s only one?",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0adcc211",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-26T10:03:02Z",
+      "side": 1,
+      "message": "Can we be more strict here? Don\u0027t we know more about what we expect to receive, other than that there should be at least one opt121 that has the specified data?",
+      "range": {
+        "startLine": 482,
+        "startChar": 8,
+        "endLine": 482,
+        "endChar": 29
+      },
       "revId": "ed373273ca187d365ba62344753679f2c3451756",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
