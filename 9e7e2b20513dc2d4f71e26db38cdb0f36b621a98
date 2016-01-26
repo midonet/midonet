@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_bda3029d",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T14:22:40Z",
+      "side": 0,
+      "message": "Why did you move these below?",
+      "range": {
+        "startLine": 172,
+        "startChar": 8,
+        "endLine": 173,
+        "endChar": 27
+      },
+      "revId": "9e7e2b20513dc2d4f71e26db38cdb0f36b621a98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

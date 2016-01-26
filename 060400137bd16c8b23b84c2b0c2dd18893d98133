@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_1dffaeab",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T14:22:40Z",
+      "side": 1,
+      "message": "Maybe we can just call it FailFast and document it as a single value key with write last policy and small session timeout.",
+      "range": {
+        "startLine": 51,
+        "startChar": 14,
+        "endLine": 51,
+        "endChar": 41
+      },
+      "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_1d724e49",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T14:22:40Z",
+      "side": 1,
+      "message": "Why is this as argument? I though that the fail fast property is encoded in the key type. Additionally, does failFast make a difference when removing a key value?",
+      "range": {
+        "startLine": 164,
+        "startChar": 74,
+        "endLine": 165,
+        "endChar": 46
+      },
+      "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3d2d5247",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T14:22:40Z",
+      "side": 1,
+      "message": "I\u0027m not sure if this is needed for failFast sessions, but if it is, we should have another method to remove ambiguity as to which one is used. If it\u0027s not used for now, maybe we can added later.",
+      "range": {
+        "startLine": 225,
+        "startChar": 15,
+        "endLine": 225,
+        "endChar": 42
+      },
+      "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_fd765a3d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T14:22:40Z",
+      "side": 1,
+      "message": "Why is this as an argument: I though the failFast is encoded in the key type?",
+      "range": {
+        "startLine": 183,
+        "startChar": 42,
+        "endLine": 183,
+        "endChar": 70
+      },
+      "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_bdca224d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T14:22:40Z",
+      "side": 1,
+      "message": "Does it make sense to use the fail-fast curator for get and especially for the observable below? If we lose the session, we might lose the observable.",
+      "range": {
+        "startLine": 228,
+        "startChar": 8,
+        "endLine": 228,
+        "endChar": 67
+      },
+      "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5d8cc635",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T14:22:40Z",
+      "side": 1,
+      "message": "This if is in too many places: we could just pass curator as argument to all these methods, rather than the failFast boolean.",
+      "range": {
+        "startLine": 679,
+        "startChar": 17,
+        "endLine": 679,
+        "endChar": 59
+      },
+      "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3db712da",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T14:22:40Z",
+      "side": 1,
+      "message": "Why not add a different feature for fail-fast policy?",
+      "range": {
+        "startLine": 314,
+        "startChar": 4,
+        "endLine": 314,
+        "endChar": 55
+      },
+      "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3dd4721f",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T14:22:40Z",
+      "side": 1,
+      "message": "Are two curators indeed needed for the tests?",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 58
+      },
+      "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
