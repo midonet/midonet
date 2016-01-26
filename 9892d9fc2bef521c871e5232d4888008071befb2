@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_7de98a7f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T15:08:34Z",
+      "side": 1,
+      "message": "Instead of [IPSEC] in the text, create a new logger, so that it can easily be turned off if desired.",
+      "revId": "9892d9fc2bef521c871e5232d4888008071befb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
