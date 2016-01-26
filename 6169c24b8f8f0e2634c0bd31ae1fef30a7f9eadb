@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_7492a358",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_d160c137",
+      "range": {
+        "startLine": 414,
+        "startChar": 36,
+        "endLine": 414,
+        "endChar": 46
+      },
+      "revId": "6169c24b8f8f0e2634c0bd31ae1fef30a7f9eadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_7151d561",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-18T10:03:51Z",
       "side": 1,
       "message": "Interpolation not needed, same below.",
+      "range": {
+        "startLine": 415,
+        "startChar": 34,
+        "endLine": 415,
+        "endChar": 35
+      },
+      "revId": "6169c24b8f8f0e2634c0bd31ae1fef30a7f9eadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_949f175f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_7151d561",
       "range": {
         "startLine": 415,
         "startChar": 34,
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_94c47741",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 419,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "Done. Will be changed when watching the neutron router as discussed.",
+      "parentUuid": "fa81d914_f14f8590",
+      "range": {
+        "startLine": 419,
+        "startChar": 16,
+        "endLine": 419,
+        "endChar": 41
+      },
+      "revId": "6169c24b8f8f0e2634c0bd31ae1fef30a7f9eadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b1f98d4f",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -106,6 +178,30 @@
       "writtenOn": "2016-01-18T10:03:51Z",
       "side": 1,
       "message": "So with this I understand that it\u0027s not possible to change the external IP, is that right?",
+      "range": {
+        "startLine": 422,
+        "startChar": 16,
+        "endLine": 422,
+        "endChar": 79
+      },
+      "revId": "6169c24b8f8f0e2634c0bd31ae1fef30a7f9eadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f4e213d4",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "This is right (it\u0027s not even possible right now as the neutron router don\u0027t update the external ip of vpn services upon change). That\u0027s why in the initial comment I suggested to watch for the neutron. I\u0027ll do that on a later patch.",
+      "parentUuid": "fa81d914_b1f98d4f",
       "range": {
         "startLine": 422,
         "startChar": 16,
@@ -141,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_b4d89b1e",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_5154d153",
+      "range": {
+        "startLine": 429,
+        "startChar": 12,
+        "endLine": 429,
+        "endChar": 45
+      },
+      "revId": "6169c24b8f8f0e2634c0bd31ae1fef30a7f9eadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_9181e991",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -152,6 +272,30 @@
       "writtenOn": "2016-01-18T10:03:51Z",
       "side": 1,
       "message": "We should add a test for a router update without VPN services.",
+      "range": {
+        "startLine": 431,
+        "startChar": 20,
+        "endLine": 432,
+        "endChar": 76
+      },
+      "revId": "6169c24b8f8f0e2634c0bd31ae1fef30a7f9eadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d4126fb3",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "Done (2 tests, creating without vpn service + removing and re-creating the vpnservice).",
+      "parentUuid": "fa81d914_9181e991",
       "range": {
         "startLine": 431,
         "startChar": 20,
@@ -187,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_f465b345",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "It might be empty yes, checked now on the vpnServiceObservable.\n\nAll vpn objects have the same external ip by definition (the one from the neutron router, which is injected during translation). Unless the external ip is changed on the neutron router. Another point to watch for changes on the neutron router.",
+      "parentUuid": "fa81d914_d1bc416f",
+      "range": {
+        "startLine": 488,
+        "startChar": 22,
+        "endLine": 488,
+        "endChar": 26
+      },
+      "revId": "6169c24b8f8f0e2634c0bd31ae1fef30a7f9eadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_f1c145e5",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -198,6 +366,30 @@
       "writtenOn": "2016-01-18T10:03:51Z",
       "side": 1,
       "message": "Interpolation not needed.",
+      "range": {
+        "startLine": 518,
+        "startChar": 25,
+        "endLine": 518,
+        "endChar": 26
+      },
+      "revId": "6169c24b8f8f0e2634c0bd31ae1fef30a7f9eadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_145b2788",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_f1c145e5",
       "range": {
         "startLine": 518,
         "startChar": 25,
