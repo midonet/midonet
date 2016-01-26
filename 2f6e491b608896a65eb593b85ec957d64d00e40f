@@ -46,6 +46,30 @@
       "revId": "2f6e491b608896a65eb593b85ec957d64d00e40f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_eafdae3c",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 1
+      },
+      "lineNbr": 2156,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T11:28:49Z",
+      "side": 1,
+      "message": "Yes, when describing the object from the cli\n\nmidonet-cli:1422\ndef describe(self):\n    flist \u003d filter(lambda f: self.attrs()[f].show, self.fields())",
+      "parentUuid": "fa81d914_0a1be21b",
+      "range": {
+        "startLine": 2156,
+        "startChar": 33,
+        "endLine": 2156,
+        "endChar": 45
+      },
+      "revId": "2f6e491b608896a65eb593b85ec957d64d00e40f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
