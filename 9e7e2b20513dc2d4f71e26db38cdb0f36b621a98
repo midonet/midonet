@@ -22,6 +22,30 @@
       "revId": "9e7e2b20513dc2d4f71e26db38cdb0f36b621a98",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3d647221",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-26T16:40:32Z",
+      "side": 0,
+      "message": "Because in some tests I call this method twice one for the regular key and once for the fail fast one.",
+      "parentUuid": "fa81d914_bda3029d",
+      "range": {
+        "startLine": 172,
+        "startChar": 8,
+        "endLine": 173,
+        "endChar": 27
+      },
+      "revId": "9e7e2b20513dc2d4f71e26db38cdb0f36b621a98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
