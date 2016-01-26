@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_2a542620",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T14:44:47Z",
+      "side": 1,
+      "message": "Are you expecting base2 log here? \n\nIn any case, there\u0027s lots of complicated bit twidding here. Why not just take 4 bits for the worker, and worry about more than 250million flows when we\u0027re closer to the problem. It\u0027s a long way away.",
+      "range": {
+        "startLine": 59,
+        "startChar": 35,
+        "endLine": 59,
+        "endChar": 43
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_aa3f36d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T14:44:47Z",
+      "side": 1,
+      "message": "Is it? That wrongly deleted flow will have a corresponding kernel side flow, which won\u0027t be deleted now since it\u0027s not in the userspace flow table.",
+      "range": {
+        "startLine": 102,
+        "startChar": 13,
+        "endLine": 102,
+        "endChar": 26
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8a451272",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T14:44:47Z",
+      "side": 1,
+      "message": "Why the power of 2?",
+      "range": {
+        "startLine": 109,
+        "startChar": 41,
+        "endLine": 109,
+        "endChar": 67
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ca02aa3d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T14:44:47Z",
+      "side": 1,
+      "message": "My understanding here is that the last element in the pool is never used.",
+      "range": {
+        "startLine": 147,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 45
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ca5e2a45",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T14:44:47Z",
+      "side": 1,
+      "message": "isn\u0027t this equivalent to oldCapacity * 2. In any case, I don\u0027t understand why power of 2 is used.",
+      "range": {
+        "startLine": 156,
+        "startChar": 26,
+        "endLine": 157,
+        "endChar": 42
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_dd3a7633",
+        "filename": "netlink/src/main/java/org/midonet/netlink/exceptions/NetlinkException.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T14:44:47Z",
+      "side": 1,
+      "message": "why is this called seq? It implies that it comes from the disruptor sequence number.",
+      "range": {
+        "startLine": 27,
+        "startChar": 65,
+        "endLine": 27,
+        "endChar": 68
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
