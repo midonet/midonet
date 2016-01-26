@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_5d676625",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T15:35:20Z",
+      "side": 1,
+      "message": "do all routers have a gw port?",
+      "range": {
+        "startLine": 455,
+        "startChar": 60,
+        "endLine": 455,
+        "endChar": 71
+      },
+      "revId": "769ff1ee048bad4d3e21ca8f7822500923513d82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_bd7782d3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T15:35:20Z",
+      "side": 1,
+      "message": "external ip changes, the redirect rules need to be updated.\n\nAlso, what happens when the subnet id changes?",
+      "range": {
+        "startLine": 158,
+        "startChar": 27,
+        "endLine": 158,
+        "endChar": 42
+      },
+      "revId": "769ff1ee048bad4d3e21ca8f7822500923513d82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
