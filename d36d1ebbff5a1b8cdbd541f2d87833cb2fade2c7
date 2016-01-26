@@ -22,6 +22,30 @@
       "revId": "d36d1ebbff5a1b8cdbd541f2d87833cb2fade2c7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_20ed25f0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-26T17:28:11Z",
+      "side": 1,
+      "message": "This works, but that\u0027s because I wrote a test for it, otherwise I wasn\u0027t sure too. But I agree, the scala eta expansion it utterly ambiguous. I replaced with braces because I had to rebase, and looks nicer anyway.",
+      "parentUuid": "fa81d914_8adef23d",
+      "range": {
+        "startLine": 74,
+        "startChar": 15,
+        "endLine": 74,
+        "endChar": 16
+      },
+      "revId": "d36d1ebbff5a1b8cdbd541f2d87833cb2fade2c7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
