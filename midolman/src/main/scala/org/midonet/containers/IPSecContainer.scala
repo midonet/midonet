@@ -48,12 +48,12 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.IPSecContainer._
 import org.midonet.midolman.containers.{ContainerHandler, ContainerHealth, ContainerPort}
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.packets.{IPv4Addr, IPv4Subnet}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
 import org.midonet.util.functors._
 
 case class IPSecServiceDef(name: String,
                            filepath: String,
-                           localEndpointIp: IPv4Addr,
+                           localEndpointIp: IPAddr,
                            localEndpointMac: String,
                            namespaceInterfaceIp: IPv4Subnet,
                            namespaceGatewayIp: IPv4Addr,
@@ -212,8 +212,8 @@ case class IPSecException(message: String, cause: Throwable = null)
     extends Exception(message, cause)
 
 case class IPSecAdminStateDownException(routerId: UUID)
-    extends Exception(s"VPNService(s) on router $routerId have admin state " +
-                      "DOWN", null)
+    extends Exception(s"VPN service(s) on router $routerId have admin state " +
+                      "down", null)
 
 object IPSecContainer {
 
@@ -251,7 +251,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
 
     private case class VpnServiceUpdateEvent(routerPorts: List[Port],
                                              connections: List[IPSecSiteConnection],
-                                             vpnService: VpnService,
+                                             externalIp: IPAddr,
                                              port: Port)
 
     /**
@@ -384,8 +384,6 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
      * container.
      */
     private def vpnServiceObservable(cp: ContainerPort): Observable[VpnServiceUpdateEvent] = {
-        var vpnServiceReady = false
-
         val routerPortTracker = new CollectionStoreTracker[Port](context)
         val routerPortObservable = routerPortTracker.observable
             .map[List[Port]](makeFunc1 { ports =>
@@ -401,10 +399,63 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                 connections.values.toList
             })
 
+        val vpnServiceTracker =
+            new CollectionStoreTracker[VpnService](context)
+        val vpnServiceObservable = vpnServiceTracker.observable
+            .map[IPAddr](makeFunc1 { vpnServices =>
+                log.debug(s"VPN services updated ${vpnServices.keys}")
+                // Update the list of ipsec connections to watch (only for
+                // those vpn services with adminStateUp
+                var connections = Set.empty[UUID]
+                for (vpnService <- vpnServices.values) {
+                    if (isVpnServiceUp(vpnService))
+                        connections ++= vpnService.getIpsecSiteConnectionIdsList.toSet
+                    else
+                        log.debug(s"VPN service ${vpnService.getId.asJava} " +
+                                  "administrative state is down")
+                }
+                connectionsTracker watch connections
+                // All VPN services have the same connectivity information
+                // except their associated site connections. Just pick the head
+                // and emit the IPv4Address.
+                if (vpnServices.nonEmpty) {
+                    val externalIps = vpnServices.values.flatMap(value => {
+                        if (value.hasExternalIp) Seq(value.getExternalIp.asIPAddress)
+                        else Seq.empty
+                    }).toSet
+                    if (externalIps.isEmpty) {
+                        log warn s"VPN service(s) for port ${cp.portId} do " +
+                                 "not have an external IP addresses set: " +
+                                 "VPN is left unconfigured"
+                        null
+                    } else if (externalIps.size > 1) {
+                        log warn s"VPN services for port ${cp.portId} have " +
+                                 "more than one external IP address (" +
+                                 s"$externalIps): VPN is left unconfigured"
+                        null
+                    } else {
+                        externalIps.head
+                    }
+                }
+                else null
+            })
+            .distinctUntilChanged()
+
         def routerUpdated(router: Router): Unit = {
             val routerPortsIds = router.getPortIdsList.toSet
             log.debug(s"Router ${router.getId.asJava} updated with ports $routerPortsIds")
             routerPortTracker watch routerPortsIds
+
+            if (router.getVpnServiceIdsList.isEmpty) {
+                log.debug(s"No VPN service on router ${router.getId.asJava}")
+                vpnServiceTracker watch Set()
+            }
+            else {
+                val vpnServicesIds = router.getVpnServiceIdsList.toSet
+                log.debug(s"Router ${router.getId.asJava} updated with VPN" +
+                          s"services $vpnServicesIds")
+                vpnServiceTracker watch vpnServicesIds
+            }
         }
 
         val portObservable = vt.store
@@ -418,46 +469,27 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             .distinctUntilChanged()
             .doOnNext(makeAction1(routerUpdated))
 
-        // switch to track multiple vpn services when we support it
-        val vpnServiceObservable = Observable.switchOnNext(
-            routerObservable
-                .map[Observable[VpnService]](makeFunc1(r => {
-                    r.getVpnServiceIdsList.headOption match {
-                        case None =>
-                            log.warn(s"No VPN services on router ${r.getId.asJava}")
-                            Observable.empty()
-                        case Some(id) =>
-                            vpnServiceReady = false
-                            vt.store.observable(classOf[VpnService], id)
-                                .observeOn(context.scheduler)
-                                .doOnNext(makeAction1 { vpn =>
-                                    log.debug(s"VPN service ${vpn.getId.asJava} updated")
-                                    val connectionIds = vpn.getIpsecSiteConnectionIdsList.toSet
-                                    connectionsTracker watch connectionIds
-                                    vpnServiceReady = true
-                                })
-                    }
-                })))
-
         Observable
-            .combineLatest[List[Port], List[IPSecSiteConnection], VpnService,
+            .combineLatest[List[Port], List[IPSecSiteConnection], IPAddr,
                           Port, Router, VpnServiceUpdateEvent](
                 routerPortObservable,
                 connectionsObservable,
                 vpnServiceObservable,
                 portObservable,
                 routerObservable,
-                makeFunc5((routerPorts, connections, vpn, port, router) => {
-                    VpnServiceUpdateEvent(routerPorts, connections, vpn, port)
+                makeFunc5((routerPorts, connections, externalIp, port, router) => {
+                    VpnServiceUpdateEvent(routerPorts, connections, externalIp, port)
                 }))
             .distinctUntilChanged()
             .filter(makeFunc1(event => {
-               val ready = routerPortTracker.isReady &&
-                                  connectionsTracker.isReady &&
-                                  vpnServiceReady &&
-                                  event.port.hasInterfaceName
-               log.debug(s"VPN service ready: $ready")
-               ready
+                val ready =
+                    routerPortTracker.isReady &&
+                    connectionsTracker.isReady &&
+                    vpnServiceTracker.isReady &&
+                    (connectionsTracker.ids == event.connections.map(_.getId.asJava).toSet) &&
+                    event.port.hasInterfaceName
+                log.debug(s"VPN service ready: $ready")
+                ready
             } ))
             .onBackpressureLatest()
             .observeOn(scheduler)
@@ -471,17 +503,26 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     private def onVpnServiceUpdate(event: VpnServiceUpdateEvent,
                                    p: Promise[Option[String]]): Unit = {
         try {
-            val VpnServiceUpdateEvent(routerPorts, conns, vpn, port) = event
-            val externalAddress = vpn.getExternalIp.asIPv4Address
+            val VpnServiceUpdateEvent(routerPorts, conns, externalIp, port) = event
+
+            if (externalIp eq null) {
+                // No external IP means no VPN service whatsoever.
+                p.trySuccess(None)
+                cleanup(config)
+                config = null
+                return
+            }
+
             val externalMac = routerPorts
-                .find(_.getPortAddress.asIPv4Address == externalAddress)
+                .find(_.getPortAddress.asIPv4Address == externalIp)
                 .map(_.getPortMac)
                 .getOrElse {
                     p.tryFailure(IPSecException(
-                        s"VPN service ${vpn.getId.asJava} router " +
-                        s"${vpn.getRouterId.asJava} does not have " +
-                        "a port that matches the VPN external address " +
-                        s"$externalAddress", null))
+                        s"VPN service on router ${port.getRouterId.asJava} " +
+                        s"does not have a port that matches the VPN external " +
+                        s"address $externalIp", null))
+                    cleanup(config)
+                    config = null
                     return
                 }
             val portAddress = port.getPortAddress.asIPv4Address
@@ -493,7 +534,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val serviceDef = IPSecServiceDef(port.getInterfaceName,
                                              path,
-                                             externalAddress,
+                                             externalIp,
                                              externalMac,
                                              namespaceSubnet,
                                              portAddress,
@@ -501,10 +542,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
              // Cleanup current setup before if existed
             cleanup(config)
 
-            if (!isVpnServiceUp(vpn) || conns.forall(!isSiteConnectionUp(_))) {
-                log.info(
-                    s"VPN service ${vpn.getId.asJava} has admin state " +
-                    "DOWN or all IPSec connections have admin state DOWN")
+            if (conns.forall(!isSiteConnectionUp(_))) {
+                log.info("All IPSec connections have administrative state down")
                 // So we don't clean up on a non-setup container
                 config = null
                 p.trySuccess(None)

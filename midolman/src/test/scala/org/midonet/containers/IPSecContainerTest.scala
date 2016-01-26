@@ -35,6 +35,7 @@ import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.IkeVersi
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.State.ContainerStatus.Code
+import org.midonet.cluster.models.Topology.Router
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.topology.TopologyBuilder._
 import org.midonet.cluster.util.IPAddressUtil._
@@ -527,11 +528,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             Then("The configurations should match")
             val regexp = "^conn \\w+$".r
-            conf.getConfigFileContents.split("\n").count(
-                _ match {
-                    case regexp() => true
-                    case _ => false
-                }) shouldBe 1 // %default won't match
+            conf.getConfigFileContents.split("\n").count {
+                case regexp() => true
+                case _ => false
+            } shouldBe 1 // %default won't match
         }
     }
 
@@ -750,6 +750,134 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
     }
 
     feature("IPSec container implements the handler interface") {
+        scenario("Container doesn't configure anything on router without VPN services") {
+            Given("A router with a port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        portAddress = IPv4Addr.random,
+                                        portMac = MAC.random(),
+                                        interfaceName = Some("if-eth"))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+
+            And("A container")
+            val container = new TestIPSecContainer(vt, executor)
+
+            And("A container port for the VPN service")
+            val cp = ContainerPort(portId = port.getId.asJava,
+                                   hostId = null,
+                                   interfaceName = "if-vpn",
+                                   containerId = null,
+                                   serviceType = null,
+                                   groupId = null,
+                                   configurationId = router.getId.asJava)
+
+            When("Calling the create method of the container")
+            container.create(cp).await()
+
+            Then("The container shouldn't call any vpn helper command")
+            container.commands should have size 0
+
+            When("Calling the delete method of the container")
+            val vpnServiceSubscription = container.vpnServiceSubscription
+            container.delete().await()
+
+            Then("The container shouldn't call any cleanup commands")
+            container.commands should have size 0
+
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
+        }
+
+        scenario("Container deletes the namespace upon router update without VPN services") {
+            Given("A router with a port")
+            var router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        portAddress = IPv4Addr.random,
+                                        portMac = MAC.random(),
+                                        interfaceName = Some("if-eth"))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            router = vt.store.get(classOf[Router], router.getId).await()
+
+            And("A VPN configuration")
+            var vpn = createVpnService(
+                routerId = Some(router.getId.asJava),
+                externalIp = Some(port.getPortAddress.asIPv4Address))
+            var conn = createIpsecSiteConnection(
+                name = Some(random.nextString(10)),
+                localCidrs = Seq(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(createIkePolicy()),
+                ipsecPolicy = Some(createIpsecPolicy()),
+                vpnServiceId = Some(vpn.getId.asJava))
+            vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
+            vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
+
+            And("A container")
+            val container = new TestIPSecContainer(vt, executor)
+
+            And("A container port for the VPN service")
+            val cp = ContainerPort(portId = port.getId.asJava,
+                                   hostId = null,
+                                   interfaceName = "if-vpn",
+                                   containerId = null,
+                                   serviceType = null,
+                                   groupId = null,
+                                   configurationId = router.getId.asJava)
+
+            When("Calling the create method of the container")
+            container.create(cp).await()
+
+            val path =
+                s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
+            val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
+                                                 port.getPortSubnet.getPrefixLength)
+
+            Then("The container should call vpn setup commands")
+            container.commands should have size 5
+
+            When("Clearing all vpn services from the router")
+            vt.store.update(router.toBuilder.clearVpnServiceIds().build)
+            router = vt.store.get(classOf[Router], router.getId).await()
+
+            Then("The container should call cleanup commands")
+            container.commands should have size 7
+            container.commands(5) shouldBe
+            s"/usr/lib/midolman/vpn-helper stop_service " +
+            s"-n ${port.getInterfaceName} " +
+            s"-p $path"
+            container.commands(6) shouldBe
+            s"/usr/lib/midolman/vpn-helper cleanns " +
+            s"-n ${port.getInterfaceName}"
+
+            When("Creating the vpn service on the router again")
+            vpn = createVpnService(
+                routerId = Some(router.getId.asJava),
+                externalIp = Some(port.getPortAddress.asIPv4Address))
+            conn = createIpsecSiteConnection(
+                name = Some(random.nextString(10)),
+                localCidrs = Seq(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(createIkePolicy()),
+                ipsecPolicy = Some(createIpsecPolicy()),
+                vpnServiceId = Some(vpn.getId.asJava))
+            vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
+
+            Then("The container should call vpn setup commands")
+            container.commands should have size 12
+
+            When("Calling the delete method of the container")
+            val vpnServiceSubscription = container.vpnServiceSubscription
+            container.delete().await()
+
+            Then("The container shouldn't call cleanup commands")
+            container.commands should have size 14
+
+            And("The container should unsubscribe from the observable")
+            vpnServiceSubscription.isUnsubscribed shouldBe true
+            container.vpnServiceSubscription shouldBe null
+        }
+
         scenario("Container configures the namespace on create") {
             Given("A router with a port")
             val router = createRouter()
@@ -1013,7 +1141,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         }
 
         scenario("Container reconfigures the namespace on update, starting " +
-                 "as adminStateDown") {
+                 "with administative state DOWN") {
 
             Given("A router with a port")
             val router = createRouter()
@@ -1105,7 +1233,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.vpnServiceSubscription shouldBe null
         }
 
-        scenario("Container reconfigures the namespace on new ipsec connection") {
+        scenario("Container reconfigures the namespace on new IPSec connection") {
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
@@ -1290,6 +1418,195 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.vpnServiceSubscription shouldBe null
         }
 
+         scenario("Container reconfigures the namespace on new VPN service") {
+             Given("A router with a port")
+             val router = createRouter()
+             val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                         portAddress = IPv4Addr.random,
+                                         portMac = MAC.random(),
+                                         interfaceName = Some("if-eth"))
+             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+             And("A VPN configuration with one ipsec connection")
+             var vpn1 = createVpnService(
+                 routerId = Some(router.getId.asJava),
+                 externalIp = Some(port.getPortAddress.asIPv4Address))
+             val ike = createIkePolicy()
+             val ipsec = createIpsecPolicy()
+             var conn1 = createIpsecSiteConnection(
+                 name = Some(random.nextString(10)),
+                 localCidrs = Seq(randomIPv4Subnet),
+                 peerCidrs = Seq(randomIPv4Subnet),
+                 ikePolicy = Some(ike),
+                 ipsecPolicy = Some(ipsec),
+                 vpnServiceId = Some(vpn1.getId.asJava))
+             vt.store.multi(Seq(CreateOp(vpn1), CreateOp(conn1)))
+             vpn1 = vt.store.get(classOf[VpnService], vpn1.getId).await()
+             conn1 = vt.store.get(classOf[IPSecSiteConnection], conn1.getId).await()
+
+             And("A container")
+             val container = new TestIPSecContainer(vt, executor)
+
+             And("A container port for the VPN service")
+             val cp = ContainerPort(portId = port.getId.asJava,
+                                    hostId = null,
+                                    interfaceName = "if-vpn",
+                                    containerId = null,
+                                    serviceType = null,
+                                    groupId = null,
+                                    configurationId = router.getId.asJava)
+
+             When("Calling the create method of the container")
+             container.create(cp).await()
+
+             And("The container should call the setup commands")
+             val path =
+                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
+             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
+                                                  port.getPortSubnet.getPrefixLength)
+
+             container.commands should have size 5
+
+             When("Adding a new VPN service with one ipsec connection")
+             val vpn2 = createVpnService(
+                 routerId = Some(router.getId.asJava),
+                 externalIp = Some(port.getPortAddress.asIPv4Address))
+             val conn2 = createIpsecSiteConnection(
+                 name = Some(random.nextString(10)),
+                 localCidrs = Seq(randomIPv4Subnet),
+                 peerCidrs = Seq(randomIPv4Subnet),
+                 ikePolicy = Some(ike),
+                 ipsecPolicy = Some(ipsec),
+                 vpnServiceId = Some(vpn2.getId.asJava))
+             vt.store.multi(Seq(CreateOp(vpn2), CreateOp(conn2)))
+
+             Then("The container should call the cleanup and setup commands")
+             container.commands should have size 12
+
+             container.commands(5) shouldBe
+                s"/usr/lib/midolman/vpn-helper stop_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+             container.commands(6) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+             container.commands(7) shouldBe
+                s"/usr/lib/midolman/vpn-helper prepare"
+             container.commands(8) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+             container.commands(9) shouldBe
+                s"/usr/lib/midolman/vpn-helper makens " +
+                s"-n ${port.getInterfaceName} " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-G ${port.getPortMac} " +
+                s"-l ${port.getPortAddress.asIPv4Address} " +
+                s"-i $namespaceSubnet " +
+                s"-m ${port.getPortMac}"
+             container.commands(10) shouldBe
+                s"/usr/lib/midolman/vpn-helper start_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+             container.commands(11).startsWith(
+                s"/usr/lib/midolman/vpn-helper init_conns " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
+             container.commands(11).contains(
+                s"-c ${IPSecConfig.sanitizeName(conn1.getName)}") shouldBe true
+             container.commands(11).contains(
+                s"-c ${IPSecConfig.sanitizeName(conn2.getName)}") shouldBe true
+
+             When("The first vpnservice is set to admin state DOWN")
+             vt.store.update(vpn1.toBuilder.setAdminStateUp(false).build())
+             vpn1 = vt.store.get(classOf[VpnService], vpn1.getId).await()
+             Then("The container is torn down and setup with only one connection")
+             container.commands should have size 19
+             container.commands(12) shouldBe
+                s"/usr/lib/midolman/vpn-helper stop_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+             container.commands(13) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+             container.commands(14) shouldBe
+                s"/usr/lib/midolman/vpn-helper prepare"
+             container.commands(15) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+             container.commands(16) shouldBe
+                s"/usr/lib/midolman/vpn-helper makens " +
+                s"-n ${port.getInterfaceName} " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-G ${port.getPortMac} " +
+                s"-l ${port.getPortAddress.asIPv4Address} " +
+                s"-i $namespaceSubnet " +
+                s"-m ${port.getPortMac}"
+             container.commands(17) shouldBe
+                s"/usr/lib/midolman/vpn-helper start_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+             container.commands(18).startsWith(
+                s"/usr/lib/midolman/vpn-helper init_conns " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
+             container.commands(18).contains(
+                s"-c ${IPSecConfig.sanitizeName(conn1.getName)}") shouldBe false
+             container.commands(18).contains(
+                s"-c ${IPSecConfig.sanitizeName(conn2.getName)}") shouldBe true
+
+             When("Resetting the first vpn service to admin state UP")
+             vt.store.update(vpn1.toBuilder.setAdminStateUp(true).build())
+             vpn1 = vt.store.get(classOf[VpnService], vpn1.getId).await()
+
+             Then("The container is torn down and setup with both connection")
+             container.commands should have size 26
+             container.commands(19) shouldBe
+                s"/usr/lib/midolman/vpn-helper stop_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+             container.commands(20) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+             container.commands(21) shouldBe
+                s"/usr/lib/midolman/vpn-helper prepare"
+             container.commands(22) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+             container.commands(23) shouldBe
+                s"/usr/lib/midolman/vpn-helper makens " +
+                s"-n ${port.getInterfaceName} " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-G ${port.getPortMac} " +
+                s"-l ${port.getPortAddress.asIPv4Address} " +
+                s"-i $namespaceSubnet " +
+                s"-m ${port.getPortMac}"
+             container.commands(24) shouldBe
+                s"/usr/lib/midolman/vpn-helper start_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+             container.commands(25).startsWith(
+                s"/usr/lib/midolman/vpn-helper init_conns " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
+             container.commands(25).contains(
+                s"-c ${IPSecConfig.sanitizeName(conn1.getName)}") shouldBe true
+             container.commands(25).contains(
+                s"-c ${IPSecConfig.sanitizeName(conn2.getName)}") shouldBe true
+
+             When("Calling the delete method of the container")
+             val vpnSubscription = container.vpnServiceSubscription
+             container.delete().await()
+
+             Then("The container should call the cleanup commands")
+             container.commands should have size 28
+
+             And("The container should unsubscribe from the observable")
+             vpnSubscription.isUnsubscribed shouldBe true
+             container.vpnServiceSubscription shouldBe null
+        }
+
         scenario("Container should fail if router has no external port") {
             Given("A router with a port")
             val router = createRouter()
@@ -1328,6 +1645,87 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             }
 
             And("The container should not call the setup commands")
+            container.commands should have size 0
+        }
+
+        scenario("Container should ignore a VPN service without external IP") {
+            Given("A router with a port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        portMac = MAC.random(),
+                                        interfaceName = Some("if-eth"))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            And("A VPN configuration")
+            val vpn = createVpnService(
+                routerId = Some(router.getId.asJava),
+                externalIp = None)
+            val conn = createIpsecSiteConnection(
+                name = Some(random.nextString(10)),
+                localCidrs = Seq(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(createIkePolicy()),
+                ipsecPolicy = Some(createIpsecPolicy()),
+                vpnServiceId = Some(vpn.getId.asJava))
+            vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
+
+            And("A container")
+            val container = new TestIPSecContainer(vt, executor)
+
+            And("A container port for the VPN service")
+            val cp = ContainerPort(portId = port.getId.asJava,
+                                   hostId = null,
+                                   interfaceName = "if-vpn",
+                                   containerId = null,
+                                   serviceType = null,
+                                   groupId = null,
+                                   configurationId = router.getId.asJava)
+
+            When("Calling the create method of the container")
+            container.create(cp).await()
+
+            Then("The container should not call the setup commands")
+            container.commands should have size 0
+        }
+
+        scenario("Container should ignore multiple VPN services with distinct external IP addresses") {
+            Given("A router with a port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        portMac = MAC.random(),
+                                        interfaceName = Some("if-eth"))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            And("A VPN configuration")
+            val vpn1 = createVpnService(
+                routerId = Some(router.getId.asJava),
+                externalIp = Some(IPv4Addr.random))
+            val vpn2 = createVpnService(
+                routerId = Some(router.getId.asJava),
+                externalIp = Some(IPv4Addr.random))
+            val conn = createIpsecSiteConnection(
+                name = Some(random.nextString(10)),
+                localCidrs = Seq(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(createIkePolicy()),
+                ipsecPolicy = Some(createIpsecPolicy()),
+                vpnServiceId = Some(vpn1.getId.asJava))
+            vt.store.multi(Seq(CreateOp(vpn1), CreateOp(vpn2), CreateOp(conn)))
+
+            And("A container")
+            val container = new TestIPSecContainer(vt, executor)
+
+            And("A container port for the VPN service")
+            val cp = ContainerPort(portId = port.getId.asJava,
+                                   hostId = null,
+                                   interfaceName = "if-vpn",
+                                   containerId = null,
+                                   serviceType = null,
+                                   groupId = null,
+                                   configurationId = router.getId.asJava)
+
+            When("Calling the create method of the container")
+            container.create(cp).await()
+
+            Then("The container should not call the setup commands")
             container.commands should have size 0
         }
 
