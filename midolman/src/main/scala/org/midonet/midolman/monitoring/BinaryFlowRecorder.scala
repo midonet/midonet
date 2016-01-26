@@ -212,7 +212,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
         val rulesMatched = pktContext.traversedRulesMatched
         val rulesApplied = pktContext.traversedRulesApplied
         val iter = FLOW_SUMMARY.traversedRulesCount(rules.size)
-        while (i < rules.size) {
+        while (iter.hasNext && (i < rules.size)) {
             val r = rules.get(i)
             val rule = iter.next()
             rule.rule(0, r.getMostSignificantBits)
