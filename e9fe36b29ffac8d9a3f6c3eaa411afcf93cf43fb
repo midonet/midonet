@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_bd26a214",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T14:57:25Z",
+      "side": 1,
+      "message": "hum.. how opposed are you to this? it\u0027s future proof and not that complicated (maxFlows uses the typical code to produce a mask for power of 2 values, that we use all over the code base, plus clearing the last bit).",
+      "parentUuid": "fa81d914_2a542620",
+      "range": {
+        "startLine": 59,
+        "startChar": 35,
+        "endLine": 59,
+        "endChar": 43
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_aa3f36d5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-26T14:44:47Z",
       "side": 1,
       "message": "Is it? That wrongly deleted flow will have a corresponding kernel side flow, which won\u0027t be deleted now since it\u0027s not in the userspace flow table.",
+      "range": {
+        "startLine": 102,
+        "startChar": 13,
+        "endLine": 102,
+        "endChar": 26
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_bd6dc234",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T14:57:25Z",
+      "side": 1,
+      "message": "oh, you\u0027re right. i forgot to remove the flow from the kernel too.\nnow that i think about it, we can maybe pass the flow match here if we can get it from the exception and compare.",
+      "parentUuid": "fa81d914_aa3f36d5",
       "range": {
         "startLine": 102,
         "startChar": 13,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_dd68b623",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T14:57:25Z",
+      "side": 1,
+      "message": "remnant of previous code, not needed",
+      "parentUuid": "fa81d914_8a451272",
+      "range": {
+        "startLine": 109,
+        "startChar": 41,
+        "endLine": 109,
+        "endChar": 67
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_ca02aa3d",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
         "patchSetId": 11
@@ -82,6 +154,30 @@
       "writtenOn": "2016-01-26T14:44:47Z",
       "side": 1,
       "message": "My understanding here is that the last element in the pool is never used.",
+      "range": {
+        "startLine": 147,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 45
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_1d732e16",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T14:57:25Z",
+      "side": 1,
+      "message": "it is used, free points to it",
+      "parentUuid": "fa81d914_ca02aa3d",
       "range": {
         "startLine": 147,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_3d61d239",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T14:57:25Z",
+      "side": 1,
+      "message": "power of 2 should be gone",
+      "parentUuid": "fa81d914_ca5e2a45",
+      "range": {
+        "startLine": 156,
+        "startChar": 26,
+        "endLine": 157,
+        "endChar": 42
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_dd3a7633",
         "filename": "netlink/src/main/java/org/midonet/netlink/exceptions/NetlinkException.java",
         "patchSetId": 11
@@ -128,6 +248,30 @@
       "writtenOn": "2016-01-26T14:44:47Z",
       "side": 1,
       "message": "why is this called seq? It implies that it comes from the disruptor sequence number.",
+      "range": {
+        "startLine": 27,
+        "startChar": 65,
+        "endLine": 27,
+        "endChar": 68
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5d64c648",
+        "filename": "netlink/src/main/java/org/midonet/netlink/exceptions/NetlinkException.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T14:57:25Z",
+      "side": 1,
+      "message": "the name of the field is nlmsg_seq, nothing to do with the disruptor\u0027s sequence number.",
+      "parentUuid": "fa81d914_dd3a7633",
       "range": {
         "startLine": 27,
         "startChar": 65,
