@@ -2044,6 +2044,12 @@ class Condition(ObjectType):
 class Rule(Condition):
     def __init__(self, obj):
         super(Rule, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'id',
+                                 value_type = UUID(),
+                                 getter = 'get_id',
+                                 show = False,
+                                 writeable = False,
+                                 optional = True))
         self.put_attr(SingleAttr(name = 'chain',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_chain_id',
@@ -2619,7 +2625,6 @@ class TraceRequest(Condition):
                                  show = False,
                                  writeable = False,
                                  optional = True))
-
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
                                  setter = 'set_name',
