@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_4764f321",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-26T02:53:44Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem right.  If we add a drop here, the simulation would terminate and add a drop flow rule, but we actually want the simulation to continue.  My interpretation of setting admin state of a FW down is to allow traffic through.",
+      "revId": "ff4cce71791436baafa93caab57e6e3be062b837",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
