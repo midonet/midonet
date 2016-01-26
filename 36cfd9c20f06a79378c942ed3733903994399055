@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_eac92e7a",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "In a later patch in review, I changed this part to monitor the external port (instead of relying on the one stored in the vpn service), so to avoid these inconsistencies.",
+      "revId": "36cfd9c20f06a79378c942ed3733903994399055",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
