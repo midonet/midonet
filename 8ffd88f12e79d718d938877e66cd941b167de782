@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_8ab512f0",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "LGTM. Notice that the vpnservice translator throws an exception if the external ip is not v4 (and that\u0027s why I didn\u0027t changed it).",
+      "parentUuid": "fa81d914_4fb7af86",
+      "range": {
+        "startLine": 254,
+        "startChar": 57,
+        "endLine": 254,
+        "endChar": 65
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_e587bb5f",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 4
@@ -178,6 +202,30 @@
       "side": 1,
       "message": "It shouldn\u0027t need logging, since this happens when there are no VPN services (we set this to null). However, I added above additional log messages to test for inconsistent inputs.",
       "parentUuid": "fa81d914_a5b6a33b",
+      "range": {
+        "startLine": 493,
+        "startChar": 16,
+        "endLine": 493,
+        "endChar": 65
+      },
+      "revId": "8ffd88f12e79d718d938877e66cd941b167de782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_aab816e6",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-26T09:13:42Z",
+      "side": 1,
+      "message": "LGTM.\n\nThis is \u0027normal\u0027. If the external ip addr is removed, there is no need for ipsec connections (as there\u0027s no gateway), and an event is emitted with externalIp \u003d\u003d null to shutdown the service. \n\nAnother option would be to filter in the observable when externalIp is null, and let the ipsec connections up (even if the connections won\u0027t work because the external ip has been removed). Upon adding a new external ip, the ipsec connections will be restablished.\n\nThere\u0027s a later patch that adds monitoring to the external gw port for changes on the ip.\nhttps://review.gerrithub.io/#/c/260326",
+      "parentUuid": "fa81d914_cf81df90",
       "range": {
         "startLine": 493,
         "startChar": 16,
