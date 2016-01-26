@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_4a387aa0",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-26T08:01:08Z",
+      "side": 1,
+      "message": "\"should contain only\" checks size and values. See below.",
+      "range": {
+        "startLine": 181,
+        "startChar": 12,
+        "endLine": 181,
+        "endChar": 52
+      },
+      "revId": "cb1f457b44e867d04a5a030876a39c2011a1d38e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_cac46a94",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-26T08:01:08Z",
+      "side": 1,
+      "message": "should contain only sgr1",
+      "range": {
+        "startLine": 183,
+        "startChar": 41,
+        "endLine": 183,
+        "endChar": 62
+      },
+      "revId": "cb1f457b44e867d04a5a030876a39c2011a1d38e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_2aba660a",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-26T08:01:08Z",
+      "side": 1,
+      "message": "I think you can do this:\n\nval sgrs \u003d storage.getAll(classOf[SecurityGroup], Seq(r1Id, r2Id)).await()\nsg.getSecurityGroupRulesList should contain theSameElementsAs sgrs",
+      "range": {
+        "startLine": 198,
+        "startChar": 0,
+        "endLine": 201,
+        "endChar": 62
+      },
+      "revId": "cb1f457b44e867d04a5a030876a39c2011a1d38e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0abf62fc",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-26T08:01:08Z",
+      "side": 1,
+      "message": "These two checks can be replaced with be \"should contain only sgr1\"",
+      "range": {
+        "startLine": 209,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 52
+      },
+      "revId": "cb1f457b44e867d04a5a030876a39c2011a1d38e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
