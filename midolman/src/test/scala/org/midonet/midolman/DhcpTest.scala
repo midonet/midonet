@@ -25,6 +25,7 @@ import scala.collection.mutable
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
@@ -168,7 +169,7 @@ class DhcpTest extends MidolmanSpec {
         extractDhcpReply(returnPkt)
     }
 
-        /**
+     /**
       * Setup a bridge connected to a router via 2 ports. The bridge has 2 DHCP
       * subnets configured, with gateways on the corresponding port. We expect
       * this to work normally. See MN-565.
@@ -429,6 +430,51 @@ class DhcpTest extends MidolmanSpec {
         classlessRoutesDhcpOption should not equal None
         dhcpReply.getOptions.contains(
             classlessRoutesDhcpOption.get) should be (true)
+    }
+
+    def getOpt121FromBytes(bytes: Array[Byte]): mutable.ListBuffer[Opt121] = {
+        val opt121Routes = mutable.ListBuffer[Opt121]()
+        val bb = ByteBuffer.wrap(bytes)
+        while (bb.hasRemaining) {
+            val maskLen = bb.get
+            var mask = 0
+            for (i <- 0 to 3) {
+                mask <<= 8
+                if (maskLen > i * 8) mask |= (0xFF & bb.get)
+            }
+            val opt121 = new Opt121
+            opt121.setRtDstSubnet(new IPv4Subnet(mask, maskLen))
+            opt121.setGateway(new IPv4Addr(bb.getInt))
+            opt121Routes += opt121
+        }
+        opt121Routes
+    }
+
+    scenario("Classless Routes should get default route") {
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+
+        val defaultRoute = new Opt121
+        val univSubnet = IPv4Subnet.fromCidr("0.0.0.0/0")
+        defaultRoute.setRtDstSubnet(univSubnet)
+        defaultRoute.setGateway(routerIp2.getAddress)
+
+        val expectedRoute = new Opt121
+        // Defined as routerIp1 above, but the full IP is used
+        // (192.168.11.1/24) we compare only the sub.
+        val opt121sub = IPv4Subnet.fromCidr("192.168.11.0/24")
+        expectedRoute.setRtDstSubnet(opt121sub)
+        expectedRoute.setGateway(routerIp2.getAddress)
+
+        var matched = false
+        val classlessRoutes = DHCPOption.Code.CLASSLESS_ROUTES.value
+        val opt121 = dhcpReply.getOptions
+            .filter(option => option.getCode == classlessRoutes)
+
+        opt121.size shouldBe 1
+        val routes = getOpt121FromBytes(opt121.head.getData)
+
+        val expectedRoutes = List(defaultRoute, expectedRoute)
+        routes should contain theSameElementsAs expectedRoutes
     }
 
     scenario("Interface MTU") {
