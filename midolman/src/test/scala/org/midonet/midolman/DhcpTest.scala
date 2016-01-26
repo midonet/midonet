@@ -19,6 +19,8 @@ package org.midonet.midolman
 import java.nio.ByteBuffer
 import java.util.UUID
 
+import org.midonet.cluster.data.dhcp.Opt121
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
@@ -168,7 +170,7 @@ class DhcpTest extends MidolmanSpec {
         extractDhcpReply(returnPkt)
     }
 
-        /**
+     /**
       * Setup a bridge connected to a router via 2 ports. The bridge has 2 DHCP
       * subnets configured, with gateways on the corresponding port. We expect
       * this to work normally. See MN-565.
@@ -429,6 +431,55 @@ class DhcpTest extends MidolmanSpec {
         classlessRoutesDhcpOption should not equal None
         dhcpReply.getOptions.contains(
             classlessRoutesDhcpOption.get) should be (true)
+    }
+
+    def getOpt121FromBytes(bytes: Array[Byte]): java.util.ArrayList[Opt121] = {
+        val opt121Routes = new java.util.ArrayList[Opt121]();
+        var i = 0
+        while (i < bytes.length) {
+            var b1 = 0
+            var b2 = 0
+            var b3 = 0
+            var b4 = 0
+            def byte(ix: Int) = 0xFF & bytes(ix).toInt
+            def getByte() = {
+                val b = byte(i)
+                i += 1
+                b
+            }
+            val maskLen = getByte()
+            if (maskLen > 0) b1 = getByte()
+            if (maskLen > 8) b2 = getByte()
+            if (maskLen > 16) b3 = getByte()
+            if (maskLen > 24) b4 = getByte()
+
+            val subnetStr = s"""$b1.$b2.$b3.$b4/$maskLen"""
+            val gatewayStr = s"""${byte(i)}.${byte(i+1)}.${byte(i+2)}.${byte(i+3)}"""
+            i += 4
+            val opt121 = new Opt121
+            opt121.setRtDstSubnet(IPv4Subnet.fromCidr(subnetStr))
+            opt121.setGateway(IPv4Addr.fromString(gatewayStr))
+            opt121Routes.add(opt121)
+        }
+        opt121Routes
+    }
+
+    scenario("Classless Routes should get default route") {
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val defaultRoute = new Opt121
+        val univSubnet = IPv4Subnet.fromCidr("0.0.0.0/0")
+        defaultRoute.setRtDstSubnet(univSubnet)
+        defaultRoute.setGateway(routerIp2.getAddress)
+        var matched = false
+        for (opt121 <- dhcpReply.getOptions) {
+            if (opt121.getCode == 121) {
+                val routes = getOpt121FromBytes(opt121.getData)
+                if (routes.contains(defaultRoute)) {
+                    matched = true
+                }
+            }
+        }
+        matched shouldBe true
     }
 
     scenario("Interface MTU") {

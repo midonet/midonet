@@ -54,4 +54,16 @@ public class Opt121 {
             ", rtDstSubnet=" + rtDstSubnet +
             '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Opt121 opt121 = (Opt121) o;
+
+        if (rtDstSubnet != null ? !rtDstSubnet.equals(opt121.rtDstSubnet) : opt121.rtDstSubnet != null) return false;
+        return gateway != null ? gateway.equals(opt121.gateway) : opt121.gateway == null;
+
+    }
 }

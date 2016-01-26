@@ -18,6 +18,8 @@ package org.midonet.midolman.simulation
 import java.nio.{BufferOverflowException, ByteBuffer}
 import java.util.UUID
 
+import org.midonet.cluster.util.IPSubnetUtil
+
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -595,6 +597,23 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         }
     }
 
+    private def opt121ToByteArray(opt121: Opt121): mutable.ListBuffer[Byte] = {
+        val bytes = mutable.ListBuffer[Byte]()
+        // First append the destination subnet's maskLength
+        val maskLen = opt121.getRtDstSubnet.getPrefixLen.toByte
+        bytes.append(maskLen)
+        // Now append the significant octets of the subnet.
+        val dstBytes = opt121.getRtDstSubnet.getAddress.toBytes
+        if (maskLen > 0) bytes.append(dstBytes(0))
+        if (maskLen > 8) bytes.append(dstBytes(1))
+        if (maskLen > 16) bytes.append(dstBytes(2))
+        if (maskLen > 24) bytes.append(dstBytes(3))
+        // Now append the 4 octets of the gateway.
+        val gwBytes = opt121.getGateway.toBytes
+        bytes.appendAll(gwBytes.toList)
+        bytes
+    }
+
     private def makeDhcpReply(port: BridgePort,
                               host: Host): Option[Ethernet] = {
         val chaddr = request.getClientHardwareAddress
@@ -768,20 +787,24 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         // If there are classless static routes, add the option.
         if (null != opt121Routes && opt121Routes.length > 0) {
             val bytes = mutable.ListBuffer[Byte]()
+            if (routerAddr != null) {
+                // According to RFC 3442, if classless routes (option 121) are
+                // being provided, then the router option should be ignored.
+                // In this case we want to provide the default route with
+                // option 121 in addition to option 3.
+                val opt121DefaultRoute = new Opt121()
+                val univSubnet = IPv4Subnet.fromCidr("0.0.0.0/0")
+
+                opt121DefaultRoute.setGateway(routerAddr)
+                opt121DefaultRoute.setRtDstSubnet(univSubnet)
+
+                log.debug("Found router address. Adding default route to "
+                          + opt121DefaultRoute)
+                bytes.appendAll(opt121ToByteArray(opt121DefaultRoute))
+            }
             opt121Routes foreach { rt =>
                 log.debug("Found classless route {}", rt)
-                // First append the destination subnet's maskLength
-                val maskLen = rt.getRtDstSubnet.getPrefixLen.toByte
-                bytes.append(maskLen)
-                // Now append the significant octets of the subnet.
-                val dstBytes = rt.getRtDstSubnet.getAddress.toBytes
-                if (maskLen > 0) bytes.append(dstBytes(0))
-                if (maskLen > 8) bytes.append(dstBytes(1))
-                if (maskLen > 16) bytes.append(dstBytes(2))
-                if (maskLen > 24) bytes.append(dstBytes(3))
-                // Now append the 4 octets of the gateway.
-                val gwBytes = rt.getGateway.toBytes
-                bytes.appendAll(gwBytes.toList)
+                bytes.appendAll(opt121ToByteArray(rt))
             }
             log.debug("Adding Option 121 (classless static routes) with " +
                       s"${opt121Routes.length} routes")
