@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_dc028a6e",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T14:44:47Z",
+      "side": 1,
+      "message": "next positive power of 2 is oldLength * 2.\n\nAny reason for power of 2?",
+      "range": {
+        "startLine": 118,
+        "startChar": 29,
+        "endLine": 119,
+        "endChar": 44
+      },
+      "revId": "009746c16e6c847e7249d12b4a64c9b8b5a70f4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_8d753a9a",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
         "patchSetId": 3
