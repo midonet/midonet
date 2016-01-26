@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_80a6d10e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T16:21:01Z",
+      "side": 1,
+      "message": "log base 2.\n\nwell, i\u0027ve seen customers with like 20mil flow table. if someone does something like that and decides to try setting 32 sim threads, things might break in unexpected ways. since these settings - max flows and number of simulation threads - are configurable,  i was aiming to avoid surprises and debugging. \n\npoint taken though!",
+      "parentUuid": "fa81d914_3d9632f1",
+      "range": {
+        "startLine": 59,
+        "startChar": 35,
+        "endLine": 59,
+        "endChar": 43
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_aa3f36d5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
         "patchSetId": 11
