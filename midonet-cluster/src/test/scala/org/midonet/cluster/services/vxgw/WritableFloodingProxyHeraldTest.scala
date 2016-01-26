@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.UUID
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.state.ConnectionState
 import org.junit.runner.RunWith
 import org.mockito.Matchers.{anyObject, eq => Eq, same}
 import org.mockito.Mockito
@@ -75,6 +76,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             override def reactor: Reactor = ???
             override def connection: ZkConnection = ???
             override def connectionWatcher: ZkConnectionAwareWatcher = ???
+            override def failFastConnectionState
+            : Observable[ConnectionState] = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
         }
