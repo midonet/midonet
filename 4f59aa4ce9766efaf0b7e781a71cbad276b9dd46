@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_aa02d66c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouteBalancer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T10:14:48Z",
+      "side": 1,
+      "message": "This is a debug statement, it contains all the information we need and it\u0027s explicit. I don\u0027t see a strong reason to change it.",
+      "parentUuid": "fa81d914_ca72aa7b",
+      "range": {
+        "startLine": 40,
+        "startChar": 30,
+        "endLine": 40,
+        "endChar": 66
+      },
+      "revId": "4f59aa4ce9766efaf0b7e781a71cbad276b9dd46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_0a6da298",
         "filename": "midolman/src/test/scala/org/midonet/midolman/RouterSimulationTest.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-26T08:17:51Z",
       "side": 1,
       "message": "Why this change?",
+      "range": {
+        "startLine": 113,
+        "startChar": 8,
+        "endLine": 115,
+        "endChar": 35
+      },
+      "revId": "4f59aa4ce9766efaf0b7e781a71cbad276b9dd46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8affd266",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/RouterSimulationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T10:14:48Z",
+      "side": 1,
+      "message": "So I test the new behavior of the RouteBalancer",
+      "parentUuid": "fa81d914_0a6da298",
       "range": {
         "startLine": 113,
         "startChar": 8,
