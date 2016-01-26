@@ -36,8 +36,6 @@
 #     3) For each connection we should set up, use 'ipsec whack' to notify
 #        the running daemon that it should start the connection that should
 #        already be defined in the ipsec.conf file.
-#
-# TODO: Add support for health checks
 
 exec 2>&1
 
