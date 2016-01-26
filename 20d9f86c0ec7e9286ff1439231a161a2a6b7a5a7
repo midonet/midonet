@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_1d1c0ec1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/TimedExpirationMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T14:52:50Z",
+      "side": 1,
+      "message": "Isn\u0027t this creating 1000 maps per second?",
+      "range": {
+        "startLine": 246,
+        "startChar": 26,
+        "endLine": 246,
+        "endChar": 51
+      },
+      "revId": "20d9f86c0ec7e9286ff1439231a161a2a6b7a5a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
