@@ -22,6 +22,30 @@
       "revId": "20d9f86c0ec7e9286ff1439231a161a2a6b7a5a7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c0afe9e1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/TimedExpirationMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-26T16:23:33Z",
+      "side": 1,
+      "message": "no, we only have two different expirations (1 for stick dnat, 1 for all other cases), so it would just be 2 queues. the assumption here is that the number of different expirations is very small, and that creating multiple queues is better than keeping an ordered priority queue.",
+      "parentUuid": "fa81d914_1d1c0ec1",
+      "range": {
+        "startLine": 246,
+        "startChar": 26,
+        "endLine": 246,
+        "endChar": 51
+      },
+      "revId": "20d9f86c0ec7e9286ff1439231a161a2a6b7a5a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
