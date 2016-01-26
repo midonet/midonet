@@ -101,7 +101,7 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
      * An entry will only be present in this queue if it is also present
      * in the refCountMap.
      */
-    private val expiring = new ConcurrentLinkedQueue[(K, Long)]
+    private val expiring = new ConcurrentHashMap[Long, ConcurrentLinkedQueue[(K, Long)]]()
 
     private def tryIncIfGreaterThan(atomic: AtomicInteger, threshold: Int): Int = {
         do {
@@ -214,9 +214,9 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
 
                 if (newVal == 0) {
                     log.debug(s"Scheduling removal of $key")
-                    val expiration = expirationFor(key).toMillis
-                    m.expiration = currentTimeMillis + expiration
-                    expiring.offer((key, m.expiration))
+                    val expirationPeriod = expirationFor(key).toMillis
+                    m.expiration = currentTimeMillis + expirationPeriod
+                    getExpirationQueueFor(expirationPeriod).offer((key, m.expiration))
                 } else if (newVal < 0) {
                     log.warn(s"Decrement a ref count past 0 for $key")
                     count.incrementAndGet()
@@ -224,6 +224,17 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
 
                 value
         }
+
+    private def getExpirationQueueFor(expirationPeriod: Long) = {
+        var expirationQ = expiring.get(expirationPeriod)
+        if (expirationQ eq null) {
+            expirationQ = new ConcurrentLinkedQueue[(K, Long)]()
+            val oldQ = expiring.putIfAbsent(expirationPeriod, expirationQ)
+            if (oldQ ne null)
+                expirationQ = oldQ
+        }
+        expirationQ
+    }
 
 
     /**
@@ -243,8 +254,22 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
     def obliterateIdleEntries[U](currentTimeMillis: Long, seed: U,
                                  reducer: Reducer[K, V, U]): U = {
         var acc = seed
+        val it = expiring.elements()
+        while (it.hasMoreElements) {
+            acc = obliterateIdleEntries(
+                it.nextElement(), currentTimeMillis, acc, reducer)
+        }
+        acc
+    }
+
+    private def obliterateIdleEntries[U](
+            expirationQ: ConcurrentLinkedQueue[(K, Long)],
+            currentTimeMillis: Long,
+            seed: U,
+            reducer: Reducer[K, V, U]): U = {
+        var acc = seed
         while (true) {
-            val pair = expiring.peek()
+            val pair = expirationQ.peek()
             if ((pair eq null) || (pair._2 > currentTimeMillis))
                 return acc
 
@@ -260,7 +285,7 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
                 acc = reducer(acc, pair._1, metadata.value)
                 refCountMap.remove(pair._1)
             }
-            expiring.poll()
+            expirationQ.poll()
         }
         acc
     }

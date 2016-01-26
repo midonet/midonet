@@ -22,7 +22,6 @@ import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
 import org.slf4j.helpers.NOPLogger
-
 import org.junit.runner.RunWith
 import org.scalatest.{OneInstancePerTest, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
@@ -36,7 +35,10 @@ class TimedExpirationMapTest extends FeatureSpec
 
     val map = new TimedExpirationMap[String, String](
         Logger(NOPLogger.NOP_LOGGER),
-        _ => 0 millis)
+        {
+            case "high" => 5 days
+            case _ => 0 millis
+        })
 
     feature("Normal operations") {
         scenario("putAndRef") {
@@ -99,7 +101,7 @@ class TimedExpirationMapTest extends FeatureSpec
             map.putAndRef("A", "X")
             map.unref("A", 0) should be ("X")
 
-            val outerlLatch = new CountDownLatch(1)
+            val outerLatch = new CountDownLatch(1)
 
             map.obliterateIdleEntries(1, "", new Reducer[String, String, String]() {
                 override def apply(acc: String, key: String,
@@ -110,16 +112,16 @@ class TimedExpirationMapTest extends FeatureSpec
                         retries -= 1
                     }
 
-                    val innerlLatch = new CountDownLatch(1)
+                    val innerLatch = new CountDownLatch(1)
                     new Thread() {
                         override def run() {
-                            innerlLatch.countDown()
+                            innerLatch.countDown()
                             map.putAndRef("A", "Y")
-                            outerlLatch.countDown()
+                            outerLatch.countDown()
                         }
                     }.start()
 
-                    innerlLatch.await()
+                    innerLatch.await()
 
                     retries = 500
                     while (retries > 0) {
@@ -131,8 +133,25 @@ class TimedExpirationMapTest extends FeatureSpec
                 }
             }) should be ("AX")
 
-            outerlLatch.await()
+            outerLatch.await()
             map.get("A") should be ("Y")
+        }
+
+        scenario("a key with higher expiration count doesn't prevent lower "
+                 + "keys from being obliterated") {
+            map.putAndRef("high", "Y")
+            map.putAndRef("A", "X")
+            map.unref("high", 0) should be ("Y")
+            map.unref("A", 0) should be ("X")
+
+            map.obliterateIdleEntries(1, "", new Reducer[String, String, String]() {
+                override def apply(acc: String, key: String,
+                                   value: String): String =
+                    key + value
+            }) should be ("AX")
+
+            map.get("A") should be (null)
+            map.get("high") should be ("Y")
         }
     }
 
