@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_3d9632f1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T15:16:34Z",
+      "side": 1,
+      "message": "It took me a good 2 minutes to untangle it. From that point of view it makes the code base more complex, for little gain.\nFor us to hit the limit at 4bits, we\u0027d need to have 260mil flows at a time. At 100000 flows per second, this is the ability to keep flows around for 44 minutes. At a million flows per second, that\u0027s keeping _all_ them around for over 4 minutes. I don\u0027t see this happening any time soon, and not with this code either.\n\nAlso, are you expecting log to base 2 or natural log?",
+      "parentUuid": "fa81d914_bd26a214",
+      "range": {
+        "startLine": 59,
+        "startChar": 35,
+        "endLine": 59,
+        "endChar": 43
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_aa3f36d5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
         "patchSetId": 11
@@ -190,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_7da0aa43",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T15:16:34Z",
+      "side": 1,
+      "message": "ah",
+      "parentUuid": "fa81d914_1d732e16",
+      "range": {
+        "startLine": 147,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 45
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_ca5e2a45",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
         "patchSetId": 11
@@ -272,6 +320,30 @@
       "side": 1,
       "message": "the name of the field is nlmsg_seq, nothing to do with the disruptor\u0027s sequence number.",
       "parentUuid": "fa81d914_dd3a7633",
+      "range": {
+        "startLine": 27,
+        "startChar": 65,
+        "endLine": 27,
+        "endChar": 68
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_9da39e4e",
+        "filename": "netlink/src/main/java/org/midonet/netlink/exceptions/NetlinkException.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-01-26T15:16:34Z",
+      "side": 1,
+      "message": "sure",
+      "parentUuid": "fa81d914_5d64c648",
       "range": {
         "startLine": 27,
         "startChar": 65,
