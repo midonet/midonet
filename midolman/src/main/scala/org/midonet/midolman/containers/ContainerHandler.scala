@@ -18,11 +18,17 @@ package org.midonet.midolman.containers
 
 import scala.concurrent.Future
 
+import com.google.common.base.MoreObjects
+
 import rx.Observable
 
 import org.midonet.cluster.models.State.ContainerStatus
 
-case class ContainerHealth(code: ContainerStatus.Code, message: String)
+case class ContainerHealth(code: ContainerStatus.Code, message: String) {
+    override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+        .add("code", code)
+        .toString
+}
 
 /**
   * A container handler provides a specific implementation for each container
