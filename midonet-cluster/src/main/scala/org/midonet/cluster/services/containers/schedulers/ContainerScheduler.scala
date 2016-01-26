@@ -508,8 +508,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
                     log debug s"Container status changed ${builder.getStatusCode} " +
                               s"host: ${builder.getHostId.asJava} " +
                               s"namespace: ${builder.getNamespaceName} " +
-                              s"interface: ${builder.getInterfaceName} " +
-                              s"(message: ${builder.getStatusMessage})"
+                              s"interface: ${builder.getInterfaceName}"
                     builder.build()
                 } catch {
                     case NonFatal(e) =>
