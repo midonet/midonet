@@ -44,5 +44,6 @@ trait UnixClock {
 
 class MockUnixClock extends UnixClock {
     var time: Long = 0
+    override def timeNanos = time
     override def isMock = true
 }

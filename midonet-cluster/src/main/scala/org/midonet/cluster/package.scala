@@ -44,6 +44,9 @@ package object cluster {
     final val heartbeatLog =
         "org.midonet.cluster.services.heartbeat"
 
+    final val recyclerLog =
+        "org.midonet.cluster.services.recycler"
+
     final val restApiLog =
         "org.midonet.cluster.services.rest-api"
     final val restApiJaxrsLog =

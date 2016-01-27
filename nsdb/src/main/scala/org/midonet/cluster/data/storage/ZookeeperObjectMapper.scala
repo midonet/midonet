@@ -118,7 +118,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
     protected[storage] override val version = new AtomicLong(0)
 
-    private[storage] val basePath = s"$rootPath/" + version.get
+    private[cluster] val basePath = s"$rootPath/" + version.get
     private[storage] val locksPath = basePath + s"/zoomlocks/lock"
     private[storage] val modelPath = basePath + s"/models"
 
@@ -677,26 +677,30 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         }).clazz.asInstanceOf[Observable[Observable[T]]]
     }
 
+    protected[cluster] def classes: Set[Class[_]] = {
+        classInfo.keySet.toSet
+    }
+
     // We should have public subscription methods, but we don't currently
     // need them, and this is easier to implement for testing.
     @VisibleForTesting
-    protected[storage] def getNodeValue(path: String): String = {
+    protected[cluster] def getNodeValue(path: String): String = {
         val data = curator.getData.forPath(path)
         if (data == null) null else new String(data)
     }
 
     @VisibleForTesting
-    protected[storage] def getNodeChildren(path: String): Seq[String] = {
+    protected[cluster] def getNodeChildren(path: String): Seq[String] = {
         curator.getChildren.forPath(path).asScala
     }
 
     @inline
-    private[storage] def classPath(clazz: Class[_]): String = {
+    protected[cluster] def classPath(clazz: Class[_]): String = {
         modelPath + "/" + clazz.getSimpleName
     }
 
     @inline
-    protected[storage] override def objectPath(clazz: Class[_], id: ObjId,
+    protected[cluster] override def objectPath(clazz: Class[_], id: ObjId,
                                                version: Long = version.longValue())
     : String = {
         classPath(clazz) + "/" + getIdString(clazz, id)
