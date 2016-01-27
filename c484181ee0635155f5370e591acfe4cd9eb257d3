@@ -139,6 +139,24 @@
       "revId": "c484181ee0635155f5370e591acfe4cd9eb257d3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0e63efb1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-01-27T14:47:17Z",
+      "side": 1,
+      "message": "Not sure... maybe dropping new items is better: the rationale being that you will see missing data, and you see what happened before missing the data (so you know what was going on...). But I don\u0027t have a strong opinion on that (maybe @fernando has the user\u0027s point of view)",
+      "parentUuid": "fa81d914_8e927f9d",
+      "revId": "c484181ee0635155f5370e591acfe4cd9eb257d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
