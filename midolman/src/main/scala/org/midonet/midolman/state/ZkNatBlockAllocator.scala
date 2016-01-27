@@ -91,7 +91,10 @@ class ZkNatBlockAllocator @Inject()(
     private val recycler = new ZkNatBlockRecycler(zk, executor, clock)
     private val recycleTask = new Runnable() {
         override def run(): Unit = {
-            recycler.recycle()
+            recycler.recycle() onSuccess {
+                case recycledBlocks if recycledBlocks > 0 =>
+                    log.info(s"Recycled $recycledBlocks blocks")
+            }
             executor.schedule(this, 5, TimeUnit.HOURS)
         }
     }
