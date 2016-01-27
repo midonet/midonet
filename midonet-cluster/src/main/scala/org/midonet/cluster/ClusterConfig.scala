@@ -21,6 +21,7 @@ import scala.concurrent.duration._
 
 import com.typesafe.config.{Config, ConfigFactory}
 
+import org.midonet.cluster.services.recycler.Recycler
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.services.heartbeat.Heartbeat
@@ -71,6 +72,7 @@ class ClusterConfig(_conf: Config) {
     val translators = new TranslatorsConfig(conf)
     val stateProxy = new StateProxyConfig(conf)
     val executors = new ExecutorsConfig(conf, prefix)
+    val recycler = new RecyclerConfig(conf)
 }
 
 class AuthConfig(val conf: Config) {
@@ -87,8 +89,8 @@ class TranslatorsConfig(val conf: Config) {
 
     final val prefix = "cluster.translators"
 
-    private val dynamicNatStart = conf.getInt(s"$prefix.nat.dynamic_port_start")
-    private val dynamicNatEnd = conf.getInt(s"$prefix.nat.dynamic_port_end")
+    private def dynamicNatStart = conf.getInt(s"$prefix.nat.dynamic_port_start")
+    private def dynamicNatEnd = conf.getInt(s"$prefix.nat.dynamic_port_end")
 
     private def portInRange(port: Int) =
         MIN_DYNAMIC_NAT_PORT <= port && port <= MAX_DYNAMIC_NAT_PORT
@@ -206,4 +208,13 @@ class StateProxyConfig(val conf: Config) extends MinionConfig[StateProxy] {
         conf.getDuration(s"$prefix.server.shutdown_quiet_period", TimeUnit.MILLISECONDS) millis
     def serverShutdownTimeout =
         conf.getDuration(s"$prefix.server.shutdown_timeout", TimeUnit.MILLISECONDS) millis
+}
+
+class RecyclerConfig(val conf: Config) extends MinionConfig[Recycler] {
+    final val prefix = "cluster.recycler"
+
+    override def isEnabled = conf.getBoolean(s"$prefix.enabled")
+    def interval = conf.getDuration(s"$prefix.interval", TimeUnit.MINUTES) minutes
+    def throttlingRate = conf.getInt(s"$prefix.throttling_rate")
+    def shutdownTimeout = conf.getDuration(s"$prefix.shutdown_interval", TimeUnit.MILLISECONDS) millis
 }
