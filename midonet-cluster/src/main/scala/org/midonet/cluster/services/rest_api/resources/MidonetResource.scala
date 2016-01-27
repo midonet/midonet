@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.lang.annotation.Annotation
 import java.net.URI
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 import javax.validation.{ConstraintViolation, Validator}
@@ -49,7 +50,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.logging.ProtoTextPrettifier.makeReadable
-import org.midonet.cluster.{ZookeeperLockFactory, restApiLog, restApiResourceLog}
+import org.midonet.cluster._
 import org.midonet.midolman.state._
 import org.midonet.util.reactivex._
 
@@ -162,7 +163,8 @@ object MidonetResource {
         (handler orElse DefaultHandler)(try f catch catcher orElse DefaultCatcher)
     }
 
-    case class ResourceContext @Inject() (backend: MidonetBackend,
+    case class ResourceContext @Inject() (config: RestApiConfig,
+                                          backend: MidonetBackend,
                                           executionContext: ExecutionContext,
                                           lockFactory: ZookeeperLockFactory,
                                           uriInfo: UriInfo,
@@ -501,7 +503,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
         if (!zkLockNeeded) return f
 
-        try lock.acquire() catch {
+        try lock.acquire(resContext.config.nsdbLockTimeoutMs,
+                         TimeUnit.MILLISECONDS) catch {
             case NonFatal(t) =>
                 log.info("Could not acquire storage lock.", t)
                 throw new ServiceUnavailableHttpException(

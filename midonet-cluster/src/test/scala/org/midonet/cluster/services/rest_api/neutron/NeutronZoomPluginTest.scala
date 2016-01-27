@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.{RestApiConfig, ZookeeperLockFactory}
 import org.midonet.cluster.data.ZoomConvert.toProto
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRouter, NeutronRouterInterface, NeutronSubnet, SecurityGroup => NeutronSecurityGroup}
@@ -57,25 +57,30 @@ class NeutronZoomPluginTest extends FeatureSpec
     var timeout = 5.seconds
 
     override def setup() {
-        val cfg = new MidonetBackendConfig(ConfigFactory.parseString(s"""
+        val backendConfig = new MidonetBackendConfig(ConfigFactory.parseString(s"""
            |zookeeper.zookeeper_hosts : "${zk.getConnectString}"
            |zookeeper.root_key : "$zkRoot"
         """.stripMargin)
         )
+        val apiConfig = new RestApiConfig(ConfigFactory.parseString(s"""
+            |cluster.rest_api.nsdb_lock_timeout : 30s
+        """.stripMargin)
+        )
         MidonetBackend.isCluster = true
-        backend = new MidonetBackendService(cfg, curator, curator,
+        backend = new MidonetBackendService(backendConfig, curator, curator,
                                             metricRegistry = null)
         backend.startAsync().awaitRunning()
 
         val paths = new PathBuilder(zkRoot)
-        val resContext = new ResourceContext(backend,
+        val resContext = new ResourceContext(apiConfig,
+                                             backend,
                                              executionContext = null,
                                              lockFactory = null,
                                              uriInfo = null,
                                              validator = null,
                                              seqDispenser = null)
         val lockFactory = new ZookeeperLockFactory(curator, paths)
-        val sequenceDispenser = new SequenceDispenser(curator, cfg)
+        val sequenceDispenser = new SequenceDispenser(curator, backendConfig)
         val c3po = C3POMinion.initDataManager(backend.store,
                                               backend.stateTableStore,
                                               sequenceDispenser,
