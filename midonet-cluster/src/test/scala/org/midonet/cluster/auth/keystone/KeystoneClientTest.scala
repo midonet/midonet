@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.auth.keystone.v2
+package org.midonet.cluster.auth.keystone
 
 import java.text.ParsePosition
 
@@ -22,10 +22,11 @@ import com.fasterxml.jackson.databind.util.ISO8601Utils
 import com.typesafe.config.ConfigFactory
 
 import org.junit.runner.RunWith
-import org.scalatest.{GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{GivenWhenThen, Matchers}
 
-import org.midonet.cluster.auth.keystone.v2.KeystoneTest.DateFormat
+import org.midonet.cluster.auth.keystone.KeystoneTest.DateFormat
+import org.midonet.cluster.auth.keystone.v2.KeystoneVersion
 import org.midonet.conf.MidoTestConfigurator
 
 @RunWith(classOf[JUnitRunner])
