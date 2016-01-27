@@ -375,6 +375,30 @@
       "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f6e597a8",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T09:08:50Z",
+      "side": 1,
+      "message": "Then, maybe we should add the second curator instance to the tests where it is needed, as we already do in some tests.",
+      "parentUuid": "fa81d914_e0914d9b",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 58
+      },
+      "revId": "060400137bd16c8b23b84c2b0c2dd18893d98133",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
