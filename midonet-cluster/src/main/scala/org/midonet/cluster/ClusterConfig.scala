@@ -17,8 +17,11 @@ package org.midonet.cluster
 
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.duration._
+
 import com.typesafe.config.{ConfigFactory, Config}
 import org.midonet.cluster.services.containers.ContainerService
+import org.midonet.cluster.services.recycler.Recycler
 import org.midonet.cluster.services.rest_api.Vladimir
 import org.midonet.cluster.services.{ScheduledMinionConfig, MinionConfig}
 import org.midonet.cluster.services.c3po.C3POMinion
@@ -60,6 +63,7 @@ class ClusterConfig(_conf: Config) {
     val topologyApi = new TopologyApiConfig(conf)
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)
+    val recycler = new RecyclerConfig(conf)
 
     def threadPoolSize = conf.getInt(s"$prefix.max_thread_pool_size")
     def threadPoolShutdownTimeoutMs =
@@ -134,4 +138,11 @@ class ContainersConfig(val conf: Config) extends MinionConfig[ContainerService] 
     override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
     def schedulerTimeoutMs = conf.getDuration(s"$Prefix.scheduler_timeout", TimeUnit.MILLISECONDS)
     def schedulerBadHostLifetimeMs = conf.getDuration(s"$Prefix.scheduler_bad_host_lifetime", TimeUnit.MILLISECONDS)
+}
+
+class RecyclerConfig(val conf: Config) extends MinionConfig[Recycler] {
+    final val Prefix = "cluster.recycler"
+
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    def interval = conf.getDuration(s"$Prefix.interval", TimeUnit.MINUTES) minutes
 }
