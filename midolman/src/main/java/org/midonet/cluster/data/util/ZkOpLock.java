@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Midokura SARL
+ * Copyright (c) 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -27,16 +27,16 @@ import org.slf4j.LoggerFactory;
 
 
 public class ZkOpLock {
-    private InterProcessSemaphoreMutex lock;
-    private StopWatch timeHeld;
-    private int opNumber;
-
     private static final Logger LOGGER =
         LoggerFactory.getLogger(ZkOpLock.class);
 
-    public static final int LOCK_WAIT_SEC = 5;
+    public static final int LOCK_TIMEOUT = 5;
+    public static final TimeUnit LOCK_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
-    String name;
+    private final InterProcessSemaphoreMutex lock;
+    private final StopWatch timeHeld;
+    private final int opNumber;
+    private final String name;
 
     public ZkOpLock(ZookeeperLockFactory lockFactory, int lockOpNumber,
                     String lockName) {
@@ -47,12 +47,16 @@ public class ZkOpLock {
     }
 
     public void acquire() {
+        acquire(LOCK_TIMEOUT, LOCK_TIMEOUT_UNIT);
+    }
+
+    public void acquire(long timeout, TimeUnit timeUnit) {
         StopWatch timeToAcquire = new StopWatch();
         timeToAcquire.start();
         try {
             LOGGER.debug("Attempting to acquire lock for operation " +
                          opNumber);
-            if (!lock.acquire(LOCK_WAIT_SEC, TimeUnit.SECONDS)) {
+            if (!lock.acquire(timeout, timeUnit)) {
                 throw new RuntimeException("Could not acquire lock in time");
             }
             timeToAcquire.stop();

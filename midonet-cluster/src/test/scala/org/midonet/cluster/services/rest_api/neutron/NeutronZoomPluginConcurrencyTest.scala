@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import scala.async.Async.async
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
+import com.typesafe.config.ConfigFactory
+
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
 import org.mockito.Matchers.{any => Any}
@@ -33,7 +35,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 import rx.Observable
 
-import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.{RestApiConfig, ZookeeperLockFactory}
 import org.midonet.cluster.data.storage.{PersistenceOp, Storage, Transaction}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.MidonetBackend
@@ -50,7 +52,11 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
                                    with MockitoSugar {
 
     val backend: MidonetBackend = mock[MidonetBackend]
-    val resContext: ResourceContext = new ResourceContext(backend,
+    val apiConfig = new RestApiConfig(ConfigFactory.parseString(s"""
+            |cluster.rest_api.nsdb_lock_timeout : 30s
+        """.stripMargin))
+    val resContext: ResourceContext = new ResourceContext(apiConfig,
+                                                          backend,
                                                           executionContext = null,
                                                           lockFactory = null,
                                                           uriInfo = null,

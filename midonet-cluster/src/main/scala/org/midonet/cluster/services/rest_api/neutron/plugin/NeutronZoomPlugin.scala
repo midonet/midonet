@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.rest_api.neutron.plugin
 
 import java.util
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ConcurrentModificationException, UUID}
 
@@ -82,7 +83,8 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     private def tryWrite(f: => Unit): Unit = {
         val lock = new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
                                 ZookeeperLockFactory.ZOOM_TOPOLOGY)
-        try lock.acquire() catch {
+        try lock.acquire(resourceContext.config.nsdbLockTimeoutMs,
+                         TimeUnit.MILLISECONDS) catch {
             case NonFatal(t) =>
                 log.error("Could not acquire Zookeeper lock.", t)
                 throw new ServiceUnavailableHttpException(
