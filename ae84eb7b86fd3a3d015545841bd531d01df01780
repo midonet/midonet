@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_ee385ba2",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T14:43:06Z",
+      "side": 1,
+      "message": "Use the normal timeout, maybe the fail fast timeout will just give us head-aches, and it\u0027s not really needed for the test purpose, is it?",
+      "range": {
+        "startLine": 62,
+        "startChar": 3,
+        "endLine": 62,
+        "endChar": 54
+      },
+      "revId": "ae84eb7b86fd3a3d015545841bd531d01df01780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
