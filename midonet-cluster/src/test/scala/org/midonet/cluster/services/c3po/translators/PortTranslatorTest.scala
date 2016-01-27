@@ -39,11 +39,12 @@ import org.midonet.cluster.services.c3po.OpType
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.vtepNetworkPortId
 import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.SequenceDispenser.{OverlayTunnelKey, SequenceType}
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util._
 import org.midonet.midolman.state.MacPortMap
-import org.midonet.packets.{IPv4Addr, ARP, MAC}
+import org.midonet.packets.{ARP, IPv4Addr, MAC}
 
 trait OpMatchers {
     /**
@@ -1421,7 +1422,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
 }
 
 @RunWith(classOf[JUnitRunner])
-class RouterGatewayPortTranslationTest extends PortTranslatorTest {
+class RouterGatewayPortTranslationTest extends PortTranslatorTest{
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
@@ -1429,34 +1430,168 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
 
         bind(networkId, nNetworkBase)
         bind(portId, midoPortBaseUp)
-        bind(portId, nGatewayPort)
+        bind(portId, nGatewayPortWithVPN)
         bind(mrGatewayPortId, mrGatewayPort)
         bind(outSnatRuleId, null, classOf[Rule])
         bind(networkId, midoNetwork)
-
+        bind(routerIdWithVPN, mRouterWithGwPortWithVPN)
+        bind(routerIdWithoutVPN, mRouterWithGwPortWithoutVPN)
+        bind(chainId, mRedirectChain)
+        bindAll(Seq(espRuleId, udp500RuleId, udp4500RuleId),
+                Seq(mEspRuleId, mUdp500RuleId, mUdp4500RuleId))
+        bindAll(Seq(nVpnServiceId), Seq(nVpnService))
     }
 
-    private val nGatewayPort = nPortFromTxt(portBaseUp + """
-        device_owner: ROUTER_GATEWAY
+    private val externalIp = IPv4Addr.random
+    private val routerIdWithVPN = randomUuidProto
+    private val chainId = randomUuidProto
+
+    private val espRuleId = randomUuidProto
+    private val mEspRuleId = mRuleFromTxt(s"""
+        id: { $espRuleId }
+        chain_id: { $chainId }
+        type: L2TRANSFORM_RULE
+        action: REDIRECT
+        condition {
+            nw_dst_ip {
+                version: V4
+                address: "${externalIp.toString}"
+                prefix_length: 32
+            }
+            nw_proto: 50
+        }""")
+
+    private val udp500RuleId = randomUuidProto
+    private val mUdp500RuleId = mRuleFromTxt(s"""
+        id: { $udp500RuleId }
+        chain_id: { $chainId }
+        type: L2TRANSFORM_RULE
+        action: REDIRECT
+        condition {
+            nw_dst_ip {
+                version: V4
+                address: "${externalIp.toString}"
+                prefix_length: 32
+            }
+            nw_proto: 17
+            tp_dst: {
+                start: 500
+                end: 500
+            }
+        }
         """)
 
-    private val routerId = randomUuidProto
+    private val udp4500RuleId = randomUuidProto
+    private val mUdp4500RuleId = mRuleFromTxt(s"""
+        id: { $udp4500RuleId }
+        chain_id: { $chainId }
+        type: L2TRANSFORM_RULE
+        action: REDIRECT
+        condition {
+            nw_dst_ip {
+                version: V4
+                address: "${externalIp.toString}"
+                prefix_length: 32
+            }
+            nw_proto: 17
+            tp_dst: {
+                start: 4500
+                end: 4500
+            }
+        }
+        """)
+
+    private val mRedirectChain = mChainFromTxt(s"""
+        id { $chainId }
+        rule_ids { $espRuleId }
+        rule_ids { $udp500RuleId }
+        rule_ids { $udp4500RuleId }
+        """)
+
+    private val nVpnServiceId = randomUuidProto
+    private val nVpnService = nVpnServiceFromTxt(s"""
+        id { $nVpnServiceId }
+        """)
+
+    private val mRouterWithGwPortWithVPN = mRouterFromTxt(s"""
+        id { $routerIdWithVPN }
+        vpn_service_ids { $nVpnServiceId }
+        local_redirect_chain_id { $chainId }
+        """)
+
+    private val nGatewayPortWithVPN = nPortFromTxt(portBaseUp + s"""
+        device_owner: ROUTER_GATEWAY
+        device_id: '${fromProto(routerIdWithVPN)}'
+        fixed_ips {
+          ip_address {
+            version: V4
+            address: '${externalIp.toString}'
+          }
+        }
+        """)
+
+    private val routerIdWithoutVPN = randomUuidProto
+    private val mRouterWithGwPortWithoutVPN = mRouterFromTxt(s"""
+        id { $routerIdWithVPN }
+        """)
+    private val nGatewayPortWithoutVPN = nPortFromTxt(portBaseUp + s"""
+        device_owner: ROUTER_GATEWAY
+        device_id: '${fromProto(routerIdWithoutVPN)}'
+        fixed_ips {
+          ip_address {
+            version: V4
+            address: '${externalIp.toString}'
+          }
+        }
+        """)
+
     private val mrGatewayPortId = RouterTranslator.tenantGwPortId(portId)
     private val mrGatewayPort = mPortFromTxt(s"""
         id: { $mrGatewayPortId }
-        router_id: { $routerId }
+        router_id: { $routerIdWithVPN }
         """)
-    private val outSnatRuleId = RouterTranslator.outSnatRuleId(routerId)
+    private val outSnatRuleId = RouterTranslator.outSnatRuleId(routerIdWithVPN)
 
     "Router gateway port CREATE" should "produce Mido provider router port " +
     "CREATE" in {
         // TODO: Test that the midoPort has the provider router ID.
     }
 
-    "Router gateway port UPDATE" should "not update Port " +
-    "CREATE" in {
-        val midoOps = translator.translate(UpdateOp(nGatewayPort))
+    "Router gateway port UPDATE" should "not update Port without VPN service" in {
+        val midoOps = translator.translate(UpdateOp(nGatewayPortWithoutVPN))
         midoOps shouldBe empty
+    }
+
+    "Router gateway port UPDATE" should "update redirect rules if VPN service exists" in {
+        val newExternalIp = IPSubnetUtil.fromAddr(IPv4Addr.random)
+        val newGwPort = nPortFromTxt(portBaseUp + s"""
+            device_owner: ROUTER_GATEWAY
+            device_id: '${fromProto(routerIdWithVPN)}'
+            fixed_ips {
+              ip_address {
+                version: V4
+                address: '${newExternalIp.getAddress}'
+              }
+            }
+            """)
+        val midoOps = translator.translate(UpdateOp(newGwPort))
+        midoOps should have size 4
+
+        midoOps should contain (UpdateOp(nVpnService
+                                             .toBuilder
+                                             .setExternalIp(newExternalIp.getAddress)
+                                             .build))
+        val newEspRule = mEspRuleId.toBuilder
+        newEspRule.getConditionBuilder.setNwDstIp(newExternalIp)
+        midoOps should contain (UpdateOp(newEspRule.build))
+
+        val newUdp500Rule = mUdp500RuleId.toBuilder
+        newUdp500Rule.getConditionBuilder.setNwDstIp(newExternalIp)
+        midoOps should contain (UpdateOp(newUdp500Rule.build))
+
+        val newUdp4500Rule = mUdp4500RuleId.toBuilder
+        newUdp4500Rule.getConditionBuilder.setNwDstIp(newExternalIp)
+        midoOps should contain (UpdateOp(newUdp4500Rule.build))
     }
 
     "Router gateway port  DELETE" should "delete the MidoNet Port" in {
