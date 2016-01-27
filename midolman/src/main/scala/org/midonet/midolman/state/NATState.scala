@@ -124,7 +124,7 @@ object NatState {
                                 s"$networkDst:$transportDst:$networkProtocol"
 
         expiresAfter = keyType match {
-            case FWD_STICKY_DNAT | REV_STICKY_DNAT => 1 day
+            case FWD_STICKY_DNAT | REV_STICKY_DNAT => 5 minutes
             case _ => FlowState.DEFAULT_EXPIRATION
         }
 
