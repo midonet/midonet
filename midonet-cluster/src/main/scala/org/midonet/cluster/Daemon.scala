@@ -17,6 +17,7 @@
 package org.midonet.cluster
 
 import java.util.UUID
+import java.util.concurrent.ExecutorService
 
 import scala.async.Async._
 import scala.concurrent.duration._
@@ -35,14 +36,15 @@ import org.midonet.cluster.services.Minion
   * Midonet Cluster node.
   */
 final protected class Daemon(val nodeId: UUID,
+                             val executor: ExecutorService,
                              val minionDefs: List[MinionDef[_ <: Minion]])
     extends AbstractService {
 
     private val log = LoggerFactory.getLogger(clusterLog)
 
-    private implicit val executionCtx = ExecutionContext.global
+    private implicit val ec = ExecutionContext.fromExecutor(executor)
 
-    /** Start summmoning our Minions */
+    /** Start summoning our Minions */
     override def doStart(): Unit = {
         log.info(s"MidoNet cluster daemon starting on host $nodeId")
 
@@ -59,7 +61,7 @@ final protected class Daemon(val nodeId: UUID,
                                             .value.get.isFailure)
 
         if (numFailed == minionDefs.size) {
-            log.error("No minions started. Check midonet cluster config file " +
+            log.error("No minions started. Check MidoNet cluster config file " +
                       "to ensure that some services are enabled, and check " +
                       "possible failures in enabled minions.")
             notifyFailed(new ClusterException("No minions enabled", null))

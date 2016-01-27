@@ -18,6 +18,8 @@ package org.midonet.cluster
 
 import java.nio.file.{Files, Paths}
 import java.util.UUID
+import java.util.concurrent.TimeUnit
+
 import javax.sql.DataSource
 
 import scala.collection.JavaConversions._
@@ -27,6 +29,7 @@ import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import com.typesafe.scalalogging.Logger
+
 import org.apache.commons.dbcp2.BasicDataSource
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
@@ -61,7 +64,7 @@ object ClusterNode extends App {
       */
     case class Context(nodeId: UUID)
 
-    private val log = LoggerFactory.getLogger(clusterLog)
+    private val log = Logger(LoggerFactory.getLogger(clusterLog))
 
     private val metrics = new MetricRegistry()
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()
@@ -98,6 +101,8 @@ object ClusterNode extends App {
 
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
 
+    val clusterExecutor = ExecutorsModule.create(clusterConf, log)
+
     log.info("Scanning classpath for Cluster Minions..")
     private val reflections = new Reflections("org.midonet")
     private val annotated = reflections.getTypesAnnotatedWith(classOf[ClusterService])
@@ -125,7 +130,7 @@ object ClusterNode extends App {
     dataSrc.setUsername(clusterConf.c3po.user)
     dataSrc.setPassword(clusterConf.c3po.password)
 
-    private val daemon = new Daemon(nodeId, minions.toList)
+    private val daemon = new Daemon(nodeId, clusterExecutor, minions.toList)
 
     private val clusterNodeModule = new AbstractModule {
         override def configure(): Unit = {
@@ -136,7 +141,8 @@ object ClusterNode extends App {
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
             bind(classOf[Reflections]).toInstance(reflections)
             bind(classOf[LeaderLatchProvider]).in(classOf[Singleton])
-            install(new AuthModule(clusterConf.auth, Logger(log)))
+            install(new AuthModule(clusterConf.auth, log))
+            install(new ExecutorsModule(clusterExecutor))
 
             // Minion configurations
             bind(classOf[ClusterConfig]).toInstance(clusterConf)
@@ -197,6 +203,13 @@ object ClusterNode extends App {
         if (injector.getInstance(classOf[MidonetBackend]).isRunning)
             injector.getInstance(classOf[MidonetBackend])
                     .stopAsync().awaitTerminated()
+
+        clusterExecutor.shutdown()
+        if (!clusterExecutor.awaitTermination(clusterConf.threadPoolShutdownTimeoutMs,
+                                              TimeUnit.MILLISECONDS)) {
+            log warn "Shutting down the cluster executor timed out"
+            clusterExecutor.shutdownNow()
+        }
     }
 
     log info "MidoNet Cluster daemon starts.."
