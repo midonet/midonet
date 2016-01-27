@@ -148,8 +148,9 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             val chainOps = if (router.hasLocalRedirectChainId) {
                 val chainId = router.getLocalRedirectChainId
                 val chain = storage.get(classOf[Chain], chainId).await()
-
-                val rulesToDelete = findRedirectRules(vpn, chain)
+                val rules = storage.getAll(classOf[Rule], chain.getRuleIdsList()).await()
+                val rulesToDelete = filterVPNRedirectRules(vpn.getExternalIp, rules)
+                    .map(_.getId)
                 if (rulesToDelete.size == chain.getRuleIdsCount) {
                     List(Update(router.toBuilder
                                     .clearLocalRedirectChainId()
@@ -211,17 +212,6 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             .setPortMac(MAC.random().toString)
         assignTunnelKey(builder, sequenceDispenser)
         builder.build()
-    }
-
-    private def findRedirectRules(vpn: VpnService, chain: Chain): List[UUID] = {
-        val localEndpointIp = IPSubnetUtil.fromAddr(vpn.getExternalIp)
-
-        storage.getAll(classOf[Rule], chain.getRuleIdsList()).await()
-            .filter((r:Rule) => {
-                        isRedirectForEndpointRule(r, localEndpointIp) &&
-                            (isESPRule(r) || isUDP500Rule(r) || isUDP4500Rule(r))
-                    })
-            .map(_.getId).toList
     }
 
     private def makeRedirectRules(chainId: UUID,
@@ -308,6 +298,25 @@ protected[translators] object VpnServiceTranslator {
             condition.getTpDst.getStart == 4500 &&
             condition.getTpDst.getEnd == 4500 &&
             !condition.getTpDstInv
+    }
+
+    def updateVPNRedirectRules(newExternalIp: IPAddress, rules: List[Rule]): List[Rule] = {
+        val localEndpointIp = IPSubnetUtil.fromAddr(newExternalIp)
+        for (rule <- rules) yield {
+            val bldr = rule.toBuilder
+            bldr.getConditionBuilder.setNwDstIp(localEndpointIp)
+            bldr.build()
+        }
+    }
+
+    def filterVPNRedirectRules(externalIp: IPAddress, rules: Seq[Rule]): List[Rule] = {
+        val localEndpointIp = IPSubnetUtil.fromAddr(externalIp)
+
+        rules.filter((r:Rule) => {
+                        isRedirectForEndpointRule(r, localEndpointIp) &&
+                            (isESPRule(r) || isUDP500Rule(r) || isUDP4500Rule(r))
+                    })
+            .toList
     }
 }
 
