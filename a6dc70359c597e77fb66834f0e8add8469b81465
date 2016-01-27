@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_d116daf0",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T17:33:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_6db56630",
+      "range": {
+        "startLine": 239,
+        "startChar": 72,
+        "endLine": 239,
+        "endChar": 79
+      },
+      "revId": "a6dc70359c597e77fb66834f0e8add8469b81465",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_0d978a91",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/KeystoneClient.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-27T10:17:17Z",
       "side": 1,
       "message": "Remove. The 2nd sentence is much clearer.",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 47,
+        "endChar": 60
+      },
+      "revId": "a6dc70359c597e77fb66834f0e8add8469b81465",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_11d87252",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/KeystoneClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T17:33:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_0d978a91",
       "range": {
         "startLine": 46,
         "startChar": 8,
