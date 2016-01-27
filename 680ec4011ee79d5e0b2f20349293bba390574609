@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_b6895fcc",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T09:34:53Z",
+      "side": 1,
+      "message": "to",
+      "range": {
+        "startLine": 361,
+        "startChar": 14,
+        "endLine": 361,
+        "endChar": 15
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d67253e2",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 564,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T09:34:53Z",
+      "side": 1,
+      "message": "Could we perhaps use a String.format for this? It seems to be used in several places.",
+      "range": {
+        "startLine": 559,
+        "startChar": 16,
+        "endLine": 564,
+        "endChar": 44
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f6811790",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T09:34:53Z",
+      "side": 1,
+      "message": "Same comment for this",
+      "range": {
+        "startLine": 602,
+        "startChar": 18,
+        "endLine": 602,
+        "endChar": 66
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
