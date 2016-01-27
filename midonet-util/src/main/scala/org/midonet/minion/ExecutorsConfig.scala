@@ -22,11 +22,11 @@ import com.typesafe.config.Config
 
 class ExecutorsConfig(val conf: Config, val prefix: String) {
 
-    val threadPoolName = conf.getString(s"$prefix.executors.thread_pool_name")
+    def threadPoolName = conf.getString(s"$prefix.executors.thread_pool_name")
 
-    val threadPoolSize = conf.getInt(s"$prefix.executors.max_thread_pool_size")
+    def threadPoolSize = conf.getInt(s"$prefix.executors.max_thread_pool_size")
 
-    val threadPoolShutdownTimeoutMs =
+    def threadPoolShutdownTimeoutMs =
             conf.getDuration(s"$prefix.executors.thread_pool_shutdown_timeout",
                              TimeUnit.MILLISECONDS)
 
