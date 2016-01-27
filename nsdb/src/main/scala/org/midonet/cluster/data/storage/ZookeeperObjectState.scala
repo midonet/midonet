@@ -332,27 +332,34 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                                                         .getSessionId
 
     @inline
-    private[storage] def statePath(namespace: String, version: Long)
-    : String = {
-        s"$rootPath/$version/state/$namespace"
+    private[cluster] def statePath(version: Long = version.longValue()): String = {
+        s"$rootPath/$version/state"
     }
 
     @inline
-    private[storage] def stateClassPath(namespace: String, clazz: Class[_],
+    private[cluster] def stateNamespacePath(namespace: String,
+                                            version: Long = version.longValue())
+    : String = {
+        s"${statePath(version)}/$namespace"
+    }
+
+    @inline
+    private[cluster] def stateClassPath(namespace: String, clazz: Class[_],
                                         version: Long = version.longValue())
     : String = {
-        statePath(namespace, version) + "/" + clazz.getSimpleName
+        stateNamespacePath(namespace, version) + "/" + clazz.getSimpleName
     }
 
     @inline
-    private[storage] def stateObjectPath(namespace: String, clazz: Class[_],
-                                         id: ObjId, version: Long)
+    private[cluster] def stateObjectPath(namespace: String, clazz: Class[_],
+                                         id: ObjId,
+                                         version: Long = version.longValue())
     : String = {
         stateClassPath(namespace, clazz, version) + "/" + getIdString(clazz, id)
     }
 
     @inline
-    private[storage] def keyPath(namespace: String, clazz: Class[_], id: ObjId,
+    private[cluster] def keyPath(namespace: String, clazz: Class[_], id: ObjId,
                                  key: String,
                                  version: Long = version.longValue())
     : String = {
@@ -360,7 +367,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     }
 
     @inline
-    private[storage] def valuePath(namespace: String, clazz: Class[_],
+    private[cluster] def valuePath(namespace: String, clazz: Class[_],
                                    id: ObjId, key: String, value: String,
                                    version: Long = version.longValue())
     : String = {
