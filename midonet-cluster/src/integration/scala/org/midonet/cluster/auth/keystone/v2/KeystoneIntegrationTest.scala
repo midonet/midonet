@@ -28,7 +28,7 @@ import org.midonet.conf.MidoTestConfigurator
  * a Keystone server with the configuration and at least one administrative
  * tenant as specified below.
  */
-class KeystoneClientTest extends FlatSpec with Matchers with GivenWhenThen {
+class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen {
 
     // Install the SLF4J handler for the legacy loggers used in the API.
     SLF4JBridgeHandler.removeHandlersForRootLogger()
@@ -96,7 +96,6 @@ class KeystoneClientTest extends FlatSpec with Matchers with GivenWhenThen {
                                                  keystoneUser,
                                                  keystonePassword)
         keystoneAccess.access.token should not be null
-        keystoneAccess.access.user.userName shouldBe keystoneUser
         keystoneAccess.access.user.userName shouldBe keystoneUser
     }
 
@@ -230,6 +229,26 @@ class KeystoneClientTest extends FlatSpec with Matchers with GivenWhenThen {
         }
     }
 
+    "Client" should "fail validate a non-existing token with admin token" in {
+        Given("A client")
+        val client = clientWithToken
+
+        Then("Validating the token succeeds")
+        intercept[KeystoneException] {
+            client.validate("invalid-token", tenantScope = false)
+        }
+    }
+
+    "Client" should "fail validate a non-existing token with admin password" in {
+        Given("A client")
+        val client = clientWithPassword
+
+        Then("Validating the token succeeds")
+        intercept[KeystoneException] {
+            client.validate("invalid-token", tenantScope = false)
+        }
+    }
+
     "Client" should "list users" in {
         Given("A valid token")
         val client = clientWithoutAdmin
@@ -260,6 +279,32 @@ class KeystoneClientTest extends FlatSpec with Matchers with GivenWhenThen {
         userById.user.name shouldBe keystoneUser
     }
 
+    "Client" should "fail get non-existing user name" in {
+        Given("A valid token")
+        val client = clientWithoutAdmin
+        val keystoneAccess = client.authenticate(keystoneTenant,
+                                                 keystoneUser,
+                                                 keystonePassword)
+
+        Then("Get the user by name fails")
+        intercept[KeystoneException] {
+            client.getUserByName("some-name", keystoneAccess.access.token.id)
+        }
+    }
+
+    "Client" should "fail get non-existing user identifier" in {
+        Given("A valid token")
+        val client = clientWithoutAdmin
+        val keystoneAccess = client.authenticate(keystoneTenant,
+                                                 keystoneUser,
+                                                 keystonePassword)
+
+        Then("Get the user by identifier fails")
+        intercept[KeystoneException] {
+            client.getUserById("some-id", keystoneAccess.access.token.id)
+        }
+    }
+
     "Client" should "list tenants" in {
         Given("A valid token")
         val client = clientWithoutAdmin
@@ -288,6 +333,33 @@ class KeystoneClientTest extends FlatSpec with Matchers with GivenWhenThen {
         val tenantById = client.getTenantById(tenantByName.tenant.id,
                                               keystoneAccess.access.token.id)
         tenantById.tenant.name shouldBe keystoneTenant
+    }
+
+
+    "Client" should "fail get non-existing tenant name" in {
+        Given("A valid token")
+        val client = clientWithoutAdmin
+        val keystoneAccess = client.authenticate(keystoneTenant,
+                                                 keystoneUser,
+                                                 keystonePassword)
+
+        Then("Get the user by name fails")
+        intercept[KeystoneException] {
+            client.getTenantByName("some-name", keystoneAccess.access.token.id)
+        }
+    }
+
+    "Client" should "fail get non-existing tenant identifier" in {
+        Given("A valid token")
+        val client = clientWithoutAdmin
+        val keystoneAccess = client.authenticate(keystoneTenant,
+                                                 keystoneUser,
+                                                 keystonePassword)
+
+        Then("Get the user by identifier fails")
+        intercept[KeystoneException] {
+            client.getTenantById("some-id", keystoneAccess.access.token.id)
+        }
     }
 
     "Client" should "get tenant user roles" in {
