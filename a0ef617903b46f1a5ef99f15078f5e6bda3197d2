@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_765b6787",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T08:43:52Z",
+      "side": 1,
+      "message": "There\u0027s a class called ProcessHelper that could probably be used here.",
+      "range": {
+        "startLine": 62,
+        "startChar": 8,
+        "endLine": 62,
+        "endChar": 25
+      },
+      "revId": "a0ef617903b46f1a5ef99f15078f5e6bda3197d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f64e77c0",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T08:43:52Z",
+      "side": 1,
+      "message": "Should there be an onErrorResumeNext in case an exception is thrown while executing check status?",
+      "range": {
+        "startLine": 287,
+        "startChar": 8,
+        "endLine": 289,
+        "endChar": 38
+      },
+      "revId": "a0ef617903b46f1a5ef99f15078f5e6bda3197d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_164a2bac",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T08:43:52Z",
+      "side": 1,
+      "message": "Should the message be added too?",
+      "range": {
+        "startLine": 30,
+        "startChar": 8,
+        "endLine": 30,
+        "endChar": 17
+      },
+      "revId": "a0ef617903b46f1a5ef99f15078f5e6bda3197d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
