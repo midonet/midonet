@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,26 +22,27 @@ import java.util.UUID._
 import scala.concurrent.Future
 
 import com.google.protobuf.TextFormat
-
+import org.apache.curator.framework.state.ConnectionState.RECONNECTED
 import org.junit.runner.RunWith
 import org.reflections.Reflections
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.State.ContainerStatus.Code
+import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
 import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer, ServiceContainerGroup}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.MidonetBackend.StatusKey
+import org.midonet.cluster.services.MidonetBackend.{ContainerKey, StatusKey}
+import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.Container
 import org.midonet.midolman.containers.ContainerServiceTest.TestContainer
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.util.MidonetEventually
 import org.midonet.util.reactivex._
 
 object ContainerServiceTest {
@@ -109,10 +110,12 @@ object ContainerServiceTest {
 }
 
 @RunWith(classOf[JUnitRunner])
-class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
+class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
+                                   with MidonetEventually {
 
     import TopologyBuilder._
 
+    private var backend: MidonetBackend = _
     private var store: Storage = _
     private var stateStore: StateStorage = _
     private var vt: VirtualTopology = _
@@ -120,18 +123,21 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[MidonetBackend]).store
-        stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
+        backend = injector.getInstance(classOf[MidonetBackend])
+        store = backend.store
+        stateStore = backend.stateStore
     }
 
-    def containerPort(host: Host, port: Port, container: ServiceContainer,
-                      group: ServiceContainerGroup): ContainerPort = {
+    private def containerPort(host: Host, port: Port,
+                              container: ServiceContainer,
+                              group: ServiceContainerGroup)
+    : ContainerPort = {
         ContainerPort(port.getId, host.getId, port.getInterfaceName,
                       container.getId, container.getServiceType, group.getId,
                       container.getConfigurationId)
     }
 
-    def getStatus(containerId: UUID): Option[ContainerStatus] = {
+    private def getStatus(containerId: UUID): Option[ContainerStatus] = {
         stateStore.getKey(classOf[ServiceContainer], containerId, StatusKey)
                   .await() match {
             case key: SingleValueKey =>
@@ -142,6 +148,28 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
                 }
         }
 
+    }
+
+    private def checkContainerKey(hostId: UUID, status: String): Unit = {
+        val statusFailure = "The container key should be a single value key " +
+                            s"containing the container status: $status"
+        val nullStatusFailure = "The container key should be absent"
+
+        val key = stateStore.getKey(classOf[Host], hostId, ContainerKey).await()
+
+        key match {
+            case SingleValueKey(ContainerKey, Some(s), _) =>
+                if (status == null) {
+                    fail(nullStatusFailure)
+                } else if (status != s) {
+                    fail(statusFailure)
+                }
+            case SingleValueKey(ContainerKey, None, _) =>
+                if (status != null) {
+                    fail(statusFailure)
+                }
+            case x => fail(s"Incorrect container key: $x")
+        }
     }
 
     feature("Test service lifecycle") {
@@ -1132,4 +1160,49 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
         }
     }
 
+    feature("The service container handles re-connections of the " +
+            "fail fast curator") {
+        scenario("The fail fast curator disconnects and reconnects") {
+            Given("A port bound to a host with a container")
+            val host = createHost()
+            val bridge = createBridge()
+            val group = createServiceContainerGroup()
+            val container1 = createServiceContainer(configurationId = Some(randomUUID),
+                                                    serviceType = Some("test-throws-delete"),
+                                                    groupId = Some(group.getId))
+            val port = createBridgePort(bridgeId = Some(bridge.getId),
+                                        hostId = Some(host.getId),
+                                        interfaceName = Some("veth"),
+                                        containerId = Some(container1.getId))
+            store.multi(Seq(CreateOp(host), CreateOp(bridge), CreateOp(group),
+                            CreateOp(container1), CreateOp(port)))
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
+                                               reflections)
+            service.startAsync().awaitRunning()
+
+            Then("The container key should be present in the state store")
+            val status = ContainerServiceStatus.newBuilder()
+                                               .setWeight(1)
+                                               .build()
+                                               .toString
+            val hostId = host.getId.asJava
+            checkContainerKey(hostId, status)
+
+            When("We remove the container key")
+            stateStore.removeValue(classOf[Host], hostId, ContainerKey,
+                                   value = null).await()
+            checkContainerKey(hostId, status = null)
+
+            And("We notify a reconnection of the fail fast curator")
+            val testBackend = backend.asInstanceOf[MidonetTestBackend]
+            testBackend.connectionState onNext RECONNECTED
+
+            Then("The container key should be re-created")
+            eventually {
+                checkContainerKey(hostId, status)
+            }
+        }
+    }
 }

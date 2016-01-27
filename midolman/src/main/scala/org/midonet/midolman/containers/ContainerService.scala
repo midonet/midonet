@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ import scala.util.{Failure, Success}
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.AbstractService
-
+import org.apache.curator.framework.state.ConnectionState
+import org.apache.curator.framework.state.ConnectionState.{CONNECTED, RECONNECTED}
 import org.reflections.Reflections
-
 import rx.schedulers.Schedulers
 import rx.{Observable, Subscriber, Subscription}
 
@@ -44,7 +44,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.ContainerMapper.{Changed, Created, Deleted, Notification}
 import org.midonet.midolman.topology.{ContainerMapper, DeviceMapper, VirtualTopology}
 import org.midonet.util.concurrent._
-import org.midonet.util.functors.{makeAction0, makeFunc1}
+import org.midonet.util.functors.{makeAction0, makeFunc1, makeFunc2}
 import org.midonet.util.reactivex._
 
 object ContainerService {
@@ -174,14 +174,30 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         try {
             // Subscribe to the current host to update the host status with
             // the current weight.
-            vt.store.observable(classOf[Host], hostId)
-                .map[Int](makeFunc1(_.getContainerWeight))
-                .distinctUntilChanged()
-                .onBackpressureBuffer(NotificationBufferSize, makeAction0 {
-                    log error "Notification buffer overflow"
-                })
-                .observeOn(scheduler)
-                .subscribe(weightSubscriber)
+            val weightObservable =
+                vt.store.observable(classOf[Host], hostId)
+                    .map[Int](makeFunc1(_.getContainerWeight))
+                    .distinctUntilChanged()
+
+            val connectionObservable =
+                vt.backend.failFastConnectionState
+                          .distinctUntilChanged()
+                          .filter(makeFunc1(state =>
+                              state == RECONNECTED || state == CONNECTED
+                          ))
+
+            Observable.combineLatest[Int, ConnectionState, Int](
+                          weightObservable,
+                          connectionObservable,
+                          makeFunc2((w: Int, s: ConnectionState) => w))
+                      .onBackpressureBuffer(NotificationBufferSize,
+                                            makeAction0 { log error
+                                                "Overflow on buffer used to " +
+                                                "receive host and ZooKeeper " +
+                                                "connection state notifications"
+                                            })
+                      .observeOn(scheduler)
+                      .subscribe(weightSubscriber)
 
             // Subscribe to the observable stream of the current host. The
             // subscription is done on the containers executor with a
