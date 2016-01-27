@@ -16,6 +16,24 @@
       "revId": "ff4cce71791436baafa93caab57e6e3be062b837",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_96729bab",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-01-27T03:41:31Z",
+      "side": 1,
+      "message": "unfortunately your intuition turned out to be different from\nfwaas folks.\ni added a reference to the commit message and translation spec.",
+      "parentUuid": "fa81d914_4764f321",
+      "revId": "ff4cce71791436baafa93caab57e6e3be062b837",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
