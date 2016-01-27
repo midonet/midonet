@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_0ef3ef73",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T16:59:36Z",
+      "side": 1,
+      "message": "I changed that to haproxy.",
+      "parentUuid": "fa81d914_21bf00fd",
+      "range": {
+        "startLine": 62,
+        "startChar": 47,
+        "endLine": 62,
+        "endChar": 60
+      },
+      "revId": "0bdb16607fc06cee955fb7bde99ab7571ea99ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_01c03c7b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-20T13:01:02Z",
       "side": 1,
       "message": "PID",
+      "range": {
+        "startLine": 125,
+        "startChar": 22,
+        "endLine": 125,
+        "endChar": 25
+      },
+      "revId": "0bdb16607fc06cee955fb7bde99ab7571ea99ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_aee663b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T16:59:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_01c03c7b",
       "range": {
         "startLine": 125,
         "startChar": 22,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_2eea7375",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T16:59:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_e14b2829",
+      "range": {
+        "startLine": 281,
+        "startChar": 36,
+        "endLine": 281,
+        "endChar": 49
+      },
+      "revId": "0bdb16607fc06cee955fb7bde99ab7571ea99ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_415154d7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 6
@@ -94,6 +166,53 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_8e851faf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T16:59:36Z",
+      "side": 1,
+      "message": "In fact since this action is executed by the executor itself, it\u0027s probably better to just issue an executor.shutdown(). We won\u0027t see the termination of tasks here because of that.",
+      "parentUuid": "fa81d914_415154d7",
+      "range": {
+        "startLine": 326,
+        "startChar": 16,
+        "endLine": 326,
+        "endChar": 38
+      },
+      "revId": "0bdb16607fc06cee955fb7bde99ab7571ea99ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5114aaf4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T16:59:36Z",
+      "side": 1,
+      "message": "Does this mean that the VT observable for the load balancer will also be observed on the scheduler we specify? If it is the case, then we are in trouble.",
+      "range": {
+        "startLine": 133,
+        "startChar": 55,
+        "endLine": 133,
+        "endChar": 76
+      },
+      "revId": "0bdb16607fc06cee955fb7bde99ab7571ea99ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_81626cab",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
         "patchSetId": 6
@@ -105,6 +224,30 @@
       "writtenOn": "2016-01-20T13:01:02Z",
       "side": 1,
       "message": "Rather that disabling the check, you could ensure that the test uses the same thread executor, make it deterministic. This requires the HealthMonitor to either receive the executor as argument, or to allow you to override it inside the test.",
+      "range": {
+        "startLine": 72,
+        "startChar": 4,
+        "endLine": 72,
+        "endChar": 55
+      },
+      "revId": "0bdb16607fc06cee955fb7bde99ab7571ea99ecc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d1689a89",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T16:59:36Z",
+      "side": 1,
+      "message": "The problem is that the executor service must allow scheduling of runnables (it has to be a scheduledExecutorService). However, we can\u0027t do that in the current thread. Still looking for an alternative...",
+      "parentUuid": "fa81d914_81626cab",
       "range": {
         "startLine": 72,
         "startChar": 4,
