@@ -18,6 +18,7 @@ package org.midonet.cluster
 
 import java.nio.file.{Files, Paths}
 import java.util.UUID
+import java.util.concurrent.{TimeUnit, ExecutorService}
 import javax.sql.DataSource
 
 import scala.collection.JavaConversions._
@@ -25,7 +26,7 @@ import scala.util.control.NonFatal
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
-import com.google.inject.{AbstractModule, Guice, Singleton}
+import com.google.inject.{Key, AbstractModule, Guice, Singleton}
 import com.typesafe.scalalogging.Logger
 import org.apache.commons.dbcp2.BasicDataSource
 import org.reflections.Reflections
@@ -61,7 +62,7 @@ object ClusterNode extends App {
       */
     case class Context(nodeId: UUID)
 
-    private val log = LoggerFactory.getLogger(clusterLog)
+    private val log = Logger(LoggerFactory.getLogger(clusterLog))
 
     private val metrics = new MetricRegistry()
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()
@@ -136,7 +137,8 @@ object ClusterNode extends App {
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
             bind(classOf[Reflections]).toInstance(reflections)
             bind(classOf[LeaderLatchProvider]).in(classOf[Singleton])
-            install(new AuthModule(clusterConf.auth, Logger(log)))
+            install(new AuthModule(clusterConf.auth, log))
+            install(new ExecutorsModule(clusterConf, log))
 
             // Minion configurations
             bind(classOf[ClusterConfig]).toInstance(clusterConf)
@@ -189,6 +191,15 @@ object ClusterNode extends App {
 
     log debug "Registering shutdown hook"
     sys addShutdownHook {
+        val threadPool = injector.getInstance(Key.get(classOf[ExecutorService],
+                                                      Names.named("cluster-pool")))
+        threadPool.shutdown()
+        if (!threadPool.awaitTermination(clusterConf.threadPoolShutdownTimeoutMs,
+                                         TimeUnit.MILLISECONDS)) {
+            log warn "Shutting down the cluster executor timed out"
+            threadPool.shutdownNow()
+        }
+
         if (daemon.isRunning) {
             log.info("Shutdown hook triggered, shutting down..")
             jmxReporter.stop()

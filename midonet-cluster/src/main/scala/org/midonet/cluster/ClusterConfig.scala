@@ -50,6 +50,7 @@ object ClusterConfig {
 
 class ClusterConfig(_conf: Config) {
     val conf = _conf.resolve()
+    val Prefix = "cluster"
 
     val auth = new AuthConfig(conf)
     val backend = new MidonetBackendConfig(conf)
@@ -59,6 +60,10 @@ class ClusterConfig(_conf: Config) {
     val topologyApi = new TopologyApiConfig(conf)
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)
+
+    def threadPoolSize = conf.getInt(s"$Prefix.max_thread_pool_size")
+    def threadPoolShutdownTimeoutMs =
+        conf.getDuration(s"$Prefix.thread_pool_shutdown_timeout", TimeUnit.MILLISECONDS)
 }
 
 class AuthConfig(val conf: Config) {
