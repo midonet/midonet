@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_ee4e9b6e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-27T14:22:51Z",
+      "side": 1,
+      "message": "replace with JCTools SpscArrayQueue",
+      "revId": "384c5948b0fa3bd078e101f0e80e9eb483f5a33f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
