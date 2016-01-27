@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_ae4ca371",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-27T14:22:51Z",
+      "side": 1,
+      "message": "who interrupts this thread?",
+      "revId": "c484181ee0635155f5370e591acfe4cd9eb257d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4e7327b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-27T14:22:51Z",
+      "side": 1,
+      "message": "oh, you can register with the WakerUpper:\n\nmake this implement Parkable and redefine shouldWakeUp to query the queue.",
+      "revId": "c484181ee0635155f5370e591acfe4cd9eb257d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0e520f13",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-27T14:22:51Z",
+      "side": 1,
+      "message": "replace with JCTools SpscArrayQueue",
+      "revId": "c484181ee0635155f5370e591acfe4cd9eb257d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8e643fe6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-27T14:22:51Z",
+      "side": 1,
+      "message": "I wonder what\u0027s the best strategy here: to drop new items, or to drop old items. what do you think?",
+      "revId": "c484181ee0635155f5370e591acfe4cd9eb257d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
