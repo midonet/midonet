@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_51a58db3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T10:32:20Z",
+      "side": 1,
+      "message": "But then ownerId needs the failFast boolean (inside addValueOnResult).",
+      "parentUuid": "fa81d914_96ec5b91",
+      "range": {
+        "startLine": 453,
+        "startChar": 69,
+        "endLine": 453,
+        "endChar": 77
+      },
+      "revId": "cbcf1a11fc0169d283619026aa76de308a44469d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_d6fdf33c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_91af0594",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T10:32:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_d6fdf33c",
+      "range": {
+        "startLine": 501,
+        "startChar": 48,
+        "endLine": 501,
+        "endChar": 73
+      },
+      "revId": "cbcf1a11fc0169d283619026aa76de308a44469d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_56f2e36f",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2016-01-27T09:08:50Z",
       "side": 1,
       "message": "Minor comment: Is it possible to add this to the method now, so it does get repeated below? Forget it if it cannot.",
+      "range": {
+        "startLine": 270,
+        "startChar": 12,
+        "endLine": 271,
+        "endChar": 31
+      },
+      "revId": "cbcf1a11fc0169d283619026aa76de308a44469d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d1217dfd",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-27T10:32:20Z",
+      "side": 1,
+      "message": "I need it to be outside for the same test but with the fail fast feature.",
+      "parentUuid": "fa81d914_56f2e36f",
       "range": {
         "startLine": 270,
         "startChar": 12,
