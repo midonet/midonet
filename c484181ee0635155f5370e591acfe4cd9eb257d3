@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_146300b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-27T19:43:11Z",
+      "side": 1,
+      "message": "done in #14",
+      "parentUuid": "fa81d914_0e684ff4",
+      "revId": "c484181ee0635155f5370e591acfe4cd9eb257d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_4e7327b1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
         "patchSetId": 13
