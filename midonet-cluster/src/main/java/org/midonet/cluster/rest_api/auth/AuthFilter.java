@@ -86,11 +86,11 @@ public final class AuthFilter implements Filter {
         try {
             // It will accept null token since client implementations may
             // want to treat such case differently.
-            user = this.service.getUserIdentityByToken(token);
+            user = service.authorize(token);
         } catch (AuthException ex) {
             ResponseUtils.setErrorResponse((HttpServletResponse) response,
                                            SC_UNAUTHORIZED, ex.getMessage());
-            log.error("Authentication error.", ex);
+            log.error("Authentication error", ex);
             return;
         }
 
@@ -101,7 +101,7 @@ public final class AuthFilter implements Filter {
         } else {
             // This is the case where a token was invalid.  Challenge the
             // client to submit Basic auth credentials.
-            log.info("Invalid auth token from " + req.getRemoteAddr());
+            log.info("Invalid authentication token from " + req.getRemoteAddr());
             ResponseUtils.setAuthErrorResponse((HttpServletResponse) response,
                                                "Authentication error");
         }
@@ -113,6 +113,6 @@ public final class AuthFilter implements Filter {
      */
     @Override
     public void destroy() {
-        this.service = null;
+        service = null;
     }
 }
