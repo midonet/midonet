@@ -1,0 +1,54 @@
+/*
+ * Copyright 2016 Midokura SARL
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.midonet.cluster.services.recycler
+
+import scala.collection.JavaConverters._
+
+import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.api.{CuratorEvent, BackgroundCallback}
+import org.apache.zookeeper.KeeperException.Code
+
+import org.midonet.cluster.services.recycler.Recycler.ChildContext
+
+/**
+  * Completes the collection of object state entries from the NSDB, and updates
+  * the operation's recycling context.
+  */
+object StateCollector extends BackgroundCallback {
+
+    override def processResult(client: CuratorFramework,
+                               event: CuratorEvent): Unit = {
+        val context = event.getContext.asInstanceOf[ChildContext]
+        val (host, clazz) = context.tag.asInstanceOf[(String, Class[_])]
+        if (event.getResultCode == Code.OK.intValue()) {
+            context.parent.log debug s"Collected ${event.getChildren.size} " +
+                                     s"objects for host $host class " +
+                                     s"${clazz.getSimpleName}"
+            context.parent.stateObjects
+                   .putIfAbsent((host, clazz), event.getChildren.asScala)
+            context success true
+
+        } else if (event.getResultCode == Code.NONODE.intValue()) {
+            // We ignore NONODE errors, because the class state keys are
+            // created on demand.
+            context success true
+        } else {
+            context fail event
+        }
+    }
+
+}
