@@ -20,14 +20,15 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.cluster.data.storage.{StateTableStorage, NotFoundException, ReadOnlyStorage, UpdateValidator}
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter, VpnService}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.vtepNetworkPortId
 import org.midonet.cluster.services.c3po.translators.PortManager._
+import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.cluster.util._
@@ -219,11 +220,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         val midoOps = new OperationListBuffer
 
-        // It is assumed that the fixed IPs assigned to a Neutron Port will not
-        // be changed.
         val portId = nPort.getId
         val mPort = storage.get(classOf[Port], portId).await()
-        val oldNPort = storage.get(classOf[NeutronPort], portId).await()
+        val oldNPort = storage.get(classOf[NeutronPort], nPort.getId).await()
+
+        // It is assumed that the fixed IPs assigned to a Neutron Port will not
+        // be changed.
         if (portChanged(nPort, oldNPort)) {
             val bldr = mPort.toBuilder.setAdminStateUp(nPort.getAdminStateUp)
 
@@ -240,6 +242,33 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             }
 
             midoOps += Update(bldr.build())
+        }
+
+        // router gateway ports only allow one ip address
+        // only update the rules if that ip changed
+        if (isRouterGatewayPort(nPort) &&
+            (nPort.getFixedIps(0) ne oldNPort.getFixedIps(0))) {
+            val router = storage.get(classOf[Router], toProto(nPort.getDeviceId)).await()
+            if (router.getVpnServiceIdsCount > 0) {
+                // Update the vpn services associated to the router with the
+                // new external ip.
+                val vpnServices = storage.getAll(
+                    classOf[VpnService], router.getVpnServiceIdsList.asScala)
+                    .await()
+
+                val oldExternalIp = oldNPort.getFixedIps(0).getIpAddress
+                val newExternalIp = nPort.getFixedIps(0).getIpAddress
+                midoOps ++= vpnServices.map(vpn => Update(
+                    vpn.toBuilder.setExternalIp(newExternalIp).build))
+
+                // Update the local redirect rules
+                val chainId = router.getLocalRedirectChainId
+                val chain = storage.get(classOf[Chain], chainId).await()
+                val rules = storage.getAll(classOf[Rule], chain.getRuleIdsList.asScala).await()
+                var rulesToUpdate = filterVpnRedirectRules(oldExternalIp, rules)
+                rulesToUpdate = updateVpnRedirectRules(newExternalIp, rulesToUpdate)
+                midoOps ++= rulesToUpdate.map(Update(_))
+            }
         }
 
         if (isVifPort(nPort)) { // It's a VIF port.
