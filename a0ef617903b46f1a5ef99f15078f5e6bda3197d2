@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_11ccf234",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T18:33:20Z",
+      "side": 1,
+      "message": "Yes, but the ProcessHelper returns a list of strings, which still to have be concatenated with a builder.",
+      "parentUuid": "fa81d914_765b6787",
+      "range": {
+        "startLine": 62,
+        "startChar": 8,
+        "endLine": 62,
+        "endChar": 25
+      },
+      "revId": "a0ef617903b46f1a5ef99f15078f5e6bda3197d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_f64e77c0",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-27T08:43:52Z",
       "side": 1,
       "message": "Should there be an onErrorResumeNext in case an exception is thrown while executing check status?",
+      "range": {
+        "startLine": 287,
+        "startChar": 8,
+        "endLine": 289,
+        "endChar": 38
+      },
+      "revId": "a0ef617903b46f1a5ef99f15078f5e6bda3197d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_71036e42",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T18:33:20Z",
+      "side": 1,
+      "message": "Good, catch: I will add a try..catch in onNext, to avoid complicating things with onErrorResumeNext",
+      "parentUuid": "fa81d914_f64e77c0",
       "range": {
         "startLine": 287,
         "startChar": 8,
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_b1fde63c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T18:33:20Z",
+      "side": 1,
+      "message": "The message is the status read from the IPSec pluto process, which is a multiline bunch of text. This will add multiline noise in the log, so that\u0027s why I omitted it here. Maybe for logging purposes the code should suffice?",
+      "parentUuid": "fa81d914_76a0c743",
+      "range": {
+        "startLine": 30,
+        "startChar": 8,
+        "endLine": 30,
+        "endChar": 17
+      },
+      "revId": "a0ef617903b46f1a5ef99f15078f5e6bda3197d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_76b7e786",
         "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
         "patchSetId": 3
@@ -106,6 +178,30 @@
       "writtenOn": "2016-01-27T09:27:02Z",
       "side": 1,
       "message": "We should probably make checks relative to previous and using constants to avoid having to re-write/review the whole test. not necessary for this patch though.",
+      "range": {
+        "startLine": 852,
+        "startChar": 48,
+        "endLine": 852,
+        "endChar": 49
+      },
+      "revId": "a0ef617903b46f1a5ef99f15078f5e6bda3197d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_31a1f647",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 852,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T18:33:20Z",
+      "side": 1,
+      "message": "Oh yes, definitely: most of the time I spend in these patches was fixing the unit tests. I will clean it in the patch addressing the other comments from Nicolas.",
+      "parentUuid": "fa81d914_76b7e786",
       "range": {
         "startLine": 852,
         "startChar": 48,
