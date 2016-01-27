@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_cc21e2fd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-27T13:45:14Z",
+      "side": 1,
+      "message": "Given that the appender is always alive, possibly .sleep() after a few unsuccessful polls.",
+      "range": {
+        "startLine": 61,
+        "startChar": 29,
+        "endLine": 61,
+        "endChar": 45
+      },
+      "revId": "2c3bd9e7e70126835d5210eb3bb2ecb4495a8638",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8c10caa9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-27T13:45:14Z",
+      "side": 1,
+      "message": "move to the onSuccess above?",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 22
+      },
+      "revId": "2c3bd9e7e70126835d5210eb3bb2ecb4495a8638",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
