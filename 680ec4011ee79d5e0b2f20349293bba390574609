@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_71d28e01",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T18:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_b6895fcc",
+      "range": {
+        "startLine": 361,
+        "startChar": 14,
+        "endLine": 361,
+        "endChar": 15
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_f6583758",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-27T09:43:28Z",
       "side": 1,
       "message": "Make this a constant.",
+      "range": {
+        "startLine": 417,
+        "startChar": 40,
+        "endLine": 417,
+        "endChar": 41
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_b1dc0614",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 417,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T18:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_f6583758",
       "range": {
         "startLine": 417,
         "startChar": 40,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_111792a4",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T18:07:53Z",
+      "side": 1,
+      "message": "Retry close the tailer? The underlying problem here can only be failing to close the file, but I\u0027m not sure whether it was worth the additional complexity. What do you think, shall I add it?",
+      "parentUuid": "fa81d914_d659735c",
+      "range": {
+        "startLine": 421,
+        "startChar": 16,
+        "endLine": 421,
+        "endChar": 24
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_d62093b2",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_b12166fd",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 616,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T18:07:53Z",
+      "side": 1,
+      "message": "The problem is that cleanup is expected to throw, so it interrupts the setup for instance.",
+      "parentUuid": "fa81d914_d62093b2",
+      "range": {
+        "startLine": 616,
+        "startChar": 20,
+        "endLine": 616,
+        "endChar": 36
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_d67253e2",
         "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
         "patchSetId": 3
@@ -105,6 +201,30 @@
       "writtenOn": "2016-01-27T09:34:53Z",
       "side": 1,
       "message": "Could we perhaps use a String.format for this? It seems to be used in several places.",
+      "range": {
+        "startLine": 559,
+        "startChar": 16,
+        "endLine": 564,
+        "endChar": 44
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_318576d0",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 564,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-27T18:07:53Z",
+      "side": 1,
+      "message": "You mean replacing it with:\n\n  String.format(\"vpn-helper makens -n %s -g %s -G %s...\",\n                          vpn.name, ...)\n\nIsn\u0027t this why string interpolation is nicer? :D\nBut I agree this could be made a method that takes vpn as argument. If you agree I will do this in a subsequent patch to limit the changes here.",
+      "parentUuid": "fa81d914_d67253e2",
       "range": {
         "startLine": 559,
         "startChar": 16,
