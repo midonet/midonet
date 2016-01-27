@@ -19,15 +19,15 @@ import com.typesafe.config.Config
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.state.ConnectionState
 import org.mockito.Mockito._
+import rx.subjects.BehaviorSubject
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
-import org.midonet.cluster.data.storage.{StateTableStorage, InMemoryStorage, StateStorage, Storage}
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
+import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.MidoTestConfigurator
-import org.midonet.packets.{MAC, IPv4Addr}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor
-import rx.subjects.BehaviorSubject
 
 /* In the main source tree to allow usage by other module's tests, without
  * creating a jar. */
