@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_c2ab661b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T10:15:36Z",
+      "side": 1,
+      "message": "Add the backpressure buffer and observeOn here, and remove above",
+      "range": {
+        "startLine": 198,
+        "startChar": 22,
+        "endLine": 198,
+        "endChar": 50
+      },
+      "revId": "a4ffe1186816e589abee40ab589b26071dbbb5e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_22bfe2d1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1159,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T10:15:36Z",
+      "side": 1,
+      "message": "Nit: put this at the top; make private",
+      "range": {
+        "startLine": 1139,
+        "startChar": 0,
+        "endLine": 1159,
+        "endChar": 5
+      },
+      "revId": "a4ffe1186816e589abee40ab589b26071dbbb5e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_02657e1d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1191,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T10:15:36Z",
+      "side": 1,
+      "message": "When",
+      "range": {
+        "startLine": 1191,
+        "startChar": 12,
+        "endLine": 1191,
+        "endChar": 15
+      },
+      "revId": "a4ffe1186816e589abee40ab589b26071dbbb5e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_e2a6aa52",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1196,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T10:15:36Z",
+      "side": 1,
+      "message": "W",
+      "range": {
+        "startLine": 1196,
+        "startChar": 17,
+        "endLine": 1196,
+        "endChar": 18
+      },
+      "revId": "a4ffe1186816e589abee40ab589b26071dbbb5e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
