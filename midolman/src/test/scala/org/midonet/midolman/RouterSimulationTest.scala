@@ -101,7 +101,7 @@ class RouterSimulationTest extends MidolmanSpec {
     private def setKey[T <: FlowKey](action: FlowAction) =
         action.asInstanceOf[FlowActionSetKey].getFlowKey.asInstanceOf[T]
 
-    scenario("Balances routes") {
+    scenario("A flow sticks to a route") {
         val routeDst = "21.31.41.51"
         val gateways = List("180.0.1.40", "180.0.1.41", "180.0.1.42")
         gateways foreach { gw =>
@@ -114,9 +114,9 @@ class RouterSimulationTest extends MidolmanSpec {
             .setNetworkDst(IPv4Addr.fromString(routeDst))
 
         val rb = new RouteBalancer(simRouter.rTable)
-        gateways.indices map { _ =>
+        (gateways.indices map { _ =>
            rb.lookup(fmatch, Logger(NOPLogger.NOP_LOGGER)).getNextHopGateway
-        } should contain theSameElementsAs gateways
+        } toSet) should have size 1
     }
 
     scenario("Drops IPv6") {
