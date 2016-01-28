@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_31b81676",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T10:43:56Z",
+      "side": 1,
+      "message": "Nit: use camel case (same below) - only if you resubmit/same below\n\nSee: https://google.github.io/styleguide/javaguide.html#s5.3-camel-case for the style I understand we\u0027re following",
+      "range": {
+        "startLine": 303,
+        "startChar": 14,
+        "endLine": 303,
+        "endChar": 17
+      },
+      "revId": "abbc77551ff06c8e29181ef5494d151718b0e8d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
