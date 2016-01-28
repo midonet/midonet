@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_e28f8aca",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-28T10:38:16Z",
+      "side": 1,
+      "message": "Nit:\n\nMaybe it makes sense to not require the failFast as a param at all, and instead figure out the key type inside the method.  Right now all callers are doing getKeyType(class, key) and then passing individual values here. We might as well avoid it, and do the getKeyType here.",
+      "range": {
+        "startLine": 409,
+        "startChar": 48,
+        "endLine": 409,
+        "endChar": 67
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_82b16e91",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-28T10:38:16Z",
+      "side": 1,
+      "message": "nit^2:\n\nan @inline def zk(failFast: Boolean) \u003d if (failFast) ffC else c\n\nwould allow avoiding the zk \u003d if .. in all methods.",
+      "range": {
+        "startLine": 679,
+        "startChar": 8,
+        "endLine": 679,
+        "endChar": 59
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_426f76fd",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-28T10:38:16Z",
+      "side": 1,
+      "message": "Style: wrap",
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6272bae6",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-28T10:38:16Z",
+      "side": 1,
+      "message": "Style nit: wrap",
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0233be14",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-28T10:38:16Z",
+      "side": 1,
+      "message": "is this right?",
+      "range": {
+        "startLine": 248,
+        "startChar": 50,
+        "endLine": 248,
+        "endChar": 62
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3d0b8726",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-28T10:38:16Z",
+      "side": 1,
+      "message": "I\u0027m not sure I undestand well what\u0027s the interdependence between the curator and the fail fast curator instances when closing them.  If you close curator, then you are not allowed to add fail fast keys, but you\u0027re allowed to remove them? What\u0027s the rationale here? \n\nShould we even allow closing the 2 curator clients independently?",
+      "range": {
+        "startLine": 449,
+        "startChar": 12,
+        "endLine": 452,
+        "endChar": 50
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
