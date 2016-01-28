@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_9d7393e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-28T12:53:13Z",
+      "side": 1,
+      "message": "Or just pass the curator instance (either curator or ffc) from the caller down based on the keytype (already figured out in previous calls).",
+      "parentUuid": "fa81d914_e28f8aca",
+      "range": {
+        "startLine": 409,
+        "startChar": 48,
+        "endLine": 409,
+        "endChar": 67
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_82b16e91",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 9
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-28T10:38:16Z",
       "side": 1,
       "message": "nit^2:\n\nan @inline def zk(failFast: Boolean) \u003d if (failFast) ffC else c\n\nwould allow avoiding the zk \u003d if .. in all methods.",
+      "range": {
+        "startLine": 679,
+        "startChar": 8,
+        "endLine": 679,
+        "endChar": 59
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_fd4baf84",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-28T12:53:13Z",
+      "side": 1,
+      "message": "Passing the curator instance (as mentioned above) would also avoid this in all the methods.",
+      "parentUuid": "fa81d914_82b16e91",
       "range": {
         "startLine": 679,
         "startChar": 8,
