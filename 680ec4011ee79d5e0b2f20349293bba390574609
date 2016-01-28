@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_62cf1ab1",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 564,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T08:50:30Z",
+      "side": 1,
+      "message": "Yes I agree string interpolation is nicer. I just meant it to avoid duplicating this long string. A method is definitely better.",
+      "parentUuid": "fa81d914_318576d0",
+      "range": {
+        "startLine": 559,
+        "startChar": 16,
+        "endLine": 564,
+        "endChar": 44
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_f6811790",
         "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
         "patchSetId": 3
