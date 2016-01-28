@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_c25606d2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingAppender.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-28T08:53:28Z",
+      "side": 1,
+      "message": "not sure if this should be a warn",
+      "revId": "383ee576d019c4eb7e4532b62aa42ddf2921a943",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
