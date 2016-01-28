@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_2279a293",
+        "filename": "specs/neutron_translation.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 910,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-28T09:10:53Z",
+      "side": 1,
+      "message": "Aside from the fact that \"a gateway device data\" sounds wrong, maybe this should emphasize that we\u0027re just copying the Neutron data to the Midonet topology store, which we do for most other object types but don\u0027t mention explicitly.",
+      "range": {
+        "startLine": 910,
+        "startChar": 7,
+        "endLine": 910,
+        "endChar": 28
+      },
+      "revId": "9397368a38aa2a7f7aa5e996b66b8e15399d2956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_a247521c",
+        "filename": "specs/neutron_translation.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 922,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-28T09:10:53Z",
+      "side": 1,
+      "message": "You\u0027re a two-spacer? You\u0027re dead to me.",
+      "range": {
+        "startLine": 922,
+        "startChar": 15,
+        "endLine": 922,
+        "endChar": 17
+      },
+      "revId": "9397368a38aa2a7f7aa5e996b66b8e15399d2956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_22d8c252",
+        "filename": "specs/neutron_translation.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 964,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-28T09:10:53Z",
+      "side": 1,
+      "message": "The L2GatewayConnection object?",
+      "range": {
+        "startLine": 964,
+        "startChar": 3,
+        "endLine": 964,
+        "endChar": 40
+      },
+      "revId": "9397368a38aa2a7f7aa5e996b66b8e15399d2956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_62e2ba04",
+        "filename": "specs/neutron_translation.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 969,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-28T09:10:53Z",
+      "side": 1,
+      "message": "All we need is the router ID to create the port. We don\u0027t actually need the router.",
+      "range": {
+        "startLine": 968,
+        "startChar": 3,
+        "endLine": 969,
+        "endChar": 10
+      },
+      "revId": "9397368a38aa2a7f7aa5e996b66b8e15399d2956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_62b9dae8",
+        "filename": "specs/neutron_translation.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 986,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-28T09:10:53Z",
+      "side": 1,
+      "message": "And the corresponding entries in the port\u0027s peering table. Also need to delete the peer network port.",
+      "range": {
+        "startLine": 985,
+        "startChar": 65,
+        "endLine": 986,
+        "endChar": 44
+      },
+      "revId": "9397368a38aa2a7f7aa5e996b66b8e15399d2956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
