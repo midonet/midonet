@@ -424,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_625d5ae9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/KeystoneClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T08:58:30Z",
+      "side": 1,
+      "message": ";-)",
+      "parentUuid": "fa81d914_11bb12c5",
+      "range": {
+        "startLine": 261,
+        "startChar": 61,
+        "endLine": 261,
+        "endChar": 66
+      },
+      "revId": "69c31ac7cb5da63a9f9b2032038bf9bf0691063a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_115155d8",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/KeystoneClient.scala",
         "patchSetId": 2
@@ -600,6 +624,30 @@
       "side": 1,
       "message": "I didn\u0027t give it a name because it was used like this in jersey.",
       "parentUuid": "fa81d914_51302d9e",
+      "range": {
+        "startLine": 420,
+        "startChar": 33,
+        "endLine": 420,
+        "endChar": 36
+      },
+      "revId": "69c31ac7cb5da63a9f9b2032038bf9bf0691063a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_425a16f4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/KeystoneClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T08:58:30Z",
+      "side": 1,
+      "message": "ok!",
+      "parentUuid": "fa81d914_b1a086a0",
       "range": {
         "startLine": 420,
         "startChar": 33,
