@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_5dcf5bb0",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T11:12:29Z",
+      "side": 1,
+      "message": "Checking the fields are not null (although the check is done implicitly by the client).",
+      "parentUuid": "fa81d914_c29446e4",
+      "range": {
+        "startLine": 207,
+        "startChar": 26,
+        "endLine": 207,
+        "endChar": 37
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_02be5e65",
         "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-01-28T10:24:50Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 220,
+        "startChar": 26,
+        "endLine": 220,
+        "endChar": 37
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_7dc5ff8c",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T11:12:29Z",
+      "side": 1,
+      "message": "The same as above.",
+      "parentUuid": "fa81d914_02be5e65",
       "range": {
         "startLine": 220,
         "startChar": 26,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_fd380fa2",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T11:12:29Z",
+      "side": 1,
+      "message": "We don\u0027t control the list of tenants returned by the keystone server.",
+      "parentUuid": "fa81d914_024c9e9d",
+      "range": {
+        "startLine": 317,
+        "startChar": 39,
+        "endLine": 317,
+        "endChar": 51
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_224fe293",
         "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2016-01-28T10:24:50Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 377,
+        "startChar": 20,
+        "endLine": 377,
+        "endChar": 39
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3d438715",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T11:12:29Z",
+      "side": 1,
+      "message": "The same here: we could check that a certain role exists, but this is a manual integration test, it won\u0027t be automated.",
+      "parentUuid": "fa81d914_224fe293",
       "range": {
         "startLine": 377,
         "startChar": 20,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_5d467b24",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T11:12:29Z",
+      "side": 1,
+      "message": "Checking fields",
+      "parentUuid": "fa81d914_4246967d",
+      "range": {
+        "startLine": 457,
+        "startChar": 25,
+        "endLine": 457,
+        "endChar": 37
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_6249da8a",
         "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
         "patchSetId": 3
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_7d4c1f43",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 472,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T11:12:29Z",
+      "side": 1,
+      "message": "Checking fields",
+      "parentUuid": "fa81d914_6249da8a",
+      "range": {
+        "startLine": 472,
+        "startChar": 26,
+        "endLine": 472,
+        "endChar": 37
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_22a602c2",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/auth/keystone/KeystoneClientTest.scala",
         "patchSetId": 3
@@ -151,6 +295,30 @@
       "writtenOn": "2016-01-28T10:24:50Z",
       "side": 1,
       "message": "You\u0027re only testing v2 for now, is this done on purpose?",
+      "range": {
+        "startLine": 32,
+        "startChar": 6,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5daafbd4",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/auth/keystone/KeystoneClientTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T11:12:29Z",
+      "side": 1,
+      "message": "Yes, because the mock Keystone doesn\u0027t have support for v3 yet. Adding that it\u0027s a lot of work, so I will add it separately.\n\nAnyway, these teste are more of a sanity check actually, mdts is the test for the actual keystone authentication.",
+      "parentUuid": "fa81d914_22a602c2",
       "range": {
         "startLine": 32,
         "startChar": 6,
