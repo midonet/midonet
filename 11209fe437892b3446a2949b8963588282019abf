@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_c29446e4",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T10:24:50Z",
+      "side": 1,
+      "message": "Can we be more specific than that?",
+      "range": {
+        "startLine": 207,
+        "startChar": 26,
+        "endLine": 207,
+        "endChar": 37
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_02be5e65",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T10:24:50Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 220,
+        "startChar": 26,
+        "endLine": 220,
+        "endChar": 37
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_024c9e9d",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T10:24:50Z",
+      "side": 1,
+      "message": "Can we be more specific?",
+      "range": {
+        "startLine": 317,
+        "startChar": 39,
+        "endLine": 317,
+        "endChar": 51
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_224fe293",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T10:24:50Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 377,
+        "startChar": 20,
+        "endLine": 377,
+        "endChar": 39
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_4246967d",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T10:24:50Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 457,
+        "startChar": 25,
+        "endLine": 457,
+        "endChar": 37
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6249da8a",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 472,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T10:24:50Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 472,
+        "startChar": 26,
+        "endLine": 472,
+        "endChar": 37
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_22a602c2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/auth/keystone/KeystoneClientTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T10:24:50Z",
+      "side": 1,
+      "message": "You\u0027re only testing v2 for now, is this done on purpose?",
+      "range": {
+        "startLine": 32,
+        "startChar": 6,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "11209fe437892b3446a2949b8963588282019abf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
