@@ -22,6 +22,7 @@ import datetime
 import errno
 import fcntl
 import os
+import resource
 import select
 import signal
 import struct
@@ -82,15 +83,15 @@ class SignalsPipe:
         os.write(self.wd, struct.pack('1B', signum))
 
     def read(self):
-        while True:
-            try:
+        try:
+            while True:
                 data = os.read(self.rd, 1)
                 if len(data) > 0:
                     signum, = struct.unpack('1B', data)
                     self.observer.on_signal(signum)
-            except OSError as e:
-                if e.errno != errno.EINTR and e.errno != errno.EAGAIN:
-                    raise e
+        except OSError as e:
+            if e.errno != errno.EINTR and e.errno != errno.EAGAIN:
+                raise e
 
 
 class SelectLoop:
@@ -144,12 +145,33 @@ class ProcMon(ISelectLoopObserver):
                 err('SKIPPING MEMORY DUMP, a core was already dumped less than one hour ago')
                 return
 
-            filename = "%s/core_%s_%d.hprof" % (self.dump_path,
-                                                corefile_timestamp(), pid)
-            err("dumping core into %s" % filename)
-            subprocess.call(["/usr/bin/jmap", "-dump:live,format=b,file=%s" %
-                             filename, str(pid)])
-            err("core dumped into %s" % filename)
+            filename = "%s/midolman_%s_%d.core" % (self.dump_path,
+                                                   corefile_timestamp(), pid)
+            core_pattern = open("/proc/sys/kernel/core_pattern").read().strip()
+            core_file = None
+            if core_pattern.startswith("/"):
+                core_file = "%s.%d" % (core_pattern, pid)
+            else:
+                core_file = os.path.join(os.getcwd(), "%s.%d" % (core_pattern, pid))
+
+            err("dumping core (goes to %s)" % core_file)
+            os.kill(pid, signal.SIGABRT)
+
+            # wait for process to exit.
+            # when it exits, os.kill(pid, 0) will throw, breaking the loop
+            try:
+                seconds = 10
+                while seconds > 0:
+                    os.kill(pid, 0)
+                    time.sleep(0.1)
+                    seconds -= 1
+            except OSError:
+                pass
+            if os.path.exists(core_file):
+                err("core dumped into %s, moving to %s" % (core_file, filename))
+                os.rename(core_file, filename)
+            else:
+                err("core not dumped, process may have exited too soon")
         except Exception as e:
             err(e.message)
             pass
@@ -159,7 +181,7 @@ class ProcMon(ISelectLoopObserver):
         for (dirpath, dirnames, filenames) in os.walk(self.dump_path):
             files.extend(filenames)
             break
-        return filter(lambda f: f.endswith(".hprof"), files)
+        return filter(lambda f: f.endswith(".core"), files)
 
     def youngest_dump_age(self):
         dumps = map(lambda f: os.path.getmtime("%s/%s" % (self.dump_path, f)), self.list_dumps())
@@ -283,6 +305,8 @@ class ProcMon(ISelectLoopObserver):
             msg("spawned child process with PID %d" % self.child_pid)
             return self.child_pid
         elif self.child_pid == 0:
+            resource.setrlimit(resource.RLIMIT_CORE,
+                               (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
             os.putenv('WDOG_PIPE', self.pipe_path)
             os.putenv('WDOG_TIMEOUT', str(self.grace))
             os.execvp(self.args[0], self.args)
@@ -303,8 +327,8 @@ environment variable.
 If the child exits on its own, wdog will immediately exit with the same exit
 status as the child.
 
-Giving the -d option will create a dump of the jvm heap in the given path, in
-the case where the child is killed due to being unresponsive.
+Giving the -d option will create a core dump in the given path in the case where
+the child is killed due to being unresponsive.
 """
 
 
