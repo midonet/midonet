@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fa81d914_5d259ba9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-28T10:45:42Z",
+      "side": 1,
+      "message": "more info? (e.g.: what buffer?)",
+      "range": {
+        "startLine": 182,
+        "startChar": 35,
+        "endLine": 182,
+        "endChar": 63
+      },
+      "revId": "a4ffe1186816e589abee40ab589b26071dbbb5e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c2ab661b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
         "patchSetId": 1
@@ -25,6 +48,23 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_9d3633e6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1144,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-28T10:45:42Z",
+      "side": 1,
+      "message": "timeout this?",
+      "revId": "a4ffe1186816e589abee40ab589b26071dbbb5e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_22bfe2d1",
         "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
         "patchSetId": 1
@@ -42,6 +82,23 @@
         "endLine": 1159,
         "endChar": 5
       },
+      "revId": "a4ffe1186816e589abee40ab589b26071dbbb5e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5d5cbb25",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1181,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-01-28T10:45:42Z",
+      "side": 1,
+      "message": "nit: timeout?",
       "revId": "a4ffe1186816e589abee40ab589b26071dbbb5e7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
