@@ -47,7 +47,7 @@ import org.midonet.cluster.rest_api.version.VersionParser;
  */
 @Provider
 @Consumes(MediaType.WILDCARD)
-@Produces(MediaType.WILDCARD)
+@Produces({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
 public class WildcardJacksonJaxbJsonProvider
     extends ConfiguredJacksonJaxbJsonProvider {
 
@@ -156,6 +156,17 @@ public class WildcardJacksonJaxbJsonProvider
 
         super.writeTo(value, type, genericType, annotationsWithVer, mediaType,
                       httpHeaders, entityStream);
+    }
+
+    /**
+     * Overrides the {@link com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider}
+     * matching media type to ensure that we respond to requests accepting
+     * wildcard media types.
+     */
+    @Override
+    protected boolean hasMatchingMediaType(MediaType mediaType) {
+        return mediaType.isWildcardType() ||
+               super.hasMatchingMediaType(mediaType);
     }
 
     private Version getVersionAnnotation(final int version) {
