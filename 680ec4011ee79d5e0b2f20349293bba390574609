@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_2231a2a2",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-28T09:03:56Z",
+      "side": 1,
+      "message": "I was wondering if failing to close the file could leak fds. Not important anyway.",
+      "parentUuid": "fa81d914_111792a4",
+      "range": {
+        "startLine": 421,
+        "startChar": 16,
+        "endLine": 421,
+        "endChar": 24
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_d62093b2",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 3
@@ -178,6 +202,30 @@
       "side": 1,
       "message": "The problem is that cleanup is expected to throw, so it interrupts the setup for instance.",
       "parentUuid": "fa81d914_d62093b2",
+      "range": {
+        "startLine": 616,
+        "startChar": 20,
+        "endLine": 616,
+        "endChar": 36
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_82216e4f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 616,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-28T09:03:56Z",
+      "side": 1,
+      "message": "right.",
+      "parentUuid": "fa81d914_b12166fd",
       "range": {
         "startLine": 616,
         "startChar": 20,
