@@ -167,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_227e02e5",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-01-28T09:53:30Z",
+      "side": 1,
+      "message": "You\u0027re right. I\u0027ll look into a solution for this.",
+      "parentUuid": "fa81d914_2231a2a2",
+      "range": {
+        "startLine": 421,
+        "startChar": 16,
+        "endLine": 421,
+        "endChar": 24
+      },
+      "revId": "680ec4011ee79d5e0b2f20349293bba390574609",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_d62093b2",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 3
