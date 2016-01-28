@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_08f03f66",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-01-28T15:38:28Z",
+      "side": 1,
+      "message": "doesn\u0027t matter. log b x \u003d log k x / log k b. in this case, k \u003d e.",
+      "parentUuid": "fa81d914_e873eb12",
+      "range": {
+        "startLine": 59,
+        "startChar": 35,
+        "endLine": 59,
+        "endChar": 43
+      },
+      "revId": "e9fe36b29ffac8d9a3f6c3eaa411afcf93cf43fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_aa3f36d5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
         "patchSetId": 11
