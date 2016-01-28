@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_08075fcb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T14:47:07Z",
+      "side": 1,
+      "message": "I ended up passing the curator instance as an argument.",
+      "parentUuid": "fa81d914_9d7393e6",
+      "range": {
+        "startLine": 409,
+        "startChar": 48,
+        "endLine": 409,
+        "endChar": 67
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_82b16e91",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 9
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_280a63d2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T14:47:07Z",
+      "side": 1,
+      "message": "As mentioned above I\u0027m now passing the curator instance.",
+      "parentUuid": "fa81d914_fd4baf84",
+      "range": {
+        "startLine": 679,
+        "startChar": 8,
+        "endLine": 679,
+        "endChar": 59
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_426f76fd",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
         "patchSetId": 9
@@ -113,6 +161,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_a8f573cc",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T14:47:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_426f76fd",
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_6272bae6",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
         "patchSetId": 9
@@ -124,6 +190,24 @@
       "writtenOn": "2016-01-28T10:38:16Z",
       "side": 1,
       "message": "Style nit: wrap",
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c80467c2",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T14:47:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_6272bae6",
       "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -153,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_283183a2",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T14:47:07Z",
+      "side": 1,
+      "message": "No, it should read should succeed.",
+      "parentUuid": "fa81d914_0233be14",
+      "range": {
+        "startLine": 248,
+        "startChar": 50,
+        "endLine": 248,
+        "endChar": 62
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_3d0b8726",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
         "patchSetId": 9
@@ -164,6 +272,30 @@
       "writtenOn": "2016-01-28T10:38:16Z",
       "side": 1,
       "message": "I\u0027m not sure I undestand well what\u0027s the interdependence between the curator and the fail fast curator instances when closing them.  If you close curator, then you are not allowed to add fail fast keys, but you\u0027re allowed to remove them? What\u0027s the rationale here? \n\nShould we even allow closing the 2 curator clients independently?",
+      "range": {
+        "startLine": 449,
+        "startChar": 12,
+        "endLine": 452,
+        "endChar": 50
+      },
+      "revId": "38b10e509fb48e6c1ffd15d98bfc67c1e44eb866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_48b6b7fb",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-28T14:47:07Z",
+      "side": 1,
+      "message": "Fail fast keys are added using the fail fast curator to ensure quick failure detection. However, getting the key and removing it uses the normal curator.\n\nShould this perhaps be documented in the StateStorage trait?\n\nI close the regular curator here to ensure that adding a fail fast key uses the fail fast curator. Note that the key removal uses yet another curator instance denoted curator2 in testRemoveSingleDifferentClient.",
+      "parentUuid": "fa81d914_3d0b8726",
       "range": {
         "startLine": 449,
         "startChar": 12,
