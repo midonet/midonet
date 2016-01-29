@@ -115,6 +115,15 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
         id
     }
 
+    private def updateGatewayDevice(taskId: Int, id: UUID,
+                                    routerId: UUID = routerId,
+                                    tunnelIps: Seq[String] = Seq("30.0.0.1"))
+    : Unit = {
+        val json = gatewayDeviceJson(resourceId = routerId, id = id,
+            tunnelIps = tunnelIps)
+        insertUpdateTask(taskId, GatewayDeviceType, json, id)
+    }
+
     private case class RemoteMac(id: UUID, ip: IPv4Addr, mac: MAC, vni: Int)
     private def createRemoteMacEntry(taskId: Int, gwDevId: UUID, vni: Int,
                                      id: UUID = UUID.randomUUID(),
@@ -258,6 +267,37 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
             Seq(rm2.id, rm3.id).map(storage.exists(classOf[RemoteMacEntry], _))
                 .map(_.await()) shouldBe Seq(false, false)
         }
+    }
+
+    "Updating Gateway Device" should "update corresponding router port" in {
+        val nId = createTenantNetwork(10)
+        val rId = createRouter(20)
+        val gwDevId = createGatewayDevice(30, routerId = rId,
+                                              tunnelIps = Seq("1.1.1.1"))
+        createL2GatewayConnection(40, gwDevId, networkId = nId)
+
+        def checkVtepRouterPortTunnelIp(nwId: UUID, ip: String) = {
+            eventually {
+                val pId = vtepRouterPortId(nwId)
+                val port = storage.get(classOf[Port], pId).await()
+                port.getTunnelIp.getAddress shouldBe ip
+            }
+        }
+
+        checkVtepRouterPortTunnelIp(nId, "1.1.1.1")
+
+        val n2Id = createTenantNetwork(50)
+        val r2Id = createRouter(60)
+        val gwDev2Id = createGatewayDevice(70, routerId = r2Id,
+                                               tunnelIps = Seq("1.1.1.2"))
+        createL2GatewayConnection(80, gwDev2Id, networkId = n2Id)
+
+        checkVtepRouterPortTunnelIp(n2Id, "1.1.1.2")
+
+        updateGatewayDevice(90, gwDevId, rId, Seq("1.1.1.3"))
+
+        checkVtepRouterPortTunnelIp(nId, "1.1.1.3")
+        checkVtepRouterPortTunnelIp(n2Id, "1.1.1.2")
     }
 
     private def checkNoL2GatewayConnection(networkId: UUID = networkId)

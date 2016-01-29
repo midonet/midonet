@@ -871,12 +871,13 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         nwId
     }
 
-    protected def createRouter(taskId: Int, routerId: UUID,
+    protected def createRouter(taskId: Int, routerId: UUID = UUID.randomUUID(),
                                gwPortId: UUID = null,
-                               enableSnat: Boolean = false): Unit = {
+                               enableSnat: Boolean = false): UUID = {
         val json = routerJson(routerId, name = "router-" + routerId,
                               gwPortId = gwPortId, enableSnat = enableSnat)
         insertCreateTask(taskId, RouterType, json, routerId)
+        routerId
     }
 
     protected def createSubnet(taskId: Int, networkId: UUID, cidr: String,

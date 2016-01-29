@@ -16,15 +16,22 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.GatewayDevice
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.ROUTER_VTEP
+import org.midonet.cluster.models.Neutron.L2GatewayConnection
+import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.services.c3po.C3POStorageManager.Update
+import org.midonet.util.concurrent.toFutureOps
 
 class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
                               protected val stateTableStorage: StateTableStorage)
     extends Translator[GatewayDevice] {
     import GatewayDeviceTranslator._
+    import L2GatewayConnectionTranslator._
 
     override protected def translateCreate(gwDev: GatewayDevice)
     : OperationList = {
@@ -43,8 +50,31 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
 
     override protected def translateUpdate(gwDev: GatewayDevice)
     : OperationList = {
-        // TODO: Implement.
-        List()
+
+        def hasThisGW(conn: L2GatewayConnection) = {
+            val devs = conn.getL2Gateway.getDevicesList.asScala
+            devs.exists(_.getDeviceId == gwDev.getId)
+        }
+
+        def updatePortWithTunnelIp(conn: L2GatewayConnection) = {
+            val portId = vtepRouterPortId(conn.getNetworkId)
+            val port = storage.get(classOf[Port], portId).await()
+            val updatedPort = port.toBuilder
+                                  .setTunnelIp(gwDev.getTunnelIps(0))
+                                  .build()
+            Update(updatedPort)
+        }
+
+        /*
+         * All of the ports that were assigned this tunnel IP need to have
+         * their tunnel IPs updated. We don't have forward references to
+         * the L2GatewayConnections using this gateway device, so we have
+         * go through them all and update when needed.
+         */
+        storage.getAll(classOf[L2GatewayConnection]).await()
+            .filter(hasThisGW)
+            .map(updatePortWithTunnelIp)
+            .toList
     }
 }
 
