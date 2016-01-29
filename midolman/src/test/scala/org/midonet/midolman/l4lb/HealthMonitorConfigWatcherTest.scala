@@ -35,7 +35,6 @@ import org.midonet.midolman.topology.devices.{HealthMonitor => SimHealthMonitor,
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
 
-
 @RunWith(classOf[JUnitRunner])
 class HealthMonitorConfigWatcherTest
     extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
@@ -64,9 +63,10 @@ class HealthMonitorConfigWatcherTest
         actorSystem.stop(watcher)
     }
 
-    def generateFakeData(poolId: UUID): PoolHealthMonitor = {
+    def generateFakeData(poolId: UUID, stateUp: Boolean = true)
+    : PoolHealthMonitor = {
         val hm = new SimHealthMonitor(UUID.randomUUID(),
-                                      adminStateUp = true,
+                                      adminStateUp = stateUp,
                                       HealthMonitorType.TCP,
                                       LBStatus.ACTIVE,
                                       delay = 1,
@@ -74,7 +74,7 @@ class HealthMonitorConfigWatcherTest
                                       maxRetries = 1)
 
         val vip = new SimVip(UUID.randomUUID(),
-                             adminStateUp = true,
+                             adminStateUp = stateUp,
                              poolId,
                              IPv4Addr.random,
                              protocolPort = random.nextInt(65533) + 1,
@@ -82,11 +82,17 @@ class HealthMonitorConfigWatcherTest
                                  VipSessionPersistence.SOURCE_IP)
 
         val lb = new SimLoadBalancer(UUID.randomUUID(),
-                                     adminStateUp = true,
+                                     adminStateUp = stateUp,
                                      routerId = UUID.randomUUID(),
                                      Array(vip))
 
-        PoolHealthMonitor(hm, lb, Array(vip), Array[SimPoolMember]())
+        val lbStatus = if (stateUp) LBStatus.ACTIVE else LBStatus.INACTIVE
+        val ip = if (stateUp) IPv4Addr.random else null
+        val port = if (stateUp) 42 else -1
+        val poolMember = new SimPoolMember(id = UUID.randomUUID(),
+                                           adminStateUp = stateUp,
+                                           lbStatus, ip, port, weight = 0)
+        PoolHealthMonitor(hm, lb, Array(vip), Array[SimPoolMember](poolMember))
     }
 
     def generateFakeMap(): MMap[UUID, PoolHealthMonitor] = {
@@ -156,7 +162,7 @@ class HealthMonitorConfigWatcherTest
             val map = generateFakeMap()
             When("We send it to the config watcher")
             watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
-            Then("We should recieve the ConfigAdded for each mapping")
+            Then("We should receive the ConfigAdded for each mapping")
             expectMsgType[ConfigAdded]
             expectMsgType[ConfigAdded]
             expectMsgType[ConfigAdded]
@@ -173,7 +179,7 @@ class HealthMonitorConfigWatcherTest
             val map = generateFakeMap()
             When("We send it to the config watcher")
             watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
-            Then("We should recieve the ConfigAdded for each mapping")
+            Then("We should receive the ConfigAdded for each mapping")
             expectMsgType[ConfigAdded]
             expectMsgType[ConfigAdded]
             expectMsgType[ConfigAdded]
@@ -183,6 +189,77 @@ class HealthMonitorConfigWatcherTest
             Then("We should receive the update notification back")
             val conf = expectMsgType[ConfigUpdated]
             conf.config.healthMonitor.delay shouldEqual 10
+        }
+    }
+
+    feature("Converting PoolHealthMonitor data to PoolConfig") {
+        scenario("PoolConfig/PoolMemberConfig") {
+            When("We generate a pool config")
+            val poolId = UUID.randomUUID()
+            val fileLoc = "/toto"
+            val suffix = "/tata"
+            val phm = generateFakeData(poolId)
+            val poolConfig =
+                HealthMonitorConfigWatcher.convertDataToPoolConfig(poolId,
+                    fileLoc, suffix, phm)
+
+            Then("The pool should be configurable")
+            poolConfig.isConfigurable shouldBe true
+            poolConfig.members.forall(_.isConfigurable) shouldBe true
+
+            And("The conversion should be deterministic")
+            val poolConfig2 =
+                HealthMonitorConfigWatcher.convertDataToPoolConfig(poolId,
+                    fileLoc, suffix, phm)
+            poolConfig shouldBe poolConfig2
+
+            And("The configuration string should be correct")
+            val vip = poolConfig.vip
+            val healthMonitor = phm.healthMonitor
+            val config = new StringBuilder()
+            config.append(
+            s"""global
+                    daemon
+                    user nobody
+                    group daemon
+                    log /dev/log local0
+                    log /dev/log local1 notice
+                    stats socket ${poolConfig.haproxySockFileLoc} mode 0666
+                        level user
+            defaults
+                    log global
+                    retries 3
+                    timeout connect 5000
+                    timeout client 5000
+                    timeout server 5000
+            frontend ${vip.id.toString}
+                    option tcplog
+                    bind *:${vip.port}
+                    mode tcp
+                    default_backend $poolId
+            backend $poolId
+                    timeout check ${phm.healthMonitor.timeout}s
+            """)
+            val members = poolConfig.members
+            members.foreach(x => config.append(s"server ${x.id.toString} " +
+                s"${x.address}:${x.port} check inter ${healthMonitor.delay}s " +
+                s"fall ${healthMonitor.maxRetries}\n"))
+
+            poolConfig.generateConfigFile().replaceAll("\\s+","") shouldBe
+                config.toString().replaceAll("\\s+","")
+
+            When("We generate a configuration with disabled devices")
+            val phm2 = generateFakeData(poolId, stateUp = false)
+            val poolConfig3 =
+                HealthMonitorConfigWatcher.convertDataToPoolConfig(poolId,
+                    fileLoc, suffix, phm2)
+
+            Then("The pool should not be configurable")
+            poolConfig3.isConfigurable shouldBe false
+            poolConfig3.members.forall(_.isConfigurable) shouldBe false
+
+            And("The 3rd configuration should be different from the 2nd one")
+            poolConfig3 shouldNot be(poolConfig2)
         }
     }
 }
