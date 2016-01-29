@@ -1874,6 +1874,10 @@ class ServiceContainer(ObjectType):
                                  value_type = StringType(),
                                  getter = 'get_interface_name',
                                  writeable = False))
+        self.put_attr(SingleAttr(name = 'status-message',
+                                 value_type = StringType(),
+                                 getter = 'get_status_message',
+                                 show = False))
 
     def type_name(self):
         return "container"
