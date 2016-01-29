@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,12 @@ import rx.Observable
 import rx.observers.TestObserver
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.backend.zookeeper.{SessionUnawareConnectionWatcher, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.SessionUnawareConnectionWatcher
 import org.midonet.cluster.data.storage.StorageTestClasses.State
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
 import org.midonet.cluster.storage.CuratorZkConnection
 import org.midonet.cluster.util.MidonetBackendTest
-import org.midonet.cluster.data.storage.KeyType.{Multiple, SingleFirstWriteWins, SingleLastWriteWins}
+import org.midonet.cluster.data.storage.KeyType.{Multiple, SingleFirstWriteWins, SingleLastWriteWins, FailFast}
 import org.midonet.util.reactivex._
 import org.midonet.util.reactivex.AwaitableObserver
 
@@ -48,13 +48,19 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
 
     private var storage: ZookeeperObjectMapper = _
     private var ownerId: Long = _
+    private var failFastOwnerId: Long = _
     private val namespaceId = UUID.randomUUID.toString
     private final val timeout = 5 seconds
 
+    override val enableFailFastCurator = true
+
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, namespaceId, curator, curator,
-                                            reactor, connection, connectionWatcher)
+        storage = new ZookeeperObjectMapper(zkRoot, namespaceId, curator,
+                                            failFastCurator, reactor,
+                                            connection, connectionWatcher)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
+        failFastOwnerId = failFastCurator.getZookeeperClient.getZooKeeper
+                                                            .getSessionId
         initAndBuildStorage(storage)
     }
 
@@ -62,6 +68,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         storage.registerClass(classOf[State])
         storage.registerKey(classOf[State], "first", SingleFirstWriteWins)
         storage.registerKey(classOf[State], "last", SingleLastWriteWins)
+        storage.registerKey(classOf[State], "lastFailFast", FailFast)
         storage.registerKey(classOf[State], "multi", Multiple)
 
         storage.build()
@@ -167,62 +174,79 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             .await(timeout) shouldBe StateResult(NoOwnerId)
     }
 
-    def testAddGetRemoveSingleValue(key: String): Unit = {
-        Given("An object in storage")
-        val obj = new State
-        storage.create(obj)
+    def testAddGetRemoveSingleValue(obj: State, key: String,
+                                    failFast: Boolean = false): Unit = {
+        val owner = if (failFast) failFastOwnerId else ownerId
 
         Then("Adding a value should return the current session")
         storage.addValue(classOf[State], obj.id, key, "1")
-            .await(timeout) shouldBe StateResult(ownerId)
+            .await(timeout) shouldBe StateResult(owner)
         And("Reading the key should return the added value")
         storage.getKey(classOf[State], obj.id, key)
-            .await(timeout) shouldBe SingleValueKey(key, Some("1"), ownerId)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), owner)
         And("Removing the value should return the current session")
         storage.removeValue(classOf[State], obj.id, key, null)
-            .await(timeout) shouldBe StateResult(ownerId)
+            .await(timeout) shouldBe StateResult(owner)
         And("Reading the key again should return no value")
         storage.getKey(classOf[State], obj.id, key)
             .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
     }
 
-    def testAddSingleSameClient(key: String): Unit = {
-        Given("An object in storage")
-        val obj = new State
-        storage.create(obj)
+    def testAddSingleSameClient(obj: State, key: String,
+                                failFast: Boolean = false): Unit = {
+        val owner = if (failFast) failFastOwnerId else ownerId
 
         Then("Adding a value should return the current session")
         storage.addValue(classOf[State], obj.id, key, "1")
-            .await(timeout) shouldBe StateResult(ownerId)
+            .await(timeout) shouldBe StateResult(owner)
         And("Adding a second value should return the current session")
         storage.addValue(classOf[State], obj.id, key, "2")
-            .await(timeout) shouldBe StateResult(ownerId)
+            .await(timeout) shouldBe StateResult(owner)
         And("Reading the key should return the second value")
         storage.getKey(classOf[State], obj.id, key)
-            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), owner)
     }
 
-    def testRemoveSingleDifferentClient(key: String): Unit = {
-        Given("An object in storage")
-        val obj = new State
-        storage.create(obj)
+    def testRemoveSingleDifferentClient(obj: State, key: String,
+                                        failFast: Boolean = false): Unit = {
+        val owner = if (failFast) failFastOwnerId else ownerId
 
         And("A second storage client")
         val (curator2, _, _, storage2) = newStorage(sameNamespace = true)
 
         Then("Adding a value should return the current session")
         storage.addValue(classOf[State], obj.id, key, "1")
-            .await(timeout) shouldBe StateResult(ownerId)
+            .await(timeout) shouldBe StateResult(owner)
         And("Removing the value from the second client should fail")
         val e = intercept[NotStateOwnerException] {
             storage2.removeValue(classOf[State], obj.id, key, null)
-                .await(timeout) shouldBe StateResult(ownerId)
+                .await(timeout) shouldBe StateResult(owner)
         }
 
         e.clazz shouldBe classOf[State].getSimpleName
         e.id shouldBe obj.id.toString
         e.key shouldBe key
-        e.owner shouldBe ownerId
+        e.owner shouldBe owner
+
+        curator2.close()
+    }
+
+    def testAddWithTwoClients(obj: State, key: String,
+                              failFast: Boolean = false): Unit = {
+        val owner = if (failFast) failFastOwnerId else ownerId
+
+        And("A second storage client")
+        val (curator2, ownerId2, _, storage2) = newStorage(sameNamespace = true)
+
+        Then("Adding a value should return the current session")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout) shouldBe StateResult(owner)
+        And("Adding a value from the second client should succeed")
+        storage2.addValue(classOf[State], obj.id, key, "2")
+            .await(timeout) shouldBe StateResult(ownerId2)
+        And("Reading the key should return the second value")
+        storage.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId2)
 
         curator2.close()
     }
@@ -241,11 +265,15 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         }
 
         scenario("Add, get, remove value for object") {
-            testAddGetRemoveSingleValue("first")
+            val obj = new State
+            storage.create(obj)
+            testAddGetRemoveSingleValue(obj, "first")
         }
 
         scenario("Add another value for the same client") {
-            testAddSingleSameClient("first")
+            val obj = new State
+            storage.create(obj)
+            testAddSingleSameClient(obj, "first")
         }
 
         scenario("Add another value for a different client") {
@@ -274,7 +302,9 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         }
 
         scenario("Remove another value for a different client") {
-            testRemoveSingleDifferentClient("first")
+            val obj = new State
+            storage.create(obj)
+            testRemoveSingleDifferentClient(obj, "first")
         }
     }
 
@@ -292,11 +322,19 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         }
 
         scenario("Add, get, remove value for object") {
-            testAddGetRemoveSingleValue("last")
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            testAddGetRemoveSingleValue(obj, "last")
         }
 
         scenario("Add another value for the same client") {
-            testAddSingleSameClient("last")
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            testAddSingleSameClient(obj, "last")
         }
 
         scenario("Add another value for a different client") {
@@ -304,25 +342,111 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             val obj = new State
             storage.create(obj)
 
-            And("A second storage client")
-            val (curator2, ownerId2, _, storage2) = newStorage(sameNamespace = true)
-
-            Then("Adding a value should return the current session")
-            storage.addValue(classOf[State], obj.id, "last", "1")
-                .await(timeout) shouldBe StateResult(ownerId)
-            And("Adding a value from the second client should fail")
-            storage2.addValue(classOf[State], obj.id, "last", "2")
-                .await(timeout) shouldBe StateResult(ownerId2)
-            And("Reading the key should return the second value")
-            storage.getKey(classOf[State], obj.id, "last")
-                .await(timeout) shouldBe SingleValueKey("last", Some("2"),
-                                                        ownerId2)
-
-            curator2.close()
+            testAddWithTwoClients(obj, "last")
         }
 
         scenario("Remove another value for a different client") {
-            testRemoveSingleDifferentClient("last")
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            testRemoveSingleDifferentClient(obj, "last")
+        }
+    }
+
+    feature("Test single value with fail fast") {
+        scenario("Add for non-existing object") {
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Adding a fail-fast keys works as expected")
+            testAddNonExistingObject("lastFailFast")
+        }
+
+        scenario("Get for non-existing object") {
+            testGetSingleValueNonExistingObject("lastFailFast")
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Getting a fail-fast keys does not work")
+            intercept[IllegalStateException] {
+                testGetSingleValueNonExistingObject("lastFailFast")
+            }
+        }
+
+        scenario("Remove for non-existing object") {
+            testRemoveNonExistingObject("lastFailFast")
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Removing a fail-fast key does not work")
+            intercept[IllegalStateException] {
+                testRemoveNonExistingObject("lastFailFast")
+            }
+        }
+
+        scenario("Add, get, remove value for object") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+            testAddGetRemoveSingleValue(obj, "lastFailFast", failFast = true)
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Adding a fail-fast key does not work")
+            intercept[IllegalStateException] {
+                testAddGetRemoveSingleValue(obj, "lastFailFast",
+                                            failFast = true)
+            }
+        }
+
+        scenario("Add another value for the same client") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            testAddSingleSameClient(obj, "lastFailFast", failFast = true)
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Adding a fail-fast key does not work")
+            intercept[IllegalStateException] {
+                testAddSingleSameClient(obj, "lastFailFast", failFast = true)
+            }
+        }
+
+        scenario("Add another value for a different client") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            testAddWithTwoClients(obj, "lastFailFast", failFast = true)
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Adding a fail-fast key does not work")
+            intercept[IllegalStateException] {
+                testAddWithTwoClients(obj, "lastFailFast", failFast = true)
+            }
+        }
+
+        scenario("Remove another value for a different client") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            testRemoveSingleDifferentClient(obj, "lastFailFast", failFast = true)
+
+            When("We close the regular curator instance")
+            curator.close()
+
+            Then("Removing a fail-fast key works")
+            testRemoveSingleDifferentClient(obj, "lastFailFast", failFast = true)
         }
     }
 
