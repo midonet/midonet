@@ -81,3 +81,10 @@ class ServiceContainer(resource_base.ResourceBase):
     def interface_name(self, interface_name):
         self.dto['interfaceName'] = interface_name
         return self
+
+    def get_status_message(self):
+        return self.dto['statusMessage']
+
+    def status_message(self, status_message):
+        self.dto['statusMessage'] = status_message
+        return self
