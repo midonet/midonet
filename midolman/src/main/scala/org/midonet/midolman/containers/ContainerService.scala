@@ -220,14 +220,14 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             containerSubscriber.unsubscribe()
 
             // Complete the mapper notification stream.
-            containerMapper.complete().await(vt.config.containers.shutdownGraceTime seconds)
+            containerMapper.complete().await(vt.config.containers.shutdownGraceTime)
 
             // Shutdown gracefully all containers
             val futures = for (handler <- handlers.values().asScala) yield async {
                 deleteContainer(handler.cp)
             }
             Future.sequence(futures)
-                  .await(vt.config.containers.shutdownGraceTime seconds)
+                  .await(vt.config.containers.shutdownGraceTime)
 
             notifyStopped()
         } catch {

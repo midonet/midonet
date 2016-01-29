@@ -17,6 +17,7 @@ package org.midonet.midolman.config
 
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.duration._
 import scala.util.Try
 
 import com.typesafe.config.{ConfigException, ConfigFactory, Config}
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.storage.{CassandraConfig,MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
-import org.midonet.packets.{MAC, IPv4Addr, IPv4Subnet}
+import org.midonet.packets.{MAC, IPv4Subnet}
 
 object MidolmanConfig {
     val DEFAULT_MTU: Short = 1500
@@ -195,7 +196,22 @@ class FlowHistoryConfig(val conf: Config, val schema: Config) extends TypeFailur
 }
 
 class ContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
-    def enabled = getBoolean("agent.containers.enabled")
-    def timeout = getDuration("agent.containers.timeout", TimeUnit.SECONDS)
-    def shutdownGraceTime = getDuration("agent.containers.shutdown_grace_time", TimeUnit.SECONDS).toInt
+    val Prefix = "agent.containers"
+    def enabled = getBoolean(s"$Prefix.enabled")
+    def timeout = getDuration(s"$Prefix.timeout", TimeUnit.MILLISECONDS) millis
+    def shutdownGraceTime = getDuration(s"$Prefix.shutdown_grace_time",
+                                        TimeUnit.MILLISECONDS) millis
+
+    val ipsec = new IPSecContainerConfig(conf, schema)
+}
+
+class IPSecContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    val Prefix = "agent.containers.ipsec"
+    def loggingEnabled = getBoolean(s"$Prefix.logging_enabled")
+    def loggingPollInterval = getDuration(s"$Prefix.logging_poll_interval",
+                                          TimeUnit.MILLISECONDS) millis
+    def loggingTimeout = getDuration(s"$Prefix.logging_timeout",
+                                     TimeUnit.MILLISECONDS) millis
+    def statusUpdateInterval = getDuration(s"$Prefix.status_update_interval",
+                                           TimeUnit.MILLISECONDS) millis
 }
