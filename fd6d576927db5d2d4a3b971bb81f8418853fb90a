@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fa81d914_d8199689",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-29T08:28:01Z",
+      "side": 1,
+      "message": "No big deal either way, but if you submit another patch, it might be worth adding a constructor to Opt121 that takes these arguments.",
+      "range": {
+        "startLine": 445,
+        "startChar": 0,
+        "endLine": 447,
+        "endChar": 54
+      },
+      "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b8a6a251",
         "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
         "patchSetId": 3
@@ -30,6 +53,29 @@
       "writtenOn": "2016-01-29T07:52:46Z",
       "side": 1,
       "message": "This assignment doesn\u0027t seem meaningful.  Was this done just to shorten?",
+      "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f84e5a95",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-01-29T08:28:01Z",
+      "side": 1,
+      "message": "routes should contain only (defaultRoute, expectedRoute)",
+      "range": {
+        "startLine": 476,
+        "startChar": 0,
+        "endLine": 477,
+        "endChar": 62
+      },
       "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
