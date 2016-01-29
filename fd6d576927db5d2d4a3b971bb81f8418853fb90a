@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_b8a6a251",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-29T07:52:46Z",
+      "side": 1,
+      "message": "unused",
+      "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d8643624",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-01-29T07:52:46Z",
+      "side": 1,
+      "message": "This assignment doesn\u0027t seem meaningful.  Was this done just to shorten?",
+      "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
