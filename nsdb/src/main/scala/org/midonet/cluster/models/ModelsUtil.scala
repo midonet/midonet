@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.models
 
-import org.midonet.cluster.models.Neutron.{AgentMembership, FloatingIp, NeutronConfig, NeutronHealthMonitor, NeutronLoadBalancerPool, NeutronLoadBalancerPoolMember, NeutronNetwork, NeutronPort, NeutronRoute, NeutronRouter, NeutronRouterInterface, NeutronSubnet, NeutronVIP, PortBinding, SecurityGroup, SecurityGroupRule}
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology.{Chain, Dhcp, HealthMonitor, Host, IPAddrGroup, LoadBalancer, Network, Pool, PoolMember, Port, PortGroup, Route, Router, Rule, TunnelZone, Vip, Vtep}
 import org.midonet.cluster.util.ProtobufUtil.protoFromTxt
 
@@ -45,7 +45,8 @@ object ModelsUtil {
         .asInstanceOf[NeutronRoute]
 
      def nPortFromTxt(protoTxt: String) =
-        protoFromTxt(protoTxt, NeutronPort.newBuilder).asInstanceOf[NeutronPort]
+        protoFromTxt(protoTxt, NeutronPort.newBuilder)
+        .asInstanceOf[NeutronPort]
 
      def nRouterFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, NeutronRouter.newBuilder)
@@ -86,6 +87,10 @@ object ModelsUtil {
      def nPortBindingFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, PortBinding.newBuilder)
         .asInstanceOf[PortBinding]
+
+     def nVpnServiceFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, VpnService.newBuilder)
+        .asInstanceOf[VpnService]
 
      def mNetworkFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Network.newBuilder).asInstanceOf[Network]
