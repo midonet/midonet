@@ -115,6 +115,17 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
         id
     }
 
+    private def updateGatewayDevice(taskId: Int,
+                                    id: UUID = UUID.randomUUID(),
+                                    routerId: UUID = routerId,
+                                    tunnelIps: Seq[String] = Seq("30.0.0.1"))
+    : UUID = {
+        val json = gatewayDeviceJson(resourceId = routerId, id = id,
+            tunnelIps = tunnelIps)
+        insertUpdateTask(taskId, GatewayDeviceType, json, id)
+        id
+    }
+
     private case class RemoteMac(id: UUID, ip: IPv4Addr, mac: MAC, vni: Int)
     private def createRemoteMacEntry(taskId: Int, gwDevId: UUID, vni: Int,
                                      id: UUID = UUID.randomUUID(),
@@ -257,6 +268,47 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
         eventually {
             Seq(rm2.id, rm3.id).map(storage.exists(classOf[RemoteMacEntry], _))
                 .map(_.await()) shouldBe Seq(false, false)
+        }
+    }
+
+    "Updating Gateway Device" should "update corresponding router port" in {
+        val nId = UUID.randomUUID
+        val rId = UUID.randomUUID
+        createTenantNetwork(10, nId)
+        createRouter(20, rId)
+        val gwDevId = createGatewayDevice(30, routerId = rId,
+                                              tunnelIps = Seq("1.1.1.1"))
+        createL2GatewayConnection(40, gwDevId, networkId = nId)
+
+        eventually {
+            val port = storage.get(classOf[Port],
+                                   vtepRouterPortId(nId)).await()
+            port.getTunnelIp.getAddress shouldBe "1.1.1.1"
+        }
+
+        val n2Id = UUID.randomUUID
+        val r2Id = UUID.randomUUID
+        createTenantNetwork(50, n2Id)
+        createRouter(60, r2Id)
+        val gwDev2Id = createGatewayDevice(70, routerId = r2Id,
+                                               tunnelIps = Seq("1.1.1.2"))
+        createL2GatewayConnection(80, gwDev2Id, networkId = n2Id)
+
+        eventually {
+            val port = storage.get(classOf[Port],
+                vtepRouterPortId(n2Id)).await()
+            port.getTunnelIp.getAddress shouldBe "1.1.1.2"
+        }
+
+        updateGatewayDevice(90, gwDevId, rId, Seq("1.1.1.3"))
+
+        eventually {
+            var port = storage.get(classOf[Port],
+                                   vtepRouterPortId(nId)).await()
+            port.getTunnelIp.getAddress shouldBe "1.1.1.3"
+            port = storage.get(classOf[Port],
+                vtepRouterPortId(n2Id)).await()
+            port.getTunnelIp.getAddress shouldBe "1.1.1.2"
         }
     }
 
