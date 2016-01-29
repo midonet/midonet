@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_b8ff82a9",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/dhcp/Opt121.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-01-29T07:19:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_8a42720e",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_ea912e9b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
         "patchSetId": 1
@@ -48,6 +66,24 @@
       "writtenOn": "2016-01-26T07:52:28Z",
       "side": 1,
       "message": "Unused",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d82d1648",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-01-29T07:19:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_ea912e9b",
       "revId": "ed373273ca187d365ba62344753679f2c3451756",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_f8301aa0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-01-29T07:19:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_2a8c267f",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_0a912299",
         "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
         "patchSetId": 1
@@ -88,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_18288e33",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-01-29T07:19:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_0a912299",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_8af432f3",
         "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
         "patchSetId": 1
@@ -99,6 +171,24 @@
       "writtenOn": "2016-01-26T07:52:28Z",
       "side": 1,
       "message": "why not just use scala\u0027s List?",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_78d7cabf",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-01-29T07:19:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_8af432f3",
       "revId": "ed373273ca187d365ba62344753679f2c3451756",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -196,6 +286,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_d82c3605",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-01-29T07:19:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_4aea3a10",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_6aed3e25",
         "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
         "patchSetId": 1
@@ -213,6 +321,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_58dcc6e4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-01-29T07:19:26Z",
+      "side": 1,
+      "message": "I restructured the test to not have this loop.",
+      "parentUuid": "fa81d914_6aed3e25",
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_0adcc211",
         "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
         "patchSetId": 1
@@ -224,6 +350,30 @@
       "writtenOn": "2016-01-26T10:03:02Z",
       "side": 1,
       "message": "Can we be more strict here? Don\u0027t we know more about what we expect to receive, other than that there should be at least one opt121 that has the specified data?",
+      "range": {
+        "startLine": 482,
+        "startChar": 8,
+        "endLine": 482,
+        "endChar": 29
+      },
+      "revId": "ed373273ca187d365ba62344753679f2c3451756",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_38d632c6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-01-29T07:19:26Z",
+      "side": 1,
+      "message": "I made the test more strict.",
+      "parentUuid": "fa81d914_0adcc211",
       "range": {
         "startLine": 482,
         "startChar": 8,
