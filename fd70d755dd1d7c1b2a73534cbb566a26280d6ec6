@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_b8022209",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-29T08:44:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_c31b6819",
+      "range": {
+        "startLine": 415,
+        "startChar": 50,
+        "endLine": 415,
+        "endChar": 67
+      },
+      "revId": "fd70d755dd1d7c1b2a73534cbb566a26280d6ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c35608d2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 10
@@ -36,6 +60,24 @@
       "writtenOn": "2016-01-28T17:06:47Z",
       "side": 1,
       "message": "owner(zk)",
+      "revId": "fd70d755dd1d7c1b2a73534cbb566a26280d6ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_eb03e20a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-29T08:44:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_c35608d2",
       "revId": "fd70d755dd1d7c1b2a73534cbb566a26280d6ec6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_8b1ee661",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 519,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-29T08:44:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_230a84d2",
+      "revId": "fd70d755dd1d7c1b2a73534cbb566a26280d6ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_23d8c452",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 10
@@ -70,6 +130,30 @@
       "writtenOn": "2016-01-28T17:06:47Z",
       "side": 1,
       "message": "same here, any reason to not pass curator here?",
+      "range": {
+        "startLine": 531,
+        "startChar": 28,
+        "endLine": 531,
+        "endChar": 45
+      },
+      "revId": "fd70d755dd1d7c1b2a73534cbb566a26280d6ec6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_6b3d32bb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 531,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-01-29T08:44:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_23d8c452",
       "range": {
         "startLine": 531,
         "startChar": 28,
