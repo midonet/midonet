@@ -17,10 +17,12 @@
 package org.midonet.cluster.auth.keystone
 
 import java.net.URI
-import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset, ZonedDateTime}
+import java.util.Collections
 import java.util.logging.Logger
 
+import javax.annotation.Nullable
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.UriBuilder
@@ -32,20 +34,17 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider
 import com.sun.jersey.api.client.config.DefaultClientConfig
 import com.sun.jersey.api.client.filter.LoggingFilter
-import com.sun.jersey.api.client.{Client, ClientHandlerException, UniformInterfaceException}
+import com.sun.jersey.api.client.{ClientResponse, Client, ClientHandlerException, UniformInterfaceException}
 
 import org.apache.commons.lang3.StringUtils.{isBlank, isNotBlank}
 
-import org.midonet.cluster.auth.keystone.KeystoneClient.{AdminToken, TokenExpirationGuard, parseTimestamp}
-import org.midonet.cluster.auth.keystone.v2._
+import org.midonet.cluster.auth.keystone.KeystoneClient.{AdminToken, TokenExpirationGuard, parseExpiresAt, parseTimestamp}
 
 object KeystoneClient {
 
     /**
-      * This specifies the interval before the expiration time of the
-      * administrative token when it will no longer be used. This ensures that
-      * clock difference between the client and the Keystone server does not
-      * cause the client to use an expired token.
+      * This ensures that clock difference between the client and the Keystone
+      * server does not cause the client to use an expired token.
       */
     private val TokenExpirationGuard = 1 minute
 
@@ -58,9 +57,8 @@ object KeystoneClient {
                                   expirationTime: Long)
 
     /**
-      * Parses the given timestamp from the two supported date formats: ISO8601
-      * and JDBC to a Unix timestamp. If any parsing fails, the method returns
-      * zero.
+      * Parses the given timestamp from the ISO8601 date format to a Unix
+      * timestamp. If any parsing fails, the method throws a [[KeystoneException]].
       */
     @throws[KeystoneException]
     private[keystone] def parseTimestamp(string: String): Long = {
@@ -79,6 +77,19 @@ object KeystoneClient {
             throw new KeystoneException(
                 null, s"Unknown token timestamp format for $string", null)
         }
+    }
+
+    /**
+      * Parses the given expiration timestamp string from the ISO8601 date
+      * format to a Unix timestamp. If the string is `null`, meaning the
+      * token never expires, the method returns the maximum long value.
+      */
+    @throws[KeystoneException]
+    private[keystone] def parseExpiresAt(@Nullable string: String): Long = {
+        if (string eq null)
+            Long.MaxValue
+        else
+            parseTimestamp(string)
     }
 }
 
@@ -105,31 +116,54 @@ class KeystoneClient(config: KeystoneConfig) {
       */
     @throws[KeystoneException]
     def getVersion: KeystoneVersion = {
-        get(classOf[KeystoneVersion], None)()
+        get(classOf[KeystoneVersion], None, None)()
     }
 
     /**
       * Authenticates against Keystone for the given tenant using the specified
-      * password credentials. The method returns a [[KeystoneAccess]] instance
+      * password credentials. The method returns an [[AuthResponse]] instance
       * containing an authorization token for the given user.
       */
     @throws[KeystoneException]
     def authenticate(tenantName: String, userName: String, password: String)
-    : KeystoneAccess = {
-        post(KeystoneAuth(PasswordAuth(PasswordCredentials(userName, password),
-                                      tenantName)),
-             classOf[KeystoneAccess], None, "tokens")()
+    : AuthResponse = withVersion {
+        case 2 =>
+            val auth = v2.KeystoneAuth(v2.PasswordAuth(
+                v2.PasswordCredentials(userName, password),tenantName))
+            val access = post(auth, classOf[v2.KeystoneAccess], token = None,
+                              "tokens")()
+            AuthResponse(tokenId = access.access.token.id, r2 = access.access)
+        case 3 =>
+            val auth = v3.KeystoneAuth(v3.Auth(
+                v3.Identity(methods = Collections.singletonList("password"),
+                            password = v3.Password(v3.User(
+                                name = userName,
+                                password = password,
+                                domain = v3.Domain(id = config.domainName)))),
+                v3.Scope(v3.Project(name = tenantName,
+                                    domain = v3.Domain(id = config.domainName)))))
+            handleAuthResponse(post(auth, classOf[ClientResponse], token = None,
+                                    "auth", "tokens")())
     }
 
     /**
       * Authenticates against Keystone for the given tenant using the specified
-      * token. The method returns a [[KeystoneAccess]] instance containing an
+      * token. The method returns an [[AuthResponse]] instance containing an
       * authorization token for the user of the given token.
       */
     @throws[KeystoneException]
-    def authenticate(tenantName: String, token: String): KeystoneAccess = {
-        post(KeystoneAuth(TokenAuth(Token(id = token), tenantName)),
-             classOf[KeystoneAccess], None, "tokens")()
+    def authenticate(tenantName: String, token: String): AuthResponse = withVersion {
+        case 2 =>
+            val access = post(v2.KeystoneAuth(v2.TokenAuth(v2.Token(id = token),
+                                                           tenantName)),
+                              classOf[v2.KeystoneAccess], token = None, "tokens")()
+            AuthResponse(tokenId = access.access.token.id, r2 = access.access)
+        case 3 =>
+            val auth = v3.KeystoneAuth(v3.Auth(v3.Identity(
+                methods = Collections.singletonList("token"),
+                token = v3.Token(id = token))))
+            handleAuthResponse(post(auth, classOf[ClientResponse], token = None,
+                                    "auth", "tokens")())
     }
 
     /**
@@ -139,12 +173,20 @@ class KeystoneClient(config: KeystoneConfig) {
       * performance.
       */
     @throws[KeystoneException]
-    def validate(token: String, tenantScope: Boolean = false): KeystoneAccess = {
+    def validate(token: String, tenantScope: Boolean = false): AuthResponse = {
         var params = Seq.empty[(String, String)]
         if (tenantScope) params = params :+ ("belongsTo", "")
         withAdminToken { adminToken =>
-            get(classOf[KeystoneAccess], Some(adminToken), "tokens", token)(
-                params: _*)
+            withVersion {
+                case 2 =>
+                    val access = get(classOf[v2.KeystoneAccess], Some(adminToken),
+                                     None, "tokens", token)(params: _*)
+                    AuthResponse(tokenId = access.access.token.id,
+                                 r2 = access.access)
+                case 3 =>
+                    handleAuthResponse(get(classOf[ClientResponse], Some(adminToken),
+                                           Some(token), "auth", "tokens")())
+            }
         }
     }
 
@@ -153,8 +195,12 @@ class KeystoneClient(config: KeystoneConfig) {
       * administrator.
       */
     @throws[KeystoneException]
-    def listUsers(token: String): KeystoneUsers = {
-        get(classOf[KeystoneUsers], Some(token), "users")()
+    def listUsers(token: String): v2.KeystoneUsers = {
+        withVersion {
+            case 2 =>
+                get(classOf[v2.KeystoneUsers], Some(token), subjectToken = None,
+                    "users")()
+        }
     }
 
     /**
@@ -162,8 +208,12 @@ class KeystoneClient(config: KeystoneConfig) {
       * must be an administrator.
       */
     @throws[KeystoneException]
-    def getUserByName(name: String, token: String): KeystoneUser = {
-        get(classOf[KeystoneUser], Some(token), "users")(("name", name))
+    def getUserByName(name: String, token: String): v2.KeystoneUser = {
+        withVersion {
+            case 2 =>
+                get(classOf[v2.KeystoneUser], Some(token), subjectToken = None,
+                    "users")(("name", name))
+        }
     }
 
     /**
@@ -171,8 +221,12 @@ class KeystoneClient(config: KeystoneConfig) {
       * client must be an administrator.
       */
     @throws[KeystoneException]
-    def getUserById(id: String, token: String): KeystoneUser = {
-        get(classOf[KeystoneUser], Some(token), "users", id)()
+    def getUserById(id: String, token: String): v2.KeystoneUser = {
+        withVersion {
+            case 2 =>
+                get(classOf[v2.KeystoneUser], Some(token), subjectToken = None,
+                    "users", id)()
+        }
     }
 
     /**
@@ -186,11 +240,15 @@ class KeystoneClient(config: KeystoneConfig) {
     @throws[KeystoneException]
     def listTenants(token: String, marker: Option[String] = None,
                     limit: Option[Int] = None)
-    : KeystoneTenants = {
-        var params = Seq.empty[(String, String)]
-        if (marker.isDefined) params = params :+ ("marker", marker.get)
-        if (limit.isDefined) params = params :+ ("limit", limit.get.toString)
-        get(classOf[KeystoneTenants], Some(token), "tenants")(params: _*)
+    : v2.KeystoneTenants = {
+        withVersion {
+            case 2 =>
+                var params = Seq.empty[(String, String)]
+                if (marker.isDefined) params = params :+("marker", marker.get)
+                if (limit.isDefined) params = params :+("limit", limit.get.toString)
+                get(classOf[v2.KeystoneTenants], Some(token), subjectToken = None,
+                    "tenants")(params: _*)
+        }
     }
 
     /**
@@ -198,8 +256,13 @@ class KeystoneClient(config: KeystoneConfig) {
       * must be an administrator.
       */
     @throws[KeystoneException]
-    def getTenantByName(name: String, token: String): KeystoneTenant = {
-        get(classOf[KeystoneTenant], Some(token), "tenants")(("name", name))
+    def getTenantByName(name: String, token: String)
+    : v2.KeystoneTenant = {
+        withVersion {
+            case 2 =>
+                get(classOf[v2.KeystoneTenant], Some(token), subjectToken = None,
+                    "tenants")(("name", name))
+        }
     }
 
     /**
@@ -207,8 +270,13 @@ class KeystoneClient(config: KeystoneConfig) {
       * client must be an administrator.
       */
     @throws[KeystoneException]
-    def getTenantById(id: String, token: String): KeystoneTenant = {
-        get(classOf[KeystoneTenant], Some(token), "tenants", id)()
+    def getTenantById(id: String, token: String)
+    : v2.KeystoneTenant = {
+        withVersion {
+            case 2 =>
+                get(classOf[v2.KeystoneTenant], Some(token), subjectToken = None,
+                    "tenants", id)()
+        }
     }
 
     /**
@@ -219,12 +287,13 @@ class KeystoneClient(config: KeystoneConfig) {
     def getTenantUserRoles(tenantId: String, userId: String, token: String,
                            marker: Option[String] = None,
                            limit: Option[Int] = None)
-    : KeystoneRoles = {
-        var params = Seq.empty[(String, String)]
-        if (marker.isDefined) params = params :+ ("marker", marker.get)
-        if (limit.isDefined) params = params :+ ("limit", limit.get.toString)
-        get(classOf[KeystoneRoles], Some(token), "tenants", tenantId,
-            "users", userId, "roles")(params: _*)
+    : v2.KeystoneRoles = withVersion {
+        case 2 =>
+            var params = Seq.empty[(String, String)]
+            if (marker.isDefined) params = params :+ ("marker", marker.get)
+            if (limit.isDefined) params = params :+ ("limit", limit.get.toString)
+            get(classOf[v2.KeystoneRoles], Some(token), subjectToken = None,
+                "tenants", tenantId, "users", userId, "roles")(params: _*)
     }
 
     /**
@@ -232,26 +301,41 @@ class KeystoneClient(config: KeystoneConfig) {
       * parameters.
       */
     private def uriFor(paths: String*)(params: (String, String)*): URI = {
+        val version = withVersion { case 2 => "v2.0" case 3 => "v3" }
         val builder = UriBuilder
-            .fromPath(s"${config.protocol}://${config.host}:${config.port}/v2.0")
+            .fromPath(s"${config.protocol}://${config.host}:${config.port}/$version")
             .segment(paths: _*)
         for ((param, value) <- params)
             builder.queryParam(param, value)
         builder.build()
     }
 
+    @throws[KeystoneException]
+    @inline
+    private def withVersion[R](pf: PartialFunction[Int, R]): R = {
+        pf.applyOrElse(
+            config.version,
+            (v: Int) =>
+                throw new KeystoneException(
+                    null, s"Unsupported Keystone version ${config.version}", null))
+    }
+
     /**
       * A GET HTTP request to the Keystone server.
       */
-    private def get[T](clazz: Class[T], token: Option[String], paths: String*)
+    private def get[T](clazz: Class[T], authToken: Option[String],
+                       subjectToken: Option[String], paths: String*)
                       (params: (String, String)*): T = {
         val uri = uriFor(paths: _*)(params: _*)
         tryRequest(uri) {
             val request = client.resource(uri)
                                 .`type`(APPLICATION_JSON)
                                 .accept(APPLICATION_JSON)
-            if (token.isDefined) {
-                request.header("X-Auth-Token", token.get)
+            if (authToken.isDefined) {
+                request.header("X-Auth-Token", authToken.get)
+            }
+            if (subjectToken.isDefined) {
+                request.header("X-Subject-Token", subjectToken.get)
             }
             request.get(clazz)
         }
@@ -279,16 +363,17 @@ class KeystoneClient(config: KeystoneConfig) {
       * Provides exception handling for the given function.
       */
     private def tryRequest[R](uri: URI)(f: => R): R = {
+        val uriString = if (uri ne null) uri.toString else null
         try {
             f
         } catch {
             case e: UniformInterfaceException
                 if e.getResponse.getStatus == Status.UNAUTHORIZED.getStatusCode =>
-                throw new KeystoneUnauthorizedException(uri.toString, e)
+                throw new KeystoneUnauthorizedException(uriString, e)
             case e: UniformInterfaceException =>
-                throw new KeystoneException(uri.toString, e)
+                throw new KeystoneException(uriString, e)
             case e: ClientHandlerException =>
-                throw new KeystoneConnectionException(uri.toString, e)
+                throw new KeystoneConnectionException(uriString, e)
         }
     }
 
@@ -306,23 +391,41 @@ class KeystoneClient(config: KeystoneConfig) {
             currentToken.expirationTime) {
 
             if (isBlank(config.userName) || isBlank(config.password) ||
-                isBlank(config.tenantName)) {
+                isBlank(config.projectName)) {
                 throw new KeystoneException(null,
                     "Keystone configuration must provide an administrative " +
                     "tenant, user name and password", null)
             }
 
-            val keystoneAccess = authenticate(config.tenantName,
-                                              config.userName,
-                                              config.password)
-            val token = keystoneAccess.access.token
-            currentToken = AdminToken(token.id,
-                                      parseTimestamp(token.issuedAt),
-                                      System.currentTimeMillis(),
-                                      parseTimestamp(token.expires))
+            val auth = authenticate(config.projectName, config.userName,
+                                    config.password)
+            if (auth.token eq null) {
+                throw new KeystoneUnauthorizedException(
+                    null, "Keystone failed to return an authentication token", null)
+            }
+
+            currentToken = AdminToken(
+                id = auth.tokenId,
+                serverIssueTime = parseTimestamp(auth.token.issuedAt),
+                clientIssueTime = System.currentTimeMillis(),
+                expirationTime = parseExpiresAt(auth.token.expiresAt))
             adminToken = currentToken
         }
         f(currentToken.id)
+    }
+
+    /**
+      * Handles the authentication response from the Keystone v3 API server and
+      * returns and [[AuthResponse]] object.
+      */
+    private def handleAuthResponse(response: ClientResponse): AuthResponse = {
+        val tokenId = response.getHeaders.getFirst("X-Subject-Token")
+
+        if (response.getStatus < 300) {
+            val token = response.getEntity(classOf[v3.KeystoneToken]).token
+            return AuthResponse(tokenId = tokenId, r3 = token)
+        }
+        throw new KeystoneUnauthorizedException(response)
     }
 
 }
