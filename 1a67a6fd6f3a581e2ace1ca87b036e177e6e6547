@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_6b69b224",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-29T12:20:37Z",
+      "side": 1,
+      "message": "KeystoneUnauthorizedException? This test will pass even with keystone server down (only for validate calls though).",
+      "revId": "1a67a6fd6f3a581e2ace1ca87b036e177e6e6547",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_cb61be3a",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-29T12:20:37Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "1a67a6fd6f3a581e2ace1ca87b036e177e6e6547",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8b78a6f3",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-29T12:20:37Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "1a67a6fd6f3a581e2ace1ca87b036e177e6e6547",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ab73aa13",
+        "filename": "midonet-cluster/src/integration/scala/org/midonet/cluster/auth/keystone/KeystoneIntegrationTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-01-29T12:20:37Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "1a67a6fd6f3a581e2ace1ca87b036e177e6e6547",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
