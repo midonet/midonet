@@ -214,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_428a08c0",
+        "filename": "docs/cluster-storage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-01T16:11:24Z",
+      "side": 1,
+      "message": "I\u0027m not so much concerned about the physical location for this doc, more the types of data. Where the data is stored in zookeeper doesn\u0027t have much impact when you\u0027re thinking about how it will scale.",
+      "parentUuid": "fa81d914_1f886de6",
+      "range": {
+        "startLine": 94,
+        "startChar": 2,
+        "endLine": 95,
+        "endChar": 34
+      },
+      "revId": "a6be6f408af56ecd0142f631bc5f70526bd93404",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_1c887be6",
         "filename": "docs/cluster-storage.md",
         "patchSetId": 2
