@@ -50,7 +50,6 @@ import org.midonet.util.reactivex._
 object ContainerService {
 
     private val NotificationBufferSize = 0x1000
-    private val StorageTimeout = Duration.Inf
 
     case class Handler(cp: ContainerPort, handler: ContainerHandler,
                        namespace: Option[String], subscription: Subscription)
@@ -213,7 +212,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                 .subscribe(containerSubscriber)
 
             // Wait for the status of the containers service at this host.
-            weightReady.future.await(StorageTimeout)
+            weightReady.future.await(vt.config.zookeeper.sessionTimeout seconds)
 
             notifyStarted()
         } catch {
@@ -288,7 +287,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             .build()
         vt.stateStore.addValue(classOf[Host], hostId, ContainerKey,
                                serviceStatus.toString)
-                     .await(StorageTimeout)
+                     .await(vt.config.zookeeper.sessionTimeout seconds)
     }
 
     /** Clears the container service status for this host.
@@ -298,7 +297,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             // Report the status of the containers service at this host.
             vt.stateStore.removeValue(classOf[Host], hostId, ContainerKey,
                                       value = null)
-                         .await(StorageTimeout)
+                         .await(vt.config.zookeeper.sessionTimeout seconds)
         } catch {
             case NonFatal(e) =>
                 log.warn("Failed to update the status of the container service", e)

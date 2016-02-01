@@ -338,6 +338,9 @@ class MidonetBackendService(config: MidonetBackendConfig,
             if (curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
             }
+            if (failFastCurator.getState != CuratorFrameworkState.STARTED) {
+                failFastCurator.start()
+            }
             notifyStarted()
             log.info("Setting up storage bindings")
             MidonetBackend.setupBindings(zoom, zoom, () => setup(zoom))
@@ -352,6 +355,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
         log.info("Stopping backend store for host {}", namespaceId)
         reactor.shutDownNow()
         curator.close()
+        failFastCurator.close()
         notifyStopped()
     }
 }
