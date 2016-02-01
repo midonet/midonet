@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_e264dc4a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-01T15:42:05Z",
+      "side": 1,
+      "message": "I think the session timeout is specified in ms. Maybe we should make these values return Duration rather than int. Same below.",
+      "range": {
+        "startLine": 215,
+        "startChar": 72,
+        "endLine": 215,
+        "endChar": 79
+      },
+      "revId": "3406de5a855e1be761d67b70d4539d9ee0214f5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
