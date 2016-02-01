@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_7f824995",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-01T11:54:29Z",
+      "side": 1,
+      "message": "you should update curIndex at this point too, so that search starts as start of new chunk.",
+      "revId": "7ce1ae2427ec21b3dbad81269549dfa76f881c8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
