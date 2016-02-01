@@ -22,6 +22,30 @@
       "revId": "3406de5a855e1be761d67b70d4539d9ee0214f5c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c2efd885",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-01T16:05:35Z",
+      "side": 1,
+      "message": "Done. Changed it to millis for coherence with the rest of the code and keep this change small. We can do it on a later patch if you agree.",
+      "parentUuid": "fa81d914_e264dc4a",
+      "range": {
+        "startLine": 215,
+        "startChar": 72,
+        "endLine": 215,
+        "endChar": 79
+      },
+      "revId": "3406de5a855e1be761d67b70d4539d9ee0214f5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
