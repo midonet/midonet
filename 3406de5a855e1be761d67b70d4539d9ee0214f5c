@@ -70,6 +70,30 @@
       "revId": "3406de5a855e1be761d67b70d4539d9ee0214f5c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c2643824",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-01T16:30:46Z",
+      "side": 1,
+      "message": "yes :-) you were right on your first comment and we definitely need millis. I just meant coherence with other parts of the code where we specify a time unit instead of a duration (to justify changing to Duration on another patch).",
+      "parentUuid": "fa81d914_e2c05ce2",
+      "range": {
+        "startLine": 215,
+        "startChar": 72,
+        "endLine": 215,
+        "endChar": 79
+      },
+      "revId": "3406de5a855e1be761d67b70d4539d9ee0214f5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
