@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_9af2aed0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-01T01:35:01Z",
+      "side": 1,
+      "message": "I won\u0027t -1 for this, but looks like this was not done.",
+      "parentUuid": "fa81d914_8b56e6d0",
+      "range": {
+        "startLine": 445,
+        "startChar": 0,
+        "endLine": 447,
+        "endChar": 54
+      },
+      "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b8a6a251",
         "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
         "patchSetId": 3
@@ -154,6 +178,30 @@
       "side": 1,
       "message": "I made this into a single statement, but a tuple doesn\u0027t work so I had to use a list.",
       "parentUuid": "fa81d914_f84e5a95",
+      "range": {
+        "startLine": 476,
+        "startChar": 0,
+        "endLine": 477,
+        "endChar": 62
+      },
+      "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_baedb2f1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-01T01:35:01Z",
+      "side": 1,
+      "message": "Could you elaborate on what problem you encountered?  I tried it and the test passed.",
+      "parentUuid": "fa81d914_ab51ead9",
       "range": {
         "startLine": 476,
         "startChar": 0,
