@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_8556cad0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-02-01T17:30:39Z",
+      "side": 1,
+      "message": "these 2 can fail, we should wrap in a try catch (but ok to do it in another patch).",
+      "range": {
+        "startLine": 357,
+        "startChar": 8,
+        "endLine": 358,
+        "endChar": 31
+      },
+      "revId": "b8127202e19fcd6741b52e14d5cb600fabafdae7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
