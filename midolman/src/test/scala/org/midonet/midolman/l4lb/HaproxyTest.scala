@@ -27,6 +27,7 @@ import akka.testkit.TestActorRef
 import com.typesafe.config.ConfigFactory
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
+import org.midonet.cluster.data.storage.Storage
 import org.mockito.Mockito
 import org.mockito.Mockito.{mock, times, verify, spy}
 import org.scalatest._
@@ -66,7 +67,7 @@ class HaproxyTest extends MidolmanSpec
     var lockFactory: ZookeeperLockFactory = _
     var poolConfig: PoolConfig = _
     var checkHealthReceived = 0
-
+    var haProxy: TestableHaproxy = _
     val vipIp1 = "10.0.0.1"
     val vipIp2 = "10.0.0.2"
 
@@ -146,6 +147,26 @@ class HaproxyTest extends MidolmanSpec
         backend.store.get(classOf[topVip], vipId).value.get.get
     }
 
+    class TestableHaproxy(config: PoolConfig, hm: ActorRef, routerId: UUID,
+                          store: Storage, hostId: UUID,
+                          lockFactory: ZookeeperLockFactory,
+                          seqDispenser: SequenceDispenser)
+        extends HaproxyHealthMonitor(config, hm, routerId, store, hostId,
+                                     lockFactory, seqDispenser) {
+            override def writeConf(config: PoolConfig): Unit = {}
+
+            override def receive = ({
+                case HaproxyHealthMonitor.CheckHealth =>
+                    checkHealthReceived += 1
+            }: Actor.Receive) orElse super.receive
+
+            override def parseResponse(resp: String)
+            : (Set[UUID], Set[UUID]) = {
+                super.parseResponse(resp)
+            }
+
+    }
+
     class TestableHealthMonitor extends HMSystem(conf, backend, lockFactory,
                                                  curator = null, backendCfg) {
 
@@ -167,18 +188,12 @@ class HaproxyTest extends MidolmanSpec
                                               routerId: UUID) = {
             poolConfig = config
             context.actorOf(
-                Props(
-                    new HaproxyHealthMonitor(config, self, routerId, store,
-                                             hostId, lockFactory,
-                                             seqDispenser) {
-                        override def writeConf(config: PoolConfig): Unit = {}
-
-                        override def receive = ({
-                            case HaproxyHealthMonitor.CheckHealth =>
-                                checkHealthReceived += 1
-                        }: Actor.Receive) orElse super.receive
-                    }
-                ).withDispatcher(context.props.dispatcher),
+                Props({
+                    haProxy = new TestableHaproxy(config, self, routerId,
+                                                  store, hostId, lockFactory,
+                                                  seqDispenser)
+                    haProxy
+                }).withDispatcher(context.props.dispatcher),
                 config.id.toString)
         }
     }
@@ -568,6 +583,72 @@ class HaproxyTest extends MidolmanSpec
                .when(ip)
                .execGetOutput(org.mockito.Matchers.anyString())
         ip
+    }
+
+    feature("Public methods") {
+        scenario("parsing ha-proxy responses") {
+            Given("One router")
+            val routerId = makeRouter()
+
+            When("When we make a health monitor for the router")
+            val lbId = makeLB(routerId)
+            val hmId = makeHM(2, 2, 2)
+            val vipId = makeVip(80, vipIp1)
+            val poolId = makePool(hmId, lbId, vipId)
+            val hmName = poolId.toString.substring(0, 8) + "_hm"
+
+            Then("Eventually an HA proxy should be started")
+            eventually { checkHaproxyStarted(hmName, vipIp1, poolId, routerId) }
+
+            When("Parsing an ha proxy response with 1 up and 1 down node")
+            val backendId1 = UUID.randomUUID()
+            val backendId2 = UUID.randomUUID()
+            val name1 = UUID.randomUUID()
+            val name2 = UUID.randomUUID()
+            var response =
+                s"""
+                  | $backendId1,$name1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                  | $backendId2,$name2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,DOWN
+                """.stripMargin
+
+            Then("The ha proxy responds correctly")
+            haProxy.parseResponse(response) shouldBe (Set(name1), Set(name2))
+
+            When("Parsing an ha proxy response with backends, frontends, and" +
+                 "field names")
+            val backend = HaproxyHealthMonitor.Backend
+            val frontend = HaproxyHealthMonitor.Frontend
+            val fieldName = HaproxyHealthMonitor.FieldName
+            response =
+                s"""
+                  | ${UUID.randomUUID()},$backend,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                  | ${UUID.randomUUID()},$frontend,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                  | ${UUID.randomUUID()},$fieldName,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                  | $backendId1,$name1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                  | $backendId2,$name2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,DOWN
+                 """.stripMargin
+
+            Then("The ha proxy ignores backends, frontends, and fields")
+            haProxy.parseResponse(response) shouldBe (Set(name1), Set(name2))
+
+            val backendId3 = UUID.randomUUID()
+            val backendId4 = UUID.randomUUID()
+            val name3 = UUID.randomUUID()
+            val name4 = UUID.randomUUID()
+
+            When("Parsing an ha proxy response with incorrectly formatted lines")
+            response =
+                s"""
+                  | $backendId1,$name1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                  | $backendId2,$name2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                  | $backendId3,$name3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,TOTO
+                  | $backendId4,$name4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,DOWN
+                """.stripMargin
+
+            Then("The ha proxy incorrectly formatted lines")
+            haProxy.parseResponse(response) shouldBe (Set(name1, name2),
+                                                      Set.empty)
+        }
     }
 
     feature("IP class") {
