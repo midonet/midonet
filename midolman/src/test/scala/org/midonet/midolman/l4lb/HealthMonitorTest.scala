@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  */
 package org.midonet.midolman.l4lb
 
-import java.util.concurrent.atomic.AtomicInteger
+import java.io.{File, FileWriter}
 import java.util.UUID
+import java.util.LinkedList
 
-import scala.concurrent.{Future, Await}
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 import akka.actor.{Actor, ActorRef, Props}
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
@@ -41,7 +42,6 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.cluster.util.SequenceDispenser.SequenceType
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{SetupFailure, ConfigUpdate, RouterAdded, RouterRemoved}
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
@@ -91,6 +91,8 @@ class HealthMonitorTest extends MidolmanSpec
         lockFactory = mock[ZookeeperLockFactory]
         val curator = mock[CuratorFramework]
 
+        HealthMonitor.ipCommand = mock[IP]
+        setupIpMock(HealthMonitor.ipCommand)
         lock = mock[InterProcessSemaphoreMutex]
         Mockito.when(lockFactory.createShared(ZookeeperLockFactory.ZOOM_TOPOLOGY))
                .thenReturn(lock)
@@ -99,6 +101,17 @@ class HealthMonitorTest extends MidolmanSpec
         healthMonitorUT = actorSystem.actorOf(
             Props(new HealthMonitorUT(config, backend, lockFactory, curator))
         )
+    }
+
+    override def fillConfig(config: Config): Config = {
+        val conf = super.fillConfig(config)
+        val defaults =
+            """
+              |agent.haproxy_health_monitor.namespace_cleanup = true
+              |agent.haproxy_health_monitor.haproxy_file_loc = "/tmp"
+            """.stripMargin
+
+        conf.withFallback(ConfigFactory.parseString(defaults))
     }
 
     private def storePool(poolId: UUID): Pool = {
@@ -115,6 +128,22 @@ class HealthMonitorTest extends MidolmanSpec
 
     def sendMsgToHealthMonitor(msg: Any): Unit =
         healthMonitorUT.tell(msg, haproxyFakeActor)
+
+    private def setupIpMock(mock: IP): Unit = {
+        val namespaces = new LinkedList[String]()
+        val namespace = "namespace_hm"
+        namespaces.add(namespace)
+        Mockito.when(mock.execGetOutput("ip netns")).thenReturn(namespaces)
+        Mockito.when(mock.namespaceExist(namespace)).thenReturn(true)
+        Mockito.when(mock.interfaceExistsInNs(namespace, namespace + "_dp"))
+               .thenReturn(true)
+    }
+
+    private def checkCleanupNamespaces(): Unit = {
+        val mock = HealthMonitor.ipCommand
+        verify(mock).exec("ip link delete namespace_hm_dp")
+        verify(mock).deleteNS("namespace_hm")
+    }
 
     feature("HealthMonitor handles added configurations correctly") {
         scenario ("A config is added with no router") {
@@ -160,6 +189,8 @@ class HealthMonitorTest extends MidolmanSpec
             eventually {
                 getPoolStatus(pool1Id) shouldBe ACTIVE
                            actorStarted shouldBe 1
+
+                checkCleanupNamespaces()
             }
 
             val pool2Id = UUID.randomUUID()
@@ -360,6 +391,43 @@ class HealthMonitorTest extends MidolmanSpec
         }
     }
 
+    feature("Public methods") {
+        scenario("cleanAndDeleteNamespace") {
+            When("We stop all actors")
+            actorSystem.shutdown()
+
+            Then("namespaces are cleaned up")
+            eventually { checkCleanupNamespaces() }
+        }
+
+        scenario("isRunningHaProxy") {
+            // Only the negative case can be tested
+            HealthMonitor.isRunningHaproxyPid(pid = -1,
+                pidFilePath = "somepath",
+                confFilePath = "someotherpath") shouldBe false
+
+        }
+
+        scenario("getHaproxyPid") {
+            HealthMonitor.getHaproxyPid("incorrectPath") shouldBe None
+
+            val filePath = "/tmp/pid-file"
+            var fileWriter = new FileWriter(filePath, false /* append */)
+            fileWriter.write("notAPID")
+            fileWriter.close()
+            HealthMonitor.getHaproxyPid(filePath) shouldBe None
+
+            fileWriter = new FileWriter(filePath, false /* append */)
+            fileWriter.write("1234")
+            fileWriter.close()
+
+            HealthMonitor.getHaproxyPid(filePath) shouldBe Some(1234)
+
+            val file = new File(filePath)
+            file.delete()
+        }
+    }
+
     def createFakePoolConfig(poolId: UUID, adminStateUp: Boolean = true)
     : PoolConfig = {
         val vip = new VipConfig(true, UUID.randomUUID(), "9.9.9.9", 89, null)
@@ -371,8 +439,8 @@ class HealthMonitorTest extends MidolmanSpec
         val member3  = new PoolMemberConfig(true, UUID.randomUUID(),
                                             10, "10.11.12.15", 81)
         new PoolConfig(poolId, loadBalancerId = UUID.randomUUID(), Set(vip),
-               Set(member1, member2, member3), healthMonitor, adminStateUp, "",
-               "_MN")
+               Set(member1, member2, member3), healthMonitor, adminStateUp,
+               "", "_MN")
     }
 
     protected val backendCfg = new MidonetBackendConfig(

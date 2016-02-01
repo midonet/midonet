@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -257,7 +257,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     /**
       * Sets the health status of active and inactive pool members.
       */
-    private def setMembersStatus(activeMemberIds: Set[UUID], inactiveMemberIds: Set[UUID]) = {
+    protected def setMembersStatus(activeMemberIds: Set[UUID],
+                                   inactiveMemberIds: Set[UUID]) = {
         val ops = new mutable.MutableList[PersistenceOp]()
         HealthMonitor.zkLock(lockFactory) {
             val upMembers = store.getAll(classOf[PoolMember], activeMemberIds.toSeq).await()
