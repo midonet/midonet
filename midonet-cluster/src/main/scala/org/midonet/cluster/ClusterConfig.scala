@@ -120,6 +120,7 @@ class RestApiConfig(val conf: Config) extends MinionConfig[Vladimir] {
     def httpPort = conf.getInt(s"$Prefix.http_port")
     def httpsPort = conf.getInt(s"$Prefix.https_port")
     def rootUri = conf.getString(s"$Prefix.root_uri")
+    def nsdbLockTimeoutMs = conf.getDuration(s"$Prefix.nsdb_lock_timeout", TimeUnit.MILLISECONDS)
 }
 
 class ContainersConfig(val conf: Config) extends MinionConfig[ContainerService] {
