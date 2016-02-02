@@ -137,6 +137,8 @@ def test_tracing_egress_matching():
         f1 = sender.ping_ipv4_addr('172.16.2.1')
         wait_on_futures([f1, f2, f3])
 
+        time.sleep(5)
+
         flowtraces = get_flow_traces(tracerequest.get_id())
         assert (len(flowtraces) == 2)
 
@@ -178,6 +180,8 @@ def test_tracing_egress_matching_over_nat():
                                                 within_sec(10)))
         f1 = sender.ping_ipv4_addr('100.100.100.100')
         wait_on_futures([f1, f2, f3])
+
+        time.sleep(5)
 
         flowtraces = get_flow_traces(tracerequest.get_id())
         assert (len(flowtraces) == 2)
@@ -223,6 +227,8 @@ def test_tracing_with_limit():
             f1 = sender.ping_ipv4_addr('172.16.2.1')
             wait_on_futures([f1, f2, f3])
 
+        time.sleep(5)
+
         flowtraces = get_flow_traces(tracerequest.get_id())
         assert (len(flowtraces) == 10)
 
@@ -241,6 +247,8 @@ def test_tracing_with_limit():
                                                 within_sec(10)))
         f1 = sender.ping_ipv4_addr('172.16.2.1')
         wait_on_futures([f1, f2, f3])
+
+        time.sleep(5)
 
         flowtraces = get_flow_traces(tracerequest.get_id())
         assert (len(flowtraces) == 11)
