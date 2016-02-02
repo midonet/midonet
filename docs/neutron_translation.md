@@ -808,6 +808,8 @@ operation is idempotent.
 
 ## FIREWALL
 
+XXX update
+
 In the Firewall object sent as input for create and update, both the firewall
 and the firewall rules are included.
 
