@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_56abaad5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterConfig.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-02T09:53:30Z",
+      "side": 1,
+      "message": "lower case?",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 9
+      },
+      "revId": "aa3ed255d610e3f701c49ffd3eb542d363640286",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
