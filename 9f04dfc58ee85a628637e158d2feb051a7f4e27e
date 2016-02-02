@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_f1e90881",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-02T15:09:23Z",
+      "side": 1,
+      "message": "I guess you forgot to remove these.",
+      "range": {
+        "startLine": 237,
+        "startChar": 4,
+        "endLine": 239,
+        "endChar": 47
+      },
+      "revId": "9f04dfc58ee85a628637e158d2feb051a7f4e27e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_11edbc8b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-02T15:09:23Z",
+      "side": 1,
+      "message": "I think I commented on another patch on this (nit), is there a reason for the upper case?",
+      "range": {
+        "startLine": 209,
+        "startChar": 8,
+        "endLine": 209,
+        "endChar": 9
+      },
+      "revId": "9f04dfc58ee85a628637e158d2feb051a7f4e27e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
