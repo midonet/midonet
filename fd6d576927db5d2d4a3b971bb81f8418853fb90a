@@ -211,6 +211,30 @@
       "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_2b97af91",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-02-02T03:57:26Z",
+      "side": 1,
+      "message": "It\u0027s not a tuple. It\u0027s a pair of arguments to only().\n\nIt should work, since we use this pattern elsewhere. Maybe you\u0027re doing something weird. Stop being weird.",
+      "parentUuid": "fa81d914_ab51ead9",
+      "range": {
+        "startLine": 476,
+        "startChar": 0,
+        "endLine": 477,
+        "endChar": 62
+      },
+      "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
