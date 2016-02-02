@@ -17,7 +17,6 @@
 package org.midonet.containers
 
 import java.io.File
-import java.nio.charset.StandardCharsets.UTF_8
 import java.util.UUID
 import java.util.concurrent.{ScheduledExecutorService, TimeUnit, ExecutorService}
 
@@ -29,7 +28,6 @@ import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.MoreObjects
-import com.google.common.hash.Hashing
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
@@ -66,9 +64,16 @@ case class IPSecServiceDef(name: String,
                            namespaceGatewayMac: String)
 
 object IPSecConfig {
-    val nameHash = Hashing.murmur3_32()
-    def sanitizeName(name: String): String =
-        name.replaceAll("[^\\w]", "_") + nameHash.hashString(name, UTF_8).toString
+    /* The connection name should contain only Latin letters, digits,
+       hyphen (-), and underline (_) symbols. */
+    def sanitizeName(connectionId: UUID, connectionName: String): String = {
+        val validName = connectionName.replaceAll("[^\\w]", "")
+        if (validName.isEmpty) {
+            "ipsec-" + connectionId.toString.substring(0, 8)
+        } else {
+            "ipsec-" + validName
+        }
+    }
 
     def subnetsString(subnets: java.util.List[Commons.IPSubnet]): String = {
         if (subnets.isEmpty) return ""
@@ -149,7 +154,7 @@ case class IPSecConfig(script: String,
                |""".stripMargin
         for (c <- connections if isSiteConnectionUp(c)) {
             contents append
-                s"""conn ${sanitizeName(c.getName)}
+                s"""conn ${sanitizeName(c.getId.asJava, c.getName)}
                    |    leftnexthop=%defaultroute
                    |    rightnexthop=%defaultroute
                    |    left=${ipsecService.localEndpointIp}
@@ -197,7 +202,7 @@ case class IPSecConfig(script: String,
                                     s"-p ${ipsecService.filepath} " +
                                     s"-g ${ipsecService.namespaceGatewayIp}")
         for (c <- connections if isSiteConnectionUp(c)) {
-            cmd append s" -c ${sanitizeName(c.getName)}"
+            cmd append s" -c ${sanitizeName(c.getId.asJava, c.getName)}"
         }
         cmd.toString
     }
