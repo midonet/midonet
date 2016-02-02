@@ -66,9 +66,11 @@ case class IPSecServiceDef(name: String,
                            namespaceGatewayMac: String)
 
 object IPSecConfig {
-    val nameHash = Hashing.murmur3_32()
+    /* The connection name should contain only Latin letters, digits,
+       hyphen (-), and underline (_) symbols. We remove any non-alphanumerical
+       characters in the name and prepend it with "ipsec-". */
     def sanitizeName(name: String): String =
-        name.replaceAll("[^\\w]", "_") + nameHash.hashString(name, UTF_8).toString
+        "ipsec-" + name.replaceAll("[^\\w]", "")
 
     def subnetsString(subnets: java.util.List[Commons.IPSubnet]): String = {
         if (subnets.isEmpty) return ""
