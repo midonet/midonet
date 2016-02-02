@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_76ba6e24",
+        "filename": "docs/cluster-storage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-02-02T09:20:57Z",
+      "side": 1,
+      "message": "is this correct?",
+      "range": {
+        "startLine": 152,
+        "startChar": 35,
+        "endLine": 152,
+        "endChar": 41
+      },
+      "revId": "e0267a5c905b76a151a5ef7bd468e7ae40d0d301",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
