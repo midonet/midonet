@@ -113,7 +113,7 @@ class DatapathChannelTest extends MidolmanSpec {
         }
 
         scenario ("Can create flows") {
-            dpChannel.createFlow(new Flow(packet.getMatch, actions))
+            dpChannel.createFlow(new Flow(packet.getMatch, actions), 0)
 
             eventually {
                 nlChannel.packetsWritten.get() should be (1)
@@ -140,7 +140,7 @@ class DatapathChannelTest extends MidolmanSpec {
         }
 
         scenario ("Can delete flows only after they have been created") {
-            dpChannel.createFlow(new Flow(packet.getMatch, actions))
+            dpChannel.createFlow(new Flow(packet.getMatch, actions), 0)
 
             eventually {
                 nlChannel.packetsWritten.get() should be (1)
@@ -157,7 +157,7 @@ class DatapathChannelTest extends MidolmanSpec {
 
             nlChannel.packetsWritten.get() should be (1)
 
-            dpChannel.createFlow(new Flow(packet.getMatch, actions))
+            dpChannel.createFlow(new Flow(packet.getMatch, actions), 0)
 
             eventually {
                 nlChannel.packetsWritten.get() should be (2)

@@ -249,7 +249,7 @@ public abstract class AbstractNetlinkConnection {
              * thread, not the channel's: it's the client that failed to
              * put a request in the queue. */
             req.failed(new NetlinkException(
-                NetlinkException.ERROR_SENDING_REQUEST, msg)).run();
+                NetlinkException.ERROR_SENDING_REQUEST, msg, 0)).run();
         } else {
             log.info(msg);
         }
@@ -340,7 +340,7 @@ public abstract class AbstractNetlinkConnection {
             if (request.hasCallback()) {
                 pendingRequests.remove(request.seq);
                 dispatcher.submit(request.failed(new NetlinkException(
-                                  NetlinkException.ERROR_SENDING_REQUEST, e)));
+                                  NetlinkException.ERROR_SENDING_REQUEST, e, 0)));
             }
         } finally {
             requestPool.release(outBuf);
@@ -486,7 +486,7 @@ public abstract class AbstractNetlinkConnection {
         NetlinkRequest request = removeRequest(seq);
         if (request != null) {
             String errorMessage = cLibrary.lib.strerror(-error);
-            NetlinkException err = new NetlinkException(-error, errorMessage);
+            NetlinkException err = new NetlinkException(-error, errorMessage, seq);
             dispatcher.submit(request.failed(err));
         } else {
             log.error(cLibrary.lib.strerror(-error));

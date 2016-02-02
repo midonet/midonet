@@ -59,7 +59,7 @@ trait FlowExpiration extends FlowLifecycle {
     import FlowExpiration._
 
     val log: Logger
-    val maxFlows: Int
+    protected val maxFlows: Int
 
     private val expirationQueues = new Array[ArrayDeque[ManagedFlow]](maxType)
 

@@ -16,6 +16,8 @@
 
 package org.midonet.midolman
 
+import org.midonet.midolman.PacketWorkflow.{DuplicateFlow, DuplicatedFlow}
+
 import scala.collection.immutable
 import scala.concurrent.duration._
 
@@ -175,6 +177,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
         case m: FlowStateBatch => broadcast(m)
 
         case CheckBackchannels => broadcast(CheckBackchannels)
+
+        case m: DuplicateFlow => broadcast(m)
 
         case GetWorkers => sender ! Workers(workers)
     }

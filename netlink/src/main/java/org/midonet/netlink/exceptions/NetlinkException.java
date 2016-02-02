@@ -19,38 +19,45 @@ import org.midonet.ErrorCode;
 
 public class NetlinkException extends Exception {
     public final int errorCode;
+    public final int seq;
 
     public static final int ERROR_SENDING_REQUEST = -1;
     public static final int GENERIC_IO_ERROR = -2;
 
-    public NetlinkException(ErrorCode error, String message) {
+    public NetlinkException(ErrorCode error, String message, int seq) {
         super(format(error.ordinal(), message));
         this.errorCode = error.ordinal();
+        this.seq = seq;
     }
 
-    public NetlinkException(ErrorCode error, Throwable cause) {
+    public NetlinkException(ErrorCode error, Throwable cause, int seq) {
         super(format(error.ordinal(), null), cause);
         this.errorCode = error.ordinal();
+        this.seq = seq;
     }
 
-    public NetlinkException(ErrorCode error) {
+    public NetlinkException(ErrorCode error, int seq) {
         super(format(error.ordinal(), error.getMessage()));
         this.errorCode = error.ordinal();
+        this.seq = seq;
     }
 
-    public NetlinkException(int errorCode, String message) {
+    public NetlinkException(int errorCode, String message, int seq) {
         super(format(errorCode, message));
         this.errorCode = errorCode;
+        this.seq = seq;
     }
 
-    public NetlinkException(int errorCode, String message, Throwable cause) {
+    public NetlinkException(int errorCode, String message, Throwable cause, int seq) {
         super(format(errorCode, message), cause);
         this.errorCode = errorCode;
+        this.seq = seq;
     }
 
-    public NetlinkException(int errorCode, Throwable cause) {
+    public NetlinkException(int errorCode, Throwable cause, int seq) {
         super(format(errorCode, null), cause);
         this.errorCode = errorCode;
+        this.seq = seq;
     }
 
     public ErrorCode getErrorCodeEnum() {
@@ -73,4 +80,3 @@ public class NetlinkException extends Exception {
         return "error code: " + errorCode;
     }
 }
-

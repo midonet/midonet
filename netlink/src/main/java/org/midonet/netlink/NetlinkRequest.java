@@ -123,7 +123,7 @@ public abstract class NetlinkRequest implements Runnable {
 
     public Runnable expired() {
         String msg = "request #" + seq + " timeout";
-        return failed(new NetlinkException(ErrorCode.ETIMEOUT, msg));
+        return failed(new NetlinkException(ErrorCode.ETIMEOUT, msg, 0));
     }
 
     protected void changeState(State nextState, Object data) {

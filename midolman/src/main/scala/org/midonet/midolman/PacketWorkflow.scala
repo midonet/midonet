@@ -63,6 +63,8 @@ object PacketWorkflow {
     case class HandlePackets(packet: Array[Packet])
     case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
 
+    case class DuplicateFlow(index: Int)
+
     trait SimulationResult
     case object NoOp extends SimulationResult
     case object Drop extends SimulationResult
@@ -234,6 +236,9 @@ class PacketWorkflow(
 
         case CheckBackchannels =>
             process()
+
+        case DuplicateFlow(mark) =>
+            duplicateFlow(mark)
 
         case RestartWorkflow(pktCtx, error) =>
             if (pktCtx.idle) {
@@ -464,7 +469,7 @@ class PacketWorkflow(
                 val dpFlow = new Flow(context.origMatch, context.flowActions)
                 logResultNewFlow("Will create flow", context)
                 context.log.debug(s"Creating flow $dpFlow")
-                flow.sequence = dpChannel.createFlow(dpFlow)
+                flow.sequence = dpChannel.createFlow(dpFlow, flow.mark)
                 FlowCreated
             } else {
                 DuplicatedFlow

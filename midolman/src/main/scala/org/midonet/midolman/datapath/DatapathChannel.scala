@@ -28,7 +28,7 @@ import org.midonet.odp.flows.FlowAction
 
 trait DatapathChannel {
     def executePacket(packet: Packet, actions: JList[FlowAction]): Long
-    def createFlow(flow: Flow): Long
+    def createFlow(flow: Flow, mark: Int): Long
 
     def start(datapath: Datapath): Unit
     def stop(): Unit
@@ -119,7 +119,7 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
             }
         }
 
-    def createFlow(flow: Flow): Long = {
+    def createFlow(flow: Flow, mark: Int): Long = {
         val seq = ringBuffer.next()
 
         val event = ringBuffer.get(seq)
@@ -127,6 +127,7 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
 
         try {
             prepareFlow(event, flow)
+            event.bb.putInt(NetlinkMessage.NLMSG_SEQ_OFFSET, mark)
             event.op = FLOW_CREATE
         } catch { case t: Throwable =>
             event.op = SKIP

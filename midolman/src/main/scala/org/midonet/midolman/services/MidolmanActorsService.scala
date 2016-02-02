@@ -37,6 +37,10 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 
+object MidolmanActorsService {
+    var actorSystem: ActorSystem = _
+}
+
 /*
  * A base trait for a simple guice service that starts an actor system,
  * a SupervisorActor and set of top-level actors below the supervisor.
@@ -89,6 +93,7 @@ class MidolmanActorsService extends AbstractService {
 
             PacketTracing.registerAsMXBean()
             _system = createActorSystem()
+            MidolmanActorsService.actorSystem = _system
             supervisorActor = startTopActor(
                                 propsFor(classOf[SupervisorActor]),
                                 SupervisorActor.Name)

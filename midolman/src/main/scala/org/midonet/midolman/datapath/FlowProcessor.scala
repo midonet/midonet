@@ -20,6 +20,8 @@ import java.nio.channels._
 import java.nio.channels.spi.SelectorProvider
 import java.nio.ByteBuffer
 
+import org.midonet.midolman.services.MidolmanActorsService
+
 import scala.util.control.NonFatal
 
 import com.lmax.disruptor.{Sequencer, LifecycleAware, EventPoller}
@@ -29,6 +31,8 @@ import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
+import org.midonet.midolman.PacketWorkflow.DuplicateFlow
+import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{FlowMatch, OvsNetlinkFamilies, OvsProtocol}
@@ -178,6 +182,8 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         } catch {
             case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
                 log.debug("Tried to add duplicate DP flow")
+                PacketsEntryPoint.getRef()(MidolmanActorsService.actorSystem) !
+                    DuplicateFlow(ne.seq)
             case e: NetlinkException =>
                 log.warn("Failed to create flow", e)
             case NonFatal(e) =>
