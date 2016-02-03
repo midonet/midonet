@@ -297,48 +297,39 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
     private def validateFirewallNotExist(fwId: UUID,
                                          routerIds: List[UUID] = List()): Unit = {
         val protoFwId = UUIDUtil.toProto(fwId)
-        val fwInChainId = inChainId(protoFwId)
-        val fwOutChainId = outChainId(protoFwId)
+        val fwFwdChainId = fwdChainId(protoFwId)
 
         // Verify that the chains are gone
-        storage.exists(classOf[Chain], fwInChainId).await() shouldBe false
-        storage.exists(classOf[Chain], fwOutChainId).await() shouldBe false
+        storage.exists(classOf[Chain], fwFwdChainId).await() shouldBe false
 
         // Verify that the router associations are gone
         routerIds.foreach { rId =>
-            val inJumpRuleId = inChainFwJumpRuleId(UUIDUtil.toProto(rId))
-            storage.exists(classOf[Rule], inJumpRuleId).await() shouldBe false
-            val outJumpRuleId = outChainFwJumpRuleId(UUIDUtil.toProto(rId))
-            storage.exists(classOf[Rule], outJumpRuleId).await() shouldBe false
+            val fwdJumpRuleId = fwdChainFwJumpRuleId(UUIDUtil.toProto(rId))
+            storage.exists(classOf[Rule], fwdJumpRuleId).await() shouldBe false
         }
     }
 
-    private def validateFirewall(fwId: UUID, inRuleIds: List[UUID] = List(),
+    private def validateFirewall(fwId: UUID, ruleIds: List[UUID] = List(),
                                  adminStateUp: Boolean = true,
                                  addRtrIds: List[UUID] = List(),
                                  delRtrIds: List[UUID] = List()): Unit = {
         val protoFwId = UUIDUtil.toProto(fwId)
-        val fwInChainId = inChainId(protoFwId)
-        val fwOutChainId = outChainId(protoFwId)
+        val fwFwdChainId = fwdChainId(protoFwId)
 
-        val inChain = storage.get(classOf[Chain], fwInChainId).await()
-        val outChain = storage.get(classOf[Chain], fwOutChainId).await()
+        val fwdChain = storage.get(classOf[Chain], fwFwdChainId).await()
 
         // Verify that the chain names are correct
-        inChain.getName shouldBe preRouteChainName(protoFwId)
-        outChain.getName shouldBe postRouteChainName(protoFwId)
+        fwdChain.getName shouldBe fwdChainName(protoFwId)
 
-        val inRules = storage.getAll(classOf[Rule], inRuleIds).await()
-        validateIngressRuleOrder(inChain, inRules, adminStateUp)
-
-        validateEgressRuleOrder(outChain, adminStateUp)
+        val rules = storage.getAll(classOf[Rule], ruleIds).await()
+        validateForwardRuleOrder(fwdChain, rules, adminStateUp)
 
         validateRouterAssociations(fwId, addRtrIds, delRtrIds)
     }
 
-    private def validateIngressRuleOrder(chain: Chain, rules: Seq[Rule],
+    private def validateForwardRuleOrder(chain: Chain, rules: Seq[Rule],
                                          adminStateUp: Boolean = true) : Unit = {
-        // Verify that pre routing chain is correct.
+        // Verify that forward chain is correct.
         val expectedNum = if (adminStateUp) rules.length + 2 else
             rules.length + 3
 
@@ -366,33 +357,13 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
         r.getAction shouldBe Action.DROP
     }
 
-    private def validateEgressRuleOrder(chain: Chain,
-                                        adminStateUp: Boolean = true): Unit = {
-        // Verify that post routing chain is correct
-        val expectedNum = if (adminStateUp) 1 else 2
-        chain.getRuleIdsCount shouldBe expectedNum
-
-        if (!adminStateUp) {
-            val r = storage.get(classOf[Rule], chain.getRuleIds(0)).await()
-            r.getAction shouldBe Action.DROP
-        }
-
-        val r = storage.get(classOf[Rule],
-                            chain.getRuleIds(expectedNum - 1)).await()
-        r.getCondition.getMatchForwardFlow shouldBe true
-    }
-
     private def validateRouterJumpRule(chainId: Commons.UUID,
                                        jumpRuleId: Commons.UUID,
-                                       jumpChainId: Commons.UUID,
-                                       isPreRouting: Boolean): Unit = {
+                                       jumpChainId: Commons.UUID): Unit = {
         val chain = storage.get(classOf[Chain], chainId).await()
         chain.getRuleIdsCount shouldBe > (0)
 
-        if (isPreRouting)
-            chain.getRuleIds(0) shouldBe jumpRuleId
-        else
-            chain.getRuleIds(chain.getRuleIdsCount - 1) shouldBe jumpRuleId
+        chain.getRuleIds(0) shouldBe jumpRuleId
 
         val fwJumpRule = storage.get(classOf[Rule], jumpRuleId).await()
         fwJumpRule.getAction shouldBe Action.JUMP
@@ -412,29 +383,22 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         val addRouters = storage.getAll(classOf[Router], addIds).await()
         addRouters.foreach { r =>
-            val inRtrChainId = inChainId(r.getId)
-            val outRtrChainId = outChainId(r.getId)
+            val fwdRtrChainId = fwdChainId(r.getId)
 
             // Check that the filter chains are set
             r.hasInboundFilterId shouldBe true
             r.hasOutboundFilterId shouldBe true
 
             // Check that the chains are jump rules to the firewall chains
-            validateRouterJumpRule(inRtrChainId, inChainFwJumpRuleId(r.getId),
-                                   inChainId(fwIdProto),
-                                   isPreRouting = true)
-            validateRouterJumpRule(outRtrChainId, outChainFwJumpRuleId(r.getId),
-                                   outChainId(fwIdProto),
-                                   isPreRouting = false)
+            validateRouterJumpRule(fwdRtrChainId, fwdChainFwJumpRuleId(r.getId),
+                                   fwdChainId(fwIdProto))
         }
 
         val delRouters = storage.getAll(classOf[Router], delIds).await()
         delRouters.foreach { r =>
             // Verify that the jump rules are gone
-            validateNoRouterJumpRule(inChainId(r.getId),
-                                     inChainFwJumpRuleId(r.getId))
-            validateNoRouterJumpRule(outChainId(r.getId),
-                                     outChainFwJumpRuleId(r.getId))
+            validateNoRouterJumpRule(fwdChainId(r.getId),
+                                     fwdChainFwJumpRuleId(r.getId))
         }
     }
 }

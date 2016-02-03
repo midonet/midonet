@@ -46,6 +46,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                                preRouteChainName(nr.getId))
         val outChain = newChain(r.getOutboundFilterId,
                                 postRouteChainName(nr.getId))
+        val fwdChain = newChain(r.getForwardChainId,
+                                forwardChainName(nr.getId))
 
         // This is actually only needed for edge routers, but edge routers are
         // only defined by having an interface to an uplink network, so it's
@@ -64,6 +66,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         val ops = new OperationListBuffer
         ops += Create(inChain)
         ops += Create(outChain)
+        ops += Create(fwdChain)
         ops += Create(r)
         ops += Create(portGroup)
         ops ++= gwPortOps
@@ -73,6 +76,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateDelete(id: UUID): OperationList = {
         List(Delete(classOf[Chain], inChainId(id)),
              Delete(classOf[Chain], outChainId(id)),
+             Delete(classOf[Chain], fwdChainId(id)),
              Delete(classOf[PortGroup], PortManager.portGroupId(id)),
              Delete(classOf[Router], id))
     }
@@ -93,6 +97,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         bldr.setId(nr.getId)
         bldr.setInboundFilterId(inChainId(nr.getId))
         bldr.setOutboundFilterId(outChainId(nr.getId))
+        bldr.setForwardChainId(fwdChainId(nr.getId))
         if (nr.hasTenantId) bldr.setTenantId(nr.getTenantId)
         if (nr.hasName) bldr.setName(nr.getName)
         if (nr.hasAdminStateUp) bldr.setAdminStateUp(nr.getAdminStateUp)
@@ -318,6 +323,8 @@ object RouterTranslator {
     def preRouteChainName(id: UUID) = "OS_PRE_ROUTING_" + id.asJava
 
     def postRouteChainName(id: UUID) = "OS_POST_ROUTING_" + id.asJava
+
+    def forwardChainName(id: UUID) = "OS_FORWARD_" + id.asJava
 
     def portGroupName(id: UUID) = "OS_PORT_GROUP_" + id.asJava
 
