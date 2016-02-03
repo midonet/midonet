@@ -38,6 +38,10 @@ trait ChainManager {
     protected def outChainId(deviceId: UUID) =
         deviceId.xorWith(0x20940fb2cac401eL, 0x9ffaf9c05d04b524L)
 
+    /** Deterministically generate forward chain ID from device ID. */
+    protected def fwdChainId(deviceId: UUID) =
+        deviceId.xorWith(0xd90b1ceebd1bf51eL, 0xb5e5dab5476adb8aL)
+
     /** Deterministically generate anti spoof chain ID from device ID. */
     def antiSpoofChainId(deviceId: UUID) =
         deviceId.xorWith(0xa7b611cfe7334feL, 0xbbac78cfe412ad35L)
