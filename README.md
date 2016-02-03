@@ -148,7 +148,7 @@ RPM packages targeted for RHEL 6.5:
 
 RHEL 7 packages:
 
-    ~/midonet$ ./gradlew rpm -x test -PrhelTarget=7
+    ~/midonet$ ./gradlew rpm -x test -PrhelTarget=el7
 
 SLES 12 packages:
 

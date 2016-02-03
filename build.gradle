@@ -21,7 +21,7 @@ project.ext {
     url = "http://midonet.org"
 
     if (!rootProject.hasProperty('rhelTarget')) {
-        rhelTarget = "6"
+        rhelTarget = "el6"
     }
 
     jdkBootstrap = "${rootDir}/midonet-jdk-bootstrap/build/classes/main:${System.properties['java.home']}/lib/rt.jar"
@@ -167,11 +167,7 @@ project.ext {
     rpmRelease = midonetVersion.replaceAll(/^[^-]+$/, "1.0").
                                 replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}.${gitrev}").
                                 replaceAll(/^.*-(.*)$/, "0.1.\$1")
-    if (project.rhelTarget == '6' || project.rhelTarget == '7') {
-        rpmRelease = "${rpmRelease}.el${project.rhelTarget}"
-    } else {
-        rpmRelease = "${rpmRelease}.${project.rhelTarget}"
-    }
+    rpmRelease = "${rpmRelease}.${project.rhelTarget}"
 
 }
 

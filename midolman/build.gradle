@@ -210,10 +210,10 @@ packaging {
 preparePkg.dependsOn cleanPkg
 debian.dependsOn preparePkg
 
-if (project.rhelTarget == "7") {
+if (project.rhelTarget == "el7") {
     rpm.dependsOn rhel7Prepare
     rhel7Prepare.dependsOn preparePkg
-} else if (project.rhelTarget == "6") {
+} else if (project.rhelTarget == "el6") {
     rpm.dependsOn rhel6Prepare
     rhel6Prepare.dependsOn preparePkg
 } else {
@@ -248,7 +248,7 @@ rpm.doFirst {
         '-d', 'python',
         '-d', 'quagga >= 0.99.21',
         '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
-    if (project.rhelTarget == "7") {
+    if (project.rhelTarget == "el7") {
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
@@ -257,7 +257,7 @@ rpm.doFirst {
             '--depends', 'python-setproctitle',
             '--depends', 'iproute',
             '--depends', 'java-1.7.0'])
-    } else if (project.rhelTarget == "6") {
+    } else if (project.rhelTarget == "el6") {
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel6/control/preinst",
