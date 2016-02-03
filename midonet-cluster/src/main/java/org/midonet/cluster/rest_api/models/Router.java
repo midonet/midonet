@@ -86,6 +86,9 @@ public class Router extends UriResource {
     @ZoomField(name = "outbound_mirror_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> outboundMirrorIds;
 
+    @ZoomField(name = "forward_chain_id")
+    public UUID forwardChainId;
+
     public Router() {
         adminStateUp = true;
     }
@@ -132,6 +135,10 @@ public class Router extends UriResource {
         return relativeUri(ResourceUris.BGP_PEERS);
     }
 
+    public URI getForwardChain() {
+        return absoluteUri(ResourceUris.CHAINS, forwardChainId);
+    }
+
     @JsonIgnore
     @Override
     public void create() {
@@ -166,6 +173,7 @@ public class Router extends UriResource {
             .add("bgpNetworkIds", bgpNetworkIds)
             .add("bgpPeerIds", bgpPeerIds)
             .add("traceRequestIds", traceRequestIds)
+            .add("forwardChainId", forwardChainId)
             .toString();
     }
 }
