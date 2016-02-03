@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_9cd1c059",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterConfig.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-03T13:44:15Z",
+      "side": 1,
+      "message": "yes, definitely. we should change the others too",
+      "parentUuid": "fa81d914_56abaad5",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 9
+      },
+      "revId": "aa3ed255d610e3f701c49ffd3eb542d363640286",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_16469223",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ExecutorsModule.scala",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_bcd4c447",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ExecutorsModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-03T13:44:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_16469223",
+      "range": {
+        "startLine": 42,
+        "startChar": 8,
+        "endLine": 42,
+        "endChar": 14
+      },
+      "revId": "aa3ed255d610e3f701c49ffd3eb542d363640286",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_364c7642",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ExecutorsModule.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2016-02-02T09:57:28Z",
       "side": 1,
       "message": "Should we be so restrictive? I\u0027m thinking cases where a minion could lock a thread for example.\n\nIn theory we should require our minions never block though..",
+      "range": {
+        "startLine": 43,
+        "startChar": 42,
+        "endLine": 43,
+        "endChar": 61
+      },
+      "revId": "aa3ed255d610e3f701c49ffd3eb542d363640286",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_dccb38a3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ExecutorsModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-03T13:44:15Z",
+      "side": 1,
+      "message": "You\u0027re right, maybe not. So then, use the number of processors, but increase if if the config is larger?",
+      "parentUuid": "fa81d914_364c7642",
       "range": {
         "startLine": 43,
         "startChar": 42,
