@@ -74,6 +74,8 @@ midolman1:
     service: midolman
   image: sandbox/midolman:master
   hostname: midolman1
+  volumes:
+  - /lib/modules:/lib/modules
   environment:
   # Edge bgp interface peering with quagga bgpeth0 interface, 10.1.0.1/24
   - BGP0_IFACE=bgp0
@@ -95,6 +97,8 @@ midolman2:
     service: midolman
   image: sandbox/midolman:master
   hostname: midolman2
+  volumes:
+  - /lib/modules:/lib/modules
   environment:
   # Edge bgp interface peering with quagga bgpeth1 interface, 10.2.0.1/24
   - BGP0_IFACE=bgp0
@@ -116,6 +120,8 @@ midolman3:
     service: midolman
   image: sandbox/midolman:master
   hostname: midolman3
+  volumes:
+  - /lib/modules:/lib/modules
   labels:
       interface: mdts.services.midonet_agent.MidonetAgentHost
       type: midolman
