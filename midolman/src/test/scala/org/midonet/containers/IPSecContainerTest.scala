@@ -108,7 +108,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             name = Some(random.nextString(10)),
             mtu = Some(random.nextInt()),
             peerAddress = Some(IPv4Addr.random.toString),
-            psk = Some(random.nextString(10)),
+            psk = Some(IPSecConfig.sanitizePsk(random.nextString(10))),
             localCidrs = Seq(randomIPv4Subnet),
             peerCidrs = Seq(randomIPv4Subnet),
             ikePolicy = Some(ike),
@@ -1972,8 +1972,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         }
     }
 
-    feature("IPSecConfig") {
-        scenario("Sanitize connection name") {
+    feature("Sanitizing the configuration") {
+        scenario("Connection name") {
             Given("A name with alphanumerical characters")
             var name = "asd876asd"
             val id = UUID.randomUUID()
@@ -1996,8 +1996,24 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             Then("The sanitized name should contain the 1st 8 digits of the " +
                  "connection id")
-             IPSecConfig.sanitizeName(id, name) shouldBe "ipsec-" +
+            IPSecConfig.sanitizeName(id, name) shouldBe "ipsec-" +
                 id.toString.substring(0, 8)
+        }
+
+        scenario("PSK") {
+            Given("A valid secret")
+            var psk = "valid secret %&!$%#(*@!^"
+
+            Then("The sanitized secret is identical")
+            IPSecConfig.sanitizePsk(psk) shouldBe psk
+
+            When("We place double quotes and new line characters in the" +
+                 "secret")
+            psk = "Double quotes \"and newlines \n\rare not allowed"
+
+            Then("The sanitized secret should contain invalid characters")
+            IPSecConfig.sanitizePsk(psk) shouldBe
+                "Double quotes and newlines are not allowed"
         }
     }
 }
