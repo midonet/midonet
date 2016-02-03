@@ -36,6 +36,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
 import org.apache.zookeeper.KeeperException.NoNodeException
 import org.junit.runner.RunWith
+import org.midonet.containers.IPSecConfig
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
@@ -746,7 +747,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         con.put("peer_address", peerAddress)
         con.put("peer_ep_group_id", peerEpGroupId.map(_.toString).orNull)
         con.put("peer_id", peerId)
-        con.put("psk", psk)
+        con.put("psk", IPSecConfig.sanitizePsk(psk))
         con.put("route_mode", routeMode)
         con.put("status", status)
         con.put("tenant_id", tenantId.orNull)

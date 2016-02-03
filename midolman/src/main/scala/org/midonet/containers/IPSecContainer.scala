@@ -70,6 +70,8 @@ object IPSecConfig {
     def sanitizeName(name: String): String =
         name.replaceAll("[^\\w]", "_") + nameHash.hashString(name, UTF_8).toString
 
+    def sanitizePsk(psk: String): String = psk.replaceAll("[\n\r\"]", "")
+
     def subnetsString(subnets: java.util.List[Commons.IPSubnet]): String = {
         if (subnets.isEmpty) return ""
         val ss = new StringBuilder(subnets.get(0).asJava.toString)
@@ -91,8 +93,9 @@ case class IPSecConfig(script: String,
     def getSecretsFileContents = {
         val contents = new StringBuilder
         for (c <- connections if isSiteConnectionUp(c)) {
+            val sanitizedPsk = sanitizePsk(c.getPsk)
             contents append
-            s"""${ipsecService.localEndpointIp} ${c.getPeerAddress} : PSK "${c.getPsk}"
+            s"""${ipsecService.localEndpointIp} ${c.getPeerAddress} : PSK "$sanitizedPsk"
                |""".stripMargin
         }
         contents.toString()
