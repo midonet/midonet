@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.{Condition, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronFirewallRule.FirewallRuleAction
 import org.midonet.cluster.models.Neutron.{NeutronFirewall, NeutronFirewallRule}
@@ -36,11 +36,10 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
     import FirewallTranslator._
 
     private def firewallChains(fwId: UUID) =
-        List(newChain(inChainId(fwId), preRouteChainName(fwId)),
-             newChain(outChainId(fwId), postRouteChainName(fwId)))
+        List(newChain(fwdChainId(fwId), fwdChainName(fwId)))
 
-    private def preRoutingRules(fw: NeutronFirewall): List[Rule] = {
-        val chainId = inChainId(fw.getId)
+    private def fwdRules(fw: NeutronFirewall): List[Rule] = {
+        val chainId = fwdChainId(fw.getId)
         val rules = new ListBuffer[Rule]
 
         // If admin state is down, add a DROP rule
@@ -51,28 +50,15 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         }
 
         // Match on return
+        // NOTE: This starts conneciton tracking
         rules += returnFlowRule(chainId)
 
         // Copy over the enabled rules
         rules ++= fw.getFirewallRuleListList.asScala
             .filter(_.getEnabled).map(r => toRule(r, chainId))
 
-        // Drop rule at the end of inbound
+        // The default-drop rule
         rules += dropRuleBuilder(chainId).build()
-        rules.toList
-    }
-
-    private def postRoutingRules(fw: NeutronFirewall): List[Rule] = {
-        val chainId = outChainId(fw.getId)
-        val rules = new ListBuffer[Rule]
-
-        // If admin state is down, add a DROP rule
-        if (!fw.getAdminStateUp) {
-            rules += dropRuleBuilder(chainId).build()
-        }
-
-        // Just match forward flow
-        rules += forwardFlowRule(chainId)
         rules.toList
     }
 
@@ -107,46 +93,62 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         // However, since deletion happens before creation, translation should
         // still succeed.
 
-        // Detach the chains from the routers
+        // Detach the chain from the routers
         fw.getDelRouterIdsList.asScala foreach { rId =>
-            // Remove the FW jump rules from the router
-            ops += Delete(classOf[Rule], inChainFwJumpRuleId(rId))
-            ops += Delete(classOf[Rule], outChainFwJumpRuleId(rId))
+            ops ++= deleteOldChains(rId)
+
+            // Remove the FW jump rule from the router
+            ops += Delete(classOf[Rule], fwdChainFwJumpRuleId(rId))
         }
 
-        // Attach the chains to the routers
+        // Attach the chain to the routers
         fw.getAddRouterIdsList.asScala foreach { rId =>
-            val inRuleId = inChainFwJumpRuleId(rId)
+            ops ++= deleteOldChains(rId)
+
+            val fwdRuleId = fwdChainFwJumpRuleId(rId)
 
             // Because Neutron sets the add-router-ids field to a set of
             // currently associated router IDs instead of newly associated,
             // make sure to check whether the association exists first.
-            if (!storage.exists(classOf[Rule], inRuleId).await()) {
-                val chain = storage.get(classOf[Chain],
-                                        inChainId(rId)).await()
-                ops += Create(jumpRuleWithId(inRuleId, inChainId(rId),
-                                             inChainId(fw.getId)))
-                // Add the rule at the beginning of the pre-routing chain
-                // so that the firewall rules are evaluated before the NAT
-                // rules that may exist.
-                ops += Update(chain.toBuilder
-                                  .addRuleIds(0, inRuleId).build())
-            }
-
-            val outRuleId = outChainFwJumpRuleId(rId)
-            if (!storage.exists(classOf[Rule], outRuleId).await()) {
-                ops += Create(jumpRuleWithId(outRuleId, outChainId(rId),
-                                             outChainId(fw.getId)))
+            if (!storage.exists(classOf[Rule], fwdRuleId).await()) {
+                val (routerOps, chain) = ensureRouterFwdChain(rId)
+                ops ++= routerOps
+                ops += Create(jumpRuleWithId(fwdRuleId, chain.getId,
+                                             fwdChainId(fw.getId)))
+                ops += Update(chain.toBuilder.addRuleIds(fwdRuleId).build())
             }
         }
 
         ops.toList
     }
 
+    private def deleteOldChains(rId: UUID): OperationList = {
+        // Remove old translations if any
+        List(Delete(classOf[Rule], inChainFwJumpRuleId(rId)),
+            Delete(classOf[Rule], outChainFwJumpRuleId(rId)))
+    }
+
+    private def ensureRouterFwdChain(rId: UUID): (OperationList, Chain) = {
+        val chainId = fwdChainId(rId)
+        try {
+            val chain = storage.get(classOf[Chain], chainId).await()
+            (List(), chain)
+        } catch {
+            case nfe: NotFoundException =>
+                // A router with old translation might not have
+                // the forward chain
+                log.info("Creating fwd chain for {}", rId)
+                val name = RouterTranslator.forwardChainName(rId)
+                val chain = newChain(chainId, name)
+                val router = storage.get(classOf[Router], rId).await()
+                val bldr = router.toBuilder.setForwardChainId(chainId)
+                (List(Create(chain), Update(bldr.build)), chain)
+        }
+    }
+
     override protected def translateCreate(fw: NeutronFirewall) =
         firewallChains(fw.getId).map(Create(_)) ++
-        preRoutingRules(fw).map(Create(_)) ++
-        postRoutingRules(fw).map(Create(_)) ++
+        fwdRules(fw).map(Create(_)) ++
         translateRouterAssocs(fw)
 
     private def translateFwJumpRuleDel(fwId: UUID): OperationList = {
@@ -163,24 +165,26 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         firewallChains(id).map(c => Delete(classOf[Chain], c.getId))
 
     override protected def translateUpdate(fw: NeutronFirewall) = {
-        val chainIds = List(inChainId(fw.getId), outChainId(fw.getId))
-        val chains = storage.getAll(classOf[Chain], chainIds).await()
-        translateRuleChainUpdate(fw, chains.head, preRoutingRules) ++
-        translateRuleChainUpdate(fw, chains.last, postRoutingRules) ++
+        val chainId = fwdChainId(fw.getId)
+        val chain = storage.get(classOf[Chain], chainId).await()
+        translateRuleChainUpdate(fw, chain, fwdRules) ++
         translateRouterAssocs(fw)
     }
 }
 
 object FirewallTranslator {
 
-    def preRouteChainName(id: UUID) = "OS_FW_PRE_ROUTING_" + id.asJava
-
-    def postRouteChainName(id: UUID) = "OS_FW_POST_ROUTING_" + id.asJava
-
+    /* old translation */
     def inChainFwJumpRuleId(routerId: UUID): UUID =
         routerId.xorWith(0xc309e08c3eaf11e5L, 0xaf410242ac110002L)
 
+    /* old translation */
     def outChainFwJumpRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0x1b4b62ca3eb011e5L, 0x91260242ac110002L)
+
+    def fwdChainName(id: UUID) = "OS_FW_FORWARD_" + id.asJava
+
+    def fwdChainFwJumpRuleId(routerId: UUID): UUID =
         routerId.xorWith(0x1b4b62ca3eb011e5L, 0x91260242ac110002L)
 
     def toTopologyRuleAction(action: FirewallRuleAction): Action = {
