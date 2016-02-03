@@ -564,6 +564,9 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         if (router.hasInboundFilterId) {
             infilters.add(router.getInboundFilterId)
         }
+        if (router.hasForwardChainId) {
+            outfilters.add(router.getForwardChainId)
+        }
         if (router.hasOutboundFilterId) {
             outfilters.add(router.getOutboundFilterId)
         }

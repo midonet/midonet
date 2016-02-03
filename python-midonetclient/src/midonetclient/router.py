@@ -58,6 +58,9 @@ class Router(resource_base.ResourceBase,
     def get_local_redirect_chain_id(self):
         return self.dto['localRedirectChainId']
 
+    def get_forward_chain_id(self):
+        return self.dto['forwardChainId']
+
     def id(self, id):
         self.dto['id'] = id
         return self
@@ -88,6 +91,10 @@ class Router(resource_base.ResourceBase,
 
     def local_redirect_chain_id(self, id_):
         self.dto['localRedirectChainId'] = id_
+        return self
+
+    def forward_chain_id(self, id_):
+        self.dto['forwardChainId'] = id_
         return self
 
     def get_inbound_mirrors(self, query=None):

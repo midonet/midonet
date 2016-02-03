@@ -47,6 +47,8 @@ public class DtoRouter {
     private Integer asNumber;
     private UUID localRedirectChainId;
     private URI localRedirectChain;
+    private UUID forwardChainId;
+    private URI forwardChain;
 
     public URI getBgpPeers() {
         return bgpPeers;
@@ -176,6 +178,14 @@ public class DtoRouter {
         this.localRedirectChain = localRedirectChain;
     }
 
+    public URI getForwardChain() {
+        return forwardChain;
+    }
+
+    public void setForwardChain(URI forwardChain) {
+        this.forwardChain = forwardChain;
+    }
+
     public URI getUri() {
         return uri;
     }
@@ -214,6 +224,14 @@ public class DtoRouter {
 
     public void setLocalRedirectChainId(UUID localRedirectChainId) {
         this.localRedirectChainId = localRedirectChainId;
+    }
+
+    public UUID getForwardChainId() {
+        return forwardChainId;
+    }
+
+    public void setForwardChainId(UUID forwardChainId) {
+        this.forwardChainId = forwardChainId;
     }
 
     @Override
@@ -282,6 +300,9 @@ public class DtoRouter {
             return false;
 
         if (!Objects.equal(localRedirectChainId, otherRouter.getLocalRedirectChainId()))
+            return false;
+
+        if (!Objects.equal(forwardChainId, otherRouter.getForwardChainId()))
             return false;
 
         if (adminStateUp != otherRouter.adminStateUp) {
