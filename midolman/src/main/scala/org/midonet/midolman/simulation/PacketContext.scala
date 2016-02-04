@@ -336,6 +336,10 @@ class PacketContext(val cookie: Long,
                                                  with StateContext {
     var log = PacketContext.defaultLog
 
+    var originalEthPacket = packet.getEthernet
+
+    var originalFlowMatch= origMatch.clone()
+
     def jlog = log.underlying
 
     var portGroups: ArrayList[UUID] = null
@@ -400,6 +404,11 @@ class PacketContext(val cookie: Long,
     }
 
     def postpone() {
+        // reset the payload and its original flow match in case it was
+        // encapsulated or decapsulated during this try of the simulation.
+        packet.setEthernet(originalEthPacket)
+        origMatch.clear()
+        origMatch.addKeys(originalFlowMatch.getKeys)
         idle = true
         inputPort = null
         clear()
