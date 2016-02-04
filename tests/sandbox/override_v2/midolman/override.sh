@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# Installs newest package (lexicographycally) in override
-LATEST=$(ls /override/midolman*deb | tail -n1)
-LATEST_TOOLS=$(ls /override/midonet-tools*deb | tail -n1)
-dpkg -r midolman
-dpkg -r midonet-tools
-dpkg -i --force-confnew $LATEST_TOOLS $LATEST
+# Install the latest from local repository
+LOCAL_REPO_FILE=/etc/apt/sources.list.d/midonet-local.list
+echo "deb file:/packages /" > $LOCAL_REPO_FILE
+apt-get update -o Dir::Etc::sourcelist=$LOCAL_REPO_FILE
+apt-get update
+apt-get install -qy --force-yes midolman/local \
+                                midonet-tools/local
 
 # Make sure we can access the remote management interface from outside the container
 HOST_NAME=`hostname`
