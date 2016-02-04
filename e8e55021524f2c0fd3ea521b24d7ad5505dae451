@@ -22,6 +22,30 @@
       "revId": "e8e55021524f2c0fd3ea521b24d7ad5505dae451",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ad9f2cb3",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-04T08:49:25Z",
+      "side": 1,
+      "message": "Not really, I\u0027ll remove it.",
+      "parentUuid": "fa81d914_dca09845",
+      "range": {
+        "startLine": 750,
+        "startChar": 23,
+        "endLine": 750,
+        "endChar": 51
+      },
+      "revId": "e8e55021524f2c0fd3ea521b24d7ad5505dae451",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
