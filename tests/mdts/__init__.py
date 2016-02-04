@@ -86,7 +86,7 @@ def setup_package():
     for type, hosts in service.get_all_containers().items():
         for host in hosts:
             LOG.debug("Checking liveness of %s" % host.get_hostname())
-            host.wait_for_status('up')
+            host.wait_for_status('up', timeout=240)
 
     # Wait until bindings do not fail, at that point, mdts is ready for test
     max_attempts = 10
