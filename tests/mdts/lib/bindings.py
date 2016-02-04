@@ -32,8 +32,8 @@ class BindingManager(fixtures.Fixture):
         if self._ptm is None:
             # Set a default topology manager
             self._ptm = TopologyManager()
-            # Define the default tunnel zone
-            self._tzone_name = 'tzone-%s' % str(uuid.uuid4())[:4]
+
+        self._tzone_name = self._ptm.get_default_tunnel_zone_name()
         self._vtm = vtm
         self._cleanups = callmany.CallMany()
         self._mappings = {}
@@ -45,19 +45,26 @@ class BindingManager(fixtures.Fixture):
         return self._data
 
     def bind(self):
-        self._ptm.build()
-        self._vtm.build()
+        # Schedule deletion of virtual and physical topologies
+        self.addCleanup(self._ptm.destroy)
+        self._ptm.build(self._data)
+        self.addCleanup(self._vtm.destroy)
+        self._vtm.build(self._data)
         for binding in self._data['bindings']:
             vport = self._vtm.get_resource(binding['vport'])
             bind_iface = binding['interface']
             if type(bind_iface) is dict:
                 # We are specifying the vms inside the binding
                 iface_def = bind_iface['definition']
+                # prime the neutron info (authoritative)
+                if 'port' in vport and 'ip_address' in vport['port']:
+                    iface_def['ipv4_addr'] = vport['port']['ip_address']
                 iface_type = bind_iface['type']
                 hostname = bind_iface['hostname']
                 host = service.get_container_by_hostname(hostname)
                 self._ptm.add_host_to_tunnel_zone(hostname, self._tzone_name)
                 iface = getattr(host, "create_%s" % iface_type)(**iface_def)
+                self.addCleanup(getattr(host, "destroy_%s" % iface_type), iface)
             else:
                 # It's a vm already created and saved as a resource
                 iface = self._ptm.get_resource(binding['interface'])
@@ -69,10 +76,6 @@ class BindingManager(fixtures.Fixture):
             self.addCleanup(iface.compute_host.unbind_port, iface)
             self._mappings[vport_id] = iface
             await_port_active(vport_id)
-
-        # Schedule deletion of virtual and physical topologies
-        self.addCleanup(self._vtm.destroy)
-        self.addCleanup(self._ptm.destroy)
 
     def unbind(self):
         self.cleanUp()
