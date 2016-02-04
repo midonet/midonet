@@ -66,9 +66,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected val log = LoggerFactory.getLogger(this.getClass)
 
-    private val ZK_PORT = 50000 + Random.nextInt(15000)
-    private val ZK_HOST = s"127.0.0.1:$ZK_PORT"
-
+    // Data sources
     private val DB_CONNECT_STR =
         "jdbc:sqlite:file:taskdb?mode=memory&cache=shared"
 
@@ -117,9 +115,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     private val clusterCfg = new ClusterConfig(C3PO_CFG_OBJECT)
 
-    // Data sources
-    private val zk: TestingServer = new TestingServer(ZK_PORT)
-
     protected val nodeFactory = new JsonNodeFactory(true)
 
     // Adapt the DriverManager interface to DataSource interface.
@@ -148,6 +143,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     // We need to keep one connection open to maintain the shared in-memory DB
     // during the test.
     private val dummyConnection = dataSrc.getConnection()
+
+    private val zk: TestingServer = new TestingServer()
+    private val ZK_HOST = s"127.0.0.1:${zk.getPort}"
 
     // ---------------------
     // DATA FIXTURES
