@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_924b6786",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-02-04T07:22:21Z",
+      "side": 1,
+      "message": "\u0026 has higher precedence than ^\n\nscala\u003e (0x1ffff ^ 0xffff) \u0026 0xffff\nres0: Int \u003d 0\n\nscala\u003e 0x1ffff ^ (0xffff \u0026 0xffff)\nres1: Int \u003d 65536\n\nscala\u003e 0x1ffff ^ 0xffff \u0026 0xffff\nres2: Int \u003d 65536\n\nAlso, didn\u0027t the old version limit the range to 32768-65535? Not sure whether there was a good reason for that.",
+      "range": {
+        "startLine": 189,
+        "startChar": 12,
+        "endLine": 189,
+        "endChar": 61
+      },
+      "revId": "5bbfeb43803d3a20c4c7255376deb05a0babd674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f2482389",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/RouterPeeringTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-02-04T07:22:21Z",
+      "side": 1,
+      "message": "Should also verify that it\u0027s in the correct range.",
+      "range": {
+        "startLine": 167,
+        "startChar": 16,
+        "endLine": 167,
+        "endChar": 70
+      },
+      "revId": "5bbfeb43803d3a20c4c7255376deb05a0babd674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
