@@ -5,6 +5,9 @@ LATEST=$(ls /override/midolman*deb | tail -n1)
 LATEST_TOOLS=$(ls /override/midonet-tools*deb | tail -n1)
 dpkg -r midolman
 dpkg -r midonet-tools
+dpkg -r openswan
+apt-get update
+apt-get install -qy libreswan
 dpkg -i --force-confnew $LATEST_TOOLS $LATEST
 
 # Make sure we can access the remote management interface from outside the container
