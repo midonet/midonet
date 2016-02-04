@@ -19,6 +19,7 @@ package org.midonet.midolman
 import java.util.UUID
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -155,6 +156,17 @@ class RouterPeeringTest extends MidolmanSpec {
             pktCtx.wcmatch.getNetworkSrcIP should be (vtepTunnelIp)
             pktCtx.wcmatch.getNetworkDstIP should be (remoteVtepRouterIp)
             pktCtx.wcmatch.getDstPort should be (UDP.VXLAN)
+        }
+        scenario("Packets with similar flows should have unique src port") {
+            val usedPorts = ListBuffer[Int]()
+            for (i <- 1024 to 2000) {
+                val pkt = { eth src MAC.random() dst exteriorTenantPortMac } <<
+                           { ip4 src localVmIp dst remoteVmIp } <<
+                           { tcp src i.toShort dst 80 }
+                val (simRes, pktCtx) = sendPacket(exteriorTenantPort, pkt)
+                usedPorts should not contain pktCtx.wcmatch.getSrcPort
+                usedPorts += pktCtx.wcmatch.getSrcPort
+            }
         }
     }
 

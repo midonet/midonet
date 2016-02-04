@@ -183,6 +183,21 @@ abstract class RouterBase[IP <: IPAddr]()
             return false
         }
 
+        def getSrcPort(ipBytes: Array[Byte], src: Int, dst: Int): Int = {
+            val ipHigh = (ipBytes(0) << 8) | ipBytes(1)
+            val ipLow = (ipBytes(2) << 8) | ipBytes(3)
+            (31 * ipHigh + ipLow) ^ (31 * src + dst) & 0xFFFF
+        }
+
+        /*
+         * We need to create a src port for the UDP packet that is as unique
+         * as possible, but fit it into just 16 bytes. We pick the field that
+         * are most likely to change per flow.
+         */
+        val newSrcPort = getSrcPort(context.wcmatch.getNetworkSrcIP.toBytes,
+                                    context.wcmatch.getSrcPort,
+                                    context.wcmatch.getDstPort)
+
         context.encap(
             vni = inPort.vni,
             srcMac = RouterBase.encapMac,
@@ -191,7 +206,7 @@ abstract class RouterBase[IP <: IPAddr]()
             dstIp = remoteVtep,
             tos = context.wcmatch.getNetworkTOS,
             ttl = -1,
-            srcPort = context.wcmatch.connectionHash() >>> 16,
+            srcPort = newSrcPort,
             dstPort = UDP.VXLAN)
 
         context.log.debug(s"Encapsulated packet ${context.wcmatch}")
