@@ -45,6 +45,9 @@ def wait_on_futures(futures):
 
 
 def get_midonet_api():
+    """
+    :rtype: midonetclient.api.MidonetApi
+    """
     return service.get_container_by_hostname('cluster1').get_midonet_api()
 
 
@@ -53,6 +56,12 @@ def get_neutron_api():
     :rtype: neutronclient.v2_0.client.Client
     """
     return service.get_container_by_hostname('neutron').get_neutron_api()
+
+def get_keystone_api():
+    """
+    :rtype: keystoneclient.
+    """
+    return service.get_container_by_hostname('keystone').get_keystone_api()
 
 
 #
