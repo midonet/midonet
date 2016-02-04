@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import fixtures
+from collections import namedtuple
 from fixtures import callmany
 import uuid
 from mdts.lib.topology_manager import TopologyManager
@@ -32,8 +33,7 @@ class BindingManager(fixtures.Fixture):
         if self._ptm is None:
             # Set a default topology manager
             self._ptm = TopologyManager()
-            # Define the default tunnel zone
-            self._tzone_name = 'tzone-%s' % str(uuid.uuid4())[:4]
+
         self._vtm = vtm
         self._cleanups = callmany.CallMany()
         self._mappings = {}
@@ -44,20 +44,59 @@ class BindingManager(fixtures.Fixture):
     def get_binding_data(self):
         return self._data
 
+    def _add_hosts_to_tunnel_zone(self):
+        _tzone_name = self._ptm.get_default_tunnel_zone_name()
+        agents = service.get_all_containers('midolman')
+        for agent in agents:
+            self._ptm.add_host_to_tunnel_zone(
+                agent.get_hostname(), _tzone_name)
+
+    def _update_addresses(self, iface, vport):
+        if 'port' in vport and len(vport['port']['fixed_ips']) > 0:
+            # This is a neutron port, discover which ip should be used
+            n_subnet_id = vport['port']['fixed_ips'][0]['subnet_id']
+            base_port = {'port': dict()}
+            if 'ipv4_addr' in iface:
+                # ip specified in the binding, override that from the vport
+                # and update the neutron db
+                base_port['port']['fixed_ips'] = [
+                    {'subnet_id': n_subnet_id,
+                     'ip_address': iface['ipv4_addr'][0].split('/')[0]}
+                ]
+                if 'hw_addr' in iface:
+                    base_port['port']['mac_address'] = iface['hw_addr']
+
+                self._vtm.api.update_port(vport['port']['id'], base_port)
+            else:
+                # ip from neutron dhcp, get the correct subnet cidr for
+                # setting the actual interface ip
+                subnet = self._vtm.get_resource(n_subnet_id)
+                iface['hw_addr'] = vport['port']['mac_address']
+
+                ipv4_addr = vport['port']['fixed_ips'][0]['ip_address']
+                ipv4_cidr = subnet['subnet']['cidr'].split('/')[1]
+                iface['ipv4_addr'] = [ipv4_addr + '/' + ipv4_cidr]
+        # If not a neutron port, both ip and hw addr should be specified
+        return dict(iface)
+
     def bind(self):
-        self._ptm.build()
-        self._vtm.build()
+        # Schedule deletion of virtual and physical topologies
+        self.addCleanup(self._ptm.destroy)
+        self._ptm.build(self._data)
+        self.addCleanup(self._vtm.destroy)
+        self._vtm.build(self._data)
+        self._add_hosts_to_tunnel_zone()
         for binding in self._data['bindings']:
             vport = self._vtm.get_resource(binding['vport'])
             bind_iface = binding['interface']
             if type(bind_iface) is dict:
                 # We are specifying the vms inside the binding
-                iface_def = bind_iface['definition']
+                iface_def = self._update_addresses(bind_iface['definition'], vport)
                 iface_type = bind_iface['type']
                 hostname = bind_iface['hostname']
                 host = service.get_container_by_hostname(hostname)
-                self._ptm.add_host_to_tunnel_zone(hostname, self._tzone_name)
                 iface = getattr(host, "create_%s" % iface_type)(**iface_def)
+                self.addCleanup(getattr(host, "destroy_%s" % iface_type), iface)
             else:
                 # It's a vm already created and saved as a resource
                 iface = self._ptm.get_resource(binding['interface'])
@@ -69,10 +108,6 @@ class BindingManager(fixtures.Fixture):
             self.addCleanup(iface.compute_host.unbind_port, iface)
             self._mappings[vport_id] = iface
             await_port_active(vport_id)
-
-        # Schedule deletion of virtual and physical topologies
-        self.addCleanup(self._vtm.destroy)
-        self.addCleanup(self._ptm.destroy)
 
     def unbind(self):
         self.cleanUp()
