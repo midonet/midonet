@@ -54,6 +54,12 @@ def get_neutron_api():
     """
     return service.get_container_by_hostname('neutron').get_neutron_api()
 
+def get_keystone_api():
+    """
+    :rtype: keystoneclient.
+    """
+    return service.get_container_by_hostname('keystone').get_keystone_api()
+
 
 #
 # ``failures'' introduces another decorator @failures which can be used to
