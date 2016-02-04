@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_dae5f5dc",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-04T18:59:35Z",
+      "side": 1,
+      "message": "Strange formatting? Do you mean the indentation? I tried to use a single one, although maybe that doesn\u0027t matter because now the file uses several.",
+      "parentUuid": "fa81d914_ad864c63",
+      "range": {
+        "startLine": 243,
+        "startChar": 0,
+        "endLine": 243,
+        "endChar": 70
+      },
+      "revId": "9f04dfc58ee85a628637e158d2feb051a7f4e27e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_f1e90881",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 1
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_5ac2e534",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-04T18:59:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_4d915098",
+      "range": {
+        "startLine": 237,
+        "startChar": 4,
+        "endLine": 239,
+        "endChar": 47
+      },
+      "revId": "9f04dfc58ee85a628637e158d2feb051a7f4e27e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_11edbc8b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
         "patchSetId": 1
@@ -83,6 +131,30 @@
       "writtenOn": "2016-02-02T15:09:23Z",
       "side": 1,
       "message": "I think I commented on another patch on this (nit), is there a reason for the upper case?",
+      "range": {
+        "startLine": 209,
+        "startChar": 8,
+        "endLine": 209,
+        "endChar": 9
+      },
+      "revId": "9f04dfc58ee85a628637e158d2feb051a7f4e27e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_1ad30d05",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-04T18:59:35Z",
+      "side": 1,
+      "message": "No, it was introduced as such, it should be small case.",
+      "parentUuid": "fa81d914_11edbc8b",
       "range": {
         "startLine": 209,
         "startChar": 8,
