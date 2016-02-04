@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_cde8e0b6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-02-04T12:52:42Z",
+      "side": 1,
+      "message": "this is already in; it\u0027s called recircPayload.",
+      "revId": "c8c7f9b5fb0920c1df701f25d5e16c4766be472a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_edebe4ad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-02-04T12:52:42Z",
+      "side": 1,
+      "message": "this is already in; it\u0027s called recircMatch.",
+      "revId": "c8c7f9b5fb0920c1df701f25d5e16c4766be472a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0dd2f8ff",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-02-04T12:52:42Z",
+      "side": 1,
+      "message": "this is already done in clear() of the FlowContext.",
+      "revId": "c8c7f9b5fb0920c1df701f25d5e16c4766be472a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_8ddee80f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-02-04T12:52:42Z",
+      "side": 1,
+      "message": "this is already done in clear()",
+      "revId": "c8c7f9b5fb0920c1df701f25d5e16c4766be472a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
