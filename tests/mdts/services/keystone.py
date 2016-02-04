@@ -16,6 +16,7 @@
 
 from mdts.services.service import Service
 
+from keystoneclient.v2_0 import client
 
 class KeystoneHost(Service):
 
@@ -27,3 +28,12 @@ class KeystoneHost(Service):
 
     def get_service_logs(self):
         return ['/var/log/keystone/keystone.log']
+
+    def get_keystone_api(self):
+        """
+        :rtype: keystoneclient.v2_0.Client
+        """
+        # TODO: this is information from sandbox, discover it somehow.
+        token = 'ADMIN'
+        endpoint = 'http://%s:35357/v2.0' % self.get_ip_address()
+        return client.Client(token=token, endpoint=endpoint)
