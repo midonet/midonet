@@ -183,6 +183,14 @@ abstract class RouterBase[IP <: IPAddr]()
             return false
         }
 
+        def getSrcPort(srcPort: Int, dstPort: Int, addr: IPAddr): Int = {
+            addr.hashCode() ^ (32 * srcPort + dstPort)
+        }
+
+        val newSrcPort = getSrcPort(context.wcmatch.getSrcPort,
+                                    context.wcmatch.getDstPort,
+                                    context.wcmatch.getNetworkSrcIP)
+
         context.encap(
             vni = inPort.vni,
             srcMac = RouterBase.encapMac,
@@ -191,7 +199,7 @@ abstract class RouterBase[IP <: IPAddr]()
             dstIp = remoteVtep,
             tos = context.wcmatch.getNetworkTOS,
             ttl = -1,
-            srcPort = context.wcmatch.connectionHash() >>> 16,
+            srcPort = newSrcPort,
             dstPort = UDP.VXLAN)
 
         context.log.debug(s"Encapsulated packet ${context.wcmatch}")
