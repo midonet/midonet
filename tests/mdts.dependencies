@@ -8,3 +8,4 @@ cassandra-driver
 fixtures
 python-neutronclient
 JPype1
+python-keystoneclient
