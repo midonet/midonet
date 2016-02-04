@@ -249,7 +249,7 @@ debian.doFirst {
         '-d', 'python',
         '-d', 'python-setproctitle',
         '-d', 'quagga (>= 0.99.23)',
-        '-d', 'openswan (>= 2.6.38)',
+        '-d', 'libreswan (>= 3.14-1)',
         '-d', 'java8-runtime-headless | java8-runtime',
         '-d', 'iproute (>= 20111117-1ubuntu2.1)',
         '-d', 'openvswitch-datapath-dkms (>= 1.10) | linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0) | linux-image-generic-lts-trusty (>= 3.13.0) | linux-image-virtual-lts-trusty (>= 3.13.0)',
