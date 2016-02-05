@@ -235,6 +235,30 @@
       "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_fd70f3dd",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DhcpTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-05T03:49:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_2b97af91",
+      "range": {
+        "startLine": 476,
+        "startChar": 0,
+        "endLine": 477,
+        "endChar": 62
+      },
+      "revId": "fd6d576927db5d2d4a3b971bb81f8418853fb90a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
