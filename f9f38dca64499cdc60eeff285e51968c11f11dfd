@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_8b1b461a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-05T10:30:24Z",
+      "side": 1,
+      "message": "2016",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_0bad969c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-05T10:30:24Z",
+      "side": 1,
+      "message": "observeOn(context.scheduler) for both?",
+      "range": {
+        "startLine": 73,
+        "startChar": 12,
+        "endLine": 74,
+        "endChar": 72
+      },
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
