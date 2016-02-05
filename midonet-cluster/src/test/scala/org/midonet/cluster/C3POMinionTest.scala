@@ -78,9 +78,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected val log = LoggerFactory.getLogger(this.getClass)
 
-    private val ZK_PORT = 50000 + Random.nextInt(15000)
-    private val ZK_HOST = s"127.0.0.1:$ZK_PORT"
-
     private val DB_CONNECT_STR =
         "jdbc:sqlite:file:taskdb?mode=memory&cache=shared"
 
@@ -115,6 +112,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     val rootPath = "/test"
 
+    private val zk: TestingServer = new TestingServer()
+    private val ZK_HOST = s"127.0.0.1:${zk.getPort}"
+
     val C3PO_CFG_OBJECT = ConfigFactory.parseString(
         s"""
           |cluster.neutron_importer.period : 100ms
@@ -136,7 +136,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     MidonetBackend.isCluster = true
 
     // Data sources
-    private val zk: TestingServer = new TestingServer(ZK_PORT)
 
     protected val nodeFactory = new JsonNodeFactory(true)
 
@@ -147,7 +146,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     // Adapt the DriverManager interface to DataSource interface.
     // SQLite doesn't seem to provide JDBC 2.0 API.
     private val dataSrc = new DataSource() {
-        override def getConnection() =
+        override def getConnection =
             DriverManager.getConnection(DB_CONNECT_STR)
 
         override def getConnection(username: String, password: String) = null
