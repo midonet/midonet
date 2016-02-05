@@ -53,10 +53,14 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         r1.getAdminStateUp shouldBe true
         r1.getInboundFilterId should not be null
         r1.getOutboundFilterId should not be null
+        r1.getForwardChainId should not be null
 
         val r1Chains = getChains(r1.getInboundFilterId, r1.getOutboundFilterId)
         r1Chains.inChain.getRuleIdsCount shouldBe 0
         r1Chains.outChain.getRuleIdsCount shouldBe 0
+        val r1FwdChain = storage.get(classOf[Chain],
+                                     r1.getForwardChainId).await()
+        r1FwdChain.getRuleIdsCount shouldBe 0
 
         val pgId = PortManager.portGroupId(r1.getId)
         val pg = eventually(storage.get(classOf[PortGroup], pgId).await())
@@ -80,6 +84,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             // Chains should be preserved.
             r1v2.getInboundFilterId shouldBe r1.getInboundFilterId
             r1v2.getOutboundFilterId shouldBe r1.getOutboundFilterId
+            r1v2.getForwardChainId shouldBe r1.getForwardChainId
         }
 
         insertDeleteTask(5, RouterType, r1Id)
@@ -388,6 +393,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             rtrV2.getName shouldBe "routerV2"
             rtrV2.getInboundFilterId shouldBe rtr.getInboundFilterId
             rtrV2.getOutboundFilterId shouldBe rtr.getOutboundFilterId
+            rtrV2.getForwardChainId shouldBe rtr.getForwardChainId
             rtrV2.getLoadBalancerId shouldBe rtr.getLoadBalancerId
             rtrV2.getRouteIdsList should contain only toProto(routeId)
             rtrV2.getBgpNetworkIdsList should contain only toProto(bgpNwId)
