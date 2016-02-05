@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_e03926f3",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-05T10:22:15Z",
+      "side": 1,
+      "message": "This is a nitpick but why not just aligning the text with the line above. Same for the lines below.",
+      "range": {
+        "startLine": 243,
+        "startChar": 4,
+        "endLine": 243,
+        "endChar": 74
+      },
+      "revId": "357d890d0f5b4c0c41b044392dade6a58fff3cac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
