@@ -89,6 +89,9 @@ public class Router extends UriResource {
     @ZoomField(name = "local_redirect_chain_id")
     public UUID localRedirectChainId;
 
+    @ZoomField(name = "forward_chain_id")
+    public UUID forwardChainId;
+
     public Router() {
         adminStateUp = true;
     }
@@ -139,6 +142,10 @@ public class Router extends UriResource {
         return absoluteUri(ResourceUris.CHAINS(), localRedirectChainId);
     }
 
+    public URI getForwardChain() {
+        return absoluteUri(ResourceUris.CHAINS(), forwardChainId);
+    }
+
     @JsonIgnore
     @Override
     public void create() {
@@ -174,6 +181,7 @@ public class Router extends UriResource {
             .add("bgpPeerIds", bgpPeerIds)
             .add("traceRequestIds", traceRequestIds)
             .add("localRedirectChainId", localRedirectChainId)
+            .add("forwardChainId", forwardChainId)
             .toString();
     }
 }

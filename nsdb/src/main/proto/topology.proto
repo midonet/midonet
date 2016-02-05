@@ -419,6 +419,7 @@ message Router {
     repeated UUID outbound_mirror_ids = 13;
 
     optional UUID local_redirect_chain_id = 14;
+    optional UUID forward_chain_id = 15;
 
     // Backreferences
     repeated UUID port_ids = 101;

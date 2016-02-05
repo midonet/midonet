@@ -1786,6 +1786,11 @@ class Router(ObjectType):
                                  getter = 'get_local_redirect_chain_id',
                                  setter = 'local_redirect_chain_id',
                                  unsetter = 'local_redirect_chain_id'))
+        self.put_attr(SingleAttr(name = 'forward-chain',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_forward_chain_id',
+                                 setter = 'forward_chain_id',
+                                 unsetter = 'forward_chain_id'))
     def type_name(self):
         return "router"
 
