@@ -62,7 +62,7 @@ When looking up the reverse NAT entry for regular entries, we use (dest ip / des
 
 #### Interaction with router rules
 
-Each router has an inbound filter which applies a chain of rules to traffic entering the router, and an outbound filter which applies a chain of rules ot traffic exiting the router.
+Each router has an inbound filter which applies a chain of rules to traffic entering the router, and an outbound filter which applies a chain of rules to traffic exiting the router.
 
 In a typical use case, the OpenStack plugin installs Source NAT rules in these chains. If we perform loadbalancing and then allow these rules to take effect, we will both DNAT and SNAT, which results in incorrect traffic routing.
 
@@ -86,7 +86,7 @@ When the host which is responsible for running HAProxy instances dies, leader el
 
 #### Connection to router
 
-The HAProxy instance attaches to the router using a link-local /30 subnet. Both HAProxy and the interior router port to which it is connected take link-local address. Within the HAProxy namespace, iptables are used to SNAT outbound health check traffic to appear as coming from the VIP, and this SNAT is reversed for the return health check traffic. 
+The HAProxy instance attaches to the router using a link-local /30 subnet. Both HAProxy and the exterior router port to which it is connected take link-local address. Within the HAProxy namespace, iptables are used to SNAT outbound health check traffic to appear as coming from the VIP, and this SNAT is reversed for the return health check traffic.
 
 All HAProxy instances are connected to the router using the same /30 subnet in the same way as we connect provider router to many tenant routers using the same /30 subnet for each. Since the router's ARP table can only hold one entry for a given IP, we set all HAProxy instances to have the same MAC address.
 
