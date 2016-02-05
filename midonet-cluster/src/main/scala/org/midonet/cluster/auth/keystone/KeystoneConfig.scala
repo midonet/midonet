@@ -22,14 +22,14 @@ import org.midonet.cluster.AuthConfig
 
 class KeystoneConfig(conf: Config) extends AuthConfig(conf) {
 
-    def version = conf.getInt(s"$Prefix.keystone.version")
-    def projectName = conf.getString(s"$Prefix.keystone.tenant_name")
-    def domainName = conf.getString(s"$Prefix.keystone.domain_name")
-    def userName = conf.getString(s"$Prefix.keystone.user_name")
-    def password = conf.getString(s"$Prefix.keystone.user_password")
-    def adminToken = conf.getString(s"$Prefix.keystone.admin_token")
-    def protocol = conf.getString(s"$Prefix.keystone.protocol")
-    def host = conf.getString(s"$Prefix.keystone.host")
-    def port = conf.getInt(s"$Prefix.keystone.port")
+    def version = conf.getInt(s"$prefix.keystone.version")
+    def projectName = conf.getString(s"$prefix.keystone.tenant_name")
+    def domainName = conf.getString(s"$prefix.keystone.domain_name")
+    def userName = conf.getString(s"$prefix.keystone.user_name")
+    def password = conf.getString(s"$prefix.keystone.user_password")
+    def adminToken = conf.getString(s"$prefix.keystone.admin_token")
+    def protocol = conf.getString(s"$prefix.keystone.protocol")
+    def host = conf.getString(s"$prefix.keystone.host")
+    def port = conf.getInt(s"$prefix.keystone.port")
 
 }

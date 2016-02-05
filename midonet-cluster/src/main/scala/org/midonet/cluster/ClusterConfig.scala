@@ -50,6 +50,7 @@ object ClusterConfig {
 
 class ClusterConfig(_conf: Config) {
     val conf = _conf.resolve()
+    final val prefix = "cluster"
 
     val auth = new AuthConfig(conf)
     val backend = new MidonetBackendConfig(conf)
@@ -59,15 +60,19 @@ class ClusterConfig(_conf: Config) {
     val topologyApi = new TopologyApiConfig(conf)
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)
+
+    def threadPoolSize = conf.getInt(s"$prefix.max_thread_pool_size")
+    def threadPoolShutdownTimeoutMs =
+        conf.getDuration(s"$prefix.thread_pool_shutdown_timeout", TimeUnit.MILLISECONDS)
 }
 
 class AuthConfig(val conf: Config) {
-    val Prefix = "cluster.auth"
+    final val prefix = "cluster.auth"
 
-    def provider = conf.getString(s"$Prefix.provider_class")
-    def adminRole = conf.getString(s"$Prefix.admin_role")
-    def tenantAdminRole = conf.getString(s"$Prefix.tenant_admin_role")
-    def tenantUserRole = conf.getString(s"$Prefix.tenant_user_role")
+    def provider = conf.getString(s"$prefix.provider_class")
+    def adminRole = conf.getString(s"$prefix.admin_role")
+    def tenantAdminRole = conf.getString(s"$prefix.tenant_admin_role")
+    def tenantUserRole = conf.getString(s"$prefix.tenant_user_role")
 }
 
 class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
