@@ -69,6 +69,8 @@ object IPSecConfig {
     def sanitizeName(connectionId: UUID, connectionName: String): String =
         "ipsec-" + connectionId.toString.substring(0, 8)
 
+    def sanitizePsk(psk: String): String = psk.replaceAll("[\n\r\"]", "")
+
     def subnetsString(subnets: java.util.List[Commons.IPSubnet]): String = {
         if (subnets.isEmpty) return ""
         val ss = new StringBuilder(subnets.get(0).asJava.toString)
@@ -87,11 +89,16 @@ case class IPSecConfig(script: String,
                        connections: Seq[IPSecSiteConnection]) {
     import IPSecConfig._
 
-    def getSecretsFileContents = {
+    def getSecretsFileContents(log: Logger) = {
         val contents = new StringBuilder
         for (c <- connections if isSiteConnectionUp(c)) {
+            val sanitizedPsk = sanitizePsk(c.getPsk)
+            if (log != null && c.getPsk != sanitizedPsk) {
+                log.info(s"The PSK cannot contain double quotes nor new lines, " +
+                         s"these characters were removed.")
+            }
             contents append
-            s"""${ipsecService.localEndpointIp} ${c.getPeerAddress} : PSK "${c.getPsk}"
+            s"""${ipsecService.localEndpointIp} ${c.getPeerAddress} : PSK "$sanitizedPsk"
                |""".stripMargin
         }
         contents.toString()
@@ -420,7 +427,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         writeFile(config.getConfigFileContents, config.confPath)
 
         log info s"Writing secrets to ${config.secretsPath}"
-        writeFile(config.getSecretsFileContents, config.secretsPath)
+        writeFile(config.getSecretsFileContents(log), config.secretsPath)
 
         // Create the log FIFO file.
         execCmd(config.createLogCmd)
