@@ -41,6 +41,7 @@ exec 2>&1
 
 prepare_host() {
     ipsec _stackmanager start
+    ipsec checknss
 }
 
 define_paths() {
@@ -213,7 +214,7 @@ check_return() {
             return 0
         fi
     done
-    echo "ERROR: Command exited with code ${1}"
+    echo "ERROR: Command exited with code ${code}"
     exit ${1}
 }
 
