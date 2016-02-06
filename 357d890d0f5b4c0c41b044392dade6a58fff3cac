@@ -22,6 +22,30 @@
       "revId": "357d890d0f5b4c0c41b044392dade6a58fff3cac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_891b35c9",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-06T11:45:11Z",
+      "side": 1,
+      "message": "I feel the same but I think prettifying the indentation so it\u0027s the same for all descriptions should be left for a different patch, such that it\u0027s easy to see which are the changes here.",
+      "parentUuid": "fa81d914_e03926f3",
+      "range": {
+        "startLine": 243,
+        "startChar": 4,
+        "endLine": 243,
+        "endChar": 74
+      },
+      "revId": "357d890d0f5b4c0c41b044392dade6a58fff3cac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
