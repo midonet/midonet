@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import com.sun.jersey.api.client.{ClientResponse, WebResource}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
+import org.scalatest.{GivenWhenThen, BeforeAndAfter, FeatureSpec, Matchers}
 
 import org.midonet.cluster.rest_api.neutron.models.IPSecSiteConnection.{Status => NeutronStatus, _}
 import org.midonet.cluster.rest_api.neutron.models._
@@ -33,8 +33,9 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 @RunWith(classOf[JUnitRunner])
 class TestIpsecSiteConnection extends FeatureSpec
-        with Matchers
-        with BeforeAndAfter {
+                                      with GivenWhenThen
+                                      with Matchers
+                                      with BeforeAndAfter {
 
     private var vpnServiceResource: WebResource = _
     private var ipsecSiteConnectionResource: WebResource = _
@@ -174,18 +175,25 @@ class TestIpsecSiteConnection extends FeatureSpec
             IPSecPolicy.EncapsulationMode.TRANSPORT
         ipsecSiteConnection.ipsecPolicy.pfs = IPSecPfs.GROUP2
 
+        When("Creating the ipsec site connection using the api")
         val response2 = ipsecSiteConnectionResource
             .`type`(NEUTRON_IPSEC_SITE_CONNECTION_JSON_V1)
             .post(classOf[ClientResponse], ipsecSiteConnection)
+
+        Then("The api response should be created")
         response2.getStatus shouldBe Status.CREATED.getStatusCode
 
-        val createdUri = response2.getLocation
+        var createdUri = response2.getLocation
 
+        When("Retrieving the ipsec site connection")
         val respDto = ipsecSiteConnectionResource.uri(createdUri)
             .accept(NEUTRON_IPSEC_SITE_CONNECTION_JSON_V1)
             .get(classOf[IPSecSiteConnection])
+
+        Then("The returned dto should be the ipsec site connection")
         respDto shouldBe ipsecSiteConnection
 
+        When("Updating the ipsec site connection")
         ipsecSiteConnection.peerId = "foobar2"
         ipsecSiteConnection.peerAddress = "200.200.200.1"
         ipsecSiteConnection.ikePolicy.encryptionAlgorithm =
@@ -196,23 +204,61 @@ class TestIpsecSiteConnection extends FeatureSpec
         val response3 = ipsecSiteConnectionResource.uri(createdUri)
             .`type`(NEUTRON_IPSEC_SITE_CONNECTION_JSON_V1)
             .put(classOf[ClientResponse], ipsecSiteConnection)
+
+        Then("The response should be no_content")
         response3.getStatusInfo
             .getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
 
+        When("Retrieving the updated ipsec site connection")
         val respDto2 = ipsecSiteConnectionResource.uri(createdUri)
             .accept(NEUTRON_IPSEC_SITE_CONNECTION_JSON_V1)
             .get(classOf[IPSecSiteConnection])
+
+        Then("The returned value should be the updated ipsec connection")
         respDto2 shouldBe ipsecSiteConnection
 
+        When("Deleting the ipsec site connection")
         val response4 = ipsecSiteConnectionResource.uri(createdUri)
             .delete(classOf[ClientResponse])
+
+        Then("The response should be no_content")
         response4.getStatusInfo
             .getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
 
+        When("Retrieving the ipsec site connection")
         val respDto3 = ipsecSiteConnectionResource.uri(createdUri)
             .get(classOf[ClientResponse])
+
+        Then("The ipsec site connection is not found")
         respDto3.getStatusInfo
             .getStatusCode shouldBe Status.NOT_FOUND.getStatusCode
+
+        When("When creating an invalid ipsec site connection")
+        ipsecSiteConnection.localCidrs = Lists.newArrayList("192.168.10.0/24")
+        val response5 = ipsecSiteConnectionResource
+            .`type`(NEUTRON_IPSEC_SITE_CONNECTION_JSON_V1)
+            .post(classOf[ClientResponse], ipsecSiteConnection)
+
+        Then("The response should be bad_request")
+        response5.getStatusInfo
+            .getStatusCode shouldBe Status.BAD_REQUEST.getStatusCode
+
+        When("Creating a valid ipsec site connection")
+        ipsecSiteConnection.localCidrs = Lists.newArrayList("192.168.20.0/24")
+        val response6 = ipsecSiteConnectionResource
+            .`type`(NEUTRON_IPSEC_SITE_CONNECTION_JSON_V1)
+            .post(classOf[ClientResponse], ipsecSiteConnection)
+        createdUri = response6.getLocation
+
+        And("Attempting to update it with an invalid ipsec connection")
+        ipsecSiteConnection.localCidrs = Lists.newArrayList("192.168.11.0/24")
+        val response7 = ipsecSiteConnectionResource.uri(createdUri)
+            .`type`(NEUTRON_IPSEC_SITE_CONNECTION_JSON_V1)
+            .put(classOf[ClientResponse], ipsecSiteConnection)
+
+        Then("The response should be bad_request")
+        response7.getStatusInfo
+            .getStatusCode shouldBe Status.BAD_REQUEST.getStatusCode
     }
 
 }
