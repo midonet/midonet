@@ -1,13 +1,12 @@
 #!/bin/bash
 
-# Installs newest package (lexicographycally) in override
-LATEST_CLIENT=$(ls override/python-midonetclient*deb | tail -n1)
-LATEST_CLUSTER=$(ls override/midonet-cluster*deb | tail -n1)
-LATEST_TOOLS=$(ls override/midonet-tools*deb | tail -n1)
-dpkg -r midonet-cluster
-dpkg -r midonet-tools
-dpkg -r python-midonetclient
-dpkg -i --force-confnew --force-confmiss $LATEST_CLIENT $LATEST_CLUSTER $LATEST_TOOLS
+# Install the latest from local repository
+LOCAL_REPO_FILE=/etc/apt/sources.list.d/midonet-local.list
+echo "deb file:/packages /" > $LOCAL_REPO_FILE
+apt-get update -o Dir::Etc::sourcelist=$LOCAL_REPO_FILE
+apt-get install -qy --force-yes midonet-cluster/local \
+                                midonet-tools/local \
+                                python-midonetclient/local
 
 # Make sure we can access the remote management interface from outside the container
 HOST_NAME=`hostname`
