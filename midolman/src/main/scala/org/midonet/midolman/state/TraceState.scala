@@ -35,7 +35,7 @@ import org.midonet.sdn.state.FlowStateTransaction
 object TraceState {
     val log = LoggerFactory.getLogger(classOf[TraceState])
 
-    val TraceTunnelKeyMask = 0x80000
+    val TraceTunnelKeyMask = 1 << 23
 
     def traceBitPresent(tunnelId: Long): Boolean = {
         (tunnelId & TraceTunnelKeyMask) != 0
