@@ -27,8 +27,8 @@ CLUSTER_PATH=midonet-cluster/build/packages
 TOOLS_PATH=midonet-tools/build/packages
 CLIENT_PATH=python-midonetclient
 
-cp $(ls $MIDOLMAN_PATH/*deb | tail -n1) tests/sandbox/$1/midolman
-cp $(ls $TOOLS_PATH/*deb | tail -n1) tests/sandbox/$1/midolman
-cp $(ls $CLUSTER_PATH/*deb | tail -n1) tests/sandbox/$1/cluster
-cp $(ls $TOOLS_PATH/*deb | tail -n1) tests/sandbox/$1/cluster
-cp $(ls $CLIENT_PATH/*deb | tail -n1) tests/sandbox/$1/cluster
+mkdir -p tests/sandbox/$1/packages
+cp $(ls $MIDOLMAN_PATH/*deb | tail -n1) tests/sandbox/$1/packages
+cp $(ls $CLUSTER_PATH/*deb | tail -n1) tests/sandbox/$1/packages
+cp $(ls $TOOLS_PATH/*deb | tail -n1) tests/sandbox/$1/packages
+cp $(ls $CLIENT_PATH/*deb | tail -n1) tests/sandbox/$1/packages
