@@ -45,6 +45,69 @@
       "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_419831c0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-02-08T14:03:22Z",
+      "side": 1,
+      "message": "needs indent?",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 28
+      },
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_01f2b905",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-02-08T14:03:22Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 127,
+        "startChar": 8,
+        "endLine": 127,
+        "endChar": 14
+      },
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_01c9d9ab",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTrackerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-02-08T14:03:22Z",
+      "side": 1,
+      "message": "nit: this case includes also the previous one that simply stops at the first event and asserts that the port is not emitted.  It just needs to assert the .get(0) event.",
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
