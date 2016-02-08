@@ -20,6 +20,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.common.primitives.Longs;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
@@ -29,6 +32,8 @@ import org.midonet.packets.IPv4Addr;
 
 public class FlowKeyTunnel implements CachedFlowKey,
                                       Randomize, AttributeHandler {
+
+    private static Logger log = LoggerFactory.getLogger(FlowKeyTunnel.class);
 
     // maintaining the names of field to be the same as ovs_key_ipv4_tunnel
     // see datapath/flow.h from OVS source
@@ -82,14 +87,16 @@ public class FlowKeyTunnel implements CachedFlowKey,
         nBytes += NetlinkMessage.writeByteAttrNoPad(buffer, TunnelAttr.TTL, ipv4_ttl);
 
         if ((tun_flags & OVS_TNL_F_DONT_FRAGMENT) == OVS_TNL_F_DONT_FRAGMENT) {
+            log.debug(">>> NETLINK : OVS_TNL_F_DONT_FRAGMENT");
             NetlinkMessage.setAttrHeader(buffer, TunnelAttr.DontFrag, 0);
-            nBytes += 4; // Empty attribute
         }
 
         if ((tun_flags & OVS_TNL_F_CSUM) == OVS_TNL_F_CSUM) {
+            log.debug(">>> NETLINK : OVS_TNL_F_CSUM");
             NetlinkMessage.setAttrHeader(buffer, TunnelAttr.CSum, 0);
-            nBytes += 4; // Empty attribute
         }
+
+        log.debug(">>> NETLINK : {} / {}", nBytes, toString());
 
         return nBytes;
     }
