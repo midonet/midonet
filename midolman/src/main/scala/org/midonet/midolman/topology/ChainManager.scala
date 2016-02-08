@@ -232,6 +232,17 @@ class ChainManager(val id: UUID, val clusterClient: Client)
 
         rules = newRules
 
+        // populate ip addr group objects (if we already have the object)
+        for (r <- rules) {
+            val cond = r.getCondition
+            idToIPAddrGroup.get(cond.ipAddrGroupIdDst) foreach {
+                cond.ipAddrGroupDst = _
+            }
+            idToIPAddrGroup.get(cond.ipAddrGroupIdSrc) foreach {
+                cond.ipAddrGroupSrc = _
+            }
+        }
+
         // Send the VirtualTopologyActor an updated chain.
         publishUpdateIfReady()
     }

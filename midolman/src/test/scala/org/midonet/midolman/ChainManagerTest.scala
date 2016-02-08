@@ -327,6 +327,37 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             And("the VTA should receive a flow invalidation for the chain")
             vta.getAndClear() should contain (flowInvalidationMsg(c2.id))
         }
+
+        scenario("IPAddrGroup gets loaded when readded after chain is loaded") {
+            Given("A chain referencing an address group")
+            val chain1 = newChain("chain1")
+
+            val ipAddrGroup = createIpAddrGroup()
+            val addr1 = "10.0.1.1"
+            val addr2 = "10.0.1.2"
+            addAddrToIpAddrGroup(ipAddrGroup.getId, addr1)
+            addAddrToIpAddrGroup(ipAddrGroup.getId, addr2)
+
+            newIpAddrGroupRuleOnChain(chain1, 1, Action.DROP,
+                                      None, Some(ipAddrGroup.getId))
+
+            vta.self ! ChainRequest(chain1.getId, true)
+            expectMsgType[Chain]
+
+            When("Another rule is added referring to the same address group")
+            newIpAddrGroupRuleOnChain(chain1, 2, Action.DROP,
+                                      None, Some(ipAddrGroup.getId))
+
+            Then("The IPAddrGroup field of the condition is populated")
+            val updatedChain = expectMsgType[Chain]
+            updatedChain.id shouldEqual chain1.getId
+            checkIpAddrGroupRule(updatedChain.getRules.get(0),
+                                 Action.DROP, null, null,
+                                 ipAddrGroup.getId, Set(addr1, addr2))
+            checkIpAddrGroupRule(updatedChain.getRules.get(1),
+                                 Action.DROP, null, null,
+                                 ipAddrGroup.getId, Set(addr1, addr2))
+        }
     }
 
     private def checkIpAddrGroupRule(r: Rule, action: Action,
