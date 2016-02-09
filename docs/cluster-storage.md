@@ -157,4 +157,4 @@ and [`Cassandra cache`][3].
 
 [1]: http://zookeeper.apache.org "Apache ZooKeeper"
 [2]: http://cassandra.apache.org "Apache Cassandra"
-[3]: http://docs.midokura.com/docs/latest/operations-guide/content/cassandra_cache.html "Cassandra Cache"
+[3]: https://docs.midonet.org/docs/latest/operations-guide/content/cassandra_cache.html "Cassandra Cache"
