@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_7076ddd8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-09T12:37:31Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "fa81d914_f02d6d96",
+      "range": {
+        "startLine": 10,
+        "startChar": 16,
+        "endLine": 10,
+        "endChar": 18
+      },
+      "revId": "6e9db1c349051e1d7772dc3244d4d780742ffed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_302465ae",
         "filename": "/COMMIT_MSG",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_907fd1aa",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-09T12:37:31Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "fa81d914_302465ae",
+      "range": {
+        "startLine": 11,
+        "startChar": 14,
+        "endLine": 11,
+        "endChar": 19
+      },
+      "revId": "6e9db1c349051e1d7772dc3244d4d780742ffed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_b52a078e",
         "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2016-02-09T10:51:17Z",
       "side": 1,
       "message": "remove",
+      "range": {
+        "startLine": 49,
+        "startChar": 41,
+        "endLine": 49,
+        "endChar": 42
+      },
+      "revId": "6e9db1c349051e1d7772dc3244d4d780742ffed3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_5079d9c6",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-09T12:37:31Z",
+      "side": 1,
+      "message": "the key is \u0027tenants\u0027 plural because it\u0027s a list. Thanks for checking.",
+      "parentUuid": "fa81d914_b52a078e",
       "range": {
         "startLine": 49,
         "startChar": 41,
