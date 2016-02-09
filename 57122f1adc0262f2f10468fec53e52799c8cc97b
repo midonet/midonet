@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_70c33d89",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-02-09T11:14:00Z",
+      "side": 1,
+      "message": "is this even possible? afaik the translator for a neutron port will enforce that the port in midonet exists, if this doesn\u0027t happen we\u0027re hitting a data inconsistency and at the very least we should be warning the user (if not returning an error).",
+      "range": {
+        "startLine": 127,
+        "startChar": 16,
+        "endLine": 127,
+        "endChar": 51
+      },
+      "revId": "57122f1adc0262f2f10468fec53e52799c8cc97b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
