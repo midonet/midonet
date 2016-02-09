@@ -19,7 +19,8 @@ package org.midonet.cluster.services.c3po.translators
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.models.Neutron.NeutronSubnet
+import org.midonet.cluster.models.ModelsUtil._
+import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.models.ModelsUtil._
@@ -58,6 +59,9 @@ class SubnetTranslatorTest extends TranslatorTestBase {
         $nTenantNetwork
         network_type: UPLINK
         """)
+    private val mTenantNetwork = mNetworkFromTxt(s"""
+        id { $networkId }
+        """)
 
     "Basic subnet CREATE" should "produce an equivalent Dhcp Object" in {
         bind(networkId, nTenantNetwork)
@@ -73,12 +77,14 @@ class SubnetTranslatorTest extends TranslatorTestBase {
         cidr { $gatewaySubnet }
         ip_version: 4
         gateway_ip { $gatewayIp }
+        enable_dhcp: true
         """)
     private val mDhcpWithDefaultGateway = mDhcpFromTxt(s"""
         $mDhcp
         default_gateway { $gatewayIp }
         server_address { $gatewayIp }
         subnet_address { $gatewaySubnet }
+        enabled: true
         """)
     "CREATE subnet with a gateway IP" should "set the default gateway and " +
     "server address accordingly" in {
@@ -156,5 +162,43 @@ class SubnetTranslatorTest extends TranslatorTestBase {
         val midoOps = translator.translate(
             neutron.Delete(classOf[NeutronSubnet], subnetId))
         midoOps should contain only midonet.Delete(classOf[Dhcp], subnetId)
+    }
+
+    "UPDATE subnet with dhcp port" should "update Opt121 routes" in {
+        val portId1 = randomUuidProto
+        val portId2 = randomUuidProto
+        val dhcpIp = "192.0.2.1"
+        val nPort2 = nPortFromTxt(s"""
+            id { $portId2 }
+            device_owner: DHCP
+            fixed_ips {
+              ip_address {
+                version: V4
+                address: "$dhcpIp"
+              }
+              subnet_id { $subnetId }
+            }
+        """)
+        val mNetwork = mNetworkFromTxt(s"""
+            $mTenantNetwork
+            port_ids { $portId1 }
+            port_ids { $portId2 }
+        """)
+
+        val expectedResult = mDhcpFromTxt(s"""
+            $mDhcpWithDefaultGateway
+            opt121_routes {
+                dst_subnet { ${ RouteManager.META_DATA_SRVC } }
+                gateway { ${ IPAddressUtil.toProto(dhcpIp) } }
+            }
+        """)
+
+        bind(networkId, mNetwork)
+        bind(networkId, nTenantNetwork)
+        bind(subnetId, mDhcpWithDefaultGateway)
+        bind(portId1, null, classOf[NeutronPort])  // Non-Neutron port
+        bind(portId2, nPort2)
+        val midoOps = translator.translate(neutron.Update(nSubnetWithGatewayIp))
+        midoOps should contain only midonet.Update(expectedResult)
     }
 }
