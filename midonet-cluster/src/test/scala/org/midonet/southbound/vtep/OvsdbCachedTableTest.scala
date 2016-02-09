@@ -144,59 +144,6 @@ class OvsdbCachedTableTest extends FeatureSpec
             }
         }
 
-        ignore("explicit update - not supported, possibly removing case") {
-        scenario("explicit update") {
-            val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
-
-            Await.result(ct.ready, timeout) shouldBe true
-            ct.getAll.isEmpty shouldBe true
-
-            val e1 = PhysicalLocator(UUID.randomUUID, IPv4Addr.random)
-            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random)
-
-            Await.ready(ct.insert(e1), timeout)
-            eventually {
-                ct.getAll.size shouldBe 1
-                ct.get(e1.uuid) shouldBe Some(e1)
-                vtep.getTable(t).get(e1.uuid) shouldBe Some(e1)
-            }
-
-            Await.ready(ct.insert(e2), timeout)
-            eventually {
-                ct.getAll.size shouldBe 1
-                ct.get(e1.uuid) shouldBe Some(e2)
-                vtep.getTable(t).get(e1.uuid) shouldBe Some(e2)
-            }
-        }}
-
-        ignore("background update - not supported, possibly removing case") {
-        scenario("background update") {
-            val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
-
-            Await.result(ct.ready, timeout) shouldBe true
-            ct.getAll.isEmpty shouldBe true
-
-            val e1 = PhysicalLocator(UUID.randomUUID(), IPv4Addr.random)
-            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random)
-
-            Await.ready(ct.insert(e1), timeout)
-            eventually {
-                ct.getAll.size shouldBe 1
-                ct.get(e1.uuid) shouldBe Some(e1)
-                vtep.getTable(t).get(e1.uuid) shouldBe Some(e1)
-            }
-
-            vtep.putEntry(t, e2)
-            eventually {
-                ct.getAll.size shouldBe 1
-                ct.get(e1.uuid) shouldBe Some(e2)
-                vtep.getTable(t).get(e1.uuid) shouldBe Some(e2)
-            }
-        }}
-
-
         scenario("background removal") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, exec, exec)
