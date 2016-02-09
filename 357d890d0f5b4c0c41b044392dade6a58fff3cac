@@ -69,6 +69,30 @@
       "revId": "357d890d0f5b4c0c41b044392dade6a58fff3cac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_e60bf38b",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-09T17:36:55Z",
+      "side": 1,
+      "message": "True, okay will cleanup and resubmit.",
+      "parentUuid": "fa81d914_46d3df03",
+      "range": {
+        "startLine": 68,
+        "startChar": 41,
+        "endLine": 68,
+        "endChar": 63
+      },
+      "revId": "357d890d0f5b4c0c41b044392dade6a58fff3cac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
