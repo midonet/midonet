@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_cb627a3d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/IpsecSiteConnectionResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-09T14:59:07Z",
+      "side": 1,
+      "message": "Maybe add a bit more info? (local and peer cidrs are not disjoint). Same below.\n\nDo you think it could also be a good idea to throw an exception in validate (instead of true/false) specifying the real problem? Probably for the future, if we ever need to add more validations.",
+      "revId": "6a74564b4a1124683aff778e6218757a82827397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
