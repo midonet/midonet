@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.{breakOut, mutable}
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
@@ -121,8 +121,13 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
 
         // Find the dhcp port associated with this subnet, if it exists.
         for (portId <- ports.asScala) {
-            val port = storage.get(classOf[NeutronPort], portId).await()
-            if (port.getDeviceOwner.name() == DeviceOwner.DHCP.name) {
+            val port = try {
+                storage.get(classOf[NeutronPort], portId).await()
+            } catch {
+                case nfe: NotFoundException => null
+            }
+            if (port != null &&
+                port.getDeviceOwner.name() == DeviceOwner.DHCP.name) {
                 if (port.getFixedIpsCount == 0) {
                     return None
                 }
