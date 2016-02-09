@@ -16,6 +16,24 @@
       "revId": "6a74564b4a1124683aff778e6218757a82827397",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_e68053c2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/IpsecSiteConnectionResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-09T17:49:06Z",
+      "side": 1,
+      "message": "+1 to Xavi\u0027s comment on the error message\nAs to throwing the exception, I think right now we have a mix of:\n- validating the constraints in the dto\n- validating the constraints in the endpoint class\n- using the Validator class to annotate the constraints\nSo I\u0027m okay with either option.",
+      "parentUuid": "fa81d914_cb627a3d",
+      "revId": "6a74564b4a1124683aff778e6218757a82827397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
