@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_75da4fe9",
+        "filename": "tests/sandbox/flavors/default_v2_neutron+kilo.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-09T10:05:27Z",
+      "side": 1,
+      "message": "Why twice the same path? Same comment below.",
+      "range": {
+        "startLine": 78,
+        "startChar": 4,
+        "endLine": 78,
+        "endChar": 29
+      },
+      "revId": "d3e67b1e3328b3699b327babb7911c9f24e7f5d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
