@@ -38,7 +38,6 @@ import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.{CallingThreadExecutionContext, _}
 
 @RunWith(classOf[JUnitRunner])
-@Ignore
 class OvsdbVtepDataTest extends FeatureSpec with Matchers
                                 with BeforeAndAfter with BeforeAndAfterAll
                                 with MidonetEventually {
@@ -151,93 +150,6 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
 
             Await.result(vtepHandle.physicalPort(port.uuid),
                          timeout) shouldBe Some(port)
-        }
-    }
-    feature("Mac remote updater") {
-        scenario("ucast mac updates") {
-            val ls = newLogicalSwitch()
-            vtep.putEntry(lsTable, ls)
-
-            val unknownLsName =
-                LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
-
-            val vtepHandle = new OvsdbVtepData(client, db, vtepThread, vtepThread)
-            val updates = PublishSubject.create[MacLocation]()
-            val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
-            updates.subscribe(updater)
-
-            val macLocations = List(
-                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls.name,
-                            vxlanTunnelEndpoint = IPv4Addr.random),
-                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls.name,
-                            vxlanTunnelEndpoint = IPv4Addr.random),
-                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls.name,
-                            vxlanTunnelEndpoint = IPv4Addr.random)
-            )
-            val unknown = List(
-                MacLocation(MAC.random, ipAddr = IPv4Addr.random, unknownLsName,
-                            vxlanTunnelEndpoint = IPv4Addr.random),
-                MacLocation(MAC.random, ipAddr = IPv4Addr.random, unknownLsName,
-                            vxlanTunnelEndpoint = IPv4Addr.random)
-            )
-
-            (macLocations ++ unknown).toSet.foreach(updates.onNext)
-
-            eventually {
-                val t = vtep.getTable(uRemoteTable)
-                val l = vtep.getTable(locTable)
-                t.size shouldBe macLocations.size
-                t.values.map({case e: UcastMac => e.macAddr}).toSet shouldBe
-                    macLocations.map(_.mac).toSet
-                t.values.map({case e: UcastMac => e.ipAddr}).toSet shouldBe
-                    macLocations.map(_.ipAddr).toSet
-                t.values.map({case e: UcastMac =>
-                    l(UUID.fromString(e.locator)).dstIp
-                }).toSet shouldBe macLocations.map(_.vxlanTunnelEndpoint).toSet
-                l.values.map({case l: PhysicalLocator => l.dstIp}).toSet shouldBe
-                    macLocations.map(_.vxlanTunnelEndpoint).toSet
-            }
-        }
-        scenario("mcast mac updates") {
-            val ls = newLogicalSwitch()
-            vtep.putEntry(lsTable, ls)
-
-            val unknownLsName =
-                LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
-
-            val vtepHandle = new OvsdbVtepData(client, db, vtepThread, vtepThread)
-            val updates = PublishSubject.create[MacLocation]()
-            val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
-            updates.subscribe(updater)
-
-            val macLocations = List(
-                MacLocation.unknownAt(vxlanTunnelEndpoint = IPv4Addr.random,
-                                      ls.name)
-            )
-            val unknown = List(
-                MacLocation.unknownAt(vxlanTunnelEndpoint = IPv4Addr.random,
-                                      unknownLsName)
-            )
-
-            (macLocations ++ unknown).toSet.foreach(updates.onNext)
-
-            eventually {
-                val t = vtep.getTable(mRemoteTable)
-                val l = vtep.getTable(locTable)
-                val ls = vtep.getTable(locSetTable)
-                t.size shouldBe macLocations.size
-                t.values.map({case e: McastMac => e.macAddr}).toSet shouldBe
-                    macLocations.map(_.mac).toSet
-                t.values.map({case e: McastMac => e.ipAddr}).toSet shouldBe
-                    macLocations.map(_.ipAddr).toSet
-                l.values.map({case l: PhysicalLocator => l.dstIp}).toSet shouldBe
-                    macLocations.map(_.vxlanTunnelEndpoint).toSet
-                t.values.map({case e: McastMac => e.locatorSet}).toSet shouldBe
-                    ls.keySet
-                ls.values.map({case s: PhysicalLocatorSet =>
-                    l(UUID.fromString(s.locatorIds.head)).dstIp
-                }).toSet shouldBe macLocations.map(_.vxlanTunnelEndpoint).toSet
-            }
         }
     }
 }
