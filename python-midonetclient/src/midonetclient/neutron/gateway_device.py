@@ -69,3 +69,8 @@ class GatewayDeviceClientMixin(GatewayDeviceUrlProviderMixin):
     def delete_remote_mac_entry(self, mac_entry_id):
         LOG.info("delete_remote_mac_entry remote mac entry %r", mac_entry_id)
         self.client.delete(self.remote_mac_entry_url(mac_entry_id))
+
+    def update_gateway_device(self, gwd_id, device):
+        LOG.info("update_gateway_device %r", device)
+        return self.client.put(self.gateway_device_url(gwd_id),
+                               media_type.GATEWAY_DEVICE, body=device)
