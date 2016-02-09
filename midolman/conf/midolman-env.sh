@@ -67,13 +67,16 @@ JVM_OPTS="$JVM_OPTS -XX:+ResizeTLAB"
 JVM_OPTS="$JVM_OPTS -XX:TLABSize=2m"
 JVM_OPTS="$JVM_OPTS -XX:PretenureSizeThreshold=2m"
 
-# GC logging options -- uncomment to enable
-# JVM_OPTS="$JVM_OPTS -XX:+PrintGCDetails"
-# JVM_OPTS="$JVM_OPTS -XX:+PrintGCTimeStamps"
-# JVM_OPTS="$JVM_OPTS -XX:+PrintClassHistogram"
-# JVM_OPTS="$JVM_OPTS -XX:+PrintTenuringDistribution"
-# JVM_OPTS="$JVM_OPTS -XX:+PrintGCApplicationStoppedTime"
-# JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midolman/gc-`date +%Y%m%d_%H%M%S`.log"
+# GC logging options
+JVM_OPTS="$JVM_OPTS -XX:+PrintGCDetails"
+JVM_OPTS="$JVM_OPTS -XX:+PrintGCTimeStamps"
+JVM_OPTS="$JVM_OPTS -XX:+PrintClassHistogram"
+JVM_OPTS="$JVM_OPTS -XX:+PrintTenuringDistribution"
+JVM_OPTS="$JVM_OPTS -XX:+PrintGCApplicationStoppedTime"
+JVM_OPTS="$JVM_OPTS -XX:+UseGCLogFileRotation"
+JVM_OPTS="$JVM_OPTS -XX:NumberOfGClogFiles=10"
+JVM_OPTS="$JVM_OPTS -XX:GCLogFileSize=10M"
+JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midolman/gc-`date +%Y%m%d_%H%M%S`.log"
 
 # uncomment to have Midolman JVM listen for remote debuggers/profilers on port 1414
 # JVM_OPTS="$JVM_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1414"
