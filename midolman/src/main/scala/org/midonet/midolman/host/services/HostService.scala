@@ -29,8 +29,6 @@ import scala.util.Success
 import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.AbstractService
-import com.google.inject.Inject
-import com.google.inject.name.Named
 import com.google.protobuf.TextFormat
 import rx.{Observer, Subscription}
 
@@ -276,7 +274,7 @@ class HostService (config: MidolmanConfig,
                 if (!isSameHost(currentHost, currentState)) {
                     log.error("Failed to create host {} with name {} because " +
                               "the host already exists with different name, " +
-                              "tunnel-zones or interfaces {}", hostId, hostName)
+                              "tunnel-zones or interfaces", hostId, hostName)
                     aliveState.set(OwnershipState.Released)
                     return false
                 }
