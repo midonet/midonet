@@ -22,6 +22,30 @@
       "revId": "57122f1adc0262f2f10468fec53e52799c8cc97b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_d02ea942",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-09T11:38:54Z",
+      "side": 1,
+      "message": "It\u0027s possible that someone creates a port on this network using midonet CLI.  The network object fetched earlier is a midonet bridge.  Agree that a translator test is desirable.  Either a test in SubnetTranslator or create a new SubnetTranslatorIT test class.",
+      "parentUuid": "fa81d914_70c33d89",
+      "range": {
+        "startLine": 127,
+        "startChar": 16,
+        "endLine": 127,
+        "endChar": 51
+      },
+      "revId": "57122f1adc0262f2f10468fec53e52799c8cc97b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
