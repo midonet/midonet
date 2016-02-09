@@ -237,11 +237,16 @@ class DatapathController extends Actor
             }
 
             override def setVportStatus(port: DpPort, binding: PortBinding,
-                                        isActive: Boolean): Future[_] = {
+                                        isActive: Boolean,
+                                        tunnelKey: Long): Future[_] = {
                 log.info(s"Port ${port.getPortNo}/${port.getName}/${binding.portId} " +
                          s"became ${if (isActive) "active" else "inactive"}")
-                VirtualToPhysicalMapper ! LocalPortActive(binding.portId, isActive)
-                invalidateTunnelKeyFlows(port, binding.tunnelKey, isActive)
+                VirtualToPhysicalMapper ! LocalPortActive(binding.portId,
+                                                          isActive,
+                                                          tunnelKey)
+
+                Future.sequence(Seq(invalidateTunnelKeyFlows(port, tunnelKey, isActive),
+                                    invalidateTunnelKeyFlows(port, binding.legacyTunnelKey, isActive)))
             }
         }
     )(singleThreadExecutionContext, log)

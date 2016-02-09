@@ -53,6 +53,7 @@ import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.VlanPortMap;
+import org.midonet.cluster.data.PortActiveTunnelKey;
 import org.midonet.cluster.data.PortGroup;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.l4lb.PoolMember;
@@ -206,7 +207,7 @@ public class LocalClientImplTest {
                    equalTo(2));
         Assert.assertThat(portBuilder.port.id(), equalTo(portId));
         Assert.assertThat(portBuilder.port.adminStateUp(), equalTo(true));
-        Assert.assertThat(portBuilder.active, equalTo(false));
+        Assert.assertThat(portBuilder.isActive(), equalTo(false));
 
         // Update the port configuration.
         getPortZkManager().update(
@@ -217,11 +218,11 @@ public class LocalClientImplTest {
                    equalTo(3));
         Assert.assertThat(portBuilder.port.id(), equalTo(portId));
         Assert.assertThat(portBuilder.port.adminStateUp(), equalTo(false));
-        Assert.assertThat(portBuilder.active, equalTo(false));
+        Assert.assertThat(portBuilder.isActive(), equalTo(false));
 
         // Set the port as active.
         UUID hostId = UUID.randomUUID();
-        getPortZkManager().setActivePort(portId, hostId, true)
+        getPortZkManager().setActivePort(portId, hostId, true, 1L)
                           .toBlocking().first();
 
         portBuilder.awaitBuildCalls(4, 5, TimeUnit.SECONDS);
@@ -229,10 +230,10 @@ public class LocalClientImplTest {
                    equalTo(4));
         Assert.assertThat(portBuilder.port.id(), equalTo(portId));
         Assert.assertThat(portBuilder.port.adminStateUp(), equalTo(false));
-        Assert.assertThat(portBuilder.active, equalTo(true));
+        Assert.assertThat(portBuilder.isActive(), equalTo(true));
 
         // Set the port as inactive.
-        getPortZkManager().setActivePort(portId, hostId, false)
+        getPortZkManager().setActivePort(portId, hostId, false, 1L)
                           .toBlocking().first();
 
         portBuilder.awaitBuildCalls(5, 5, TimeUnit.SECONDS);
@@ -240,7 +241,7 @@ public class LocalClientImplTest {
                    equalTo(5));
         Assert.assertThat(portBuilder.port.id(), equalTo(portId));
         Assert.assertThat(portBuilder.port.adminStateUp(), equalTo(false));
-        Assert.assertThat(portBuilder.active, equalTo(false));
+        Assert.assertThat(portBuilder.isActive(), equalTo(false));
 
         // Delete the port.
         getPortZkManager().delete(portId);
@@ -903,7 +904,11 @@ public class LocalClientImplTest {
     static class TestPortBuilder extends AwaitableBuilder implements PortBuilder {
 
         Port port = null;
-        boolean active = false;
+        PortActiveTunnelKey patk = null;
+
+        boolean isActive() {
+            return patk != null;
+        }
 
         @Override
         public void setPort(Port p) {
@@ -911,8 +916,8 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setActive(boolean a) {
-            active = a;
+        public void setActive(PortActiveTunnelKey patk) {
+            this.patk = patk;
         }
 
         @Override

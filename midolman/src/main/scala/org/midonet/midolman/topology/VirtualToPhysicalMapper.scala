@@ -65,7 +65,7 @@ sealed trait VTPMRequest[D] {
  * @param active True if the port is ready to emit/receive; false
  *               otherwise.
  */
-case class LocalPortActive(portID: UUID, active: Boolean)
+case class LocalPortActive(portID: UUID, active: Boolean, tunnelKey: Long)
 
 object VirtualToPhysicalMapper extends Referenceable {
 
@@ -304,9 +304,10 @@ trait DataClientLink {
     @Inject
     val connWatcher: ZkConnectionAwareWatcher = null
 
-    def notifyLocalPortActive(vportID: UUID, active: Boolean) {
+    def notifyLocalPortActive(vportID: UUID, active: Boolean,
+                              tunnelKey: Long) {
         stateStorage.setPortLocalAndActive(vportID, hostIdProvider.getHostId,
-                                           active)
+                                           active, tunnelKey)
     }
 }
 
@@ -349,7 +350,8 @@ abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
     import context.system
     import VirtualToPhysicalMapper._
 
-    def notifyLocalPortActive(vportID: UUID, active: Boolean): Unit
+    def notifyLocalPortActive(vportID: UUID, active: Boolean,
+                              tunnelKey: Long): Unit
 
     def makeHostManager(actor: ActorRef): DeviceHandler
     def makeTunnelZoneManager(actor: ActorRef): DeviceHandler
@@ -508,8 +510,8 @@ abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
         case TunnelZoneUnsubscribe(zoneId) =>
             unsubscribeClient(TunnelZoneUnsubscribe(zoneId), sender())
 
-        case msg@LocalPortActive(id, active) =>
-            notifyLocalPortActive(id, active)
+        case msg@LocalPortActive(id, active, tunnelKey) =>
+            notifyLocalPortActive(id, active, tunnelKey)
             context.system.eventStream.publish(msg)
 
         case value =>

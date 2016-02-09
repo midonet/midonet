@@ -159,7 +159,7 @@ class HostRequestProxy(val hostId: UUID,
                 if (interfaceName ne null) {
                     bindings.put(portId,
                                  Success(Some(PortBinding(
-                                     portId, port.tunnelKey, interfaceName))))
+                                     portId, interfaceName, port.tunnelKey))))
                 } else {
                     bindings.put(portId, Success(None))
                 }

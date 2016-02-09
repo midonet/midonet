@@ -75,6 +75,8 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 
     def isActive: Boolean = _active
 
+    def getTunnelKey = tunnelKey
+
     override def afterFromProto(message: MessageOrBuilder): Unit = {
         _deviceTag = FlowTagger.tagForPort(id)
         _txTag = FlowTagger.tagForPortTx(id)
@@ -88,9 +90,10 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 
     def deviceId: UUID
 
-    def copy(active: Boolean): this.type = {
+    def copy(active: Boolean, tunnelKey: Long): this.type = {
         val port = super.clone().asInstanceOf[this.type]
         port._active = active
+        port.tunnelKey = tunnelKey
         port
     }
 

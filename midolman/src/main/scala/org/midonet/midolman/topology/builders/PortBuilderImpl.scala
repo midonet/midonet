@@ -20,20 +20,28 @@ import org.midonet.cluster.client.PortBuilder
 import akka.actor.ActorRef
 import org.midonet.midolman.topology.PortManager
 import org.midonet.midolman.topology.devices.Port
+import org.midonet.cluster.data.PortActiveTunnelKey
 
 class PortBuilderImpl(val portActor: ActorRef) extends PortBuilder {
 
     private var port: Port = null
     private var active = false
+    private var tunnelKey: Option[Long] = None
 
     override def setPort(p: Port) {
-        port = p.copy(active)
+        port = p.copy(active, tunnelKey.getOrElse(p.tunnelKey))
     }
 
-    override def setActive(active: Boolean) {
-        this.active = active
-        if (port != null)
-            port = port.copy(active)
+    override def setActive(activeTunnelKey: PortActiveTunnelKey) {
+        this.active = activeTunnelKey != null
+        if (activeTunnelKey != null && activeTunnelKey.hasTunnelKey()) {
+            this.tunnelKey = Some(activeTunnelKey.getTunnelKey())
+        } else {
+            this.tunnelKey = None
+        }
+        if (port != null) {
+            port = port.copy(active, tunnelKey.getOrElse(port.tunnelKey))
+        }
     }
 
     override def deleted(): Unit = {

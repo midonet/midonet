@@ -75,8 +75,9 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
     }
 
     override def setPortLocalAndActive(portId: UUID, hostId: UUID,
-                                       active: Boolean): Unit = runOnReactor {
-        portZkManager.setActivePort(portId, hostId, active)
+                                       active: Boolean,
+                                       tunnelKey: Long): Unit = runOnReactor {
+        portZkManager.setActivePort(portId, hostId, active, tunnelKey)
             .observeOn(reactor.rxScheduler)
             .flatMap(makeFunc1[Void,Observable[PortConfig]]((x: Void) => {
                 portZkManager.getWithObservable(portId)

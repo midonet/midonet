@@ -15,8 +15,9 @@
  */
 package org.midonet.midolman.datapath
 
-import java.util.{HashSet, UUID}
+import java.util.{HashMap, HashSet, Random, UUID}
 
+import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 import org.slf4j.helpers.NOPLogger
@@ -42,12 +43,15 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         var portRemoved: DpPort = _
         var portUpdated: DpPort = _
         var portActive: Boolean = _
+        var tunnelKey: Long = 0
         var portNumbers = 0
 
         def clear(): Unit = {
             portCreated = null
             portRemoved = null
             portUpdated = null
+            portActive = false
+            tunnelKey = 0
         }
 
         override def addToDatapath(interfaceName: String): Future[(DpPort, Int)] = {
@@ -63,9 +67,12 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         }
 
         override def setVportStatus(port: DpPort, binding: PortBinding,
-                                    isActive: Boolean): Future[_] = {
+                                    isActive: Boolean,
+                                    tunnelKey: Long): Future[_] = {
             portUpdated = port
             portActive = isActive
+
+            this.tunnelKey = tunnelKey
             Future.successful(null)
         }
     }
@@ -172,7 +179,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 id = uuid
                 interfaceName = port
             }
-            entangler.updateVPortInterfaceBindings(Map(uuid -> PortBinding(uuid, 1L, port)))
+            entangler.updateVPortInterfaceBindings(Map(uuid -> PortBinding(uuid, port, 1L)))
         }
 
         override def validate(prevInterfaceToStatus: Map[String, Boolean],
@@ -302,7 +309,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             }
 
             override def setVportStatus(port: DpPort, binding: PortBinding,
-                                        isActive: Boolean): Future[_] = {
+                                        isActive: Boolean,
+                                        tunnelKey: Long): Future[_] = {
                 portActive = isActive
                 Future.successful(null)
             }
@@ -315,7 +323,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         }
 
         val id = UUID.randomUUID()
-        val binding = new PortBinding(id, 1, "eth1")
+        val binding = new PortBinding(id, "eth1", 1)
         val desc = new InterfaceDescription("eth1")
         entangler.updateVPortInterfaceBindings(Map(id -> binding))
         entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
@@ -333,4 +341,60 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         entangler.interfaceToDpPort("eth1") should be (
             DpPort.fakeFrom(new NetDevPort("eth1"), 1))
     }
+
+    "Datapath entangler" should "generate unique tunnel keys" in {
+        val seenKeys = new HashSet[Long]
+        val interfaces = new HashMap[UUID, PortBinding]()
+        val descriptions = new HashSet[InterfaceDescription]()
+
+        for (i <- 1.to(100)) {
+            val name = s"eth$i"
+            val id = UUID.randomUUID()
+            val binding = new PortBinding(id, s"eth$i", i)
+            val desc = new InterfaceDescription(s"eth$i")
+            desc.setUp(true)
+
+            interfaces.put(id, binding)
+            descriptions.add(desc)
+
+            entangler.updateVPortInterfaceBindings(interfaces.toMap)
+            entangler.updateInterfaces(descriptions)
+
+            controller.portActive shouldBe true
+            seenKeys.add(controller.tunnelKey) shouldBe true
+
+            controller.clear()
+        }
+    }
+
+    "Datapath entangler" should "return the same for local and legacy keys" in {
+        val seenKeys = new HashSet[(Long, Long)]
+        val interfaces = new HashMap[UUID, PortBinding]()
+        val descriptions = new HashSet[InterfaceDescription]()
+
+        for (i <- 1.to(100)) {
+            val name = s"eth$i"
+            val id = UUID.randomUUID()
+            val legacyKey = i
+            val binding = new PortBinding(id, s"eth$i", i)
+            val desc = new InterfaceDescription(s"eth$i")
+            desc.setUp(true)
+
+            interfaces.put(id, binding)
+            descriptions.add(desc)
+
+            entangler.updateVPortInterfaceBindings(interfaces.toMap)
+            entangler.updateInterfaces(descriptions)
+
+            controller.portActive shouldBe true
+            seenKeys.add((legacyKey, controller.tunnelKey))
+
+            controller.clear()
+        }
+
+        for (k <- seenKeys) {
+            entangler.keysForLocalPorts(k._1) shouldBe entangler.keysForLocalPorts(k._2)
+        }
+    }
+
 }

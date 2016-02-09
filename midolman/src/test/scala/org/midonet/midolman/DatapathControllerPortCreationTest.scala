@@ -179,9 +179,13 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
                 1000 - VxLanTunnelPort.TunnelOverhead)
 
             VirtualToPhysicalMapper.getAndClear() filter {
-                case LocalPortActive(_,_) => true
+                case LocalPortActive(_,_,_) => true
                 case _ => false
-            } should equal (List(LocalPortActive(port.getId, true)))
+            } map {
+                _ match {
+                    case LocalPortActive(id,active,_) => (id, active)
+                }
+            } should equal (List((port.getId, true)))
 
             When("the network interface disappears")
             VirtualToPhysicalMapper.getAndClear()
@@ -211,9 +215,13 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             Then("the DpC should create the datapath port")
             testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal None
             VirtualToPhysicalMapper.getAndClear() filter {
-                case LocalPortActive(_,_) => true
+                case LocalPortActive(_,_,_) => true
                 case _ => false
-            } should equal (List(LocalPortActive(port.getId, true)))
+            } map {
+                _ match {
+                    case LocalPortActive(id,active,_) => (id, active)
+                }
+            } should equal (List((port.getId, true)))
 
             When("the binding disappears")
             VirtualToPhysicalMapper.getAndClear()
@@ -222,9 +230,13 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             Then("the DpC should delete the datapath port")
             testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
             VirtualToPhysicalMapper.getAndClear() filter {
-                case LocalPortActive(_,_) => true
+                case LocalPortActive(_,_,_) => true
                 case _ => false
-            } should equal (List(LocalPortActive(port.getId, false)))
+            } map {
+                _ match {
+                    case LocalPortActive(id,active,_) => (id, active)
+                }
+            } should equal (List((port.getId, false)))
         }
     }
 }

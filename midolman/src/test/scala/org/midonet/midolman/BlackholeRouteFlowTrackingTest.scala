@@ -72,12 +72,14 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
         leftPort = newRouterPort(clusterRouter,
             MAC.fromString(leftRouterMac), leftRouterIp, leftNet, netmask)
         leftPort should not be null
-        stateStorage.setPortLocalAndActive(leftPort.getId, host.getId, true)
+        stateStorage.setPortLocalAndActive(leftPort.getId, host.getId,
+                                           true, leftPort.getTunnelKey)
 
         rightPort = newRouterPort(clusterRouter,
             MAC.fromString(rightRouterMac), rightRouterIp, rightNet, netmask)
         rightPort should not be null
-        stateStorage.setPortLocalAndActive(rightPort.getId, host.getId, true)
+        stateStorage.setPortLocalAndActive(rightPort.getId, host.getId,
+                                           true, rightPort.getTunnelKey)
 
         newRoute(clusterRouter, "0.0.0.0", 0, blackholedDestination, 30,
                  NextHop.BLACKHOLE, null, null, 1)

@@ -58,7 +58,9 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             Future.successful(null)
         override def removeFromDatapath(port: DpPort) =
             Future.successful(true)
-        override def setVportStatus(port: DpPort, binding: PortBinding, isActive: Boolean) =
+        override def setVportStatus(port: DpPort, binding: PortBinding,
+                                    isActive: Boolean,
+                                    tunnelKey: Long) =
             Future.successful(null)
     }
 

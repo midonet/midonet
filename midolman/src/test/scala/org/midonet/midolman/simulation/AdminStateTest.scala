@@ -140,7 +140,7 @@ class AdminStateTest extends MidolmanSpec {
         VirtualTopologyActor.getAndClear()
 
         VirtualToPhysicalMapper ! LocalPortActive(exteriorBridgePort.getId,
-                                                  active = true)
+                                                  active = true, 1L)
     }
 
     lazy val fromBridgeSide = (exteriorBridgePort, bridgeSidePkt)
