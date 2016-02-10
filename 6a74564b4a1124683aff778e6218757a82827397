@@ -34,6 +34,24 @@
       "revId": "6a74564b4a1124683aff778e6218757a82827397",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ee9d89bd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/IpsecSiteConnectionResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-10T09:33:38Z",
+      "side": 1,
+      "message": "I updated the message to give more info.",
+      "parentUuid": "fa81d914_e68053c2",
+      "revId": "6a74564b4a1124683aff778e6218757a82827397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
