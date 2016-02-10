@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_2e1fa15c",
+        "filename": "midolman/src/test/scala/org/midonet/containers/IPSecContainerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 2002,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-10T09:21:11Z",
+      "side": 1,
+      "message": "This comes from my patch but I forgot an \"not\" here.",
+      "range": {
+        "startLine": 2002,
+        "startChar": 45,
+        "endLine": 2002,
+        "endChar": 46
+      },
+      "revId": "3b5459a73bc460c78972ec7e77cfaed0f5f033a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
