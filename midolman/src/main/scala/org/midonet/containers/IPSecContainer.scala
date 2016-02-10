@@ -23,7 +23,6 @@ import java.util.concurrent.{ScheduledExecutorService, TimeUnit, ExecutorService
 import javax.inject.Named
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
@@ -66,7 +65,7 @@ case class IPSecServiceDef(name: String,
 object IPSecConfig {
     /* The connection name should contain only Latin letters, digits,
        hyphen (-), and underline (_) symbols. */
-    def sanitizeName(connectionId: UUID, connectionName: String): String =
+    def sanitizeName(connectionId: UUID): String =
         "ipsec-" + connectionId.toString.substring(0, 8)
 
     def sanitizePsk(psk: String): String = psk.replaceAll("[\n\r\"]", "")
@@ -155,7 +154,7 @@ case class IPSecConfig(script: String,
                |""".stripMargin
         for (c <- connections if isSiteConnectionUp(c)) {
             contents append
-                s"""conn ${sanitizeName(c.getId.asJava, c.getName)}
+                s"""conn ${sanitizeName(c.getId.asJava)}
                    |    leftnexthop=%defaultroute
                    |    rightnexthop=%defaultroute
                    |    left=${ipsecService.localEndpointIp}
@@ -203,7 +202,7 @@ case class IPSecConfig(script: String,
                                     s"-p ${ipsecService.filepath} " +
                                     s"-g ${ipsecService.namespaceGatewayIp}")
         for (c <- connections if isSiteConnectionUp(c)) {
-            cmd append s" -c ${sanitizeName(c.getId.asJava, c.getName)}"
+            cmd append s" -c ${sanitizeName(c.getId.asJava)}"
         }
         cmd.toString
     }
@@ -241,9 +240,6 @@ case class IPSecAdminStateDownException(routerId: UUID)
 object IPSecContainer {
 
     final val VpnHelperScriptPath = "/usr/lib/midolman/vpn-helper"
-    final val IPSecLogDelay = 250 millis
-    final val IPSecLogTimeout = 3 seconds
-    final val IPSecStatusInterval = 5 seconds
 
     def isVpnServiceUp(vpn: VpnService) = {
         !vpn.hasAdminStateUp || vpn.getAdminStateUp
@@ -289,10 +285,13 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         }
     }
 
+    private val statusInterval = vt.config.containers.ipsec.statusUpdateInterval
+    private val logPollInterval = vt.config.containers.ipsec.loggingPollInterval
+    private val logTimeout = vt.config.containers.ipsec.loggingTimeout
+
     private val statusObservable =
-        Observable.interval(IPSecStatusInterval.toMillis,
-                            IPSecStatusInterval.toMillis, TimeUnit.MILLISECONDS,
-                            scheduler)
+        Observable.interval(statusInterval.toMillis, statusInterval.toMillis,
+                            TimeUnit.MILLISECONDS, scheduler)
     private val statusObserver = new Observer[java.lang.Long] {
         override def onNext(tick: java.lang.Long): Unit = {
             if (config eq null) {
@@ -437,7 +436,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             logTailer.close()
         }
         logTailer = new Tailer(new File(config.logPath), ioExecutor, logObserver,
-                               IPSecLogDelay.toMillis, TimeUnit.MILLISECONDS)
+                               logPollInterval.toMillis, TimeUnit.MILLISECONDS)
         logTailer.start()
 
         // Schedule the status check.
@@ -474,7 +473,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         execCmd(config.cleanNsCmd)
         try {
             if (logTailer ne null) {
-                logTailer.close().await(IPSecLogTimeout)
+                logTailer.close().await(logTimeout)
             }
         } catch {
             case NonFatal(e) =>

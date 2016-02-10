@@ -158,7 +158,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                    |    ikelifetime=480m
                    |    keylife=60m
                    |    keyingtries=%forever
-                   |conn ${IPSecConfig.sanitizeName(conn.getId.asJava, conn.getName)}
+                   |conn ${IPSecConfig.sanitizeName(conn.getId.asJava)}
                    |    leftnexthop=%defaultroute
                    |    rightnexthop=%defaultroute
                    |    left=${vpn.localEndpointIp}
@@ -266,7 +266,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    ikelifetime=480m
                     |    keylife=60m
                     |    keyingtries=%forever
-                    |conn ${IPSecConfig.sanitizeName(conn1.getId.asJava, conn1.getName)}
+                    |conn ${IPSecConfig.sanitizeName(conn1.getId.asJava)}
                     |    leftnexthop=%defaultroute
                     |    rightnexthop=%defaultroute
                     |    left=${vpn.localEndpointIp}
@@ -289,7 +289,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    phase2alg=aes128-sha1;modp1536
                     |    type=transport
                     |    lifetime=${ipsec.getLifetimeValue}s
-                    |conn ${IPSecConfig.sanitizeName(conn2.getId.asJava, conn2.getName)}
+                    |conn ${IPSecConfig.sanitizeName(conn2.getId.asJava)}
                     |    leftnexthop=%defaultroute
                     |    rightnexthop=%defaultroute
                     |    left=${vpn.localEndpointIp}
@@ -312,7 +312,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    phase2alg=aes128-sha1;modp1536
                     |    type=transport
                     |    lifetime=${ipsec.getLifetimeValue}s
-                    |conn ${IPSecConfig.sanitizeName(conn3.getId.asJava, conn3.getName)}
+                    |conn ${IPSecConfig.sanitizeName(conn3.getId.asJava)}
                     |    leftnexthop=%defaultroute
                     |    rightnexthop=%defaultroute
                     |    left=${vpn.localEndpointIp}
@@ -437,7 +437,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    ikelifetime=480m
                     |    keylife=60m
                     |    keyingtries=%forever
-                    |conn ${IPSecConfig.sanitizeName(conn1.getId.asJava, conn1.getName)}
+                    |conn ${IPSecConfig.sanitizeName(conn1.getId.asJava)}
                     |    leftnexthop=%defaultroute
                     |    rightnexthop=%defaultroute
                     |    left=${vpn.localEndpointIp}
@@ -460,7 +460,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    phase2alg=aes128-sha1;modp1536
                     |    type=transport
                     |    lifetime=${ipsec.getLifetimeValue}s
-                    |conn ${IPSecConfig.sanitizeName(conn3.getId.asJava, conn3.getName)}
+                    |conn ${IPSecConfig.sanitizeName(conn3.getId.asJava)}
                     |    leftnexthop=%defaultroute
                     |    rightnexthop=%defaultroute
                     |    left=${vpn.localEndpointIp}
@@ -572,7 +572,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.commands(5) shouldBe
                 s"vpn-helper init_conns -n ${vpn.name} -p ${vpn.filepath} " +
                 s"-g ${vpn.namespaceGatewayIp} " +
-                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava, conn.getName)}"
+                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava)}"
 
             When("Calling the cleanup method")
             container.cleanup(conf)
@@ -689,7 +689,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.commands(5) shouldBe
                 s"vpn-helper init_conns -n ${vpn.name} -p ${vpn.filepath} " +
                 s"-g ${vpn.namespaceGatewayIp} " +
-                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava, conn.getName)}"
+                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava)}"
 
             And("The container should execute the cleanup commands")
             container.commands(6) shouldBe
@@ -957,7 +957,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
-                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava, conn.getName)}"
+                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava)}"
             container.commands(6) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1060,7 +1060,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
-                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava, conn.getName)}"
+                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava)}"
             container.commands(15) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1102,7 +1102,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
-                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava, conn.getName)}"
+                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava)}"
             container.commands(24) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1141,7 +1141,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
-                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava, conn.getName)}"
+                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava)}"
             container.commands(33) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1244,7 +1244,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
-                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava, conn.getName)}"
+                s"-c ${IPSecConfig.sanitizeName(conn.getId.asJava)}"
             container.commands(6) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1350,11 +1350,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
             container.commands(14).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava,
-                                                conn1.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava)}") shouldBe true
             container.commands(14).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava,
-                                                conn2.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava)}") shouldBe true
             container.commands(15) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1395,11 +1393,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
             container.commands(23).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava,
-                                                conn1.getName)}") shouldBe false
+                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava)}") shouldBe false
             container.commands(23).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava,
-                                                conn2.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava)}") shouldBe true
             container.commands(24) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1440,11 +1436,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
             container.commands(32).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava,
-                                                conn1.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava)}") shouldBe true
             container.commands(32).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava,
-                                                conn2.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava)}") shouldBe true
             container.commands(33) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1555,11 +1549,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
             container.commands(14).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava,
-                                                conn1.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava)}") shouldBe true
             container.commands(14).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava,
-                                                conn2.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava)}") shouldBe true
             container.commands(15) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1599,11 +1591,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
             container.commands(23).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava,
-                                                conn1.getName)}") shouldBe false
+                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava)}") shouldBe false
             container.commands(23).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava,
-                                                conn2.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava)}") shouldBe true
             container.commands(24) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1644,11 +1634,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
             container.commands(32).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava,
-                                                conn1.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn1.getId.asJava)}") shouldBe true
             container.commands(32).contains(
-                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava,
-                                                conn2.getName)}") shouldBe true
+                s"-c ${IPSecConfig.sanitizeName(conn2.getId.asJava)}") shouldBe true
             container.commands(33) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
@@ -1980,7 +1968,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             Then("The sanitized name should contain the 1st 8 digits of the " +
                  "connection id")
-            IPSecConfig.sanitizeName(id, name) shouldBe "ipsec-" +
+            IPSecConfig.sanitizeName(id) shouldBe "ipsec-" +
                 id.toString.substring(0, 8)
 
             When("The connection name contains special characters")
@@ -1988,7 +1976,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             Then("The sanitized name should contain the 1st 8 digits of the " +
                  "connection id")
-            IPSecConfig.sanitizeName(id, name) shouldBe "ipsec-" +
+            IPSecConfig.sanitizeName(id) shouldBe "ipsec-" +
                 id.toString.substring(0, 8)
 
             When("The name is empty")
@@ -1996,7 +1984,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             Then("The sanitized name should contain the 1st 8 digits of the " +
                  "connection id")
-            IPSecConfig.sanitizeName(id, name) shouldBe "ipsec-" +
+            IPSecConfig.sanitizeName(id) shouldBe "ipsec-" +
                 id.toString.substring(0, 8)
         }
 
