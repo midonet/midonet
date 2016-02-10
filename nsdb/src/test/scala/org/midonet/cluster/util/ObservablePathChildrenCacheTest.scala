@@ -83,7 +83,8 @@ class ObservablePathChildrenCacheTest extends Suite
       * one element with data that matches the path's suffix.
       *
       * Also verifies that all child observables and the parent one are not
-      * completed or received any errors. */
+      * completed or received any errors.
+      */
     private def checkChildren(acc: ChildDataAccumulator) {
         val allData = acc.children.map { o =>
             o.getOnCompletedEvents shouldBe empty
@@ -102,28 +103,31 @@ class ObservablePathChildrenCacheTest extends Suite
      * state of the node. */
      def testChildObservablesArePrimed() {
         val nChildren = 10
-        val latch = new CountDownLatch(nChildren)
-        val collector = new ChildDataAccumulator(latch)
-        makePaths(nChildren)
 
+        makePaths(nChildren)
         eventually {    // avoid races with the subscription
             curator.getChildren.forPath(zkRoot) should have size nChildren
         }
 
+        val collector = new TestAwaitableObserver[ChildData]
         val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
-        opcc.subscribe(collector)
-        assert(latch.await(timeout, TimeUnit.SECONDS))
-        collector.getOnNextEvents should have size nChildren
+        Observable.merge(opcc).subscribe(collector)
+
+        collector.awaitOnNext(nChildren, timeout seconds) shouldBe true
         collector.getOnCompletedEvents shouldBe empty
         collector.getOnErrorEvents shouldBe empty
-        checkChildren(collector)
+        collector.getOnNextEvents.map { cd =>
+            val node = new String(cd.getData)
+            cd.getPath should endWith(node)
+            node.toInt
+        } should contain theSameElementsAs (0 until nChildren)
+
         opcc close()
-        collector.children.foreach { o =>
-            o.getOnCompletedEvents should have size 0
-            o.getOnErrorEvents should have size 1
-            o.getOnErrorEvents
-             .get(0).isInstanceOf[PathCacheClosedException] shouldBe true
-        }
+
+        collector.awaitCompletion(1 second)
+        collector.getOnNextEvents should have size nChildren
+        collector.getOnErrorEvents should have size 1
+        collector.getOnErrorEvents.get(0).getClass shouldBe classOf[PathCacheClosedException]
     }
 
     def testOnNonExistentPath(): Unit = {
