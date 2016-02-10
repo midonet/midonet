@@ -163,7 +163,8 @@ project.ext {
     timestamp = new Date().format("yyyyMMddHHmm")
     gitrev = getGitSHA()
     debVersion = midonetVersion.replaceAll(/SNAPSHOT$/, "${timestamp}.${gitrev}").
-                                replaceAll(/-/, "~")
+                                replaceAll(/-rc/, "~rc").
+                                replaceAll(/-hf/, "+hf")
     rpmVersion = midonetVersion.replaceAll(/-.*$/, "")
     rpmRelease = midonetVersion.replaceAll(/^[^-]+$/, "1.0").
                                 replaceAll(/^.*(hf\d*)$/, "1.0.\$1").
