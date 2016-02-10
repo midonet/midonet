@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_2b56b306",
+        "filename": "docs/openstack-lbaasv1.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-10T02:16:45Z",
+      "side": 1,
+      "message": "I believe it\u0027s worth noting that this scenario only works if the IP of the sender is from a different subnet from the pool members.\n\nAnother thing to note related to the point above is, if the sender and the pool members happen to belong in the same subnet, with VIP on a different subnet, we do SNAT (original sender IP -\u003e router interface IP) so that the return flow comes back to the router that has LB attached.\n\nTo summarize:\n\nsender/VIP/members on same subnet -\u003e does not work\nsender/members on same subnet -\u003e works with SNAT\nVIP/members on same subnet -\u003e works but no health monitor",
+      "revId": "5a54d47de3d8496c55f5386a7f7189e985df6260",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
