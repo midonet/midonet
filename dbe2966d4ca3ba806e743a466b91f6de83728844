@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_cb2a778f",
+        "filename": "netlink/src/main/java/org/midonet/odp/flows/FlowKeyTunnel.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-02-10T08:48:11Z",
+      "side": 1,
+      "message": "It doesn\u0027t need to be done in this patch, but I\u0027d like to make setAttrHeader private and add a int addEmptyAttribute() method so this mistake isn\u0027t repeated :)",
+      "revId": "dbe2966d4ca3ba806e743a466b91f6de83728844",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
