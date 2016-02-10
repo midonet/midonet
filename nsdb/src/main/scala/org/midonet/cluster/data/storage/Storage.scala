@@ -17,8 +17,9 @@ package org.midonet.cluster.data.storage
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
+import scala.util.control.NonFatal
 
-import com.google.common.collect.{ArrayListMultimap, Multimaps}
+import com.google.common.collect.{ArrayListMultimap, Multimap, Multimaps}
 import com.google.protobuf.Message
 
 import rx.Observable
