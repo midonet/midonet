@@ -58,7 +58,7 @@ project.ext {
         httpclient: "org.apache.httpcomponents:fluent-hc:4.4",
 
         infinispan: "org.infinispan:infinispan-commons:7.0.2.Final",
-        netty: "io.netty:netty-all:4.0.27.Final",
+        netty: "io.netty:netty-all:4.1.0.CR1",
         guava: "com.google.guava:guava:18.0",
         slf4j: "org.slf4j:slf4j-api:1.7.7",
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
