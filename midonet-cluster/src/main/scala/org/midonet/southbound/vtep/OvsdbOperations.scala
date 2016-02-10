@@ -48,7 +48,7 @@ object OvsdbOperations {
     final val VoidCloseFuture = new ChannelFuture {
 
         type FutureListener = GenericFutureListener[_ <: concurrent.Future[_ >: Void]]
-
+        override def isVoid(): Boolean = true
         override def sync(): ChannelFuture = this
         override def await(): ChannelFuture = this
         override def addListener(listener: FutureListener): ChannelFuture = this
