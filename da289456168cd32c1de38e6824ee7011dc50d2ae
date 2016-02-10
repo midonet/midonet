@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_4e0db536",
+        "filename": "tests/sandbox/override_v2/neutron/override.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T09:18:33Z",
+      "side": 1,
+      "message": "Nit: trailing space",
+      "range": {
+        "startLine": 3,
+        "startChar": 77,
+        "endLine": 3,
+        "endChar": 78
+      },
+      "revId": "da289456168cd32c1de38e6824ee7011dc50d2ae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
