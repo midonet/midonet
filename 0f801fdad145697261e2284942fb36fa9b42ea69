@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_15dcb345",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Ah, ouch. I forgot this from testing. Set to 1 day, is that a good interval?",
+      "parentUuid": "fa81d914_ef33d15f",
+      "range": {
+        "startLine": 174,
+        "startChar": 8,
+        "endLine": 174,
+        "endChar": 35
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_2f4169a9",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-02-08T11:32:37Z",
       "side": 1,
       "message": "I guess it could be a val",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 11
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_b5ecc7f4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Done. But just wondering, will val increase the memory usage by allocating another reference?",
+      "parentUuid": "fa81d914_2f4169a9",
       "range": {
         "startLine": 55,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_f5c1df54",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_4f3e9d29",
+      "range": {
+        "startLine": 95,
+        "startChar": 16,
+        "endLine": 95,
+        "endChar": 31
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_cf80cdc2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2016-02-08T11:32:37Z",
       "side": 1,
       "message": "any ideas to take care about clock drift? worth it?",
+      "range": {
+        "startLine": 160,
+        "startChar": 20,
+        "endLine": 160,
+        "endChar": 49
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_f580ffc1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "When looking into the NAT recycling issue, Fernando said this wouldn\u0027t be a problem. But you\u0027re right, maybe we should address it. How about if we add an additional write to zk to correct the clock? Alternatively, we could use the first timestamp to correct the clock for future runs.",
+      "parentUuid": "fa81d914_cf80cdc2",
       "range": {
         "startLine": 160,
         "startChar": 20,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_ce4445b9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_ef8111c4",
+      "range": {
+        "startLine": 169,
+        "startChar": 28,
+        "endLine": 170,
+        "endChar": 37
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_6f7521f9",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 2
@@ -128,6 +248,24 @@
       "writtenOn": "2016-02-08T11:32:37Z",
       "side": 1,
       "message": "A bit of a nit, but maybe it helps clarity.  We could move all these BackgroundCallback out to their own files as classes in a dedicated package, NodeRecycler, NamespaceRecycler, HostCollector. \n\nThat would keep this file very small and more readable.",
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_ae4c71c9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Good point, done!",
+      "parentUuid": "fa81d914_6f7521f9",
       "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -151,6 +289,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_bcf74b58",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "I tried this: but not all callbacks fail the future on error (e.g. the ones deleting individual namespaces or objects - those also collect statistics)",
+      "parentUuid": "fa81d914_6f2d21a8",
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_0108f926",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 2
@@ -162,6 +318,30 @@
       "writtenOn": "2016-02-08T11:32:37Z",
       "side": 1,
       "message": "nit: isStale or isExpired or something in those lines might be more accurate.",
+      "range": {
+        "startLine": 250,
+        "startChar": 16,
+        "endLine": 250,
+        "endChar": 22
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_7c015337",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Now, I moved this to a different object - RecyclerValidator - is this okay?",
+      "parentUuid": "fa81d914_0108f926",
       "range": {
         "startLine": 250,
         "startChar": 16,
@@ -214,6 +394,24 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_bca58b48",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_61129558",
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_ef58318c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 2
@@ -237,6 +435,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_dc65df1e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Done. I think I wanted to use this for unit tests, but then it turned out unnecessary.",
+      "parentUuid": "fa81d914_ef58318c",
+      "range": {
+        "startLine": 403,
+        "startChar": 14,
+        "endLine": 403,
+        "endChar": 19
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_0f5e6576",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 2
@@ -248,6 +470,30 @@
       "writtenOn": "2016-02-08T11:32:37Z",
       "side": 1,
       "message": "this doesn\u0027t really \"validate\" no? I can\u0027t find a better name than getStore really :D",
+      "range": {
+        "startLine": 409,
+        "startChar": 16,
+        "endLine": 409,
+        "endChar": 24
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_fc6aa3ec",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_0f5e6576",
       "range": {
         "startLine": 409,
         "startChar": 16,
@@ -306,6 +552,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_5c79efc6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_2fb24994",
+      "range": {
+        "startLine": 440,
+        "startChar": 8,
+        "endLine": 441,
+        "endChar": 20
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_6f7fe1ab",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 2
@@ -329,6 +599,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_1c6cd707",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_6f7fe1ab",
+      "range": {
+        "startLine": 454,
+        "startChar": 24,
+        "endLine": 454,
+        "endChar": 29
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_8f72550f",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 2
@@ -340,6 +634,30 @@
       "writtenOn": "2016-02-08T11:32:37Z",
       "side": 1,
       "message": "Make a context.completeWith(Future.sequence(futures)) ?",
+      "range": {
+        "startLine": 541,
+        "startChar": 8,
+        "endLine": 544,
+        "endChar": 9
+      },
+      "revId": "0f801fdad145697261e2284942fb36fa9b42ea69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3c719be0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 544,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-10T18:38:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_8f72550f",
       "range": {
         "startLine": 541,
         "startChar": 8,
