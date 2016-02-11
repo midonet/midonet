@@ -422,7 +422,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         }
     }
 
-    feature("Recycler deletes unused objects") {
+    feature("Recycler deletes orphan object state") {
         scenario("State for non-existing objects") {
             Given("A recycling service")
             val recycler = newRecycler()
@@ -498,6 +498,78 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             curator.checkExists()
                 .forPath(store.stateObjectPath(
                     namespace, classOf[Port], portId)) should not be null
+        }
+    }
+
+
+    feature("Recycler deletes orphan object tables") {
+        scenario("State for non-existing objects") {
+            Given("A recycling service")
+            val recycler = newRecycler()
+
+            And("A node for an object table")
+            val portId = UUID.randomUUID()
+            curator.create()
+                .creatingParentContainersIfNeeded()
+                .forPath(store.tablesObjectPath(classOf[Port], portId))
+
+            When("The recycler starts")
+            recycler.startAsync().awaitRunning()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            And("Executing the scheduled task")
+            executor.runFirst()
+
+            Then("The recycler should run the recycling task")
+            eventually { recycler.last should not be null }
+            recycler.last.isSuccess shouldBe true
+
+            And("Recycling should not be skipped")
+            recycler.last.get.skipped shouldBe false
+            recycler.last.get.deletedTables.get shouldBe 1
+
+            And("The recycler stops")
+            recycler.stopAsync().awaitTerminated()
+
+            And("The object table path should be deleted")
+            curator.checkExists()
+                .forPath(store.tablesObjectPath(classOf[Port], portId)) shouldBe null
+        }
+
+        scenario("Table for existing objects") {
+            Given("A recycling service")
+            val recycler = newRecycler()
+
+            And("A node for an object table")
+            val portId = UUID.randomUUID()
+            curator.create().forPath(store.objectPath(classOf[Port], portId))
+            curator.create()
+                .creatingParentContainersIfNeeded()
+                .forPath(store.tablesObjectPath(classOf[Port], portId))
+
+            When("The recycler starts")
+            recycler.startAsync().awaitRunning()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            And("Executing the scheduled task")
+            executor.runFirst()
+
+            Then("The recycler should run the recycling task")
+            eventually { recycler.last should not be null }
+            recycler.last.isSuccess shouldBe true
+
+            And("Recycling should not be skipped")
+            recycler.last.get.skipped shouldBe false
+            recycler.last.get.deletedObjects.get shouldBe 0
+
+            And("The recycler stops")
+            recycler.stopAsync().awaitTerminated()
+
+            And("The object table path should exist")
+            curator.checkExists()
+                .forPath(store.tablesObjectPath(classOf[Port], portId)) should not be null
         }
     }
 }
