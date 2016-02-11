@@ -242,7 +242,7 @@ class Service(object):
         ))
         return exec_info['ExitCode']
 
-    def wait_for_status(self, status, timeout=120, wait_time=5, raise_error=True):
+    def wait_for_status(self, status, timeout=240, wait_time=5, raise_error=True):
         init_timeout = timeout
         while self.get_service_status() != status:
             if init_timeout == 0:
