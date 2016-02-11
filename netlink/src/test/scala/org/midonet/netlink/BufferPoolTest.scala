@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.netlink;
+package org.midonet.netlink
 
 import java.nio.ByteBuffer
+
 import scala.collection.mutable.ListBuffer
 
 import org.junit.runner.RunWith
@@ -126,8 +127,8 @@ class BufferPoolTest extends FunSpec with Matchers {
                 }
                 clients foreach { _.start }
                 clients foreach { _.join }
-                pool.available() shouldBe 20
-                pool.allocated() shouldBe 20
+                pool.available() should be (pool.allocated())
+                pool.available() should be <= 20
             }
         }
 
