@@ -20,6 +20,8 @@ project.ext {
     maintainer = "MidoNet user list <midonet-user@midonet.org>"
     url = "http://midonet.org"
 
+    neutron_compatibility = ["kilo", "liberty"]
+
     if (!rootProject.hasProperty('rhelTarget')) {
         rhelTarget = "el7"
     }
