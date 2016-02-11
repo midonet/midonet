@@ -4,7 +4,6 @@
 LOCAL_REPO_FILE=/etc/apt/sources.list.d/midonet-local.list
 echo "deb file:/packages /" > $LOCAL_REPO_FILE
 apt-get update -o Dir::Etc::sourcelist=$LOCAL_REPO_FILE
-apt-get update
 apt-get install -qy --force-yes midolman/local \
                                 midonet-tools/local
 
