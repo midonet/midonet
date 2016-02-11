@@ -56,8 +56,21 @@ package object v3 {
     case class KeystoneAuth @JsonCreator()(
         @(JsonProperty @getter @param)("auth") auth: Auth)
 
+
+    case class KeystoneProject @JsonCreator()(
+        @(JsonProperty @getter @param)("project") project: Project = null)
+
+    case class KeystoneProjects @JsonCreator()(
+        @(JsonProperty @getter @param)("links") links: Links = null,
+        @(JsonProperty @getter @param)("projects") projects: JList[Project] = null)
+
     case class KeystoneToken @JsonCreator()(
         @(JsonProperty @getter @param)("token") token: Token)
+
+    case class Links @JsonCreator()(
+        @(JsonProperty @param)("next") next: String = null,
+        @(JsonProperty @param)("previous") previous: String = null,
+        @(JsonProperty @param)("self") self: String = null)
 
     case class Password @JsonCreator()(
         @(JsonProperty @getter @param)("user") user: User)
@@ -66,8 +79,13 @@ package object v3 {
     case class Project @JsonCreator()(
         @(JsonProperty @getter @param)("id") id: String = null,
         @(JsonProperty @getter @param)("name") name: String = null,
+        @(JsonProperty @param)("description") description: String = null,
         @(JsonProperty @param)("enabled") enabled: Boolean = false,
-        @(JsonProperty @getter @param)("domain") domain: Domain = null)
+        @(JsonProperty @param)("domain_id") domainId: String = null,
+        @(JsonProperty @param)("parent_id") parentId: String = null,
+        @(JsonProperty @getter @param)("domain") domain: Domain = null,
+        @(JsonProperty @param)("is_domain") isDomain: Boolean = false,
+        @(JsonProperty @param)("links") links: Links = null)
         extends keystone.Project
 
     case class Role @JsonCreator()(

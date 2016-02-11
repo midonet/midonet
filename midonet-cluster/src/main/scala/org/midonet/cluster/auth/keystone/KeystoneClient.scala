@@ -297,6 +297,45 @@ class KeystoneClient(config: KeystoneConfig) {
     }
 
     /**
+      * Lists the projects for the given client token. The client must be an
+      * administrator.
+      */
+    @throws[KeystoneException]
+    def listProjects(token: String): v3.KeystoneProjects = {
+        withVersion {
+            case 3 =>
+                get(classOf[v3.KeystoneProjects], Some(token), subjectToken = None,
+                    "projects")()
+        }
+    }
+
+    /**
+      * Gets the information for the project with the specified name. The client
+      * must be an administrator.
+      */
+    @throws[KeystoneException]
+    def getProjectByName(name: String, token: String): v3.KeystoneProjects = {
+        withVersion {
+            case 3 =>
+                get(classOf[v3.KeystoneProjects], Some(token), subjectToken = None,
+                    "projects")(("name", name))
+        }
+    }
+
+    /**
+      * Gets the information for the project with the specified identifier. The
+      * client must be an administrator.
+      */
+    @throws[KeystoneException]
+    def getProjectById(id: String, token: String): v3.KeystoneProject = {
+        withVersion {
+            case 3 =>
+                get(classOf[v3.KeystoneProject], Some(token), subjectToken = None,
+                    "projects", id)()
+        }
+    }
+
+    /**
       * Gets the Keystone URI for the given path segments and query
       * parameters.
       */
