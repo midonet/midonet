@@ -116,13 +116,17 @@ object Recycler {
         val deletedObjects = new AtomicInteger
         val failedObjects = new AtomicInteger
 
+        val deletedTables = new AtomicInteger
+        val failedTables = new AtomicInteger
+
         val modelObjects = new ConcurrentHashMap[Class[_], Set[String]]()
         val stateObjects = new ConcurrentHashMap[(String, Class[_]), Seq[String]]()
+        val tableObjects = new ConcurrentHashMap[Class[_], Set[String]]()
 
         @volatile private var promise = new RecyclingPromise[RecyclingContext]
 
         private val stepIndex = new AtomicInteger
-        private final val stepCount = 8
+        private final val stepCount = 11
 
         def future = promise.future
 
@@ -325,6 +329,8 @@ class Recycler @Inject()(context: ClusterNode.Context, backend: MidonetBackend,
             if (c.skipped) c.future else NamespaceRecycler(c.reset())
         } flatMap { c =>
             if (c.skipped) c.future else ObjectRecycler(c.reset())
+        } flatMap { c =>
+            if (c.skipped) c.future else TableRecycler(c.reset())
         } onComplete { result =>
             result match {
                 case Success(c) if c.skipped =>
@@ -338,7 +344,9 @@ class Recycler @Inject()(context: ClusterNode.Context, backend: MidonetBackend,
                              s"${c.deletedNamespaces} deleted " +
                              s"${c.failedNamespaces} failed] " +
                              s"[objects: ${c.deletedObjects} deleted " +
-                             s"${c.failedObjects} failed]"
+                             s"${c.failedObjects} failed]" +
+                             s"[tables: ${c.deletedTables} deleted " +
+                             s"${c.failedTables} failed]"
                     lastResult = Success(c)
                 case Failure(e: RecyclingException) =>
                     log.warn("NSDB recycling failed after " +

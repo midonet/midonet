@@ -49,30 +49,30 @@ trait StateTablePaths extends StateTableStorage {
     }
 
     @inline
-    private[storage] def tablesPath(version: Long = version.longValue()): String = {
+    private[cluster] def tablesPath(version: Long = version.longValue()): String = {
         s"$rootPath/$version/tables"
     }
 
     @inline
-    private[storage] def tablesClassPath(clazz: Class[_],
+    private[cluster] def tablesClassPath(clazz: Class[_],
                                          version: Long = version.longValue()): String = {
         tablesPath(version) + "/" + clazz.getSimpleName
     }
 
     @inline
-    private[storage] def tablesObjectPath(clazz: Class[_], id: ObjId,
+    private[cluster] def tablesObjectPath(clazz: Class[_], id: ObjId,
                                           version: Long = version.longValue()): String = {
         tablesClassPath(clazz, version) + "/" + getIdString(clazz, id)
     }
 
     @inline
-    private[storage] def tableRootPath(clazz: Class[_], id: ObjId, name: String,
+    private[cluster] def tableRootPath(clazz: Class[_], id: ObjId, name: String,
                                        version: Long = version.longValue()): String = {
         tablesObjectPath(clazz, id, version) + "/" + name
     }
 
     @inline
-    private[storage] def tablePath(clazz: Class[_], id: ObjId, name: String,
+    private[cluster] def tablePath(clazz: Class[_], id: ObjId, name: String,
                                    version: Long, args: Any*): String = {
         val rootPath = tableRootPath(clazz, id, name, version)
         args.foldLeft(new StringBuilder(rootPath)) {
