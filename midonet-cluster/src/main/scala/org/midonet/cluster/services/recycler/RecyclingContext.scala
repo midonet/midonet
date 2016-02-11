@@ -41,7 +41,7 @@ import org.midonet.util.UnixClock
 object RecyclingContext {
 
     private val ClusterNamespaceId = Seq(MidonetBackend.ClusterNamespaceId.toString)
-    private val StepCount = 8
+    private val StepCount = 10
 
 }
 
@@ -70,6 +70,7 @@ class RecyclingContext(val config: RecyclerConfig,
 
     private val modelObjects = new util.HashMap[Class[_], Set[String]]()
     private val stateObjects = new util.HashMap[(String, Class[_]), Set[String]]()
+    private val tableObjects = new util.HashMap[Class[_], Set[String]]()
 
     private val limiter = RateLimiter.create(config.throttlingRate)
 
@@ -82,6 +83,14 @@ class RecyclingContext(val config: RecyclerConfig,
     var totalObjects = 0
     var deletedObjects = 0
     var skippedObjects = 0
+
+    var totalTables = 0
+    var deletedTables = 0
+    var skippedTables = 0
+
+    var totalLegacy = 0
+    var deletedLegacy = 0
+    var skippedLegacy = 0
 
     /**
       * Cancels the recycling task for the current context.
@@ -121,6 +130,8 @@ class RecyclingContext(val config: RecyclerConfig,
             deleteNamespaces()
             collectObjects()
             deleteObjects()
+            collectTables()
+            deleteTables()
         } finally {
             state.countDown()
         }
@@ -271,8 +282,8 @@ class RecyclingContext(val config: RecyclerConfig,
     /**
       * Deletes the orphan objects state by comparing the collected objects
       * and state paths, and deleting those that do not correspond to an
-      * existing objects. To delete an object state, it must have been created
-      * before the beginning of the recyling operation.
+      * existing object. To delete an object state, it must have been created
+      * before the beginning of the recycling operation.
       */
     @throws[RecyclingException]
     private def deleteObjects(): Unit = {
@@ -309,6 +320,67 @@ class RecyclingContext(val config: RecyclerConfig,
                     log.warn("Failed to delete state for object " +
                              s"${clazz.getSimpleName}:$id host $host", e)
                     skippedObjects += 1
+            }
+        }
+    }
+
+    /**
+      * Collects all state tables for current objects from NSDB.
+      */
+    @throws[RecyclingException]
+    private def collectTables(): Unit = {
+
+        log debug s"Collecting tables ${step()}"
+
+        for (clazz <- store.classes) {
+            val objects =
+                getChildren(store.tablesClassPath(clazz, version)).asScala.toSet
+            tableObjects.put(clazz, objects)
+            totalTables += objects.size
+
+            log debug s"Collected tables for ${objects.size} objects for " +
+                      s"class ${clazz.getSimpleName}"
+        }
+    }
+
+    /**
+      * Deletes the orphan state table paths by comparing the collected objects
+      * and table paths, and deleting those that do not correspond to an
+      * existing object. To delete an object table set, it must have been
+      * created before the beginning of the recycling operation.
+      */
+    @throws[RecyclingException]
+    private def deleteTables(): Unit = {
+
+        log debug s"Deleting orphan object tables ${step()}"
+
+        val stat = new Stat()
+        for (clazz <- store.classes;
+             id <- tableObjects.get(clazz)
+             if !modelObjects.get(clazz).contains(id)) {
+
+            try {
+                log debug s"Verifying tables for object ${clazz.getSimpleName}" +
+                          s":$id"
+
+                val path = store.tablesObjectPath(clazz, id, version)
+                getData(path, stat)
+
+                if (stat.getCtime < timestamp) {
+                    log debug "Deleting tables for object with timestamp " +
+                              s"${stat.getCtime}"
+                    deleteWithChildren(path, stat.getVersion)
+                    deletedTables += 1
+                } else {
+                    log debug "Skipping tables for object with timestamp " +
+                              s"${stat.getCtime}"
+                    skippedTables += 1
+                }
+            } catch {
+                case NonFatal(e) =>
+                    log.warn("Failed to delete tables for object " +
+                             s"${clazz.getSimpleName}:$id", e)
+                    skippedTables += 1
             }
         }
     }
