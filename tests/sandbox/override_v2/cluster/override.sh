@@ -8,6 +8,11 @@ apt-get install -qy --force-yes midonet-cluster/local \
                                 midonet-tools/local \
                                 python-midonetclient/local
 
+# Failfast if we cannot update the packages locally
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
 # Make sure we can access the remote management interface from outside the container
 HOST_NAME=`hostname`
 RESOLVED_HOST_NAME=`getent hosts $HOST_NAME`

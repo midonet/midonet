@@ -28,6 +28,12 @@ apt-get update -o Dir::Etc::sourcelist=$LOCAL_REPO_FILE
 apt-get install -qy --force-yes python-neutron-plugin-midonet/local \
                                 python-midonetclient/local
 
+# Failfast if we cannot update the packages locally
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+
 cp /override/midonet.ini /etc/neutron/plugins/midonet/midonet.ini
 
 # Run neutron server
