@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,10 +55,16 @@ class IpsecSiteConnectionResource @Inject()(uriInfo: UriInfo,
     @Consumes(Array(MidonetMediaTypes.NEUTRON_IPSEC_SITE_CONNECTION_JSON_V1))
     @Produces(Array(MidonetMediaTypes.NEUTRON_IPSEC_SITE_CONNECTION_JSON_V1))
     def create(cnxn: IPSecSiteConnection): Response = {
-        api.createIpSecSiteConnection(cnxn)
-        Response.created(
-            NeutronUriBuilder.getIpsecSiteConnection(baseUri, cnxn.id))
-            .entity(cnxn).build()
+        if (cnxn.validate()) {
+            api.createIpSecSiteConnection(cnxn)
+            Response.created(
+                NeutronUriBuilder.getIpsecSiteConnection(baseUri, cnxn.id))
+                .entity(cnxn).build()
+        } else {
+            throw new BadRequestHttpException("Local and peer cidrs of IPSec" +
+                                              s"site connection: $cnxn" +
+                                              "are not disjoint")
+        }
     }
 
     @PUT
@@ -68,9 +74,14 @@ class IpsecSiteConnectionResource @Inject()(uriInfo: UriInfo,
                cnxn: IPSecSiteConnection): Response = {
         if (cnxn.id != id) {
             throw new BadRequestHttpException("Path ID does not match object ID")
+        } else if (!cnxn.validate()) {
+            throw new BadRequestHttpException("Local and peer cidrs of IPSec" +
+                                              s"site connection: $cnxn" +
+                                              "are not disjoint")
+        } else {
+            api.updateIpSecSiteConnection(cnxn)
+            Response.noContent().build()
         }
-        api.updateIpSecSiteConnection(cnxn)
-        Response.noContent().build()
     }
 
     @DELETE
