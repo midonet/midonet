@@ -82,12 +82,12 @@ public class FlowKeyTunnel implements CachedFlowKey,
         nBytes += NetlinkMessage.writeByteAttrNoPad(buffer, TunnelAttr.TTL, ipv4_ttl);
 
         if ((tun_flags & OVS_TNL_F_DONT_FRAGMENT) == OVS_TNL_F_DONT_FRAGMENT) {
-            NetlinkMessage.setAttrHeader(buffer, TunnelAttr.DontFrag, 0);
+            NetlinkMessage.setAttrHeader(buffer, TunnelAttr.DontFrag, 4);
             nBytes += 4; // Empty attribute
         }
 
         if ((tun_flags & OVS_TNL_F_CSUM) == OVS_TNL_F_CSUM) {
-            NetlinkMessage.setAttrHeader(buffer, TunnelAttr.CSum, 0);
+            NetlinkMessage.setAttrHeader(buffer, TunnelAttr.CSum, 4);
             nBytes += 4; // Empty attribute
         }
 
