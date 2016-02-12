@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_a8da9ee5",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-12T09:26:59Z",
+      "side": 1,
+      "message": "This is if you want to delete the service later on?",
+      "range": {
+        "startLine": 170,
+        "startChar": 11,
+        "endLine": 170,
+        "endChar": 26
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c8e352a2",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-12T09:26:59Z",
+      "side": 1,
+      "message": "same question",
+      "range": {
+        "startLine": 199,
+        "startChar": 11,
+        "endLine": 199,
+        "endChar": 26
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_88b23a92",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-12T09:26:59Z",
+      "side": 1,
+      "message": "I would increase the timeout here. The default session timeout for container services is 5 seconds. When doing the demo I timed the interruption of the ping to about 11 seconds (before the ping resumes). What about 15 seconds to be safe?",
+      "range": {
+        "startLine": 617,
+        "startChar": 4,
+        "endLine": 617,
+        "endChar": 17
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_a8affe28",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-12T09:26:59Z",
+      "side": 1,
+      "message": "You could block all traffic except traffic needed in method inject_packet_loss.",
+      "range": {
+        "startLine": 628,
+        "startChar": 6,
+        "endLine": 630,
+        "endChar": 81
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_c8a8b222",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-12T09:26:59Z",
+      "side": 1,
+      "message": "increase timeout",
+      "range": {
+        "startLine": 635,
+        "startChar": 4,
+        "endLine": 635,
+        "endChar": 17
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
