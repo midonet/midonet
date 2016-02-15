@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_5c6561b3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-15T09:12:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_8b1b461a",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_0bad969c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-02-05T10:30:24Z",
       "side": 1,
       "message": "observeOn(context.scheduler) for both?",
+      "range": {
+        "startLine": 73,
+        "startChar": 12,
+        "endLine": 74,
+        "endChar": 72
+      },
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_bc73bd7e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-15T09:12:12Z",
+      "side": 1,
+      "message": "Here it\u0027s not needed: the tracker emits already emits notifications on the thread specified in context.",
+      "parentUuid": "fa81d914_0bad969c",
       "range": {
         "startLine": 73,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_dc707174",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-15T09:12:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_419831c0",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 28
+      },
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_01f2b905",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2016-02-08T14:03:22Z",
       "side": 1,
       "message": "needed?",
+      "range": {
+        "startLine": 127,
+        "startChar": 8,
+        "endLine": 127,
+        "endChar": 14
+      },
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3c07cdcb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-15T09:12:12Z",
+      "side": 1,
+      "message": "This is a class member that keeps the last notification.",
+      "parentUuid": "fa81d914_01f2b905",
       "range": {
         "startLine": 127,
         "startChar": 8,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_5c0c81ed",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTrackerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-15T09:12:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_2fd0891e",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_01c9d9ab",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTrackerTest.scala",
         "patchSetId": 2
@@ -128,6 +248,24 @@
       "writtenOn": "2016-02-08T14:03:22Z",
       "side": 1,
       "message": "nit: this case includes also the previous one that simply stops at the first event and asserts that the port is not emitted.  It just needs to assert the .get(0) event.",
+      "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_7cdb054f",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortGroupTrackerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-15T09:12:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa81d914_01c9d9ab",
       "revId": "f9f38dca64499cdc60eeff285e51968c11f11dfd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
