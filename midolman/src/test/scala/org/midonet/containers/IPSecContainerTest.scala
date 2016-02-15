@@ -1958,6 +1958,14 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vpnServiceSubscription.isUnsubscribed shouldBe true
             container.vpnServiceSubscription shouldBe null
         }
+
+        scenario("Container handles cleanup") {
+            Given("A container")
+            val container = new TestIPSecContainer(vt, containerExecutor)
+
+            Then("The container handles cleanup")
+            container.cleanup("some-config").await()
+        }
     }
 
     feature("Sanitizing the configuration") {

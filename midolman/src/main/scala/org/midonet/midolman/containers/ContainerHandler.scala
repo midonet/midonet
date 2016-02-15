@@ -30,6 +30,8 @@ case class ContainerHealth(code: ContainerStatus.Code, message: String) {
         .toString
 }
 
+case class ContainerResult(config: String, namespace: String)
+
 /**
   * A container handler provides a specific implementation for each container
   * type at the agent side. A container handler should, among other things,
@@ -45,17 +47,18 @@ trait ContainerHandler {
       * Creates a container for the specified exterior port and service
       * container. The port contains the interface name that the container
       * handler should create, and the method returns a future that completes
-      * with the namespace name when the container has been created.
+      * with the configuration and the namespace name when the container has
+      * been created.
       *
-      * Successful futures may contain:
-      * - Some(name): when a namespace `name` was created on the host.
-      * - None: when container was successfully handled but the namespace
-      *   was not created for a legit. reason (e.g.: admin state DOWN.)
+      * The container result is:
+      * - Some(result): when a container was created on the host.
+      * - None: when container was successfully handled but the container
+      *   was not created for a legit reason (e.g.: admin state DOWN.)
       *
       * Failed futures will contain any exception that prevented the handler
       * to spawn the service container.
       */
-    def create(port: ContainerPort): Future[Option[String]]
+    def create(port: ContainerPort): Future[Option[ContainerResult]]
 
     /**
       * Indicates that the configuration identifier for an existing container
@@ -64,14 +67,20 @@ trait ContainerHandler {
       * objects change. It is the responsibility of the classes implementing
       * this interface to monitor their configuration.
       */
-    def updated(port: ContainerPort): Future[Option[String]]
+    def updated(port: ContainerPort): Future[Option[ContainerResult]]
 
     /**
       * Deletes the container for the specified exterior port and namespace
       * information. The method returns a future that completes when the
       * container has been deleted.
       */
-    def delete(): Future[Unit]
+    def delete(): Future[Option[ContainerResult]]
+
+    /**
+      * Cleans-up the container for the specified configuration. The method
+      * returns a future that completes when the container has been cleaned.
+      */
+    def cleanup(config: String): Future[Unit]
 
     /**
       * An observable that reports the health status of the container, which

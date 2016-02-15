@@ -49,39 +49,50 @@ import org.midonet.util.reactivex._
 
 object ContainerServiceTest {
 
+    val TestConfig = "test-config"
     val TestNamespace = "test-ns"
 
     abstract class TestContainer(errorOnCreate: Boolean = false,
                                  errorOnUpdate: Boolean = false,
                                  errorOnDelete: Boolean = false,
+                                 errorOnCleanup: Boolean = false,
                                  throwsOnCreate: Boolean = false,
                                  throwsOnUpdate: Boolean = false,
-                                 throwsOnDelete: Boolean = false)
+                                 throwsOnDelete: Boolean = false,
+                                 throwsOnCleanup: Boolean = false)
         extends ContainerHandler {
 
         val stream = PublishSubject.create[ContainerHealth]
         var created: Int = 0
         var updated: Int = 0
         var deleted: Int = 0
+        var cleaned: Int = 0
 
-        override def create(port: ContainerPort): Future[Option[String]] = {
+        override def create(port: ContainerPort): Future[Option[ContainerResult]] = {
             created += 1
             if (throwsOnCreate) throw new Throwable()
             if (errorOnCreate) Future.failed(new Throwable())
-            else Future.successful(Some(TestNamespace))
+            else Future.successful(Some(ContainerResult(TestConfig, TestNamespace)))
         }
 
-        override def updated(port: ContainerPort): Future[Option[String]] = {
+        override def updated(port: ContainerPort): Future[Option[ContainerResult]] = {
             updated += 1
             if (throwsOnUpdate) throw new Throwable()
             if (errorOnUpdate) Future.failed(new Throwable())
-            else Future.successful(Some(TestNamespace))
+            else Future.successful(Some(ContainerResult(TestConfig, TestNamespace)))
         }
 
-        override def delete(): Future[Unit] = {
+        override def delete(): Future[Option[ContainerResult]] = {
             deleted += 1
             if (throwsOnDelete) throw new Throwable()
             if (errorOnDelete) Future.failed(new Throwable())
+            else Future.successful(Some(ContainerResult(TestConfig, TestNamespace)))
+        }
+
+        override def cleanup(config: String): Future[Unit] = {
+            cleaned += 1
+            if (throwsOnCleanup) throw new Throwable()
+            if (errorOnCleanup) Future.failed(new Throwable())
             else Future.successful(())
         }
 

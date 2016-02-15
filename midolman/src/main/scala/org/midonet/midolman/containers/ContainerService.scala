@@ -351,9 +351,12 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                     case Failure(t) =>
                         handleContainerError(t, cp, errorStatus=true,
                                              s"Failed to create container $cp")
-                    case Success(namespace) =>
+                    case Success(Some(ContainerResult(config, namespace))) =>
                         handlers.put(cp.portId,
-                                     Handler(cp, handler, namespace, subscription))
+                                     Handler(cp, handler, Some(namespace), subscription))
+                    case Success(None) =>
+                        handlers.put(cp.portId,
+                                     Handler(cp, handler, None, subscription))
                 }
             }
             catch {
@@ -362,7 +365,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                     // from the handlers list and unsubscribe from the health
                     // observable.
                     // NOTE: The container handler implementation must provide
-                    // the appropiate cleanup on failure.
+                    // the appropriate cleanup on failure.
                     handlers remove cp.portId
                     subscription.unsubscribe()
                     throw e

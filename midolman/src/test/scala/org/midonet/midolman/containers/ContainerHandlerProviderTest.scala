@@ -44,9 +44,10 @@ object ContainerHandlerProviderTest {
                                   @Named("container") val containerExecutor: ExecutorService,
                                   @Named("io") val ioExecutor: ScheduledExecutorService)
         extends ContainerHandler {
-        override def create(port: ContainerPort): Future[Option[String]] = ???
-        override def updated(port: ContainerPort): Future[Option[String]] = ???
-        override def delete(): Future[Unit] = ???
+        override def create(port: ContainerPort): Future[Option[ContainerResult]] = ???
+        override def updated(port: ContainerPort): Future[Option[ContainerResult]] = ???
+        override def delete(): Future[Option[ContainerResult]] = ???
+        override def cleanup(config: String): Future[Unit] = ???
         override def health: Observable[ContainerHealth] = ???
     }
 
