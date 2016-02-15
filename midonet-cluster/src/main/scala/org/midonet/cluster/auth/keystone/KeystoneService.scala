@@ -81,7 +81,14 @@ class KeystoneService @Inject()(config: Config) extends AuthService {
       */
     @throws[AuthException]
     def tenant(token: String, id: String): Tenant = {
-        tenantOf(keystoneClient.getTenantById(id, token).tenant)
+        keystoneConfig.version match {
+            case 2 => tenantOf(keystoneClient.getTenantById(id, token).tenant)
+            case 3 => tenantOf(keystoneClient.getProjectById(id, token).project)
+            case version => throw new KeystoneException(
+                null, s"Operation not supported with Keystone version $version",
+                null)
+        }
+
     }
 
     /**
@@ -92,7 +99,17 @@ class KeystoneService @Inject()(config: Config) extends AuthService {
     @throws[AuthException]
     def tenants(token: String, marker: Option[String], limit: Option[Int])
     : Seq[Tenant] = {
-        keystoneClient.listTenants(token, marker, limit).tenants.asScala.map(tenantOf)
+        keystoneConfig.version match {
+            case 2 =>
+                keystoneClient.listTenants(token, marker, limit).tenants.asScala
+                              .map(tenantOf)
+            case 3 =>
+                keystoneClient.listProjects(token).projects.asScala
+                              .map(tenantOf)
+            case version => throw new KeystoneException(
+                null, s"Operation not supported with Keystone version $version",
+                null)
+        }
     }
 
     /**
@@ -142,5 +159,12 @@ class KeystoneService @Inject()(config: Config) extends AuthService {
       */
     private def tenantOf(tenant: keystone.v2.Tenant): Tenant = {
         new Tenant(tenant.id, tenant.name, tenant.description, tenant.enabled)
+    }
+
+    /**
+      * Returns the tenant DTO for the given Keystone project object.
+      */
+    private def tenantOf(project: keystone.v3.Project): Tenant = {
+        new Tenant(project.id, project.name, project.description, project.enabled)
     }
 }

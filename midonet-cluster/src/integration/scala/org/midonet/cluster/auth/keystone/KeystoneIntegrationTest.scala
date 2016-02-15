@@ -349,7 +349,6 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
         tenantById.tenant.name shouldBe keystoneTenant
     }
 
-
     "Keystone v2 client" should "fail get non-existing tenant name" in {
         Given("A valid token")
         val client = clientWithoutAdmin(2)
@@ -528,4 +527,55 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
             client.validate("invalid-token", tenantScope = false)
         }
     }
+
+    "Keystone v3 client" should "list projects" in {
+        Given("A valid token")
+        val client = clientWithoutAdmin(3)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+
+        Then("Listing the projects succeeds")
+        val keystoneProjects = client.listProjects(auth.tokenId)
+        keystoneProjects.projects should not be empty
+    }
+
+    "Keystone v3 client" should "get project by name and by identifier" in {
+        Given("A valid token")
+        val client = clientWithoutAdmin(3)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+
+        Then("Get the project by name succeeds")
+        val projectByName = client.getProjectByName(keystoneTenant, auth.tokenId)
+        projectByName.projects should have size 1
+
+        And("Get the project by identifier succeeds")
+        val projectById = client.getProjectById(projectByName.projects.get(0).id,
+                                                auth.tokenId)
+        projectById.project.name shouldBe keystoneTenant
+    }
+
+    "Keystone v3 client" should "fail get non-existing tenant name" in {
+        Given("A valid token")
+        val client = clientWithoutAdmin(3)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+
+        Then("Get the user by name fails")
+        val projectByName = client.getProjectByName("some-name", auth.tokenId)
+        projectByName.projects shouldBe empty
+    }
+
+    "Keystone v3 client" should "fail get non-existing tenant identifier" in {
+        Given("A valid token")
+        val client = clientWithoutAdmin(3)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+                                       keystonePassword)
+
+        Then("Get the user by identifier fails")
+        intercept[KeystoneException] {
+            client.getProjectById("some-id", auth.tokenId)
+        }
+    }
+
 }
