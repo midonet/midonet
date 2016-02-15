@@ -47,7 +47,7 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.IPSecContainer._
-import org.midonet.midolman.containers.{ContainerStatus, ContainerHandler, ContainerHealth, ContainerPort}
+import org.midonet.midolman.containers._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
 import org.midonet.util.concurrent._
@@ -240,6 +240,7 @@ case class IPSecAdminStateDownException(routerId: UUID)
 object IPSecContainer {
 
     final val VpnHelperScriptPath = "/usr/lib/midolman/vpn-helper"
+    final val ConfigSeparators = Array(' ', '\n', '\r', '\f', '\t')
 
     def isVpnServiceUp(vpn: VpnService) = {
         !vpn.hasAdminStateUp || vpn.getAdminStateUp
@@ -391,6 +392,20 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
       */
     override def cleanup(config: String): Future[Unit] = {
         try {
+            log info "Cleaning up IPSec container"
+
+            val ipsecConfig = parseConfig(config)
+            execCmd(ipsecConfig.stopServiceCmd)
+            execCmd(ipsecConfig.cleanNsCmd)
+
+            try {
+                FileUtils.deleteDirectory(new File(ipsecConfig.ipsecService
+                                                              .filepath))
+            } catch {
+                case NonFatal(e) =>
+                    log.warn("Failed to delete temporary directory " +
+                             s"${ipsecConfig.ipsecService.filepath}", e)
+            }
             Future.successful(())
         } catch {
             case NonFatal(e) =>
@@ -469,6 +484,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             execCmds(Seq((config.makeNsCmd, config.cleanNsCmd),
                          (config.startServiceCmd, config.stopServiceCmd),
                          (config.initConnsCmd, null)))
+            statusSubject onNext ContainerConfiguration(ContainerFlag.Created,
+                                                        configString(config))
         } catch {
             case NonFatal(e) => throw IPSecException("Command failed", e)
         }
@@ -488,6 +505,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             return
         }
         log info "Cleaning up IPSec container"
+        statusSubject onNext ContainerConfiguration(ContainerFlag.Deleted,
+                                                    configString(config))
         execCmd(config.stopServiceCmd)
         execCmd(config.cleanNsCmd)
         try {
@@ -714,6 +733,35 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         } else {
             ContainerHealth(Code.ERROR, config.ipsecService.name, err)
         }
+    }
+
+    /**
+      * @return The configuration string for the given [[IPSecConfig]].
+      */
+    private def configString(config: IPSecConfig): String = {
+        s"${config.ipsecService.name} ${config.ipsecService.filepath}"
+    }
+
+    /**
+      * @return The [[IPSecConfig]] for the given configuration string.
+      */
+    @throws[IPSecException]
+    private def parseConfig(str: String): IPSecConfig = {
+        val tokens = str.split(ConfigSeparators)
+        if (tokens.length != 2) {
+            val message = s"Unknown IPSec container configuration: '$str'"
+            log warn message
+            throw new IPSecException(message)
+        }
+        IPSecConfig(VpnHelperScriptPath,
+                    IPSecServiceDef(name = tokens(0),
+                                    filepath = tokens(1),
+                                    localEndpointIp = null,
+                                    localEndpointMac = null,
+                                    namespaceInterfaceIp = null,
+                                    namespaceGatewayIp = null,
+                                    namespaceGatewayMac = null),
+                    Seq.empty)
     }
 }
 
