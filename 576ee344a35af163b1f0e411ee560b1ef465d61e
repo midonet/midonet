@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_7c0dc5e7",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-15T09:10:50Z",
+      "side": 1,
+      "message": "sure",
+      "parentUuid": "fa81d914_bc973d8f",
+      "range": {
+        "startLine": 617,
+        "startChar": 4,
+        "endLine": 617,
+        "endChar": 17
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_a8affe28",
         "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
         "patchSetId": 15
@@ -178,6 +202,30 @@
       "side": 1,
       "message": "We want to simulate a complete network failure. This comment is due to a bug (MI-576). I\u0027ll update the comment to point there.",
       "parentUuid": "fa81d914_a8affe28",
+      "range": {
+        "startLine": 628,
+        "startChar": 6,
+        "endLine": 630,
+        "endChar": 81
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3c2eed43",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-15T09:10:50Z",
+      "side": 1,
+      "message": "But blocking all but ssh traffic should be enough, isn\u0027t it? In addition if ssh is not blocked you can perform cleanup later on.",
+      "parentUuid": "fa81d914_dc94f18c",
       "range": {
         "startLine": 628,
         "startChar": 6,
