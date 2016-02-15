@@ -238,6 +238,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_bca49da6",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-15T09:34:01Z",
+      "side": 1,
+      "message": "What do you mean by using ssh to perform cleanup? \n\nIt\u0027s not obvious, but we do not use ssh to connect to a midolman container, we use the docker API to execute commands on it which uses a socket file (even the sandbox-manage ssh command is a \u0027fake ssh\u0027, an alias for docker exec -it mnsandboxmdts_midolman1_1 bash).",
+      "parentUuid": "fa81d914_3c2eed43",
+      "range": {
+        "startLine": 628,
+        "startChar": 6,
+        "endLine": 630,
+        "endChar": 81
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c8a8b222",
         "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
         "patchSetId": 15
