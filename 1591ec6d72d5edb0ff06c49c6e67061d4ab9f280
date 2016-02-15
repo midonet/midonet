@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_1c15a9e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/services/MidolmanActorsService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-02-15T09:11:51Z",
+      "side": 1,
+      "message": "why does a crashed actor prevent the actor system from shutting down? sounds like an akka bug",
+      "revId": "1591ec6d72d5edb0ff06c49c6e67061d4ab9f280",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
