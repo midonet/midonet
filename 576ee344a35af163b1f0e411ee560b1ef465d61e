@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_1cb4c933",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-15T08:40:51Z",
+      "side": 1,
+      "message": "This flag is to automatically remove the service at the end of the test (by the teardown mechanism). \nSome tests need to delete it within the test though (to test a failure case). This flag just avoids scheduling the removal (done in the create_resource method) so in case it was deleted, it\u0027s not deleted again (causing an api failure by a non-existing object).",
+      "parentUuid": "fa81d914_a8da9ee5",
+      "range": {
+        "startLine": 170,
+        "startChar": 11,
+        "endLine": 170,
+        "endChar": 26
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c8e352a2",
         "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
         "patchSetId": 15
@@ -36,6 +60,30 @@
       "writtenOn": "2016-02-12T09:26:59Z",
       "side": 1,
       "message": "same question",
+      "range": {
+        "startLine": 199,
+        "startChar": 11,
+        "endLine": 199,
+        "endChar": 26
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_3c842d5d",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-15T08:40:51Z",
+      "side": 1,
+      "message": "ditto.",
+      "parentUuid": "fa81d914_c8e352a2",
       "range": {
         "startLine": 199,
         "startChar": 11,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_bc973d8f",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-15T08:40:51Z",
+      "side": 1,
+      "message": "The ping command already has a retry mechanism. Didn\u0027t want to make it too loose to avoid false positives (waiting 15s + 2 retries of 5 second + extra delays when setting up tcpdump, etc. is pretty close to 30s). I\u0027ll increase to 10s and fine tune when running on the CI to avoid flakyness. Is that ok?",
+      "parentUuid": "fa81d914_88b23a92",
+      "range": {
+        "startLine": 617,
+        "startChar": 4,
+        "endLine": 617,
+        "endChar": 17
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_a8affe28",
         "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
         "patchSetId": 15
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fa81d914_dc94f18c",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-15T08:40:51Z",
+      "side": 1,
+      "message": "We want to simulate a complete network failure. This comment is due to a bug (MI-576). I\u0027ll update the comment to point there.",
+      "parentUuid": "fa81d914_a8affe28",
+      "range": {
+        "startLine": 628,
+        "startChar": 6,
+        "endLine": 630,
+        "endChar": 81
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c8a8b222",
         "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
         "patchSetId": 15
@@ -105,6 +201,30 @@
       "writtenOn": "2016-02-12T09:26:59Z",
       "side": 1,
       "message": "increase timeout",
+      "range": {
+        "startLine": 635,
+        "startChar": 4,
+        "endLine": 635,
+        "endChar": 17
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa81d914_9c7fd965",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-15T08:40:51Z",
+      "side": 1,
+      "message": "ditto.",
+      "parentUuid": "fa81d914_c8a8b222",
       "range": {
         "startLine": 635,
         "startChar": 4,
