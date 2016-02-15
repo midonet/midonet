@@ -262,6 +262,30 @@
     },
     {
       "key": {
+        "uuid": "da86d52c_2cd57b43",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-15T15:34:25Z",
+      "side": 1,
+      "message": "Does this mean that you can still perform a \u0027fake ssh\u0027 after blocking traffic using iptables?",
+      "parentUuid": "fa81d914_bca49da6",
+      "range": {
+        "startLine": 628,
+        "startChar": 6,
+        "endLine": 630,
+        "endChar": 81
+      },
+      "revId": "576ee344a35af163b1f0e411ee560b1ef465d61e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa81d914_c8a8b222",
         "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
         "patchSetId": 15
