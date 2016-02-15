@@ -33,7 +33,7 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
+import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus => BackendStatus}
 import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer, ServiceContainerGroup}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.{ContainerKey, StatusKey}
@@ -49,20 +49,24 @@ import org.midonet.util.reactivex._
 
 object ContainerServiceTest {
 
+    val TestConfig = "test-config"
     val TestNamespace = "test-ns"
 
     abstract class TestContainer(errorOnCreate: Boolean = false,
                                  errorOnUpdate: Boolean = false,
                                  errorOnDelete: Boolean = false,
+                                 errorOnCleanup: Boolean = false,
                                  throwsOnCreate: Boolean = false,
                                  throwsOnUpdate: Boolean = false,
-                                 throwsOnDelete: Boolean = false)
+                                 throwsOnDelete: Boolean = false,
+                                 throwsOnCleanup: Boolean = false)
         extends ContainerHandler {
 
-        val stream = PublishSubject.create[ContainerHealth]
+        val stream = PublishSubject.create[ContainerStatus]
         var created: Int = 0
         var updated: Int = 0
         var deleted: Int = 0
+        var cleaned: Int = 0
 
         override def create(port: ContainerPort): Future[Option[String]] = {
             created += 1
@@ -82,10 +86,17 @@ object ContainerServiceTest {
             deleted += 1
             if (throwsOnDelete) throw new Throwable()
             if (errorOnDelete) Future.failed(new Throwable())
+            else Future.successful(Some(TestNamespace))
+        }
+
+        override def cleanup(config: String): Future[Unit] = {
+            cleaned += 1
+            if (throwsOnCleanup) throw new Throwable()
+            if (errorOnCleanup) Future.failed(new Throwable())
             else Future.successful(())
         }
 
-        override def health: Observable[ContainerHealth] = stream
+        override def status: Observable[ContainerStatus] = stream
     }
 
     @Container(name = "test-good", version = 1)
@@ -140,12 +151,12 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                       container.getConfigurationId)
     }
 
-    private def getStatus(containerId: UUID): Option[ContainerStatus] = {
+    private def getStatus(containerId: UUID): Option[BackendStatus] = {
         stateStore.getKey(classOf[ServiceContainer], containerId, StatusKey)
                   .await() match {
             case key: SingleValueKey =>
                 key.value.map { s =>
-                    val builder = ContainerStatus.newBuilder()
+                    val builder = BackendStatus.newBuilder()
                     TextFormat.merge(s, builder)
                     builder.build()
                 }
@@ -258,7 +269,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -330,7 +340,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -375,7 +384,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -425,7 +433,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -470,7 +477,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container, group)
-            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -510,7 +516,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler = service.handlerOf(port1.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host1, port1, container, group)
-            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -552,7 +557,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container, group)
-            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -592,7 +596,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler1 = service.handlerOf(port1.getId)
             handler1 should not be null
             handler1.cp shouldBe containerPort(host, port1, container, group)
-            handler1.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h1 = handler1.handler.asInstanceOf[TestContainer]
@@ -610,7 +613,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             handler2 should not be null
             handler2 should not be handler1
             handler2.cp shouldBe containerPort(host, port2, container, group)
-            handler2.namespace shouldBe Some("test-ns")
 
             And("The second handler create method should be called")
             val h2 = handler1.handler.asInstanceOf[TestContainer]
@@ -663,7 +665,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             handler2 should not be null
             handler2 should not be handler1
             handler2.cp shouldBe containerPort(host, port2, container2, group)
-            handler2.namespace shouldBe Some("test-ns")
 
             val h2 = handler2.handler.asInstanceOf[TestContainer]
             h2.created shouldBe 1
@@ -918,23 +919,25 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             When("The container sets a health status")
             val handler = service.handlerOf(port.getId)
             val h = handler.handler.asInstanceOf[TestContainer]
-            h.stream onNext ContainerHealth(Code.RUNNING, "all good")
+            h.stream onNext ContainerHealth(Code.RUNNING, "ns name", "all good")
 
             Then("The container status should not be set")
             val status1 = getStatus(container.getId).get
             status1.getStatusCode shouldBe Code.RUNNING
+            status1.getNamespaceName shouldBe "ns name"
             status1.getStatusMessage shouldBe "all good"
 
             When("The container sets a health status")
-            h.stream onNext ContainerHealth(Code.ERROR, "epic fail")
+            h.stream onNext ContainerHealth(Code.ERROR, "ns name", "epic fail")
 
             Then("The container status should not be set")
             val status2 = getStatus(container.getId).get
             status2.getStatusCode shouldBe Code.ERROR
+            status2.getNamespaceName shouldBe "ns name"
             status2.getStatusMessage shouldBe "epic fail"
 
             When("The container sets a health status")
-            h.stream onNext ContainerHealth(Code.RUNNING, "all good again")
+            h.stream onNext ContainerHealth(Code.RUNNING, "ns name", "all good again")
 
             Then("The container status should not be set")
             val status3 = getStatus(container.getId).get
@@ -1096,7 +1099,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -1141,7 +1143,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
