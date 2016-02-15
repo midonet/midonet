@@ -47,7 +47,7 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.IPSecContainer._
-import org.midonet.midolman.containers.{ContainerStatus, ContainerHandler, ContainerHealth, ContainerPort}
+import org.midonet.midolman.containers._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
 import org.midonet.util.concurrent._
@@ -63,12 +63,16 @@ case class IPSecServiceDef(name: String,
                            namespaceGatewayMac: String)
 
 object IPSecConfig {
-    /* The connection name should contain only Latin letters, digits,
-       hyphen (-), and underline (_) symbols. */
-    def sanitizeName(connectionId: UUID): String =
-        "ipsec-" + connectionId.toString.substring(0, 8)
 
-    def sanitizePsk(psk: String): String = psk.replaceAll("[\n\r\"]", "")
+    @inline
+    def vpnName(connectionId: UUID): String = {
+        "ipsec-" + connectionId.toString.substring(0, 8)
+    }
+
+    @inline
+    def sanitizePsk(psk: String): String = {
+        psk.replaceAll("[\\n\\r\"]", "")
+    }
 
     def subnetsString(subnets: java.util.List[Commons.IPSubnet]): String = {
         if (subnets.isEmpty) return ""
@@ -154,7 +158,7 @@ case class IPSecConfig(script: String,
                |""".stripMargin
         for (c <- connections if isSiteConnectionUp(c)) {
             contents append
-                s"""conn ${sanitizeName(c.getId.asJava)}
+                s"""conn ${vpnName(c.getId.asJava)}
                    |    leftnexthop=%defaultroute
                    |    rightnexthop=%defaultroute
                    |    left=${ipsecService.localEndpointIp}
@@ -202,7 +206,7 @@ case class IPSecConfig(script: String,
                                     s"-p ${ipsecService.filepath} " +
                                     s"-g ${ipsecService.namespaceGatewayIp}")
         for (c <- connections if isSiteConnectionUp(c)) {
-            cmd append s" -c ${sanitizeName(c.getId.asJava)}"
+            cmd append s" -c ${vpnName(c.getId.asJava)}"
         }
         cmd.toString
     }
@@ -240,11 +244,19 @@ case class IPSecAdminStateDownException(routerId: UUID)
 object IPSecContainer {
 
     final val VpnHelperScriptPath = "/usr/lib/midolman/vpn-helper"
+    final val VpnDirectoryPath = FileUtils.getTempDirectoryPath
 
+    @inline
+    def vpnPath(name: String): String = {
+        s"$VpnDirectoryPath/$name"
+    }
+
+    @inline
     def isVpnServiceUp(vpn: VpnService) = {
         !vpn.hasAdminStateUp || vpn.getAdminStateUp
     }
 
+    @inline
     def isSiteConnectionUp(conn: IPSecSiteConnection) = {
         !conn.hasAdminStateUp || conn.getAdminStateUp
     }
@@ -376,7 +388,6 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             }
 
             unsubscribeVpnService()
-            vpnServiceSubscription = null
             Future.successful(())
         } catch {
             case NonFatal(e) =>
@@ -389,8 +400,17 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     /**
       * @see [[ContainerHandler.cleanup]]
       */
-    override def cleanup(config: String): Future[Unit] = {
+    override def cleanup(name: String): Future[Unit] = {
         try {
+            cleanup(IPSecConfig(VpnHelperScriptPath,
+                                IPSecServiceDef(name = name,
+                                                filepath = vpnPath(name),
+                                                localEndpointIp = null,
+                                                localEndpointMac = null,
+                                                namespaceInterfaceIp = null,
+                                                namespaceGatewayIp = null,
+                                                namespaceGatewayMac = null),
+                                Seq.empty))
             Future.successful(())
         } catch {
             case NonFatal(e) =>
@@ -404,13 +424,6 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
       */
     override def status: Observable[ContainerStatus] = {
         statusSubject.asObservable()
-    }
-
-    @inline
-    private def unsubscribeVpnService(): Unit = {
-        if (vpnServiceSubscription ne null) {
-            vpnServiceSubscription.unsubscribe()
-        }
     }
 
     /*
@@ -469,6 +482,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             execCmds(Seq((config.makeNsCmd, config.cleanNsCmd),
                          (config.startServiceCmd, config.stopServiceCmd),
                          (config.initConnsCmd, null)))
+            statusSubject onNext ContainerConfiguration(ContainerFlag.Created,
+                                                        config.ipsecService.name)
         } catch {
             case NonFatal(e) => throw IPSecException("Command failed", e)
         }
@@ -487,7 +502,9 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         if (config eq null) {
             return
         }
-        log info "Cleaning up IPSec container"
+        log info s"Cleaning up IPSec container ${config.ipsecService.name}"
+        statusSubject onNext ContainerConfiguration(ContainerFlag.Deleted,
+                                                    config.ipsecService.name)
         execCmd(config.stopServiceCmd)
         execCmd(config.cleanNsCmd)
         try {
@@ -506,6 +523,17 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             case NonFatal(e) =>
                 log.warn("Failed to delete temporary directory " +
                          s"${config.ipsecService.filepath}", e)
+        }
+    }
+
+    /**
+      * Unsubscribes from the current VPN service observable.
+      */
+    @inline
+    private def unsubscribeVpnService(): Unit = {
+        if (vpnServiceSubscription ne null) {
+            vpnServiceSubscription.unsubscribe()
+            vpnServiceSubscription = null
         }
     }
 
@@ -665,10 +693,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             val namespaceSubnet = new IPv4Subnet(namespaceAddress,
                                                  port.getPortSubnet
                                                      .getPrefixLength)
-            val path =
-                s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val serviceDef = IPSecServiceDef(port.getInterfaceName,
-                                             path,
+                                             vpnPath(port.getInterfaceName),
                                              externalIp,
                                              externalMac,
                                              namespaceSubnet,
@@ -715,6 +741,5 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             ContainerHealth(Code.ERROR, config.ipsecService.name, err)
         }
     }
+
 }
-
-
