@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa81d914_3c4c2d9e",
+        "filename": "midolman/src/main/java/org/midonet/midolman/services/MidolmanService.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-15T10:21:48Z",
+      "side": 1,
+      "message": "Needed to ensure the health monitor is not injected here during for tests (e.g., HaproxyTest).",
+      "range": {
+        "startLine": 148,
+        "startChar": 34,
+        "endLine": 148,
+        "endChar": 68
+      },
+      "revId": "99b8fb4f166533d467155a60507f633d3b42d22c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
