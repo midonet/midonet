@@ -47,7 +47,8 @@ object ContainerHandlerProviderTest {
         override def create(port: ContainerPort): Future[Option[String]] = ???
         override def updated(port: ContainerPort): Future[Option[String]] = ???
         override def delete(): Future[Unit] = ???
-        override def health: Observable[ContainerHealth] = ???
+        override def cleanup(config: String): Future[Unit] = ???
+        override def status: Observable[ContainerStatus] = ???
     }
 
 }

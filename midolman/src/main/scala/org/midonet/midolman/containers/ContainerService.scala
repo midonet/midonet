@@ -35,7 +35,7 @@ import rx.schedulers.Schedulers
 import rx.{Observable, Subscriber, Subscription}
 
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
+import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus => BackendStatus}
 import org.midonet.cluster.models.Topology.{Host, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend.{ContainerKey, StatusKey}
 import org.midonet.cluster.util.UUIDUtil._
@@ -52,7 +52,7 @@ object ContainerService {
     private val NotificationBufferSize = 0x1000
 
     case class Handler(cp: ContainerPort, handler: ContainerHandler,
-                       namespace: Option[String], subscription: Subscription)
+                       subscription: Subscription)
 
 }
 
@@ -69,24 +69,29 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     override def logSource = "org.midonet.containers"
 
     /**
-      * Provides a subscriber for the health notifications emitted by a
+      * Provides a subscriber for the status notifications emitted by a
       * container handler.
       */
-    private class HealthSubscriber(cp: ContainerPort)
-        extends Subscriber[ContainerHealth] {
+    private class StatusSubscriber(cp: ContainerPort)
+        extends Subscriber[ContainerStatus] {
 
         /**
-          * Updates the status for the current container with the status code
-          * and message notified by the container handler. The method logs a
+          * Updates the status for the current container. The status can be
+          * either a configuration or a health notification. The method logs a
           * warning if there is no handler for the container corresponding to
           * this subscriber.
           */
-        override def onNext(health: ContainerHealth): Unit = {
+        override def onNext(status: ContainerStatus): Unit = {
             handlers get cp.portId match {
                 case handler: Handler =>
-                    setStatus(handler, health.code, health.message)
+                    status match {
+                        case health: ContainerHealth =>
+                            setStatus(handler, health)
+                        case _ => log warn "Unknown status notification for " +
+                                           s"container $cp: $status"
+                    }
                 case _ =>
-                    log warn s"Unexpected health notification for container $cp"
+                    log warn s"Unexpected status notification for container $cp"
             }
         }
 
@@ -313,47 +318,46 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         // Check there is no container for this port: if there is, first delete
         // the container.
         handlers remove cp.portId match {
-            case Handler(_,handler,_,s) =>
+            case Handler(_,handler,s) =>
                 log warn s"Unexpected running container $cp: deleting container"
                 s.unsubscribe()
-                belt.handle(() => tryOp( {
+                belt.handle(() => tryOp({
                     handler.delete().andThen {
                         case Failure(t) => handleContainerError(
                             t, cp, errorStatus=false, s"Failed to delete container $cp")
                         case Success(_) =>
                             clearStatus(cp)
                     }
-                } , cp, errorStatus=false, s"Failed to delete container $cp"))
+                }, cp, errorStatus=false, s"Failed to delete container $cp"))
             case _ => // Normal case
         }
 
         // Call the handler create method to initialize the container. We
         // add the initialization code inside a cargo in the conveyor belt such
         // that all container operations maintain the order.
-        belt.handle(() => tryOp ( {
+        belt.handle(() => tryOp({
             // Create a new container handler for this container type.
             val handler = provider.getInstance(cp.serviceType)
 
-            // Subscribe to the handler's health observable.
-            val subscription = handler.health
-                .onBackpressureBuffer(NotificationBufferSize,
-                                      makeAction0 {
-                                          log error
-                                          "Container health notification buffer overflow"
-                                      })
+            // Subscribe to the handler's status observable.
+            val subscription = handler.status
+                .onBackpressureBuffer(NotificationBufferSize, makeAction0 {
+                    log error "Container status notification buffer overflow"
+                })
                 .observeOn(scheduler)
-                .subscribe(new HealthSubscriber(cp))
+                .subscribe(new StatusSubscriber(cp))
+
+            handlers.put(cp.portId, Handler(cp, handler, subscription))
 
             // Set the container status to starting.
             setStatus(cp, Code.STARTING, s"Container $cp starting")
             try {
                 handler.create(cp).andThen {
                     case Failure(t) =>
+                        handlers remove cp.portId
                         handleContainerError(t, cp, errorStatus=true,
                                              s"Failed to create container $cp")
-                    case Success(namespace) =>
-                        handlers.put(cp.portId,
-                                     Handler(cp, handler, namespace, subscription))
+                    case _ =>
                 }
             }
             catch {
@@ -362,7 +366,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                     // from the handlers list and unsubscribe from the health
                     // observable.
                     // NOTE: The container handler implementation must provide
-                    // the appropiate cleanup on failure.
+                    // the appropriate cleanup on failure.
                     handlers remove cp.portId
                     subscription.unsubscribe()
                     throw e
@@ -376,14 +380,14 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         log info s"Update container $cp"
 
         handlers get cp.portId match {
-            case Handler(_,handler,_,_) =>
-                belt.handle(() => tryOp( {
+            case Handler(_,handler,_) =>
+                belt.handle(() => tryOp({
                     handler.updated(cp).andThen {
                         case Failure(t) => handleContainerError(
                             t, cp, errorStatus=true, s"Failed to update container $cp")
                         case _ =>
                     }
-                } , cp, errorStatus=true, s"Failed to update container $cp"))
+                }, cp, errorStatus=true, s"Failed to update container $cp"))
             case _ => log warn s"There is no container $cp"
         }
     }
@@ -393,9 +397,9 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         log info s"Delete container $cp"
 
         handlers remove cp.portId match {
-            case Handler(_,handler,_,subscription) =>
+            case Handler(_,handler,subscription) =>
                 // Delete the container handler.
-                belt.handle(() => tryOp( {
+                belt.handle(() => tryOp({
                     subscription.unsubscribe()
                     // Set the container status to stopping.
                     setStatus(cp, Code.STOPPING, s"Container $cp stopping")
@@ -405,20 +409,20 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                         case Success(_) =>
                             clearStatus(cp)
                     }
-                } , cp, errorStatus=false, s"Failed to delete container $cp"))
+                }, cp, errorStatus=false, s"Failed to delete container $cp"))
             case _ => log warn s"There is no container $cp"
         }
     }
 
     @inline
-    private def setStatus(handler: Handler, code: Code, message: String): Unit = {
-        val status = ContainerStatus.newBuilder()
-                                    .setStatusCode(code)
-                                    .setStatusMessage(message)
-                                    .setHostId(hostId.asProto)
-                                    .setNamespaceName(handler.namespace.getOrElse(""))
-                                    .setInterfaceName(handler.cp.interfaceName)
-                                    .build()
+    private def setStatus(handler: Handler, health: ContainerHealth): Unit = {
+        val status = BackendStatus.newBuilder()
+                                  .setStatusCode(health.code)
+                                  .setStatusMessage(health.message)
+                                  .setHostId(hostId.asProto)
+                                  .setNamespaceName(health.namespace)
+                                  .setInterfaceName(handler.cp.interfaceName)
+                                  .build()
         setStatus(handler.cp, status)
     }
 
@@ -430,17 +434,17 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
     @inline
     private def setStatus(cp: ContainerPort, code: Code, message: String): Unit = {
-        val status = ContainerStatus.newBuilder()
-            .setStatusCode(code)
-            .setStatusMessage(message)
-            .setHostId(hostId.asProto)
-            .setInterfaceName(cp.interfaceName)
-            .build()
+        val status = BackendStatus.newBuilder()
+                                  .setStatusCode(code)
+                                  .setStatusMessage(message)
+                                  .setHostId(hostId.asProto)
+                                  .setInterfaceName(cp.interfaceName)
+                                  .build()
         setStatus(cp, status)
     }
 
     @inline
-    private def setStatus(cp: ContainerPort, status: ContainerStatus): Unit = {
+    private def setStatus(cp: ContainerPort, status: BackendStatus): Unit = {
         try {
             vt.stateStore.addValue(classOf[ServiceContainer], cp.containerId,
                                    StatusKey, status.toString).await()
