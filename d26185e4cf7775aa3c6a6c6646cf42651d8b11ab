@@ -22,6 +22,29 @@
       "revId": "d26185e4cf7775aa3c6a6c6646cf42651d8b11ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da86d52c_094a6983",
+        "filename": "tests/sandbox/override_v2/cluster/override.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2016-02-15T14:46:29Z",
+      "side": 1,
+      "message": "don\u0027t resubmit for this nit, but it\u0027d be nice to use an error function that displays a message and then exits, as it will simplify debugging failed jobs.",
+      "range": {
+        "startLine": 11,
+        "startChar": 59,
+        "endLine": 11,
+        "endChar": 68
+      },
+      "revId": "d26185e4cf7775aa3c6a6c6646cf42651d8b11ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
