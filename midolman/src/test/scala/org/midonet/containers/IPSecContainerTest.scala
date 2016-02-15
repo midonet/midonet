@@ -41,7 +41,7 @@ import org.midonet.cluster.topology.TopologyBuilder._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.containers.{ContainerHealth, ContainerPort}
+import org.midonet.midolman.containers.{ContainerStatus, ContainerHealth, ContainerPort}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
@@ -1881,15 +1881,15 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             And("A container health observer subscribed to the container")
-            val obs = new TestObserver[ContainerHealth]()
-            container.health subscribe obs
+            val obs = new TestObserver[ContainerStatus]()
+            container.status subscribe obs
 
             When("The container has started")
             container.create(cp).await()
 
             Then("The container should report running")
             obs.getOnNextEvents should have size 1
-            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(Code.RUNNING, "")
+            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(Code.RUNNING, "if-eth", "")
 
             val vpnServiceSubscription = container.vpnServiceSubscription
             container.delete().await()
@@ -1957,6 +1957,14 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             And("The container should unsubscribe from the observable")
             vpnServiceSubscription.isUnsubscribed shouldBe true
             container.vpnServiceSubscription shouldBe null
+        }
+
+        scenario("Container handles cleanup") {
+            Given("A container")
+            val container = new TestIPSecContainer(vt, containerExecutor)
+
+            Then("The container handles cleanup")
+            container.cleanup("some-config").await()
         }
     }
 
