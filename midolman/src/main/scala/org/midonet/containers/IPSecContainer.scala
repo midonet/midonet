@@ -47,7 +47,7 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.IPSecContainer._
-import org.midonet.midolman.containers.{ContainerStatus, ContainerHandler, ContainerHealth, ContainerPort}
+import org.midonet.midolman.containers._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
 import org.midonet.util.concurrent._
@@ -389,8 +389,21 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     /**
       * @see [[ContainerHandler.cleanup]]
       */
-    override def cleanup(config: String): Future[Unit] = {
+    override def cleanup(name: String): Future[Unit] = {
         try {
+            val path =
+                s"${FileUtils.getTempDirectoryPath}/$name"
+            val ipsecConfig =
+                IPSecConfig(VpnHelperScriptPath,
+                            IPSecServiceDef(name = name,
+                                            filepath = path,
+                                            localEndpointIp = null,
+                                            localEndpointMac = null,
+                                            namespaceInterfaceIp = null,
+                                            namespaceGatewayIp = null,
+                                            namespaceGatewayMac = null),
+                            Seq.empty)
+            cleanup(ipsecConfig)
             Future.successful(())
         } catch {
             case NonFatal(e) =>
@@ -469,6 +482,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             execCmds(Seq((config.makeNsCmd, config.cleanNsCmd),
                          (config.startServiceCmd, config.stopServiceCmd),
                          (config.initConnsCmd, null)))
+            statusSubject onNext ContainerConfiguration(ContainerFlag.Created,
+                                                        config.ipsecService.name)
         } catch {
             case NonFatal(e) => throw IPSecException("Command failed", e)
         }
@@ -487,7 +502,9 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         if (config eq null) {
             return
         }
-        log info "Cleaning up IPSec container"
+        log info s"Cleaning up IPSec container ${config.ipsecService.name}"
+        statusSubject onNext ContainerConfiguration(ContainerFlag.Deleted,
+                                                    config.ipsecService.name)
         execCmd(config.stopServiceCmd)
         execCmd(config.cleanNsCmd)
         try {
@@ -715,6 +732,5 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             ContainerHealth(Code.ERROR, config.ipsecService.name, err)
         }
     }
+
 }
-
-

@@ -41,7 +41,7 @@ import org.midonet.cluster.topology.TopologyBuilder._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.containers.{ContainerStatus, ContainerHealth, ContainerPort}
+import org.midonet.midolman.containers._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
@@ -786,7 +786,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            container.create(cp).await()
+            container.create(cp).await() shouldBe None
 
             Then("The container shouldn't call any vpn helper command")
             container.commands should have size 0
@@ -840,7 +840,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            container.create(cp).await()
+            container.create(cp).await() shouldBe Some(port.getInterfaceName)
 
             val path =
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
@@ -926,7 +926,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            container.create(cp).await()
+            container.create(cp).await() shouldBe Some(port.getInterfaceName)
 
             Then("The container should call the setup commands")
             val path =
@@ -1015,7 +1015,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            container.create(cp).await()
+            container.create(cp).await() shouldBe Some(port.getInterfaceName)
 
             And("The container should call the setup commands")
             val path =
@@ -1203,10 +1203,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            val namespace = container.create(cp).await()
-
-            Then("The namespace should NOT be created")
-            namespace shouldBe None
+            container.create(cp).await() shouldBe None
 
             And("The container should call the setup commands")
             container.commands shouldBe empty
@@ -1297,7 +1294,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            container.create(cp).await()
+            container.create(cp).await() shouldBe Some(port.getInterfaceName)
 
             And("The container should call the setup commands")
             val path =
@@ -1727,7 +1724,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            container.create(cp).await()
+            container.create(cp).await() shouldBe None
 
             Then("The container should not call the setup commands")
             container.commands should have size 0
@@ -1769,7 +1766,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            container.create(cp).await()
+            container.create(cp).await() shouldBe None
 
             Then("The container should not call the setup commands")
             container.commands should have size 0
@@ -1825,7 +1822,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             And("Calling the create method of the container")
-            container.create(cp).await()
+            container.create(cp).await() should not be None
 
             Then("Calling the delete method while a command should fail")
             container.throwOn = 8
@@ -1885,17 +1882,24 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.status subscribe obs
 
             When("The container has started")
-            container.create(cp).await()
+            container.create(cp).await() should not be None
 
-            Then("The container should report running")
-            obs.getOnNextEvents should have size 1
-            obs.getOnNextEvents.get(0) shouldBe ContainerHealth(Code.RUNNING, "if-eth", "")
+            Then("The container should report created and running")
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(0) shouldBe ContainerConfiguration(
+                ContainerFlag.Created, port.getInterfaceName)
+            obs.getOnNextEvents.get(1) shouldBe ContainerHealth(Code.RUNNING, "if-eth", "")
 
             val vpnServiceSubscription = container.vpnServiceSubscription
             container.delete().await()
 
             Then("The container should call the cleanup commands")
             container.commands should have size 9
+
+            And("The container should report deleted")
+            obs.getOnNextEvents should have size 3
+            obs.getOnNextEvents.get(2) shouldBe ContainerConfiguration(
+                ContainerFlag.Deleted, port.getInterfaceName)
 
             And("The container should unsubscribe from the observable")
             vpnServiceSubscription.isUnsubscribed shouldBe true
@@ -1938,7 +1942,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                    configurationId = router.getId.asJava)
 
             When("Calling the create method of the container")
-            container.create(cp).await()
+            container.create(cp).await() should not be None
 
             Then("The container should call the cleanup and setup commands")
             container.commands should have size 7
@@ -1959,12 +1963,22 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.vpnServiceSubscription shouldBe null
         }
 
-        scenario("Container handles cleanup") {
+        scenario("Container deletes the namespace on cleanup") {
             Given("A container")
             val container = new TestIPSecContainer(vt, containerExecutor)
 
-            Then("The container handles cleanup")
-            container.cleanup("some-config").await()
+            When("Calling cleanup")
+            container.cleanup("container-name").await()
+
+            Then("The container should call the cleanup commands")
+            val path =
+                s"${FileUtils.getTempDirectoryPath}/container-name"
+            container.commands should have size 2
+            container.commands(0) shouldBe
+                "/usr/lib/midolman/vpn-helper stop_service -n container-name " +
+                s"-p $path"
+            container.commands(1) shouldBe
+                "/usr/lib/midolman/vpn-helper cleanns -n container-name"
         }
     }
 

@@ -32,11 +32,11 @@ object ContainerFlag extends Enumeration {
 
 trait ContainerStatus
 
-case class ContainerConfiguration(flag: ContainerFlag, config: String)
+case class ContainerConfiguration(flag: ContainerFlag, name: String)
     extends ContainerStatus {
     override def toString = MoreObjects.toStringHelper(this).omitNullValues()
         .add("flag", flag)
-        .add("config", config)
+        .add("name", name)
         .toString
 }
 
@@ -91,10 +91,10 @@ trait ContainerHandler {
     def delete(): Future[Unit]
 
     /**
-      * Cleans-up the container for the specified configuration. The method
+      * Cleans-up the container for the specified container name. The method
       * returns a future that completes when the container has been cleaned.
       */
-    def cleanup(config: String): Future[Unit]
+    def cleanup(name: String): Future[Unit]
 
     /**
       * An observable that reports the status of the container. The status of
