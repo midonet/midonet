@@ -459,6 +459,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
              if !portIds.contains(portId)) {
             portState.complete()
             localPorts -= portId
+            if (portState.peer ne null)
+                peerPorts -= portState.peer.portId
             exteriorPorts -= portId
         }
 
