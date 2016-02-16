@@ -16,6 +16,24 @@
       "revId": "1591ec6d72d5edb0ff06c49c6e67061d4ab9f280",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da86d52c_5d6edbca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/services/MidolmanActorsService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-16T08:53:14Z",
+      "side": 1,
+      "message": "No idea actually, I didn\u0027t debug akka, but in testing does look that this hangs when some actors crash (here I crashed the PacketWorkflow when processing a packet).\n\nYeah, I can take a look into it further.",
+      "parentUuid": "fa81d914_1c15a9e4",
+      "revId": "1591ec6d72d5edb0ff06c49c6e67061d4ab9f280",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
