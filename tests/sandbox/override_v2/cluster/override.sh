@@ -14,5 +14,10 @@ RESOLVED_HOST_NAME=`getent hosts $HOST_NAME`
 IPADDRESS=${RESOLVED_HOST_NAME%% *}
 sed -i "\$a JVM_OPTS=\"\$JVM_OPTS -Djava.rmi.server.hostname=$IPADDRESS\"" /etc/midonet-cluster/midonet-cluster-env.sh
 
+cluster.
+mn-conf set -t default <<EOF
+cluster.containers.scheduler_timeout="20s"
+EOF
+
 # Run cluster
 exec /run-midonetcluster.sh
