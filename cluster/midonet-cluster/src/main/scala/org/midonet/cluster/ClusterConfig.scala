@@ -17,17 +17,14 @@ package org.midonet.cluster
 
 import java.util.concurrent.TimeUnit
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
 
-import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.conf.ConfMinion
 import org.midonet.cluster.services.flowtracing.FlowTracingMinion
 import org.midonet.cluster.services.heartbeat.Heartbeat
 import org.midonet.cluster.services.topology.TopologyApiService
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
-
-import org.midonet.cluster.storage.CassandraConfig
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.storage.{CassandraConfig, MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 
 object ClusterConfig {
@@ -56,7 +53,6 @@ class ClusterConfig(_conf: Config) {
     val backend = new MidonetBackendConfig(conf)
     val cassandra = new CassandraConfig(conf)
     val embedding = new EmbeddedClusterNodeConfig(conf)
-    val c3po = new C3POConfig(conf)
     val hearbeat = new HeartbeatConfig(conf)
     val vxgw = new VxGwConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
@@ -68,20 +64,6 @@ class ClusterConfig(_conf: Config) {
 
 class EmbeddedClusterNodeConfig(conf: Config) {
     def enabled = conf.getBoolean("midocluster.vxgw_enabled")
-}
-
-class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
-    val PREFIX = "cluster.neutron_importer"
-
-    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
-    override def minionClass = conf.getString(s"$PREFIX.with")
-    override def numThreads = conf.getInt(s"$PREFIX.threads")
-    override def delayMs = conf.getDuration(s"$PREFIX.delay", TimeUnit.MILLISECONDS)
-    override def periodMs = conf.getDuration(s"$PREFIX.period", TimeUnit.MILLISECONDS)
-    def connectionString = conf.getString(s"$PREFIX.connection_string")
-    def jdbcDriver = conf.getString(s"$PREFIX.jdbc_driver_class")
-    def user = conf.getString(s"$PREFIX.user")
-    def password = conf.getString(s"$PREFIX.password")
 }
 
 class HeartbeatConfig(val conf: Config) extends ScheduledMinionConfig[Heartbeat] {
