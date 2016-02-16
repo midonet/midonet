@@ -18,8 +18,6 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import com.codahale.metrics.MetricRegistry
-
 import org.midonet.cluster.models.Topology.{PortGroup => TopologyPortGroup}
 import org.midonet.midolman.simulation.{PortGroup => SimulationPortGroup}
 import org.midonet.util.functors.{makeAction1, makeFunc1}
@@ -28,8 +26,8 @@ import org.midonet.util.functors.{makeAction1, makeFunc1}
  * A device mapper that exposes an [[rx.Observable]] with notifications for a
  * port group.
  */
-class PortGroupMapper(id: UUID, vt: VirtualTopology, metricRegistry: MetricRegistry)
-    extends DeviceMapper[SimulationPortGroup](id, vt, metricRegistry) {
+class PortGroupMapper(id: UUID, vt: VirtualTopology)
+    extends DeviceMapper[SimulationPortGroup](id, vt) {
     import org.midonet.cluster.util.UUIDUtil.{fromProto, fromProtoList}
 
     override def logSource = s"org.midonet.devices.port-group.port-group-$id"

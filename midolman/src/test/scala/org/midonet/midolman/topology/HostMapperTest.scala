@@ -22,8 +22,6 @@ import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-import com.codahale.metrics.MetricRegistry
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -50,14 +48,12 @@ class HostMapperTest extends MidolmanSpec
                      with TopologyBuilder {
 
     private var vt: VirtualTopology = _
-    private var metricRegistry: MetricRegistry = _
     private var store: Storage = _
     private var stateStore: StateStorage = _
     private final val timeout = 5 seconds
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
         stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
     }
@@ -66,7 +62,7 @@ class HostMapperTest extends MidolmanSpec
         scenario("The host is in one tunnel zone") {
             Given("A host member of one tunnel zone")
             val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -87,7 +83,7 @@ class HostMapperTest extends MidolmanSpec
         scenario("The host is in one tunnel zone and then in two") {
             Given("A host member of one tunnel zone")
             val (protoHost1, protoTunnelZone1) = createHostAndTunnelZone()
-            val hostMapper = new HostMapper(protoHost1.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost1.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -119,7 +115,7 @@ class HostMapperTest extends MidolmanSpec
         scenario("The host is in one tunnel zone and then none") {
             Given("A host member of one tunnel zone")
             val (protoHost1, protoTunnelZone) = createHostAndTunnelZone()
-            val hostMapper = new HostMapper(protoHost1.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost1.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -147,7 +143,7 @@ class HostMapperTest extends MidolmanSpec
                  "back-reference") {
             Given("A host member of one tunnel zone")
             val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -173,7 +169,7 @@ class HostMapperTest extends MidolmanSpec
         scenario("The host mapper discards tunnel zones that emit errors") {
             Given("A host member of one tunnel zone")
             val (host, tunnelZone1) = createHostAndTunnelZone()
-            val hostMapper = new HostMapper(host.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(host.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -213,7 +209,7 @@ class HostMapperTest extends MidolmanSpec
             val (protoHost, _) = createHostAndTunnelZone()
             val port = createRouterWithPorts(1).head
             bindPort(port, protoHost, "eth0")
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -238,7 +234,7 @@ class HostMapperTest extends MidolmanSpec
             val (protoHost, _) = createHostAndTunnelZone()
             val Seq(port1, port2) = createRouterWithPorts(2)
             bindPort(port1, protoHost, "eth0")
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -273,7 +269,7 @@ class HostMapperTest extends MidolmanSpec
             Given("A host member with one port")
             val Seq(port1) = createRouterWithPorts(1)
             bindPort(port1, protoHost, "eth0")
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -299,7 +295,7 @@ class HostMapperTest extends MidolmanSpec
             val Seq(port1, port2) = createRouterWithPorts(2)
             bindPort(port1, protoHost, "eth0")
             bindPort(port2, protoHost, "eth1")
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -338,7 +334,7 @@ class HostMapperTest extends MidolmanSpec
             val (host, _) = createHostAndTunnelZone()
             val Seq(port1) = createRouterWithPorts(1)
             bindPort(port1, host, "eth0")
-            val hostMapper = new HostMapper(host.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(host.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -383,7 +379,7 @@ class HostMapperTest extends MidolmanSpec
             val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
             val port = createRouterWithPorts(1).head
             bindPort(port, protoHost, "eth0")
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -412,7 +408,7 @@ class HostMapperTest extends MidolmanSpec
         scenario("The alive status of the host is updated appropriately") {
             Given("An alive host")
             val (protoHost, _) = createHostAndTunnelZone()
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -447,7 +443,7 @@ class HostMapperTest extends MidolmanSpec
     feature("The host mapper discards updates that do not modify the host") {
         scenario("A host update with no modifications") {
             val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -472,7 +468,7 @@ class HostMapperTest extends MidolmanSpec
 
         scenario("A tunnel zone update with no modifications") {
             var (protoHost, protoTunnelZone) = createHostAndTunnelZone()
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)
@@ -502,7 +498,7 @@ class HostMapperTest extends MidolmanSpec
             val (protoHost, _) = createHostAndTunnelZone()
             var Seq(port) = createRouterWithPorts(1)
             bindPort(port, protoHost, "eth0")
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, metricRegistry)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
             val observable = Observable.create(hostMapper)

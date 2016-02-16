@@ -22,8 +22,6 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import com.codahale.metrics.MetricRegistry
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -33,15 +31,14 @@ import org.midonet.midolman.simulation.{Pool => SimulationPool, PoolMember => Si
 import org.midonet.midolman.state.l4lb.PoolLBMethod
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
-import org.midonet.util.collection._
 
 /**
  * A device mapper that exposes an [[rx.Observable]] with notifications for a
  * layer-4 load balancer pool. The pool observable combines the latest updates
  * from both the topology pool object and the pool members.
  */
-final class PoolMapper(poolId: UUID, vt: VirtualTopology, metricRegistry: MetricRegistry)
-    extends VirtualDeviceMapper[SimulationPool](poolId, vt, metricRegistry) {
+final class PoolMapper(poolId: UUID, vt: VirtualTopology)
+    extends VirtualDeviceMapper[SimulationPool](poolId, vt) {
 
     override def logSource = s"org.midonet.devices.pool.pool-$poolId"
 

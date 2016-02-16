@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2015 Midokura SARL
  *
@@ -21,7 +20,6 @@ import java.util.UUID
 
 import scala.concurrent.duration._
 
-import com.codahale.metrics.MetricRegistry
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -47,13 +45,11 @@ class LoadBalancerMapperTest extends MidolmanSpec
     import TopologyBuilder._
 
     private var vt: VirtualTopology = _
-    private var metricRegistry: MetricRegistry = _
     private var store: Storage = _
     private final val timeout = 5 seconds
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
@@ -65,7 +61,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             val id = UUID.randomUUID
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(id, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(id, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -86,7 +82,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.create(lb)
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -106,7 +102,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.create(lb1)
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb1.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -133,7 +129,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.create(lb)
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -160,7 +156,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.create(lb1)
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb1.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -192,7 +188,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb1), CreateOp(pool1)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb1.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -224,7 +220,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb1), CreateOp(pool)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb1.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -256,7 +252,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.create(lb)
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -288,7 +284,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb), CreateOp(pool)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -325,7 +321,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb), CreateOp(pool), CreateOp(vip)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -359,7 +355,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb1), CreateOp(pool1), CreateOp(vip)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb1.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -406,7 +402,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             }
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -432,7 +428,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb), CreateOp(pool)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -466,7 +462,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb), CreateOp(pool), CreateOp(vip1)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -501,7 +497,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb), CreateOp(pool), CreateOp(vip1)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -536,7 +532,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb), CreateOp(pool), CreateOp(vip)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)
@@ -568,7 +564,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(lb), CreateOp(pool1), CreateOp(pool2)))
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(lb.getId, vt, metricRegistry)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
             And("An observer to the load-balancer mapper")
             val obs = new DeviceObserver[SimulationLb](vt)

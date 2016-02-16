@@ -18,14 +18,11 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
-import com.codahale.metrics.MetricRegistry
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.observers.TestObserver
 import rx.subjects.BehaviorSubject
-import rx.subscriptions.Subscriptions
 
 import org.midonet.midolman.monitoring.metrics.JmxDeviceMapperMetrics
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -55,10 +52,9 @@ class DeviceMapperTest extends MidolmanSpec {
         def apply(id: UUID, value: Int = 0) = new TestableDevice(id, value)
     }
 
-    class TestableMapper(id: UUID, obs: Observable[TestableDevice],
-                         metricsRegistry: MetricRegistry = null)
+    class TestableMapper(id: UUID, obs: Observable[TestableDevice])
                         (implicit vt: VirtualTopology)
-            extends DeviceMapper[TestableDevice](id, vt, metricsRegistry) {
+            extends DeviceMapper[TestableDevice](id, vt) {
 
         private val subscribed = new AtomicBoolean(false)
         private val stream = BehaviorSubject.create[TestableDevice]()
@@ -673,7 +669,7 @@ class DeviceMapperTest extends MidolmanSpec {
 
             When("Creating a device observable for this stream")
             val mapper = new TestableMapper(
-                UUID.randomUUID, stream.out, new MetricRegistry())
+                UUID.randomUUID, stream.out)
             val observable = Observable.create(mapper)
 
             When("An observer subscribes")
@@ -692,7 +688,7 @@ class DeviceMapperTest extends MidolmanSpec {
 
             When("Creating a device observable for this stream")
             val mapper = new TestableMapper(
-              UUID.randomUUID, stream.out, new MetricRegistry())
+              UUID.randomUUID, stream.out)
             val observable = Observable.create(mapper)
 
             And("And emitting an initial device")
@@ -715,7 +711,7 @@ class DeviceMapperTest extends MidolmanSpec {
 
             When("Creating a device observable for this stream")
             val mapper = new TestableMapper(
-              UUID.randomUUID, stream.out, new MetricRegistry())
+              UUID.randomUUID, stream.out)
             val observable = Observable.create(mapper)
 
             And("The stream emits an error")

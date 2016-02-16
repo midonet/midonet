@@ -17,18 +17,16 @@ package org.midonet.midolman.topology
 
 import java.util.{ArrayList => JArrayList, List => JList, UUID}
 
-import org.midonet.cluster.util.UUIDUtil
 import org.midonet.packets.{MAC, IPv4Addr}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import com.codahale.metrics.MetricRegistry
 import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.data.storage.{NoOpStateTable, StateTable}
+import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, L2Insertion}
 import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
@@ -58,9 +56,8 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc4
  *                       +-------------------+  +-------+  +---------+
  */
 final class PortMapper(id: UUID, vt: VirtualTopology,
-                       metricRegistry: MetricRegistry,
                        val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
-        extends VirtualDeviceMapper[SimulationPort](id, vt, metricRegistry)
+        extends VirtualDeviceMapper[SimulationPort](id, vt)
         with TraceRequestChainMapper[SimulationPort] {
 
     override def logSource = s"org.midonet.devices.port.port-$id"

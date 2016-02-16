@@ -24,7 +24,6 @@ import javax.annotation.Nullable
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import com.codahale.metrics.MetricRegistry
 import com.typesafe.scalalogging.Logger
 
 import rx.Observable
@@ -392,7 +391,6 @@ object RouterMapper {
  * [[SimulationRouter]].
  */
 final class RouterMapper(routerId: UUID, vt: VirtualTopology,
-                         metricRegistry: MetricRegistry,
                          val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
         extends VirtualDeviceMapper[SimulationRouter](routerId, vt)
         with TraceRequestChainMapper[SimulationRouter] {

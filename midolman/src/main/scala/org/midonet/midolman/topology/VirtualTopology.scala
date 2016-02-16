@@ -204,35 +204,35 @@ class VirtualTopology(
         classTag[BgpRouter] -> DeviceFactory(
             classTag[BgpRouter], new BgpRouterMapper(_, this)),
         classTag[Bridge] -> DeviceFactory(
-            classTag[Bridge], new BridgeMapper(_, this, metricRegistry, traceChains)),
+            classTag[Bridge], new BridgeMapper(_, this, traceChains)),
         classTag[BridgePort] -> DeviceFactory(
-            classTag[Port], new PortMapper(_, this, metricRegistry, traceChains)),
+            classTag[Port], new PortMapper(_, this, traceChains)),
         classTag[Chain] -> DeviceFactory(
-            classTag[Chain], new ChainMapper(_, this, metricRegistry, traceChains)),
+            classTag[Chain], new ChainMapper(_, this, traceChains)),
         classTag[Host] -> DeviceFactory(
-            classTag[Host], new HostMapper(_, this, metricRegistry)),
+            classTag[Host], new HostMapper(_, this)),
         classTag[IPAddrGroup] -> DeviceFactory(
-            classTag[IPAddrGroup], new IPAddrGroupMapper(_, this, metricRegistry)),
+            classTag[IPAddrGroup], new IPAddrGroupMapper(_, this)),
         classTag[LoadBalancer] -> DeviceFactory(
-            classTag[LoadBalancer], new LoadBalancerMapper(_, this, metricRegistry)),
+            classTag[LoadBalancer], new LoadBalancerMapper(_, this)),
         classTag[Pool] -> DeviceFactory(
-            classTag[Pool], new PoolMapper(_, this, metricRegistry)),
+            classTag[Pool], new PoolMapper(_, this)),
         classTag[PoolHealthMonitorMap] -> DeviceFactory(
             classTag[PoolHealthMonitorMap], _ => new PoolHealthMonitorMapper(this)),
         classTag[Port] -> DeviceFactory(
-            classTag[Port], new PortMapper(_, this, metricRegistry, traceChains)),
+            classTag[Port], new PortMapper(_, this, traceChains)),
         classTag[PortGroup] -> DeviceFactory(
-            classTag[PortGroup], new PortGroupMapper(_, this, metricRegistry)),
+            classTag[PortGroup], new PortGroupMapper(_, this)),
         classTag[Router] -> DeviceFactory(
-            classTag[Router], new RouterMapper(_, this, metricRegistry, traceChains)),
+            classTag[Router], new RouterMapper(_, this, traceChains)),
         classTag[RouterPort] -> DeviceFactory(
-            classTag[Port], new PortMapper(_, this, metricRegistry, traceChains)),
+            classTag[Port], new PortMapper(_, this, traceChains)),
         classTag[TunnelZone] -> DeviceFactory(
-            classTag[TunnelZone], new TunnelZoneMapper(_, this, metricRegistry)),
+            classTag[TunnelZone], new TunnelZoneMapper(_, this)),
         classTag[Mirror] -> DeviceFactory(
-            classTag[Mirror], new MirrorMapper(_, this, metricRegistry)),
+            classTag[Mirror], new MirrorMapper(_, this)),
         classTag[VxLanPort] -> DeviceFactory(
-            classTag[Port], new PortMapper(_, this, metricRegistry, traceChains))
+            classTag[Port], new PortMapper(_, this, traceChains))
     )
 
     register(this)
