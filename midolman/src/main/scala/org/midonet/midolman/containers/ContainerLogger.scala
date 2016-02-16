@@ -97,7 +97,7 @@ class ContainerLogger(config: ContainerConfig, log: Logger) {
         if (channel eq null) {
             channel = FileChannel.open(logPath,
                                        StandardOpenOption.CREATE,
-                                       StandardOpenOption.WRITE)
+                                       StandardOpenOption.APPEND)
         }
         // Get the current local date-time.
         val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(clock.time),
