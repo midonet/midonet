@@ -87,6 +87,8 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                     status match {
                         case health: ContainerHealth =>
                             setStatus(handler, health)
+                        case config: ContainerConfiguration =>
+                            logger.log(cp.serviceType, config)
                         case _ => log warn "Unknown status notification for " +
                                            s"container $cp: $status"
                     }
@@ -116,6 +118,8 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private val provider =
         new ContainerHandlerProvider(reflections, vt, serviceExecutor,
                                      ioExecutor, log)
+
+    private val logger = new ContainerLogger(vt.config.containers, log)
 
     // The handlers map is concurrent because reads may be performed from
     // the handler notification thread.
