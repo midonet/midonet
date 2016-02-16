@@ -16,6 +16,9 @@
 
 package org.midonet.midolman.containers
 
+import java.nio.file.{FileSystems, Files}
+import java.time.format.DateTimeFormatter
+import java.time.{ZoneId, Instant, LocalDateTime}
 import java.util.UUID
 import java.util.UUID._
 import java.util.concurrent.ScheduledExecutorService
@@ -23,6 +26,8 @@ import java.util.concurrent.ScheduledExecutorService
 import scala.concurrent.Future
 
 import com.google.protobuf.TextFormat
+import com.typesafe.config.{ConfigFactory, Config}
+import org.apache.commons.io.FileUtils
 import org.apache.curator.framework.state.ConnectionState.RECONNECTED
 import org.junit.runner.RunWith
 import org.mockito.Mockito
@@ -44,7 +49,7 @@ import org.midonet.containers.Container
 import org.midonet.midolman.containers.ContainerServiceTest.{TestContainer, TestNamespace}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.util.MidonetEventually
+import org.midonet.util.{UnixClock, MidonetEventually}
 import org.midonet.util.reactivex._
 
 object ContainerServiceTest {
@@ -135,11 +140,23 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
     private val reflections = new Reflections("org.midonet.midolman.containers")
     private val ioExecutor = Mockito.mock(classOf[ScheduledExecutorService])
 
+    private val logDir = s"${FileUtils.getTempDirectory}/${UUID.randomUUID}"
+
     protected override def beforeTest(): Unit = {
+        System.setProperty("midolman.log.dir", logDir)
+        System.setProperty(UnixClock.USE_MOCK_CLOCK_PROPERTY, "yes")
+        Files.createDirectories(FileSystems.getDefault.getPath(logDir))
         vt = injector.getInstance(classOf[VirtualTopology])
         backend = injector.getInstance(classOf[MidonetBackend])
         store = backend.store
         stateStore = backend.stateStore
+    }
+
+    protected override def fillConfig(config: Config) = {
+        super.fillConfig(ConfigFactory.parseString(
+            s"""
+               |agent.containers.log_file_name : log-${UUID.randomUUID}.log
+            """.stripMargin).withFallback(config))
     }
 
     private def containerPort(host: Host, port: Port,
@@ -1044,6 +1061,51 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The container status should be STOPPING")
             getStatus(container.getId).get.getStatusCode shouldBe Code.STOPPING
+        }
+    }
+
+    feature("Test service logs the container operations") {
+        scenario("Service logs starting and stopping the container") {
+            Given("A port bound to a host with a container")
+            val host = createHost()
+            val bridge = createBridge()
+            val group = createServiceContainerGroup()
+            val container = createServiceContainer(configurationId = Some(randomUUID),
+                                                   serviceType = Some("test-good"),
+                                                   groupId = Some(group.getId))
+            val port = createBridgePort(bridgeId = Some(bridge.getId),
+                                        hostId = Some(host.getId),
+                                        interfaceName = Some("veth"),
+                                        containerId = Some(container.getId))
+            val dateTime =
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(UnixClock.MOCK.time),
+                                        ZoneId.systemDefault())
+                             .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            store.multi(Seq(CreateOp(host), CreateOp(bridge), CreateOp(group),
+                            CreateOp(container), CreateOp(port)))
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
+                                               ioExecutor, reflections)
+            service.startAsync().awaitRunning()
+
+            When("The container reports the created configuration")
+            val handler = service.handlerOf(port.getId)
+            val h = handler.handler.asInstanceOf[TestContainer]
+            h.stream onNext ContainerOp(ContainerFlag.Created, "a")
+
+            Then("The log file exists")
+            val path = FileSystems.getDefault.getPath(
+                s"$logDir/${config.containers.logDirectory}/a.test-good")
+            Files.exists(path) shouldBe true
+
+            When("The container reports the deleted configuration")
+            h.stream onNext ContainerOp(ContainerFlag.Deleted, "a")
+
+            Then("The log file does not exists")
+            Files.exists(path) shouldBe false
+
+            service.stopAsync().awaitTerminated()
         }
     }
 
