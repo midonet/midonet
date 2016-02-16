@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da86d52c_321dd674",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-16T08:45:02Z",
+      "side": 1,
+      "message": "well, it\u0027s the background as to why there was an extra apt-get in there. I can remove.",
+      "parentUuid": "da86d52c_697205e7",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 36
+      },
+      "revId": "d26185e4cf7775aa3c6a6c6646cf42651d8b11ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da86d52c_094a6983",
         "filename": "tests/sandbox/override_v2/cluster/override.sh",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2016-02-15T14:46:29Z",
       "side": 1,
       "message": "don\u0027t resubmit for this nit, but it\u0027d be nice to use an error function that displays a message and then exits, as it will simplify debugging failed jobs.",
+      "range": {
+        "startLine": 11,
+        "startChar": 59,
+        "endLine": 11,
+        "endChar": 68
+      },
+      "revId": "d26185e4cf7775aa3c6a6c6646cf42651d8b11ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da86d52c_3d04c714",
+        "filename": "tests/sandbox/override_v2/cluster/override.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-16T08:45:02Z",
+      "side": 1,
+      "message": "I thought about this as overrides share a lot (providing a bash file with common functions), but I haven\u0027t found a simple way to share scripting tools among overrides (as volumes are mounted separately inside the containers).",
+      "parentUuid": "da86d52c_094a6983",
       "range": {
         "startLine": 11,
         "startChar": 59,
