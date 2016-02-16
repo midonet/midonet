@@ -88,6 +88,10 @@ public class Firewall extends ZoomObject {
     @ZoomField(name = "del_router_ids", converter = Converter.class)
     public List<UUID> delRouterIds;
 
+    @JsonProperty("last-router")
+    @ZoomField(name = "last_router")
+    public boolean lastRouter;
+
     @Override
     public final boolean equals(Object obj) {
 
@@ -107,7 +111,8 @@ public class Firewall extends ZoomObject {
                && ListUtils.isEqualList(firewallRuleList,
                                         other.firewallRuleList)
                && ListUtils.isEqualList(addRouterIds, other.addRouterIds)
-               && ListUtils.isEqualList(delRouterIds, other.delRouterIds);
+               && ListUtils.isEqualList(delRouterIds, other.delRouterIds)
+               && lastRouter == other.lastRouter;
     }
 
     @Override
@@ -116,7 +121,8 @@ public class Firewall extends ZoomObject {
                                 adminStateUp, status, firewallPolicyId,
                                 ListUtils.hashCodeForList(firewallRuleList),
                                 ListUtils.hashCodeForList(addRouterIds),
-                                ListUtils.hashCodeForList(delRouterIds));
+                                ListUtils.hashCodeForList(delRouterIds),
+                                lastRouter);
     }
 
     @Override
@@ -133,6 +139,7 @@ public class Firewall extends ZoomObject {
             .add("firewallRuleList", ListUtil.toString(firewallRuleList))
             .add("addRouterIds", ListUtil.toString(addRouterIds))
             .add("delRouterIds", ListUtil.toString(delRouterIds))
+            .add("lastRouter", lastRouter)
             .toString();
     }
 }

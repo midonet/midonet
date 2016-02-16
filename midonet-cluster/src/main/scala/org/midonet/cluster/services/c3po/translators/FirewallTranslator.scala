@@ -25,9 +25,11 @@ import org.midonet.cluster.models.Neutron.NeutronFirewallRule.FirewallRuleAction
 import org.midonet.cluster.models.Neutron.{NeutronFirewall, NeutronFirewallRule}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update, MidoOp}
+import org.midonet.cluster.services.c3po.neutron
+import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.util.RangeUtil
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.util.concurrent.toFutureOps
 
 class FirewallTranslator(protected val storage: ReadOnlyStorage)
@@ -137,7 +139,7 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
             case nfe: NotFoundException =>
                 // A router with old translation might not have
                 // the forward chain
-                log.info("Creating fwd chain for {}", rId)
+                log.info(s"Creating fwd chain for ${fromProto(rId)}")
                 val name = RouterTranslator.forwardChainName(rId)
                 val chain = newChain(chainId, name)
                 val router = storage.get(classOf[Router], rId).await()
@@ -165,10 +167,43 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         firewallChains(id).map(c => Delete(classOf[Chain], c.getId))
 
     override protected def translateUpdate(fw: NeutronFirewall) = {
-        val chainId = fwdChainId(fw.getId)
-        val chain = storage.get(classOf[Chain], chainId).await()
-        translateRuleChainUpdate(fw, chain, fwdRules) ++
-        translateRouterAssocs(fw)
+        // Note: We need to update the high level model by ourselves
+        // because it might not be an Update.
+        if (fw.hasLastRouter && fw.getLastRouter) {
+            // A firewall with no routers associated, going to INACTIVE.
+            // Just forget it completely.
+            val fwId = fw.getId
+            log.debug(s"Deleting firewall ${fromProto(fwId)} because " +
+                      "no routers are associated")
+            List(Delete(classOf[NeutronFirewall], fwId)) ++ translateDelete(fwId)
+        } else {
+            val chainId = fwdChainId(fw.getId)
+            val chain = try {
+                storage.get(classOf[Chain], chainId).await()
+            } catch {
+                case nfe: NotFoundException => null
+            }
+            if (chain ne null) {
+                // Update a firewall known to us.
+                translateRuleChainUpdate(fw, chain, fwdRules) ++
+                List(Update(fw)) ++ translateRouterAssocs(fw)
+            } else {
+                // Update a firewall not known to us.  Just create one.
+                // This case happens when the neutron plugin omits
+                // the Create RPC because of the empty router list.
+                log.debug(s"Creating firewall ${fromProto(fw.getId)} " +
+                          "for Update request")
+                List(Create(fw)) ++ translateCreate(fw)
+            }
+        }
+    }
+
+    override protected def retainNeutronModel(op: NeutronOp[NeutronFirewall])
+    : List[MidoOp[NeutronFirewall]] = {
+        op match {
+            case neutron.Update(nm) => List()  // See translateUpdate
+            case _ => super.retainNeutronModel(op)
+        }
     }
 }
 

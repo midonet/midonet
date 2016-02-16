@@ -27,6 +27,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.google.inject.{Guice, Inject, Injector, PrivateModule}
 import com.typesafe.config.ConfigFactory
@@ -579,6 +580,19 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
             delRouterArray.add(delRouterId.toString)
         }
         f
+    }
+
+    protected def firewallUpdateJson(id: UUID,
+                                     tenantId: String = "tenant",
+                                     adminStateUp: Boolean = true,
+                                     firewallRuleList: List[JsonNode] = List(),
+                                     addRouterIds: List[UUID] = List(),
+                                     delRouterIds: List[UUID] = List(),
+                                     lastRouter: Boolean = false): JsonNode = {
+        val f = firewallJson(id, tenantId, adminStateUp, firewallRuleList,
+                             addRouterIds, delRouterIds)
+        // This field only exists for Update
+        f.asInstanceOf[ObjectNode].put("last-router", lastRouter)
     }
 
     protected def firewallRuleJson(id: UUID,
