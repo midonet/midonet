@@ -855,6 +855,10 @@ router forward chains.
 
 ### UPDATE
 
+If 'last-router' field is true, translate the request as a DELETE.
+If firewall chains don't exist, translate the request as a CREATE.
+Otherwise, translate as the following.
+
 The only fields that can be updated are 'adminStateUp', firewall rules, and
 the router associations.
 
