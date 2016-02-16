@@ -1890,7 +1890,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             obs.getOnNextEvents should have size 2
             obs.getOnNextEvents.get(0) shouldBe ContainerConfiguration(
-                ContainerFlag.Created, s"${port.getInterfaceName} $path")
+                port.getInterfaceName, ContainerFlag.Created,
+                s"${port.getInterfaceName} $path")
             obs.getOnNextEvents.get(1) shouldBe ContainerHealth(Code.RUNNING, "if-eth", "")
 
             val vpnServiceSubscription = container.vpnServiceSubscription
@@ -1902,7 +1903,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             And("The container should report deleted")
             obs.getOnNextEvents should have size 3
             obs.getOnNextEvents.get(2) shouldBe ContainerConfiguration(
-                ContainerFlag.Deleted, s"${port.getInterfaceName} $path")
+                port.getInterfaceName, ContainerFlag.Deleted,
+                s"${port.getInterfaceName} $path")
 
             And("The container should unsubscribe from the observable")
             vpnServiceSubscription.isUnsubscribed shouldBe true
