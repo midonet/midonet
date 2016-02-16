@@ -22,6 +22,30 @@
       "revId": "171045535eb05ec181a27cc6c4d959a0deb901d1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da86d52c_9d95b38a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-16T09:06:36Z",
+      "side": 1,
+      "message": "It will be handled, but in a subsequent patch. The ContainerConfiguration was introduced here, but in this patch is not used yet. My plan for this changes was the following:\n\n- patch 1: handler interface introduces the cleanup method and modifies the health observable to status\n- patch 2: the IPSec container implements the cleanup and status observable\n- patch 3: the container service handles the status observable (i.e. the configuration updates) and logs them; upon startup it loads the previous log and performs the cleanup if needed\n\neach patch should not break any functionality",
+      "parentUuid": "da86d52c_b221c6b6",
+      "range": {
+        "startLine": 90,
+        "startChar": 24,
+        "endLine": 90,
+        "endChar": 30
+      },
+      "revId": "171045535eb05ec181a27cc6c4d959a0deb901d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
