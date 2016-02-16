@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da86d52c_f8723d48",
+        "filename": "tests/mdts/tests/functional_tests/test_bgp.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-16T13:50:27Z",
+      "side": 1,
+      "message": "may be worth putting a ref to the issue tracking this? so it\u0027s easy to find when enabling it again. same for the other.",
+      "revId": "81f92408b902a9080710df8a663cc97ad0e3fe2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
