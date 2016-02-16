@@ -284,6 +284,7 @@ message NeutronFirewall {
     repeated NeutronFirewallRule firewall_rule_list = 9;
     repeated UUID add_router_ids = 10;
     repeated UUID del_router_ids = 11;
+    optional bool last_router = 12;
 }
 
 message NeutronFirewallRule {

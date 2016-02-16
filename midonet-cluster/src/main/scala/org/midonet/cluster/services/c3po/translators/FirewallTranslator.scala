@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Neutron.NeutronFirewallRule.FirewallRuleAction
 import org.midonet.cluster.models.Neutron.{NeutronFirewall, NeutronFirewallRule}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update, Operation}
 import org.midonet.cluster.util.RangeUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.util.concurrent.toFutureOps
@@ -165,10 +165,42 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         firewallChains(id).map(c => Delete(classOf[Chain], c.getId))
 
     override protected def translateUpdate(fw: NeutronFirewall) = {
-        val chainId = fwdChainId(fw.getId)
-        val chain = storage.get(classOf[Chain], chainId).await()
-        translateRuleChainUpdate(fw, chain, fwdRules) ++
-        translateRouterAssocs(fw)
+        // Note: We need to update the high level model by ourselves
+        // because it might not be an Update.
+        if (fw.hasLastRouter && fw.getLastRouter) {
+            // A firewall with no routers associated, going to INACTIVE.
+            // Just forget it completely.
+            val fwId = fw.getId
+            log.debug("Deleting firewall {} because no routers are associated",
+                      fwId)
+            List(Delete(classOf[NeutronFirewall], fwId)) ++ translateDelete(fwId)
+        } else {
+            val chainId = fwdChainId(fw.getId)
+            val chain = try {
+                storage.get(classOf[Chain], chainId).await()
+            } catch {
+                case nfe: NotFoundException => null
+            }
+            if (chain ne null) {
+                // Update a firewall known to us.
+                translateRuleChainUpdate(fw, chain, fwdRules) ++
+                List(Update(fw)) ++ translateRouterAssocs(fw)
+            } else {
+                // Update a firewall not known to us.  Just create one.
+                // This case happens when the neutron plugin omits
+                // the Create RPC because of the empty router list.
+                log.debug("Creating firewall {} for Update request", fw.getId)
+                List(Create(fw)) ++ translateCreate(fw)
+            }
+        }
+    }
+
+    override protected def retainHighLevelModel(op: Operation[NeutronFirewall])
+    : List[Operation[NeutronFirewall]] = {
+        op match {
+            case Update(nm, _) => List()  // See translateUpdate
+            case _ => super.retainHighLevelModel(op)
+        }
     }
 }
 
