@@ -61,7 +61,7 @@ object VirtualTopology extends MidolmanLogging {
         def deviceTag: FlowTag
     }
 
-    type DeviceFactory = UUID => OnSubscribe[_]
+    case class DeviceFactory(tag: ClassTag[_], builder: UUID => OnSubscribe[_])
 
     case class Key(tag: ClassTag[_], id: UUID)
 
@@ -82,7 +82,7 @@ object VirtualTopology extends MidolmanLogging {
                         (implicit tag: ClassTag[D]): Future[D] = {
         val device = self.devices.get(id).asInstanceOf[D]
         if (device eq null) {
-            self.observableOf(Key(tag, id)).asFuture
+            self.observableOf(tag, id).asFuture
         } else {
             Promise[D]().success(device).future
         }
@@ -96,7 +96,7 @@ object VirtualTopology extends MidolmanLogging {
      */
     def observable[D <: Device](id: UUID)
                                (implicit tag: ClassTag[D]): Observable[D] = {
-        self.observableOf(Key(tag, id))
+        self.observableOf(tag, id)
     }
 
     /**
@@ -196,23 +196,42 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
     private val traceChains = mutable.Map[UUID,Subject[Chain,Chain]]()
 
     private val factories = Map[ClassTag[_], DeviceFactory](
-        classTag[BgpPort] -> (new BgpPortMapper(_, this)),
-        classTag[BgpRouter] -> (new BgpRouterMapper(_, this)),
-        classTag[Bridge] -> (new BridgeMapper(_, this, traceChains)(actorsService.system)),
-        classTag[BridgePort] -> (new PortMapper(_, this, traceChains)),
-        classTag[Chain] -> (new ChainMapper(_, this, traceChains)),
-        classTag[Host] -> (new HostMapper(_, this)),
-        classTag[IPAddrGroup] -> (new IPAddrGroupMapper(_, this)),
-        classTag[LoadBalancer] -> (new LoadBalancerMapper(_, this)),
-        classTag[Pool] -> (new PoolMapper(_, this)),
-        classTag[PoolHealthMonitorMap] -> (id => new PoolHealthMonitorMapper(this)),
-        classTag[Port] -> (new PortMapper(_, this, traceChains)),
-        classTag[PortGroup] -> (new PortGroupMapper(_, this)),
-        classTag[Router] -> (new RouterMapper(_, this, traceChains)(actorsService.system)),
-        classTag[RouterPort] -> (new PortMapper(_, this, traceChains)),
-        classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[Mirror] -> (new MirrorMapper(_, this)),
-        classTag[VxLanPort] -> (new PortMapper(_, this, traceChains))
+        classTag[BgpPort] -> DeviceFactory(
+            classTag[BgpPort], new BgpPortMapper(_, this)),
+        classTag[BgpRouter] -> DeviceFactory(
+            classTag[BgpRouter], new BgpRouterMapper(_, this)),
+        classTag[Bridge] -> DeviceFactory(
+            classTag[Bridge], new BridgeMapper(_, this, traceChains)(
+                actorsService.system)),
+        classTag[BridgePort] -> DeviceFactory(
+            classTag[Port], new PortMapper(_, this, traceChains)),
+        classTag[Chain] -> DeviceFactory(
+            classTag[Chain], new ChainMapper(_, this, traceChains)),
+        classTag[Host] -> DeviceFactory(
+            classTag[Host], new HostMapper(_, this)),
+        classTag[IPAddrGroup] -> DeviceFactory(
+            classTag[IPAddrGroup], new IPAddrGroupMapper(_, this)),
+        classTag[LoadBalancer] -> DeviceFactory(
+            classTag[LoadBalancer], new LoadBalancerMapper(_, this)),
+        classTag[Pool] -> DeviceFactory(
+            classTag[Pool], new PoolMapper(_, this)),
+        classTag[PoolHealthMonitorMap] -> DeviceFactory(
+            classTag[PoolHealthMonitorMap], _ => new PoolHealthMonitorMapper(this)),
+        classTag[Port] -> DeviceFactory(
+            classTag[Port], new PortMapper(_, this, traceChains)),
+        classTag[PortGroup] -> DeviceFactory(
+            classTag[PortGroup], new PortGroupMapper(_, this)),
+        classTag[Router] -> DeviceFactory(
+            classTag[Router], new RouterMapper(_, this, traceChains)(
+                actorsService.system)),
+        classTag[RouterPort] -> DeviceFactory(
+            classTag[Port], new PortMapper(_, this, traceChains)),
+        classTag[TunnelZone] -> DeviceFactory(
+            classTag[TunnelZone], new TunnelZoneMapper(_, this)),
+        classTag[Mirror] -> DeviceFactory(
+            classTag[Mirror], new MirrorMapper(_, this)),
+        classTag[VxLanPort] -> DeviceFactory(
+            classTag[Port], new PortMapper(_, this, traceChains))
     )
 
     register(this)
@@ -221,26 +240,31 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
 
     def stateStore = backend.stateStore
 
-    private def observableOf[D <: Device](key: Key): Observable[D] = {
+    private def observableOf[D <: Device](tag: ClassTag[_], id: UUID)
+    : Observable[D] = {
+        val factory = factories.getOrElse(
+            tag, throw new RuntimeException(s"Unknown factory for $tag"))
+        observableOf(factory, id)
+    }
+
+    private def observableOf[D <: Device](factory: DeviceFactory, id: UUID)
+    : Observable[D] = {
+        val key = Key(factory.tag, id)
         var observable = observables get key
         if (observable eq null) {
-            observable = factories get key.tag match {
-                case Some(factory) => Observable.create(factory(key.id))
-                case None =>
-                    throw new RuntimeException(s"Unknown factory for ${key.tag}")
-            }
+            observable = Observable.create(factory.builder(id))
             observable = observables.putIfAbsent(key, observable) match {
                 case null => observable
                 case obs => obs
             }
         }
         observable.asInstanceOf[Observable[D]]
-                  .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
-            case DeviceMapper.MapperClosedException =>
-                observables.remove(key, observable)
-                observableOf(key)
-            case e: Throwable => Observable.error(e)
-        }))
+            .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                case DeviceMapper.MapperClosedException =>
+                    observables.remove(key, observable)
+                    observableOf(factory, id)
+                case e: Throwable => Observable.error(e)
+            }))
     }
 
     private[topology] def invalidate(tag: FlowTag): Unit = tellBackChannel(tag)
@@ -299,7 +323,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                            (implicit tag: ClassTag[D]): D = {
         val device = devices.get(id).asInstanceOf[D]
         if (device eq null) {
-            throw new NotYetException(observableOf(Key(tag, id)).asFuture,
+            throw new NotYetException(observableOf(tag, id).asFuture,
                                       s"Device $id not yet available")
         }
         device

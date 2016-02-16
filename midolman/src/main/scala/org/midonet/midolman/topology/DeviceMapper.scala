@@ -134,17 +134,13 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
 
     override final def call(child: Subscriber[_ >: D]): Unit =
         vt.vtExecutor.submit(makeRunnable {
-            // If the mapper is in any terminal state, complete the child
-            // immediately and return.
-            if (handleSubscriptionIfTerminal(child)) {
-                return
+            if (!handleSubscriptionIfTerminal(child)) {
+                if (state == MapperState.Unsubscribed) {
+                    state = MapperState.Subscribed
+                    observable.doOnEach(this).subscribe(subscriber)
+                }
+                cache subscribe child
             }
-
-            if (state == MapperState.Unsubscribed) {
-                state = MapperState.Subscribed
-                observable.doOnEach(this).subscribe(subscriber)
-            }
-            cache subscribe child
         })
 
     override final def onCompleted() = {
