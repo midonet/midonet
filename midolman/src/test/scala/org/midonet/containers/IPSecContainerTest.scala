@@ -1886,7 +1886,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             Then("The container should report created and running")
             obs.getOnNextEvents should have size 2
-            obs.getOnNextEvents.get(0) shouldBe ContainerConfiguration(
+            obs.getOnNextEvents.get(0) shouldBe ContainerOp(
                 ContainerFlag.Created, port.getInterfaceName)
             obs.getOnNextEvents.get(1) shouldBe ContainerHealth(Code.RUNNING, "if-eth", "")
 
@@ -1898,7 +1898,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             And("The container should report deleted")
             obs.getOnNextEvents should have size 3
-            obs.getOnNextEvents.get(2) shouldBe ContainerConfiguration(
+            obs.getOnNextEvents.get(2) shouldBe ContainerOp(
                 ContainerFlag.Deleted, port.getInterfaceName)
 
             And("The container should unsubscribe from the observable")
