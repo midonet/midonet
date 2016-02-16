@@ -32,9 +32,10 @@ object ContainerFlag extends Enumeration {
 
 trait ContainerStatus
 
-case class ContainerConfiguration(flag: ContainerFlag, config: String)
+case class ContainerConfiguration(id: String, flag: ContainerFlag, config: String)
     extends ContainerStatus {
     override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+        .add("id", id)
         .add("flag", flag)
         .add("config", config)
         .toString
