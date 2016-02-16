@@ -32,7 +32,7 @@ object ContainerFlag extends Enumeration {
 
 trait ContainerStatus
 
-case class ContainerConfiguration(flag: ContainerFlag, name: String)
+case class ContainerOp(flag: ContainerFlag, name: String)
     extends ContainerStatus {
     override def toString = MoreObjects.toStringHelper(this).omitNullValues()
         .add("flag", flag)
@@ -99,7 +99,7 @@ trait ContainerHandler {
     /**
       * An observable that reports the status of the container. The status of
       * the container can be either: (i) the current container configuration,
-      * when the emitted notifications are instances of [[ContainerConfiguration]]
+      * when the emitted notifications are instances of [[ContainerOp]]
       * with the current container configuration, or (ii) the current container
       * health, when the emitted notifications are instances of
       * [[ContainerHealth]].

@@ -482,8 +482,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             execCmds(Seq((config.makeNsCmd, config.cleanNsCmd),
                          (config.startServiceCmd, config.stopServiceCmd),
                          (config.initConnsCmd, null)))
-            statusSubject onNext ContainerConfiguration(ContainerFlag.Created,
-                                                        config.ipsecService.name)
+            statusSubject onNext ContainerOp(ContainerFlag.Created,
+                                             config.ipsecService.name)
         } catch {
             case NonFatal(e) => throw IPSecException("Command failed", e)
         }
@@ -503,8 +503,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             return
         }
         log info s"Cleaning up IPSec container ${config.ipsecService.name}"
-        statusSubject onNext ContainerConfiguration(ContainerFlag.Deleted,
-                                                    config.ipsecService.name)
+        statusSubject onNext ContainerOp(ContainerFlag.Deleted,
+                                         config.ipsecService.name)
         execCmd(config.stopServiceCmd)
         execCmd(config.cleanNsCmd)
         try {
