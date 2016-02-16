@@ -294,6 +294,47 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
         }
 
+        scenario("Recreate exterior port with a route, port active up") {
+            val obs = createObserver()
+            val router = testRouterCreated(obs)._1
+            When("Creating an exterior port with a route")
+            val port = createExteriorPort(router.getId)
+            val route = createRoute(srcNetwork = "1.0.0.0/24",
+                                    dstNetwork = "2.0.0.0/24",
+                                    nextHop = NextHop.PORT)
+            store.multi(Seq(CreateOp(port), CreateOp(route),
+                            UpdateOp(route.setNextHopPortId(port.getId))))
+            obs.awaitOnNext(2, timeout) shouldBe true
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
+                                UUID.randomUUID.toString).await(timeout)
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(2)
+            device1 shouldBeDeviceOf router
+            device1.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+            route.setNextHopPortId(port.getId).asJava
+            When("Deleting the port")
+            store.delete(classOf[TopologyPort], port.getId)
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(3)
+            device2 shouldBeDeviceOf router
+            device2.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+            When("Recreating the port")
+            store.multi(Seq(CreateOp(port), CreateOp(route),
+                            UpdateOp(route.setNextHopPortId(port.getId))))
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
+                                UUID.randomUUID.toString).await(timeout)
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(6, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(5)
+            device3 shouldBeDeviceOf router
+            device3.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+            route.setNextHopPortId(port.getId).asJava
+        }
+
         scenario("Create interior port with a route, admin state up") {
             val obs = createObserver()
             val router = testRouterCreated(obs)._1
