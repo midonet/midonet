@@ -21,7 +21,6 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import com.codahale.metrics.MetricRegistry
 import com.google.common.annotations.VisibleForTesting
 
 import rx.Observable
@@ -40,8 +39,8 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
 /**
  * A class that implements the [[DeviceMapper]] for a [[SimulationHost]].
  */
-final class HostMapper(hostId: UUID, vt: VirtualTopology, metricRegistry: MetricRegistry)
-    extends DeviceMapper[SimulationHost](hostId, vt, metricRegistry) {
+final class HostMapper(hostId: UUID, vt: VirtualTopology)
+    extends DeviceMapper[SimulationHost](hostId, vt) {
 
     override def logSource = s"org.midonet.devices.host.host-$hostId"
 

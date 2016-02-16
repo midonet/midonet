@@ -19,8 +19,6 @@ import java.util.UUID
 
 import scala.reflect.ClassTag
 
-import com.codahale.metrics.MetricRegistry
-
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 
 /**
@@ -29,10 +27,9 @@ import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
  * underlying observable. Virtual devices extend this class.
  */
 abstract class VirtualDeviceMapper[D <: VirtualDevice](id: UUID,
-                                                       vt: VirtualTopology,
-                                                       val metricRegistry: MetricRegistry = null)
+                                                       vt: VirtualTopology)
                                                       (implicit tag: ClassTag[D])
-        extends DeviceMapper[D](id, vt, metricRegistry)(tag) {
+        extends DeviceMapper[D](id, vt)(tag) {
 
     override final protected def onDeviceChanged(device: D) = {
         vt.invalidate(device.deviceTag)

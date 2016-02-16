@@ -22,8 +22,6 @@ import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 
-import com.codahale.metrics.MetricRegistry
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -34,9 +32,8 @@ import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.util.collection._
 import org.midonet.util.functors._
 
-final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology,
-                               metricRegistry: MetricRegistry)
-    extends VirtualDeviceMapper[SimulationLb](loadBalancerId, vt, metricRegistry) {
+final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology)
+    extends VirtualDeviceMapper[SimulationLb](loadBalancerId, vt) {
 
     override def logSource = s"org.midonet.devices.l4lb.l4lb-$loadBalancerId"
 

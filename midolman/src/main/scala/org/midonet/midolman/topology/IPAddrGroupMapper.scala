@@ -20,16 +20,14 @@ import java.util.UUID
 
 import scala.collection.JavaConverters._
 
-import com.codahale.metrics.MetricRegistry
-
 import org.midonet.cluster.models.Topology.{IPAddrGroup => TopologyIPAddrGroup}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{IPAddrGroup => SimIPAddrGroup}
 import org.midonet.util.functors.makeFunc1
 
-class IPAddrGroupMapper(addrGroupId: UUID, vt: VirtualTopology, metricRegistry: MetricRegistry) extends
-    DeviceMapper[SimIPAddrGroup](addrGroupId, vt, metricRegistry) {
+class IPAddrGroupMapper(addrGroupId: UUID, vt: VirtualTopology) extends
+    DeviceMapper[SimIPAddrGroup](addrGroupId, vt) {
 
     private def toSimIPAddrGroup(ipAddGroup: TopologyIPAddrGroup)
     : SimIPAddrGroup = {

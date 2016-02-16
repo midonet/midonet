@@ -20,8 +20,6 @@ import java.util.UUID
 
 import scala.concurrent.duration._
 
-import com.codahale.metrics.MetricRegistry
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -43,13 +41,11 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
     import TopologyBuilder._
 
     private var vt: VirtualTopology = _
-    private var metricRegistry: MetricRegistry = _
     private var store: Storage = _
     private final val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
@@ -59,7 +55,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
             val id = UUID.randomUUID
 
             And("A port group mapper")
-            val mapper = new PortGroupMapper(id, vt, metricRegistry)
+            val mapper = new PortGroupMapper(id, vt)
 
             And("An observer to the port group mapper")
             val obs = new DeviceObserver[SimulationPortGroup](vt)
@@ -80,7 +76,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(portGroup)
 
             And("A port group mapper")
-            val mapper = new PortGroupMapper(portGroup.getId, vt, metricRegistry)
+            val mapper = new PortGroupMapper(portGroup.getId, vt)
 
             And("An observer to the port group mapper")
             val obs = new DeviceObserver[SimulationPortGroup](vt)
@@ -100,7 +96,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(portGroup1)
 
             And("A port group mapper")
-            val mapper = new PortGroupMapper(portGroup1.getId, vt, metricRegistry)
+            val mapper = new PortGroupMapper(portGroup1.getId, vt)
 
             And("An observer to the port group mapper")
             val obs = new DeviceObserver[SimulationPortGroup](vt)
@@ -134,7 +130,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(portGroup)
 
             And("A port group mapper")
-            val mapper = new PortGroupMapper(portGroup.getId, vt, metricRegistry)
+            val mapper = new PortGroupMapper(portGroup.getId, vt)
 
             And("An observer to the port group mapper")
             val obs = new DeviceObserver[SimulationPortGroup](vt)

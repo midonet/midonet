@@ -24,8 +24,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
-import com.codahale.metrics.MetricRegistry
-
 import org.junit.runner.RunWith
 
 import rx.{Observable, Observer}
@@ -47,7 +45,6 @@ import org.scalatest.junit.JUnitRunner
 class TraceRequestMapperTest extends MidolmanSpec {
 
     private var vt: VirtualTopology = _
-    private var metricRegistry: MetricRegistry = _
     private var store: Storage = _
     private var chainMap: mutable.Map[UUID,Subject[SimChain,SimChain]] = _
 
@@ -79,7 +76,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
             val traceChainId = subscriber.getOnNextEvents.get(0).get
 
             val chainObj = Observable.create(
-                new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
+                new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
 
             chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
@@ -94,7 +91,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             intercept[NotFoundException] {
                 Observable.create(
-                    new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
+                    new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
             }
         }
 
@@ -118,17 +115,17 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             val traceChainId = subscriber.getOnNextEvents.get(0).get
             var chainObj = Observable.create(
-                new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
+                new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
             chainObj.rules.size shouldBe 1
             vt.store.update(tr.toBuilder.setEnabled(false).build())
             intercept[NotFoundException] {
                 Observable.create(
-                    new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
+                    new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
             }
 
             vt.store.update(tr.toBuilder.setEnabled(true).build())
             chainObj = Observable.create(
-                new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
+                new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
             chainObj.rules.size shouldBe 1
         }
     }
@@ -149,7 +146,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build()
             vt.store.create(tr)
             val portSubscriber = new TestSubscriber[SimPort]
-            val mapper = new PortMapper(portId, vt, metricRegistry, chainMap)
+            val mapper = new PortMapper(portId, vt, chainMap)
             mapper.call(portSubscriber)
 
             portSubscriber.getOnNextEvents.size shouldBe 1
@@ -211,7 +208,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build()
             vt.store.create(tr)
             val bridgeSubscriber = new TestSubscriber[SimBridge]
-            val mapper = new BridgeMapper(bridgeId, vt, metricRegistry, chainMap)
+            val mapper = new BridgeMapper(bridgeId, vt, chainMap)
             mapper.call(bridgeSubscriber)
 
             bridgeSubscriber.getOnNextEvents.size shouldBe 1
@@ -273,7 +270,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build()
             vt.store.create(tr)
             val routerSubscriber = new TestSubscriber[SimRouter]
-            val mapper = new RouterMapper(routerId, vt, metricRegistry, chainMap)
+            val mapper = new RouterMapper(routerId, vt, chainMap)
             mapper.call(routerSubscriber)
 
             routerSubscriber.getOnNextEvents.size shouldBe 1

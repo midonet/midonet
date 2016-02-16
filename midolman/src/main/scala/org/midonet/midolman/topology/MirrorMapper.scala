@@ -20,8 +20,6 @@ import java.util.UUID
 import java.util.{ArrayList => JArrayList}
 import scala.collection.JavaConverters._
 
-import com.codahale.metrics.MetricRegistry
-
 import rx.Observable
 
 import org.midonet.cluster.data.ZoomConvert
@@ -32,8 +30,8 @@ import org.midonet.midolman.rules.{Condition => SimCond}
 import org.midonet.midolman.simulation.{IPAddrGroup => SimIPAddrGroup, Mirror => SimMirror}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
-final class MirrorMapper(id: UUID, vt: VirtualTopology, metricRegistry: MetricRegistry)
-        extends VirtualDeviceMapper[SimMirror](id, vt, metricRegistry) with MidolmanLogging {
+final class MirrorMapper(id: UUID, vt: VirtualTopology)
+    extends VirtualDeviceMapper[SimMirror](id, vt) with MidolmanLogging {
 
     override def logSource = s"org.midonet.devices.mirror.mirror-$id"
 

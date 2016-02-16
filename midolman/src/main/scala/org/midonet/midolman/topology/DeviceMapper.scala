@@ -16,17 +16,16 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import javax.annotation.Nullable
 
-import com.typesafe.scalalogging.Logger
-import org.midonet.cluster.data.storage.NotFoundException
+import javax.annotation.Nullable
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-import com.codahale.metrics.MetricRegistry
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.Message
+import com.typesafe.scalalogging.Logger
+
 import rx.Observable.OnSubscribe
 import rx.observers.Subscribers
 import rx.subjects.{BehaviorSubject, PublishSubject}
@@ -34,6 +33,7 @@ import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.ZoomObject
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.monitoring.metrics.{BlackHoleDeviceMapperMetrics, JmxDeviceMapperMetrics}
 import org.midonet.midolman.topology.DeviceMapper._
@@ -134,8 +134,7 @@ object DeviceMapper {
  *  - the [[DeviceMapper]] observer can execute the custom actions before
  *    subscribers are notified.
  */
-abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology,
-                                         val metricsRegistry: MetricRegistry = null)
+abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
                                         (implicit tag: ClassTag[D])
     extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 
@@ -151,7 +150,7 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology,
     /* Functions and variables to expose metrics using JMX in class
        DeviceMapperMetrics. */
     @VisibleForTesting
-    private[topology] val metrics = metricsRegistry match {
+    private[topology] val metrics = vt.metricRegistry match {
         case null => BlackHoleDeviceMapperMetrics
         case registry => new JmxDeviceMapperMetrics(this, registry)
     }
