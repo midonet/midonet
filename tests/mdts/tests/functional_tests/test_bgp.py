@@ -379,6 +379,7 @@ def test_icmp_failback():
 
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@nottest
 def test_snat():
     """
     Title: Emulate Cassandra failure
