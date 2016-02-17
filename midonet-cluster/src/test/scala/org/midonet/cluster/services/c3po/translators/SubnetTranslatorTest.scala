@@ -21,9 +21,9 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.Dhcp
+import org.midonet.cluster.models.Topology.{Route, Dhcp}
 import org.midonet.cluster.services.c3po.C3POStorageManager._
-import org.midonet.cluster.util.IPSubnetUtil.richProtoIPSubnet
+import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 
@@ -71,6 +71,10 @@ class SubnetTranslatorTest extends TranslatorTestBase {
     private val gatewayIp = IPAddressUtil.toProto("10.0.0.1")
     private val gatewaySubnet = IPSubnetUtil.fromAddr(gatewayIp, 24)
     private val gatewaySubnetCidr = gatewaySubnet.asJava.toString
+
+    private val gatewayRouteId1 = randomUuidProto
+    private val gatewayRouteId2 = randomUuidProto
+
     private val nSubnetWithGatewayIp = nSubnetFromTxt(s"""
         $nSubnet
         cidr { $gatewaySubnet }
@@ -157,10 +161,53 @@ class SubnetTranslatorTest extends TranslatorTestBase {
         midoOps shouldBe empty
     }
 
-    "DELETE subnet" should "delete the DHCP" in {
+    "DELETE subnet on uplink network" should "do nothing" in {
+        bind(networkId, nUplinkNetwork)
+        val midoOps = translator.translate(
+            Delete(classOf[NeutronSubnet], nSubnetWithRoutes.getId))
+        midoOps shouldBe empty
+    }
+
+    "DELETE subnet with no default route" should "delete the DHCP" in {
+        bind(networkId, nTenantNetwork)
+        val subnet = nSubnetWithGatewayIp.toBuilder.clearGatewayIp().build()
+        val dhcp =
+            mDhcpWithDefaultGateway.toBuilder.clearDefaultGateway().build()
+        bind(subnetId, subnet)
+        bind(subnetId, dhcp)
+
         val midoOps = translator.translate(
             Delete(classOf[NeutronSubnet], subnetId))
-        midoOps should contain only Delete(classOf[Dhcp], subnetId)
+        midoOps should have size 1
+        midoOps.head shouldBe Delete(classOf[Dhcp], subnetId)
+    }
+
+    private val mDhcpWithGWRoutes = mDhcpFromTxt(s"""
+        $mDhcpWithDefaultGateway
+        default_gateway { $gatewayIp }
+        server_address { $gatewayIp }
+        subnet_address { $gatewaySubnet }
+        gateway_route_ids { $gatewayRouteId1 }
+        """)
+
+    "DELETE subnet with default route" should "update routes and delete " +
+    "the DHCP" in {
+        bind(networkId, nTenantNetwork)
+        bind(subnetId, nSubnetWithGatewayIp)
+        bind(subnetId, mDhcpWithGWRoutes)
+
+        val id_list = mDhcpWithGWRoutes.getGatewayRouteIdsList
+        val rt1 = Route.newBuilder()
+          .setId(id_list.get(0)).build()
+
+        bind(id_list.get(0), rt1)
+
+        val midoOps = translator.translate(
+            Delete(classOf[NeutronSubnet], subnetId))
+
+        midoOps should have size 2
+        midoOps.head shouldBe Delete(classOf[Route], rt1.getId)
+        midoOps(1) shouldBe Delete(classOf[Dhcp], subnetId)
     }
 
     "UPDATE subnet with dhcp port" should "update Opt121 routes" in {
