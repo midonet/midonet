@@ -23,6 +23,7 @@ import java.util.Collections
 
 import scala.util.control.NonFatal
 
+import com.google.common.base.MoreObjects
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.config.ContainerConfig
@@ -30,7 +31,13 @@ import org.midonet.midolman.containers.ContainerLogger._
 
 object ContainerLogger {
 
-    case class ContainerKey(name: String, `type`: String)
+    case class ContainerKey(name: String, `type`: String) {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("name", name)
+            .add("type", `type`)
+            .toString
+
+    }
 
 }
 
