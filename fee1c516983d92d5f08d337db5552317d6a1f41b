@@ -16,6 +16,24 @@
       "revId": "fee1c516983d92d5f08d337db5552317d6a1f41b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da86d52c_f5ac038f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-17T10:46:35Z",
+      "side": 1,
+      "message": "Correct, I need to fix this. It shouldn\u0027t contain pipe or new line.",
+      "parentUuid": "da86d52c_b5cd2b89",
+      "revId": "fee1c516983d92d5f08d337db5552317d6a1f41b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
