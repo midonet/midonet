@@ -133,18 +133,22 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
 
     private def encodeIcmpData(pktContext: PacketContext): Unit = {
         var i = 0
-        val data = pktContext.origMatch.getIcmpData()
-        val iter = FLOW_SUMMARY.flowMatchIcmpDataCount(data.length)
-        while (i < data.length) {
-            iter.next().data(data(i))
-            i += 1
+        val data = pktContext.origMatch.getIcmpData
+        if (data != null) {
+            val iter = FLOW_SUMMARY.flowMatchIcmpDataCount(data.length)
+            while (i < data.length) {
+                iter.next().data(data(i))
+                i += 1
+            }
+        } else {
+            FLOW_SUMMARY.flowMatchIcmpDataCount(0)
         }
     }
 
     private def encodeMAC(address: MAC, setter: (Int, Short) => Unit): Unit = {
         if (address != null) {
             var i = 0
-            var bytes = address.getAddress
+            val bytes = address.getAddress
             while (i < bytes.length) {
                 setter(i, bytes(i))
                 i += 1
