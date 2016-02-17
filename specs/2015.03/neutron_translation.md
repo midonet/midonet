@@ -799,12 +799,11 @@ http://lists.openstack.org/pipermail/openstack-dev/2016-January/085014.html
 
 ### CREATE
 
-Create two MidoNet chains for the firewall with deterministic IDs generated
-from the firewall ID.  One chain will be used for the inbound (pre-routing) and
-the other for the outbound (post-routing) chains of the routers that the
-firewall is associated with.
+Create a MidoNet chain for the firewall with the deterministic ID generated
+from the firewall ID.  The chain will be used for the forward chains of
+the routers that the firewall is associated with.
 
-On the pre-routing chain, add the following rules in the order specified:
+On the forward chain, add the following rules in the order specified:
 
  * Drop rule matching on everything if admin_state_up is false.  An
    alternative approach would have been to not add any rule when admin_state_up
@@ -829,19 +828,12 @@ On the pre-routing chain, add the following rules in the order specified:
 
  * Rule dropping all traffic.
 
-On the post-routing chain, add the following rules in the order specified:
-
-   * Drop rule matching on everything if admin_state_up is false.
-   * Rule matching on the forward flow to start connection tracking.
-
 'add-router-ids' field contains a list of router IDs that the firewall is
 currently associated with.
 
-For each router associated, create jump rules to the firewall chains.  On the
-pre-routing chain of the router, insert the jump rule at index 0 so that the
-firewall rules are evaluated before the NAT rules that may also exist.  On the
-post-routing chain of the router, insert the jump rule at the end for no other
-reason than to be symmetric.
+For each router associated, create a jump rule to the firewall chains.
+Currently the jump rule is the only rule which the translator can put into
+router forward chains.
 
 
 ### UPDATE
