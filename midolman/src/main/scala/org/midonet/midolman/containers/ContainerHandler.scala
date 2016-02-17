@@ -22,11 +22,29 @@ import com.google.common.base.MoreObjects
 
 import rx.Observable
 
-import org.midonet.cluster.models.State.ContainerStatus
+import org.midonet.cluster.models.State.ContainerStatus.Code
+import org.midonet.midolman.containers.ContainerFlag.ContainerFlag
 
-case class ContainerHealth(code: ContainerStatus.Code, message: String) {
+object ContainerFlag extends Enumeration {
+    type ContainerFlag = Value
+    val Created, Deleted = Value
+}
+
+trait ContainerStatus
+
+case class ContainerConfiguration(flag: ContainerFlag, config: String)
+    extends ContainerStatus {
+    override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+        .add("flag", flag)
+        .add("config", config)
+        .toString
+}
+
+case class ContainerHealth(code: Code, namespace: String, message: String)
+    extends ContainerStatus {
     override def toString = MoreObjects.toStringHelper(this).omitNullValues()
         .add("code", code)
+        .add("namespace", namespace)
         .toString
 }
 
@@ -45,15 +63,10 @@ trait ContainerHandler {
       * Creates a container for the specified exterior port and service
       * container. The port contains the interface name that the container
       * handler should create, and the method returns a future that completes
-      * with the namespace name when the container has been created.
-      *
-      * Successful futures may contain:
-      * - Some(name): when a namespace `name` was created on the host.
-      * - None: when container was successfully handled but the namespace
-      *   was not created for a legit. reason (e.g.: admin state DOWN.)
-      *
-      * Failed futures will contain any exception that prevented the handler
-      * to spawn the service container.
+      * when the container has been created. Successful future will contain the
+      * name of the namespace where the container was created. Failed futures
+      * will contain any exception that prevented the handler to spawn the
+      * service container.
       */
     def create(port: ContainerPort): Future[Option[String]]
 
@@ -62,7 +75,11 @@ trait ContainerHandler {
       * has changed. This method is called only when the reference to the
       * configuration changes and not when the data of the existing configuration
       * objects change. It is the responsibility of the classes implementing
-      * this interface to monitor their configuration.
+      * this interface to monitor their configuration. The method returns a
+      * future that completes when the container has been updated. Successful
+      * future will contain the name of the namespace where the container was
+      * created. Failed futures will contain any exception that prevented the
+      * handler to update the service container.
       */
     def updated(port: ContainerPort): Future[Option[String]]
 
@@ -74,10 +91,19 @@ trait ContainerHandler {
     def delete(): Future[Unit]
 
     /**
-      * An observable that reports the health status of the container, which
-      * includes both the container namespace/interface as well as the
-      * service application executing within the container.
+      * Cleans-up the container for the specified configuration. The method
+      * returns a future that completes when the container has been cleaned.
       */
-    def health: Observable[ContainerHealth]
+    def cleanup(config: String): Future[Unit]
+
+    /**
+      * An observable that reports the status of the container. The status of
+      * the container can be either: (i) the current container configuration,
+      * when the emitted notifications are instances of [[ContainerConfiguration]]
+      * with the current container configuration, or (ii) the current container
+      * health, when the emitted notifications are instances of
+      * [[ContainerHealth]].
+      */
+    def status: Observable[ContainerStatus]
 
 }

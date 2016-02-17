@@ -67,6 +67,9 @@ abstract class ContainerProvider[T](reflections: Reflections, log: Logger)
             }
         }, _ ++ _)
 
+    /**
+      * Gets a new container instance from the current container provider.
+      */
     @throws[Exception]
     def getInstance(name: String): T = {
         currentContainers get name match {

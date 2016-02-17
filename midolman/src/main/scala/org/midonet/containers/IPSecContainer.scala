@@ -47,7 +47,7 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.IPSecContainer._
-import org.midonet.midolman.containers.{ContainerHandler, ContainerHealth, ContainerPort}
+import org.midonet.midolman.containers.{ContainerStatus, ContainerHandler, ContainerHealth, ContainerPort}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
 import org.midonet.util.concurrent._
@@ -262,7 +262,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
 
     override def logSource = "org.midonet.containers.ipsec"
 
-    private val healthSubject = PublishSubject.create[ContainerHealth]
+    private val statusSubject = PublishSubject.create[ContainerStatus]
     private implicit val ec = ExecutionContext.fromExecutor(containerExecutor)
     private val scheduler = Schedulers.from(containerExecutor)
     private val context = Context(vt.store, vt.stateStore, containerExecutor,
@@ -300,12 +300,13 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             try {
                 val status = checkStatus()
                 log trace s"IPSec container health: $status"
-                healthSubject onNext status
+                statusSubject onNext status
             } catch {
                 case NonFatal(e) =>
                     log.warn("IPSec status check failed", e)
                     val message = if (e.getMessage eq null) "" else e.getMessage
-                    healthSubject onNext ContainerHealth(Code.ERROR, message)
+                    statusSubject onNext ContainerHealth(
+                        Code.ERROR, config.ipsecService.name, message)
             }
         }
 
@@ -340,13 +341,17 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         val createPromise = Promise[Option[String]]
         unsubscribeVpnService()
         vpnServiceSubscription = vpnServiceObservable(port)
-            .subscribe(makeAction1((e: VpnServiceUpdateEvent) =>
-                                       onVpnServiceUpdate(e, createPromise)),
-                       makeAction1(createPromise.tryFailure(_)),
-                       makeAction0 {
-                           createPromise.trySuccess(None)
-
-                       })
+            .subscribe(new Observer[VpnServiceUpdateEvent] {
+                override def onNext(event: VpnServiceUpdateEvent): Unit = {
+                    onVpnServiceUpdate(event, createPromise)
+                }
+                override def onError(e: Throwable): Unit = {
+                    createPromise tryFailure e
+                }
+                override def onCompleted(): Unit = {
+                    createPromise trySuccess None
+                }
+            })
         createPromise.future
     }
 
@@ -366,8 +371,9 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                 log info s"Deleting IPSec container ${config.ipsecService.name}"
                 cleanup(config)
                 config = null
+            } else {
+                log info s"IPSec container not started: ignoring"
             }
-            else log info s"IPSec container not started: ignoring"
 
             unsubscribeVpnService()
             vpnServiceSubscription = null
@@ -381,10 +387,23 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     }
 
     /**
-      * @see [[ContainerHandler.health]]
+      * @see [[ContainerHandler.cleanup]]
       */
-    override def health: Observable[ContainerHealth] = {
-        healthSubject.asObservable()
+    override def cleanup(config: String): Future[Unit] = {
+        try {
+            Future.successful(())
+        } catch {
+            case NonFatal(e) =>
+                log.warn("Failed to cleanup IPSec container", e)
+                Future.failed(e)
+        }
+    }
+
+    /**
+      * @see [[ContainerHandler.status]]
+      */
+    override def status: Observable[ContainerStatus] = {
+        statusSubject.asObservable()
     }
 
     @inline
@@ -395,7 +414,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     }
 
     /*
-     * Sets-up the IPSec service container, and throws an exception if the
+     * Sets up the IPSec service container, and throws an exception if the
      * namespace was not set up successfully.
      */
     @throws[Exception]
@@ -615,7 +634,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
      * external ip address changed, etc.).
      */
     private def onVpnServiceUpdate(event: VpnServiceUpdateEvent,
-                                   p: Promise[Option[String]]): Unit = {
+                                   promise: Promise[Option[String]]): Unit = {
         try {
             val VpnServiceUpdateEvent(routerPorts, conns, externalIp, port) = event
 
@@ -623,7 +642,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
 
             if (externalIp eq null) {
                 // No external IP means no VPN service whatsoever.
-                p.trySuccess(None)
+                promise.trySuccess(None)
                 cleanup(config)
                 config = null
                 return
@@ -633,7 +652,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                 .find(_.getPortAddress.asIPv4Address == externalIp)
                 .map(_.getPortMac)
                 .getOrElse {
-                    p.tryFailure(IPSecException(
+                    promise.tryFailure(IPSecException(
                         s"VPN service on router ${port.getRouterId.asJava} " +
                         s"does not have a port that matches the VPN external " +
                         s"address $externalIp", null))
@@ -662,14 +681,14 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                 log.info("All IPSec connections have administrative state down")
                 // So we don't clean up on a non-setup container
                 config = null
-                p.trySuccess(None)
+                promise.trySuccess(None)
             } else {
                 // Create the new config and setup the new connections
                 config = IPSecConfig(VpnHelperScriptPath, serviceDef, conns)
                 setup(config)
-                p.trySuccess(Some(config.ipsecService.name))
+                promise.trySuccess(Some(config.ipsecService.name))
             }
-            healthSubject onNext checkStatus()
+            statusSubject onNext checkStatus()
         } catch {
             case NonFatal(e) =>
                 try { cleanup(config) }
@@ -677,7 +696,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
                     case NonFatal(t) =>
                         log.warn("VPN service container cleanup failed", t)
                 }
-                p.tryFailure(e)
+                promise.tryFailure(e)
         }
     }
 
@@ -687,13 +706,13 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
       */
     private def checkStatus(): ContainerHealth = {
         if (null == config) {
-            return ContainerHealth(Code.STOPPED, "")
+            return ContainerHealth(Code.STOPPED, "", "")
         }
         val (code, out, err) = execCmdWithOutput(config.statusCmd)
         if (code == 0) {
-            ContainerHealth(Code.RUNNING, out)
+            ContainerHealth(Code.RUNNING, config.ipsecService.name, out)
         } else {
-            ContainerHealth(Code.ERROR, err)
+            ContainerHealth(Code.ERROR, config.ipsecService.name, err)
         }
     }
 }
