@@ -3,6 +3,9 @@ pushd tests/mdts/tests/functional_tests
 ./run_tests.sh -r $WORKSPACE/tests -l logs \
     -t test_load_balancer.py:test_multi_member_loadbalancing \
     -t test_vpnaas.py:test_ping_between_three_sites \
+    -t test_vpnaas.py:test_non_vpn_subnet \
+    -t test_vpnaas.py:test_security_groups \
+    -t test_vpnaas.py:test_ipsec_site_connection_deletion \
     -t test_bgp.py:test_multisession_icmp_with_redundancy \
     -t test_bgp.py:test_multisession_icmp_failback \
     -t test_bgp.py:test_snat \
