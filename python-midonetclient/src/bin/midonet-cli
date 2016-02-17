@@ -1739,12 +1739,16 @@ class Router(ObjectType):
                                  unsetter = 'inbound_mirrors',
                                  optional = True))
         self.put_attr(ListAttr(name = 'out-mirrors',
-                                 element_type = MirrorRef(),
-                                 getter = 'get_outbound_mirrors',
-                                 setter = 'outbound_mirrors',
-                                 unsetter = 'outbound_mirrors',
-                                 optional = True))
-
+                               element_type = MirrorRef(),
+                               getter = 'get_outbound_mirrors',
+                               setter = 'outbound_mirrors',
+                               unsetter = 'outbound_mirrors',
+                               optional = True))
+        self.put_attr(SingleAttr(name = 'forward-chain',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_forward_chain_id',
+                                 setter = 'forward_chain_id',
+                                 unsetter = 'forward_chain_id'))
     def type_name(self):
         return "router"
 

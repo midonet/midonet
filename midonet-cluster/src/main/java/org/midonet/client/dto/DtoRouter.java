@@ -45,6 +45,8 @@ public class DtoRouter {
     private URI bgpNetworks;
     private URI bgpPeers;
     private Integer asNumber;
+    private UUID forwardChainId;
+    private URI forwardChain;
 
     public URI getBgpPeers() {
         return bgpPeers;
@@ -166,6 +168,14 @@ public class DtoRouter {
         this.loadBalancer = loadBalancer;
     }
 
+    public URI getForwardChain() {
+        return forwardChain;
+    }
+
+    public void setForwardChain(URI forwardChain) {
+        this.forwardChain = forwardChain;
+    }
+
     public URI getUri() {
         return uri;
     }
@@ -196,6 +206,14 @@ public class DtoRouter {
 
     public void setPeerPorts(URI peerPorts) {
         this.peerPorts = peerPorts;
+    }
+
+    public UUID getForwardChainId() {
+        return forwardChainId;
+    }
+
+    public void setForwardChainId(UUID forwardChainId) {
+        this.forwardChainId = forwardChainId;
     }
 
     @Override
@@ -261,6 +279,9 @@ public class DtoRouter {
         if (!Objects.equal(this.inboundMirrorIds, otherRouter.getInboundMirrorIds()))
             return false;
         if (!Objects.equal(this.outboundMirrorIds, otherRouter.getOutboundMirrorIds()))
+            return false;
+
+        if (!Objects.equal(forwardChainId, otherRouter.getForwardChainId()))
             return false;
 
         if (adminStateUp != otherRouter.adminStateUp) {
