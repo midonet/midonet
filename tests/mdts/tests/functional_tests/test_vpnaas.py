@@ -56,6 +56,8 @@ class VT_vpn_three_sites(NeutronTopologyManager):
         right_subnet_cidr = '20.0.0.0/24'
         up_gw_ip = '30.0.0.1'
         up_subnet_cidr = '30.0.0.0/24'
+        down_gw_ip = '40.0.0.1'
+        down_subnet_cidr = '40.0.0.0/24'
 
         # Create public network
         public_network = self.create_resource(
@@ -78,7 +80,6 @@ class VT_vpn_three_sites(NeutronTopologyManager):
                       right_subnet_cidr)
         self.add_site('up', public_network, up_tenant, up_gw_ip,
                       up_subnet_cidr)
-
 
     def add_site(self, tag, public_net, tenant, gw_ip, subnet_cidr):
         existing_tenant = \
@@ -645,4 +646,115 @@ def test_ipsec_container_failover():
     # 30s timeout without zk connection
     midolman3.eject_packet_loss('eth0')
     midolman3.wait_for_status('up')
+
+@bindings(binding_multihost_intra_tenant,
+          binding_multihost_inter_tenant,
+          binding_manager=BM)
+def test_non_vpn_subnet():
+    left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
+    right_router, right_peer_address, right_subnet = VTM.get_site_data('right')
+
+    left_tenant, right_tenant, _ = BM.get_binding_data()['config']['tenants']
+
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
+                                   left_subnet)
+    right_vpn = VTM.add_vpn_service('right','right_vpn', right_tenant, right_router,
+                                    right_subnet)
+
+    # Kilo version, supported also in liberty and mitaka
+    # Create two connections
+    VTM.add_ipsec_site_connection(
+            'left', 'left_to_right', left_tenant, right_peer_address,
+            vpn=left_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'right', 'right_to_left', right_tenant, left_peer_address,
+            vpn=right_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
+
+    # Add additional subnet on network left and attach to router left
+    new_network = VTM.create_resource(VTM.api.create_network(
+            {'network': {'name': 'net_private_left_2',
+                         'tenant_id': left_tenant}}))
+    new_subnet = VTM.create_resource(VTM.api.create_subnet(
+            {'subnet': {'name': 'subnet_private_left_2',
+                        'network_id': new_network['network']['id'],
+                        'ip_version': 4,
+                        'cidr': '10.1.0.0/24',
+                        'gateway_ip': '10.1.0.1',
+                        'tenant_id': left_tenant}}))
+
+    # Add router interface for the new subnet
+    VTM.api.add_interface_router(
+            left_router['router']['id'], {'subnet_id': new_subnet['subnet']['id']})
+    VTM.addCleanup(VTM.api.remove_interface_router,
+                   left_router['router']['id'],
+                   {'subnet_id': new_subnet['subnet']['id']})
+
+    # Create port
+    new_port = VTM.create_resource(
+            VTM.api.create_port({'port': {'name': 'port_left_2',
+                                          'network_id': new_network['network']['id'],
+                                          'admin_state_up': True,
+                                          'tenant_id': left_tenant}}))
+    # Create vm (on the same host as the sibling vm) and bind
+    host = BM.get_interface_on_vport('port_left').compute_host
+    new_vm = host.create_vmguest(
+            **{'ipv4_gw': '10.1.0.1',
+               'ipv4_addr': [new_port['port']['fixed_ips'][0]['ip_address']+'/24'],
+               'hw_addr': new_port['port']['mac_address']})
+    BM.addCleanup(host.destroy_vmguest, new_vm)
+    host.bind_port(new_vm, new_port['port']['id'])
+    BM.addCleanup(host.unbind_port, new_vm)
+    await_port_active(new_port['port']['id'])
+
+    # Ping from left to right and viceversa
+    ping('port_left', 'port_right')
+    ping('port_right', 'port_left')
+
+    # Check that new connections do not work
+    ping(new_vm, 'port_right', expected_failure=True)
+    ping('port_right', new_vm, expected_failure=True)
+
+@bindings(binding_multihost_inter_tenant,
+          binding_manager=BM)
+def test_security_groups():
+    left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
+    right_router, right_peer_address, right_subnet = VTM.get_site_data('right')
+
+    left_tenant, right_tenant, _ = BM.get_binding_data()['config']['tenants']
+
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
+                                   left_subnet)
+    right_vpn = VTM.add_vpn_service('right','right_vpn', right_tenant, right_router,
+                                    right_subnet)
+
+    # Kilo version, supported also in liberty and mitaka
+    # Create two connections
+    VTM.add_ipsec_site_connection(
+            'left', 'left_to_right', left_tenant, right_peer_address,
+            vpn=left_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'right', 'right_to_left', right_tenant, left_peer_address,
+            vpn=right_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
+
+    # Ping from left to right and viceversa
+    ping('port_left', 'port_right')
+    ping('port_right', 'port_left')
+
+    # Remove the security group from the port
+    port = VTM.get_resource('port_left')
+    security_groups = port['port']['security_groups']
+    VTM.api.update_port(port['port']['id'],
+                        body={'port': {'security_groups': []}})
+
+    # Check that new connections do not work
+    ping('port_left', 'port_right', expected_failure=True)
+    ping('port_right', 'port_left', expected_failure=True)
+
+    # Add the security group back to the port
+    VTM.api.update_port(port['port']['id'],
+                        body={'port': {'security_groups': security_groups}})
+
+    # Ping from left to right and viceversa
+    ping('port_left', 'port_right')
+    ping('port_right', 'port_left')
 
