@@ -22,6 +22,30 @@
       "revId": "e768450e813ae3607e5d657702d4ba494c1298f7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da86d52c_9587470f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-17T10:38:08Z",
+      "side": 1,
+      "message": "So I added this to give the possibility to perform a manual cleanup, by modifying the containers log by hand with the actual configuration, in case the log gets deleted, corrupted or is not available. In that case, there are the supported separators (so the container can parse the configuration loaded from the log).\n\nBut yeah, I agree that maybe that use case is not really needed. Shall I remove them, and use just space?",
+      "parentUuid": "da86d52c_f5f083cb",
+      "range": {
+        "startLine": 243,
+        "startChar": 4,
+        "endLine": 243,
+        "endChar": 67
+      },
+      "revId": "e768450e813ae3607e5d657702d4ba494c1298f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
