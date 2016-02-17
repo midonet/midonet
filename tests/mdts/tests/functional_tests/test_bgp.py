@@ -358,6 +358,7 @@ def test_icmp_remove_uplink_2():
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
+@nottest
 def test_icmp_failback():
     """
     Title: BGP failover/failback
