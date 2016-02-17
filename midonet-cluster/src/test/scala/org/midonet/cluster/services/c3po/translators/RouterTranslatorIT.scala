@@ -303,9 +303,18 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                    "10.0.1.50", snatEnabled = true,
                                    extNwArpTable))
 
+        // Delete the subnet altogether.
+        val extNwSubnetDeleteJson =
+            subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24")
+        insertDeleteTask(23, SubnetType, extNwSubnetId)
+        eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
+                                   "10.0.1.4", "ab:cd:ef:00:00:04", null,
+                                   snatEnabled = true, extNwArpTable,
+                                   gwRouteCheck = false))
+
         // Delete gateway and router.
-        insertDeleteTask(23, PortType, extNwGwPortId)
-        insertDeleteTask(24, RouterType, tntRtrId)
+        insertDeleteTask(24, PortType, extNwGwPortId)
+        insertDeleteTask(25, RouterType, tntRtrId)
         eventually {
             val extNwF = storage.get(classOf[Network], extNwId)
             List(storage.exists(classOf[Router], tntRtrId),
@@ -420,7 +429,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                 extSubnetCidr: String, gatewayIp: String,
                                 trPortMac: String, nextHopIp: String,
                                 snatEnabled: Boolean,
-                                extNwArpTable: StateTable[IPv4Addr, MAC])
+                                extNwArpTable: StateTable[IPv4Addr, MAC],
+                                gwRouteCheck: Boolean=true)
     : Unit = {
         // Tenant router should have gateway port and no routes.
         val trGwPortId = tenantGwPortId(nwGwPortId)
@@ -442,36 +452,38 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val trLocalRtId = RouteManager.localRouteId(trGwPortId)
         val trGwRtId = RouteManager.gatewayRouteId(trGwPortId)
 
-        val List(trLocalRt, trGwRt) =
-            List(trLocalRtId, trGwRtId)
-                .map(storage.get(classOf[Route], _)).map(_.await())
+        if (gwRouteCheck) {
+            val List(trLocalRt, trGwRt) =
+                List(trLocalRtId, trGwRtId)
+                  .map(storage.get(classOf[Route], _)).map(_.await())
 
-        val List(nwGwPort, trGwPort) = portFs.await()
+            val List(nwGwPort, trGwPort) = portFs.await()
 
-        // Check router port has correct router and route IDs.  This also
-        // validates that there is no network route created for the gw port.
-        trGwPort.getRouterId shouldBe UUIDUtil.toProto(rtrId)
-        trGwPort.getRouteIdsList.asScala should
-            contain only (trGwRtId, trRifRtId, trLocalRtId)
+            // Check router port has correct router and route IDs.  This also
+            // validates that there is no network route created for the gw port.
+            trGwPort.getRouterId shouldBe UUIDUtil.toProto(rtrId)
+            trGwPort.getRouteIdsList.asScala should
+              contain only(trGwRtId, trRifRtId, trLocalRtId)
 
-        // Network port has no routes.
-        nwGwPort.getRouteIdsCount shouldBe 0
+            // Network port has no routes.
+            nwGwPort.getRouteIdsCount shouldBe 0
 
-        // Ports should be linked.
-        nwGwPort.getPeerId shouldBe trGwPortId
-        trGwPort.getPeerId shouldBe nwGwPort.getId
+            // Ports should be linked.
+            nwGwPort.getPeerId shouldBe trGwPortId
+            trGwPort.getPeerId shouldBe nwGwPort.getId
 
-        trGwPort.getPortAddress.getAddress shouldBe gatewayIp
-        trGwPort.getPortMac shouldBe trPortMac
+            trGwPort.getPortAddress.getAddress shouldBe gatewayIp
+            trGwPort.getPortMac shouldBe trPortMac
 
-        validateLocalRoute(trLocalRt, trGwPort)
+            validateLocalRoute(trLocalRt, trGwPort)
 
-        trGwRt.getNextHop shouldBe NextHop.PORT
-        trGwRt.getNextHopPortId shouldBe trGwPort.getId
-        trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
-        trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-        if (nextHopIp == null) trGwRt.hasNextHopGateway shouldBe false
-        else trGwRt.getNextHopGateway.getAddress shouldBe nextHopIp
+            trGwRt.getNextHop shouldBe NextHop.PORT
+            trGwRt.getNextHopPortId shouldBe trGwPort.getId
+            trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
+            trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+            if (nextHopIp == null) trGwRt.hasNextHopGateway shouldBe false
+            else trGwRt.getNextHopGateway.getAddress shouldBe nextHopIp
+        }
 
         if (snatEnabled)
             validateGatewayNatRules(tr, gatewayIp, trGwPortId)
