@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da86d52c_f5f083cb",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-17T10:21:42Z",
+      "side": 1,
+      "message": "do we really need this given that it\u0027s the same class that serialize and deserialize the string? If not missing anything, the only config separator is \u0027 \u0027. Just wondering what\u0027s the reason behind this.",
+      "range": {
+        "startLine": 243,
+        "startChar": 4,
+        "endLine": 243,
+        "endChar": 67
+      },
+      "revId": "e768450e813ae3607e5d657702d4ba494c1298f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
