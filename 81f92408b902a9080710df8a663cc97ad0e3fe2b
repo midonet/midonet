@@ -34,6 +34,24 @@
       "revId": "81f92408b902a9080710df8a663cc97ad0e3fe2b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da86d52c_952bc72f",
+        "filename": "tests/mdts/tests/functional_tests/test_bgp.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-17T10:15:33Z",
+      "side": 1,
+      "message": "no need.",
+      "parentUuid": "da86d52c_3295d1e4",
+      "revId": "81f92408b902a9080710df8a663cc97ad0e3fe2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
