@@ -303,9 +303,17 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                    "10.0.1.50", snatEnabled = true,
                                    extNwArpTable))
 
+        // Delete the subnet altogether.
+        val extNwSubnetDeleteJson =
+            subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24")
+        insertDeleteTask(23, SubnetType, extNwSubnetId)
+        eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
+                                   "10.0.1.4", "ab:cd:ef:00:00:04", null,
+                                   snatEnabled = true, extNwArpTable))
+
         // Delete gateway and router.
-        insertDeleteTask(23, PortType, extNwGwPortId)
-        insertDeleteTask(24, RouterType, tntRtrId)
+        insertDeleteTask(24, PortType, extNwGwPortId)
+        insertDeleteTask(25, RouterType, tntRtrId)
         eventually {
             val extNwF = storage.get(classOf[Network], extNwId)
             List(storage.exists(classOf[Router], tntRtrId),

@@ -44,6 +44,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
         val dhcp = Dhcp.newBuilder
                        .setId(ns.getId)
                        .setNetworkId(ns.getNetworkId)
+
         if (ns.hasGatewayIp) {
             dhcp.setDefaultGateway(ns.getGatewayIp)
             dhcp.setServerAddress(ns.getGatewayIp)
@@ -62,7 +63,20 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
     }
 
     override protected def translateDelete(id: UUID): OperationList = {
-        List(Delete(classOf[Dhcp], id))
+        // Update any routes using this port as a gateway.
+        val ns = storage.get(classOf[NeutronSubnet], id).await()
+
+        // Uplink networks don't exist in Midonet, nor do their subnets.
+        if (isOnUplinkNetwork(ns)) return List()
+
+        // Update any routes using this port as a gateway.
+        val oldDhcp = storage.get(classOf[Dhcp], id).await()
+
+        updateRouteNextHopIps(
+            if (oldDhcp.hasDefaultGateway) oldDhcp.getDefaultGateway else null,
+            null,
+            oldDhcp.getGatewayRouteIdsList.asScala) :+
+          Delete(classOf[Dhcp], id)
     }
 
     override protected def translateUpdate(ns: NeutronSubnet): OperationList = {
@@ -144,6 +158,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
     private def updateRouteNextHopIps(oldGwIp: IPAddress, newGwIp: IPAddress,
                                       routeIds: Seq[UUID])
     : OperationList = {
+
         if (oldGwIp == newGwIp) return List()
         val routes = storage.getAll(classOf[Route], routeIds).await()
         routes.map { r =>
