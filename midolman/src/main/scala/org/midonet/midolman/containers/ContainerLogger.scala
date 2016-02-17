@@ -28,6 +28,7 @@ import java.time.format.DateTimeFormatter
 import scala.collection.mutable
 import scala.util.control.NonFatal
 
+import com.google.common.base.MoreObjects
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.config.ContainerConfig
@@ -36,7 +37,12 @@ import org.midonet.util.UnixClock
 
 object ContainerLogger {
 
-    case class Key(`type`: String, id: String)
+    case class Key(`type`: String, id: String) {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("type", `type`)
+            .add("id", id)
+            .toString
+    }
 
     val CharsetEncoding = "UTF-8"
     val CharsetEncoder = Charset.forName(CharsetEncoding).newEncoder()

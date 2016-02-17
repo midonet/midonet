@@ -22,6 +22,7 @@ import java.time.{ZoneId, Instant, LocalDateTime}
 import java.util.UUID
 import java.util.UUID._
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.Future
 
@@ -46,7 +47,7 @@ import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.Container
-import org.midonet.midolman.containers.ContainerServiceTest.{TestContainer, TestNamespace}
+import org.midonet.midolman.containers.ContainerServiceTest.{GoodContainer, TestContainer, TestNamespace}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.{UnixClock, MidonetEventually}
@@ -71,7 +72,6 @@ object ContainerServiceTest {
         var created: Int = 0
         var updated: Int = 0
         var deleted: Int = 0
-        var cleaned: Int = 0
 
         override def create(port: ContainerPort): Future[Option[String]] = {
             created += 1
@@ -95,7 +95,6 @@ object ContainerServiceTest {
         }
 
         override def cleanup(config: String): Future[Unit] = {
-            cleaned += 1
             if (throwsOnCleanup) throw new Throwable()
             if (errorOnCleanup) Future.failed(new Throwable())
             else Future.successful(())
@@ -104,8 +103,17 @@ object ContainerServiceTest {
         override def status: Observable[ContainerStatus] = stream
     }
 
+    object GoodContainer {
+        val cleaned = new AtomicInteger()
+    }
+
     @Container(name = "test-good", version = 1)
-    class GoodContainer extends TestContainer()
+    class GoodContainer extends TestContainer() {
+        override def cleanup(config: String): Future[Unit] = {
+            GoodContainer.cleaned.incrementAndGet()
+            super.cleanup(config)
+        }
+    }
 
     @Container(name = "test-error-create", version = 1)
     class ErrorCreateContainer extends TestContainer(errorOnCreate = true)
@@ -116,6 +124,9 @@ object ContainerServiceTest {
     @Container(name = "test-error-delete", version = 1)
     class ErrorDeleteContainer extends TestContainer(errorOnDelete = true)
 
+    @Container(name = "test-error-cleanup", version = 1)
+    class ErrorCleanupContainer extends TestContainer(errorOnCleanup = true)
+
     @Container(name = "test-throws-create", version = 1)
     class ThrowsCreateContainer extends TestContainer(throwsOnCreate = true)
 
@@ -124,6 +135,9 @@ object ContainerServiceTest {
 
     @Container(name = "test-throws-delete", version = 1)
     class ThrowsDeleteContainer extends TestContainer(throwsOnDelete = true)
+
+    @Container(name = "test-throws-cleanup", version = 1)
+    class ThrowsCleanupContainer extends TestContainer(throwsOnCleanup = true)
 
 }
 
@@ -1113,6 +1127,107 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             str2 shouldBe s"$dateTime|test-good|a|CREATED|some-config\n" +
                           s"$dateTime|test-good|a|DELETED|some-config\n"
 
+            service.stopAsync().awaitTerminated()
+        }
+
+        scenario("Service clears the containers log upon startup") {
+            Given("An existing log file")
+            val path = FileSystems.getDefault
+                .getPath(s"$logDir/${config.containers.logFileName}")
+            Files.createFile(path)
+
+            And("A container service")
+            val host = createHost()
+            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
+                                               ioExecutor, reflections)
+            store.create(host)
+
+            When("The service starts")
+            service.startAsync().awaitRunning()
+
+            Then("The containers log is deleted")
+            Files.exists(path) shouldBe false
+
+            service.stopAsync().awaitTerminated()
+        }
+
+        scenario("Service performs cleanup on existing containers") {
+            Given("An existing log file")
+            val path = FileSystems.getDefault
+                .getPath(s"$logDir/${config.containers.logFileName}")
+            val dateTime =
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(UnixClock.MOCK.time),
+                                        ZoneId.systemDefault())
+                             .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            FileUtils.writeStringToFile(
+                path.toFile,
+                s"$dateTime|test-good|a|CREATED|some-config\n" +
+                s"$dateTime|test-good|a|DELETED|some-config\n" +
+                s"$dateTime|test-good|a|CREATED|other-config\n")
+
+            And("A container service")
+            val host = createHost()
+            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
+                                               ioExecutor, reflections)
+            store.create(host)
+
+            When("The service starts")
+            GoodContainer.cleaned.set(0)
+            service.startAsync().awaitRunning()
+
+            Then("The container cleanup method should have been called")
+            GoodContainer.cleaned.get() should be > 0
+
+            service.stopAsync().awaitTerminated()
+        }
+
+        scenario("Service handles container errors on cleanup") {
+            Given("An existing log file")
+            val path = FileSystems.getDefault
+                .getPath(s"$logDir/${config.containers.logFileName}")
+            val dateTime =
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(UnixClock.MOCK.time),
+                                        ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            FileUtils.writeStringToFile(
+                path.toFile,
+                s"$dateTime|test-error-cleanup|a|CREATED|some-config\n")
+
+            And("A container service")
+            val host = createHost()
+            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
+                                               ioExecutor, reflections)
+            store.create(host)
+
+            When("The service starts")
+            service.startAsync().awaitRunning()
+
+            And("The service stops")
+            service.stopAsync().awaitTerminated()
+        }
+
+        scenario("Service handles container exceptions on cleanup") {
+            Given("An existing log file")
+            val path = FileSystems.getDefault
+                .getPath(s"$logDir/${config.containers.logFileName}")
+            val dateTime =
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(UnixClock.MOCK.time),
+                                        ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            FileUtils.writeStringToFile(
+                path.toFile,
+                s"$dateTime|test-throws-cleanup|a|CREATED|some-config\n")
+
+            And("A container service")
+            val host = createHost()
+            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
+                                               ioExecutor, reflections)
+            store.create(host)
+
+            When("The service starts")
+            service.startAsync().awaitRunning()
+
+            And("The service stops")
             service.stopAsync().awaitTerminated()
         }
     }
