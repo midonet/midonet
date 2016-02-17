@@ -267,7 +267,7 @@ git submodule update --init
 sudo $DEVMIDO_DIR/install_mn_scripts.sh
 
 # put config to the classpath and set loglevel to DEBUG for Midolman
-cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
+cp  $TOP_DIR/midonet-util/src/test/resources/logback-test.xml  \
     $TOP_DIR/midolman/build/classes/main/logback.xml
 
 # MidoNet Cluster
@@ -298,8 +298,8 @@ if [[ "$USE_METADATA" = "True" ]]; then
         "$METADATA_SHARED_SECRET"
 fi
 
-CLUSTER_LOG=$TOP_DIR/midonet-cluster/conf/logback.xml
-cp $CLUSTER_LOG.dev $TOP_DIR/midonet-cluster/build/resources/main/logback.xml
+cp $TOP_DIR/midonet-util/src/test/resources/logback-test.xml
+   $TOP_DIR/midonet-cluster/build/resources/main
 
 run_process midonet-cluster "./gradlew :midonet-cluster:run"
 
