@@ -18,17 +18,15 @@ package org.midonet.cluster
 
 import java.nio.file.{Files, Paths}
 import java.util.UUID
-import javax.sql.DataSource
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice}
-import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage._
-import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
@@ -84,17 +82,8 @@ object ClusterNode extends App {
     private val minionDefs: List[MinionDef[ClusterMinion]] =
         List (new MinionDef("heartbeat", clusterConf.hearbeat),
               new MinionDef("vxgw", clusterConf.vxgw),
-              new MinionDef("neutron-importer", clusterConf.c3po),
               new MinionDef("topology", clusterConf.topologyApi),
               new MinionDef("flow-tracing", clusterConf.flowTracing))
-
-    // TODO: move this out to a Guice module that provides access to the
-    // NeutronDB
-    private val dataSrc = new BasicDataSource()
-    dataSrc.setDriverClassName(clusterConf.c3po.jdbcDriver)
-    dataSrc.setUrl(clusterConf.c3po.connectionString)
-    dataSrc.setUsername(clusterConf.c3po.user)
-    dataSrc.setPassword(clusterConf.c3po.password)
 
     private val daemon = new Daemon(nodeId, minionDefs)
     private val clusterNodeModule = new AbstractModule {
@@ -102,7 +91,6 @@ object ClusterNode extends App {
 
             // Common resources exposed to all Minions
             bind(classOf[MetricRegistry]).toInstance(metrics)
-            bind(classOf[DataSource]).toInstance(dataSrc)
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
 
             // Minion configurations

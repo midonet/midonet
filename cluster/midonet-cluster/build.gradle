@@ -64,7 +64,6 @@ dependencies {
             libraries.jetty_servlet,
             libraries.mockit,
             libraries.netty,
-            libraries.mysql_jdbc,
             libraries.protobuf,
             libraries.rx,
             libraries.scala,
@@ -84,8 +83,7 @@ dependencies {
                 libraries.hamcrest_lib,
                 libraries.httpclient,
                 libraries.mockit,
-                libraries.scalatest,
-                libraries.sqlite
+                libraries.scalatest
 }
 
 // Runs the cluster daemon, locally. use -Pconf=conf/midonet-cluster.conf to
