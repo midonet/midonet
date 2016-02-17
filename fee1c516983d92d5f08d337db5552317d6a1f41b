@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da86d52c_b5cd2b89",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-17T10:36:25Z",
+      "side": 1,
+      "message": "What if the config contain LogSeparators chars? we could replace LogSeparators by \u0027 \u0027 in the config string.",
+      "revId": "fee1c516983d92d5f08d337db5552317d6a1f41b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
