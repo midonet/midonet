@@ -75,8 +75,13 @@ Only the following fields are updated:
 
 ### DELETE
 
-Delete the MidoNet DHCP Subnet and all the resources referencing it.
+Delete the MidoNet DHCP Subnet and all the resources referencing it.  
 
+For uplink networks, since there is no equivalent MidoNet network, just return
+without deleting anything.
+
+For other networks, cycle through the subnet's list of gateway routes 
+and delete any routes which pass through the deleted subnet.
 
 ## PORT
 
