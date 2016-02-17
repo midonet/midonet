@@ -154,10 +154,6 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             // Delete the SNAT rules if they exist.
             midoOps ++= deleteRouterSnatRulesOps(rPortId)
         } else if (isRouterInterfacePort(nPort)) {
-            // Update any routes using this port as a gateway.
-            val subnetId = nPort.getFixedIps(0).getSubnetId
-            midoOps ++= updateGatewayRoutesOps(null, subnetId)
-
             // Delete the SNAT rules on the tenant router referencing the port
             val rtr = storage.get(classOf[Router],
                                   toProto(nPort.getDeviceId)).await()
