@@ -150,7 +150,9 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         }
     }
 
-    private val belt = new ConveyorBelt(Throwable => {})
+    private val belt = new ConveyorBelt(e => {
+        log.warn("Asynchronous container task failed", e)
+    })
 
     private val containerSubscriber = new Subscriber[Notification] {
         override def onNext(n: Notification): Unit = n match {
@@ -180,6 +182,33 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
     override protected def doStart(): Unit = {
         log info s"Starting Containers service for host $hostId"
+
+        try {
+            // Check the container log if there are any previous containers, and
+            // clear the container log.
+            val containers = logger.currentContainers()
+            logger.clear()
+
+            log debug s"Containers log includes ${containers.size} containers"
+
+            for ((key, config) <- containers) {
+                try {
+                    log debug s"Cleanup container $key with configuration " +
+                              s"'$config'"
+                    val handler = provider.getInstance(key.`type`)
+                    belt.handle(() => handler.cleanup(config))
+                } catch {
+                    case NonFatal(e) =>
+                        log.warn(s"Failed to cleanup container $key with " +
+                                 s"configuration '$config'")
+                }
+            }
+
+        } catch {
+            case NonFatal(e) =>
+                log.info("Failed to load the containers log: cleanup is not " +
+                         "available", e)
+        }
 
         try {
             // Subscribe to the current host to update the host status with
