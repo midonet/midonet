@@ -76,10 +76,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     }
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
-        // Floating IPs, VIPs, and ports on uplink networks have no
+        // Floating IPs and ports on uplink networks have no
         // corresponding Midonet port.
-        if (isVipPort(nPort) || isFloatingIpPort(nPort) ||
-            isOnUplinkNetwork(nPort)) return List()
+        if (isFloatingIpPort(nPort) || isOnUplinkNetwork(nPort)) return List()
 
         val midoOps = new MidoOpListBuffer
         if (hasMacAndArpTableEntries(nPort))
@@ -117,7 +116,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     override protected def translateDelete(nPort: NeutronPort): MidoOpList = {
         // Nothing to do for floating IPs, since we didn't create anything.
-        if (isVipPort(nPort) || isFloatingIpPort(nPort)) return List()
+        if (isFloatingIpPort(nPort)) return List()
 
         val midoOps = new MidoOpListBuffer
 
@@ -201,7 +200,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     override protected def translateUpdate(nPort: NeutronPort): MidoOpList = {
         // If the equivalent Midonet port doesn't exist, then it's either a
-        // floating IP, VIP,  or port on an uplink network. In either case, we
+        // floating IP or port on an uplink network. In either case, we
         // don't create anything in the Midonet topology for this Neutron port,
         // so there's nothing to update.
         if(!storage.exists(classOf[Port], nPort.getId).await()) return List()

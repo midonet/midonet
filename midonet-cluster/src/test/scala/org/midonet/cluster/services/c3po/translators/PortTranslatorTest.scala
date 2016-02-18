@@ -35,7 +35,7 @@ import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort}
 import org.midonet.cluster.models.Topology.{Chain, Dhcp, Port, Route, Rule, _}
 import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
-import org.midonet.cluster.services.c3po.neutron.{Create => CreateOp, Delete => DeleteOp}
+import org.midonet.cluster.services.c3po.neutron.{Create => CreateOp, Update => UpdateOp, Delete => DeleteOp}
 import org.midonet.cluster.services.c3po.{OpType, midonet, neutron}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.storage.MidonetBackendConfig
@@ -1401,7 +1401,6 @@ class VipPortTranslationTest extends PortTranslatorTest {
         translator = new PortTranslator(storage, pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
-        bind(portId, null, classOf[Port])
         bind(networkId, midoNetwork)
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
@@ -1409,22 +1408,27 @@ class VipPortTranslationTest extends PortTranslatorTest {
     protected val vipPortUp = nPortFromTxt(portBaseUp + """
         device_owner: LOADBALANCER
         """)
+    protected val vipPortDown = nPortFromTxt(portBaseDown + """
+        device_owner: LOADBALANCER
+        """)
 
     "VIP port CREATE" should "not create a Network port" in {
         val midoOps = translator.translate(neutron.Create(vipPortUp))
-        midoOps shouldBe empty
+        midoOps should contain only midonet.Create(midoPortBaseUp)
     }
 
-    "VIP port UPDATE" should "NOT update MidoNet Port" in {
-        val midoOps = translator.translate(neutron.Update(vipPortUp))
-        midoOps shouldBe empty
+    "VIP port UPDATE" should "update port admin state" in {
+        bind(portId, midoPortBaseDown)
+        bind(portId, vipPortUp)
+        val midoOps = translator.translate(UpdateOp(vipPortDown))
+        midoOps should contain only midonet.Update(midoPortBaseDown)
     }
 
-    "VIP port DELETE" should "NOT delete the MidoNet Port" in {
+    "VIP port DELETE" should "delete the MidoNet Port" in {
         bind(portId, vipPortUp)
         val midoOps = translator.translate(
-            neutron.Delete(classOf[NeutronPort], portId))
-        midoOps shouldBe empty
+            DeleteOp(classOf[NeutronPort], portId))
+        midoOps should contain only midonet.Delete(classOf[Port], portId)
     }
 }
 
