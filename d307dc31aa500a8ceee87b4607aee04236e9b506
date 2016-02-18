@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba7be1f8_eba98d7c",
+        "filename": "tests/ci-run.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-18T17:00:09Z",
+      "side": 1,
+      "message": "No need for this now.",
+      "revId": "d307dc31aa500a8ceee87b4607aee04236e9b506",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
