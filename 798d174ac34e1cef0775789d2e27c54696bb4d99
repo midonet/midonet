@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "da86d52c_9c5dacec",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-18T11:28:55Z",
+      "side": 1,
+      "message": "this duplicates the code of cleanup() below. Why not just parse, and then call cleanup(ipsecConfig)?",
+      "revId": "798d174ac34e1cef0775789d2e27c54696bb4d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da86d52c_fce6a843",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 4
@@ -13,6 +30,30 @@
       "writtenOn": "2016-02-18T11:19:02Z",
       "side": 1,
       "message": "What about just a regexp: \"\\\\s\"\n\n\\s\tA whitespace character: [ \\t\\n\\x0B\\f\\r]",
+      "range": {
+        "startLine": 750,
+        "startChar": 31,
+        "endLine": 750,
+        "endChar": 47
+      },
+      "revId": "798d174ac34e1cef0775789d2e27c54696bb4d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da86d52c_9c14ccf6",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-18T11:28:55Z",
+      "side": 1,
+      "message": "Is this is something other than a space, then something is messed up. Also, what happens if there\u0027s a space in the service name or filepath?",
+      "parentUuid": "da86d52c_fce6a843",
       "range": {
         "startLine": 750,
         "startChar": 31,
