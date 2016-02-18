@@ -790,3 +790,55 @@ def test_ipsec_site_connection_deletion():
     # Ping fails
     ping('port_left', 'port_right', expected_failure=True)
     ping('port_right', 'port_left', expected_failure=True)
+
+@bindings(binding_onehost_intra_tenant,
+          binding_multihost_intra_tenant,
+          binding_multihost_inter_tenant,
+          binding_manager=BM)
+def test_ping_three_sites_full_mesh():
+
+    left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
+    right_router, right_peer_address, right_subnet = VTM.get_site_data('right')
+    up_router, up_peer_address, up_subnet = VTM.get_site_data('up')
+    left_tenant, right_tenant, up_tenant = \
+        BM.get_binding_data()['config']['tenants']
+
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
+                                   left_subnet)
+    right_vpn = VTM.add_vpn_service('right','right_vpn', right_tenant, right_router,
+                                    right_subnet)
+    up_vpn = VTM.add_vpn_service('up','up_vpn', up_tenant, up_router,
+                                 up_subnet)
+
+    # Kilo version, supported also in liberty and mitaka
+    # Create full mesh connections: left - right, left - up, right - up
+    VTM.add_ipsec_site_connection(
+            'left', 'left_to_right', left_tenant, right_peer_address,
+            vpn=left_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'right', 'right_to_left', right_tenant, left_peer_address,
+            vpn=right_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'up', 'up_to_left', up_tenant, left_peer_address,
+            vpn=up_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'left', 'left_to_up', left_tenant, up_peer_address,
+            vpn=left_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'up', 'up_to_right', up_tenant, right_peer_address,
+            vpn=up_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'right', 'right_to_up', right_tenant, up_peer_address,
+            vpn=right_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
+
+    # Ping from left to right and viceversa
+    ping('port_left', 'port_right')
+    ping('port_right', 'port_left')
+
+    # Ping from left to up and viceversa
+    ping('port_left', 'port_up')
+    ping('port_up', 'port_left')
+
+    # Ping from right to up and viceversa
+    ping('port_right', 'port_up')
+    ping('port_up', 'port_right')

@@ -5,6 +5,7 @@ pushd tests/mdts/tests/functional_tests
     -t test_vpnaas.py:test_non_vpn_subnet \
     -t test_vpnaas.py:test_security_groups \
     -t test_vpnaas.py:test_ipsec_site_connection_deletion \
+    -t test_vpnaas.py:test_ping_three_sites_full_mesh \
     -t test_bgp.py:test_multisession_icmp_with_redundancy \
     -t test_bgp.py:test_multisession_icmp_failback \
     -t test_bgp.py:test_snat \
