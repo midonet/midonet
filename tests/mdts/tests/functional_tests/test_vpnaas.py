@@ -348,6 +348,18 @@ def test_ping_between_three_sites():
     ping('port_right', 'port_up', expected_failure=True)
     ping('port_up', 'port_right', expected_failure=True)
 
+    # Create connections between the right and up sites
+    VTM.add_ipsec_site_connection(
+            'up', 'up_to_right', up_tenant, right_peer_address,
+            vpn=up_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'right', 'right_to_up', right_tenant, up_peer_address,
+            vpn=right_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
+
+    # Ping from right to up and viceversa
+    ping('port_right', 'port_up')
+    ping('port_up', 'port_right')
+
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
 def test_ping_two_sites_two_subnets():
