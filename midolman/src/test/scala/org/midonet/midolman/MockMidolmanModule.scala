@@ -92,8 +92,9 @@ class MockMidolmanModule(override val hostId: UUID,
             simBackChannel,
             new MetricRegistry,
             new SameThreadButAfterExecutorService,
-            () => threadId == Thread.currentThread().getId,
-            new SameThreadButAfterExecutorService)
+            new SameThreadButAfterExecutorService,
+            () => threadId == Thread.currentThread().getId
+            )
     }
 
     protected override def flowTracingAppender()=
