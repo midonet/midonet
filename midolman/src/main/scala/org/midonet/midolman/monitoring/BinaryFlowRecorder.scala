@@ -246,6 +246,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                 case t: RouterDeviceTag => deviceStaging.add(t)
                 case t: PortDeviceTag => deviceStaging.add(t)
                 case t: ChainDeviceTag => deviceStaging.add(t)
+                case _ =>
             }
             i += 1
         }
