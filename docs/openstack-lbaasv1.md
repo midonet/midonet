@@ -8,10 +8,8 @@ from neutron-lbaas' reference implementation (haproxy):
 - In MidoNet, members will see the real source IP address of clients,
   rather than VIP.  (There's an exception; see "same subnet" case below)
 
-- Assigning a floating-ip to VIP doesn't work because:
-  - LB is processed before infilter, where floating-ips are implemented.
-  - The translator associates floating-ip rules with a MidoNet port,
-    which doesn't exist for VIP ports.
+- Assigning a floating-ip to VIP doesn't work because LB is processed
+  before infilter, where floating-ips are implemented.
 
 See [Layer 4 Load Balancing](load_balancing.md) for the underlying
 mechanism and details.
