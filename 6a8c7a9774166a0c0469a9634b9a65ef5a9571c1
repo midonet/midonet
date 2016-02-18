@@ -22,6 +22,30 @@
       "revId": "6a8c7a9774166a0c0469a9634b9a65ef5a9571c1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba7be1f8_51f3260a",
+        "filename": "tests/ci-run.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-18T20:36:00Z",
+      "side": 1,
+      "message": "Agree, I will remove before merging.",
+      "parentUuid": "ba7be1f8_ab9f954f",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 59
+      },
+      "revId": "6a8c7a9774166a0c0469a9634b9a65ef5a9571c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
