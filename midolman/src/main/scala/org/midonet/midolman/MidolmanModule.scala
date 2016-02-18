@@ -370,7 +370,19 @@ class MidolmanModule(injector: Injector,
         new PeerResolver(hostId, injector.getInstance(classOf[MidonetBackend]), vt)
 
     protected def virtualTopology(simBackChannel: SimulationBackChannel) = {
-        val vtThread: AtomicLong = new AtomicLong(-1)
+        val vtThread = new AtomicLong(-1)
+        val vtExecutor = Executors.newSingleThreadScheduledExecutor(
+            new NamedThreadFactory("devices-service-", isDaemon = true))
+        val ioExecutor = Executors.newCachedThreadPool(
+            new NamedThreadFactory("devices-io-", isDaemon = true))
+        val vtExecutorCheck = () => {
+            if (vtThread.get < 0) {
+                vtThread.compareAndSet(-1, Thread.currentThread().getId)
+                true
+            } else {
+                vtThread.get == Thread.currentThread().getId
+            }
+        }
         new VirtualTopology(
             injector.getInstance(classOf[MidonetBackend]),
             config,
@@ -378,10 +390,10 @@ class MidolmanModule(injector: Injector,
             injector.getInstance(classOf[ZkConnectionAwareWatcher]),
             simBackChannel,
             metricRegistry,
-            Executors.newSingleThreadScheduledExecutor(
-                new NamedThreadFactory("devices-service", isDaemon = true)),
-            () => vtThread.get < 0 || vtThread.get == Thread.currentThread.getId,
-            Executors.newCachedThreadPool(new NamedThreadFactory("devices-io-", true)))
+            vtExecutor,
+            ioExecutor,
+            vtExecutorCheck
+            )
     }
 
     protected def virtualToPhysicalMapper(hostId: UUID, vt: VirtualTopology) =
