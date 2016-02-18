@@ -101,13 +101,15 @@ directly:
  * network_id => networkId
  * admin_state_up => adminStateUp
 
-Add a MidoNet network MAC table entry:
+If the port is not a VIP port:
 
-  * mac_address, id
+ * Add a MidoNet network MAC table entry:
 
-For the first IP address on the port, add a MidoNet network ARP table entry:
+   * mac_address, id
 
-  * mac_address, ip_address
+ * For the first IP address on the port, add a MidoNet network ARP table entry:
+
+   * mac_address, ip_address
 
 Note that in MidoNet a router port could only be assigned at most one IP
 address.  This is a current limitation of MidoNet.  Also, MidoNet does not
@@ -189,7 +191,7 @@ indicates unbinding.  Perform unbinding in such case.
 
 ### DELETE
 
-For VIP, FIP or uplink ports, do nothing.
+For FIP or uplink ports, do nothing.
 
 If the port is a remote site port (device_owner == 'network:remote_site'), do
 the following and exit:
@@ -230,6 +232,10 @@ For VIF, DHCP, non-uplink Router Interface and Router Gateway ports:
  * Remove the MidoNet network MAC table entry referencing the port
  * Remove the MidoNet network ARP table entry referencing the IP addresses of
    the port
+ * Remove the matching MidoNet port.
+
+For VIP ports,
+
  * Remove the matching MidoNet port.
 
 ## ROUTER
