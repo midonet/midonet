@@ -16,6 +16,24 @@
       "revId": "c680c6d614b7336e678687d208adbfbb8f394c50",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba7be1f8_886c9738",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 798,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-18T15:03:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba7be1f8_28048b14",
+      "revId": "c680c6d614b7336e678687d208adbfbb8f394c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
