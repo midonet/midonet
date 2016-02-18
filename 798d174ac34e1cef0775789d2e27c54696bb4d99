@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da86d52c_fce6a843",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-18T11:19:02Z",
+      "side": 1,
+      "message": "What about just a regexp: \"\\\\s\"\n\n\\s\tA whitespace character: [ \\t\\n\\x0B\\f\\r]",
+      "range": {
+        "startLine": 750,
+        "startChar": 31,
+        "endLine": 750,
+        "endChar": 47
+      },
+      "revId": "798d174ac34e1cef0775789d2e27c54696bb4d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
