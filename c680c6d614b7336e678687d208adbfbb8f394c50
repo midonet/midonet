@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba7be1f8_28048b14",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 798,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-18T11:48:40Z",
+      "side": 1,
+      "message": "Instead of a new test, why not update the \u0027test_ping_between_three_sites\u0027 to add the third pair of connections? We could save a bit of setup/teardown time. Not a strong opinion.",
+      "revId": "c680c6d614b7336e678687d208adbfbb8f394c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
