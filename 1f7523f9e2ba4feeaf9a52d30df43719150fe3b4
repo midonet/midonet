@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba7be1f8_77b01af5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1183,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-19T09:02:50Z",
+      "side": 1,
+      "message": "Add a test \"Service DOES NOT perform cleanup on DELETED containers\"? Like in the log:\n$dateTime|test-good|a|CREATED|some-config\n$dateTime|test-good|a|DELETED|some-config\n\nAnd then GoodContainer.cleaned.get() should be 0\n\nJust to make sure we get the latest entry of the log.",
+      "revId": "1f7523f9e2ba4feeaf9a52d30df43719150fe3b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
