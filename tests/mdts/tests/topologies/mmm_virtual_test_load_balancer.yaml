@@ -52,17 +52,17 @@ virtual_topology:
                     address: 10.0.1.1
                     admin_state_up: true
                     protocol_port: 10000
-                    weight: 5
+                    weight: 1
                 - member:
                     address: 10.0.1.2
                     admin_state_up: true
                     protocol_port: 10000
-                    weight: 10
+                    weight: 3
                 - member:
                     address: 10.0.1.3
                     admin_state_up: false
                     protocol_port: 10000
-                    weight: 20
+                    weight: 9
               vips:
                 - vip:
                     address: 100.100.1.8
