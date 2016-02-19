@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba7be1f8_9d7bef28",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-19T17:50:49Z",
+      "side": 1,
+      "message": "Should this be:\n\n  FileUtils.getTempDirectory",
+      "range": {
+        "startLine": 224,
+        "startChar": 64,
+        "endLine": 224,
+        "endChar": 69
+      },
+      "revId": "e2cb0a6d15e593e1c2c2d6cdb8d1bbedbc5e37df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
