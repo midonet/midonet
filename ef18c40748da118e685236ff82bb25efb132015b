@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba7be1f8_f79b2a70",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 871,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-19T09:10:21Z",
+      "side": 1,
+      "message": "Should we make sure that the containers are actually scheduled on midolman 3? A call to the midonet api should tell us.",
+      "revId": "ef18c40748da118e685236ff82bb25efb132015b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
