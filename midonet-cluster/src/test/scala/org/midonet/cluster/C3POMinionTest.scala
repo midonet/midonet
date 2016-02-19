@@ -37,6 +37,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
 import org.apache.zookeeper.KeeperException.NoNodeException
 import org.junit.runner.RunWith
+import org.midonet.midolman.util.ZoomVirtualConfigurationBuilders
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory

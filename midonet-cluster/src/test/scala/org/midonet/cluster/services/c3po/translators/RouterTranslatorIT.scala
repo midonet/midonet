@@ -18,6 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import org.junit.runner.RunWith
+
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Pool => PoolType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.storage.StateTable
@@ -31,7 +32,7 @@ import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPo
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.util.AddressConversions._
-import org.midonet.packets.{IPv4Addr, ICMP, MAC}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 import org.scalatest.junit.JUnitRunner
 
@@ -270,6 +271,18 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                    "10.0.1.4", "ab:cd:ef:00:00:04", "10.0.1.2",
                                    snatEnabled = true, extNwArpTable))
 
+        /* Create the legacy drop rule for the in chain to check that it is
+           deleted when disabling SNAT. */
+        val tntRouter = backend.store.getAll(classOf[Router])
+                                     .await()
+                                     .filter(_.getPortIdsCount == 1).last
+        val legacyInDropRule =
+            Rule.newBuilder()
+                .setId(RouterTranslator.inDropWrongPortTrafficRuleId((tntRouter.getId)))
+                .setChainId(tntRouter.getInboundFilterId)
+                .build()
+        backend.store.create(legacyInDropRule)
+
         // Disable SNAT.
         val trDisableSnatJson = routerJson(tntRtrId, name = "tr-disable-snat",
                                            gwPortId = extNwGwPortId,
@@ -491,16 +504,20 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val chainIds = List(tr.getInboundFilterId, tr.getOutboundFilterId)
         val List(inChain, outChain) =
             storage.getAll(classOf[Chain], chainIds).await()
-        inChain.getRuleIdsCount shouldBe 2
-        outChain.getRuleIdsCount shouldBe 2
+        inChain.getRuleIdsCount shouldBe 1
+        outChain.getRuleIdsCount shouldBe 3
 
         val ruleIds = inChain.getRuleIdsList.asScala.toList ++
                       outChain.getRuleIdsList.asScala
-        val List(inRevSnatRule, inDropWrongPortTrafficRule,
-                 outSnatRule, outDropFragmentsRule) =
+        val List(inRevSnatRule, outDropDestRule, outSnatRule, outDropFragmentsRule) =
             storage.getAll(classOf[Rule], ruleIds).await()
 
         val gwSubnet = IPSubnetUtil.fromAddr(gatewayIp)
+
+        outDropDestRule.getChainId shouldBe outChain.getId
+        outDropDestRule.getCondition.getOutPortIdsList.asScala should contain only trGwPortId
+        outDropDestRule.getCondition.getNwDstIp shouldBe gwSubnet
+        outDropDestRule.getAction shouldBe Rule.Action.DROP
 
         outSnatRule.getChainId shouldBe outChain.getId
         outSnatRule.getCondition.getOutPortIdsList.asScala should contain only trGwPortId
@@ -520,13 +537,6 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         inRevSnatRule.getChainId shouldBe inChain.getId
         inRevSnatRule.getCondition.getNwDstIp shouldBe gwSubnet
         validateNatRule(inRevSnatRule, dnat = false, addr = null)
-
-        val idwptr = inDropWrongPortTrafficRule
-        idwptr.getChainId shouldBe inChain.getId
-        idwptr.getCondition.getNwDstIp shouldBe gwSubnet
-        idwptr.getType shouldBe Rule.Type.LITERAL_RULE
-        idwptr.getCondition.getNwProto shouldBe ICMP.PROTOCOL_NUMBER
-        idwptr.getAction shouldBe Action.DROP
     }
 
     // addr == null for reverse NAT rule
@@ -556,8 +566,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         inChain.getRuleIdsCount shouldBe 0
         outChain.getRuleIdsCount shouldBe 0
         Seq(outSnatRuleId(rtrId), outDropUnmatchedFragmentsRuleId(rtrId),
-            inReverseSnatRuleId(rtrId), inDropWrongPortTrafficRuleId(rtrId))
+            inReverseSnatRuleId(rtrId))
             .map(storage.exists(classOf[Rule], _).await()) shouldBe
-            Seq(false, false, false, false)
+            Seq(false, false, false)
     }
 }

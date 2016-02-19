@@ -36,7 +36,7 @@ object C3POStorageManager {
     /* A constant indicating how many seconds C3POStorageManager waits on the
      * future returned from Storage. 10 seconds for now, which we think is
      * sufficient. */
-    private val TIMEOUT = Duration.create(10, TimeUnit.SECONDS)
+    private[c3po] val TIMEOUT = Duration.create(10, TimeUnit.SECONDS)
 
     /** A generic operation on a model */
     trait Operation[T <: Message] {
