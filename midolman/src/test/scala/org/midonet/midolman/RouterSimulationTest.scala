@@ -19,11 +19,11 @@ package org.midonet.midolman
 import java.util.{LinkedList => JLinkedList, UUID}
 
 import com.typesafe.scalalogging.Logger
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
@@ -90,6 +90,20 @@ class RouterSimulationTest extends MidolmanSpec {
             NextHop.REJECT, null, null, 1)
         fetchPorts(port)
         port
+    }
+
+    protected def newLocalRoute(portId: UUID, portAddr: String,
+                                routerId: UUID)
+    : UUID = {
+        newRoute(routerId,
+                 IPSubnetUtil.univSubnet4.getAddress,
+                 IPSubnetUtil.univSubnet4.getPrefixLength,
+                 portAddr,
+                 dstNwLen = 32,
+                 NextHop.LOCAL,
+                 portId,
+                 nextHopGateway = null,
+                 weight = 100)
     }
 
     def simRouter: SimRouter = fetchDevice[SimRouter](router)
@@ -224,6 +238,23 @@ class RouterSimulationTest extends MidolmanSpec {
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   IPv4Addr.fromString(uplinkPortAddr), fromIp,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
+    }
+
+    scenario("Traffic matching local route goes through router") {
+        val fromMac = MAC.fromString("01:02:03:04:05:06")
+        val fromIp = IPv4Addr.fromString("50.25.50.25")
+
+        newLocalRoute(uplinkPort, uplinkPortAddr, router)
+        feedArpTable(simRouter, IPv4Addr.fromString(uplinkPortAddr), MAC.random)
+
+        val pkt = { eth src fromMac dst uplinkMacAddr } <<
+                  { ip4 src fromIp dst uplinkPortAddr } <<
+                  { udp src 11 dst 12 }
+
+        val (simRes, pktCtx) = simulate(packetContextFor(pkt, uplinkPort,
+                                                        generatedPackets))
+        simRes should be (AddVirtualWildcardFlow)
+        pktCtx.outPortId should be (uplinkPort)
     }
 
     scenario("ICMP echo far port") {
