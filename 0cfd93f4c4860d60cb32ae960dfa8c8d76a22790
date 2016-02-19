@@ -16,6 +16,24 @@
       "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba7be1f8_77bbba72",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-19T11:03:16Z",
+      "side": 0,
+      "message": "I removed it on purpose. I\u0027m not 100% comfortable with it, since it\u0027s not following the proper pattern of not making assumptions about the caller, however in this particular case the reasons were the following:\n\n- the handler.status observable emits its notifications either from the thread on which we call the handler methods, or from the scheduler that we pass to the handler (i.e. for the periodic health checks): in both cases this is the same executor as `scheduler` (this is confirmed by the logs), so this additional observeOn is redundant for the IPSec container\n\n- if any other container handler would use a different thread to notify its status, then we would be blocking that thread, so it\u0027s not really a problem; also the status subscriber is thread safe (we either write to zk or update the container log which is synchronized)\n\n- finally - and the reason for the change - if the handler emits notifications during delete(), we lose those notifications; that is because the observeOn will enqueue the notification after the point we unsubscribe the status subscriber\n\nThere were other solutions, but I found them with too much hassle compared to removing the observerOn here. Anyway, I\u0027m open to suggestions about this.",
+      "parentUuid": "ba7be1f8_37d86253",
+      "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
