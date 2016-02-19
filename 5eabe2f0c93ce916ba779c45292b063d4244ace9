@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba7be1f8_17799efc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-19T10:32:50Z",
+      "side": 1,
+      "message": "Health notification for unknown container $cp?",
+      "range": {
+        "startLine": 90,
+        "startChar": 39,
+        "endLine": 91,
+        "endChar": 52
+      },
+      "revId": "5eabe2f0c93ce916ba779c45292b063d4244ace9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
