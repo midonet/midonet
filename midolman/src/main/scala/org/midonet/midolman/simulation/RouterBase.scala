@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -243,8 +243,13 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 case Route.NextHop.LOCAL =>
                     handleBgp(context, inPort) match {
                         case NoOp =>
-                            context.log.debug("Dropping non icmp_req addressed to local port")
-                            ErrorDrop
+                            // Letting non-FIP to FIP packets go through
+                            // when VMs are in the same network (in that case
+                            // the destination IP is the tenant router's
+                            // public IP).
+                            context.log.debug("Letting non-icmp request " +
+                                              "packet through router")
+                            ToPortAction(rt.nextHopPort)
                         case simRes =>
                             context.log.debug("Matched BGP traffic")
                             simRes
@@ -302,14 +307,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                             context: PacketContext): SimulationResult = {
 
         implicit val packetContext = context
-
-        if (context.wcmatch.getNetworkDstIP == outPort.portAddress) {
-            context.log.warn("Got a packet addressed to a port without a LOCAL route")
-            return Drop
-        }
-
-        val pMatch = context.wcmatch
-        val pFrame = context.ethernet
 
         context.outPortId = outPort.id
         context.routeTo = rt
