@@ -251,14 +251,14 @@ If the router has 'gw_port_id' specified, the gateway must be configured:
     yet and the ID was unknown and never set.
   * If 'snat_enabled' is set to true, add the following rules to the chains:
 
+      * Drop rule on the outbound chain for packets with destination IP equal
+        to the one of the router's gateway port.
       * SNAT rule on the outbound chain with the target set to the router port
         IP address, going out of the port.
       * Drop rule on the outbound chain for the non-SNATed fragmented packets,
         going out of the port.
       * Reverse SNAT rule on the inbound chain for packets with destination IP
         matching the router port IP address, coming into the port.
-      * Drop rule for all the non-ICMP packets coming to the router port IP
-        address.
 
   * Add a default route on the midonet router with the next hop gateway IP
     address set to the gateway IP of the subnet (fixed_ips[0].subnet)

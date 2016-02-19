@@ -603,9 +603,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // The rules should all exist, or none.
         if (!storage.exists(classOf[Rule], outSnatRuleId(rtrId)).await()) List()
         else List(Delete(classOf[Rule], outSnatRuleId(rtrId)),
+                  Delete(classOf[Rule], outDropUmatchedDestination(rtrId)),
                   Delete(classOf[Rule], outDropUnmatchedFragmentsRuleId(rtrId)),
-                  Delete(classOf[Rule], inReverseSnatRuleId(rtrId)),
-                  Delete(classOf[Rule], inDropWrongPortTrafficRuleId(rtrId)))
+                  Delete(classOf[Rule], inReverseSnatRuleId(rtrId)))
     }
 }
 

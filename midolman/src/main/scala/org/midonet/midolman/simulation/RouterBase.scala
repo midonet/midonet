@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -243,8 +243,19 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 case Route.NextHop.LOCAL =>
                     handleBgp(context, inPort) match {
                         case NoOp =>
-                            context.log.debug("Dropping non icmp_req addressed to local port")
-                            ErrorDrop
+                            /* "Forward the (non-ICMP request) packets through
+                                the port even if the packet has destination IP
+                                address matching the port's address.  Dropping
+                                the packets here breaks certain cases where you
+                                need the packets to go through post-routing and
+                                beyond. To be more specific without going into
+                                much details, in Neutron, when a VM with no
+                                floating IP attempts to access a VM with a
+                                floating IP, dropping the packets here
+                                terminates the return flow (MI-115)." */
+                            context.log.debug("Letting non-icmp request " +
+                                              "packet through router")
+                            ToPortAction(rt.nextHopPort)
                         case simRes =>
                             context.log.debug("Matched BGP traffic")
                             simRes
@@ -302,14 +313,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                             context: PacketContext): SimulationResult = {
 
         implicit val packetContext = context
-
-        if (context.wcmatch.getNetworkDstIP == outPort.portAddress) {
-            context.log.warn("Got a packet addressed to a port without a LOCAL route")
-            return Drop
-        }
-
-        val pMatch = context.wcmatch
-        val pFrame = context.ethernet
 
         context.outPortId = outPort.id
         context.routeTo = rt
