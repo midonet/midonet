@@ -328,12 +328,21 @@ def make_request_to(sender, dest, timeout=10, src_port=None):
     LOG.debug("L4LB: request to %s. Response: %s" % (sender, result))
     return result
 
-def make_n_requests_to(sender, num_reqs, dest, timeout=10, src_port=None):
-    results = []
-    for x in range(0, num_reqs):
-        result = make_request_to(sender, dest, timeout, src_port)
-        results.append(result)
-    return results
+def make_n_requests_to(sender, num_reqs, dest, timeout=30, src_port=None):
+    # Executing a command on docker takes a non-trivial amount of time. Instead
+    # of executing n command, execute only one with a loop to save that setup
+    # command. This change allows us to increase the amount of requests in the
+    # tests without increasing its duration.
+    global SRC_PORT
+    port = src_port if src_port is not None else '$((%d+i))' % SRC_PORT
+    cmd = 'sh -c \"for i in `seq 1 %d`; ' \
+          'do ncat --recv-only -w %d -p %s %s %d; ' \
+          'done\"' % (num_reqs, 5, port, dest, DST_PORT)
+    LOG.debug("L4LB: executing %s" % cmd)
+    result = sender.execute(cmd, timeout, sync=True)
+    if src_port is None:
+        SRC_PORT += num_reqs # to account for the loop in the cmd above
+    return result.split('\n')
 
 def assert_request_succeeds_to(sender, dest, timeout=10):
     result = make_request_to(sender, dest, timeout)
@@ -450,8 +459,9 @@ def test_multi_member_loadbalancing():
     # (considering equal weights) is formulated in the coupon collector's
     # problem (see Wikipedia for instance).
     # The expected number of requests for 3 backends is 6.
-    # With 40 requests, we play it on the safe side.
-    num_reqs = 40
+    # With 400 requests, we play it on the safe side for the case with different
+    # backend weights.
+    num_reqs = 400
 
     binding = BM.get_binding_data()
     vips = binding['vips']
@@ -626,7 +636,7 @@ def test_health_monitoring_backend_failback():
     sender = BM.get_iface_for_port(sender_bridge, sender_port)
 
     non_sticky_results = make_n_requests_to(sender,
-                                            40,
+                                            100,
                                             vips['non_sticky_vip'])
     LOG.debug("L4LB: non_sticky results %s (all backends alive)" %
               non_sticky_results)
@@ -638,7 +648,7 @@ def test_health_monitoring_backend_failback():
     await_member_status(1, status='INACTIVE')
 
     non_sticky_results = make_n_requests_to(sender,
-                                            20,
+                                            50,
                                             vips['non_sticky_vip'])
     LOG.debug("L4LB: non_sticky results %s (one backend failed)" %
               non_sticky_results)
@@ -664,7 +674,7 @@ def test_health_monitoring_backend_failback():
     await_member_status(2, status='ACTIVE')
 
     non_sticky_results = make_n_requests_to(sender,
-                                            40,
+                                            100,
                                             vips['non_sticky_vip'])
     LOG.debug("L4LB: non_sticky results %s (all backends alive again)" %
               non_sticky_results)
