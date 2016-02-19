@@ -302,8 +302,11 @@ abstract class RouterBase[IP <: IPAddr]()
                 case Route.NextHop.LOCAL =>
                     handleBgp(context, inPort) match {
                         case NoOp =>
-                            context.log.debug("Dropping non icmp_req addressed to local port")
-                            ErrorDrop
+                            // TODO: Check that this works.
+                            //       Letting traffic be reverse SNATTED for
+                            //       Non-FIP to FIP traffic to pass through.
+                            //context.log.debug("Dropping non icmp_req addressed to local port")
+                            NoOp
                         case simRes =>
                             context.log.debug("Matched BGP traffic")
                             simRes
