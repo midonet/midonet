@@ -302,8 +302,12 @@ abstract class RouterBase[IP <: IPAddr]()
                 case Route.NextHop.LOCAL =>
                     handleBgp(context, inPort) match {
                         case NoOp =>
-                            context.log.debug("Dropping non icmp_req addressed to local port")
-                            ErrorDrop
+                            // TODO: Check that this works.
+                            //       Letting traffic be reverse SNATTED for
+                            //       Non-FIP to FIP traffic to pass through.
+                            context.log.debug("Letting non-icmp request " +
+                                              "packet through router")
+                            ToPortAction(rt.nextHopPort)
                         case simRes =>
                             context.log.debug("Matched BGP traffic")
                             simRes
@@ -362,9 +366,12 @@ abstract class RouterBase[IP <: IPAddr]()
 
         implicit val packetContext = context
 
+        // TODO: Check that modification is ok
+        //       We return a PortAction above for NonFIP to FIP traffic.
+        //       and the dst ip is the port IP.
         if (context.wcmatch.getNetworkDstIP == outPort.portAddress) {
             context.log.warn("Got a packet addressed to a port without a LOCAL route")
-            return Drop
+//            return Drop
         }
 
         context.outPortId = outPort.id
