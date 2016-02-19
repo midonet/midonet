@@ -492,15 +492,20 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val List(inChain, outChain) =
             storage.getAll(classOf[Chain], chainIds).await()
         inChain.getRuleIdsCount shouldBe 2
-        outChain.getRuleIdsCount shouldBe 2
+        outChain.getRuleIdsCount shouldBe 3
 
         val ruleIds = inChain.getRuleIdsList.asScala.toList ++
                       outChain.getRuleIdsList.asScala
         val List(inRevSnatRule, inDropWrongPortTrafficRule,
-                 outSnatRule, outDropFragmentsRule) =
+                 outDropDestRule, outSnatRule, outDropFragmentsRule) =
             storage.getAll(classOf[Rule], ruleIds).await()
 
         val gwSubnet = IPSubnetUtil.fromAddr(gatewayIp)
+
+        outDropDestRule.getChainId shouldBe outChain.getId
+        outDropDestRule.getCondition.getOutPortIdsList.asScala should contain only trGwPortId
+        outDropDestRule.getCondition.getNwDstIp shouldBe gwSubnet
+        outDropDestRule.getAction shouldBe Rule.Action.DROP
 
         outSnatRule.getChainId shouldBe outChain.getId
         outSnatRule.getCondition.getOutPortIdsList.asScala should contain only trGwPortId
