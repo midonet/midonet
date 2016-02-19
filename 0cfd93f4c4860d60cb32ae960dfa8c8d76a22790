@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba7be1f8_37d86253",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-19T08:56:24Z",
+      "side": 0,
+      "message": "Removed by mistake on PS7? The StatusSubscriber does IO, shouldn\u0027t we use a scheduler.",
+      "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
