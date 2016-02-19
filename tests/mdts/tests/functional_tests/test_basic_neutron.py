@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 from nose import with_setup
+from nose.tools import nottest
+
 from mdts.lib.bindings import BindingManager
 
 from mdts.lib.topology_manager import TopologyManager
@@ -54,7 +56,7 @@ def destroy_1():
     VTM.destroy()
     PTM.destroy()
 
-
+@nottest
 @with_setup(setup_1, destroy_1)
 def test_icmp_topology_in_test():
     # Scenario:
@@ -151,7 +153,7 @@ hosts.
 
 class VT_one_net_two_ports(NeutronTopologyManager):
 
-    def build(self):
+    def build(self, data=None):
         # Create network
         network = self.create_resource(
             self.api.create_network(
@@ -192,7 +194,7 @@ class VT_one_net_two_ports(NeutronTopologyManager):
 
 class PT_two_vms_on_separate_hosts(TopologyManager):
 
-    def build(self):
+    def build(self, data=None):
         # Building physical topology with two vms on midolman 1 and one vm on
         # midolman2
         host1 = service.get_container_by_hostname('midolman1')
@@ -228,6 +230,7 @@ def destroy_2():
     VTM2.destroy()
     PTM2.destroy()
 
+@nottest
 @with_setup(setup_2, destroy_2)
 def test_icmp_topology_out_test_single_compute():
     # Query resources created on the managers
@@ -249,6 +252,7 @@ def test_icmp_topology_out_test_single_compute():
 
     wait_on_futures([f1, f2])
 
+@nottest
 @with_setup(setup_2, destroy_2)
 def test_icmp_topology_out_test_two_computes():
     # Query resources created on the managers
@@ -303,6 +307,7 @@ binding_multihost = {
 
 BM = BindingManager(PTM2, VTM2)
 
+@nottest
 @bindings(binding_singlehost,
           binding_multihost,
           binding_manager = BM)
@@ -335,7 +340,7 @@ vm1_def = {
 }
 
 vm2_def = {
-    'hw_addr': 'aa:bb:cc:00:00:11',
+    'hw_addr': 'aa:bb:cc:00:00:22',
     'ipv4_addr': ['172.16.1.3/24'],
     'ipv4_gw': '172.16.1.1'
 }
