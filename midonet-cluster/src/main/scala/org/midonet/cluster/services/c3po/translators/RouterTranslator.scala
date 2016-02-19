@@ -261,8 +261,13 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         def inRuleConditionBuilder = Condition.newBuilder
             .setNwDstIp(portSubnet)
 
-
-        List(outRuleBuilder(outSnatRuleId(nr.getId))
+        List(outRuleBuilder(outDropUmatchedDestination(nr.getId))
+                 .setType(Rule.Type.LITERAL_RULE)
+                 .setAction(Action.DROP)
+                 .setCondition(Condition.newBuilder()
+                                        .addOutPortIds(tenantGwPortId)
+                                        .setNwDstIp(portSubnet)),
+             outRuleBuilder(outSnatRuleId(nr.getId))
                  .setType(Rule.Type.NAT_RULE)
                  .setAction(Action.ACCEPT)
                  .setNatRuleData(natRuleData(gwIpAddr, dnat = false))
@@ -277,13 +282,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                  .setAction(Action.ACCEPT)
                  .setCondition(inRuleConditionBuilder
                                    .addInPortIds(tenantGwPortId))
-                 .setNatRuleData(revNatRuleData(dnat = false)),
-             inRuleBuilder(inDropWrongPortTrafficRuleId(nr.getId))
-                 .setType(Rule.Type.LITERAL_RULE)
-                 .setAction(Action.DROP)
-                 .setCondition(inRuleConditionBuilder
-                                   .setNwProto(ICMP.PROTOCOL_NUMBER)
-                                   .setNwProtoInv(true))
+                 .setNatRuleData(revNatRuleData(dnat = false))
         ).map(bldr => Create(bldr.build()))
     }
 
@@ -292,8 +291,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         if (!storage.exists(classOf[Rule], outSnatRuleId(routerId)).await())
             return List()
 
-        List(Delete(classOf[Rule], inDropWrongPortTrafficRuleId(routerId)),
-             Delete(classOf[Rule], inReverseSnatRuleId(routerId)),
+        List(Delete(classOf[Rule], inReverseSnatRuleId(routerId)),
+             Delete(classOf[Rule], outDropUmatchedDestination(routerId)),
              Delete(classOf[Rule], outDropUnmatchedFragmentsRuleId(routerId)),
              Delete(classOf[Rule], outSnatRuleId(routerId)))
     }
@@ -338,8 +337,9 @@ object RouterTranslator {
         routerId.xorWith(0x68fd6d8bbd3343d8L, 0x9909aa4ad4b691d8L)
     def outDropUnmatchedFragmentsRuleId(routerId: UUID): UUID =
         routerId.xorWith(0xbac97789e63e4663L, 0xa00989d341c8636fL)
+    def outDropUmatchedDestination(routerId: UUID): UUID =
+        routerId.xorWith(0x31B1E2AE0F5FB662L, 0x87c2d34c01d5a643L)
     def inReverseSnatRuleId(routerId: UUID): UUID =
         routerId.xorWith(0x928eb605e3e04119L, 0x8c40e4ca90769cf4L)
-    def inDropWrongPortTrafficRuleId(routerId: UUID): UUID =
-        routerId.xorWith(0xb807509d2fa04b9eL, 0x96b1f45a04e6d128L)
+
 }
