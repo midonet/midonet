@@ -1038,3 +1038,73 @@ def test_container_maintained_on_cluster_restart():
     # Ping from left to right and viceversa
     ping('port_left', 'port_right')
     ping('port_right', 'port_left')
+
+@bindings(binding_onehost_intra_tenant,
+          binding_manager=BM)
+def test_container_restored_on_agent_failure():
+    # Set container weight on midolman1 and midolman3 to 0 such that containers
+    # are scheduled on midolman2
+    midonet_api = VTM._midonet_api
+
+    midolman1 = service.get_container_by_hostname('midolman1')
+    host1 = midonet_api.get_host(midolman1.get_midonet_host_id())
+    host1.container_weight(0).update()
+
+    midolman2 = service.get_container_by_hostname('midolman2')
+    host2 = midonet_api.get_host(midolman2.get_midonet_host_id())
+    host2.container_weight(1).update()
+
+    midolman3 = service.get_container_by_hostname('midolman3')
+    host3 = midonet_api.get_host(midolman3.get_midonet_host_id())
+    host3.container_weight(0).update()
+
+    # Schedule resetting it to 1 after test
+    BM.addCleanup(host1.container_weight(1).update)
+    BM.addCleanup(host2.container_weight(1).update)
+    BM.addCleanup(host3.container_weight(1).update)
+
+    left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
+    right_router, right_peer_address, right_subnet = VTM.get_site_data('right')
+    up_router, up_peer_address, up_subnet = VTM.get_site_data('up')
+    left_tenant, right_tenant, up_tenant = \
+        BM.get_binding_data()['config']['tenants']
+
+    left_vpn = VTM.add_vpn_service('left', 'left_vpn', left_tenant, left_router,
+                                   left_subnet)
+    right_vpn = VTM.add_vpn_service('right','right_vpn', right_tenant, right_router,
+                                    right_subnet)
+
+    VTM.add_ipsec_site_connection(
+            'left', 'left_to_right', left_tenant, right_peer_address,
+            vpn=left_vpn, peer_cidrs=[right_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'left', 'left_to_up', left_tenant, up_peer_address,
+            vpn=left_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
+
+    # Wait for container status to be RUNNING
+    time.sleep(5)
+
+    VTM.add_ipsec_site_connection(
+            'right', 'right_to_left', right_tenant, left_peer_address,
+            vpn=right_vpn, peer_cidrs=[left_subnet['subnet']['cidr']])
+    VTM.add_ipsec_site_connection(
+            'right', 'right_to_up', right_tenant, up_peer_address,
+            vpn=right_vpn, peer_cidrs=[up_subnet['subnet']['cidr']])
+
+    # Kill the agent
+    pid = midolman2.exec_command("pidof /usr/lib/jvm/java-8-openjdk-amd64/bin/java")
+    midolman2.exec_command("kill -9 %s" % pid)
+    midolman2.wait_for_status('up')
+
+    # Wait for the agent to be started
+    time.sleep(30)
+
+    # The containers are scheduled on midolman2
+    containers = midonet_api.get_service_containers()
+    for container in containers:
+        assert_that(container.get_host_id(), equal_to(host2.get_id()), "")
+        assert_that(container.get_status(), equal_to("RUNNING"), "")
+
+    # Ping from left to right and viceversa
+    ping('port_left', 'port_right')
+    ping('port_right', 'port_left')
