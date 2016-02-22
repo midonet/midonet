@@ -30,10 +30,12 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.AbstractService
 import org.apache.curator.framework.state.ConnectionState
 import org.apache.curator.framework.state.ConnectionState.{CONNECTED, RECONNECTED}
+import org.apache.zookeeper.KeeperException
 import org.reflections.Reflections
 import rx.schedulers.Schedulers
 import rx.{Observable, Subscriber, Subscription}
 
+import org.midonet.cluster.data.storage.UnmodifiableStateException
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus => BackendStatus}
 import org.midonet.cluster.models.Topology.{Host, ServiceContainer}
@@ -449,6 +451,10 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             vt.stateStore.addValue(classOf[ServiceContainer], cp.containerId,
                                    StatusKey, status.toString).await()
         } catch {
+            case t: UnmodifiableStateException
+                if t.result == KeeperException.Code.NONODE.intValue() =>
+                log info s"Failed to write status ${status.getStatusCode} " +
+                         s"for container $cp: container deleted"
             case NonFatal(t) =>
                 log.error(s"Failed to write status ${status.getStatusCode} " +
                           s"for container $cp", t)
@@ -461,6 +467,10 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             vt.stateStore.removeValue(classOf[ServiceContainer], cp.containerId,
                                       StatusKey, null).await()
         } catch {
+            case t: UnmodifiableStateException
+                if t.result == KeeperException.Code.NONODE.intValue() =>
+                log info s"Failed to clear status for container $cp: " +
+                         s"container deleted"
             case NonFatal(t) =>
                 log.warn(s"Failed to clear status for container $cp", t)
         }
