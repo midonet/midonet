@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_653a2638",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-22T15:25:42Z",
+      "side": 1,
+      "message": "This is a dupe of code on L685. I\u0027d break it out into a object method so that both places are guaranteed to get the same path.",
+      "revId": "f5fdcab7be105eda1e16585ca3642d45c2c621f4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
