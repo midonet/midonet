@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a75e904_86dacae7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-22T02:06:31Z",
+      "side": 1,
+      "message": "Could you also update neutron_translation.md with your changes?",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_465a9284",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-22T02:06:31Z",
+      "side": 1,
+      "message": "Include your email address if you want to add this line (Michael Micucci \u003cmicucci@midokura.com\u003e)",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_665f8e73",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-22T02:06:31Z",
+      "side": 1,
+      "message": "Won\u0027t -1 for this, but we should try to avoid including unrelated changes.  If you are going to re-submit, please remove.",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_8653aa6b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-22T02:06:31Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_a650a65f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-22T02:06:31Z",
+      "side": 1,
+      "message": "Move this up before new OperationalListBuffer to avoid unnecessary object creation.",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_c64da2c6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-22T02:06:31Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_e6e1be9b",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-22T02:06:31Z",
+      "side": 1,
+      "message": "This could be more useful if you also check that gateway route is removed.  So instead of gwRouteCheck, how about something like gwRouteExists and verify that there is no route when set to false.",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_06c7ba13",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-22T02:06:31Z",
+      "side": 1,
+      "message": "Was this change necessary?",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_e64a9eab",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-22T02:06:31Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
