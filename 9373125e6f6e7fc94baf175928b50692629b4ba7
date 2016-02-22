@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a75e904_29cc8935",
+        "filename": "python-midonetclient/setup.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2016-02-22T10:59:50Z",
+      "side": 1,
+      "message": "My concern using always \u0027dev0\u0027 is whether the neutron plugin developer\u0027s environment will update if there is a new version of the midonetclient code.\n\nthe number after the \u0027dev\u0027 use to be the number of commits since last tag. We can extract it with:\n\n    git describe | awk \u0027{split($0,a,\"-\"); print a[2]}\u0027\n\nDo you think this call can be added in this function? (Ugly, but more \u0027correct\u0027 from PEP440 POV)",
+      "revId": "9373125e6f6e7fc94baf175928b50692629b4ba7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
