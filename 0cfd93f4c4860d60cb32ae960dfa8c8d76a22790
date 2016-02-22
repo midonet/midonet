@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba7be1f8_57d156cc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:14:54Z",
+      "side": 1,
+      "message": "With UTF-8, some characters can be 4 bytes long, will 2 bytes be enough?",
+      "range": {
+        "startLine": 70,
+        "startChar": 29,
+        "endLine": 70,
+        "endChar": 65
+      },
+      "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_29948936",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:14:54Z",
+      "side": 1,
+      "message": "false /* endOfInput */",
+      "range": {
+        "startLine": 131,
+        "startChar": 71,
+        "endLine": 131,
+        "endChar": 76
+      },
+      "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_699e8158",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:14:54Z",
+      "side": 1,
+      "message": "remove \u0027name and\u0027 ?",
+      "range": {
+        "startLine": 144,
+        "startChar": 73,
+        "endLine": 145,
+        "endChar": 57
+      },
+      "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_89a2dd98",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:14:54Z",
+      "side": 1,
+      "message": "Invalid",
+      "range": {
+        "startLine": 212,
+        "startChar": 39,
+        "endLine": 212,
+        "endChar": 46
+      },
+      "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_c9acd58f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:14:54Z",
+      "side": 1,
+      "message": "Invalid?",
+      "range": {
+        "startLine": 219,
+        "startChar": 43,
+        "endLine": 219,
+        "endChar": 50
+      },
+      "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_c9c3f536",
+        "filename": "midolman/src/test/scala/org/midonet/containers/ContainerLoggerTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:14:54Z",
+      "side": 1,
+      "message": "This seems redundant with the test that contains \"TY|PE\" as the config string.",
+      "range": {
+        "startLine": 217,
+        "startChar": 5,
+        "endLine": 217,
+        "endChar": 70
+      },
+      "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
