@@ -34,6 +34,24 @@
       "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_a9915954",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T09:51:30Z",
+      "side": 0,
+      "message": "I follow the reasoning for remove the observeOn but not for removing the back pressure buffer.",
+      "parentUuid": "ba7be1f8_77bbba72",
+      "revId": "0cfd93f4c4860d60cb32ae960dfa8c8d76a22790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
