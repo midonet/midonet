@@ -153,6 +153,30 @@
       "revId": "798d174ac34e1cef0775789d2e27c54696bb4d99",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_4999c56d",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-22T11:03:34Z",
+      "side": 1,
+      "message": "Okay, after discussing f2f, I agree it\u0027s better to remove this. So for now, we\u0027re deriving the configuration from the port name.",
+      "parentUuid": "7a75e904_092c2d4a",
+      "range": {
+        "startLine": 750,
+        "startChar": 31,
+        "endLine": 750,
+        "endChar": 47
+      },
+      "revId": "798d174ac34e1cef0775789d2e27c54696bb4d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
