@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a75e904_49e8e57c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/TableRecycler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-22T11:13:40Z",
+      "side": 1,
+      "message": "So maybe this is not clear now, since Galo suggested to move this into different files, but the workflow here is:\n\n  validate(onCallback {\n    if (OK) {\n      delete(onCallback {\n         if (OK) {\n            increment deletedTables\n         } else {\n            increment failedTables\n         }\n      })\n    } else {\n       increment failedTables\n    }\n  })",
+      "parentUuid": "7a75e904_e94a71ab",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 57
+      },
+      "revId": "2d501118659fa121332976f8bf891646cbabbbde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a75e904_896c9d38",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/TableValidator.scala",
         "patchSetId": 1
@@ -59,6 +83,24 @@
       "writtenOn": "2016-02-22T10:56:53Z",
       "side": 1,
       "message": "increment deletedTables upon success.",
+      "revId": "2d501118659fa121332976f8bf891646cbabbbde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_69eda18b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/TableValidator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-22T11:13:40Z",
+      "side": 1,
+      "message": "See comment in TableRecycler + if we are successful in validating the table (no zk error), but it doesn\u0027t meet the validation requirements (i.e. new table), we don\u0027t delete it: hence we don\u0027t increment deletedTables.",
+      "parentUuid": "7a75e904_c94db5c6",
       "revId": "2d501118659fa121332976f8bf891646cbabbbde",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
