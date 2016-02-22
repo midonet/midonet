@@ -129,6 +129,30 @@
       "revId": "798d174ac34e1cef0775789d2e27c54696bb4d99",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_092c2d4a",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-22T09:29:13Z",
+      "side": 1,
+      "message": "Since the filepath is generated from the interface name, why not get rid of the parsing completely? String parsing anywhere other than in user interface code is nasty. We should avoid it.",
+      "parentUuid": "ba7be1f8_c833eff4",
+      "range": {
+        "startLine": 750,
+        "startChar": 31,
+        "endLine": 750,
+        "endChar": 47
+      },
+      "revId": "798d174ac34e1cef0775789d2e27c54696bb4d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
