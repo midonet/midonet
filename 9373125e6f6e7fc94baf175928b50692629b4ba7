@@ -16,6 +16,24 @@
       "revId": "9373125e6f6e7fc94baf175928b50692629b4ba7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_e9e1919b",
+        "filename": "python-midonetclient/setup.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-22T11:04:56Z",
+      "side": 1,
+      "message": "it\u0027ll only put dev there if there\u0027s a -SNAPSHOT in the version in gradle. For released versions, that won\u0027t be there, so, for example, 5.1.0 in gradle will convert to 5.1.0 for the python client.",
+      "parentUuid": "7a75e904_29cc8935",
+      "revId": "9373125e6f6e7fc94baf175928b50692629b4ba7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
