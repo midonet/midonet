@@ -8,6 +8,7 @@ pushd tests/mdts/tests/functional_tests
     -t test_vpnaas.py:test_container_migration \
     -t test_vpnaas.py:test_container_restored_on_agent_restart \
     -t test_vpnaas.py:test_container_maintained_on_cluster_restart \
+    -t test_vpnaas.py:test_container_restored_on_agent_failure \
     -t test_bgp.py:test_multisession_icmp_with_redundancy \
     -t test_bgp.py:test_multisession_icmp_failback \
     -t test_bgp.py:test_snat \
