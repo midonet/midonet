@@ -34,6 +34,24 @@
       "revId": "1f7523f9e2ba4feeaf9a52d30df43719150fe3b4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_0574129b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1183,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-22T13:23:23Z",
+      "side": 1,
+      "message": "I redesigned the logger now, following input from Ivan: we\u0027re no longer using a log file, but rather a log directory, with each existing container having a file in that directory. This is to prevent the log file increasing to a very large size.",
+      "parentUuid": "ba7be1f8_77b01af5",
+      "revId": "1f7523f9e2ba4feeaf9a52d30df43719150fe3b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
