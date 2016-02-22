@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "7a75e904_06bc1a6c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-02-22T07:48:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a75e904_665f8e73",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a75e904_8653aa6b",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 2
@@ -64,6 +82,24 @@
       "writtenOn": "2016-02-22T02:06:31Z",
       "side": 1,
       "message": "ditto",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_064a5a83",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-02-22T07:48:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a75e904_8653aa6b",
       "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +123,24 @@
     },
     {
       "key": {
+        "uuid": "7a75e904_e67d3eb3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-02-22T07:48:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a75e904_a650a65f",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a75e904_c64da2c6",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 2
@@ -98,6 +152,24 @@
       "writtenOn": "2016-02-22T02:06:31Z",
       "side": 1,
       "message": "ditto",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_c680428e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-02-22T07:48:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a75e904_c64da2c6",
       "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -132,6 +204,24 @@
       "writtenOn": "2016-02-22T02:06:31Z",
       "side": 1,
       "message": "Was this change necessary?",
+      "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_c605a215",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-02-22T07:48:07Z",
+      "side": 1,
+      "message": "Yes.  I needed the \"Route\" object to use below.",
+      "parentUuid": "7a75e904_06c7ba13",
       "revId": "59d47652d8b962969cc5e38829864b4b2b68c4e9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
