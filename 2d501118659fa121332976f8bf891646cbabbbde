@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a75e904_e94a71ab",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/TableRecycler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:56:53Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be only performed in the table validator?",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 57
+      },
+      "revId": "2d501118659fa121332976f8bf891646cbabbbde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_896c9d38",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/TableValidator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:56:53Z",
+      "side": 1,
+      "message": "tables?",
+      "range": {
+        "startLine": 61,
+        "startChar": 36,
+        "endLine": 61,
+        "endChar": 43
+      },
+      "revId": "2d501118659fa121332976f8bf891646cbabbbde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_c94db5c6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/TableValidator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:56:53Z",
+      "side": 1,
+      "message": "increment deletedTables upon success.",
+      "revId": "2d501118659fa121332976f8bf891646cbabbbde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_0960ad34",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/recycler/RecyclerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 535,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:56:53Z",
+      "side": 1,
+      "message": "table?",
+      "range": {
+        "startLine": 535,
+        "startChar": 28,
+        "endLine": 535,
+        "endChar": 33
+      },
+      "revId": "2d501118659fa121332976f8bf891646cbabbbde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_495aa584",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/recycler/RecyclerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 540,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:56:53Z",
+      "side": 1,
+      "message": "Table",
+      "range": {
+        "startLine": 540,
+        "startChar": 18,
+        "endLine": 540,
+        "endChar": 23
+      },
+      "revId": "2d501118659fa121332976f8bf891646cbabbbde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_695f6173",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/recycler/RecyclerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 544,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:56:53Z",
+      "side": 1,
+      "message": "table",
+      "range": {
+        "startLine": 544,
+        "startChar": 38,
+        "endLine": 544,
+        "endChar": 43
+      },
+      "revId": "2d501118659fa121332976f8bf891646cbabbbde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_29656945",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/recycler/RecyclerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-22T10:56:53Z",
+      "side": 1,
+      "message": "table",
+      "range": {
+        "startLine": 571,
+        "startChar": 28,
+        "endLine": 571,
+        "endChar": 33
+      },
+      "revId": "2d501118659fa121332976f8bf891646cbabbbde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
