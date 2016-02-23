@@ -27,10 +27,19 @@ physical_topology:
               id: 1
               ifname: null
               type: "netns"
-              ipv4_addr: [10.0.2.88/24]
-              ipv4_gw: 10.0.2.1
+              ipv4_addr: [10.0.1.10/24]
+              ipv4_gw: 10.0.1.254
               ipv6_addr: []
               hw_addr: aa:bb:cc:00:01:01
+              mtu: 1500
+          - interface:
+              id: 2
+              ifname: null
+              type: "netns"
+              ipv4_addr: [10.0.1.11/24]
+              ipv4_gw: 10.0.1.254
+              ipv6_addr: []
+              hw_addr: aa:bb:cc:00:01:02
               mtu: 1500
     - host:
         id: 2
@@ -45,10 +54,19 @@ physical_topology:
               id: 1
               ifname: null
               type: "netns"
-              ipv4_addr: [10.0.2.89/24]
-              ipv4_gw: 10.0.2.1
+              ipv4_addr: [10.0.1.20/24]
+              ipv4_gw: 10.0.1.254
               ipv6_addr: []
-              hw_addr: aa:bb:cc:00:01:02
+              hw_addr: aa:bb:cc:00:02:01
+              mtu: 1500
+          - interface:
+              id: 2
+              ifname: null
+              type: "netns"
+              ipv4_addr: [10.0.2.20/24]
+              ipv4_gw: 10.0.2.254
+              ipv6_addr: []
+              hw_addr: aa:bb:cc:00:02:02
               mtu: 1500
     - host:
         id: 3
@@ -63,8 +81,17 @@ physical_topology:
               id: 1
               ifname: null
               type: "netns"
-              ipv4_addr: [10.0.2.90/24]
-              ipv4_gw: 10.0.2.1
+              ipv4_addr: [10.0.1.30/24]
+              ipv4_gw: 10.0.1.254
               ipv6_addr: []
-              hw_addr: aa:bb:cc:00:01:03
+              hw_addr: aa:bb:cc:00:03:01
+              mtu: 1500
+          - interface:
+              id: 2
+              ifname: null
+              type: "netns"
+              ipv4_addr: [10.0.2.30/24]
+              ipv4_gw: 10.0.2.254
+              ipv6_addr: []
+              hw_addr: aa:bb:cc:00:03:02
               mtu: 1500

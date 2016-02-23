@@ -99,10 +99,10 @@ physical_topology:
               id: 8
               ifname: null
               type: "netns"
-              ipv4_addr: [10.0.3.2/24]
-              ipv4_gw: 10.0.3.254
+              ipv4_addr: [10.0.2.4/24]
+              ipv4_gw: 10.0.2.254
               ipv6_addr: []
-              hw_addr: aa:bb:cc:00:03:02
+              hw_addr: aa:bb:cc:00:02:04
               mtu: 1500
 
     - host:
@@ -131,15 +131,6 @@ physical_topology:
               ipv4_gw: 10.0.2.254
               ipv6_addr: []
               hw_addr: aa:bb:cc:00:02:02
-              mtu: 1500
-          - interface:
-              id: 3
-              ifname: null
-              type: "netns"
-              ipv4_addr: [10.0.3.2/24]
-              ipv4_gw: 10.0.3.254
-              ipv6_addr: []
-              hw_addr: aa:bb:cc:00:03:02
               mtu: 1500
 
     - host:

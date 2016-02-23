@@ -64,6 +64,9 @@ class LoadBalancer(ResourceBase, AdminStateUpMixin):
     def get_router(self):
         return self._router
 
+    def get_pools(self):
+        return self._pools
+
     def router(self, router):
         """
         @type router Router

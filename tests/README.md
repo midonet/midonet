@@ -1,16 +1,19 @@
 MDTS - MidoNet Distributed Testing System
 =========================================
 
-MDTS provides the testing framework for MidoNet.
+MDTS provides the testing framework for [MidoNet](https://github.com/midonet/midonet).
 
-MidoNet can be found at http://github.com/midonet/midonet
-
-It will exercise MidoNet system using contained namespaces to
-simulate multiple hosts, including multiple MidoNet Agents, multiple
-Zookeeper and Cassandra instances, routers, Virtual LANs, and an
-OpenStack network host.  It will then run tests using python testing
-frameworks to inject traffic into the simulated network while
-simultaneously checking state and end-to-end transmission.
+It will exercise MidoNet system using [Midonet Sandbox](https://github.com/midokura/midonet-sandbox)
+(docker containers management framework) to simulate multiple hosts, including
+Neutron, multiple MidoNet Agents, multiple Zookeeper and Cassandra instances 
+and Quagga servers. 
+On top of this simulated physical topology, we can generate whatever
+virtual topology we need to test using both the Neutron API models (networks,
+subnets, ports, security groups, etc.) or the internal Midonet API counterparts
+(bridges, routers, ports, chains, etc.)
+It will then run a suite of tests using python testing frameworks to inject
+traffic into the simulated network while simultaneously checking state and
+end-to-end transmission.
 
 Minumum recommended environment
 -------------------------------
@@ -22,7 +25,11 @@ Minumum recommended environment
 Prerequisites and MDTS package dependencies
 -------------------------------------------
 
-They can be installed automatically using the following script.
+They can be installed automatically using the following script (only need
+to run once).
+Most run-time dependencies are now handled inside the docker containers so the
+software requirements for the host are basically related to compile-time
+dependencies (e.g. protobufs).
 
 ```
 midonet/tests$ ./setup_test_server
@@ -31,31 +38,65 @@ midonet/tests$ ./setup_test_server
 If manual installation is needed, please refer to this script for a
 comprehensive list of all the required packages.
 
-Running MMM
------------
+You also need the python-neutronclient and the python-midonetclient installed 
+on your host so MDTS can access both API servers (Neutron or Midonet) through
+the python API. However, as this package is part of the Midonet packages, 
+you need to install it once you compile/generate the packages.
 
-To run MDTS, first start the MMM (Multiple MidolMan) subsystem. MMM depends on
-the MidoNet packages. If they're needed to be installed manually, please build
-and install them as follow:
+Running Sandbox
+---------------
 
-```
-midonet$ git submodule update --init --recursive
-midonet$ ./gradlew clean
-midonet$ ./gradlew -x test debian
-midonet$ find . -name "*.deb"
-./midonet-api/build/packages/midonet-api_2015.05~201506030403.f4646d4_all.deb
-./midolman/build/packages/midolman_2015.05~201506030403.f4646d4_all.deb
-./python-midonetclient/python-midonetclient_2015.05~201506030403.f4646d4_all.deb
-./cluster/midonet-cluster/build/packages/midonet-cluster_2015.05~201506030403.f4646d4_all.deb
-midonet$ find . -name "*.deb" | xargs sudo dpkg -i
-```
-
-Then run the following scripts that will spawn a container-based cluster.
+To run MDTS, first start the Midonet Sandbox subsystem. Midonet Sandbox depends
+on the MidoNet packages. If they're needed to be installed manually,
+please build them as follows from the midonet root tree:
 
 ```
-midonet/tests$ cd mmm
-midonet/tests/mmm$ ./init
-midonet/tests/mmm$ ./boot
+git submodule update --init --recursive
+./gradlew clean
+./gradlew -x test debian
+find . -name "*.deb"
+./midonet-api/build/packages/midonet-api_1.9.8~rc0-1_all.deb
+./midolman/build/packages/midolman_1.9.8~rc0-1_all.deb
+./python-midonetclient/python-midonetclient_1.9.8~rc0-1_all.deb
+```
+
+Install the python-midonetclient on the host:
+```
+sudo dpkg -i ./python-midonetclient/python-midonetclient_1.9.8~rc0-1_all.deb
+```
+
+Midonet Sandbox already use a predefined set of docker images to ease the task
+of spawning different Midonet components. To start using sandbox and build the
+initial set of images, you need to:
+
+```
+sudo pip install git+https://github.com/midonet/midonet-sandbox.git
+sudo sandbox-manage -c sandbox.conf build-all default_v1.9 && popd
+```
+
+Wait until all images have been generated. The default_v1.9 is a basic MDTS
+flavour for sandbox. Look into the sandbox/flavours directory for a list of the
+supported flavours. For more information about how to use sandbox, components,
+flavors and overrides, check its [source repo](https://github.com/midokura/midonet-sandbox)
+or execute `sandbox-manage --help`.
+
+Copy all packages inside the corresponding override so Sandbox knows which
+packages to install:
+```
+cp midolman/build/packages/midolman*deb tests/sandbox/override_v1/midolman
+cp python-midonetclient/python-midonetclient*deb tests/sandbox/override_v1/midonet-api
+cp midonet-api/build/packages/midonet-cluster*deb tests/sandbox/override_v1/midonet-api
+```
+
+And start sandbox with a specific flavor, override and provisioning scripts:
+```
+pushd tests
+sudo sandbox-manage -c sandbox.conf run default_v1.9 --name=mdts --override=sandbox/override_v1 --provision=sandbox/provisioning/all-provisioning.sh
+```
+
+To completely remove all containers to restart sandbox:
+```
+sudo sandbox-manage -c sandbox.conf stop-all --remove
 ```
 
 Running functional tests
@@ -64,10 +105,10 @@ Running functional tests
 You're now set to run MDTS tests:
 
 ```
-midonet/tests/mmm$ cd ../mdts/tests/functional_tests
-midonet/tests/mdts/tests/functional_tests$ ./run_tests.sh -r ../../../
+pushd tests/mdts/tests/functional_tests
+./run_tests.sh
 ```
 
 Refer to documentation in [`run_tests.sh`][run_tests] for further information.
 
-[run_tests]: tests/mdts/tests/functional_tests/run_tests.sh
+[run_tests]: mdts/tests/functional_tests/run_tests.sh

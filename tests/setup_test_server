@@ -1,143 +1,51 @@
 #!/bin/bash -xe
 
-ROOT=`pwd`
-
-# Install GIT as a base pre-requisite
-sudo apt-get install -y git
-
-# Install Python 2.7 as a base pre-requisite
-sudo apt-get install -y python2.7
-
-# Install CURL as a base pre-requisite
-sudo apt-get install -y curl
-
-# add apt source for cassandra
-sudo bash -c "echo deb http://debian.datastax.com/community stable main > /etc/apt/sources.list.d/cassandra.sources.list"
-curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
-
-# TODO: This is an internal, private dependency which won't work
-#   for public consumption!!
-# Add MC repo for zkdump
-ZKDUMP_SERVER="repo.midonet.org/misc"
-# CURL URI to use to fetch the GPG key for artifactory
-ZKDUMP_CURL_URI="http://repo.midonet.org/packages.midokura.key"
-
-sudo bash -c "echo deb [arch=amd64] http://$ZKDUMP_SERVER stable main > /etc/apt/sources.list.d/midokura-3rdparty.list"
-curl -k $ZKDUMP_CURL_URI | sudo apt-key add -
-
 # update apt
 sudo apt-get update
 
-# git, wget, and curl
-sudo apt-get install -y git wget curl
+# Install GIT as a base pre-requisite
+sudo apt-get install -qy git curl
+
+# Install Python 2.7 as a base pre-requisite
+sudo apt-get install -qy python2.7
 
 # Install all the basic tools needed for any building and/or testing
 # G++
-sudo apt-get install -y g++
+sudo apt-get install -qy g++
 
 # brctl, iptables
-sudo apt-get install --no-install-recommends -y bridge-utils iptables
+sudo apt-get install --no-install-recommends -y bridge-utils vlan
 
-# haproxy and quagga
-sudo apt-get install -y haproxy quagga
-sudo apt-get install -y software-properties-common
-
-# curl, screen, tmux, java
-sudo apt-get install -y screen tmux libncurses5-dev openjdk-7-jdk
-
-# use java7 by default for mm-dpctl
-sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
-
-# python and ruby
-sudo apt-get install --no-install-recommends -y debhelper autotools-dev python-unittest2 python-all-dev ruby-ronn
-sudo apt-get install -y ruby1.9.1-dev ruby1.9.1-full rpm && sudo gem install fpm
-
-# zookeeper
-sudo apt-get install -y zookeeper zookeeperd
-if [ $(lsb_release  -cs) != "trusty" ] ; then
-    sudo sed -i 's/\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/zookeeper/zookeeper-env.sh
-fi
-
-sudo service zookeeper stop && true
-sudo update-rc.d zookeeper defaults
-
-# Install zookeeper tools
-sudo apt-get install -y zkdump
+# python and ruby for generating packages
+sudo apt-get install --no-install-recommends -qy debhelper autotools-dev python-unittest2 python-all-dev ruby-ronn
+sudo apt-get install -qy ruby1.9.1-dev ruby1.9.1-full rpm && sudo gem install fpm
 
 # protobufs
-cd $ROOT/..
-rm -rf build-protoc
-mkdir -p build-protoc
-cd build-protoc
-wget https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
-tar xvfz protobuf-2.6.1.tar.gz
-cd protobuf-2.6.1
-./configure ; make
-sudo make install
-cd $ROOT
-
-# Bring in newer version of iproute, which fixes "Cannot remove <namespace>: Device or resource busy":
-# https://bugs.launchpad.net/ubuntu/+source/iproute/+bug/1238981
-sudo apt-get install iproute -y
-
-# add cloud archive for icehouse
-sudo apt-get install python-software-properties -y
-
-if [ $(lsb_release  -cs) == "trusty" ] ; then
-    sudo add-apt-repository cloud-archive:juno -y
+if protoc --version | grep 2.6.1 > /dev/null
+then
+    echo "Protobufs 2.6.1 already installed"
 else
-    sudo add-apt-repository cloud-archive:icehouse -y
+    pushd ../
+    rm -rf build-protoc
+    mkdir -p build-protoc
+    cd build-protoc
+    wget https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
+    tar xvfz protobuf-2.6.1.tar.gz
+    cd protobuf-2.6.1
+    ./configure && make
+    sudo make install
+    popd
 fi
-
-# Install cassandra
-sudo apt-get -o Dpkg::Options::=--force-confnew -y install dsc20=2.0.10-1 cassandra=2.0.10
-sudo apt-mark hold dsc20 cassandra
-
-sudo bash -c "echo $(hostname|sed 's/ip-//;s/-/./g') $(hostname -f) $(hostname) >>/etc/hosts"
-
-sudo update-rc.d cassandra enable
-CASSANDRA_CONF_FILE='/etc/cassandra/cassandra.yaml'
-sudo sed -i -e "s/^cluster_name:.*$/cluster_name: \'midonet\'/g" $CASSANDRA_CONF_FILE
-
-CASSANDRA_ENV_FILE='/etc/cassandra/cassandra-env.sh'
-sudo sed -i 's/#\(MAX_HEAP_SIZE=\).*$/\1128M/' $CASSANDRA_ENV_FILE
-sudo sed -i 's/#\(HEAP_NEWSIZE=\).*$/\164M/' $CASSANDRA_ENV_FILE
-
-# Install ovs kmod
-if [ $(lsb_release  -cs) == "trusty" ] ; then
-    : # Trusy kernel is new enough that it has kmod in kernel package
-else
-    sudo  apt-get install -y openvswitch-datapath-dkms=1.10.2-0ubuntu2~cloud0
-fi
-
-# Install tomcat and python web tools
-sudo apt-get install -y tomcat7
-sudo apt-get install -y python-httplib2
-sudo apt-get install --no-install-recommends -y python-webob python-eventlet
-
-sudo service tomcat7 stop && true
-sudo sed -i 's/#\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/default/tomcat7
-sudo update-rc.d tomcat7 enable
-
-# dmasq
-sudo apt-get install -y dnsmasq-base
-
-# force through any uninstalled packages
-sudo apt-get install -f -y
 
 # Install dependencies for MDTS
-sudo apt-get install -y python-setuptools
-sudo apt-get install -y python-pip
-sudo apt-get install -y python-numpy
-sudo apt-get install -y mz
-sudo apt-get install -y libyaml-dev libpython-dev
+sudo apt-get install -qy python-pip python-setuptools
+sudo pip install -r mdts.dependencies
 
-# Install Python dependencies
-sudo pip install -r ./python.dependencies
+# Update Docker to the latest version
+wget -qO- https://get.docker.com/gpg | sudo apt-key add -
+wget -qO- https://get.docker.com/ | sh
 
-# Docker
-# Install extra tools to work around https://github.com/docker/docker/issues/4036
-sudo apt-get install -y linux-image-extra-$(uname -r)
-curl -sSL https://get.docker.com/ubuntu/ | sudo sh
-
-echo $SECONDS
+# For sandbox and mdts to work, you need to load some kernel modules
+# They can be placed in /etc/modules to make sure they're loaded at boot time
+sudo modprobe 8021q
+sudo modprobe openvswitch

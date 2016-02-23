@@ -15,30 +15,29 @@
 """
 Utility functions for functional tests.
 """
-
-from hamcrest import assert_that
-from hamcrest import is_
-from hamcrest import less_than
-
-from midonetclient.api import MidonetApi
-
-from mdts.lib.tenants import list_tenants
-from mdts.tests.config import IP_ZOOKEEPER_HOSTS
-from mdts.tests.config import MIDONET_API_URL
-
+from copy import deepcopy
 from functools import wraps
 import inspect
 import logging
+from nose import with_setup
 import os
 import subprocess
 import time
 import tempfile
 
-from mdts.lib import subprocess_compat
+from hamcrest import assert_that
+from hamcrest import is_
+from hamcrest import less_than
 
-FORMAT = '%(asctime)-15s %(module)s#%(funcName)s(%(lineno)d) %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+from mdts.lib.tenants import list_tenants
+from mdts.services import service
+from mdts.lib import subprocess_compat
+from mdts.lib.mdts_exception import TestSetupException
+from mdts.lib.mdts_exception import TestTeardownException
+from mdts.tests.utils.conf import is_vxlan_enabled
+
 LOG = logging.getLogger(__name__)
+
 
 def wait_on_futures(futures):
     """ Takes a list of futures and wait on their results. """
@@ -46,7 +45,10 @@ def wait_on_futures(futures):
 
 
 def get_midonet_api():
-    return MidonetApi(MIDONET_API_URL, 'admin','*')
+    """
+    :rtype: midonetclient.api.MidonetApi
+    """
+    return service.get_container_by_hostname('api').get_midonet_api()
 
 #
 # ``failures'' introduces another decorator @failures which can be used to
@@ -107,8 +109,9 @@ def failures(*args):
                 try:
                     if failure.is_resilient():
                         for g in f():
-                            test_wrapped.__name__ = f.__name__ + \
-                                ' (with_failure %s)' % failure.__name__
+                            test_wrapped.__name__ = "%s (with failure %s)" % (
+                                f.__name__, failure.__name__
+                            )
                             yield g
                 finally:
                     failure.eject()
@@ -120,23 +123,115 @@ def failures(*args):
         return test_wrapped
     return test_method_wrapper
 
+def update_with_setup(func, setup, teardown):
+    """
+    In case a test function defined setup and teardown methods with the
+    with_setup decorator, we need to keep those functions and apply them
+    after the new setup and teardown functions.
+    Nose details (look if it can be implemented in a better way):
+      - Avoid executing setup two times when using func generators
+        First for the inner test, and another one for the outer one
+      - Look if it'd possible to use the with_setup method with a wrapped method
+
+    :param func:
+    :param setup:
+    :param teardown:
+    :return:
+    """
+    if setup:
+        if hasattr(func, 'setup'):
+            _old_s = func.setup
+
+            def _s():
+                try:
+                    if not func.setup_executed:
+                        func.setup_executed = True
+                        func.teardown_executed = False
+                        setup()
+                        _old_s()
+                except:
+                    # Finish unbinding and cleaning topology
+                    func.setup_executed = False
+                    func.teardown_executed = True
+                    teardown()
+                    raise
+
+            func.setup = _s
+        else:
+            def _s():
+                try:
+                    if not func.setup_executed:
+                        func.setup_executed = True
+                        func.teardown_executed = False
+                        setup()
+                except:
+                    # Finish unbinding and cleaning topology
+                    func.setup_executed = False
+                    func.teardown_executed = True
+                    teardown()
+                    raise
+            func.setup = _s
+
+    if teardown:
+        if hasattr(func, 'teardown'):
+            _old_t = func.teardown
+
+            def _t():
+                if not func.teardown_executed:
+                    func.setup_executed = False
+                    func.teardown_executed = True
+                    try:
+                        _old_t()
+                    except:
+                        # Finish unbinding and cleaning topology
+                        teardown()
+                        raise
+                    else:
+                        teardown()
+
+            func.teardown = _t
+        else:
+            def _t():
+                if not func.teardown_executed:
+                    func.setup_executed = False
+                    func.teardown_executed = True
+                    teardown()
+            func.teardown = _t
+
+    return func
+
 # list -> (() -> ()) -> () -> generator (() -> ())
-def bindings(*args):
-    bindings = args
+def bindings(*args, **kwargs):
+
+    bindings_args = args
     # FRAME, FILE_NAME, LINE_NUM, FUNCTION_NAME, LINES, INDEX
     (frame, _, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
     test_mod = inspect.getmodule(frame)
-    BM = test_mod.BM
+    if 'binding_manager' in kwargs:
+        BM = kwargs['binding_manager']
+    else:
+        BM = test_mod.BM
 
     def test_method_wrapper(f):
+        f.setup_executed = False
+        f.teardown_executed = True
+
+        f_name = f.__name__
+        # We first bind and then apply the with_setup method if it
+        # was present. Teardown is done in reverse order.
+        update_with_setup(f, BM.bind, BM.unbind)
+
         def test_wrapped():
-            for b in bindings:
-                BM.bind(data=b)
-                time.sleep(1)
-                test_wrapped.__name__ = f.__name__ + ' (with_bindings %s)' \
-                                        % b.get('description')
+            for binding in bindings_args:
+                f.__name__ = "%s (with bindings %s)" % (
+                    f_name,
+                    binding.get('description'))
+                test_wrapped.__name__ = f.__name__
+                # We need to deepcopy here to prevent ourselves from
+                # modifying it, as the binding can be shared among tests
+                BM.set_binding_data(deepcopy(binding))
                 yield f,
-                BM.unbind()
+
         # copied from nose.tools.make_decorator to preserve metadata
         test_wrapped.__dict__ = f.__dict__
         test_wrapped.__module__ = f.__module__
@@ -168,23 +263,21 @@ def with_mn_conf(switch_flag, switch_id, config):
         @wraps(f)
         def wrapped(*args, **kwargs):
             # Execute mn-conf command with config string
-            print "Before mn-conf wrapped"
             execute_mn_conf(switch_flag, switch_id, config)
-            print "After mn-conf wrapped"
             return f
         return wrapped
     return decorated
 
 def execute_mn_conf(switch_flag, switch_id, config):
+    host = service.get_container_by_hostname("midolman1")
     conf_file = tempfile.NamedTemporaryFile()
-    for k,v in config.items():
+    for k, v in config.items():
         conf_file.write("%s=%s\n" % (k, v))
     conf_file.flush()
-    process = subprocess.Popen("mn-conf set %s %s < %s" % (switch_flag,
-                                                           switch_id,
-                                                           conf_file.name),
-                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
+    cmd = "mn-conf set %s %s < %s" % (switch_flag,
+                                      switch_id,
+                                      conf_file.name)
+    host.exec_command(cmd, stream=False)
     conf_file.close()
 
 def clear_virtual_topology_for_tenants(tenant_name_prefix):
@@ -279,77 +372,13 @@ def ipv4_int(ipv4_str):
         addr_int = addr_int * 256 + part_int
     return addr_int
 
-def get_top_dir():
-    """Returns the root dir of MDTS"""
-    topdir = os.path.realpath(os.path.dirname(__file__) + '../../../../')
-    return topdir
-
-def get_midolman_script_dir():
-    """Returns abs path to Midolman scripts directory"""
-    return get_top_dir() + '/mmm/scripts/midolman'
-
-
-def start_midolman_agents():
-    """Starts all Midolman agents."""
-    subprocess_compat.check_output(
-        'cd %s; ./start' % get_midolman_script_dir(), shell=True)
-
-
-def stop_midolman_agents():
-    """Stops all Midolman agents."""
-    subprocess_compat.check_output(
-        'cd %s; ./stop' % get_midolman_script_dir(), shell=True)
-
-
-def check_all_midolman_hosts(alive):
+def await_port_active(vport_id, active=True, timeout=120, sleep_period=5):
     midonet_api = get_midonet_api()
-    max_attempts = 20
-    counter = 0
-    sleep_time = 10
-    failed_midolman = None
-    for _ in range(max_attempts):
-        try:
-            for h in midonet_api.get_hosts():
-                assert_that(h.is_alive(), is_(alive),
-                            'A Midolman %s is alive.' % h.get_id())
-            LOG.debug("Midolman agents took %d attempts of %d s to be up." % (counter,
-                                                                              sleep_time))
-            break
-        except AssertionError:
-            failed_midolman = h.get_id()
-            time.sleep(sleep_time)
-            counter += 1
-    assert_that(counter, less_than(max_attempts),
-                'Timeout checking for Midolman %s liveness' % failed_midolman)
-
-def await_port_active(vport_id, active=True):
-    timeout = 60
-    midonet_api = get_midonet_api()
+    time.sleep(1) # Initial, hopeful, short sleep
     while midonet_api.get_port(vport_id).get_active() != active:
-        time.sleep(1)
-        timeout -= 1
-        if timeout == 0:
-            raise Exception("Port did not become {0}."
-                            .format("active" if active else "inactive"))
-
-def check_all_zookeeper_hosts(alive=True):
-    for zk_host in IP_ZOOKEEPER_HOSTS:
-        check_zookeeper_host(zk_host, alive)
-
-def check_zookeeper_host(zk_host, alive=True):
-    timeout = 120
-    sleep_period = 5
-    while True:
-        nc_cmd = "nc %s 2181" % zk_host
-        p1 = subprocess.Popen("echo stat".split(), stdout=subprocess.PIPE)
-        p2 = subprocess.Popen(nc_cmd.split(), stdin=p1.stdout, stdout=subprocess.PIPE)
-        stdout, stderr = p2.communicate()
-        LOG.debug("ZK_HOST %s stats. Should be alive(%s):\n%s\n" % (zk_host, alive, stdout))
-        if ('follower' in stdout or 'leader' in stdout) == alive:
-            return True
-        else:
-            time.sleep(sleep_period)
-            timeout -= sleep_period
-            if timeout <= 0:
-                raise Exception("Zookeeper host {0} alive."
-                                .format("IS NOT" if alive else "IS"))
+        time.sleep(sleep_period)
+        timeout -= sleep_period
+        if timeout <= 0:
+            raise Exception("Port {0} did not become {1}."
+                            .format(vport_id,
+                                    "active" if active else "inactive"))

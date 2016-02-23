@@ -109,7 +109,11 @@ class Router(ResourceBase):
     def clear_ports(self):
         """delete all ports on this router"""
         for key in self._ports:
-            self._ports[key].destroy()
+            try:
+                self._ports[key].destroy()
+            except:
+                # The port might have been deleted before
+                pass
         self._ports = {}
 
     def get_port(self, port_id):
@@ -127,7 +131,11 @@ class Router(ResourceBase):
     def clear_routes(self):
         """remove and destroy the routes on a router"""
         for key in self._routes:
-            self._routes[key].destroy()
+            try:
+                self._routes[key].destroy()
+            except:
+                # The route might have been deleted before in a test
+                pass
         self._routes = {}
 
     def add_route(self, route):
@@ -148,7 +156,11 @@ class Router(ResourceBase):
     def clear_routers(self):
         """remove and destroy the all routers below this router"""
         for key in self._routers:
-            self._routers[key].destroy()
+            try:
+                self._routers[key].destroy()
+            except:
+                # The router might have been remove before in a test
+                pass
         self._routers = {}
 
     def add_router(self, router):
@@ -163,7 +175,11 @@ class Router(ResourceBase):
     def clear_bridges(self):
         """remove and destroy all bridges connected to the"""
         for key in self._bridges:
-            self._bridges[key].destroy()
+            try:
+                self._bridges[key].destroy()
+            except:
+                # The bridge might have been removed before in a test
+                pass
         self._bridges = {}
 
     def add_bridge(self, bridge):
@@ -199,3 +215,5 @@ class Router(ResourceBase):
 
     def get_load_balancer(self):
         return self._load_balancer
+
+

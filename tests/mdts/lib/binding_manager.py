@@ -15,6 +15,7 @@
 from mdts.lib.topology_manager import TopologyManager
 from mdts.tests.utils.utils import await_port_active
 from mdts.tests.utils.utils import get_midonet_api
+from mdts.services import service
 
 import logging
 import sys
@@ -38,10 +39,18 @@ class BindingManager(TopologyManager):
         self._ptm = ptm
         self._vtm = vtm
         self._port_if_map = {}
+        self._host_id_map = {}
+        self._interfaces = []
 
-    def bind(self, filename=None, data=None):
+    def set_binding_data(self, data):
+        self._data = data
 
-        self._data = self._get_data(filename, data)
+    def get_binding_data(self):
+        return self._data
+
+    def bind(self, filename=None):
+        self._ptm.build()
+        self._vtm.build()
         # Get a new api ref to workaround previous zk failures
         self._api = get_midonet_api()
 
@@ -54,8 +63,6 @@ class BindingManager(TopologyManager):
             device_name = binding['device_name']
             port_id = binding['port_id']
 
-            self._port_if_map[(device_name, port_id)] = (host_id, iface_id)
-
             device_port = self._vtm.get_device_port(device_name, port_id)
             mn_vport = device_port._mn_resource
             if mn_vport.get_type() == 'InteriorRouter' or \
@@ -63,43 +70,66 @@ class BindingManager(TopologyManager):
                 LOG.error("Cannot bind interior port")
                 sys.exit(-1) # TODO: make this fancier
 
-            mn_vport_id = mn_vport.get_id()
-            iface = self._ptm.get_interface(host_id, iface_id)
-            iface.clear_arp(sync=True)
-            iface_name = iface.interface['ifname']
-            mn_host_id = iface.host['mn_host_id']
-            iface.vport_id = mn_vport_id
+            # FIXME: some hosts are specified by midonet host_id while others
+            # are referenced by hostname. Need a coherent mechanism
+            # Cleanup everything not related to bindings from here
+            if 'host_id' in binding:
+                host_id = binding['host_id']
+                # FIXME:
+                # Clean up yamls or remove them completely, this is so ugly
+                _host = filter(
+                    lambda x: x['host']['id'] == host_id,
+                    self._ptm._hosts)[0]['host']
+            elif 'hostname' in binding:
+                hostname = binding['hostname']
+                _host = filter(
+                    lambda x: x['host']['hostname'] == hostname,
+                    self._ptm._hosts)[0]['host']
+            else:
+                raise RuntimeError("Hosts in the binding should have a"
+                                   "host_id or a hostname property")
 
-            self._api.get_host(mn_host_id).add_host_interface_port()\
-                                       .port_id(mn_vport_id)\
-                                       .interface_name(iface_name).create()
+            _interface = filter(
+                lambda x: x['interface']['id'] == iface_id,
+                _host['interfaces']
+            )[0]['interface']
+
+            mn_vport_id = mn_vport.get_id()
+            host = service.get_container_by_hostname('midolman%s' % host_id)
+
+            if _interface['type'] == 'netns':
+                iface = host.create_vmguest(**_interface)
+            elif _interface['type'] == 'trunk':
+                iface = host.create_trunk(**_interface)
+            else: # provided
+                iface = host.create_provided(**_interface)
+
+            self._port_if_map[(device_name, port_id)] = iface
+
+            iface.vport_id = mn_vport_id
+            self._interfaces.append((iface, host))
+            iface.clear_arp(sync=True)
+
+            iface.vport_id = mn_vport_id
+            host.bind_port(iface, mn_vport_id)
             await_port_active(mn_vport_id)
 
     def unbind(self):
 
-        bindings = self._data['bindings']
-        for b in bindings:
-            binding = b['binding']
+        for iface, host in self._interfaces:
+            # Remove binding
+            host.unbind_port(iface)
+            iface.destroy()
 
-            host_id = binding['host_id']
-            iface_id = binding['interface_id']
+        # Destroy the virtual topology
+        self._vtm.destroy()
+        self._ptm.destroy()
 
-            iface = self._ptm.get_interface(host_id, iface_id)
-            iface_name = iface.interface['ifname']
-            mn_host_id = iface.host['mn_host_id']
-            mn_vport_id = iface.vport_id
-
-            for hip in self._api.get_host(mn_host_id).get_ports():
-                if hip.get_interface_name() == iface_name:
-                    hip.delete()
-                    iface.vport_id = None
-                    await_port_active(mn_vport_id, active=False)
-
+        self._interfaces = []
         self._port_if_map = {}
 
     def get_iface_for_port(self, device_name, port_id):
-        (host_id, iface_id) = self._port_if_map[(device_name, port_id)]
-        return self._ptm.get_interface(host_id, iface_id)
+        return self._port_if_map[(device_name, port_id)]
 
     def get_iface(self, host_id, iface_id):
         return self._ptm.get_interface(host_id, iface_id)

@@ -17,7 +17,8 @@ from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.lib.binding_manager import BindingManager
 
-from mdts.tests.utils import *
+from mdts.tests.utils.utils import bindings
+from mdts.tests.utils.utils import wait_on_futures
 from mdts.tests.utils.asserts import *
 
 from hamcrest import *
@@ -74,15 +75,6 @@ binding_multi_router = {
         ]
     }
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
 # See MN-1758.
 #
 # Drop flows for ip fragmentation are temporary because we want flows to
@@ -95,16 +87,23 @@ def teardown():
 # The wait time that guarantees that flows will be ejected is 15 seconds.
 # 5 seconds is their hard expiration time, and 10 seconds is the flow
 # expiration check interval in the flow controller.
+
+
 def let_temporary_frag_needed_flows_expire():
     time.sleep(15)
+
 
 def _async_assert_receives_icmp_frag_needed(sender, should_receive):
     icmp_filter = 'icmp[icmptype] == icmp-unreach and icmp[icmpcode] == 4'
     if should_receive:
-        return async_assert_that(sender, receives(icmp_filter, within_sec(5)))
+        return async_assert_that(sender,
+                                 receives(icmp_filter,
+                                          within_sec(5)))
     else:
         return async_assert_that(sender,
-                                 should_NOT_receive(icmp_filter, within_sec(5)))
+                                 should_NOT_receive(icmp_filter,
+                                                    within_sec(5)))
+
 
 def _send_icmp(sender, receiver, payload, target_ipv4,
                expect, expect_icmp_frag_needed = False):
@@ -120,6 +119,7 @@ def _send_icmp(sender, receiver, payload, target_ipv4,
     f3 = sender.ping4(receiver, 0.5, 3, False, payload)
 
     wait_on_futures([f1, f2, f3])
+
 
 def _test_icmp(sender, receiver, target_ipv4, filter_resource, is_router):
 
@@ -173,9 +173,10 @@ def test_icmp_router():
 
 
 def _send_udp(sender, receiver, target_hw, target_ipv4, parms, payload,
-              expect, expect_icmp_frag_needed = False):
-    f1 = async_assert_that(receiver, expect('dst host %s and udp' % target_ipv4,
-                                 within_sec(5)))
+              expect, expect_icmp_frag_needed=False):
+    f1 = async_assert_that(receiver,
+                           expect('dst host %s and udp' % target_ipv4,
+                                  within_sec(5)))
 
     f2 = _async_assert_receives_icmp_frag_needed(sender,
                                                  expect_icmp_frag_needed)
@@ -187,22 +188,24 @@ def _send_udp(sender, receiver, target_hw, target_ipv4, parms, payload,
 
     wait_on_futures([f1, f2, f3])
 
+
 def _test_udp(sender, receiver, target_hw, target_ipv4,
               filter_resource, is_router):
 
-    ident = random.randint(10000,20000)
+    ident = random.randint(10000, 20000)
 
     head = 'mf,proto=17,id=%d,sp=9,dp=9,iplen=1500,len=1481' % (ident,)
     tail = 'frag=185,proto=17,id=%d' % (ident,)
 
+    # hex file zero-1472 is not used anymore, just define the size
     try:
-        _send_udp(sender, receiver, target_hw, target_ipv4, head, 'zero-1472',
+        _send_udp(sender, receiver, target_hw, target_ipv4, head, 1472,
                   receives)
     except subprocess.CalledProcessError:
         raise
 
     try:
-        _send_udp(sender, receiver, target_hw, target_ipv4, tail, 'zero-0001',
+        _send_udp(sender, receiver, target_hw, target_ipv4, tail, 1,
                   receives)
     except subprocess.CalledProcessError:
         raise
@@ -211,13 +214,13 @@ def _test_udp(sender, receiver, target_hw, target_ipv4,
     filter_resource.set_inbound_filter(chain)
 
     try:
-        _send_udp(sender, receiver, target_hw, target_ipv4, head, 'zero-1472',
+        _send_udp(sender, receiver, target_hw, target_ipv4, head, 1472,
                   should_NOT_receive, expect_icmp_frag_needed=is_router)
     except subprocess.CalledProcessError:
         pass
 
     try:
-        _send_udp(sender, receiver, target_hw, target_ipv4, tail, 'zero-0001',
+        _send_udp(sender, receiver, target_hw, target_ipv4, tail, 1,
                   should_NOT_receive)
     except subprocess.CalledProcessError:
         pass

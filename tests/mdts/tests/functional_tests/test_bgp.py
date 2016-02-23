@@ -15,11 +15,12 @@
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.lib.binding_manager import BindingManager
-from mdts.lib.failure.no_failure import NoFailure
-from mdts.lib.failure.netif_failure import NetifFailure
 from mdts.lib.failure.pkt_failure import PktFailure
+from mdts.services import service
 
-from mdts.tests.config import NS_BGP_PEERS
+from mdts.tests.utils.utils import bindings
+from mdts.tests.utils.utils import wait_on_futures
+
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils import *
 
@@ -27,14 +28,13 @@ from mdts.tests.utils import *
 from nose.plugins.attrib import attr
 
 from hamcrest import *
-from nose.tools import nottest
+from nose.tools import nottest, with_setup
 
 import logging
 import time
 import pdb
 import re
 import subprocess
-
 
 LOG = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ BM = BindingManager(PTM, VTM)
 
 
 binding_uplink_1 = {
-    'description': 'connected to uplink #1',
+    'description': 'vm connected to uplink #1',
     'bindings': [
         {'binding':
              {'device_name': 'bridge-000-001', 'port_id': 2,
@@ -59,7 +59,7 @@ binding_uplink_1 = {
     }
 
 binding_uplink_2 = {
-    'description': 'connected to uplink #2',
+    'description': 'vm connected to uplink #2',
     'bindings': [
         {'binding':
              {'device_name': 'bridge-000-001', 'port_id': 2,
@@ -70,11 +70,11 @@ binding_uplink_2 = {
         {'binding':
              {'device_name': 'router-000-001', 'port_id': 3,
               'host_id': 2, 'interface_id': 2}},
-        ]
-    }
+    ]
+}
 
 binding_indirect = {
-    'description': 'not connected to uplink',
+    'description': 'vm not connected to uplink',
     'bindings': [
         {'binding':
              {'device_name': 'bridge-000-001', 'port_id': 2,
@@ -85,8 +85,8 @@ binding_indirect = {
         {'binding':
              {'device_name': 'router-000-001', 'port_id': 3,
               'host_id': 2, 'interface_id': 2}},
-        ]
-    }
+    ]
+}
 
 binding_snat_1 = {
     'description': 'one connected to uplink #1 and another not connected',
@@ -133,14 +133,6 @@ binding_snat_3 = {
         ]
     }
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
 
 # Even though quickly copied from test_nat_router for now, utilities below
 # should probably be moved to somewhere shared among tests
@@ -205,21 +197,20 @@ def clear_bgp(port, wait=0):
     if wait > 0:
         time.sleep(wait)
 
-
 # There are two uplinks available in MMM, one of which is from ns008(eth1)
 # to ns000(eth0) and another of which is from ns009(eth1) to ns000(eth1).
 # The BGP #1 is establed over the first and BGP #2 over the second.
 def add_bgp_1(routes):
     p = VTM.get_router('router-000-001').get_port(2)
     add_bgp(p, {'localAS': 64513,
-                'peerAS': 64512,
+                'peerAS': 64511,
                 'peerAddr': '10.1.0.240',
                 'adRoute': routes})
     return p
 
 def add_bgp_2(routes):
     p = VTM.get_router('router-000-001').get_port(3)
-    add_bgp(p, {'localAS': 64514,
+    add_bgp(p, {'localAS': 64513,
                 'peerAS': 64512,
                 'peerAddr': '10.2.0.240',
                 'adRoute': routes})
@@ -230,13 +221,23 @@ route_direct = [{'nwPrefix': '172.16.0.0', 'prefixLength': 16}]
 route_snat = [{'nwPrefix': '100.0.0.0', 'prefixLength': 16}]
 
 # 1.1.1.1 is assigned to lo in ns000 emulating a public IP address
-def ping_inet(count=3, interval=1, port=2):
-    sender = BM.get_iface_for_port('bridge-000-001', port)
-    try:
-        f1 = sender.ping_ipv4_addr('1.1.1.1', interval=interval, count=count)
-        wait_on_futures([f1])
-    except subprocess.CalledProcessError as e:
-        raise AssertionError(e.cmd, e.returncode)
+def ping_to_inet(count=5, interval=1, port=2, retries=3):
+     try:
+         sender = BM.get_iface_for_port('bridge-000-001', port)
+         f1 = sender.ping_ipv4_addr('1.1.1.1',
+                                    interval=interval,
+                                    count=count)
+         wait_on_futures([f1])
+         output_stream, exec_id = f1.result()
+         exit_status = sender.compute_host.check_exit_status(exec_id,
+                                                             output_stream,
+                                                             timeout=20)
+         assert_that(exit_status, equal_to(0), "Ping did not return any data")
+     except:
+         if retries == 0:
+             raise RuntimeError("Ping did not return any data and returned -1")
+         LOG.debug("BGP: failed ping to inet... (%d retries left)" % retries)
+         ping_to_inet(count, interval, port, retries-1)
 
 @attr(version="v1.2.0", slow=False)
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
@@ -256,10 +257,10 @@ def test_icmp_multi_add_uplink_1():
 
     """
     p1 = add_bgp_1(route_direct)
-    ping_inet() # BGP #1 is working
+    ping_to_inet() # BGP #1 is working
 
     p2 = add_bgp_2(route_direct)
-    ping_inet() # BGP #1 and #2 are working
+    ping_to_inet() # BGP #1 and #2 are working
 
     clear_bgp(p1)
     clear_bgp(p2)
@@ -275,10 +276,10 @@ def test_icmp_multi_add_uplink_2():
 
     """
     p2 = add_bgp_2(route_direct)
-    ping_inet() # BGP #2 is working
+    ping_to_inet() # BGP #2 is working
 
     p1 = add_bgp_1(route_direct)
-    ping_inet() # BGP #1 and #2 are working
+    ping_to_inet() # BGP #1 and #2 are working
 
     clear_bgp(p1)
     clear_bgp(p2)
@@ -296,10 +297,10 @@ def test_icmp_remove_uplink_1():
 
     """
     (p1, p2) = (add_bgp_1(route_direct), add_bgp_2(route_direct))
-    ping_inet() # BGP #1 and #2 are working
+    ping_to_inet() # BGP #1 and #2 are working
 
     clear_bgp(p1, 20)
-    ping_inet() # only BGP #2 is working
+    ping_to_inet() # only BGP #2 is working
 
     clear_bgp(p2)
 
@@ -313,16 +314,15 @@ def test_icmp_remove_uplink_2():
 
     """
     (p1, p2) = (add_bgp_1(route_direct), add_bgp_2(route_direct))
-    ping_inet() # BGP #1 and #2 are working
+    ping_to_inet() # BGP #1 and #2 are working
 
     clear_bgp(p2, 20)
-    ping_inet() # only BGP #1 is working
-
+    ping_to_inet() # only BGP #1 is working
     clear_bgp(p1)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
-@nottest # MI-593
+@nottest # MI-593, look into usage of await_internal_route_exported in master. It's also disabled in master though
 def test_icmp_failback():
     """
     Title: BGP failover/failback
@@ -355,25 +355,25 @@ def test_icmp_failback():
     """
     (p1, p2) = (add_bgp_1(route_direct), add_bgp_2(route_direct))
 
-    ping_inet() # BGP #1 and #2 are working
+    ping_to_inet() # BGP #1 and #2 are working
 
     failure = PktFailure(NS_BGP_PEERS[0], 'eth0', 35)
     failure.inject()
     try:
-        ping_inet() # BGP #1 is lost
+        ping_to_inet() # BGP #1 is lost but continues to work
     finally:
         failure.eject()
 
-    ping_inet() # BGP #1 is back
+    ping_to_inet() # BGP #1 is back
 
     failure = PktFailure(NS_BGP_PEERS[0], 'eth1', 35)
     failure.inject()
     try:
-        ping_inet() # BGP #2 is lost
+        ping_to_inet() # BGP #2 is lost but continues to work
     finally:
         failure.eject()
 
-    ping_inet()  # BGP #2 is back
+    ping_to_inet()  # BGP #2 is back
 
     clear_bgp(p1)
     clear_bgp(p2)
@@ -383,11 +383,11 @@ def test_icmp_failback():
 @nottest
 def test_snat():
     """
-    Title: Emulate Cassandra failure
+    Title: SNAT test with one uplink
 
     Scenario 1:
     Given: one uplink
-    When: inject network interface failure in ONE of Cassandra nodes
+    When: adding snat chains
     Then: ICMP echo RR should work
 
     """
@@ -401,7 +401,7 @@ def test_snat():
         # failover possibly takes about 5-6 seconds at most
         for i in range(0, 10):
             # BGP #1 is working
-            ping_inet(count=1)
+            ping_to_inet()
     finally:
         unset_filters('router-000-001')
         clear_bgp(p1)
@@ -424,10 +424,9 @@ def test_mn_1172():
     set_filters('router-000-001', 'pre_filter_snat_ip', 'post_filter_snat_ip')
 
     try:
-        ping_inet(port=2)
-        ping_inet(port=3)
-        ping_inet(port=2)
+        ping_to_inet(port=2)
+        ping_to_inet(port=3)
+        ping_to_inet(port=2)
     finally:
         unset_filters('router-000-001')
-
-    clear_bgp(p1)
+        clear_bgp(p1)

@@ -46,3 +46,6 @@ class PoolMember(ResourceBase, AdminStateUpMixin):
         """ Returns the pool member port."""
         return self._data.get('protocol_port')
 
+    def get_weight(self):
+        return self._data.get('weight')
+

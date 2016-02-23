@@ -27,12 +27,16 @@ from mdts.lib.resource_reference import ResourceReference
 from mdts.lib.router import Router
 from mdts.lib.tenants import get_or_create_tenant
 from mdts.lib.topology_manager import TopologyManager
-from mdts.tests.config import TEST_TENANT_NAME_PREFIX
+from mdts.lib.tracerequest import TraceRequest
+from mdts.lib.vtep import Vtep
 from mdts.tests.utils.utils import clear_virtual_topology_for_tenants
 
 from midonetclient.api import MidonetApi
 
 from webob.exc import HTTPBadRequest
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 class ResourceNotFoundException(MdtsException):
@@ -72,6 +76,7 @@ class VirtualTopologyManager(TopologyManager):
         self._bridges = {}
         self._bridge_router = {}
         self._chains = {}
+        self._tracerequests = {}
         self._links = []
 
         #: :type: dict[str, HealthMonitor]
@@ -82,10 +87,14 @@ class VirtualTopologyManager(TopologyManager):
 
         self._port_groups = {}
 
+        self._vteps = {}
+
     def build(self):
         """ Generates virtual topology resources (bridges, routers, chains, etc.
         From the data loaded from the input yaml file.
         """
+
+        self._api = self._midonet_api_host.get_midonet_api()
 
         for health_monitor in self._vt.get('health_monitors') or []:
             self.add_health_monitor(health_monitor['health_monitor'])
@@ -110,6 +119,9 @@ class VirtualTopologyManager(TopologyManager):
         # operation on chain.
         for chain in self._vt.get('chains') or []:
             self.add_chain(chain['chain'])
+
+        for tracerequest in self._vt.get('tracerequests') or []:
+            self.add_tracerequest(tracerequest['tracerequest'])
 
         referrers = {}
         for reference in self._resource_references:
@@ -208,6 +220,13 @@ class VirtualTopologyManager(TopologyManager):
         for port_group in self._port_groups.values(): port_group.destroy()
         self._port_groups.clear()
 
+        for vtep in self._vteps.values(): vtep.destroy()
+        self._vteps.clear()
+
+        # Missing clearing these
+        self._resource_references = []
+        self._links = []
+
     def get_device_port(self, device_name, port_id):
         """ Returns a bridge/router port for specified device and port ID. """
         if device_name in self._bridge_router:
@@ -267,6 +286,14 @@ class VirtualTopologyManager(TopologyManager):
 
     def get_chain(self, name):
         return self._chains.get(name)
+
+    def add_tracerequest(self, tracerequest_data):
+        tracerequest = TraceRequest(self._api, self, tracerequest_data)
+        tracerequest.build()
+        self._tracerequests[tracerequest_data['name']] = tracerequest
+
+    def get_tracerequest(self, name):
+        return self._tracerequests.get(name)
 
     def add_load_balancer(self, lb_data):
         load_balancer = LoadBalancer(self._api, self, lb_data)
@@ -343,20 +370,15 @@ class VirtualTopologyManager(TopologyManager):
     def get_port_group(self, name):
         return self._port_groups.get(name)
 
-    def clear(self):
-        """
-        This method deletes MidoNet virtual topology without
-        looking at the objects we created. After that, we delete
-        all the objects we created referencing MidoNet ones.
-        """
-        clear_virtual_topology_for_tenants(
-            tenant_name_prefix=TEST_TENANT_NAME_PREFIX)
+    def add_vtep(self, vtep_data):
+        vtep = Vtep(self._api, self, vtep_data)
+        vtep.build()
+        self._vteps[vtep_data['name']] = vtep
+        return vtep
 
-        del self._resource_references[:]
-        self._routers.clear()
-        self._bridges.clear()
-        self._bridge_router.clear()
-        self._chains.clear()
-        self._port_groups.clear()
-        del self._links[:]
+    def get_vtep(self, name):
+        return self._vteps.get(name)
+
+    def delete_vtep(self, name):
+        self._vteps.pop(name).destroy()
 

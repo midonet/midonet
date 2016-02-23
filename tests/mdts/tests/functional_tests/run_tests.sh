@@ -17,7 +17,7 @@
 usage()
 {
 cat << EOF
-usage: $0 [OPTION]...
+usage: $0 [OPTION] [...]
 
 This script runs the QA tests on this machine. If no test is specified all
 tests are run.
@@ -26,31 +26,33 @@ OPTIONS:
  -h          This help message
  -e TEST     Exclude this test (can be specified multiple times)
  -t TEST     Runs this test(s)
+ -l LOG_DIR  Directory where to store results (defaults to ./logs)
+ -r DIR      Use DIR as the Python root (to determine imported modules)
  -s          Runs only fast tests
  -S          Runs only slow tests
  -x          Runs all tests but flaky ones
  -X          Runs only flaky tests
- -r DIR      Use DIR as the Python root (to determine imported modules)
+ [...]       Additional options passed to the nose runner
 
 TEST:
-  test_file           Runs all the tests in the test file.
-  test_file:test_name Runs a single test from the test file.
+  test_file.py           Runs all the tests in the test file.
+  test_file.py:test_name Runs a single test from the test file.
 
 EXAMPLES:
-$0 -t test_bridge
-$0 -t test_bridge:test_icmp
-$0 -t test_bridge:test_icmp -t test_router -t test_l2gw:test_icmp_from_mn
-
-Fast tests
-$0 -s
+$0 -t test_bridge.py
+$0 -t test_bridge.py:test_icmp
+$0 -t test_bridge.py:test_icmp -t test_router.py -t test_l2gw.py:test_icmp_from_mn
+$0 -l logs -t test_bridge.py --pdb
 
 EOF
 }
 
-DIR=../../..
+PDIR=../../../
 ATTR=""
 ARGS=""  # passed directly to nosetests runner
-while getopts "e:ht:sSv:V:xX:r:" OPTION
+LOG_DIR="logs-$(date +"%y%m%d%H%M%S")"
+
+while getopts "e:ht:sSv:V:xX:r:l:" OPTION
 do
     case $OPTION in
         h)
@@ -60,6 +62,31 @@ do
         e)
             ARGS="$ARGS -e $OPTARG"
             ;;
+        t)
+            # Workarround to define the test without py
+            TESTMOD=$(echo $OPTARG | cut -d: -f1)
+            TESTCASE=$(echo $OPTARG | cut -d: -f2)
+            if ! echo $TESTMOD | grep .py; then
+                TEST=$TESTMOD.py
+            else
+                TEST=$TESTMOD
+            fi
+            if ! test $TESTMOD == $TESTCASE; then
+                TEST=$TEST:$TESTCASE
+            fi
+            TESTS="$TESTS $TEST"
+            ;;
+        r)
+            PDIR=$OPTARG
+            ;;
+        l)
+            LOG_DIR=$OPTARG/
+            ;;
+        ?)
+            usage
+            exit 1
+            ;;
+        # FIXME: Legacy options, to be removed if not used
         s)
             if [ -z "$ATTR" ]
             then
@@ -75,15 +102,6 @@ do
             else
                 ATTR="$ATTR and slow"
             fi
-            ;;
-        t)
-            TEST=$OPTARG
-            if [[ $TEST != mdts.tests.functional_tests* ]]
-            then
-                TEST="mdts.tests.functional_tests.$TEST"
-            fi
-
-            TESTS="$TESTS $TEST"
             ;;
         x)
             if [ -z "$ATTR" ]
@@ -101,24 +119,16 @@ do
                 ATTR="$ATTR and flaky"
             fi
             ;;
-        r)
-            PDIR=$OPTARG
-             ;;
-        ?)
-            usage
-            exit 1
-            ;;
         *)
             echo star
             ;;
     esac
 done
 
-shift $(($OPTIND - 1))
-if [ "$#" -ne 0 ]
-then
-    usage
-    exit 1
-fi
+shift $(( OPTIND - 1 ))
 
-sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
+# Avoid masking the exit status of nose with the exit 0 of tee
+set -o pipefail
+
+echo "sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+\"-A $ATTR\"} $TESTS $ARGS "
+sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+"-A $ATTR"} $TESTS $ARGS

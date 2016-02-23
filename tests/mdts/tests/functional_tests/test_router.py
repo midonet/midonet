@@ -17,7 +17,8 @@ from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.lib.binding_manager import BindingManager
 from mdts.tests.utils.asserts import *
-from mdts.tests.utils import *
+from mdts.tests.utils.utils import bindings
+from mdts.tests.utils.utils import wait_on_futures
 
 from hamcrest import *
 from nose.tools import nottest
@@ -61,17 +62,6 @@ binding_multihost = {
     }
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
-
 # FIXME: https://midobugs.atlassian.net/browse/MN-1746
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
@@ -94,14 +84,15 @@ def test_ping_different_subnets():
     # because the MidoNet Router forwards the ICMP with the previous mac
     # found in bindings1 in ethernet headers.
     # Issue: https://midobugs.atlassian.net/browse/MN-79
+    # FIXME: do_arp not necessary if random macs are used
     receiver.ping4(sender, sync=True, do_arp=True)
 
-    f1 = sender.ping4(receiver)
+    f1 = async_assert_that(receiver,
+                           receives('dst host 172.16.2.1 and icmp',
+                                    within_sec(5)))
+    f2 = sender.ping4(receiver)
 
-    assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
-                                 within_sec(5)))
-
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])
 
 
 @attr(version="v1.2.0", slow=False)
@@ -128,13 +119,13 @@ def test_fragmented_packets():
     # Issue: https://midobugs.atlassian.net/browse/MN-79
     receiver.ping4(sender, 0.5, 3, True, 2000, do_arp=True)
 
-
     f1 = async_assert_that(receiver,
                            receives('dst host 172.16.2.1 and icmp', within_sec(5)))
 
     f2 = sender.ping4(receiver, 0.5, 3, False, 2000)
 
     wait_on_futures([f1, f2])
+
 
 @bindings(binding_onehost, binding_multihost)
 def test_spoofed_arp_reply():
@@ -163,14 +154,14 @@ def test_spoofed_arp_reply():
     And:  Sender pings 176.16.1.2
     Then: The ping fails.
     """
-
     sender = BM.get_iface_for_port('bridge-000-001', 2)
     receiver = BM.get_iface_for_port('bridge-000-002', 2)
 
     # 176.16.2.2 is not in the router's ARP table. Ping fails.
-    f1 = sender.ping_ipv4_addr('176.16.2.2', suppress_failure=True)
-    assert_that(receiver, should_NOT_receive('dst host 172.16.2.2 and icmp'),
-                                             within_sec(2))
+    f1 = async_assert_that(receiver,
+                           should_NOT_receive('dst host 172.16.2.2 and icmp',
+                                              within_sec(5)))
+    sender.ping_ipv4_addr('172.16.2.2')
     wait_on_futures([f1])
 
     # Sender sends an unsolicited ARP reply with source IP 172.16.2.2,
@@ -182,22 +173,24 @@ def test_spoofed_arp_reply():
                             '172.16.2.2', '172.16.2.254')
 
     # wait for the arp reply effect to be propagated
-    time.sleep(2)
+    time.sleep(20)
 
     # Ping now succeeds.
-    f2 = sender.ping_ipv4_addr('172.16.2.2', suppress_failure=True)
-    assert_that(receiver, receives('dst host 172.16.2.2 and icmp',
-                                   within_sec(5)))
-    wait_on_futures([f2])
+    f1 = async_assert_that(receiver,
+                           receives('dst host 172.16.2.2 and icmp',
+                                    within_sec(5)))
+    sender.ping_ipv4_addr('172.16.2.2')
+    wait_on_futures([f1])
 
     # This ARP reply is ignored because 172.16.1.2 is not in the subnet of
     # router port 2, so a ping to 172.16.1.2 is ignored.
-    f3 = sender.ping_ipv4_addr('172.16.1.2', suppress_failure=True)
+    f1 = async_assert_that(receiver,
+                           should_NOT_receive('dst host 172.16.1.2 and icmp',
+                                              within_sec(5)))
     receiver.send_arp_reply(receiver.get_mac_addr(), router_mac,
                             '172.16.1.2', '172.16.2.254')
-    assert_that(receiver, should_NOT_receive('dst host 172.16.1.2 and icmp'),
-                                             within_sec(2))
-    wait_on_futures([f3])
+    sender.ping_ipv4_addr('172.16.1.2')
+    wait_on_futures([f1])
 
 
 @nottest
@@ -221,6 +214,7 @@ def test_routing_weight():
           weight(port_a).
     """
     pass
+
 
 @nottest
 @bindings(binding_onehost)
