@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_b992879d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-23T10:12:37Z",
+      "side": 1,
+      "message": "directoryPath?",
+      "range": {
+        "startLine": 86,
+        "startChar": 15,
+        "endLine": 86,
+        "endChar": 50
+      },
+      "revId": "7847c521ea1a26d468668e462b476ad01e685d90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_79f80fe6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-23T10:12:37Z",
+      "side": 1,
+      "message": "At the moment, nobody deletes the file when the container is cleaned up right? Will that come in another patch?",
+      "range": {
+        "startLine": 98,
+        "startChar": 16,
+        "endLine": 100,
+        "endChar": 70
+      },
+      "revId": "7847c521ea1a26d468668e462b476ad01e685d90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
