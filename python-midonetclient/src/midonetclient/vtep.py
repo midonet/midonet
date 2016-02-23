@@ -77,7 +77,7 @@ class Vtep(resource_base.ResourceBase):
     def get_bindings(self):
         query = {}
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2}
+            vendor_media_type.APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2}
         return self.get_children(self.dto['bindings'],
                                  query,
                                  headers,

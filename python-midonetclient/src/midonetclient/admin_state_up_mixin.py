@@ -16,7 +16,7 @@
 # under the License.
 
 
-class AdminStateUpMixin:
+class AdminStateUpMixin(object):
     def get_admin_state_up(self):
         return self.dto['adminStateUp']
 

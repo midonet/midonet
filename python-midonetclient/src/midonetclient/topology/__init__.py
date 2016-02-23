@@ -20,10 +20,10 @@ import logging
 import socket
 import uuid
 
-from ._protobuf import topology_api_pb2
-from ._protobuf import topology_pb2
-from ..protobuf import DecodeError as PBDecodeError
-from ..protobuf import utils
+from midonetclient.protobuf import DecodeError as PBDecodeError
+from midonetclient.protobuf import utils
+from midonetclient.topology._protobuf import topology_api_pb2
+from midonetclient.topology._protobuf import topology_pb2
 
 
 LOG = logging.getLogger(__name__)
@@ -137,7 +137,9 @@ def _bye_msg(req_id):
     """Msg for notifying the server of the end of session
 
     Returns a message that can be sent to server to notify of the end of the
-    current session, whereupon the server is free to close the socket"""
+    current session, whereupon the server is free to close the socket
+    """
+
     request = topology_api_pb2.Request()
     request.bye.req_id.msb, request.bye.req_id.lsb = (
             utils.split_uuid(req_id))
