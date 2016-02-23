@@ -28,24 +28,41 @@ public interface KeystoneConfig extends AuthConfig {
 
     String GROUP_NAME = "keystone";
 
-    String ADMIN_TOKEN = "admin_token";
+    String ADMIN_TOKEN_KEY = "admin_token";
+    String DOMAIN_NAME_KEY = "domain_name";
+    String PASSWORD_KEY = "user_password";
     String SERVICE_PROTOCOL_KEY = "service_protocol";
-    String SERVICE_HOST_kEY = "service_host";
+    String SERVICE_HOST_KEY = "service_host";
     String SERVICE_PORT_KEY = "service_port";
-    String TENANT_NAME = "tenant_name";
+    String TENANT_NAME_KEY = "tenant_name";
+    String USER_NAME_KEY = "user_name";
+    String VERSION_KEY = "version";
 
-    @ConfigString(key = ADMIN_TOKEN, defaultValue = "")
+    @ConfigString(key = ADMIN_TOKEN_KEY, defaultValue = "")
     String getAdminToken();
 
-    @ConfigString(key = SERVICE_PROTOCOL_KEY, defaultValue = "http")
-    String getServiceProtocol();
+    @ConfigString(key = DOMAIN_NAME_KEY, defaultValue = "default")
+    String getDomainName();
 
-    @ConfigString(key = SERVICE_HOST_kEY, defaultValue = "localhost")
+    @ConfigString(key = PASSWORD_KEY, defaultValue = "")
+    String getPassword();
+
+    @ConfigString(key = TENANT_NAME_KEY, defaultValue = "admin")
+    String getProjectName();
+
+    @ConfigString(key = SERVICE_HOST_KEY, defaultValue = "localhost")
     String getServiceHost();
 
     @ConfigInt(key = SERVICE_PORT_KEY, defaultValue = 35357)
     int getServicePort();
 
-    @ConfigString(key = TENANT_NAME, defaultValue = "admin")
-    String getAdminName();
+    @ConfigString(key = SERVICE_PROTOCOL_KEY, defaultValue = "http")
+    String getServiceProtocol();
+
+    @ConfigString(key = USER_NAME_KEY, defaultValue = "")
+    String getUserName();
+
+    @ConfigInt(key = VERSION_KEY, defaultValue = 2)
+    int getVersion();
+
 }

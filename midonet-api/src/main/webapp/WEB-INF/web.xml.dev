@@ -85,6 +85,14 @@
 
   <!-- Keystone configuration -->
   <context-param>
+    <param-name>keystone-admin_token</param-name>
+    <param-value>999888777666</param-value>
+  </context-param>
+  <context-param>
+    <param-name>keystone-domain_name</param-name>
+    <param-value></param-value>
+  </context-param>
+  <context-param>
     <param-name>keystone-service_protocol</param-name>
     <param-value>http</param-value>
   </context-param>
@@ -96,16 +104,24 @@
     <param-name>keystone-service_port</param-name>
     <param-value>35357</param-value>
   </context-param>
-  <context-param>
-    <param-name>keystone-admin_token</param-name>
-    <param-value>999888777666</param-value>
-  </context-param>
   <!-- This tenant name is used to get the scoped token from Keystone, and
        should be the tenant name of the user that owns the token sent in the
        request -->
   <context-param>
     <param-name>keystone-tenant_name</param-name>
     <param-value>admin</param-value>
+  </context-param>
+  <context-param>
+    <param-name>keystone-user_name</param-name>
+    <param-value></param-value>
+  </context-param>
+  <context-param>
+    <param-name>keystone-user_password</param-name>
+    <param-value></param-value>
+  </context-param>
+  <context-param>
+    <param-name>keystone-version</param-name>
+    <param-value>2</param-value>
   </context-param>
 
   <!-- Zookeeper configuration -->

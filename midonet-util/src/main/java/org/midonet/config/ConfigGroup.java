@@ -26,7 +26,6 @@ import java.lang.annotation.Target;
  * or an interface containing multiple config entries.
  */
 @Documented
-@Deprecated
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ConfigGroup {

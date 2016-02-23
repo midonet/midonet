@@ -53,7 +53,6 @@ import org.midonet.config.providers.HierarchicalConfigurationProvider;
  *
  * </pre></blockquote>
  */
-@Deprecated
 @SuppressWarnings("JavaDoc")
 public abstract class ConfigProvider {
 

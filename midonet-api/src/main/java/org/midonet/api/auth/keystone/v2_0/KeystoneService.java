@@ -201,7 +201,7 @@ public class KeystoneService implements AuthService {
         if (StringUtils.isEmpty(project)) {
             // the project was not specified in the request, so we need
             // to try and obtain it from the config.
-            project = this.config.getAdminName();
+            project = this.config.getProjectName();
             if (StringUtils.isEmpty(project)) {
                 throw new InvalidCredentialsException("Project missing");
             }
