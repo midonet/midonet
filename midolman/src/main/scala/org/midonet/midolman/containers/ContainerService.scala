@@ -82,16 +82,18 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
           * this subscriber.
           */
         override def onNext(status: ContainerStatus): Unit = {
-            handlers get cp.portId match {
-                case handler: Handler =>
-                    status match {
-                        case health: ContainerHealth =>
-                            setStatus(handler, health)
-                        case _ => log warn "Unknown status notification for " +
-                                           s"container $cp: $status"
+            status match {
+                case health: ContainerHealth =>
+                    handlers get cp.portId match {
+                        case handler: Handler => setStatus(handler, health)
+                        case _ =>
+                            log warn s"Unexpected health notification for " +
+                                     s"container $cp"
                     }
-                case _ =>
-                    log warn s"Unexpected status notification for container $cp"
+                case op: ContainerOp =>
+                    logOperation(cp, op)
+                case _ => log warn "Unknown status notification for " +
+                                   s"container $cp: $status"
             }
         }
 
@@ -116,6 +118,8 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private val provider =
         new ContainerHandlerProvider(reflections, vt, serviceExecutor,
                                      ioExecutor, log)
+
+    private val logger = new ContainerLogger(vt.config.containers, log)
 
     // The handlers map is concurrent because reads may be performed from
     // the handler notification thread.
@@ -320,11 +324,13 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         handlers remove cp.portId match {
             case Handler(_,handler,s) =>
                 log warn s"Unexpected running container $cp: deleting container"
-                s.unsubscribe()
                 belt.handle(() => tryOp({
-                    handler.delete().andThen {
-                        case Failure(t) => handleContainerError(
-                            t, cp, errorStatus=false, s"Failed to delete container $cp")
+                    handler.delete() andThen {
+                        case _ => s.unsubscribe()
+                    } andThen {
+                        case Failure(t) =>
+                            handleContainerError(t, cp, errorStatus=false,
+                                                 s"Failed to delete container $cp")
                         case Success(_) =>
                             clearStatus(cp)
                     }
@@ -341,10 +347,6 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
             // Subscribe to the handler's status observable.
             val subscription = handler.status
-                .onBackpressureBuffer(NotificationBufferSize, makeAction0 {
-                    log error "Container status notification buffer overflow"
-                })
-                .observeOn(scheduler)
                 .subscribe(new StatusSubscriber(cp))
 
             handlers.put(cp.portId, Handler(cp, handler, subscription))
@@ -400,12 +402,14 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             case Handler(_,handler,subscription) =>
                 // Delete the container handler.
                 belt.handle(() => tryOp({
-                    subscription.unsubscribe()
                     // Set the container status to stopping.
                     setStatus(cp, Code.STOPPING, s"Container $cp stopping")
-                    handler.delete().andThen {
-                        case Failure(t) => handleContainerError(
-                            t, cp, errorStatus=false, s"Failed to delete container $cp")
+                    handler.delete() andThen {
+                        case _ => subscription.unsubscribe()
+                    }  andThen {
+                        case Failure(t) =>
+                            handleContainerError(t, cp, errorStatus=false,
+                                                 s"Failed to delete container $cp")
                         case Success(_) =>
                             clearStatus(cp)
                     }
@@ -463,6 +467,16 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         } catch {
             case NonFatal(t) =>
                 log.warn(s"Failed to clear status for container $cp", t)
+        }
+    }
+
+    private def logOperation(cp: ContainerPort, op: ContainerOp)
+    : Unit = {
+        try {
+            logger.log(cp.serviceType, op)
+        } catch {
+            case NonFatal(t) =>
+                log.warn(s"Failed to log operation for container $cp: $op", t)
         }
     }
 
