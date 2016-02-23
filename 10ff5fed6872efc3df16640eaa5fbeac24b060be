@@ -22,6 +22,30 @@
       "revId": "10ff5fed6872efc3df16640eaa5fbeac24b060be",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_1a3709b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-23T18:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_7fbb8f72",
+      "range": {
+        "startLine": 190,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 26
+      },
+      "revId": "10ff5fed6872efc3df16640eaa5fbeac24b060be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
