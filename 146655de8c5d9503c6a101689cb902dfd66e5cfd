@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_f1da5316",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-24T09:33:10Z",
+      "side": 1,
+      "message": "I\u0027m welcoming suggestions for a better comment. It could be hard to understand without more context.",
+      "range": {
+        "startLine": 305,
+        "startChar": 28,
+        "endLine": 308,
+        "endChar": 42
+      },
+      "revId": "146655de8c5d9503c6a101689cb902dfd66e5cfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_b1d0dbf8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-24T09:33:10Z",
+      "side": 1,
+      "message": "Should this rule remain even when snat is disabled for the router?",
+      "range": {
+        "startLine": 302,
+        "startChar": 13,
+        "endLine": 302,
+        "endChar": 73
+      },
+      "revId": "146655de8c5d9503c6a101689cb902dfd66e5cfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
