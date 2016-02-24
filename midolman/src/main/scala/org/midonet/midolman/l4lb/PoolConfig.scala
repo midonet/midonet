@@ -45,7 +45,11 @@ class PoolConfig(val id: UUID,
     // we just need a single vip. Any is fine as long as it is configurable
     val vip = {
         val confVips = vips filter (_.isConfigurable)
-        if (confVips.isEmpty) null else confVips.head
+        if (confVips.isEmpty) {
+            null
+        } else {
+            confVips.toList.min(Ordering.by((vip: VipConfig) => vip.id))
+        }
     }
 
     val haproxyConfFileLoc = l4lbFileLocs + id.toString + "/" + CONF
