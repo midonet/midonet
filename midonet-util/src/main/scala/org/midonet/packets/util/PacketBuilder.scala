@@ -101,6 +101,7 @@ sealed trait PacketBuilder[PacketClass <: IPacket] {
             case None =>
                 innerBuilder = Some(b)
                 setPayload(b)
+                b.setParent(this)
             case Some(inner) => inner << b
         }
         this
@@ -233,6 +234,11 @@ case class TcpBuilder(packet: TCP = new TCP()) extends PacketBuilder[TCP] {
     def src(port: Short): TcpBuilder = { packet.setSourcePort(port & 0xffff) ; this }
     def dst(port: Short): TcpBuilder = { packet.setDestinationPort(port & 0xffff) ; this }
     def flags(flags: Short): TcpBuilder = { packet.setFlags(flags) ; this }
+    def mss(mss: Short): TcpBuilder = {
+        // TODO: Append to options, rather than replacing.
+        packet.setOptions(Array[Byte](2, 4, (mss >> 8).toByte, mss.toByte))
+        this
+    }
 }
 
 case class UdpBuilder(packet: UDP = new UDP()) extends PacketBuilder[UDP] {

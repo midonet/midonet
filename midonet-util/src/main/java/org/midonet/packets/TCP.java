@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.midonet.packets.Unsigned.unsign;
+
 public class TCP extends BasePacket implements Transport {
 
     public enum Flag {
@@ -79,6 +81,40 @@ public class TCP extends BasePacket implements Transport {
         }
     }
 
+    public enum OptionKind {
+        // Other options are defined, but obsolete or experimental.
+        END_OPTS(0),
+        NOP(1),
+        MSS(2),
+        WND_SCALE(3),
+        SACK_OK(4),
+        SACK(5),
+        TIMESTAMP(8);
+
+        public final byte code;
+
+        OptionKind(int code) {
+            this.code = (byte)code;
+        }
+
+        /**
+         * Returns option kind for the specified code. Null return does
+         * not indicate a malformed packet, but an option which is not
+         * recognized. */
+        public static OptionKind fromCode(byte code) {
+            switch (code) {
+                case 0: return END_OPTS;
+                case 1: return NOP;
+                case 2: return MSS;
+                case 3: return WND_SCALE;
+                case 4: return SACK_OK;
+                case 5: return SACK;
+                case 8: return TIMESTAMP;
+                default: return null;
+            }
+        }
+    }
+
     public static final byte PROTOCOL_NUMBER = 6;
 
     public static final int MIN_HEADER_LEN = 20;
@@ -107,7 +143,76 @@ public class TCP extends BasePacket implements Transport {
         sb.append(", ackNo=").append(ackNo);
         sb.append(", cksum=").append(checksum);
         sb.append(", flags=").append(Flag.allOfToString(flags));
+        sb.append(", options=[").append(optionsToString()).append(']');
+        sb.append(", payload=").append(payload == null ? null : payload);
         sb.append("]");
+        return sb.toString();
+    }
+
+    private String optionsToString() {
+        if (options == null || options.length == 0)
+            return "";
+
+        StringBuilder sb = new StringBuilder();
+        ByteBuffer buf = ByteBuffer.wrap(options);
+        try {
+            while (buf.hasRemaining()) {
+                byte code = buf.get();
+                OptionKind kind = OptionKind.fromCode(code);
+                if (kind == OptionKind.END_OPTS) {
+                    break;
+                }
+                if (kind == OptionKind.NOP) continue;
+
+                byte len = buf.get();
+                if (kind == null) { // Unrecognized.
+                    // Skip value.
+                    buf.position(buf.position() + len);
+                    sb.append("OPT").append(code);
+                    sb.append('(').append(len).append("b),");
+                    continue;
+                }
+
+                sb.append(kind.name());
+                switch (kind) {
+                    case MSS:
+                        sb.append('(').append(unsign(buf.getShort()))
+                            .append(")");
+                        break;
+                    case WND_SCALE:
+                        sb.append('(').append(buf.get()).append(")");
+                        break;
+                    case SACK_OK:
+                        break;
+                    case SACK:
+                        sb.append('(');
+                        for (int i = 2; i < len; i += 8) {
+                            sb.append(buf.getInt()).append('-')
+                                .append(buf.getInt()).append(',');
+                        }
+                        sb.deleteCharAt(sb.length() - 1); // Last comma.
+                        sb.append(')');
+                        break;
+                    case TIMESTAMP:
+                        sb.append('(').append(unsign(buf.getInt())).append(',')
+                            .append(unsign(buf.getInt())).append(')');
+                }
+                sb.append(',');
+            }
+        } catch (IllegalArgumentException ex) {
+            return "OPTS_MALFORMED(" + sb.toString() + '|' + toHexString(options);
+        }
+        // Trim last comma.
+        if (sb.length() > 0)
+            sb.deleteCharAt(sb.length() - 1);
+        return sb.toString();
+    }
+
+    private String toHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
         return sb.toString();
     }
 

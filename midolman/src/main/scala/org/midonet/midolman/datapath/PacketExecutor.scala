@@ -17,22 +17,22 @@
 package org.midonet.midolman.datapath
 
 import java.nio.BufferOverflowException
-import java.util._
+import java.util.{ArrayList => JArrayList}
 
+import com.lmax.disruptor.{EventHandler, LifecycleAware}
 import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.DatapathState
+import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.simulation.PacketContext
+import org.midonet.netlink._
+import org.midonet.odp._
+import org.midonet.odp.flows.FlowAction
+import org.midonet.packets._
 import org.midonet.util.concurrent.NanoClock
 import org.slf4j.LoggerFactory
 
-import com.lmax.disruptor.{EventHandler, LifecycleAware}
-
-import org.midonet.midolman.datapath.DisruptorDatapathChannel._
-import org.midonet.midolman.simulation.PacketContext
-import org.midonet.netlink._
-import org.midonet.odp.flows.FlowAction
-import org.midonet.odp._
-import org.midonet.packets.FlowStateEthernet
+import scala.annotation.tailrec
 
 trait StatePacketExecutor {
     val log: Logger
@@ -61,6 +61,76 @@ trait StatePacketExecutor {
 
 object PacketExecutor {
     private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
+
+    private[datapath] def clampMss(ctx: PacketContext, log: Logger): Unit = {
+        // Don't do MSS clamping on packet tunneled here from another Midolman
+        // node, since the other node already did it if needed.
+        if (ctx.inputPort != null) {
+            try clampMss(ctx.packet.getEthernet, 0, log) catch {
+                case ex: ArrayIndexOutOfBoundsException =>
+                    // TODO: Is it okay to serialize the packet here, or too
+                    // slow? Maybe only log as debug?
+                    throw new MalformedPacketException(
+                        "Could not parse TCP options for packet " + ctx.packet)
+            }
+        }
+    }
+
+    @tailrec
+    private def clampMss(pkt: IPacket, wrapperSize: Int, log: Logger)
+    : Unit = pkt match {
+        case t: TCP if t.getFlag(TCP.Flag.Syn) =>
+            var i = 0
+            val opts = t.getOptions
+            while (i < opts.size) {
+                val code = opts(i)
+                i += 1
+                if (code <= TCP.OptionKind.NOP.code) {
+                    // END_OPTS and NOP have no arguments.
+                } else if (code == TCP.OptionKind.MSS.code) {
+                    // Reduce MSS by total size of all wrappers other than the
+                    // inner IP and Ethernet packets, which the MSS already
+                    // accounts for.
+                    val len = opts(i)
+                    if (len != 4)
+                        throw new MalformedPacketException(
+                            "MSS length should be 4, was " + len)
+                    i += 1
+                    val mss = ((opts(i) << 8) | opts(i + 1) & 0xff).toShort
+                    val eth = t.getParent.getParent
+                    val newMss = mss - wrapperSize + eth.length() - pkt.length()
+                    if (newMss != mss) {
+                        log.debug(s"Reducing MSS from $mss to $newMss")
+                        opts(i) = (newMss >> 8).toByte
+                        opts(i + 1) = newMss.toByte
+                        clearChecksums(t)
+                    }
+                    return
+                } else {
+                    // Don't care about other options, so just skip arguments.
+                    val len = opts(i)
+                    i += len + 1
+                }
+            }
+        case t: TCP => // Don't expect TCP nested in TCP.
+        case _ =>
+            if (pkt.getPayload != null) {
+                val headerLen = pkt.length - pkt.getPayload.length
+                clampMss(pkt.getPayload, wrapperSize + headerLen, log)
+            }
+    }
+
+    @tailrec
+    private def clearChecksums(pkt: IPacket): Unit = {
+        if (pkt != null) {
+            pkt match {
+                case t: Transport => t.clearChecksum()
+                case ip: IPv4 => ip.clearChecksum()
+                case _ =>
+            }
+            clearChecksums(pkt.getParent)
+        }
+    }
 }
 
 sealed class PacketExecutor(dpState: DatapathState,
@@ -70,6 +140,7 @@ sealed class PacketExecutor(dpState: DatapathState,
                             metrics: PacketPipelineMetrics)
     extends EventHandler[PacketContextHolder]
     with LifecycleAware with StatePacketExecutor {
+    import PacketExecutor._
 
     val log = Logger(LoggerFactory.getLogger(s"packet-executor-$index"))
 
@@ -98,6 +169,7 @@ sealed class PacketExecutor(dpState: DatapathState,
             val packet = context.packet
             if (actions.size > 0 && packet.getReason != Packet.Reason.FlowActionUserspace) {
                 try {
+                    clampMss(context, log)
                     maybeExecuteStatePacket(datapathId, context)
                     executePacket(datapathId, packet, actions)
                     val latency = NanoClock.DEFAULT.tick - packet.startTimeNanos
@@ -127,7 +199,7 @@ sealed class PacketExecutor(dpState: DatapathState,
     }
 
     private def executePacket(datapathId: Int, packet: Packet,
-                              actions: ArrayList[FlowAction]): Unit =
+                              actions: JArrayList[FlowAction]): Unit =
         try {
             protocol.preparePacketExecute(datapathId, packet, actions, writeBuf)
             writer.write(writeBuf)
