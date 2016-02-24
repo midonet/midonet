@@ -16,6 +16,24 @@
       "revId": "85506e24b33249dba60f24a8426a84c09444f822",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_31186b84",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 763,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-24T10:47:42Z",
+      "side": 1,
+      "message": "Correct: removed.",
+      "parentUuid": "5a72e520_51d88753",
+      "revId": "85506e24b33249dba60f24a8426a84c09444f822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
