@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_51d88753",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 763,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-24T09:04:56Z",
+      "side": 1,
+      "message": "Nit on repeated tests, sorry didn\u0027t see this before. We could join this test and the test_vpn_recreation by just doing the pings after the delete_ipsec_site_connection (expecting to fail).",
+      "revId": "85506e24b33249dba60f24a8426a84c09444f822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
