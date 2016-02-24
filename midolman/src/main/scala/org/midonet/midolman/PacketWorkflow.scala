@@ -398,7 +398,7 @@ class PacketWorkflow(
     private def handoff(context: PacketContext): Unit = {
         val seq = dpChannel.handoff(context)
         if (context.flow ne null) {
-            context.flow.sequence = seq
+            context.flow.assignSequence(seq)
         }
     }
 
