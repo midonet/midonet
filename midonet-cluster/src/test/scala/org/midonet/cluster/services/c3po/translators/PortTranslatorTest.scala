@@ -1286,29 +1286,33 @@ class VipPortTranslationTest extends PortTranslatorTest {
                                         pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
-        bind(portId, null, classOf[Port])
         bind(networkId, midoNetwork)
     }
 
     protected val vipPortUp = nPortFromTxt(portBaseUp + """
         device_owner: LOADBALANCER
         """)
+    protected val vipPortDown = nPortFromTxt(portBaseDown + """
+        device_owner: LOADBALANCER
+        """)
 
-    "VIP port CREATE" should "not create a Network port" in {
+    "VIP port CREATE" should "create a MidoNet port" in {
         val midoOps = translator.translate(CreateOp(vipPortUp))
-        midoOps shouldBe empty
+        midoOps should contain only CreateOp(midoPortBaseUp)
     }
 
-    "VIP port UPDATE" should "NOT update MidoNet Port" in {
-        val midoOps = translator.translate(UpdateOp(vipPortUp))
-        midoOps shouldBe empty
+    "VIP port UPDATE" should "update port admin state" in {
+        bind(portId, midoPortBaseDown)
+        bind(portId, vipPortUp)
+        val midoOps = translator.translate(UpdateOp(vipPortDown))
+        midoOps should contain only UpdateOp(midoPortBaseDown)
     }
 
-    "VIP port DELETE" should "NOT delete the MidoNet Port" in {
+    "VIP port DELETE" should "delete the MidoNet Port" in {
         bind(portId, vipPortUp)
         val midoOps = translator.translate(
             DeleteOp(classOf[NeutronPort], portId))
-        midoOps shouldBe empty
+        midoOps should contain only DeleteOp(classOf[Port], portId)
     }
 }
 
