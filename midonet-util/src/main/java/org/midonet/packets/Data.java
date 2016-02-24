@@ -102,4 +102,9 @@ public class Data extends BasePacket {
             return false;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Data(" + getPayloadLength() + " bytes)";
+    }
 }
