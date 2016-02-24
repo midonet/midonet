@@ -16,12 +16,13 @@
 
 package org.midonet.midolman.datapath
 
-import java.nio.BufferOverflowException
+import java.nio.{ByteBuffer, BufferOverflowException}
 import java.util._
 
 import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.DatapathState
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.packets.TCP.OptionKind
 import org.midonet.util.concurrent.NanoClock
 import org.slf4j.LoggerFactory
 
@@ -32,7 +33,9 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink._
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp._
-import org.midonet.packets.FlowStateEthernet
+import org.midonet.packets._
+
+import scala.annotation.tailrec
 
 trait StatePacketExecutor {
     val log: Logger
@@ -98,6 +101,7 @@ sealed class PacketExecutor(dpState: DatapathState,
             val packet = context.packet
             if (actions.size > 0 && packet.getReason != Packet.Reason.FlowActionUserspace) {
                 try {
+                    clampMss(packet.getEthernet)
                     maybeExecuteStatePacket(datapathId, context)
                     executePacket(datapathId, packet, actions)
                     val latency = NanoClock.DEFAULT.tick - packet.startTimeNanos
@@ -109,6 +113,55 @@ sealed class PacketExecutor(dpState: DatapathState,
                 }
             }
         }
+    }
+
+    @tailrec
+    private def clampMss(pkt: IPacket, wrapperSize: Int = 0): Unit = pkt match {
+        case t: TCP if t.getFlag(TCP.Flag.Syn) =>
+            val buf = ByteBuffer.wrap(t.getOptions)
+            while (buf.hasRemaining) {
+                val code = buf.get()
+                if (code <= TCP.OptionKind.NOP.code) {
+                    // END_OPTS and NOP have no arguments.
+                } else if (code == TCP.OptionKind.MSS.code) {
+                    // Reduce MSS by total size of all wrappers other than the
+                    // inner IP and Ethernet packets, which the MSS already
+                    // accounts for.
+                    // TODO: Account for MTU of input and output ports.
+                    // Skip length.
+                    buf.get()
+                    val mss = buf.getShort(buf.position())
+                    val eth = pkt.getParent.getParent
+                    val newMss = mss - wrapperSize + eth.length() - pkt.length()
+                    if (newMss != mss) {
+                        log.debug(s"Reducing MSS from $mss to $newMss")
+                        buf.putShort(newMss.toShort)
+                        clearChecksums(t)
+                    }
+                    return
+                } else {
+                    // Don't care about other options, so just skip arguments.
+                    val len = buf.get()
+                    buf.position(buf.position() + len)
+                }
+            }
+        case t: TCP => // Don't expect to nest
+        case _ =>
+            if (pkt.getPayload == null) return
+            val headerLen = pkt.length - pkt.getPayload.length
+            clampMss(pkt.getPayload, wrapperSize + headerLen)
+    }
+
+    @tailrec
+    private def clearChecksums(pkt: IPacket): Unit = {
+        if (pkt == null) return
+        pkt match {
+            case t: Transport => t.clearChecksum()
+            case ip: IPv4 => ip.clearChecksum()
+            case icmp: ICMP => icmp.clearChecksum()
+            case _ =>
+        }
+        clearChecksums(pkt.getParent)
     }
 
     private def maybeExecuteStatePacket(datapathId: Int, context: PacketContext): Unit = {

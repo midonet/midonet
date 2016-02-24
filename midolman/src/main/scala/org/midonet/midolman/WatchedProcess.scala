@@ -129,7 +129,7 @@ class WatchedProcess {
         timer = new Timer("watchdog", true)
         timer.scheduleAtFixedRate(tick, 0, intervalMillis)
 
-        timer.schedule(initializationTimeout(initializationWitness), 60 * 1000)
+        timer.schedule(initializationTimeout(initializationWitness), 90 * 1000)
         initializationWitness.future.onFailure {
             case e =>
                 Midolman.dumpStacks()
