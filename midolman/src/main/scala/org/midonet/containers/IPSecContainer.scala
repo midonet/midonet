@@ -479,13 +479,16 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
 
         // Execute the first command from each pair of the following sequence,
         try {
+            statusSubject onNext ContainerOp(ContainerFlag.Created,
+                                             config.ipsecService.name)
             execCmds(Seq((config.makeNsCmd, config.cleanNsCmd),
                          (config.startServiceCmd, config.stopServiceCmd),
                          (config.initConnsCmd, null)))
-            statusSubject onNext ContainerOp(ContainerFlag.Created,
-                                             config.ipsecService.name)
         } catch {
-            case NonFatal(e) => throw IPSecException("Command failed", e)
+            case NonFatal(e) =>
+                statusSubject onNext ContainerOp(ContainerFlag.Deleted,
+                                                 config.ipsecService.name)
+                throw IPSecException("Command failed", e)
         }
     }
 
