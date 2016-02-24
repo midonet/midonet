@@ -57,6 +57,13 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
         removed = false
     }
 
+    def assignSequence(seq: Long): Unit = {
+        sequence = seq
+        if (linkedFlow ne null) {
+            linkedFlow.sequence = seq
+        }
+    }
+
     override def clear(): Unit = {
         flowMatch.clear()
         callbacks.clear()
