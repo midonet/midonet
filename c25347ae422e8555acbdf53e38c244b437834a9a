@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_51e247d6",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1100,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-24T09:31:06Z",
+      "side": 1,
+      "message": "Is this sleep necessary if we wait for the status to be up?",
+      "revId": "c25347ae422e8555acbdf53e38c244b437834a9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
