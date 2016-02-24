@@ -25,16 +25,16 @@ virtual_topology:
     - health_monitor:
         name: 'hm0'
         admin_state_up: true
-        delay: 3
-        max_retries: 2
+        delay: 1
+        max_retries: 5
         timeout: 1
         type: 'TCP'
 
     - health_monitor:
         name: 'hm1'
         admin_state_up: true
-        delay: 3
-        max_retries: 2
+        delay: 1
+        max_retries: 5
         timeout: 1
         type: 'TCP'
 
