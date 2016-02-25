@@ -27,7 +27,8 @@ class VMGuest(Interface):
     def __init__(self, vm_id, **iface_kwargs):
         super(VMGuest, self).__init__(**iface_kwargs)
         self.vm_id = vm_id
-
+        self.ifname = 'peth' + self.vm_id
+        self.binding_ifname = 'veth' + self.vm_id
         # Setup hw_addr, ip_addr, ip_gw if defined in **iface_kwargs
         # using compute_host proxy
 
@@ -39,10 +40,10 @@ class VMGuest(Interface):
         return 'vm'+self.vm_id
 
     def get_ifname(self):
-        return 'peth'+self.vm_id
+        return self.ifname
 
     def get_binding_ifname(self):
-        return 'veth'+self.vm_id
+        return self.binding_ifname
 
     def create(self):
         self.compute_host.create_vmguest(self)
