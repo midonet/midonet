@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_9d112eaf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-25T04:51:32Z",
+      "side": 1,
+      "message": "AFAIK, we haven\u0027t been updating this everytime we modify the file, I believe.  You can keep it if I\u0027m wrong but remove this change otherwise.",
+      "revId": "f35d26ee28c6ce78bf49e3142e8aef667cf4b653",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_bd250a0c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-25T04:51:32Z",
+      "side": 1,
+      "message": "Ditto",
+      "revId": "f35d26ee28c6ce78bf49e3142e8aef667cf4b653",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
