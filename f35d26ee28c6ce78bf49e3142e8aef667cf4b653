@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_b8d0b8f8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-25T16:23:27Z",
+      "side": 1,
+      "message": "We were doing it in the BCN ex-cluster team.",
+      "parentUuid": "5a72e520_9d112eaf",
+      "revId": "f35d26ee28c6ce78bf49e3142e8aef667cf4b653",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_bd250a0c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 5
