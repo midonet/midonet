@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.models.Commons.{Condition, Int32Range, Protocol, RuleDirection}
+import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.util.IPSubnetUtil
@@ -57,6 +58,8 @@ object SecurityGroupRuleManager extends ChainManager {
             } else {
                 condBldr.setTpDst(createRangeFromRule(sgRule))
             }
+        } else {
+            condBldr.setFragmentPolicy(FragmentPolicy.ANY)
         }
 
         if (sgRule.getDirection == RuleDirection.INGRESS) {
