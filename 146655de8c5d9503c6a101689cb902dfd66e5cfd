@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_7d0c7295",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-25T04:51:32Z",
+      "side": 1,
+      "message": "How about something like \"Forward the (non-ICMP request) packets through the port even if the packet has destination IP address matching the port\u0027s address.  Dropping the packets here breaks certain cases where you need the packets to go through post-routing and beyond.  To be more specific without going into details, in Neutron, when a VM with no floating IP attempts to access a VM with a floating IP, dropping the packets here terminates the return flow.\"  Referring to the JIRA issue might be helpful too.",
+      "parentUuid": "5a72e520_f1da5316",
+      "range": {
+        "startLine": 305,
+        "startChar": 28,
+        "endLine": 308,
+        "endChar": 42
+      },
+      "revId": "146655de8c5d9503c6a101689cb902dfd66e5cfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_b1d0dbf8",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 4
