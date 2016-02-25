@@ -379,6 +379,12 @@ class Interface(object):
     Helper methods to get data from the interface
     """
 
+    def update_interface_name(self, new_name):
+        self.execute('ip link set dev %s down' % self.ifname, sync=True)
+        self.execute('ip link set dev %s name %s' % (self.ifname, new_name), sync=True)
+        self.ifname = new_name
+        self.execute('ip link set dev %s up' % self.ifname, sync=True)
+
     def get_mtu(self, update=False):
         if not self.mtu or update:
             self.mtu = self.execute(
