@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_785ac084",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 942,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-25T09:15:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_51bb27c4",
+      "revId": "c8610bcba86f7fef944619c6b08365caf6cd65d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_d1c63749",
         "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2016-02-24T09:29:13Z",
       "side": 1,
       "message": "ping after stopping cluster so we ensure that ipsec connections still work with cluster down.",
+      "revId": "c8610bcba86f7fef944619c6b08365caf6cd65d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_b853586b",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1026,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-25T09:15:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_d1c63749",
       "revId": "c8610bcba86f7fef944619c6b08365caf6cd65d3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
