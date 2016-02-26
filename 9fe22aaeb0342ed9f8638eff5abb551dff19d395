@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_d9c9f55b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/RouterSimulationTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-26T07:06:56Z",
+      "side": 1,
+      "message": "This method looks like it belongs in VirtualConfigurationBuilders.\n\nAlso, there are other places in this test class that create a new local route which should call this method, and I don\u0027t think we should have two ways of creating the same thing.  I suggest that you either:\n\n1. Not define a separate method for new local route creation and create a route the same way as the others\n2. Modify other places in the test class to call this method instead\n\nThey should be done in two separate patches IMHO.",
+      "revId": "9fe22aaeb0342ed9f8638eff5abb551dff19d395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
