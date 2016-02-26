@@ -68,6 +68,46 @@ Feel free to join other MidoNet developers on our public
 [dev-mail]: http://lists.midonet.org/listinfo/midonet-dev
     "MidoNet developers mailing list"
 
+### Commit messages
+
+It's strongly recommended to describe the whole relevant infomation
+in the commit message itself, rather than just having a reference to
+a bug tracker, especially when the tracker is not publically available.
+
+#### Bug references
+
+There are a few kind of references to bug trackers commonly found
+in the commit messages.
+
+[MidoNet Issue tracking][jira]:
+
+    MNA-xxx
+    MNP-xxx
+    MND-xxx
+    https://midonet.atlassian.net/browse/xxxxx
+
+[Launchpad][launchpad]:
+
+    Closes-bug: #xxx
+    https://bugs.launchpad.net/yyyyy/+bug/xxxxx
+
+Midokura jira (private to the company):
+
+    MI-xxx
+    MN-xxx
+    IN-xxx
+    QA-xxx
+    https://midobugs.atlassian.net/browse/xxxxx
+
+Midokura redmine (no longer available):
+
+    #xxx
+    bug xxx
+    http://redmine.midokura.com/redmine/issues/xxx
+
+[launchpad]: https://bugs.launchpad.net/
+    "Launchpad.net"
+
 ## Organization of the project
 
 The **MidoNet** project is split into several submodules:
