@@ -16,6 +16,24 @@
       "revId": "9fe22aaeb0342ed9f8638eff5abb551dff19d395",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_f9507160",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/RouterSimulationTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-26T08:43:32Z",
+      "side": 1,
+      "message": "I chose option 1.",
+      "parentUuid": "5a72e520_d9c9f55b",
+      "revId": "9fe22aaeb0342ed9f8638eff5abb551dff19d395",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
