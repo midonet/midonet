@@ -16,6 +16,24 @@
       "revId": "c25347ae422e8555acbdf53e38c244b437834a9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_5c8fb323",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-26T11:12:01Z",
+      "side": 1,
+      "message": "wait_for_status seems to return early, does it check the status in zk?",
+      "parentUuid": "5a72e520_51e247d6",
+      "revId": "c25347ae422e8555acbdf53e38c244b437834a9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
