@@ -517,6 +517,8 @@ In that case,:
 
    * range(port_range_min, port_range_max) => tpDst
 
+ * fragmentPolicy => HEADER
+
 Otherwise,:
 
  * fragmentPolicy => ANY
@@ -532,6 +534,14 @@ If the direction is 'ingress', set the following fields:
  * matchForwardFlow = False
  * remote_group_id => ipAddrGroupIdSrc
  * remote_ip_prefix => nwSrcIp
+
+Additionally, for an L4 rule, create an extra rule for later IP fragments:
+
+ * id => Deterministically generate from the original ID
+ * fragmentPolicy => NONHEADER
+ * tpSrc => don't set
+ * tpDst => don't set
+ * Other fields => Same as the first rule
 
 ### DELETE
 
