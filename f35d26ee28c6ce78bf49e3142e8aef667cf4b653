@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_19762d3f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-26T06:26:53Z",
+      "side": 1,
+      "message": "I see.  But that means you also need to update the other files too (PortTranslator, RouterTranslatorIT).  Or is there a reason only why RouterBase and RouterTranslator were updated?  We should keep it consistent anyway.  I don\u0027t personally think we should change the existing copyright, and only add a new line when a different entity modifies the code.  I also looked at other patches to midonet and they are not updating copyrights either.  My vote is to keep these untouched but we can also consult others (Ivan?) about the policy.",
+      "parentUuid": "5a72e520_b8d0b8f8",
+      "revId": "f35d26ee28c6ce78bf49e3142e8aef667cf4b653",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_bd250a0c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 5
