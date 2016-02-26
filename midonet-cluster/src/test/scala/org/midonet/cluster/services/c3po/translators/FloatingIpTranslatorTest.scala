@@ -107,6 +107,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             condition {
                 out_port_ids { ${tenantGwPortId(gatewayPortId)} }
                 nw_src_ip { $fixedIpSubnet }
+                fragment_policy: ANY
             }
             fip_port_id { $sourcePortId }
             nat_rule_data {
@@ -130,6 +131,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             condition {
                 in_port_ids { ${tenantGwPortId(gatewayPortId)} }
                 nw_dst_ip { $fipIpSubnet }
+                fragment_policy: ANY
             }
             fip_port_id { $destPortId }
             nat_rule_data {
