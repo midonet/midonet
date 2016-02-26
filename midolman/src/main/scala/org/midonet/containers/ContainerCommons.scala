@@ -18,8 +18,6 @@ package org.midonet.containers
 
 import java.io._
 
-import scala.collection.generic.Growable
-import scala.sys.process._
 import scala.util.control.NonFatal
 
 import org.midonet.midolman.logging.MidolmanLogging
@@ -45,37 +43,61 @@ trait ContainerCommons extends MidolmanLogging {
     }
 
     /**
-     * Executes a command and logs the output.
+      * Executes the specified command in a child process and calls the
+      * specified function for every line of data received from the child
+      * process' input or error streams.
+      * @return The process exit code.
+      */
+    @throws[Exception]
+    def execute(command: String, processLine: String => Unit): Int = {
+        log debug s"Execute: $command"
+        val args = command.split("""\s+""")
+        val builder = new ProcessBuilder(args: _*).redirectErrorStream(true)
+        val process = builder.start()
+        val reader = new BufferedReader(new InputStreamReader(process.getInputStream))
+
+        try {
+            var line: String = null
+            do {
+                line =
+                    try reader.readLine()
+                    catch {
+                        case e: IOException => null
+                    }
+                if (line ne null) {
+                    processLine(line)
+                }
+            } while (line ne null)
+            process.waitFor()
+        } finally {
+            try reader.close()
+            catch {
+                case e: IOException =>
+                // We know of no reason to get an IOException, but if
+                // we do, there is nothing else to do but carry on.
+            }
+        }
+    }
+
+    /**
+     * Executes a command and logs the output at the DEBUG logging level.
      */
     @throws[Exception]
-    def execCmd(cmd: String): Int = {
-        log debug s"Execute: $cmd"
-        val cmdLogger = ProcessLogger(line => log.debug(line),
-                                      line => log.debug(line))
-        cmd ! cmdLogger
+    def execute(command: String): Int = {
+        execute(command, line => log.debug(line))
     }
 
     /**
       * Executes a command, and logs and returns the output.
       */
     @throws[Exception]
-    def execCmdWithOutput(cmd: String): (Int, String, String) = {
-        log debug s"Execute: $cmd"
-        val outBuilder = new StringBuilder
-        val errBuilder = new StringBuilder
-        val cmdLogger = ProcessLogger(
-            line => {
-                outBuilder append line
-                outBuilder append '\n'
-                log.trace(line)
-            },
-            line => {
-                errBuilder append line
-                errBuilder append '\n'
-                log.trace(line)
-            })
-        val code = cmd ! cmdLogger
-        (code, outBuilder.toString, errBuilder.toString)
+    def executeWithOutput(command: String): (Int, String) = {
+        val builder = new StringBuilder
+        val code = execute(command, line => {
+            builder append line
+            builder append '\n'
+        })
+        (code, builder.toString)
     }
 
     /**
@@ -85,11 +107,11 @@ trait ContainerCommons extends MidolmanLogging {
       * pair in reverse order.
       */
     @throws[Exception]
-    def execCmds(commands: Seq[(String, String)]): Unit = {
+    def executeCommands(commands: Seq[(String, String)]): Unit = {
         var index = 0
         try {
             while (index < commands.length) {
-                if (execCmd(commands(index)._1) != 0) {
+                if (execute(commands(index)._1) != 0) {
                     throw new Exception(commands(index)._1)
                 }
                 index += 1
@@ -99,7 +121,7 @@ trait ContainerCommons extends MidolmanLogging {
                 log warn s"Failed to execute command: ${e.getMessage} (rolling-back)"
                 while (index >= 0) {
                     if (commands(index)._2 ne null) {
-                        execCmd(commands(index)._2)
+                        execute(commands(index)._2)
                     }
                     index -= 1
                 }
