@@ -422,6 +422,8 @@ data, add the NAT translation rules between 'fixed_ip_address' and
  * Static DNAT rule on the outbound chain
  * Static SNAT rule on the inbound chain
 
+These rules should be with fragment_policy = ANY.
+
 On the external network, to which the tenant router is linked, add an ARP entry
 for floating IP and the tenant router gateway port MAC to the network ARP table.
 
