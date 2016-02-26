@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_c7c3cc88",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-26T13:09:08Z",
+      "side": 1,
+      "message": "As per discussion we had earlier, even for master branch (and v5.0) we still need to take into account the case where \u0027snat_enabled\u0027 is changed from true -\u003e false.  We should delete the old rule if exists.",
+      "revId": "65cb7db48b57c000515fda4853dfca8e780e86a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
