@@ -34,6 +34,24 @@
       "revId": "c25347ae422e8555acbdf53e38c244b437834a9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_07f2449a",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1100,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-26T14:14:00Z",
+      "side": 1,
+      "message": "Yes, it checks the is_alive property on hosts through the api (unless there\u0027s a bug in mdts midonet_agent.py:44)",
+      "parentUuid": "5a72e520_5c8fb323",
+      "revId": "c25347ae422e8555acbdf53e38c244b437834a9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
