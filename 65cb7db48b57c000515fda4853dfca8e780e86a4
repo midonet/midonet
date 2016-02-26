@@ -16,6 +16,24 @@
       "revId": "65cb7db48b57c000515fda4853dfca8e780e86a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_229c8e69",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-26T17:03:46Z",
+      "side": 1,
+      "message": "That\u0027s taken care of in the next patch version.",
+      "parentUuid": "5a72e520_c7c3cc88",
+      "revId": "65cb7db48b57c000515fda4853dfca8e780e86a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
