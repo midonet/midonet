@@ -436,10 +436,10 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         log info s"Setting up IPSec container $name"
 
         // Prepare the host.
-        execCmd(config.prepareHostCmd)
+        execute(config.prepareHostCmd)
 
         // Try to clean namespace.
-        execCmd(config.cleanNsCmd)
+        execute(config.cleanNsCmd)
 
         val rootDirectory = new File(config.ipsecService.filepath)
         if (rootDirectory.exists()) {
@@ -461,7 +461,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         writeFile(config.getSecretsFileContents(log), config.secretsPath)
 
         // Create the log FIFO file.
-        execCmd(config.createLogCmd)
+        execute(config.createLogCmd)
 
         // Create the tailer to read the log file.
         if (logTailer ne null) {
@@ -481,9 +481,9 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         try {
             statusSubject onNext ContainerOp(ContainerFlag.Created,
                                              config.ipsecService.name)
-            execCmds(Seq((config.makeNsCmd, config.cleanNsCmd),
-                         (config.startServiceCmd, config.stopServiceCmd),
-                         (config.initConnsCmd, null)))
+            executeCommands(Seq((config.makeNsCmd, config.cleanNsCmd),
+                                (config.startServiceCmd, config.stopServiceCmd),
+                                (config.initConnsCmd, null)))
         } catch {
             case NonFatal(e) =>
                 statusSubject onNext ContainerOp(ContainerFlag.Deleted,
@@ -508,8 +508,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         log info s"Cleaning up IPSec container ${config.ipsecService.name}"
         statusSubject onNext ContainerOp(ContainerFlag.Deleted,
                                          config.ipsecService.name)
-        execCmd(config.stopServiceCmd)
-        execCmd(config.cleanNsCmd)
+        execute(config.stopServiceCmd)
+        execute(config.cleanNsCmd)
         try {
             if (logTailer ne null) {
                 logTailer.close().await(logTimeout)
@@ -737,11 +737,11 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         if (null == config) {
             return ContainerHealth(Code.STOPPED, "", "")
         }
-        val (code, out, err) = execCmdWithOutput(config.statusCmd)
+        val (code, out) = executeWithOutput(config.statusCmd)
         if (code == 0) {
             ContainerHealth(Code.RUNNING, config.ipsecService.name, out)
         } else {
-            ContainerHealth(Code.ERROR, config.ipsecService.name, err)
+            ContainerHealth(Code.ERROR, config.ipsecService.name, out)
         }
     }
 

@@ -41,7 +41,7 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
                            "-4" -> (() => { -1 }),
                            "-5" -> (() => { throw new Exception() }))
 
-        override def execCmd(cmd: String): Int = {
+        override def execute(cmd: String): Int = {
             results = results :+ cmd
             commands(cmd)()
         }
@@ -88,10 +88,23 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
         val container = new TestContainer
 
         When("Executing a valid command")
-        val code = container.execCmd(s"ls ${FileUtils.getTempDirectory}")
+        val code = container.execute(s"ls ${FileUtils.getTempDirectory}")
 
         Then("The return code should be zero")
         code shouldBe 0
+    }
+
+    "Container commons" should "return the command output" in {
+        Given("A container")
+        val container = new TestContainer
+
+        When("Executing a valid command")
+        val (code, out) =
+            container.executeWithOutput(s"ls ${FileUtils.getTempDirectory}")
+
+        Then("The return code should be zero")
+        code shouldBe 0
+        out should not be empty
     }
 
     "Container commons" should "execute valid failed command" in {
@@ -99,7 +112,7 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
         val container = new TestContainer
 
         When("Executing a valid command")
-        val code = container.execCmd(s"ls ${UUID.randomUUID()}")
+        val code = container.execute(s"ls ${UUID.randomUUID()}")
 
         Then("The return code should not be zero")
         code should not be 0
@@ -111,7 +124,7 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
 
         When("Executing an invalid command")
         intercept[IOException] {
-            container.execCmd(UUID.randomUUID().toString)
+            container.execute(UUID.randomUUID().toString)
         }
     }
 
@@ -120,7 +133,7 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
         val container = new CommandsContainer
 
         When("Executing valid commands")
-        container.execCmds(Seq(("+1","-1"),("+2","-2"),("+3","-3")))
+        container.executeCommands(Seq(("+1","-1"), ("+2","-2"), ("+3","-3")))
 
         Then("The command should be executed")
         container.results shouldBe Seq("+1","+2","+3")
@@ -132,7 +145,7 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
 
         When("Executing a command that returns an error code")
         intercept[Exception] {
-            container.execCmds(Seq(("+1", "-1"), ("+4", "-2"), ("+3", "-3")))
+            container.executeCommands(Seq(("+1", "-1"), ("+4", "-2"), ("+3", "-3")))
         }
 
         Then("The failed and previous commands should be rolled back")
@@ -145,7 +158,7 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
 
         When("Executing a command that returns an error code")
         intercept[Exception] {
-            container.execCmds(Seq(("+1", "-1"), ("+5", "-2"), ("+3", "-3")))
+            container.executeCommands(Seq(("+1", "-1"), ("+5", "-2"), ("+3", "-3")))
         }
 
         Then("The failed and previous commands should be rolled back")
@@ -158,7 +171,7 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
 
         When("Executing a command that returns an error code")
         intercept[Exception] {
-            container.execCmds(Seq(("+1", "-1"), ("+2", "-2"), ("+4", null)))
+            container.executeCommands(Seq(("+1", "-1"), ("+2", "-2"), ("+4", null)))
         }
 
         Then("The failed and previous commands should be rolled back")
@@ -171,7 +184,7 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
 
         When("Executing a command that returns an error code")
         intercept[Exception] {
-            container.execCmds(Seq(("+1", "-1"), ("+2", "-4"), ("+4", "-3")))
+            container.executeCommands(Seq(("+1", "-1"), ("+2", "-4"), ("+4", "-3")))
         }
 
         Then("The failed and previous commands should be rolled back")
@@ -185,7 +198,7 @@ class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
 
         When("Executing a command that returns an error code")
         intercept[Exception] {
-            container.execCmds(Seq(("+1", "-1"), ("+2", "-5"), ("+4", "-3")))
+            container.executeCommands(Seq(("+1", "-1"), ("+2", "-5"), ("+4", "-3")))
         }
 
         Then("The failed and previous commands should be rolled back")

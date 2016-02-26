@@ -57,15 +57,15 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         var commands = Seq.empty[String]
         var failOn = -1
         var throwOn = -1
-        override def execCmd(cmd: String): Int = {
+        override def execute(cmd: String): Int = {
             commands = commands :+ cmd
             if (commands.size == throwOn) throw new Exception()
             if (commands.size == failOn) -1 else 0
         }
-        override def execCmdWithOutput(cmd: String): (Int, String, String) = {
+        override def executeWithOutput(cmd: String): (Int, String) = {
             commands = commands :+ cmd
             if (commands.size == throwOn) throw new Exception()
-            if (commands.size == failOn) (-1, "", "") else (0, "", "")
+            if (commands.size == failOn) (-1, "") else (0, "")
         }
         override def writeFile(contents: String, location: String): Unit = { }
     }
