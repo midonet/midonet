@@ -92,11 +92,11 @@ class ContainerService @Inject()(nodeContext: Context,
     private val leaderLatch = latchProvider.get(latchPath(config))
     private val leaderLatchListener = new LeaderLatchListener {
         override def isLeader(): Unit = {
-            log.info("I'm container manager leader \\o/, start watching..")
+            log.info("Cluster node is container manager leader")
             startScheduling()
         }
         override def notLeader(): Unit = {
-            log.info("I'm not container manager leader, stop watching..")
+            log.info("Cluster node is no longer container manager leader")
             stopScheduling()
         }
     }
@@ -121,8 +121,8 @@ class ContainerService @Inject()(nodeContext: Context,
                 startScheduling()
             } else {
                 log.error("Too many errors emitted by container notification " +
-                          "stream, closing and giving up leadership.  This is" +
-                          " a non recoverable error, please restart this " +
+                          "stream, closing and giving up leadership. This is " +
+                          "a non recoverable error, please restart this " +
                           "Cluster node.")
                 notifyFailed(e)
                 doStop()

@@ -61,7 +61,7 @@ class IPSecContainerDelegate @Inject()(backend: MidonetBackend)
         val portId = container.getPortId.asJava
         val interfaceName = s"vpn-${portId.toString.substring(0, 8)}"
 
-        log info s"Container ${container.getId.asJava} scheduled at host" +
+        log info s"Container ${container.getId.asJava} scheduled at host " +
                  s"$hostId: binding port $portId to interface $interfaceName"
         tryTx { tx =>
             val port = tx.get(classOf[Port], portId).toBuilder
