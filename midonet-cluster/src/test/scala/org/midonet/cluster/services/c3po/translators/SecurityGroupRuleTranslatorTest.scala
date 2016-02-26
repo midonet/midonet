@@ -20,6 +20,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Commons.{Protocol, UUID}
+import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Delete, Create}
@@ -113,7 +114,7 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
     }
 
     "Ingress SecurityGroupRule translation" should "correspond " +
-    "to a mido rule" in {
+    "to mido rules" in {
         val start = 100
         val end = 117
         val ip = "1.1.1.0"
@@ -129,16 +130,25 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
          remote_ip_prefix: '$ip/$len'
          """.stripMargin)
 
-        val mRule = SecurityGroupRuleManager.translate(nRule)
+        val mRules = SecurityGroupRuleManager.translate(nRule)
+        mRules.size shouldBe 2
+        val mRule = mRules(0)
         mRule.getId shouldBe sgrId
         mRule.getCondition.getNwProto shouldBe Protocol.TCP.getNumber
+        mRule.getCondition.getFragmentPolicy shouldBe FragmentPolicy.HEADER
         mRule.getCondition.getTpDst.getStart shouldBe start
         mRule.getCondition.getTpDst.getEnd shouldBe end
         mRule.getCondition.getNwSrcIp.getAddress shouldBe ip
+        val mRule2 = mRules(1)
+        mRule2.getId shouldBe SecurityGroupRuleManager.nonHeaderRuleId(sgrId)
+        mRule2.getCondition.getNwProto shouldBe Protocol.TCP.getNumber
+        mRule2.getCondition.getFragmentPolicy shouldBe FragmentPolicy.NONHEADER
+        mRule2.getCondition.hasTpDst shouldBe false
+        mRule2.getCondition.getNwSrcIp.getAddress shouldBe ip
     }
 
     "Egress SecurityGroupRule translation" should "correspond " +
-    "to a mido rule" in {
+    "to mido rules" in {
         val start = 100
         val end = 117
         val ip = "1.1.1.0"
@@ -154,12 +164,21 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
             remote_ip_prefix: '$ip/$len'
             """.stripMargin)
 
-        val mRule = SecurityGroupRuleManager.translate(nRule)
+        val mRules = SecurityGroupRuleManager.translate(nRule)
+        mRules.size shouldBe 2
+        val mRule = mRules(0)
         mRule.getId shouldBe sgrId
         mRule.getCondition.getNwProto shouldBe Protocol.UDP.getNumber
+        mRule.getCondition.getFragmentPolicy shouldBe FragmentPolicy.HEADER
         mRule.getCondition.getTpDst.getStart shouldBe start
         mRule.getCondition.getTpDst.getEnd shouldBe end
         mRule.getCondition.getNwDstIp.getAddress shouldBe ip
+        val mRule2 = mRules(1)
+        mRule2.getId shouldBe SecurityGroupRuleManager.nonHeaderRuleId(sgrId)
+        mRule2.getCondition.getNwProto shouldBe Protocol.UDP.getNumber
+        mRule2.getCondition.getFragmentPolicy shouldBe FragmentPolicy.NONHEADER
+        mRule2.getCondition.hasTpDst shouldBe false
+        mRule2.getCondition.getNwDstIp.getAddress shouldBe ip
     }
 
     "Rule" should "allow lower-bounded open port range" in {
@@ -169,11 +188,18 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         """.stripMargin
         val nRule = nSecurityGroupRuleFromTxt(ruleText)
 
-        val mRule = SecurityGroupRuleManager.translate(nRule)
+        val mRules = SecurityGroupRuleManager.translate(nRule)
+        mRules.size shouldBe 2
+        val mRule = mRules(0)
         mRule.getId shouldBe sgrId
+        mRule.getCondition.getFragmentPolicy shouldBe FragmentPolicy.HEADER
         mRule.getCondition.getTpDst.hasStart shouldBe true
         mRule.getCondition.getTpDst.getStart shouldBe 10
         mRule.getCondition.getTpDst.hasEnd shouldBe false
+        val mRule2 = mRules(1)
+        mRule2.getId shouldBe SecurityGroupRuleManager.nonHeaderRuleId(sgrId)
+        mRule2.getCondition.getFragmentPolicy shouldBe FragmentPolicy.NONHEADER
+        mRule2.getCondition.hasTpDst shouldBe false
     }
 
     "Rule" should "allow upper-bounded open port range" in {
@@ -183,11 +209,18 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         """.stripMargin
         val nRule = nSecurityGroupRuleFromTxt(ruleText)
 
-        val mRule = SecurityGroupRuleManager.translate(nRule)
+        val mRules = SecurityGroupRuleManager.translate(nRule)
+        mRules.size shouldBe 2
+        val mRule = mRules(0)
         mRule.getId shouldBe sgrId
+        mRule.getCondition.getFragmentPolicy shouldBe FragmentPolicy.HEADER
         mRule.getCondition.getTpDst.hasStart shouldBe false
         mRule.getCondition.getTpDst.hasEnd shouldBe true
         mRule.getCondition.getTpDst.getEnd shouldBe 10
+        val mRule2 = mRules(1)
+        mRule2.getId shouldBe SecurityGroupRuleManager.nonHeaderRuleId(sgrId)
+        mRule2.getCondition.getFragmentPolicy shouldBe FragmentPolicy.NONHEADER
+        mRule2.getCondition.hasTpDst shouldBe false
     }
 
     "ICMP code and type" should "convert to src/dst port ranges" in {
@@ -199,8 +232,11 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         """.stripMargin
         val nRule = nSecurityGroupRuleFromTxt(ruleText)
 
-        val mRule = SecurityGroupRuleManager.translate(nRule)
+        val mRules = SecurityGroupRuleManager.translate(nRule)
+        mRules.size shouldBe 2
+        val mRule = mRules(0)
         mRule.getId shouldBe sgrId
+        mRule.getCondition.getFragmentPolicy shouldBe FragmentPolicy.HEADER
         mRule.getCondition.getTpSrc.hasStart shouldBe true
         mRule.getCondition.getTpSrc.getStart shouldBe 3
         mRule.getCondition.getTpSrc.hasEnd shouldBe true
@@ -209,6 +245,11 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         mRule.getCondition.getTpDst.getStart shouldBe 1
         mRule.getCondition.getTpDst.hasEnd shouldBe true
         mRule.getCondition.getTpDst.getEnd shouldBe 1
+        val mRule2 = mRules(1)
+        mRule2.getId shouldBe SecurityGroupRuleManager.nonHeaderRuleId(sgrId)
+        mRule2.getCondition.getFragmentPolicy shouldBe FragmentPolicy.NONHEADER
+        mRule2.getCondition.hasTpSrc shouldBe false
+        mRule2.getCondition.hasTpDst shouldBe false
     }
 
     "Non-L4 ingress SecurityGroupRule translation" should "correspond " +

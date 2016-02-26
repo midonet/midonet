@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{SecurityGroup => SecurityGroupType, SecurityGroupRule => SecurityGroupRuleType}
 import org.midonet.cluster.models.Commons._
+import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil._
@@ -114,7 +115,7 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val ChainPair(inChain1, outChain1) = getChains(ipg1)
 
         inChain1.getRuleIdsCount should be(0)
-        outChain1.getRuleIdsCount should be(2)
+        outChain1.getRuleIdsCount should be(3)
         val outChain1Rules = storage.getAll(
             classOf[Rule], outChain1.getRuleIdsList.asScala).await()
         outChain1Rules(0).getId should be(toProto(rule1Id))
@@ -122,10 +123,17 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         outChain1Rules(0).getCondition.getTpDst.getEnd should be(15500)
         outChain1Rules(0).getCondition.getNwSrcIp.getAddress should be("10.0.0.1")
         outChain1Rules(0).getCondition.getNwSrcIp.getPrefixLength should be(24)
+        outChain1Rules(0).getCondition.getFragmentPolicy should be(FragmentPolicy.HEADER)
 
-        outChain1Rules(1).getId should be(toProto(rule2Id))
-        outChain1Rules(1).getCondition.getDlType should be(EtherType.IPV6_VALUE)
-        outChain1Rules(1).getCondition.getIpAddrGroupIdSrc should be(toProto(sg2Id))
+        outChain1Rules(1).getId should be(toProto(SecurityGroupRuleManager.nonHeaderRuleId(rule1Id)))
+        outChain1Rules(1).getCondition.hasTpDst should be(false)
+        outChain1Rules(1).getCondition.getNwSrcIp.getAddress should be("10.0.0.1")
+        outChain1Rules(1).getCondition.getNwSrcIp.getPrefixLength should be(24)
+        outChain1Rules(1).getCondition.getFragmentPolicy should be(FragmentPolicy.NONHEADER)
+
+        outChain1Rules(2).getId should be(toProto(rule2Id))
+        outChain1Rules(2).getCondition.getDlType should be(EtherType.IPV6_VALUE)
+        outChain1Rules(2).getCondition.getIpAddrGroupIdSrc should be(toProto(sg2Id))
 
         val sg1aJson = sgJson(name = "sg1-updated", id = sg1Id,
                               desc = "Security group", tenantId = "tenant")
@@ -141,9 +149,10 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
             val ChainPair(inChain1a, outChain1a) = getChains(ipg1a)
             inChain1a.getRuleIdsCount shouldBe 0
 
-            outChain1a.getRuleIdsCount shouldBe 2
+            outChain1a.getRuleIdsCount shouldBe 3
             outChain1a.getRuleIds(0) shouldBe toProto(rule1Id)
-            outChain1a.getRuleIds(1) shouldBe toProto(rule2Id)
+            outChain1a.getRuleIds(1) shouldBe toProto(SecurityGroupRuleManager.nonHeaderRuleId(rule1Id))
+            outChain1a.getRuleIds(2) shouldBe toProto(rule2Id)
 
             // The Neutron security group should also keep its rules.
             val nsg = storage.get(classOf[SecurityGroup], sg1Id).await()
