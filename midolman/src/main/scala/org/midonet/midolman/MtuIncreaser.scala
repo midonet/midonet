@@ -30,12 +30,14 @@ import org.midonet.midolman.simulation.{BridgePort, Port}
 import org.midonet.midolman.topology.VirtualTopology
 
 object MtuIncreaser  {
-    val BOUND_INTERFACE_MTU = 65000L
+    // The maximum value of the MTU. See p.13 of RFC 791.
+    //   https://tools.ietf.org/html/rfc791
+    val BOUND_INTERFACE_MTU = 65535
 }
 
 /**
  * MtuIncreaser subscribes to LocalPortActive events to increase the MTU of
- * the interface associated with the activated port to 65K bytes.
+ * the interface associated with the activated port to 64k bytes.
  */
 trait MtuIncreaser {
     import MtuIncreaser._
