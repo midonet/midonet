@@ -133,7 +133,7 @@ object HealthMonitor extends Referenceable {
      * is valid and no one is trying to make us execute "kill -9 0".
      */
     def killHaproxyIfRunning(nsName: String, nsPostfix: String,
-                                fileLoc: String): Unit = {
+                             fileLoc: String): Unit = {
         val idPrefix = nsName.dropRight(nsPostfix.length)
         val l4lbFolder = new File(fileLoc)
         val nameSpaceFiles = l4lbFolder.listFiles(new FilenameFilter {
@@ -172,7 +172,7 @@ object HealthMonitor extends Referenceable {
     }
 
     def cleanAndDeleteNamespace(nsName: String, nsPostfix: String,
-                              fileLoc: String): Unit = {
+                                fileLoc: String): Unit = {
         if (ipCommand.namespaceExist(nsName)) {
             deleteLink(nsName)
             for (i <- 1 to 10) {
