@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_19e54da8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-26T08:43:32Z",
+      "side": 1,
+      "message": "Some patches do modify the date. But it\u0027s not clear to me what the policy is. I remember in the beginning of 2015, we were consistently modifying dates when modifying the file (at least with Alex and Galo).\n\nI\u0027ll rollback date changes to make things consistent.",
+      "parentUuid": "5a72e520_19762d3f",
+      "revId": "f35d26ee28c6ce78bf49e3142e8aef667cf4b653",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_bd250a0c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 5
