@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_c86cb939",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-02-27T23:12:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_d95824fd",
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_e7d192fc",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 12
@@ -53,6 +71,30 @@
       "writtenOn": "2015-09-21T10:33:07Z",
       "side": 1,
       "message": "What\u0027s the usecase for a midonet service client without the observable?",
+      "range": {
+        "startLine": 67,
+        "startChar": 8,
+        "endLine": 67,
+        "endChar": 17
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_880c8196",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-02-27T23:12:35Z",
+      "side": 1,
+      "message": "That could be used when there is a persistent connection between the client and the server (think of a tcp connection); in that case, you may need to change to another service when your current connection is broken - at that point, you may ask the service discovery again (it will provide you a new valid endpoint, without the need of the observable).\n\nOf course you may use a service client with observable for that (and just not use it); the additional cost, according to the docs, is registering an additional watcher in zookeeper.",
+      "parentUuid": "1ae5cdf2_e7d192fc",
       "range": {
         "startLine": 67,
         "startChar": 8,
@@ -151,6 +193,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_e8697526",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-02-27T23:12:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_d6fe336b",
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_163fbb26",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 12
@@ -185,6 +245,30 @@
       "writtenOn": "2015-09-10T15:42:50Z",
       "side": 1,
       "message": "Is it by the spec that this class\u0027s hasCode() returns that of the \"description\"?",
+      "range": {
+        "startLine": 25,
+        "startChar": 3,
+        "endLine": 25,
+        "endChar": 55
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_0877b103",
+        "filename": "nsdb/src/test/java/org/midonet/cluster/services/discovery/TestJavaServiceDetails.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-02-27T23:12:35Z",
+      "side": 1,
+      "message": "hashcode must be based in the same members as the \u0027equals\u0027 method, otherwise funny things may happen when inserting the class into hashed collections.",
+      "parentUuid": "1ae5cdf2_761d5fbd",
       "range": {
         "startLine": 25,
         "startChar": 3,
@@ -254,6 +338,30 @@
       "writtenOn": "2015-09-10T15:42:50Z",
       "side": 1,
       "message": "What is this really testing here? Does it really matter if info \u003d\u003d info1 or not?",
+      "range": {
+        "startLine": 136,
+        "startChar": 12,
+        "endLine": 152,
+        "endChar": 13
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_28746dfc",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-02-27T23:12:35Z",
+      "side": 1,
+      "message": "This tests checks the case where the server that we are currently using shuts down; we check which is the current \u0027info\u0027 to shut down the appropriate service.",
+      "parentUuid": "1ae5cdf2_3674b7ce",
       "range": {
         "startLine": 136,
         "startChar": 12,
