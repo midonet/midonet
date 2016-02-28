@@ -267,7 +267,8 @@ object IPSecContainer {
   * Implements a [[ContainerHandler]] for a IPSec-based VPN service.
   */
 @Container(name = Containers.IPSEC_CONTAINER, version = 1)
-class IPSecContainer @Inject()(vt: VirtualTopology,
+class IPSecContainer @Inject()(@Named("id") id: UUID,
+                               vt: VirtualTopology,
                                @Named("container") containerExecutor: ExecutorService,
                                @Named("io") ioExecutor: ScheduledExecutorService)
     extends ContainerHandler with ContainerCommons {

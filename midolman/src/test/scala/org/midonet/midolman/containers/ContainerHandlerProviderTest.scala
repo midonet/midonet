@@ -16,11 +16,12 @@
 
 package org.midonet.midolman.containers
 
+import java.util.UUID
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 
 import scala.concurrent.Future
 
-import com.google.inject.Inject
+import com.google.inject.{ConfigurationException, Inject}
 import com.google.inject.name.Named
 import com.typesafe.scalalogging.Logger
 
@@ -40,7 +41,8 @@ import org.midonet.midolman.topology.VirtualTopology
 object ContainerHandlerProviderTest {
 
     @Container(name = "test-handler", version = 1)
-    class TestContainer @Inject()(val vt: VirtualTopology,
+    class TestContainer @Inject()(@Named("id") val id: UUID,
+                                  val vt: VirtualTopology,
                                   @Named("container") val containerExecutor: ExecutorService,
                                   @Named("io") val ioExecutor: ScheduledExecutorService)
         extends ContainerHandler {
@@ -67,17 +69,37 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
 
         And("A provider for the current class path")
         val provider = new ContainerHandlerProvider(reflections, vt, executor,
-                                                    executor, log)
+                                                    log)
 
         Then("The provider should load all classes")
         provider.current.size should be >= 1
 
         And("The provider should return a handler instance")
-        val container = provider.getInstance("test-handler").asInstanceOf[TestContainer]
+        val id = UUID.randomUUID()
+        val container = provider.getInstance("test-handler", id, executor)
+                                .asInstanceOf[TestContainer]
         container should not be null
+        container.id shouldBe id
         container.vt shouldBe vt
         container.containerExecutor shouldBe executor
         container.ioExecutor shouldBe executor
     }
 
+    "Container provider" should "fail to create container without identifier" in {
+        Given("A mock virtual topology")
+        val vt = Mockito.mock(classOf[VirtualTopology])
+        val executor = Mockito.mock(classOf[ScheduledExecutorService])
+
+        And("A provider for the current class path")
+        val provider = new ContainerHandlerProvider(reflections, vt, executor,
+                                                    log)
+
+        Then("The provider should load all classes")
+        provider.current.size should be >= 1
+
+        And("The provider should fail to create a handler instance")
+        intercept[ConfigurationException] {
+            provider.getInstance("test-handler")
+        }
+    }
 }

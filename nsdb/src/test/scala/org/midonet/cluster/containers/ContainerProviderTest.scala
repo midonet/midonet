@@ -23,12 +23,12 @@ import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.reflections.Reflections
-import org.scalatest.{GivenWhenThen, Matchers, FlatSpec}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.containers.ContainerProviderTest.{ContainerB, ContainerA2}
-import org.midonet.containers.{ContainerProvider, Container}
+import org.midonet.cluster.containers.ContainerProviderTest.{ContainerA2, ContainerB}
+import org.midonet.containers.{Container, ContainerProvider}
 
 object ContainerProviderTest {
 
@@ -59,9 +59,7 @@ class ContainerProviderTest extends FlatSpec with Matchers
     private val log = Logger(LoggerFactory.getLogger(getClass))
 
     "Container provider" should "load all containers" in {
-        Given("A mock cluster configuration and backend")
-
-        And("A provider for the current class path")
+        Given("A provider for the current class path")
         val provider = new TestContainerProvider(log)
 
         Then("The provider should load all classes")
