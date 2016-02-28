@@ -118,8 +118,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private val containerObservable = Observable.create(containerMapper)
 
     private val provider =
-        new ContainerHandlerProvider(reflections, vt, serviceExecutor,
-                                     ioExecutor, log)
+        new ContainerHandlerProvider(reflections, vt, ioExecutor, log)
 
     private val logger = new ContainerLogger(vt.config.containers, log)
 
@@ -195,7 +194,9 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             for (container <- containers) {
                 try {
                     log debug s"Cleanup container $container"
-                    val handler = provider.getInstance(container.`type`)
+                    val handler = provider.getInstance(container.`type`,
+                                                       UUID.randomUUID(),
+                                                       serviceExecutor)
                     belt.handle(() => handler.cleanup(container.name))
                 } catch {
                     case NonFatal(e) =>
@@ -373,7 +374,8 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         // that all container operations maintain the order.
         belt.handle(() => tryOp({
             // Create a new container handler for this container type.
-            val handler = provider.getInstance(cp.serviceType)
+            val handler = provider.getInstance(cp.serviceType, cp.portId,
+                                               serviceExecutor)
 
             // Subscribe to the handler's status observable.
             val subscription = handler.status

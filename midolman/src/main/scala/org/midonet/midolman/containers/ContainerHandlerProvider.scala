@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.containers
 
+import java.util.UUID
 import java.util.concurrent.{ScheduledExecutorService, ExecutorService}
 
 import scala.reflect.classTag
@@ -34,7 +35,6 @@ import org.midonet.midolman.topology.VirtualTopology
   */
 class ContainerHandlerProvider(reflections: Reflections,
                                vt: VirtualTopology,
-                               serviceExecutor: ExecutorService,
                                ioExecutor: ScheduledExecutorService,
                                log: Logger)
     extends ContainerProvider[ContainerHandler](reflections, log)(classTag[ContainerHandler]) {
@@ -42,11 +42,32 @@ class ContainerHandlerProvider(reflections: Reflections,
     protected override val injector = Guice.createInjector(new AbstractModule() {
         override def configure(): Unit = {
             bind(classOf[VirtualTopology]).toInstance(vt)
-            bind(classOf[ExecutorService]).annotatedWith(Names.named("container"))
-                                          .toInstance(serviceExecutor)
             bind(classOf[ScheduledExecutorService]).annotatedWith(Names.named("io"))
                                                    .toInstance(ioExecutor)
         }
     })
+
+    /**
+      * Gets a new container instance from the current container provider,
+      * where the container receives the specified identifier.
+      */
+    @throws[Exception]
+    def getInstance(name: String, id: UUID, containerExecutor: ExecutorService)
+    : ContainerHandler = {
+        current get name match {
+            case Some((_, clazz)) =>
+                injector.createChildInjector(new AbstractModule {
+                    override def configure(): Unit = {
+                        bind(classOf[UUID])
+                            .annotatedWith(Names.named("id"))
+                            .toInstance(id)
+                        bind(classOf[ExecutorService])
+                            .annotatedWith(Names.named("container"))
+                            .toInstance(containerExecutor)
+                    }
+                }).getInstance(clazz).asInstanceOf[ContainerHandler]
+            case None => throw new NoSuchElementException(name)
+        }
+    }
 
 }
