@@ -16,10 +16,13 @@
 
 package org.midonet.containers
 
+import java.util.UUID
+
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
-import com.google.inject.Injector
+import com.google.inject.name.Names
+import com.google.inject.{AbstractModule, Injector}
 import com.typesafe.scalalogging.Logger
 
 import org.reflections.Reflections
@@ -75,6 +78,24 @@ abstract class ContainerProvider[T](reflections: Reflections, log: Logger)
         currentContainers get name match {
             case Some((_, clazz)) =>
                 injector.getInstance(clazz).asInstanceOf[T]
+            case None => throw new NoSuchElementException(name)
+        }
+    }
+
+    /**
+      * Gets a new container instance from the current container provider,
+      * where the container receives the specified identifier.
+      */
+    @throws[Exception]
+    def getInstance(name: String, id: UUID): T = {
+        currentContainers get name match {
+            case Some((_, clazz)) =>
+                injector.createChildInjector(new AbstractModule {
+                    override def configure(): Unit = {
+                        bind(classOf[UUID]).annotatedWith(Names.named("id"))
+                                           .toInstance(id)
+                    }
+                }).getInstance(clazz).asInstanceOf[T]
             case None => throw new NoSuchElementException(name)
         }
     }
