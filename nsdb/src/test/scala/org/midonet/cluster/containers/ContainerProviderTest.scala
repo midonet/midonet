@@ -16,19 +16,23 @@
 
 package org.midonet.cluster.containers
 
+import java.util.UUID
+
+import javax.inject.Named
+
 import scala.reflect.classTag
 
-import com.google.inject.Guice
+import com.google.inject.{Guice, Inject}
 import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.reflections.Reflections
-import org.scalatest.{GivenWhenThen, Matchers, FlatSpec}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.containers.ContainerProviderTest.{ContainerB, ContainerA2}
-import org.midonet.containers.{ContainerProvider, Container}
+import org.midonet.cluster.containers.ContainerProviderTest.{ContainerA2, ContainerB}
+import org.midonet.containers.{Container, ContainerProvider}
 
 object ContainerProviderTest {
 
@@ -40,6 +44,9 @@ object ContainerProviderTest {
 
     @Container(name = "test-b", version = 1)
     class ContainerB
+
+    @Container(name = "test-c", version = 1)
+    class ContainerC @Inject()(@Named("id") val id: UUID)
 
 }
 
@@ -59,14 +66,12 @@ class ContainerProviderTest extends FlatSpec with Matchers
     private val log = Logger(LoggerFactory.getLogger(getClass))
 
     "Container provider" should "load all containers" in {
-        Given("A mock cluster configuration and backend")
-
-        And("A provider for the current class path")
+        Given("A provider for the current class path")
         val provider = new TestContainerProvider(log)
 
         Then("The provider should load all classes")
-        provider.current.size should be >= 2
-        provider.all.size should be >= 3
+        provider.current.size should be >= 3
+        provider.all.size should be >= 4
 
         And("The loaded classes should have the last version")
         provider.getInstance("test-a").getClass shouldBe classOf[ContainerA2]

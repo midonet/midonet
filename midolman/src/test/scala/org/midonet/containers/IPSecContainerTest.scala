@@ -52,7 +52,7 @@ import org.midonet.util.concurrent._
 class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder {
 
     class TestIPSecContainer(vt: VirtualTopology, executor: ExecutorService)
-        extends IPSecContainer(vt, executor, ioExecutor) {
+        extends IPSecContainer(UUID.randomUUID(), vt, executor, ioExecutor) {
 
         var commands = Seq.empty[String]
         var failOn = -1
