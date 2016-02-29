@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_1579892f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-02-29T13:54:03Z",
+      "side": 1,
+      "message": "the previous code meant allowing router ports to be pinged. now we\u0027re allowing any kind of traffic addressed to the router port, which doesn\u0027t seem correct.",
+      "parentUuid": "5a72e520_bf0c1496",
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_7cbc6a6d",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 8
