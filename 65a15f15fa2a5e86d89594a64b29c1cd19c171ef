@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_722653bc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-29T13:11:57Z",
+      "side": 1,
+      "message": "Why not newServiceObservable? With the current name it seems that it\u0027s the client we are observing :-)",
+      "range": {
+        "startLine": 108,
+        "startChar": 8,
+        "endLine": 108,
+        "endChar": 27
+      },
+      "revId": "65a15f15fa2a5e86d89594a64b29c1cd19c171ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_52b6b73e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-29T13:11:57Z",
+      "side": 1,
+      "message": "1 word",
+      "range": {
+        "startLine": 152,
+        "startChar": 14,
+        "endLine": 152,
+        "endChar": 22
+      },
+      "revId": "65a15f15fa2a5e86d89594a64b29c1cd19c171ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_32e77b42",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-29T13:11:57Z",
+      "side": 1,
+      "message": "There\u0027s a missing dot.",
+      "revId": "65a15f15fa2a5e86d89594a64b29c1cd19c171ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_72d01354",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-29T13:11:57Z",
+      "side": 1,
+      "message": "1 word",
+      "range": {
+        "startLine": 188,
+        "startChar": 14,
+        "endLine": 188,
+        "endChar": 22
+      },
+      "revId": "65a15f15fa2a5e86d89594a64b29c1cd19c171ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_723733b1",
+        "filename": "nsdb/src/test/java/org/midonet/cluster/services/discovery/TestJavaServiceDetails.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-29T13:11:57Z",
+      "side": 1,
+      "message": "2016?",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "65a15f15fa2a5e86d89594a64b29c1cd19c171ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
