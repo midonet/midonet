@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_f201633a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-29T11:58:59Z",
+      "side": 1,
+      "message": "I guess. I don\u0027t care too much about that.",
+      "parentUuid": "5a72e520_529cf769",
+      "range": {
+        "startLine": 123,
+        "startChar": 39,
+        "endLine": 123,
+        "endChar": 50
+      },
+      "revId": "06d110107243f0c8ecac5968079e8d4c55f21497",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_92874f61",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
         "patchSetId": 2
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_b29feb02",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-29T11:58:59Z",
+      "side": 1,
+      "message": "Since this is user-input I wouldn\u0027t put a literal assert, but I\u0027d throw up out of the method with IllegalStateException or something.",
+      "parentUuid": "5a72e520_32769b3f",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 58
+      },
+      "revId": "06d110107243f0c8ecac5968079e8d4c55f21497",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_92d82f55",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
         "patchSetId": 2
@@ -172,6 +220,24 @@
       "side": 1,
       "message": "There\u0027s no break in Scala.",
       "parentUuid": "5a72e520_92d82f55",
+      "revId": "06d110107243f0c8ecac5968079e8d4c55f21497",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_92c10fe7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-02-29T11:58:59Z",
+      "side": 1,
+      "message": "scala sucks",
+      "parentUuid": "5a72e520_f2d083f9",
       "revId": "06d110107243f0c8ecac5968079e8d4c55f21497",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
