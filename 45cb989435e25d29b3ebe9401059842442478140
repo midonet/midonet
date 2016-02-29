@@ -16,6 +16,24 @@
       "revId": "45cb989435e25d29b3ebe9401059842442478140",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_b5b6f588",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-29T15:31:04Z",
+      "side": 1,
+      "message": "I didn\u0027t put it there because the injection of certain dependencies is specific to the handler or delegate, unless we want to force a common pattern for the two.\n\nYou\u0027re right about the commit message. Initially I had all this code in the base class (see PS1), but then I changed my mind, thinking that we shouldn\u0027t enforce dependencies that are specific to the agent on the container inside the cluster, where the requirements may be different. I will update the commit message.",
+      "parentUuid": "5a72e520_9f659847",
+      "revId": "45cb989435e25d29b3ebe9401059842442478140",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
