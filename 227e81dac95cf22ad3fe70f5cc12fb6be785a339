@@ -34,6 +34,24 @@
       "revId": "227e81dac95cf22ad3fe70f5cc12fb6be785a339",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_722c934b",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-29T10:48:28Z",
+      "side": 1,
+      "message": "well no, I meant something like:\ndo {\n    try {\n        line \u003d reader.readLine()\n        processLine(line)\n    } catch {\n        case e: IOException \u003d\u003e line \u003d null\n    }\n} while (line ne null)\n\njust minor comment, you can leave it like it is right now.",
+      "parentUuid": "5a72e520_12c19f80",
+      "revId": "227e81dac95cf22ad3fe70f5cc12fb6be785a339",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
