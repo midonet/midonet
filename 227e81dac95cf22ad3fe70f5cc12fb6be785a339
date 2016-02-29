@@ -16,6 +16,24 @@
       "revId": "227e81dac95cf22ad3fe70f5cc12fb6be785a339",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_12c19f80",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-02-29T10:30:41Z",
+      "side": 1,
+      "message": "Do you mean to guard against a null pointer exception?",
+      "parentUuid": "5a72e520_bf35f447",
+      "revId": "227e81dac95cf22ad3fe70f5cc12fb6be785a339",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
