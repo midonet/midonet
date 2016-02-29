@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_529cf769",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-02-29T11:18:08Z",
+      "side": 1,
+      "message": "You mean to eliminate the other clampMss value? I originally had it that way, but if I move the check of ctx.inputPort into this function, then the whole thing has to be nested another level deep.",
+      "parentUuid": "5a72e520_521797ed",
+      "range": {
+        "startLine": 123,
+        "startChar": 39,
+        "endLine": 123,
+        "endChar": 50
+      },
+      "revId": "06d110107243f0c8ecac5968079e8d4c55f21497",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_92874f61",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_928d8f34",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-02-29T11:18:08Z",
+      "side": 1,
+      "message": "Fixed in the new patch.",
+      "parentUuid": "5a72e520_92874f61",
+      "range": {
+        "startLine": 125,
+        "startChar": 22,
+        "endLine": 125,
+        "endChar": 32
+      },
+      "revId": "06d110107243f0c8ecac5968079e8d4c55f21497",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_f295e388",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2016-02-29T11:01:31Z",
       "side": 1,
       "message": "assert that it is",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 58
+      },
+      "revId": "06d110107243f0c8ecac5968079e8d4c55f21497",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_32769b3f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-02-29T11:18:08Z",
+      "side": 1,
+      "message": "Not literally assert, right? Is there some specific exception I should throw?",
+      "parentUuid": "5a72e520_f295e388",
       "range": {
         "startLine": 134,
         "startChar": 0,
