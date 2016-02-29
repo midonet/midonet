@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_f0679be8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerExecutors.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-29T16:04:01Z",
+      "side": 1,
+      "message": "nice trick. I know this is more efficient, I\u0027d have done a simple modulus division by threadCount in this case.",
+      "range": {
+        "startLine": 65,
+        "startChar": 44,
+        "endLine": 65,
+        "endChar": 61
+      },
+      "revId": "eca868c67814bd11d0f9cdacc64a3ca2586a4549",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
