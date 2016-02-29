@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_bf35f447",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-29T09:28:55Z",
+      "side": 1,
+      "message": "maybe put the try surrounding also processLine to safe an if.",
+      "revId": "227e81dac95cf22ad3fe70f5cc12fb6be785a339",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
