@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_d59e1156",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-02-29T14:00:03Z",
+      "side": 1,
+      "message": "i would just log at debug level and bail, no need to prevent the packet from going through (\"be conservative in what you send, be liberal in what you accept\u0027)",
+      "revId": "e29fa671c69c89ddfedbf50ffa8f5295671c2aaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
