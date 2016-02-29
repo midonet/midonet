@@ -392,8 +392,7 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
             Future.successful(())
         } catch {
             case NonFatal(e) =>
-                log.error("Failed to delete IPSec container " +
-                          s"${config.ipsecService.name}", e)
+                log.error("Failed to delete IPSec container", e)
                 Future.failed(e)
         }
     }
