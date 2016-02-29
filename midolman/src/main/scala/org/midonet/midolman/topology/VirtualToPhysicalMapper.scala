@@ -17,7 +17,7 @@ package org.midonet.midolman.topology
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.{Executors, ConcurrentHashMap}
+import java.util.concurrent.{TimeUnit, ThreadFactory, Executors, ConcurrentHashMap}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,7 +36,7 @@ import rx.subjects.PublishSubject
 import org.midonet.cluster.data.storage.{TransactionManager, NotFoundException, StateResult}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
-import org.midonet.midolman.containers.ContainerService
+import org.midonet.midolman.containers.{ContainerExecutors, ContainerService}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{TunnelZoneType, Host, TunnelZone}
@@ -186,13 +186,26 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
     // we cannot use the virtual topology thread since it will block the
     // notifications for all topology devices, and it may overflow the internal
     // buffers of the ObserveOn RX operator.
-    val containersExecutor = Executors.newSingleThreadExecutor(
-        new NamedThreadFactory("containers", isDaemon = true))
+    val containerExecutor = Executors.newSingleThreadScheduledExecutor(
+        new ThreadFactory {
+            override def newThread(runnable: Runnable): Thread = {
+                val thread = new Thread(runnable, "container-service")
+                thread.setDaemon(true)
+                thread
+            }
+        })
+    val containerExecutors = new ContainerExecutors(vt.config.containers)
     val ioExecutor = Executors.newSingleThreadScheduledExecutor(
-        new NamedThreadFactory("io", isDaemon = true))
+        new ThreadFactory {
+            override def newThread(runnable: Runnable): Thread = {
+                val thread = new Thread(runnable, "container-io")
+                thread.setDaemon(true)
+                thread
+            }
+        })
     private val containersService =
-        new ContainerService(vt, hostId, containersExecutor, ioExecutor,
-                             reflections)
+        new ContainerService(vt, hostId, containerExecutor, containerExecutors,
+                             ioExecutor, reflections)
 
     private val activePorts = new ConcurrentHashMap[UUID, Boolean]
     private val portsActiveSubject = PublishSubject.create[LocalPortActive]
@@ -231,11 +244,30 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
             containersService.stopAsync().awaitTerminated()
         } catch {
             case NonFatal(e) =>
+                log.warn("Failed to stop the containers service", e)
         }
         try {
             vxlanPortMappingService.stopAsync().awaitTerminated()
         } catch {
             case NonFatal(e) =>
+                log.warn("Failed to stop the VXLAN port mapping service", e)
+        }
+
+        // Shutdown the executors.
+        containerExecutors.shutdown()
+
+        ioExecutor.shutdown()
+        if (!ioExecutor.awaitTermination(vt.config.containers
+                                             .shutdownGraceTime.toMillis,
+                                         TimeUnit.MILLISECONDS)) {
+            ioExecutor.shutdownNow()
+        }
+
+        containerExecutor.shutdown()
+        if (!containerExecutor.awaitTermination(vt.config.containers
+                                                  .shutdownGraceTime.toMillis,
+                                                TimeUnit.MILLISECONDS)) {
+            containerExecutor.shutdownNow()
         }
 
         if (state() != State.FAILED) {
