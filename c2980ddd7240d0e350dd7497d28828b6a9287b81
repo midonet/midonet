@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_dc171e50",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-02-29T06:17:10Z",
+      "side": 1,
+      "message": "why don\u0027t you apply snat/rev_snat on non-gateway port instead?",
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_7cbc6a6d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-02-29T06:17:10Z",
+      "side": 1,
+      "message": "why do these need an timeout, while eg. L292 doesn\u0027t?",
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_bcb6e288",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-02-29T06:17:10Z",
+      "side": 1,
+      "message": "it seems the convention is to use lower letters.",
+      "range": {
+        "startLine": 367,
+        "startChar": 25,
+        "endLine": 367,
+        "endChar": 44
+      },
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_1c8616ba",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-02-29T06:17:10Z",
+      "side": 1,
+      "message": "is this related?",
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
