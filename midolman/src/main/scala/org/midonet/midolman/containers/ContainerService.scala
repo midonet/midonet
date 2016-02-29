@@ -511,7 +511,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private def logOperation(cp: ContainerPort, op: ContainerOp)
     : Unit = {
         try {
-            logger.log(cp.serviceType, op)
+            logger.log(cp.serviceType, cp.portId, op)
         } catch {
             case NonFatal(t) =>
                 log.warn(s"Failed to log operation for container $cp: $op", t)

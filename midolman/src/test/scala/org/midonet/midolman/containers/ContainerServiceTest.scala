@@ -44,6 +44,7 @@ import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.Container
+import org.midonet.containers.models.Containers.Log
 import org.midonet.midolman.containers.ContainerServiceTest.{GoodContainer, TestContainer, TestNamespace}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
@@ -1095,7 +1096,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The log file exists")
             val path = FileSystems.getDefault.getPath(
-                s"$logDir/${config.containers.logDirectory}/a.test-good")
+                s"$logDir/${config.containers.logDirectory}/" +
+                s"${port.getId.asJava}")
             Files.exists(path) shouldBe true
 
             When("The container reports the deleted configuration")
@@ -1112,9 +1114,14 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val dirPath = FileSystems.getDefault.getPath(
                 s"$logDir/${config.containers.logDirectory}")
             val filePath = FileSystems.getDefault.getPath(
-                s"$logDir/${config.containers.logDirectory}/a.A")
+                s"$logDir/${config.containers.logDirectory}/" +
+                s"${UUID.randomUUID()}")
             Files.createDirectory(dirPath)
-            Files.createDirectory(filePath)
+            FileUtils.writeByteArrayToFile(
+                filePath.toFile,
+                Log.newBuilder().setId(UUID.randomUUID().toString)
+                    .setType("test-good").setName("a")
+                    .build().toByteArray)
 
             And("A container service")
             val host = createHost()
@@ -1136,12 +1143,22 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val dirPath = FileSystems.getDefault.getPath(
                 s"$logDir/${config.containers.logDirectory}")
             val filePath1 = FileSystems.getDefault.getPath(
-                s"$logDir/${config.containers.logDirectory}/a.test-good")
+                s"$logDir/${config.containers.logDirectory}/" +
+                s"${UUID.randomUUID()}.test-good")
             val filePath2 = FileSystems.getDefault.getPath(
-                s"$logDir/${config.containers.logDirectory}/b.test-good")
+                s"$logDir/${config.containers.logDirectory}/" +
+                s"${UUID.randomUUID()}.test-good")
             Files.createDirectory(dirPath)
-            Files.createDirectory(filePath1)
-            Files.createDirectory(filePath2)
+            FileUtils.writeByteArrayToFile(
+                filePath1.toFile,
+                Log.newBuilder().setId(UUID.randomUUID().toString)
+                    .setType("test-good").setName("a")
+                    .build().toByteArray)
+            FileUtils.writeByteArrayToFile(
+                filePath2.toFile,
+                Log.newBuilder().setId(UUID.randomUUID().toString)
+                    .setType("test-good").setName("a")
+                    .build().toByteArray)
 
             And("A container service")
             val host = createHost()
@@ -1164,9 +1181,14 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val dirPath = FileSystems.getDefault
                 .getPath(s"$logDir/${config.containers.logDirectory}")
             val filePath = FileSystems.getDefault.getPath(
-                s"$logDir/${config.containers.logDirectory}/a.test-error-cleanup")
+                s"$logDir/${config.containers.logDirectory}/" +
+                s"${UUID.randomUUID()}")
             Files.createDirectory(dirPath)
-            Files.createDirectory(filePath)
+            FileUtils.writeByteArrayToFile(
+                filePath.toFile,
+                Log.newBuilder().setId(UUID.randomUUID().toString)
+                    .setType("test-error-cleanup").setName("a")
+                    .build().toByteArray)
 
             And("A container service")
             val host = createHost()
@@ -1186,9 +1208,14 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val dirPath = FileSystems.getDefault
                 .getPath(s"$logDir/${config.containers.logDirectory}")
             val filePath = FileSystems.getDefault.getPath(
-                s"$logDir/${config.containers.logDirectory}/a.test-error-cleanup")
+                s"$logDir/${config.containers.logDirectory}/" +
+                s"${UUID.randomUUID()}")
             Files.createDirectory(dirPath)
-            Files.createDirectory(filePath)
+            FileUtils.writeByteArrayToFile(
+                filePath.toFile,
+                Log.newBuilder().setId(UUID.randomUUID().toString)
+                    .setType("test-error-cleanup").setName("a")
+                    .build().toByteArray)
 
             And("A container service")
             val host = createHost()
