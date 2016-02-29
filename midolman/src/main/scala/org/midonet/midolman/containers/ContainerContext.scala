@@ -16,7 +16,6 @@
 
 package org.midonet.midolman.containers
 
-import java.util.UUID
 import java.util.concurrent.ExecutorService
 
 import scala.collection.mutable
@@ -77,7 +76,7 @@ object ContainerContext {
   *            |                     +-----+ not being blocked   |
   *            |                        |    by C1.2             |
   */
-case class ContainerContext(id: UUID, executor: ExecutorService) {
+case class ContainerContext(executor: ExecutorService) {
 
     val ec = ExecutionContext.fromExecutor(executor)
 

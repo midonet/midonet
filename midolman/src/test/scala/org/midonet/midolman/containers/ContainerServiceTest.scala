@@ -19,11 +19,12 @@ package org.midonet.midolman.containers
 import java.nio.file.{FileSystems, Files}
 import java.util.UUID
 import java.util.UUID._
-import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
+import java.util.concurrent.{Callable, ExecutorService, ScheduledExecutorService}
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.Future
 
+import com.google.common.util.concurrent.SettableFuture
 import com.google.protobuf.TextFormat
 import org.apache.commons.io.FileUtils
 import org.apache.curator.framework.state.ConnectionState.RECONNECTED
@@ -269,7 +270,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The service should not have the container")
-            service.handlerOf(port.getId) shouldBe null
+            service.handlerOf(port.getId) shouldBe None
 
             When("Stopping the service")
             service.stopAsync().awaitTerminated()
@@ -297,11 +298,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler = service.handlerOf(port.getId)
-            handler should not be null
-            handler.cp shouldBe containerPort(host, port, container1, group)
+            handler should not be None
+            handler.get.cp shouldBe containerPort(host, port, container1, group)
 
             And("The handler create method should be called")
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
             When("Updating the container configuration")
@@ -340,7 +341,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The service should not have the container")
-            service.handlerOf(port.getId) shouldBe null
+            service.handlerOf(port.getId) shouldBe None
 
             When("Stopping the service")
             service.stopAsync().awaitTerminated()
@@ -368,11 +369,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler = service.handlerOf(port.getId)
-            handler should not be null
-            handler.cp shouldBe containerPort(host, port, container1, group)
+            handler should not be None
+            handler.get.cp shouldBe containerPort(host, port, container1, group)
 
             And("The handler create method should be called")
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
             When("Updating the container configuration")
@@ -412,11 +413,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler = service.handlerOf(port.getId)
-            handler should not be null
-            handler.cp shouldBe containerPort(host, port, container1, group)
+            handler should not be None
+            handler.get.cp shouldBe containerPort(host, port, container1, group)
 
             And("The handler create method should be called")
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
             When("Updating the container configuration")
@@ -461,11 +462,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler = service.handlerOf(port.getId)
-            handler should not be null
-            handler.cp shouldBe containerPort(host, port, container1, group)
+            handler should not be None
+            handler.get.cp shouldBe containerPort(host, port, container1, group)
 
             And("The handler create method should be called")
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
             When("Updating the container configuration")
@@ -505,11 +506,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler = service.handlerOf(port.getId)
-            handler should not be null
-            handler.cp shouldBe containerPort(host, port, container, group)
+            handler should not be None
+            handler.get.cp shouldBe containerPort(host, port, container, group)
 
             And("The handler create method should be called")
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
             When("Deleting the port binding")
@@ -544,11 +545,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler = service.handlerOf(port1.getId)
-            handler should not be null
-            handler.cp shouldBe containerPort(host1, port1, container, group)
+            handler should not be None
+            handler.get.cp shouldBe containerPort(host1, port1, container, group)
 
             And("The handler create method should be called")
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
             When("Moving the binding to a different host")
@@ -585,11 +586,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler = service.handlerOf(port.getId)
-            handler should not be null
-            handler.cp shouldBe containerPort(host, port, container, group)
+            handler should not be None
+            handler.get.cp shouldBe containerPort(host, port, container, group)
 
             And("The handler create method should be called")
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
             When("Deleting the container")
@@ -624,11 +625,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler1 = service.handlerOf(port1.getId)
-            handler1 should not be null
-            handler1.cp shouldBe containerPort(host, port1, container, group)
+            handler1 should not be None
+            handler1.get.cp shouldBe containerPort(host, port1, container, group)
 
             And("The handler create method should be called")
-            val h1 = handler1.handler.asInstanceOf[TestContainer]
+            val h1 = handler1.get.handler.asInstanceOf[TestContainer]
             h1.created shouldBe 1
 
             When("Changing the port binding interface")
@@ -640,12 +641,12 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             And("The service should create a new container")
             val handler2 = service.handlerOf(port1.getId)
-            handler2 should not be null
+            handler2 should not be None
             handler2 should not be handler1
-            handler2.cp shouldBe containerPort(host, port2, container, group)
+            handler2.get.cp shouldBe containerPort(host, port2, container, group)
 
             And("The second handler create method should be called")
-            val h2 = handler1.handler.asInstanceOf[TestContainer]
+            val h2 = handler1.get.handler.asInstanceOf[TestContainer]
             h2.created shouldBe 1
 
             When("Stopping the service")
@@ -677,7 +678,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the first container")
             val handler1 = service.handlerOf(port1.getId)
-            val h1 = handler1.handler.asInstanceOf[TestContainer]
+            val h1 = handler1.get.handler.asInstanceOf[TestContainer]
             h1.created shouldBe 1
 
             When("Adding a second binding with a container")
@@ -692,11 +693,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the second container")
             val handler2 = service.handlerOf(port2.getId)
-            handler2 should not be null
+            handler2 should not be None
             handler2 should not be handler1
-            handler2.cp shouldBe containerPort(host, port2, container2, group)
+            handler2.get.cp shouldBe containerPort(host, port2, container2, group)
 
-            val h2 = handler2.handler.asInstanceOf[TestContainer]
+            val h2 = handler2.get.handler.asInstanceOf[TestContainer]
             h2.created shouldBe 1
 
             And("The service should have two containers")
@@ -756,11 +757,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the both containers")
             val handler1 = service.handlerOf(port1.getId)
-            val h1 = handler1.handler.asInstanceOf[TestContainer]
+            val h1 = handler1.get.handler.asInstanceOf[TestContainer]
             h1.created shouldBe 1
 
             val handler2 = service.handlerOf(port2.getId)
-            val h2 = handler2.handler.asInstanceOf[TestContainer]
+            val h2 = handler2.get.handler.asInstanceOf[TestContainer]
             h2.created shouldBe 1
 
             When("Stopping the service")
@@ -801,11 +802,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the both containers")
             val handler1 = service.handlerOf(port1.getId)
-            val h1 = handler1.handler.asInstanceOf[TestContainer]
+            val h1 = handler1.get.handler.asInstanceOf[TestContainer]
             h1.created shouldBe 1
 
             val handler2 = service.handlerOf(port2.getId)
-            val h2 = handler2.handler.asInstanceOf[TestContainer]
+            val h2 = handler2.get.handler.asInstanceOf[TestContainer]
             h2.created shouldBe 1
 
             When("Deleting the host to complete the notification stream")
@@ -878,7 +879,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             When("The container completes the status observable")
             val handler = service.handlerOf(port.getId)
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.stream.onCompleted()
 
             Then("The container status should not be set")
@@ -912,7 +913,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             When("The container completes the status observable")
             val handler = service.handlerOf(port.getId)
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.stream onError new Exception("some message")
 
             Then("The container status should not be set")
@@ -948,7 +949,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             When("The container sets a health status")
             val handler = service.handlerOf(port.getId)
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.stream onNext ContainerHealth(Code.RUNNING, TestNamespace, "all good")
 
             Then("The container status should be RUNNING")
@@ -1100,7 +1101,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             When("The container reports the created configuration")
             val handler = service.handlerOf(port.getId)
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.stream onNext ContainerOp(ContainerFlag.Created, "a")
 
             Then("The log file exists")
@@ -1262,7 +1263,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The service should not have the container")
-            service.handlerOf(port.getId) shouldBe null
+            service.handlerOf(port.getId) shouldBe None
 
             When("Stopping the service")
             service.stopAsync().awaitTerminated()
@@ -1290,11 +1291,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler = service.handlerOf(port.getId)
-            handler should not be null
-            handler.cp shouldBe containerPort(host, port, container1, group)
+            handler should not be None
+            handler.get.cp shouldBe containerPort(host, port, container1, group)
 
             And("The handler create method should be called")
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
             When("Updating the container configuration")
@@ -1334,11 +1335,11 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             Then("The service should start the container")
             val handler = service.handlerOf(port.getId)
-            handler should not be null
-            handler.cp shouldBe containerPort(host, port, container1, group)
+            handler should not be None
+            handler.get.cp shouldBe containerPort(host, port, container1, group)
 
             And("The handler create method should be called")
-            val h = handler.handler.asInstanceOf[TestContainer]
+            val h = handler.get.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
             When("Updating the container configuration")
@@ -1357,22 +1358,134 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
         }
     }
 
-    feature("The service container handles re-connections of the " +
-            "fail fast curator") {
-        scenario("The fail fast curator disconnects and reconnects") {
-            Given("A port bound to a host with a container")
+    feature("Service handles host weight") {
+        scenario("Service handles weight notifications overflow") {
+            Given("A do-nothing executor")
+            val counter = new AtomicInteger()
+            val executor = new SameThreadButAfterExecutorService {
+                override def submit[T](task: Callable[T])
+                : java.util.concurrent.Future[T] = {
+                    // The first four notifications are emitted when the service
+                    // starts: we allow those.
+                    if (counter.incrementAndGet() < 4) {
+                        super.submit(task)
+                    } else {
+                        SettableFuture.create()
+                    }
+                }
+            }
+
+            And("A host")
             val host = createHost()
-            val bridge = createBridge()
-            val group = createServiceContainerGroup()
-            val container1 = createServiceContainer(configurationId = Some(randomUUID),
-                                                    serviceType = Some("test-throws-delete"),
-                                                    groupId = Some(group.getId))
-            val port = createBridgePort(bridgeId = Some(bridge.getId),
-                                        hostId = Some(host.getId),
-                                        interfaceName = Some("veth"),
-                                        containerId = Some(container1.getId))
-            store.multi(Seq(CreateOp(host), CreateOp(bridge), CreateOp(group),
-                            CreateOp(container1), CreateOp(port)))
+            store.create(host)
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, executor,
+                                               executors, ioExecutor, reflections)
+            service.startAsync().awaitRunning()
+
+            Then("Sending many notifications should not affect the service")
+            for (index <- 0 to ContainerService.NotificationBufferSize << 1) {
+                store.update(host.toBuilder.setContainerWeight(index).build())
+            }
+
+            When("Resetting the counter")
+            counter.set(Int.MinValue)
+
+            And("Updating the host with a new weight")
+            store.update(host.toBuilder.setContainerWeight(1).build())
+
+            Then("The service should update the container status")
+            val status = ContainerServiceStatus.newBuilder()
+                                               .setWeight(1)
+                                               .build()
+                                               .toString
+            checkContainerKey(host.getId, status)
+        }
+
+        scenario("Service handles host weight observable completion") {
+            Given("A host")
+            val host = createHost()
+            store.create(host)
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
+
+            When("The service starts")
+            service.startAsync().awaitRunning()
+
+            Then("The service should set the container state")
+            val status = ContainerServiceStatus.newBuilder()
+                                               .setWeight(1)
+                                               .build()
+                                               .toString
+            checkContainerKey(host.getId, status)
+
+            When("When the host weight observable completes")
+            store.delete(classOf[Host], host.getId)
+            backend.asInstanceOf[MidonetTestBackend].connectionState.onCompleted()
+
+            Then("The service should clear the container state")
+            checkContainerKey(hostId, status = null)
+        }
+
+        scenario("Service handles host weight observable error") {
+            Given("A host")
+            val host = createHost()
+            store.create(host)
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
+
+            When("The service starts")
+            service.startAsync().awaitRunning()
+
+            Then("The service should set the container state")
+            val status = ContainerServiceStatus.newBuilder()
+                                               .setWeight(1)
+                                               .build()
+                                               .toString
+            checkContainerKey(host.getId, status)
+
+            When("When the host weight observable emits an error")
+            backend.asInstanceOf[MidonetTestBackend]
+                   .connectionState onError new Exception()
+
+            Then("The service should clear the container state")
+            checkContainerKey(hostId, status = null)
+        }
+
+        scenario("Service handles error when setting the service status") {
+            Given("A host")
+            val host = createHost()
+            store.create(host)
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
+
+            When("The service starts")
+            service.startAsync().awaitRunning()
+
+            Then("The service should set the container state")
+            val status = ContainerServiceStatus.newBuilder()
+                .setWeight(1)
+                .build()
+                .toString
+            checkContainerKey(host.getId, status)
+
+            And("An error while setting the status does not fail")
+            store.delete(classOf[Host], host.getId)
+            backend.asInstanceOf[MidonetTestBackend]
+                   .connectionState onNext RECONNECTED
+        }
+
+        scenario("Service detects the fast-curator connection state") {
+            Given("A host")
+            val host = createHost()
+            store.create(host)
 
             And("A container service")
             val service = new ContainerService(vt, host.getId, serviceExecutor,
@@ -1384,8 +1497,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                                                .setWeight(1)
                                                .build()
                                                .toString
-            val hostId = host.getId.asJava
-            checkContainerKey(hostId, status)
+            checkContainerKey(host.getId, status)
 
             When("We remove the container key")
             stateStore.removeValue(classOf[Host], hostId, ContainerKey,
@@ -1400,6 +1512,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             eventually {
                 checkContainerKey(hostId, status)
             }
+
+            service.stopAsync().awaitTerminated()
         }
     }
 }
