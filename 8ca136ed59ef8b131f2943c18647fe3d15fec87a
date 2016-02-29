@@ -16,6 +16,24 @@
       "revId": "8ca136ed59ef8b131f2943c18647fe3d15fec87a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_b5ca759f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-02-29T12:53:28Z",
+      "side": 1,
+      "message": "Oh. No, I guess that\u0027s not necessary. I just put a case for everything that has a checksum. I guess in theory there could some protocol that does this, though.",
+      "parentUuid": "5a72e520_f20b2329",
+      "revId": "8ca136ed59ef8b131f2943c18647fe3d15fec87a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
