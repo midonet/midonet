@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_bf0c1496",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-02-29T09:36:14Z",
+      "side": 1,
+      "message": "sort of.  my suggestion is to follow whatever reference implemenation does.  i\u0027m not sure what exactly iptables \"conntrack DNAT\" match does, but for this particular purpose i guess some simpler condition can work.",
+      "parentUuid": "5a72e520_7f2b7ceb",
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_7cbc6a6d",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 8
