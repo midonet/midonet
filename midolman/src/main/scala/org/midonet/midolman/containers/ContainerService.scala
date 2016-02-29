@@ -17,21 +17,23 @@
 package org.midonet.midolman.containers
 
 import java.util.UUID
-import java.util.concurrent.{ScheduledExecutorService, ConcurrentHashMap, ExecutorService}
+import java.util.concurrent._
 
 import scala.async.Async.async
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scala.concurrent.{Promise, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.AbstractService
+
 import org.apache.curator.framework.state.ConnectionState
 import org.apache.curator.framework.state.ConnectionState.{CONNECTED, RECONNECTED}
 import org.apache.zookeeper.KeeperException
 import org.reflections.Reflections
+
 import rx.schedulers.Schedulers
 import rx.{Observable, Subscriber, Subscription}
 
@@ -64,6 +66,7 @@ object ContainerService {
   */
 class ContainerService(vt: VirtualTopology, hostId: UUID,
                        serviceExecutor: ExecutorService,
+                       containerExecutors: ContainerExecutors,
                        ioExecutor: ScheduledExecutorService,
                        reflections: Reflections)
     extends AbstractService with MidolmanLogging {

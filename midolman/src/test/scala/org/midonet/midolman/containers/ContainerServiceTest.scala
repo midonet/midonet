@@ -19,7 +19,7 @@ package org.midonet.midolman.containers
 import java.nio.file.{FileSystems, Files}
 import java.util.UUID
 import java.util.UUID._
-import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.Future
@@ -49,6 +49,7 @@ import org.midonet.midolman.containers.ContainerServiceTest.{GoodContainer, Test
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.reactivex._
 
 object ContainerServiceTest {
@@ -150,7 +151,9 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
     private var stateStore: StateStorage = _
     private var vt: VirtualTopology = _
     private val reflections = new Reflections("org.midonet.midolman.containers")
+    private var serviceExecutor: ExecutorService = _
     private val ioExecutor = Mockito.mock(classOf[ScheduledExecutorService])
+    private var executors: ContainerExecutors = _
 
     private val logDir = s"${FileUtils.getTempDirectory}/${UUID.randomUUID}"
 
@@ -161,6 +164,12 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
         backend = injector.getInstance(classOf[MidonetBackend])
         store = backend.store
         stateStore = backend.stateStore
+        serviceExecutor = new SameThreadButAfterExecutorService
+        executors = new ContainerExecutors(vt.config.containers) {
+            override def newExecutor(index: Int): ExecutorService = {
+                new SameThreadButAfterExecutorService
+            }
+        }
     }
 
     private def containerPort(host: Host, port: Port,
@@ -210,8 +219,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
     feature("Test service lifecycle") {
         scenario("Service starts and stops") {
             Given("A container service")
-            val service = new ContainerService(vt, hostId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, hostId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
 
             When("Starting the service")
             service.startAsync().awaitRunning()
@@ -228,8 +237,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Service fails to start for non-existent host") {
             Given("A container service")
-            val service = new ContainerService(vt, randomUUID, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, randomUUID, serviceExecutor,
+                                               executors, ioExecutor, reflections)
 
             Then("Starting the service should fail")
             intercept[IllegalStateException] {
@@ -255,8 +264,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should not have the container")
@@ -282,8 +291,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container1), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the container")
@@ -326,8 +335,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should not have the container")
@@ -353,8 +362,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container1), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the container")
@@ -397,8 +406,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container1), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the container")
@@ -431,8 +440,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val bridge = createBridge()
             store.multi(Seq(CreateOp(host), CreateOp(bridge)))
 
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should not have any container")
@@ -490,8 +499,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the container")
@@ -529,8 +538,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port1)))
 
             And("A container service")
-            val service = new ContainerService(vt, host1.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host1.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the container")
@@ -570,8 +579,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the container")
@@ -609,8 +618,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port1)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the container")
@@ -662,8 +671,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container1), CreateOp(port1)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the first container")
@@ -741,8 +750,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container2), CreateOp(port2)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the both containers")
@@ -786,8 +795,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container2), CreateOp(port2)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the both containers")
@@ -830,8 +839,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The container status should be STARTING")
@@ -860,8 +869,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The container status should be STARTING")
@@ -894,8 +903,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The container status should be STARTING")
@@ -930,8 +939,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The container status should be STARTING")
@@ -976,8 +985,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(host), CreateOp(bridge), CreateOp(group)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             When("Adding a service container")
@@ -1009,8 +1018,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(host), CreateOp(bridge), CreateOp(group)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             When("Adding a service container")
@@ -1042,8 +1051,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(host), CreateOp(bridge), CreateOp(group)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             When("Adding a service container")
@@ -1085,8 +1094,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             When("The container reports the created configuration")
@@ -1125,8 +1134,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             And("A container service")
             val host = createHost()
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             store.create(host)
 
             When("The service starts")
@@ -1162,8 +1171,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             And("A container service")
             val host = createHost()
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             store.create(host)
 
             When("The service starts")
@@ -1192,8 +1201,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             And("A container service")
             val host = createHost()
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             store.create(host)
 
             When("The service starts")
@@ -1219,8 +1228,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
 
             And("A container service")
             val host = createHost()
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             store.create(host)
 
             When("The service starts")
@@ -1248,8 +1257,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should not have the container")
@@ -1275,8 +1284,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container1), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the container")
@@ -1319,8 +1328,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container1), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The service should start the container")
@@ -1366,8 +1375,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                             CreateOp(container1), CreateOp(port)))
 
             And("A container service")
-            val service = new ContainerService(vt, host.getId, vt.vtExecutor,
-                                               ioExecutor, reflections)
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
             service.startAsync().awaitRunning()
 
             Then("The container key should be present in the state store")
