@@ -28,8 +28,6 @@ import scala.util.control.NonFatal
 import com.google.common.base.MoreObjects
 import com.typesafe.scalalogging.Logger
 
-import org.apache.commons.io.FileUtils
-
 import org.midonet.midolman.config.ContainerConfig
 import org.midonet.midolman.containers.ContainerLogger._
 
