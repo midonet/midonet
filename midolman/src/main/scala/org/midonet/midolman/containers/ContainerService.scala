@@ -19,7 +19,6 @@ package org.midonet.midolman.containers
 import java.util.UUID
 import java.util.concurrent._
 
-import scala.async.Async.async
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -43,6 +42,7 @@ import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus
 import org.midonet.cluster.models.Topology.{Host, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend.{ContainerKey, StatusKey}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.containers.ContainerService.Operation.Operation
 import org.midonet.midolman.containers.ContainerService._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.ContainerMapper.{Changed, Created, Deleted, Notification}
@@ -53,10 +53,20 @@ import org.midonet.util.reactivex._
 
 object ContainerService {
 
-    private val NotificationBufferSize = 0x1000
+    val NotificationBufferSize = 0x1000
 
-    case class Handler(cp: ContainerPort, handler: ContainerHandler,
-                       subscription: Subscription)
+    case class ContainerInstance(id: UUID,
+                                 context: ContainerContext,
+                                 handler: Option[HandlerInstance])
+
+    case class HandlerInstance(cp: ContainerPort,
+                               handler: ContainerHandler,
+                               subscription: Subscription)
+
+    object Operation extends Enumeration {
+        type Operation = Value
+        val Create, Update, Delete = Value
+    }
 
 }
 
@@ -89,14 +99,16 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         override def onNext(status: ContainerStatus): Unit = {
             status match {
                 case health: ContainerHealth =>
-                    handlers get cp.portId match {
-                        case handler: Handler => setStatus(handler, health)
-                        case _ =>
+                    handlerOf(cp.portId) match {
+                        case Some(handler) => setStatus(handler, health)
+                        case None =>
                             log warn s"Unexpected health notification for " +
                                      s"container $cp"
                     }
+
                 case op: ContainerOp =>
                     logOperation(cp, op)
+
                 case _ => log warn "Unknown status notification for " +
                                    s"container $cp: $status"
             }
@@ -115,7 +127,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     }
 
     private val scheduler = Schedulers.from(serviceExecutor)
-    private implicit val ec = ExecutionContext.fromExecutor(serviceExecutor)
+    private val ec = ExecutionContext.fromExecutor(serviceExecutor)
 
     private val containerMapper = new ContainerMapper(hostId, vt)
     private val containerObservable = Observable.create(containerMapper)
@@ -125,9 +137,9 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
     private val logger = new ContainerLogger(vt.config.containers, log)
 
-    // The handlers map is concurrent because reads may be performed from
-    // the handler notification thread.
-    private val handlers = new ConcurrentHashMap[UUID, Handler]
+    // The instances map is concurrent because reads may be performed from the
+    // containers threads, while writes are always from the service thread.
+    private val instances = new ConcurrentHashMap[UUID, ContainerInstance]
 
     private val weightReady = Promise[Unit]
     private val weightSubscriber = new Subscriber[Int] {
@@ -144,28 +156,31 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
         override def onError(e: Throwable): Unit = {
             log.warn("Unexpected error on the container weight update stream", e)
+            clearServiceStatus()
             weightReady tryFailure e
         }
 
         override def onCompleted(): Unit = {
             log.warn("Container weight update stream completed unexpectedly")
+            clearServiceStatus()
             weightReady tryFailure new IllegalStateException(
                 "Container weight update stream has completed")
         }
     }
 
-    private val belt = new ConveyorBelt(e => {
-        log.warn("Asynchronous container task failed", e)
-    })
-
     private val containerSubscriber = new Subscriber[Notification] {
-        override def onNext(n: Notification): Unit = n match {
-            case Created(cp) =>
-                createContainer(cp)
-            case Changed(cp) =>
-                updateContainer(cp)
-            case Deleted(cp) =>
-                deleteContainer(cp)
+        override def onNext(n: Notification): Unit = {
+            try n match {
+                case Created(cp) =>
+                    createContainer(cp)
+                case Changed(cp) =>
+                    updateContainer(cp)
+                case Deleted(cp) =>
+                    deleteContainer(cp)
+            } catch {
+                case NonFatal(e) =>
+                    log.error(s"Container notification $n failed", e)
+            }
         }
 
         override def onError(e: Throwable): Unit = e match {
@@ -185,35 +200,10 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     }
 
     override protected def doStart(): Unit = {
-        log info s"Starting Containers service for host $hostId"
+        log info s"Starting Containers service for host $hostId " +
+                 s"(${containerExecutors.count} container threads)"
 
-        try {
-            // Check the container log if there are any previous containers, and
-            // clear the container log.
-            val containers = logger.currentContainers().asScala
-
-            log debug s"Containers log includes ${containers.size} containers"
-
-            for (container <- containers) {
-                try {
-                    log debug s"Cleanup container $container"
-                    val handler = provider.getInstance(container.`type`,
-                                                       UUID.randomUUID(),
-                                                       serviceExecutor)
-                    belt.handle(() => handler.cleanup(container.name))
-                } catch {
-                    case NonFatal(e) =>
-                        log.warn(s"Failed to cleanup container $container")
-                }
-            }
-
-            logger.clear()
-
-        } catch {
-            case NonFatal(e) =>
-                log.info("Failed to load the containers log: cleanup is not " +
-                         "available", e)
-        }
+        cleanupContainers()
 
         try {
             // Subscribe to the current host to update the host status with
@@ -281,9 +271,21 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             containerMapper.complete().await(vt.config.containers.shutdownGraceTime)
 
             // Shutdown gracefully all containers
-            val futures = for (handler <- handlers.values().asScala) yield async {
-                deleteContainer(handler.cp)
+            implicit val ec = this.ec
+
+            val futures = for (instance <- instances.values().asScala) yield {
+                instance.handler match {
+                    case Some(handler) =>
+                        deleteContainer(handler.cp).recover {
+                            case e => log.warn("Failed to delete container " +
+                                               s"${handler.cp}", e)
+                        }
+                    case None =>
+                        // Ignore instance without a handler.
+                        Future.successful(())
+                }
             }
+
             Future.sequence(futures)
                   .await(vt.config.containers.shutdownGraceTime)
 
@@ -296,28 +298,94 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     }
 
     @VisibleForTesting
-    protected[containers] def handlerList: Iterable[Handler] = {
-        handlers.values().asScala
+    protected[containers] def handlerList: Iterable[HandlerInstance] = {
+        instances.values().asScala.flatMap(_.handler)
     }
 
-    @VisibleForTesting
-    protected[containers] def handlerOf(portId: UUID): Handler = {
-        handlers.get(portId)
+    /**
+      * Gets the current [[HandlerInstance]] from the instance of the specified
+      * port identifier if it exists.
+      */
+    protected[containers] def handlerOf(portId: UUID): Option[HandlerInstance] = {
+        instances get portId match {
+            case instance: ContainerInstance => instance.handler
+            case _ => None
+        }
     }
 
-    private def tryOp(f: => Future[_], cp: ContainerPort, errorStatus: Boolean,
-                      message: String): Future[_] = {
+    /**
+      * Removes the container instance from the instances table. It is safe to
+      * perform this operation because this method should be called on the
+      * service thread, and only the service thread enqueues new tasks on the
+      * context queue.
+      */
+    private def deleteInstance(instance: ContainerInstance): Unit = {
+        if (instance.context.isDeletable) {
+            log debug s"Deleting instance for container ${instance.id}"
+            instances.remove(instance.id, instance)
+        }
+    }
+
+    /**
+      * Cleans the containers reported by the container log. The cleanup of
+      * each container is done
+      */
+    private def cleanupContainers(): Unit = {
+        try {
+            // Check the container log if there are any previous containers, and
+            // clear the container log.
+            val containers = logger.currentContainers().asScala
+
+            log debug s"Containers log includes ${containers.size} containers"
+
+            for (container <- containers) yield {
+                try {
+                    log debug s"Cleanup container $container"
+                    val context = ContainerContext(containerExecutors.nextExecutor())
+                    val handler = provider.getInstance(container.`type`,
+                                                       container.id,
+                                                       serviceExecutor)
+                    instances.put(container.id,
+                                  ContainerInstance(container.id, context, None))
+                    context.execute { handler.cleanup(container.name) }
+                } catch {
+                    case NonFatal(e) =>
+                        log.warn(s"Failed to cleanup container $container")
+                        Future.failed(e)
+                }
+            }
+
+            logger.clear()
+
+        } catch {
+            case NonFatal(e) =>
+                log.info("Failed to load the containers log: cleanup is not " +
+                         "available", e)
+        }
+    }
+
+    /**
+      * Executes a function, wrapping and exceptions thrown by it with a failed
+      * future.
+      */
+    private def tryOp(cp: ContainerPort, errorStatus: Boolean, op: Operation)
+                     (f: => Future[Any]): Future[Any] = {
         try {
             f
         } catch {
             case NonFatal(e) =>
-                handleContainerError(e, cp, errorStatus, message)
+                handleContainerError(e, cp, errorStatus, op)
                 Future.failed(e)
         }
     }
 
+    /**
+      * Logs an error message and clears the container status for the given
+      * [[Throwable]].
+      */
     private def handleContainerError(t: Throwable, cp: ContainerPort,
-                                     errorStatus: Boolean, message: String): Unit = {
+                                     errorStatus: Boolean, op: Operation): Unit = {
+        val message = s"Container $cp operation $op failed"
         log.error(message, t)
         if (errorStatus) setStatus(cp, t)
     }
@@ -333,7 +401,8 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                      .await(vt.config.zookeeper.sessionTimeout millis)
     }
 
-    /** Clears the container service status for this host.
+    /**
+      * Clears the container service status for this host.
       */
     private def clearServiceStatus(): Unit = {
         try {
@@ -346,7 +415,6 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                 log.warn("Failed to update the status of the container service", e)
                 notifyFailed(e)
         }
-
     }
 
     @throws[Throwable]
@@ -355,106 +423,137 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
         // Check there is no container for this port: if there is, first delete
         // the container.
-        handlers remove cp.portId match {
-            case Handler(_,handler,s) =>
-                log warn s"Unexpected running container $cp: deleting container"
-                belt.handle(() => tryOp({
-                    handler.delete() andThen {
-                        case _ => s.unsubscribe()
-                    } andThen {
-                        case Failure(t) =>
-                            handleContainerError(t, cp, errorStatus=false,
-                                                 s"Failed to delete container $cp")
-                        case Success(_) =>
-                            clearStatus(cp)
-                    }
-                }, cp, errorStatus=false, s"Failed to delete container $cp"))
-            case _ => // Normal case
+        val context = instances get cp.portId match {
+            case i: ContainerInstance if i.handler.nonEmpty =>
+                log warn s"Unexpected running container $cp: deleting " +
+                         "container"
+                deleteContainerForInstance(i)
+                i.context
+            case i: ContainerInstance =>
+                i.context
+            case _ =>
+                ContainerContext(containerExecutors.nextExecutor())
         }
+
+        // Create a new container handler for this container type.
+        val container = provider.getInstance(cp.serviceType, cp.portId,
+                                             context.executor)
+
+        // Subscribe to the handler's status observable.
+        val subscription = container.status.subscribe(new StatusSubscriber(cp))
+
+        // Set the new handler for the container context.
+        val handler = HandlerInstance(cp, container, subscription)
+
+        // Create a new instance for this container.
+        val instance = ContainerInstance(cp.portId, context, Some(handler))
+        instances.put(cp.portId, instance)
 
         // Call the handler create method to initialize the container. We
         // add the initialization code inside a cargo in the conveyor belt such
         // that all container operations maintain the order.
-        belt.handle(() => tryOp({
-            // Create a new container handler for this container type.
-            val handler = provider.getInstance(cp.serviceType, cp.portId,
-                                               serviceExecutor)
+        context.execute {
+            tryOp(cp, errorStatus = true, Operation.Create) {
 
-            // Subscribe to the handler's status observable.
-            val subscription = handler.status
-                .subscribe(new StatusSubscriber(cp))
-
-            handlers.put(cp.portId, Handler(cp, handler, subscription))
-
-            // Set the container status to starting.
-            setStatus(cp, Code.STARTING, s"Container $cp starting")
-            try {
-                handler.create(cp).andThen {
-                    case Failure(t) =>
-                        handlers remove cp.portId
-                        handleContainerError(t, cp, errorStatus=true,
-                                             s"Failed to create container $cp")
-                    case _ =>
+                // Set the container status to starting.
+                setStatus(cp, Code.STARTING, s"Container $cp starting")
+                try {
+                    container.create(cp).andThen {
+                        case Failure(t) =>
+                            instances.put(cp.portId,
+                                          ContainerInstance(cp.portId, context, None))
+                            subscription.unsubscribe()
+                            handleContainerError(t, cp, errorStatus = true,
+                                                 Operation.Create)
+                        case _ =>
+                    }(context.ec)
+                } catch {
+                    case NonFatal(e) =>
+                        // If the container failed to initialize, remove its
+                        // handler from the instance and unsubscribe from
+                        // the status observable.
+                        // NOTE: The container handler implementation must provide
+                        // the appropriate cleanup on failure.
+                        instances.put(cp.portId,
+                                      ContainerInstance(cp.portId, context, None))
+                        subscription.unsubscribe()
+                        throw e
                 }
             }
-            catch {
-                case NonFatal(e) =>
-                    // If the container failed to initialize, remove its handler
-                    // from the handlers list and unsubscribe from the health
-                    // observable.
-                    // NOTE: The container handler implementation must provide
-                    // the appropriate cleanup on failure.
-                    handlers remove cp.portId
-                    subscription.unsubscribe()
-                    throw e
-            }
-
-        }, cp, errorStatus=true, s"Failed to create container $cp"))
+        }
     }
 
     @throws[Throwable]
     private def updateContainer(cp: ContainerPort): Unit = {
         log info s"Update container $cp"
-
-        handlers get cp.portId match {
-            case Handler(_,handler,_) =>
-                belt.handle(() => tryOp({
-                    handler.updated(cp).andThen {
-                        case Failure(t) => handleContainerError(
-                            t, cp, errorStatus=true, s"Failed to update container $cp")
-                        case _ =>
+        instances get cp.portId match {
+            case instance: ContainerInstance if instance.handler.nonEmpty =>
+                instance.context.execute {
+                    tryOp(cp, errorStatus = true, Operation.Update) {
+                        instance.handler.get.handler.updated(cp).andThen {
+                            case Failure(t) =>
+                                handleContainerError(t, cp, errorStatus = true,
+                                                     Operation.Update)
+                            case _ =>
+                        }(instance.context.ec)
                     }
-                }, cp, errorStatus=true, s"Failed to update container $cp"))
+                }
             case _ => log warn s"There is no container $cp"
         }
     }
 
     @throws[Throwable]
-    private def deleteContainer(cp: ContainerPort): Unit = {
+    private def deleteContainer(cp: ContainerPort): Future[Any] = {
         log info s"Delete container $cp"
 
-        handlers remove cp.portId match {
-            case Handler(_,handler,subscription) =>
-                // Delete the container handler.
-                belt.handle(() => tryOp({
-                    // Set the container status to stopping.
-                    setStatus(cp, Code.STOPPING, s"Container $cp stopping")
-                    handler.delete() andThen {
-                        case _ => subscription.unsubscribe()
-                    }  andThen {
-                        case Failure(t) =>
-                            handleContainerError(t, cp, errorStatus=false,
-                                                 s"Failed to delete container $cp")
-                        case Success(_) =>
-                            clearStatus(cp)
-                    }
-                }, cp, errorStatus=false, s"Failed to delete container $cp"))
-            case _ => log warn s"There is no container $cp"
+        instances get cp.portId match {
+            case instance: ContainerInstance if instance.handler.nonEmpty =>
+                log warn s"Unexpected running container $cp: deleting " +
+                         "container"
+                deleteContainerForInstance(instance).andThen {
+                    // On the service thread, try to delete the instance after
+                    // the last container operation has completed.
+                    case _ => deleteInstance(instance)
+                }(ec)
+            case instance: ContainerInstance =>
+                log warn s"There is no container $cp"
+                deleteInstance(instance)
+                Future.successful(null)
+            case _ =>
+                log warn s"There is no container $cp"
+                Future.successful(null)
+        }
+    }
+
+    /**
+      * Deletes the container for the specified instance.
+      */
+    private def deleteContainerForInstance(instance: ContainerInstance)
+    : Future[Any] = {
+        val handler = instance.handler.getOrElse {
+            return Future.successful(())
+        }
+        instance.context.execute {
+            tryOp(handler.cp, errorStatus = false, Operation.Delete) {
+                // Set the container status to stopping.
+                setStatus(handler.cp, Code.STOPPING,
+                          s"Container ${handler.cp} stopping")
+                handler.handler.delete().andThen {
+                    case _ => handler.subscription.unsubscribe()
+                }(instance.context.ec).andThen {
+                    case Failure(t) =>
+                        handleContainerError(t, handler.cp, errorStatus = false,
+                                             Operation.Delete)
+                    case Success(_) =>
+                        clearStatus(handler.cp)
+                }(instance.context.ec)
+            }
         }
     }
 
     @inline
-    private def setStatus(handler: Handler, health: ContainerHealth): Unit = {
+    private def setStatus(handler: HandlerInstance,
+                          health: ContainerHealth): Unit = {
         val status = BackendStatus.newBuilder()
                                   .setStatusCode(health.code)
                                   .setStatusMessage(health.message)
@@ -507,7 +606,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             case t: UnmodifiableStateException
                 if t.result == KeeperException.Code.NONODE.intValue() =>
                 log info s"Failed to clear status for container $cp: " +
-                         s"container deleted"
+                         "container deleted"
             case NonFatal(t) =>
                 log.warn(s"Failed to clear status for container $cp", t)
         }
