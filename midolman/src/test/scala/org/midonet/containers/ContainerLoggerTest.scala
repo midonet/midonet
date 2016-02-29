@@ -16,7 +16,7 @@
 
 package org.midonet.containers
 
-import java.io.File
+import java.io.{IOException, File}
 import java.nio.file.{FileSystems, Files}
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneId, Instant, LocalDateTime}
@@ -28,6 +28,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 
 import org.apache.commons.io.FileUtils
+import org.apache.commons.lang3.StringUtils
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -36,7 +37,6 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman.config.ContainerConfig
 import org.midonet.midolman.containers.ContainerLogger.ContainerKey
 import org.midonet.midolman.containers.{ContainerFlag, ContainerOp, ContainerLogger}
-import org.midonet.util.UnixClock
 
 @RunWith(classOf[JUnitRunner])
 class ContainerLoggerTest extends FlatSpec with BeforeAndAfter
@@ -47,15 +47,10 @@ class ContainerLoggerTest extends FlatSpec with BeforeAndAfter
     private val log = Logger(LoggerFactory.getLogger(getClass))
     private val logDir = s"${FileUtils.getTempDirectory}/${UUID.randomUUID}"
     private val random = new Random
-    private var dateTime: String = _
 
     protected override def beforeAll(): Unit = {
         System.setProperty("midolman.log.dir", logDir)
-        System.setProperty(UnixClock.USE_MOCK_CLOCK_PROPERTY, "yes")
         Files.createDirectories(FileSystems.getDefault.getPath(logDir))
-        dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(UnixClock.MOCK.time),
-                                           ZoneId.systemDefault())
-                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
     }
 
     before {
@@ -83,63 +78,84 @@ class ContainerLoggerTest extends FlatSpec with BeforeAndAfter
         Given("A container logger")
         val logger = new ContainerLogger(config, log)
         val path = FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}")
+        val idA = UUID.randomUUID()
+        val idB = UUID.randomUUID()
 
         Then("The log directory does not exist")
         Files.exists(path) shouldBe false
 
         When("Logging a configuration")
-        logger.log("A", ContainerOp(ContainerFlag.Created, "a"))
+        logger.log("A", idA, ContainerOp(ContainerFlag.Created, "a"))
 
         Then("The log directory exists")
         Files.exists(path) shouldBe true
 
         And("The directory should contain the container log files")
-        path.toFile.list() should contain only "a.A"
+        path.toFile.list() should contain only s"$idA.A"
 
         When("Logging a configuration")
-        logger.log("B", ContainerOp(ContainerFlag.Deleted, "b"))
+        logger.log("B", idB, ContainerOp(ContainerFlag.Deleted, "b"))
 
         Then("The directory should contain the container log files")
-        path.toFile.list() should contain only "a.A"
+        path.toFile.list() should contain only s"$idA.A"
 
         When("Logging a configuration")
-        logger.log("B", ContainerOp(ContainerFlag.Created, "b"))
+        logger.log("B", idB, ContainerOp(ContainerFlag.Created, "b"))
 
         Then("The directory should contain the container log files")
-        path.toFile.list() should contain allOf ("a.A", "b.B")
+        path.toFile.list() should contain allOf (s"$idA.A", s"$idB.B")
 
         When("Logging a configuration")
-        logger.log("A", ContainerOp(ContainerFlag.Deleted, "a"))
+        logger.log("A", idA, ContainerOp(ContainerFlag.Deleted, "a"))
 
         Then("The directory should contain the container log files")
-        path.toFile.list() should contain only "b.B"
+        path.toFile.list() should contain only s"$idB.B"
+    }
+
+    "Logger" should "fail to write very long container names" in {
+        Given("A container logger")
+        val logger = new ContainerLogger(config, log)
+        val path = FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}")
+
+        And("A long container name")
+        val name = StringUtils.repeat('a', 2000)
+
+        Then("The log directory does not exist")
+        Files.exists(path) shouldBe false
+
+        When("Logging a configuration")
+        intercept[IOException] {
+            logger.log("A", UUID.randomUUID(),
+                       ContainerOp(ContainerFlag.Created, name))
+        }
     }
 
     "Logger" should "handle an existing container" in {
         Given("A container logger")
         val logger = new ContainerLogger(config, log)
         val path = FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}")
+        val idA = UUID.randomUUID()
 
         Then("The log directory does not exist")
         Files.exists(path) shouldBe false
 
         When("Logging a configuration")
-        logger.log("A", ContainerOp(ContainerFlag.Created, "a"))
+        logger.log("A", idA, ContainerOp(ContainerFlag.Created, "a"))
 
         Then("The log directory exists")
         Files.exists(path) shouldBe true
 
         And("The directory should contain the container log files")
-        path.toFile.list() should contain only "a.A"
+        path.toFile.list() should contain only s"$idA.A"
 
         When("Logging the same configuration")
-        logger.log("A", ContainerOp(ContainerFlag.Created, "a"))
+        logger.log("A", idA, ContainerOp(ContainerFlag.Created, "a"))
 
         Then("The log directory exists")
         Files.exists(path) shouldBe true
 
         And("The directory should contain the container log files")
-        path.toFile.list() should contain only "a.A"
+        path.toFile.list() should contain only s"$idA.A"
     }
 
     "Logger" should "clear the log directory" in {
@@ -148,7 +164,7 @@ class ContainerLoggerTest extends FlatSpec with BeforeAndAfter
         val dirPath = FileSystems.getDefault.getPath(
             s"$logDir/${config.logDirectory}")
         val filePath = FileSystems.getDefault.getPath(
-            s"$logDir/${config.logDirectory}/a.A")
+            s"$logDir/${config.logDirectory}/${UUID.randomUUID()}.A")
         Files.createDirectory(dirPath)
         Files.createFile(filePath)
 
@@ -167,19 +183,67 @@ class ContainerLoggerTest extends FlatSpec with BeforeAndAfter
         val logger = new ContainerLogger(config, log)
         val path = FileSystems.getDefault.getPath(
             s"$logDir/${config.logDirectory}")
+        val idA = UUID.randomUUID()
+        val idB = UUID.randomUUID()
         Files.createDirectory(path)
-        Files.createFile(FileSystems.getDefault.getPath(
-            s"$logDir/${config.logDirectory}/a.A"))
-        Files.createFile(FileSystems.getDefault.getPath(
-            s"$logDir/${config.logDirectory}/b.B"))
+        FileUtils.writeStringToFile(FileSystems.getDefault.getPath(
+            s"$logDir/${config.logDirectory}/$idA.A").toFile, "a")
+        FileUtils.writeStringToFile(FileSystems.getDefault.getPath(
+            s"$logDir/${config.logDirectory}/$idB.B").toFile, "b")
 
         When("Reading the current containers")
         val containers = logger.currentContainers()
 
         Then("The containers should match the log file")
         containers should have size 2
-        containers should contain allOf (ContainerKey(name = "a", `type` = "A"),
-                                         ContainerKey(name = "b", `type` = "B"))
+        containers should contain allOf (
+            ContainerKey(`type` = "A", id = idA, name = "a"),
+            ContainerKey(`type` = "B", id = idB, name = "b"))
+    }
+
+    "Logger" should "ignore invalid file names" in {
+        Given("A logger and an existing log file")
+        val logger = new ContainerLogger(config, log)
+        val path = FileSystems.getDefault.getPath(
+            s"$logDir/${config.logDirectory}")
+        val idA = UUID.randomUUID()
+        val idB = UUID.randomUUID()
+        Files.createDirectory(path)
+        FileUtils.writeStringToFile(FileSystems.getDefault.getPath(
+            s"$logDir/${config.logDirectory}/$idA.A").toFile, "a")
+        FileUtils.writeStringToFile(FileSystems.getDefault.getPath(
+            s"$logDir/${config.logDirectory}/$idB.B.C").toFile, "b")
+        FileUtils.writeStringToFile(FileSystems.getDefault.getPath(
+            s"$logDir/${config.logDirectory}/bad-file-name").toFile, "c")
+
+        When("Reading the current containers")
+        val containers = logger.currentContainers()
+
+        Then("The containers should match the log file")
+        containers should have size 1
+        containers should contain only ContainerKey(`type` = "A", id = idA, name = "a")
+    }
+
+    "Logger" should "ignore very long container names" in {
+        Given("A logger and an existing log file")
+        val logger = new ContainerLogger(config, log)
+        val path = FileSystems.getDefault.getPath(
+            s"$logDir/${config.logDirectory}")
+        val idA = UUID.randomUUID()
+        val idB = UUID.randomUUID()
+        Files.createDirectory(path)
+        FileUtils.writeStringToFile(FileSystems.getDefault.getPath(
+            s"$logDir/${config.logDirectory}/$idA.A").toFile, "a")
+        FileUtils.writeStringToFile(FileSystems.getDefault.getPath(
+            s"$logDir/${config.logDirectory}/$idB.B").toFile,
+                                    StringUtils.repeat('b', 2000))
+
+        When("Reading the current containers")
+        val containers = logger.currentContainers()
+
+        Then("The containers should match the log file")
+        containers should have size 1
+        containers should contain only ContainerKey(`type` = "A", id = idA, name = "a")
     }
 
     "Logger" should "return an empty list if log directory not exist" in {
