@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_9f659847",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-02-29T09:37:24Z",
+      "side": 1,
+      "message": "This should be in the ContainerProvider base class if we want to leverage the same thing for delegates (as you comment on the commit).",
+      "revId": "45cb989435e25d29b3ebe9401059842442478140",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
