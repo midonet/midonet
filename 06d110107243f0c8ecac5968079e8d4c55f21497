@@ -244,6 +244,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_b541950d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-02-29T12:53:28Z",
+      "side": 1,
+      "message": "No continue, either. I think maybe the idea is to encourage smaller functions. Like if you need to use a break, you should just break the loop out into another function and return instead.",
+      "parentUuid": "5a72e520_92c10fe7",
+      "revId": "06d110107243f0c8ecac5968079e8d4c55f21497",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_72bad3e2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
         "patchSetId": 2
