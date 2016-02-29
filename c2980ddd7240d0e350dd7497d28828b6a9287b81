@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_7f2b7ceb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-02-29T09:22:12Z",
+      "side": 1,
+      "message": "Could you elaborate? Do you mean add SNAT rules on all the router ports?  So that when 2 VMs communicate via a router, always SNAT if FIP rules don\u0027t match?",
+      "parentUuid": "5a72e520_dc171e50",
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_7cbc6a6d",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 8
