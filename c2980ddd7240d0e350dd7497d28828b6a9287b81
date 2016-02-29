@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_7f129cb5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-29T09:34:58Z",
+      "side": 1,
+      "message": "I see that all other operations to storage wait forever. I\u0027ll remove the timeout.",
+      "parentUuid": "5a72e520_7cbc6a6d",
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_bcb6e288",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 8
@@ -77,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_9f1758a3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-29T09:34:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_bcb6e288",
+      "range": {
+        "startLine": 367,
+        "startChar": 25,
+        "endLine": 367,
+        "endChar": 44
+      },
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_1c8616ba",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
         "patchSetId": 8
@@ -88,6 +130,24 @@
       "writtenOn": "2016-02-29T06:17:10Z",
       "side": 1,
       "message": "is this related?",
+      "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_3f2024f7",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-02-29T09:34:58Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "5a72e520_1c8616ba",
       "revId": "c2980ddd7240d0e350dd7497d28828b6a9287b81",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
