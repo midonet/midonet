@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_af95b9e5",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-01T21:28:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_ec441f76",
+      "range": {
+        "startLine": 352,
+        "startChar": 34,
+        "endLine": 353,
+        "endChar": 43
+      },
+      "revId": "5aebec85532fce7ac4a2130ec8e24db5e09c3db3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_4c5b7354",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerExecutors.scala",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_0fa5ed52",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerExecutors.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-01T21:28:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_4c5b7354",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 62
+      },
+      "revId": "5aebec85532fce7ac4a2130ec8e24db5e09c3db3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_cc368303",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerExecutors.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2016-03-01T17:00:18Z",
       "side": 1,
       "message": "rounding up to the next power of 2 seems like overkill to me. It\u0027s not like these operations run often, so we don\u0027t need the speed win that bitshifting would get over modulo. And it makes it confusing to the operator.",
+      "range": {
+        "startLine": 41,
+        "startChar": 40,
+        "endLine": 41,
+        "endChar": 41
+      },
+      "revId": "5aebec85532fce7ac4a2130ec8e24db5e09c3db3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_ef9fb101",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerExecutors.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-01T21:28:47Z",
+      "side": 1,
+      "message": "I didn\u0027t like that using modulo will count backwards when the int overflows.",
+      "parentUuid": "5a72e520_cc368303",
       "range": {
         "startLine": 41,
         "startChar": 40,
