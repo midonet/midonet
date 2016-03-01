@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_69766140",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-01T12:38:32Z",
+      "side": 1,
+      "message": "Maybe this and line 194 should be closer in the code, maybe a couple of inline methods like to easy reading:\nfromFileName(String): (uuid, type) \ntoFileName(uuid, type): String",
+      "range": {
+        "startLine": 106,
+        "startChar": 51,
+        "endLine": 106,
+        "endChar": 64
+      },
+      "revId": "103ab7d3203aaff27c277fe36e27405387588397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
