@@ -32,7 +32,7 @@ public class VXLAN extends BasePacket {
 
     @Override
     public int length() {
-        return HEADER_LEN + getPayloadLength();
+        return HEADER_LEN + childLength();
     }
 
     @Override
@@ -72,5 +72,11 @@ public class VXLAN extends BasePacket {
         bb.limit(end);
         bb.position(start);
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "VXLAN[vni=" + vni +
+               ", payload=" + (payload == null ? null : payload) + "]";
     }
 }
