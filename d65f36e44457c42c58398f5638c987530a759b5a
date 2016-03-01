@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_e65d214a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-01T07:57:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_c6eca5ca",
+      "range": {
+        "startLine": 88,
+        "startChar": 56,
+        "endLine": 88,
+        "endChar": 57
+      },
+      "revId": "d65f36e44457c42c58398f5638c987530a759b5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_06cebd5a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleManager.scala",
         "patchSetId": 1
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_4655151c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-01T07:57:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_06cebd5a",
+      "range": {
+        "startLine": 115,
+        "startChar": 8,
+        "endLine": 115,
+        "endChar": 24
+      },
+      "revId": "d65f36e44457c42c58398f5638c987530a759b5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_46efd5b0",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 1
@@ -83,6 +131,24 @@
       "writtenOn": "2016-03-01T04:56:33Z",
       "side": 1,
       "message": "Should check fragment policy for these two rules.",
+      "revId": "d65f36e44457c42c58398f5638c987530a759b5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_a63b29ea",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-01T07:57:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_46efd5b0",
       "revId": "d65f36e44457c42c58398f5638c987530a759b5a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
