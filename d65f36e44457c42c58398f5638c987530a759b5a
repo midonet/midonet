@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_e601a13a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-01T07:00:19Z",
+      "side": 1,
+      "message": "is it preferable?",
+      "parentUuid": "5a72e520_06cebd5a",
+      "range": {
+        "startLine": 115,
+        "startChar": 8,
+        "endLine": 115,
+        "endChar": 24
+      },
+      "revId": "d65f36e44457c42c58398f5638c987530a759b5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_46efd5b0",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 1
