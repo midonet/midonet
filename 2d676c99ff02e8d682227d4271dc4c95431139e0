@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_ec833fca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-01T16:40:35Z",
+      "side": 1,
+      "message": "this looks strange. why can\u0027t the id be logged by the logger?",
+      "range": {
+        "startLine": 198,
+        "startChar": 55,
+        "endLine": 198,
+        "endChar": 72
+      },
+      "revId": "2d676c99ff02e8d682227d4271dc4c95431139e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
