@@ -16,6 +16,8 @@
 
 package org.midonet.packets.util
 
+import com.google.common.annotations.VisibleForTesting
+
 import scala.collection.JavaConverters._
 
 import org.midonet.packets.ICMP.EXCEEDED_CODE._
@@ -101,6 +103,7 @@ sealed trait PacketBuilder[PacketClass <: IPacket] {
             case None =>
                 innerBuilder = Some(b)
                 setPayload(b)
+                b.setParent(this)
             case Some(inner) => inner << b
         }
         this
@@ -227,12 +230,32 @@ case class IcmpFragNeededBuilder(override val packet: ICMP,
 
 case class TcpBuilder(packet: TCP = new TCP()) extends PacketBuilder[TCP] {
     import org.midonet.packets.util.PacketBuilder._
+    import org.midonet.packets.TCP.OptionKind._
     override val ipProto = TCP.PROTOCOL_NUMBER
 
     def ports(ports: PortPair): TcpBuilder = { src(ports.src) ; dst(ports.dst) }
     def src(port: Short): TcpBuilder = { packet.setSourcePort(port & 0xffff) ; this }
     def dst(port: Short): TcpBuilder = { packet.setDestinationPort(port & 0xffff) ; this }
     def flags(flags: Short): TcpBuilder = { packet.setFlags(flags) ; this }
+    def mss(mss: Short): TcpBuilder =
+        opt(Array[Byte](MSS.code, 4, (mss >> 8).toByte, mss.toByte))
+    def nop(dummy: Null): TcpBuilder = opt(Array[Byte](NOP.code))
+    def wndScale(scale: Byte): TcpBuilder =
+        opt(Array[Byte](WND_SCALE.code, 3, scale))
+
+    @VisibleForTesting
+    def opt(opt: Array[Byte]): TcpBuilder = {
+        val oldOpts = packet.getOptions
+        if (oldOpts == null) {
+            packet.setOptions(opt)
+        } else {
+            val newOpts = new Array[Byte](oldOpts.length + opt.length)
+            oldOpts.copyToArray(newOpts)
+            opt.copyToArray(newOpts, oldOpts.length)
+            packet.setOptions(newOpts)
+        }
+        this
+    }
 }
 
 case class UdpBuilder(packet: UDP = new UDP()) extends PacketBuilder[UDP] {
