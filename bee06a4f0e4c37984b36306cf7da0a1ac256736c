@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_41bb3f0e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-01T09:27:57Z",
+      "side": 1,
+      "message": "There\u0027s no reason to call build() here, is there? All the callers make a modification and call it again.",
+      "range": {
+        "startLine": 115,
+        "startChar": 35,
+        "endLine": 115,
+        "endChar": 43
+      },
+      "revId": "bee06a4f0e4c37984b36306cf7da0a1ac256736c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
