@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "5a72e520_4cfff334",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-01T16:49:40Z",
+      "side": 1,
+      "message": "https://docs.oracle.com/javase/7/docs/api/java/nio/charset/StandardCharsets.html",
+      "revId": "103ab7d3203aaff27c277fe36e27405387588397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_69766140",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
         "patchSetId": 3
@@ -19,6 +36,40 @@
         "endLine": 106,
         "endChar": 64
       },
+      "revId": "103ab7d3203aaff27c277fe36e27405387588397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_cc9a0314",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-01T16:49:40Z",
+      "side": 1,
+      "message": "looks like manual encoding. Would be better to use a protobuf to allow for later extension.",
+      "revId": "103ab7d3203aaff27c277fe36e27405387588397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_0cbc1b69",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-01T16:49:40Z",
+      "side": 1,
+      "message": "why do you need synchronization? The read should only occur once, on initialization. Writing for any one file should all occur on a single thread.",
       "revId": "103ab7d3203aaff27c277fe36e27405387588397",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
