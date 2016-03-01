@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_49ac45ee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-01T11:41:20Z",
+      "side": 1,
+      "message": "There\u0027s a ThreadFactoryBuilder from guava, it\u0027s not much of a code safer but just fyi.",
+      "revId": "b48de276807d576fe6bc55025f052e3dece54c37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_a9821950",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-01T11:41:20Z",
+      "side": 1,
+      "message": "nit: why don\u0027t you shutdown them one after the other in parallel and await their termination afterwards.\n\nioExecutor.shutdown()\ncontainerExecutor.shutdown()\n\nif (!ioExecutor.awaitTermination...)\nif (!containerExecutor.awaitTermination...)",
+      "revId": "b48de276807d576fe6bc55025f052e3dece54c37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
