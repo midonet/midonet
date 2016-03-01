@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_6c582f57",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-01T18:41:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_4cfff334",
+      "revId": "103ab7d3203aaff27c277fe36e27405387588397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_69766140",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2016-03-01T12:38:32Z",
       "side": 1,
       "message": "Maybe this and line 194 should be closer in the code, maybe a couple of inline methods like to easy reading:\nfromFileName(String): (uuid, type) \ntoFileName(uuid, type): String",
+      "range": {
+        "startLine": 106,
+        "startChar": 51,
+        "endLine": 106,
+        "endChar": 64
+      },
+      "revId": "103ab7d3203aaff27c277fe36e27405387588397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_8f8d5d7e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-01T18:41:13Z",
+      "side": 1,
+      "message": "I changed this, and now I\u0027m using only the id, which is not relevant anyway.",
+      "parentUuid": "5a72e520_69766140",
       "range": {
         "startLine": 106,
         "startChar": 51,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_2c5e3746",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-01T18:41:13Z",
+      "side": 1,
+      "message": "good point, will change.",
+      "parentUuid": "5a72e520_cc9a0314",
+      "revId": "103ab7d3203aaff27c277fe36e27405387588397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_0cbc1b69",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
         "patchSetId": 3
@@ -70,6 +130,24 @@
       "writtenOn": "2016-03-01T16:49:40Z",
       "side": 1,
       "message": "why do you need synchronization? The read should only occur once, on initialization. Writing for any one file should all occur on a single thread.",
+      "revId": "103ab7d3203aaff27c277fe36e27405387588397",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_0c4a5b80",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerLogger.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-01T18:41:13Z",
+      "side": 1,
+      "message": "because of the buffer - won\u0027t be needed if I use a protobuf",
+      "parentUuid": "5a72e520_0cbc1b69",
       "revId": "103ab7d3203aaff27c277fe36e27405387588397",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
