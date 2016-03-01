@@ -71,7 +71,10 @@ binding_dhcp = {
     'bindings': [
         {'binding':
              {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 5}}
+              'host_id': 2, 'interface_id': 5}},
+        {'binding':
+             {'device_name': 'bridge-000-001', 'port_id': 3,
+              'host_id': 1, 'interface_id': 5}}
     ]
 }
 
@@ -154,30 +157,51 @@ def test_dhcp():
     When: a VM connected to the bridge sends DHCP requests,
     Then: the VM should get DHCP response accoridingly.
     """
-
     iface = BM.get_iface_for_port('bridge-000-001', 2)
+    iface_new = BM.get_iface_for_port('bridge-000-001', 3)
+    shared_lease = '/override/shared-%s.lease' % iface.get_ifname()
+    try:
 
-    # Check that interface has 1500 byte MTU before DHCP
-    assert iface.get_mtu(update=True) == 1500
+        # Check that interface has 1500 byte MTU before DHCP
+        assert iface.get_mtu(update=True) == 1500
 
-    # Check that namespace doesn't have routes before DHCP
-    assert iface.get_num_routes(update=True) == 0
+        # Check that namespace doesn't have routes before DHCP
+        assert iface.get_num_routes(update=True) == 0
 
-    # Run dhclient in the namespace for a while
-    # FIXME: wait 15 seconds? better to wait for an ack from the command?
-    result = iface.execute(
-        'dhclient -v %s' % iface.get_ifname(),
-        timeout=15, sync=True)
-    LOG.debug('dhclient got response: %s' % result)
+        # Run dhclient in the namespace for a while with a specific lease file
+        # FIXME: wait 15 seconds? better to wait for an ack from the command?
+        result = iface.execute(
+            'dhclient -lf %s %s' % (shared_lease, iface.get_ifname()),
+            timeout=15, sync=True)
+        LOG.debug('dhclient got response: %s' % result)
 
-    # Assert that the interface gets ip address
-    assert iface.get_cidr(update=True) == '172.16.1.101/24'
+        # Assert that the interface gets ip address
+        assert iface.get_cidr(update=True) == '172.16.1.101/24'
 
-    # TODO(tomoe): assert for default gw and static routes with opt 121
-    assert iface.get_num_routes(update=True) > 0
+        # TODO(tomoe): assert for default gw and static routes with opt 121
+        assert iface.get_num_routes(update=True) > 0
 
-    # MTU should be 1450 (interface mtu minus 50B, max of gre/vxlan overhead)
-    assert iface.get_mtu(update=True) == 1450
+        # MTU should be 1450 (interface mtu minus 50B, max of gre/vxlan overhead)
+        assert iface.get_mtu(update=True) == 1450
+
+        # MI-536 regression test
+        # Check that the 2nd vm using an incorrect lease file, receives a nack
+        # without waiting for the request to timeout which is 60s.
+        iface_new.update_interface_name(iface.get_ifname())
+        result = iface_new.execute(
+            'dhclient -lf %s %s' % (shared_lease, iface_new.get_ifname()),
+            timeout=15, sync=True)
+        LOG.debug('dhclient got response: %s' % result)
+
+        # After 15s, check if the interface is correctly configured
+        assert iface_new.get_cidr(update=True) == '172.16.1.100/24'
+        assert iface_new.get_num_routes(update=True) > 0
+        assert iface_new.get_mtu(update=True) == 1450
+    finally:
+        # Cleanup lease file
+        iface.execute('rm -rf /override/shared-%s.lease' % iface.get_ifname())
+
+
 
 
 @attr(version="v1.2.0", slow=False)

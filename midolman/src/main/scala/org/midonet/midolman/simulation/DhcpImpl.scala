@@ -715,10 +715,15 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                         // TODO(pino): must keep state and remember the offered ip based
                         // on the chaddr or the client id option.
                         if (yiaddr.addr != reqIp) {
-                            log.warn("Dropping DHCP request: the requested ip "+
+                            log.debug("Sending DHCP NACK: the requested ip "+
                                 s"$reqIp does not match what we offered ($yiaddr)")
-                            // TODO(pino): send a dhcp NAK reply.
-                            return None
+                            // Overwrite the default ACK with a dhcp NACK
+                            optionMap.put(
+                                DHCPOption.Code.DHCP_TYPE.value,
+                                new DHCPOption(
+                                    DHCPOption.Code.DHCP_TYPE.value,
+                                    DHCPOption.Code.DHCP_TYPE.length,
+                                    Array[Byte](DHCPOption.MsgType.NAK.value)))
                         }
                 }
             case msgType =>
