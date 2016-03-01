@@ -181,26 +181,26 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 writeConf(conf)
                 if (conf.isConfigurable){
                     startHaproxy(healthMonitorName)
+                    HealthMonitor.zkLock(lockFactory) {
+                        // The vip may have changed. If so, we need to change the
+                        // routes on the router.
+                        if (config.vip != conf.vip) {
+                            if (routeId != null) {
+                                store.delete(classOf[Route], routeId)
+                                deleteIpTableRules(healthMonitorName, config.vip.ip)
+                            }
+                            if (routerId != null && routerPortId != null) {
+                                store.create(createVipRoute(conf.vip.ip))
+                                createIpTableRules(healthMonitorName, conf.vip.ip)
+                            }
+                        }
+                        setPoolMappingStatus(config.id, ACTIVE, lockNeeded = false,
+                                             rethrowException = true)
+                    }
                 } else {
                     killHaproxyIfRunning(healthMonitorName,
                                          conf.haproxyConfFileLoc,
                                          conf.haproxyPidFileLoc)
-                }
-                HealthMonitor.zkLock(lockFactory) {
-                    // The vip may have changed. If so, we need to change the
-                    // routes on the router.
-                    if (config.vip != conf.vip) {
-                        if (routeId != null) {
-                            store.delete(classOf[Route], routeId)
-                            deleteIpTableRules(healthMonitorName, config.vip.ip)
-                        }
-                        if (routerId != null && routerPortId != null) {
-                            store.create(createVipRoute(conf.vip.ip))
-                            createIpTableRules(healthMonitorName, conf.vip.ip)
-                        }
-                    }
-                    setPoolMappingStatus(config.id, ACTIVE, lockNeeded = false,
-                                         rethrowException = true)
                 }
             } catch {
                 case NonFatal(e) =>
@@ -407,7 +407,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     def haproxyCommandLine(): String = {
         HealthMonitor.getHaproxyPid(config.haproxyPidFileLoc) match {
-            case Some(pid) => haproxyCommandLineWithoutPid + " -sf " + pid
+            case Some(pid) => haproxyCommandLineWithoutPid + " -st " + pid
             case None => haproxyCommandLineWithoutPid
         }
     }
