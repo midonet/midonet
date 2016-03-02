@@ -209,11 +209,6 @@ class ContainerConfig(val conf: Config, val schema: Config) extends TypeFailureF
 
 class IPSecContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
     val prefix = "agent.containers.ipsec"
-    def loggingEnabled = getBoolean(s"$prefix.logging_enabled")
-    def loggingPollInterval = getDuration(s"$prefix.logging_poll_interval",
-                                          TimeUnit.MILLISECONDS) millis
-    def loggingTimeout = getDuration(s"$prefix.logging_timeout",
-                                     TimeUnit.MILLISECONDS) millis
     def statusUpdateInterval = getDuration(s"$prefix.status_update_interval",
                                            TimeUnit.MILLISECONDS) millis
 }

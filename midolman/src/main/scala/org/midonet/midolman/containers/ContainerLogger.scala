@@ -46,6 +46,14 @@ object ContainerLogger {
     val CharsetEncoder = StandardCharsets.UTF_8.newEncoder()
     val CharsetDecoder = StandardCharsets.UTF_8.newDecoder()
 
+    final val LogDirectory = {
+        try {
+            System.getProperty("midolman.log.dir", "/var/log/midolman")
+        } catch {
+            case NonFatal(e) => "/var/log/midolman"
+        }
+    }
+
 }
 
 /**
@@ -55,16 +63,8 @@ object ContainerLogger {
   */
 class ContainerLogger(config: ContainerConfig, log: Logger) {
 
-    final val logDirectory = {
-        try {
-            System.getProperty("midolman.log.dir", "/var/log/midolman")
-        } catch {
-            case NonFatal(e) => "/var/log/midolman"
-        }
-    }
-
     final val directoryPath = FileSystems.getDefault.getPath(
-        s"$logDirectory/${config.logDirectory}")
+        s"$LogDirectory/${config.logDirectory}")
 
     /**
       * Clears the current log directory.
@@ -97,7 +97,7 @@ class ContainerLogger(config: ContainerConfig, log: Logger) {
     @throws[SecurityException]
     def log(`type`: String, id: UUID, operation: ContainerOp): Unit = {
         val filePath = FileSystems.getDefault.getPath(
-            s"$logDirectory/${config.logDirectory}/$id")
+            s"$LogDirectory/${config.logDirectory}/$id")
 
         if (!Files.exists(directoryPath)) {
             try {

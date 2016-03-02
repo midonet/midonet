@@ -18,7 +18,7 @@ package org.midonet.containers
 
 import java.io.File
 import java.util.UUID
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit, ExecutorService}
+import java.util.concurrent.{ExecutorService, TimeUnit}
 
 import javax.inject.Named
 
@@ -31,11 +31,10 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
 import org.apache.commons.io.FileUtils
-import org.slf4j.LoggerFactory
 
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
-import rx.{Observer, Observable, Subscription}
+import rx.{Observable, Observer, Subscription}
 
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
@@ -50,12 +49,12 @@ import org.midonet.containers.IPSecContainer._
 import org.midonet.midolman.containers._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
-import org.midonet.util.concurrent._
 import org.midonet.util.functors._
-import org.midonet.util.io.Tailer
 
 case class IPSecServiceDef(name: String,
-                           filepath: String,
+                           rootDir: String,
+                           logDir: String,
+                           routerId: UUID,
                            localEndpointIp: IPAddr,
                            localEndpointMac: String,
                            namespaceInterfaceIp: IPv4Subnet,
@@ -80,6 +79,7 @@ object IPSecConfig {
         for (i <- 1 until subnets.size) ss append s",${subnets.get(i).asJava}"
         ss.toString()
     }
+
 }
 
 /**
@@ -197,13 +197,10 @@ case class IPSecConfig(script: String,
         s"-i ${ipsecService.namespaceInterfaceIp} " +
         s"-m ${ipsecService.localEndpointMac}"
 
-    val startServiceCmd =
-        s"$script start_service -n ${ipsecService.name} -p ${ipsecService.filepath}"
-
     def initConnsCmd = {
         val cmd = new StringBuilder(s"$script init_conns " +
                                     s"-n ${ipsecService.name} " +
-                                    s"-p ${ipsecService.filepath} " +
+                                    s"-p ${ipsecService.rootDir} " +
                                     s"-g ${ipsecService.namespaceGatewayIp}")
         for (c <- connections if isSiteConnectionUp(c)) {
             cmd append s" -c ${vpnName(c.getId.asJava)}"
@@ -211,24 +208,28 @@ case class IPSecConfig(script: String,
         cmd.toString
     }
 
-    val stopServiceCmd = s"$script stop_service -n ${ipsecService.name} " +
-                         s"-p ${ipsecService.filepath}"
-
-    val cleanNsCmd = s"$script cleanns -n ${ipsecService.name}"
-
-    val confDir = s"${ipsecService.filepath}/etc"
+    val confDir = s"${ipsecService.rootDir}/etc"
 
     val confPath = s"$confDir/ipsec.conf"
 
     val secretsPath = s"$confDir/ipsec.secrets"
 
-    val runDir = s"${ipsecService.filepath}/var/run"
+    val runDir = s"${ipsecService.rootDir}/var/run"
 
     val plutoDir = s"$runDir/pluto"
 
-    val logPath = s"$runDir/pluto.log"
+    val logPath = s"${ipsecService.logDir}/ipsec-pluto-${ipsecService.routerId}.log"
 
-    val createLogCmd = s"mkfifo -m 0600 $logPath"
+    val startServiceCmd =
+        s"$script start_service " +
+        s"-n ${ipsecService.name} " +
+        s"-p ${ipsecService.rootDir} " +
+        s"-o $logPath"
+
+    val stopServiceCmd = s"$script stop_service -n ${ipsecService.name} " +
+                         s"-p ${ipsecService.rootDir}"
+
+    val cleanNsCmd = s"$script cleanns -n ${ipsecService.name}"
 
     val statusCmd = s"ip netns exec ${ipsecService.name} ipsec whack " +
                     s"--status --ctlbase $plutoDir"
@@ -245,6 +246,20 @@ object IPSecContainer {
 
     final val VpnHelperScriptPath = "/usr/lib/midolman/vpn-helper"
     final val VpnDirectoryPath = FileUtils.getTempDirectoryPath
+
+    private case class VpnServiceUpdateEvent(routerId: UUID,
+                                             routerPorts: List[Port],
+                                             connections: List[IPSecSiteConnection],
+                                             externalIp: IPAddr,
+                                             port: Port) {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("routerId", routerId)
+            .add("routerPorts", routerPorts.map(_.getId.asJava))
+            .add("connections", connections.map(_.getId.asJava))
+            .add("externalIp", externalIp)
+            .add("port", port.getId.asJava)
+            .toString
+    }
 
     @inline
     def vpnPath(name: String): String = {
@@ -269,8 +284,7 @@ object IPSecContainer {
 @Container(name = Containers.IPSEC_CONTAINER, version = 1)
 class IPSecContainer @Inject()(@Named("id") id: UUID,
                                vt: VirtualTopology,
-                               @Named("container") containerExecutor: ExecutorService,
-                               @Named("io") ioExecutor: ScheduledExecutorService)
+                               @Named("container") containerExecutor: ExecutorService)
     extends ContainerHandler with ContainerCommons {
 
     override def logSource = "org.midonet.containers.ipsec"
@@ -285,22 +299,7 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
     private[containers] var vpnServiceSubscription: Subscription = null
     private var config: IPSecConfig = null
 
-    private val ipsecLog =
-        Logger(LoggerFactory.getLogger("org.midonet.containers.ipsec.ipsec-pluto"))
-    private var logTailer: Tailer = null
-    private val logObserver = new Observer[String] {
-        override def onNext(line: String): Unit = {
-            ipsecLog debug line
-        }
-        override def onCompleted(): Unit = { }
-        override def onError(e: Throwable): Unit = {
-            log warn s"Reading IPSec log failed: ${e.getMessage}"
-        }
-    }
-
     private val statusInterval = vt.config.containers.ipsec.statusUpdateInterval
-    private val logPollInterval = vt.config.containers.ipsec.loggingPollInterval
-    private val logTimeout = vt.config.containers.ipsec.loggingTimeout
 
     private val statusObservable =
         Observable.interval(statusInterval.toMillis, statusInterval.toMillis,
@@ -333,17 +332,8 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
     }
     private var statusSubscription: Subscription = null
 
-    private case class VpnServiceUpdateEvent(routerPorts: List[Port],
-                                             connections: List[IPSecSiteConnection],
-                                             externalIp: IPAddr,
-                                             port: Port) {
-        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
-            .add("routerPorts", routerPorts.map(_.getId.asJava))
-            .add("connections", connections.map(_.getId.asJava))
-            .add("externalIp", externalIp)
-            .add("port", port.getId.asJava)
-            .toString
-    }
+    final val logDirectory =
+        s"${ContainerLogger.LogDirectory}/${vt.config.containers.logDirectory}"
 
     /**
       * @see [[ContainerHandler.create]]
@@ -404,7 +394,9 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
         try {
             cleanup(IPSecConfig(VpnHelperScriptPath,
                                 IPSecServiceDef(name = name,
-                                                filepath = vpnPath(name),
+                                                rootDir = vpnPath(name),
+                                                logDir = logDirectory,
+                                                routerId = null,
                                                 localEndpointIp = null,
                                                 localEndpointMac = null,
                                                 namespaceInterfaceIp = null,
@@ -441,9 +433,9 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
         // Try to clean namespace.
         execute(config.cleanNsCmd)
 
-        val rootDirectory = new File(config.ipsecService.filepath)
+        val rootDirectory = new File(config.ipsecService.rootDir)
         if (rootDirectory.exists()) {
-            log debug s"Directory ${config.ipsecService.filepath} already " +
+            log debug s"Directory ${config.ipsecService.rootDir} already " +
                       "exists: deleting"
             FileUtils.cleanDirectory(rootDirectory)
         }
@@ -459,17 +451,6 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
 
         log info s"Writing secrets to ${config.secretsPath}"
         writeFile(config.getSecretsFileContents(log), config.secretsPath)
-
-        // Create the log FIFO file.
-        execute(config.createLogCmd)
-
-        // Create the tailer to read the log file.
-        if (logTailer ne null) {
-            logTailer.close()
-        }
-        logTailer = new Tailer(new File(config.logPath), ioExecutor, logObserver,
-                               logPollInterval.toMillis, TimeUnit.MILLISECONDS)
-        logTailer.start()
 
         // Schedule the status check.
         if (statusSubscription ne null) {
@@ -510,22 +491,13 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
                                          config.ipsecService.name)
         execute(config.stopServiceCmd)
         execute(config.cleanNsCmd)
+
         try {
-            if (logTailer ne null) {
-                logTailer.close().await(logTimeout)
-            }
-        } catch {
-            case NonFatal(e) =>
-                log.info("Failed to close the IPSec log reader", e)
-        } finally {
-            logTailer = null
-        }
-        try {
-            FileUtils.deleteDirectory(new File(config.ipsecService.filepath))
+            FileUtils.deleteDirectory(new File(config.ipsecService.rootDir))
         } catch {
             case NonFatal(e) =>
                 log.warn("Failed to delete temporary directory " +
-                         s"${config.ipsecService.filepath}", e)
+                         s"${config.ipsecService.rootDir}", e)
         }
     }
 
@@ -642,7 +614,9 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
                 portObservable,
                 routerObservable,
                 makeFunc5((routerPorts, connections, externalIp, port, router) => {
-                    VpnServiceUpdateEvent(routerPorts, connections, externalIp, port)
+                    VpnServiceUpdateEvent(
+                        router.getId.asJava, routerPorts, connections,
+                        externalIp, port)
                 }))
             .distinctUntilChanged()
             .filter(makeFunc1(event => {
@@ -667,7 +641,8 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
     private def onVpnServiceUpdate(event: VpnServiceUpdateEvent,
                                    promise: Promise[Option[String]]): Unit = {
         try {
-            val VpnServiceUpdateEvent(routerPorts, conns, externalIp, port) = event
+            val VpnServiceUpdateEvent(routerId, routerPorts, conns, externalIp,
+                                      port) = event
 
             log debug s"VPN service updated $event"
 
@@ -698,6 +673,8 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
                                                      .getPrefixLength)
             val serviceDef = IPSecServiceDef(port.getInterfaceName,
                                              vpnPath(port.getInterfaceName),
+                                             logDirectory,
+                                             routerId,
                                              externalIp,
                                              externalMac,
                                              namespaceSubnet,

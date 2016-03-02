@@ -51,13 +51,15 @@ define_paths() {
     elif [ -z ${FILES_PATH} ]; then
         echo "location of files not specified (-f)"
         exit 1
+    elif [ -z ${LOG_FILE} ]; then
+        echo "log file not specified (-o)"
+        LOG_FILE = $FILES_PATH/var/run/pluto.log
     fi
     IPSEC_PATH=$FILES_PATH/etc
     CONF_FILE=$IPSEC_PATH/ipsec.conf
     SECRETS_FILE=$IPSEC_PATH/ipsec.secrets
     RUN_PATH=$FILES_PATH/var/run
     PLUTO_PATH=$RUN_PATH/pluto
-    LOG_FILE=$RUN_PATH/pluto.log
 }
 
 # Create the namespace that will house the VPN service
@@ -223,13 +225,16 @@ declare -A CONNS
 
 ACTION=$1
 shift
-while getopts ":n:p:g:l:c:m:i:G:" opt; do
+while getopts ":n:p:o:g:l:c:m:i:G:" opt; do
     case $opt in
         n)
             NAME=$OPTARG
             ;;
         p)
             FILES_PATH=$OPTARG
+            ;;
+        o)
+            LOG_FILE=$OPTARG
             ;;
         g)
             GATEWAY_IP=$OPTARG

@@ -52,7 +52,7 @@ import org.midonet.util.concurrent._
 class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder {
 
     class TestIPSecContainer(vt: VirtualTopology, executor: ExecutorService)
-        extends IPSecContainer(UUID.randomUUID(), vt, executor, ioExecutor) {
+        extends IPSecContainer(UUID.randomUUID(), vt, executor) {
 
         var commands = Seq.empty[String]
         var failOn = -1
@@ -73,7 +73,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
     private val random = new Random
     private var vt: VirtualTopology = _
     private val containerExecutor = new SameThreadButAfterExecutorService
-    private val ioExecutor = Executors.newSingleThreadScheduledExecutor()
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
@@ -82,8 +81,11 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
     private def createService()
     : (IPSecServiceDef, IkePolicy, IPSecPolicy, IPSecSiteConnection) = {
         val path = s"${FileUtils.getTempDirectory}/${UUID.randomUUID}"
+        val routerId = UUID.randomUUID()
         val service = IPSecServiceDef(random.nextString(10),
                                       path,
+                                      s"$path/ipsec-pluto-$routerId.log",
+                                      routerId,
                                       IPv4Addr.random,
                                       MAC.random().toString,
                                       randomIPv4Subnet,
@@ -195,6 +197,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A VPN configuration")
             val vpn = IPSecServiceDef(random.nextString(10),
                                       "/opt/stack/stuff",
+                                      s"/opt/stack/stuff/pluto.log",
+                                      UUID.randomUUID(),
                                       IPv4Addr.random,
                                       MAC.random().toString,
                                       randomIPv4Subnet,
@@ -365,6 +369,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A VPN configuration")
             val vpn = IPSecServiceDef(random.nextString(10),
                                       "/opt/stack/stuff",
+                                      s"/opt/stack/stuff/pluto.log",
+                                      UUID.randomUUID(),
                                       IPv4Addr.random,
                                       MAC.random().toString,
                                       randomIPv4Subnet,
@@ -498,6 +504,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A VPN configuration")
             val vpn = IPSecServiceDef(random.nextString(10),
                                       "/opt/stack/stuff",
+                                      s"/opt/stack/stuff/pluto.log",
+                                      UUID.randomUUID(),
                                       IPv4Addr.random,
                                       MAC.random().toString,
                                       randomIPv4Subnet,
@@ -559,18 +567,17 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.commands(0) shouldBe s"vpn-helper prepare"
             container.commands(1) shouldBe s"vpn-helper cleanns -n ${vpn.name}"
             container.commands(2) shouldBe
-                s"mkfifo -m 0600 ${vpn.filepath}/var/run/pluto.log"
-            container.commands(3) shouldBe
                 s"vpn-helper makens -n ${vpn.name} " +
                 s"-g ${vpn.namespaceGatewayIp} " +
                 s"-G ${vpn.namespaceGatewayMac} " +
                 s"-l ${vpn.localEndpointIp} " +
                 s"-i ${vpn.namespaceInterfaceIp} " +
                 s"-m ${vpn.localEndpointMac}"
+            container.commands(3) shouldBe
+                s"vpn-helper start_service -n ${vpn.name} -p ${vpn.rootDir} " +
+                s"-o ${conf.logPath}"
             container.commands(4) shouldBe
-                s"vpn-helper start_service -n ${vpn.name} -p ${vpn.filepath}"
-            container.commands(5) shouldBe
-                s"vpn-helper init_conns -n ${vpn.name} -p ${vpn.filepath} " +
+                s"vpn-helper init_conns -n ${vpn.name} -p ${vpn.rootDir} " +
                 s"-g ${vpn.namespaceGatewayIp} " +
                 s"-c ${IPSecConfig.vpnName(conn.getId.asJava)}"
 
@@ -578,13 +585,45 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.cleanup(conf)
 
             Then("The container should execute the cleanup commands")
+            container.commands(5) shouldBe
+                s"vpn-helper stop_service -n ${vpn.name} -p ${vpn.rootDir}"
             container.commands(6) shouldBe
-                s"vpn-helper stop_service -n ${vpn.name} -p ${vpn.filepath}"
-            container.commands(7) shouldBe
                 s"vpn-helper cleanns -n ${vpn.name}"
         }
 
         scenario("Changes rolled back when creating the namespace fails") {
+            Given("A VPN configuration")
+            val (vpn, ike, ipsec, conn) = createService()
+
+            And("An IPSec configuration")
+            val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
+
+            And("A container")
+            val container = new TestIPSecContainer(vt, containerExecutor)
+
+            When("Calling the setup method should fail")
+            container.failOn = 3
+            intercept[IPSecException] {
+                container.setup(conf)
+            }
+
+            Then("The container should execute the setup commands")
+            container.commands(0) shouldBe s"vpn-helper prepare"
+            container.commands(1) shouldBe s"vpn-helper cleanns -n ${vpn.name}"
+            container.commands(2) shouldBe
+                s"vpn-helper makens -n ${vpn.name} " +
+                s"-g ${vpn.namespaceGatewayIp} " +
+                s"-G ${vpn.namespaceGatewayMac} " +
+                s"-l ${vpn.localEndpointIp} " +
+                s"-i ${vpn.namespaceInterfaceIp} " +
+                s"-m ${vpn.localEndpointMac}"
+
+            And("The container should execute the cleanup commands")
+            container.commands(3) shouldBe
+                s"vpn-helper cleanns -n ${vpn.name}"
+        }
+
+        scenario("Changes rolled back when starting the service fails") {
             Given("A VPN configuration")
             val (vpn, ike, ipsec, conn) = createService()
 
@@ -604,21 +643,24 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.commands(0) shouldBe s"vpn-helper prepare"
             container.commands(1) shouldBe s"vpn-helper cleanns -n ${vpn.name}"
             container.commands(2) shouldBe
-                s"mkfifo -m 0600 ${vpn.filepath}/var/run/pluto.log"
-            container.commands(3) shouldBe
                 s"vpn-helper makens -n ${vpn.name} " +
                 s"-g ${vpn.namespaceGatewayIp} " +
                 s"-G ${vpn.namespaceGatewayMac} " +
                 s"-l ${vpn.localEndpointIp} " +
                 s"-i ${vpn.namespaceInterfaceIp} " +
                 s"-m ${vpn.localEndpointMac}"
+            container.commands(3) shouldBe
+                s"vpn-helper start_service -n ${vpn.name} -p ${vpn.rootDir} " +
+                s"-o ${conf.logPath}"
 
             And("The container should execute the cleanup commands")
             container.commands(4) shouldBe
+                s"vpn-helper stop_service -n ${vpn.name} -p ${vpn.rootDir}"
+            container.commands(5) shouldBe
                 s"vpn-helper cleanns -n ${vpn.name}"
         }
 
-        scenario("Changes rolled back when starting the service fails") {
+        scenario("Changes rolled back when initiating the connections fails") {
             Given("A VPN configuration")
             val (vpn, ike, ipsec, conn) = createService()
 
@@ -638,63 +680,24 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.commands(0) shouldBe s"vpn-helper prepare"
             container.commands(1) shouldBe s"vpn-helper cleanns -n ${vpn.name}"
             container.commands(2) shouldBe
-                s"mkfifo -m 0600 ${vpn.filepath}/var/run/pluto.log"
-            container.commands(3) shouldBe
                 s"vpn-helper makens -n ${vpn.name} " +
                 s"-g ${vpn.namespaceGatewayIp} " +
                 s"-G ${vpn.namespaceGatewayMac} " +
                 s"-l ${vpn.localEndpointIp} " +
                 s"-i ${vpn.namespaceInterfaceIp} " +
                 s"-m ${vpn.localEndpointMac}"
-            container.commands(4) shouldBe
-                s"vpn-helper start_service -n ${vpn.name} -p ${vpn.filepath}"
-
-            And("The container should execute the cleanup commands")
-            container.commands(5) shouldBe
-                s"vpn-helper stop_service -n ${vpn.name} -p ${vpn.filepath}"
-            container.commands(6) shouldBe
-                s"vpn-helper cleanns -n ${vpn.name}"
-        }
-
-        scenario("Changes rolled back when initiating the connections fails") {
-            Given("A VPN configuration")
-            val (vpn, ike, ipsec, conn) = createService()
-
-            And("An IPSec configuration")
-            val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
-
-            And("A container")
-            val container = new TestIPSecContainer(vt, containerExecutor)
-
-            When("Calling the setup method should fail")
-            container.failOn = 6
-            intercept[IPSecException] {
-                container.setup(conf)
-            }
-
-            Then("The container should execute the setup commands")
-            container.commands(0) shouldBe s"vpn-helper prepare"
-            container.commands(1) shouldBe s"vpn-helper cleanns -n ${vpn.name}"
-            container.commands(2) shouldBe
-                s"mkfifo -m 0600 ${vpn.filepath}/var/run/pluto.log"
             container.commands(3) shouldBe
-                s"vpn-helper makens -n ${vpn.name} " +
-                s"-g ${vpn.namespaceGatewayIp} " +
-                s"-G ${vpn.namespaceGatewayMac} " +
-                s"-l ${vpn.localEndpointIp} " +
-                s"-i ${vpn.namespaceInterfaceIp} " +
-                s"-m ${vpn.localEndpointMac}"
+                s"vpn-helper start_service -n ${vpn.name} -p ${vpn.rootDir} " +
+                s"-o ${conf.logPath}"
             container.commands(4) shouldBe
-                s"vpn-helper start_service -n ${vpn.name} -p ${vpn.filepath}"
-            container.commands(5) shouldBe
-                s"vpn-helper init_conns -n ${vpn.name} -p ${vpn.filepath} " +
+                s"vpn-helper init_conns -n ${vpn.name} -p ${vpn.rootDir} " +
                 s"-g ${vpn.namespaceGatewayIp} " +
                 s"-c ${IPSecConfig.vpnName(conn.getId.asJava)}"
 
             And("The container should execute the cleanup commands")
+            container.commands(5) shouldBe
+                s"vpn-helper stop_service -n ${vpn.name} -p ${vpn.rootDir}"
             container.commands(6) shouldBe
-                s"vpn-helper stop_service -n ${vpn.name} -p ${vpn.filepath}"
-            container.commands(7) shouldBe
                 s"vpn-helper cleanns -n ${vpn.name}"
         }
     }
@@ -714,7 +717,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.setup(conf)
 
             Then("The directory should be created")
-            val rootFile = new File(vpn.filepath)
+            val rootFile = new File(vpn.rootDir)
             rootFile.exists() shouldBe true
 
             And("The etc directory should be created")
@@ -739,9 +742,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val container = new TestIPSecContainer(vt, containerExecutor)
 
             And("An existing directory with a file")
-            val directory = new File(vpn.filepath)
+            val directory = new File(vpn.rootDir)
             directory.mkdir()
-            val tempFilePath = s"${vpn.filepath}/temp.file"
+            val tempFilePath = s"${vpn.rootDir}/temp.file"
             val tempFile = new File(tempFilePath)
             FileUtils.writeStringToFile(tempFile, "data")
 
@@ -749,7 +752,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.setup(conf)
 
             Then("The directory should exist")
-            val file = new File(vpn.filepath)
+            val file = new File(vpn.rootDir)
             file.exists() shouldBe true
 
             And("The temporary file should have been deleted")
@@ -848,19 +851,19 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                                  port.getPortSubnet.getPrefixLength)
 
             Then("The container should call vpn setup commands")
-            container.commands should have size 7
+            container.commands should have size 6
 
             When("Clearing all vpn services from the router")
             vt.store.update(router.toBuilder.clearVpnServiceIds().build)
             router = vt.store.get(classOf[Router], router.getId).await()
 
             Then("The container should call cleanup commands")
-            container.commands should have size 9
-            container.commands(7) shouldBe
+            container.commands should have size 8
+            container.commands(6) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
-            container.commands(8) shouldBe
+            container.commands(7) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
 
@@ -877,15 +880,15 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 vpnServiceId = Some(vpn.getId.asJava))
             vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
 
-            Then("The container should call vpn setup commands")
-            container.commands should have size 16
+            Then("The container should call setup commands")
+            container.commands should have size 14
 
             When("Calling the delete method of the container")
             val vpnServiceSubscription = container.vpnServiceSubscription
             container.delete().await()
 
             Then("The container shouldn't call cleanup commands")
-            container.commands should have size 18
+            container.commands should have size 16
 
             And("The container should unsubscribe from the observable")
             vpnServiceSubscription.isUnsubscribed shouldBe true
@@ -933,14 +936,17 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
                                                  port.getPortSubnet.getPrefixLength)
+            val logPath = s"${ContainerLogger.LogDirectory}/" +
+                          s"${vt.config.containers.logDirectory}/" +
+                          s"ipsec-pluto-${router.getId.asJava}.log"
 
-            container.commands should have size 7
+            container.commands should have size 6
             container.commands(0) shouldBe
                 s"/usr/lib/midolman/vpn-helper prepare"
             container.commands(1) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(3) shouldBe
+            container.commands(2) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -948,17 +954,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(4) shouldBe
+            container.commands(3) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(5) shouldBe
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(4) shouldBe
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
                 s"-c ${IPSecConfig.vpnName(conn.getId.asJava)}"
-            container.commands(6) shouldBe
+            container.commands(5) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -967,11 +974,11 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands(7) shouldBe
+            container.commands(6) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
-            container.commands(8) shouldBe
+            container.commands(7) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
 
@@ -1022,28 +1029,31 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
                                                  port.getPortSubnet.getPrefixLength)
+            val logPath = s"${ContainerLogger.LogDirectory}/" +
+                          s"${vt.config.containers.logDirectory}/" +
+                          s"ipsec-pluto-${router.getId.asJava}.log"
 
-            container.commands should have size 7
+            container.commands should have size 6
 
             When("Calling the update method of the container")
             container.updated(cp).await()
 
             Then("The container should call the cleanup and setup commands")
-            container.commands should have size 16
+            container.commands should have size 14
 
-            container.commands(7) shouldBe
+            container.commands(6) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
+            container.commands(7) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
             container.commands(8) shouldBe
-                s"/usr/lib/midolman/vpn-helper cleanns " +
-                s"-n ${port.getInterfaceName}"
-            container.commands(9) shouldBe
                 s"/usr/lib/midolman/vpn-helper prepare"
-            container.commands(10) shouldBe
+            container.commands(9) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(12) shouldBe
+            container.commands(10) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1051,17 +1061,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(13) shouldBe
+            container.commands(11) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(14) shouldBe
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(12) shouldBe
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
                 s"-c ${IPSecConfig.vpnName(conn.getId.asJava)}"
-            container.commands(15) shouldBe
+            container.commands(13) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1070,9 +1081,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
 
             Then("The container is deleted")
-            container.commands(16) shouldBe
+            container.commands(14) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service -n ${port.getInterfaceName} -p $path"
-            container.commands(17) shouldBe
+            container.commands(15) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns -n ${port.getInterfaceName}"
 
             When("Resetting the VpnService to admin state UP")
@@ -1080,12 +1091,12 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
 
             Then("The container should call the setup commands")
-            container.commands should have size 25
-            container.commands(18) shouldBe
+            container.commands should have size 22
+            container.commands(16) shouldBe
                 s"/usr/lib/midolman/vpn-helper prepare"
-            container.commands(19) shouldBe
+            container.commands(17) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns -n ${port.getInterfaceName}"
-            container.commands(21) shouldBe
+            container.commands(18) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1093,17 +1104,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(22) shouldBe
+            container.commands(19) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(23) shouldBe
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(20) shouldBe
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
                 s"-c ${IPSecConfig.vpnName(conn.getId.asJava)}"
-            container.commands(24) shouldBe
+            container.commands(21) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1112,19 +1124,19 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             conn = vt.store.get(classOf[IPSecSiteConnection], conn.getId).await()
 
             Then("The container is torn down")
-            container.commands should have size 27
+            container.commands should have size 24
 
             When("Resetting the connection to admin state UP")
             vt.store.update(conn.toBuilder.setAdminStateUp(true).build())
             conn = vt.store.get(classOf[IPSecSiteConnection], conn.getId).await()
 
             Then("The container should call the setup commands")
-            container.commands should have size 34
-            container.commands(27) shouldBe
+            container.commands should have size 30
+            container.commands(24) shouldBe
                 s"/usr/lib/midolman/vpn-helper prepare"
-            container.commands(28) shouldBe
+            container.commands(25) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns -n ${port.getInterfaceName}"
-            container.commands(30) shouldBe
+            container.commands(26) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1132,17 +1144,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(31) shouldBe
+            container.commands(27) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(32) shouldBe
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(28) shouldBe
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
                 s"-c ${IPSecConfig.vpnName(conn.getId.asJava)}"
-            container.commands(33) shouldBe
+            container.commands(29) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1151,12 +1164,12 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 36
-            container.commands(34) shouldBe
+            container.commands should have size 32
+            container.commands(30) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
-            container.commands(35) shouldBe
+            container.commands(31) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
 
@@ -1216,15 +1229,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val path = s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
                                                  port.getPortSubnet.getPrefixLength)
+            val logPath = s"${ContainerLogger.LogDirectory}/" +
+                          s"${vt.config.containers.logDirectory}/" +
+                          s"ipsec-pluto-${router.getId.asJava}.log"
 
             Then("The container should call the cleanup and setup commands")
-            container.commands should have size 7
+            container.commands should have size 6
             container.commands(0) shouldBe
                 s"/usr/lib/midolman/vpn-helper prepare"
             container.commands(1) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(3) shouldBe
+            container.commands(2) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1232,17 +1248,18 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(4) shouldBe
+            container.commands(3) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(5) shouldBe
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(4) shouldBe
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
                 s"-c ${IPSecConfig.vpnName(conn.getId.asJava)}"
-            container.commands(6) shouldBe
+            container.commands(5) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1251,7 +1268,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 9
+            container.commands should have size 8
 
             And("The container should unsubscribe from the observable")
             vpnServiceSubscription.isUnsubscribed shouldBe true
@@ -1301,8 +1318,11 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
                                                  port.getPortSubnet.getPrefixLength)
+            val logPath = s"${ContainerLogger.LogDirectory}/" +
+                          s"${vt.config.containers.logDirectory}/" +
+                          s"ipsec-pluto-${router.getId.asJava}.log"
 
-            container.commands should have size 7
+            container.commands should have size 6
 
             When("Adding a new ipsec connection to the vpn service")
             val conn2 = createIpsecSiteConnection(
@@ -1315,21 +1335,21 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vt.store.create(conn2)
 
             Then("The container should call the cleanup and setup commands")
-            container.commands should have size 16
+            container.commands should have size 14
 
-            container.commands(7) shouldBe
+            container.commands(6) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
+            container.commands(7) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
             container.commands(8) shouldBe
-                s"/usr/lib/midolman/vpn-helper cleanns " +
-                s"-n ${port.getInterfaceName}"
-            container.commands(9) shouldBe
                 s"/usr/lib/midolman/vpn-helper prepare"
-            container.commands(10) shouldBe
+            container.commands(9) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(12) shouldBe
+            container.commands(10) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1337,20 +1357,21 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(13) shouldBe
+            container.commands(11) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(14).startsWith(
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(12).startsWith(
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
-            container.commands(14).contains(
+            container.commands(12).contains(
                 s"-c ${IPSecConfig.vpnName(conn1.getId.asJava)}") shouldBe true
-            container.commands(14).contains(
+            container.commands(12).contains(
                 s"-c ${IPSecConfig.vpnName(conn2.getId.asJava)}") shouldBe true
-            container.commands(15) shouldBe
+            container.commands(13) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1359,20 +1380,20 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             conn1 = vt.store.get(classOf[IPSecSiteConnection], conn1.getId).await()
 
             Then("The container is torn down and setup with only one connection")
-            container.commands should have size 25
-            container.commands(16) shouldBe
+            container.commands should have size 22
+            container.commands(14) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
+            container.commands(15) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+            container.commands(16) shouldBe
+                s"/usr/lib/midolman/vpn-helper prepare"
             container.commands(17) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
             container.commands(18) shouldBe
-                s"/usr/lib/midolman/vpn-helper prepare"
-            container.commands(19) shouldBe
-                s"/usr/lib/midolman/vpn-helper cleanns " +
-                s"-n ${port.getInterfaceName}"
-            container.commands(21) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1380,20 +1401,21 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(22) shouldBe
+            container.commands(19) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(23).startsWith(
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(20).startsWith(
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
-            container.commands(23).contains(
+            container.commands(20).contains(
                 s"-c ${IPSecConfig.vpnName(conn1.getId.asJava)}") shouldBe false
-            container.commands(23).contains(
+            container.commands(20).contains(
                 s"-c ${IPSecConfig.vpnName(conn2.getId.asJava)}") shouldBe true
-            container.commands(24) shouldBe
+            container.commands(21) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1402,20 +1424,20 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             conn1 = vt.store.get(classOf[IPSecSiteConnection], conn1.getId).await()
 
             Then("The container is torn down and setup with both connection")
-            container.commands should have size 34
-            container.commands(25) shouldBe
+            container.commands should have size 30
+            container.commands(22) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
-            container.commands(26) shouldBe
+            container.commands(23) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(27) shouldBe
+            container.commands(24) shouldBe
                 s"/usr/lib/midolman/vpn-helper prepare"
-            container.commands(28) shouldBe
+            container.commands(25) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(30) shouldBe
+            container.commands(26) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1423,20 +1445,21 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(31) shouldBe
+            container.commands(27) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(32).startsWith(
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(28).startsWith(
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
-            container.commands(32).contains(
+            container.commands(28).contains(
                 s"-c ${IPSecConfig.vpnName(conn1.getId.asJava)}") shouldBe true
-            container.commands(32).contains(
+            container.commands(28).contains(
                 s"-c ${IPSecConfig.vpnName(conn2.getId.asJava)}") shouldBe true
-            container.commands(33) shouldBe
+            container.commands(29) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1445,7 +1468,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 36
+            container.commands should have size 32
 
             And("The container should unsubscribe from the observable")
             vpnSubscription.isUnsubscribed shouldBe true
@@ -1497,8 +1520,11 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
                                                  port.getPortSubnet.getPrefixLength)
+            val logPath = s"${ContainerLogger.LogDirectory}/" +
+                          s"${vt.config.containers.logDirectory}/" +
+                          s"ipsec-pluto-${router.getId.asJava}.log"
 
-            container.commands should have size 7
+            container.commands should have size 6
 
             When("Adding a new VPN service with one ipsec connection")
             val vpn2 = createVpnService(
@@ -1514,21 +1540,21 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vt.store.multi(Seq(CreateOp(vpn2), CreateOp(conn2)))
 
             Then("The container should call the cleanup and setup commands")
-            container.commands should have size 16
+            container.commands should have size 14
 
-            container.commands(7) shouldBe
+            container.commands(6) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
+            container.commands(7) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
             container.commands(8) shouldBe
-                s"/usr/lib/midolman/vpn-helper cleanns " +
-                s"-n ${port.getInterfaceName}"
-            container.commands(9) shouldBe
                 s"/usr/lib/midolman/vpn-helper prepare"
-            container.commands(10) shouldBe
+            container.commands(9) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(12) shouldBe
+            container.commands(10) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1536,20 +1562,21 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(13) shouldBe
+            container.commands(11) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(14).startsWith(
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(12).startsWith(
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
-            container.commands(14).contains(
+            container.commands(12).contains(
                 s"-c ${IPSecConfig.vpnName(conn1.getId.asJava)}") shouldBe true
-            container.commands(14).contains(
+            container.commands(12).contains(
                 s"-c ${IPSecConfig.vpnName(conn2.getId.asJava)}") shouldBe true
-            container.commands(15) shouldBe
+            container.commands(13) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1557,20 +1584,20 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vt.store.update(vpn1.toBuilder.setAdminStateUp(false).build())
             vpn1 = vt.store.get(classOf[VpnService], vpn1.getId).await()
             Then("The container is torn down and setup with only one connection")
-            container.commands should have size 25
-            container.commands(16) shouldBe
+            container.commands should have size 22
+            container.commands(14) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
+            container.commands(15) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+            container.commands(16) shouldBe
+                s"/usr/lib/midolman/vpn-helper prepare"
             container.commands(17) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
             container.commands(18) shouldBe
-                s"/usr/lib/midolman/vpn-helper prepare"
-            container.commands(19) shouldBe
-                s"/usr/lib/midolman/vpn-helper cleanns " +
-                s"-n ${port.getInterfaceName}"
-            container.commands(21) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1578,20 +1605,21 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(22) shouldBe
+            container.commands(19) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(23).startsWith(
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(20).startsWith(
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
-            container.commands(23).contains(
+            container.commands(20).contains(
                 s"-c ${IPSecConfig.vpnName(conn1.getId.asJava)}") shouldBe false
-            container.commands(23).contains(
+            container.commands(20).contains(
                 s"-c ${IPSecConfig.vpnName(conn2.getId.asJava)}") shouldBe true
-            container.commands(24) shouldBe
+            container.commands(21) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1600,20 +1628,20 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vpn1 = vt.store.get(classOf[VpnService], vpn1.getId).await()
 
             Then("The container is torn down and setup with both connection")
-            container.commands should have size 34
-            container.commands(25) shouldBe
+            container.commands should have size 30
+            container.commands(22) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
-            container.commands(26) shouldBe
+            container.commands(23) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(27) shouldBe
+            container.commands(24) shouldBe
                 s"/usr/lib/midolman/vpn-helper prepare"
-            container.commands(28) shouldBe
+            container.commands(25) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(30) shouldBe
+            container.commands(26) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -1621,20 +1649,21 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(31) shouldBe
+            container.commands(27) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
-                s"-p $path"
-            container.commands(32).startsWith(
+                s"-p $path " +
+                s"-o $logPath"
+            container.commands(28).startsWith(
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
                 s"-g ${port.getPortAddress.asIPv4Address} ") shouldBe true
-            container.commands(32).contains(
+            container.commands(28).contains(
                 s"-c ${IPSecConfig.vpnName(conn1.getId.asJava)}") shouldBe true
-            container.commands(32).contains(
+            container.commands(28).contains(
                 s"-c ${IPSecConfig.vpnName(conn2.getId.asJava)}") shouldBe true
-            container.commands(33) shouldBe
+            container.commands(29) shouldBe
                 "ip netns exec if-eth ipsec whack --status " +
                 s"--ctlbase $path/var/run/pluto"
 
@@ -1643,7 +1672,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 36
+            container.commands should have size 32
 
             And("The container should unsubscribe from the observable")
             vpnSubscription.isUnsubscribed shouldBe true
@@ -1894,7 +1923,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 9
+            container.commands should have size 8
 
             And("The container should report deleted")
             obs.getOnNextEvents should have size 3
@@ -1945,9 +1974,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.create(cp).await() should not be None
 
             Then("The container should call the cleanup and setup commands")
-            container.commands should have size 7
+            container.commands should have size 6
             val regexp = "^ipsec-[\\w_]+$".r
-            val splits = container.commands(5).split(" ")
+            val splits = container.commands(4).split(" ")
             splits.size shouldBe 10
             regexp.pattern.matcher(splits(9)).matches shouldBe true
 
@@ -1956,7 +1985,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 9
+            container.commands should have size 8
 
             And("The container should unsubscribe from the observable")
             vpnServiceSubscription.isUnsubscribed shouldBe true

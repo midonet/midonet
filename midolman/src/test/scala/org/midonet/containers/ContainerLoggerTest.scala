@@ -65,7 +65,7 @@ class ContainerLoggerTest extends FlatSpec with BeforeAndAfter
         val logger = new ContainerLogger(config, log)
 
         Then("The log path is set to the log dir and log file")
-        logger.logDirectory shouldBe logDir
+        ContainerLogger.LogDirectory shouldBe logDir
         logger.directoryPath.toString shouldBe s"$logDir/${config.logDirectory}"
     }
 
