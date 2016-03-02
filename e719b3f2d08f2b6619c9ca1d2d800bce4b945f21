@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_1d5d2722",
+        "filename": "midolman/src/test/scala/org/midonet/containers/ContainerLoggerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-02T08:45:14Z",
+      "side": 1,
+      "message": "you removed the type from the dir name. does this work? or I\u0027m missing something.",
+      "range": {
+        "startLine": 144,
+        "startChar": 65,
+        "endLine": 144,
+        "endChar": 67
+      },
+      "revId": "e719b3f2d08f2b6619c9ca1d2d800bce4b945f21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_3d41033a",
+        "filename": "midolman/src/test/scala/org/midonet/containers/ContainerLoggerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-02T08:45:14Z",
+      "side": 1,
+      "message": "ditto.",
+      "range": {
+        "startLine": 167,
+        "startChar": 80,
+        "endLine": 167,
+        "endChar": 82
+      },
+      "revId": "e719b3f2d08f2b6619c9ca1d2d800bce4b945f21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_5d3ebfb9",
+        "filename": "midolman/src/test/scala/org/midonet/containers/ContainerLoggerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-02T08:45:14Z",
+      "side": 1,
+      "message": "ditto.",
+      "range": {
+        "startLine": 170,
+        "startChar": 80,
+        "endLine": 170,
+        "endChar": 82
+      },
+      "revId": "e719b3f2d08f2b6619c9ca1d2d800bce4b945f21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_7d4b7b59",
+        "filename": "midolman/src/test/scala/org/midonet/containers/ContainerLoggerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-02T08:45:14Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 192,
+        "startChar": 80,
+        "endLine": 192,
+        "endChar": 82
+      },
+      "revId": "e719b3f2d08f2b6619c9ca1d2d800bce4b945f21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_9d48375d",
+        "filename": "midolman/src/test/scala/org/midonet/containers/ContainerLoggerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-02T08:45:14Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 195,
+        "startChar": 80,
+        "endLine": 195,
+        "endChar": 82
+      },
+      "revId": "e719b3f2d08f2b6619c9ca1d2d800bce4b945f21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_bd74139d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1147,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-02T08:45:14Z",
+      "side": 1,
+      "message": "same for this and below?",
+      "range": {
+        "startLine": 1147,
+        "startChar": 38,
+        "endLine": 1147,
+        "endChar": 48
+      },
+      "revId": "e719b3f2d08f2b6619c9ca1d2d800bce4b945f21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
