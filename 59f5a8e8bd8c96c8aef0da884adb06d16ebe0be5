@@ -1,0 +1,147 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_63cbda72",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T17:33:36Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 7,
+        "startChar": 8,
+        "endLine": 7,
+        "endChar": 19
+      },
+      "revId": "59f5a8e8bd8c96c8aef0da884adb06d16ebe0be5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_83c8d675",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T17:33:36Z",
+      "side": 1,
+      "message": "seems unrelated and to remove useful information.",
+      "revId": "59f5a8e8bd8c96c8aef0da884adb06d16ebe0be5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_8376163d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T17:33:36Z",
+      "side": 1,
+      "message": "you never wait for these futures to complete, so you\u0027re depending on implicit behaviour to guarantee that newly created containers won\u0027t interfere with old cleaned up containers.\n\nIn fact, if you wait for the futures after this loop, then you don\u0027t need the map to store the contexts. they can be part of the container handler.",
+      "range": {
+        "startLine": 208,
+        "startChar": 20,
+        "endLine": 208,
+        "endChar": 27
+      },
+      "revId": "59f5a8e8bd8c96c8aef0da884adb06d16ebe0be5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_c38f2e22",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T17:33:36Z",
+      "side": 1,
+      "message": "this code is duplicated in deleteContainer",
+      "range": {
+        "startLine": 406,
+        "startChar": 16,
+        "endLine": 420,
+        "endChar": 17
+      },
+      "revId": "59f5a8e8bd8c96c8aef0da884adb06d16ebe0be5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_23b642da",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T17:33:36Z",
+      "side": 1,
+      "message": "shouldn\u0027t you unsubscribe?",
+      "revId": "59f5a8e8bd8c96c8aef0da884adb06d16ebe0be5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_e3bb4ac2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T17:33:36Z",
+      "side": 1,
+      "message": "catch on same line as previous curly",
+      "range": {
+        "startLine": 454,
+        "startChar": 16,
+        "endLine": 454,
+        "endChar": 21
+      },
+      "revId": "59f5a8e8bd8c96c8aef0da884adb06d16ebe0be5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_63c75a46",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T17:33:36Z",
+      "side": 1,
+      "message": "shouldn\u0027t you handleContainerError?",
+      "revId": "59f5a8e8bd8c96c8aef0da884adb06d16ebe0be5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
