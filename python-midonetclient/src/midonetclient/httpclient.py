@@ -21,7 +21,7 @@ from midonetclient import auth_lib
 class HttpClient(object):
 
     def __init__(self, base_uri, username, password, project_id=None):
-        self.auth_lib = auth_lib.Auth(base_uri + '/login', username, password,
+        self.auth_lib = auth_lib.Auth(base_uri, 'login', username, password,
                                       project_id)
 
     def delete(self, uri):

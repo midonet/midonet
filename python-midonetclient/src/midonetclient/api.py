@@ -35,7 +35,7 @@ class MidonetApi(object):
         self.base_uri = base_uri.rstrip('/')
         self.project_id = project_id
         self.app = None
-        self.auth = auth_lib.Auth(self.base_uri + '/login', username, password,
+        self.auth = auth_lib.Auth(self.base_uri, 'login', username, password,
                                   project_id)
 
     def get_tenants(self, query={}):

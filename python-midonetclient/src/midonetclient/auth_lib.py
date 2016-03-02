@@ -19,11 +19,11 @@
 import base64
 import logging
 import threading
+import urlparse
 
 from webob import exc
 
 from midonetclient import api_lib
-
 
 LOG = logging.getLogger(__name__)
 
@@ -34,8 +34,12 @@ _sem = threading.Semaphore(1)
 
 class Auth:
 
-    def __init__(self, uri, username, password, project_id=None):
-        self.uri = uri
+    def __init__(self, base_uri, login_path, username, password,
+                 project_id=None):
+        uri_components = urlparse.urlparse(base_uri)
+        self.root_uri = uri_components.scheme + "://" + uri_components.netloc
+        self.base_uri = base_uri
+        self.uri = base_uri + "/" + login_path
         self.username = username
         self.password = password
         self.project_id = project_id
@@ -87,12 +91,26 @@ class Auth:
         '''
         header['X-Auth-Token'] = self.get_token(force)
 
+    def _resolve_uri(self, uri):
+        if not uri.startswith("http"):
+            if uri.startswith("/"):
+                LOG.debug("Adding root URI to relative URI with absolute path:"
+                        + " " + uri + " -> " + (self.root_uri + uri))
+                return self.root_uri + uri
+            else:
+                LOG.debug("Adding base URI to relative URI with relative path:"
+                        + " " + uri + " -> " + (self.base_uri + uri))
+                return self.base_uri + uri
+        return uri
+
     # This is used by resource_base.ResourceBase, calls api_lib
     def do_request(self, uri, method, body=None, query=None, headers=None):
         ''' Wrapper for api_lib.do_request that includes auth logic.
         '''
         query = query or dict()
         headers = headers or dict()
+
+        uri = self._resolve_uri(uri)
 
         # Username will be None if user has opted to skip authorization.
         if self.username is not None:
@@ -112,6 +130,8 @@ class Auth:
         '''
         query = query or dict()
         headers = headers or dict()
+
+        uri = self._resolve_uri(uri)
 
         # Username will be None if user has opted to skip authorization.
         if self.username is not None:
