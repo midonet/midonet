@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_5d65dfdf",
+        "filename": "midolman/src/test/scala/org/midonet/containers/ContainerLoggerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-02T08:50:10Z",
+      "side": 1,
+      "message": "The file name is not important anymore, since all the information is in the file. If the test is the only issue, I will submit a cleanup patch to make it consistent.",
+      "parentUuid": "5a72e520_1d5d2722",
+      "range": {
+        "startLine": 144,
+        "startChar": 65,
+        "endLine": 144,
+        "endChar": 67
+      },
+      "revId": "e719b3f2d08f2b6619c9ca1d2d800bce4b945f21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_3d41033a",
         "filename": "midolman/src/test/scala/org/midonet/containers/ContainerLoggerTest.scala",
         "patchSetId": 5
