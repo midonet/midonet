@@ -18,7 +18,6 @@ package org.midonet.midolman.containers
 
 import java.io._
 import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 import java.nio.file._
 import java.util
 import java.util.{Collections, UUID}
@@ -42,9 +41,6 @@ object ContainerLogger {
             .toString
 
     }
-
-    val CharsetEncoder = StandardCharsets.UTF_8.newEncoder()
-    val CharsetDecoder = StandardCharsets.UTF_8.newDecoder()
 
 }
 
