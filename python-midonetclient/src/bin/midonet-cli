@@ -1130,6 +1130,8 @@ class FieldType():
             if self._spec.has_inv() and (v.startswith("!")):
                 v = v.lstrip('!')
             return self._type.dereference(v)
+        else:
+            return self
 
     def describe(self):
         deref = self.dereference()
