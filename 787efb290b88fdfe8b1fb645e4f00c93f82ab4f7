@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_c3bacee0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T16:58:49Z",
+      "side": 1,
+      "message": "it\u0027d be good to have a test that if a task throws an exception while there\u0027s another task in the queue, then the second task will be run.\n\nIt would also be good to test reentrance. What if a task tries to add another task to the queue. By eyeballing the code, it looks that this will be fine, but better to test.",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 26
+      },
+      "revId": "787efb290b88fdfe8b1fb645e4f00c93f82ab4f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_63e4ba0d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T16:58:49Z",
+      "side": 1,
+      "message": "this is flakey. the task can have completed before this statement is executed. use a countdownlatch or something.",
+      "revId": "787efb290b88fdfe8b1fb645e4f00c93f82ab4f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_83f1b6cf",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-02T16:58:49Z",
+      "side": 1,
+      "message": "likewise",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 36
+      },
+      "revId": "787efb290b88fdfe8b1fb645e4f00c93f82ab4f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
