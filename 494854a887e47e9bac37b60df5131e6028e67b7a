@@ -16,6 +16,24 @@
       "revId": "494854a887e47e9bac37b60df5131e6028e67b7a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_b874219d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-02T12:21:24Z",
+      "side": 1,
+      "message": "I already checked, I think it doesn\u0027t. If it does, well it\u0027s not a big deal, it was like this before anyway.",
+      "parentUuid": "5a72e520_784b8959",
+      "revId": "494854a887e47e9bac37b60df5131e6028e67b7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
