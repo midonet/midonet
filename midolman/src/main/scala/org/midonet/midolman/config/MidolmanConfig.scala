@@ -201,6 +201,7 @@ class ContainerConfig(val conf: Config, val schema: Config) extends TypeFailureF
     def timeout = getDuration(s"$prefix.timeout", TimeUnit.MILLISECONDS) millis
     def shutdownGraceTime = getDuration(s"$prefix.shutdown_grace_time",
                                         TimeUnit.MILLISECONDS) millis
+    def threadCount = getInt(s"$prefix.thread_count")
     def logDirectory = getString(s"$prefix.log_directory")
 
     val ipsec = new IPSecContainerConfig(conf, schema)
