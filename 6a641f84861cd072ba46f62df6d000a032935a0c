@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_32ca1250",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-03-02T01:41:39Z",
+      "side": 1,
+      "message": "You would know better the side effects of introducing a change to the relationship bindings to target this particular behavior, and maybe any problems that may arise.  This code seems to function in this particular case, but if a more encompassing change to the bindings would be better, more efficient, and cover more use cases, I agree, let\u0027s do it that way instead!",
+      "parentUuid": "5a72e520_e60b6129",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 9
+      },
+      "revId": "6a641f84861cd072ba46f62df6d000a032935a0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_06095d31",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslatorTest.scala",
         "patchSetId": 1
