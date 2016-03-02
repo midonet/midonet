@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_bd5ed3e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerContext.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-02T09:32:32Z",
+      "side": 1,
+      "message": "queue is not necessary because it\u0027s synchronized",
+      "parentUuid": "5a72e520_9dbbd70d",
+      "range": {
+        "startLine": 83,
+        "startChar": 16,
+        "endLine": 83,
+        "endChar": 21
+      },
+      "revId": "aab3ed2e4da1ac19b9f8d9fd789f0576dbb96208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_1d82874f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerContext.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-02T09:28:56Z",
       "side": 1,
       "message": "busy is volatile, do we need this sync?",
+      "range": {
+        "startLine": 115,
+        "startChar": 26,
+        "endLine": 115,
+        "endChar": 43
+      },
+      "revId": "aab3ed2e4da1ac19b9f8d9fd789f0576dbb96208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_dd638faf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerContext.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-02T09:32:32Z",
+      "side": 1,
+      "message": "true, not needed: will remove",
+      "parentUuid": "5a72e520_1d82874f",
       "range": {
         "startLine": 115,
         "startChar": 26,
