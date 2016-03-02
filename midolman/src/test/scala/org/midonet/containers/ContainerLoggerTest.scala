@@ -141,7 +141,7 @@ class ContainerLoggerTest extends FlatSpec with BeforeAndAfter
         val dirPath = FileSystems.getDefault.getPath(
             s"$logDir/${config.logDirectory}")
         val filePath = FileSystems.getDefault.getPath(
-            s"$logDir/${config.logDirectory}/${UUID.randomUUID()}.A")
+            s"$logDir/${config.logDirectory}/${UUID.randomUUID()}")
         Files.createDirectory(dirPath)
         Files.createFile(filePath)
 
@@ -164,10 +164,10 @@ class ContainerLoggerTest extends FlatSpec with BeforeAndAfter
         val idB = UUID.randomUUID()
         Files.createDirectory(path)
         FileUtils.writeByteArrayToFile(
-            FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}/$idA.A").toFile,
+            FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}/$idA").toFile,
             Log.newBuilder().setId(idA.toString).setType("A").setName("a").build().toByteArray)
         FileUtils.writeByteArrayToFile(
-            FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}/$idB.B").toFile,
+            FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}/$idB").toFile,
             Log.newBuilder().setId(idB.toString).setType("B").setName("b").build().toByteArray)
 
         When("Reading the current containers")
@@ -189,10 +189,10 @@ class ContainerLoggerTest extends FlatSpec with BeforeAndAfter
         val idB = UUID.randomUUID()
         Files.createDirectory(path)
         FileUtils.writeByteArrayToFile(
-            FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}/$idA.A").toFile,
+            FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}/$idA").toFile,
             Log.newBuilder().setId(idA.toString).setType("A").setName("a").build().toByteArray)
         FileUtils.writeByteArrayToFile(
-            FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}/$idB.B").toFile,
+            FileSystems.getDefault.getPath(s"$logDir/${config.logDirectory}/$idB").toFile,
             Log.newBuilder().setId("bad-id").setType("B").setName("b").build().toByteArray)
 
         When("Reading the current containers")
