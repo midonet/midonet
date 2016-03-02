@@ -21,9 +21,11 @@ import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
 
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.SecurityGroup
+import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
@@ -137,9 +139,22 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
 
     protected override def translateDelete(sgId: UUID)
     : List[Operation[_ <: Message]] = {
-        List(Delete(classOf[Chain], inChainId(sgId)),
-             Delete(classOf[Chain], outChainId(sgId)),
-             Delete(classOf[IPAddrGroup], sgId))
+        val ops = new OperationListBuffer
+
+        ops ++= (try {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+
+            // Delete associated SecurityGroupRules as well.
+            sg.getSecurityGroupRulesList.asScala map (
+                r => Delete(classOf[SecurityGroupRule], r.getId)
+            )
+        } catch {
+            case nfe: NotFoundException => List()
+        })
+        ops += Delete(classOf[Chain], inChainId(sgId))
+        ops += Delete(classOf[Chain], outChainId(sgId))
+        ops += Delete(classOf[IPAddrGroup], sgId)
+        ops.toList
     }
 
     private def createIpAddrGroup(sg: SecurityGroup,
