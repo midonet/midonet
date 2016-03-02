@@ -617,7 +617,7 @@ class HaproxyTest extends MidolmanSpec
     }
 
     feature("Public methods") {
-        scenario("parsing ha-proxy responses/makeChannel/writeConfig") {
+        ignore("parsing ha-proxy responses/makeChannel/writeConfig") { // MI-683
             Given("One router")
             val routerId = makeRouter()
 
