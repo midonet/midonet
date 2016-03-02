@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_784b8959",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-02T12:20:03Z",
+      "side": 1,
+      "message": "I think ThreadFactoryBuilder still appends an int to the thread name like NamedThreadFactory I think. Use whatever you feel better (sorry for the back and forth on this nit).",
+      "revId": "494854a887e47e9bac37b60df5131e6028e67b7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
