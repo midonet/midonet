@@ -24,6 +24,7 @@ import com.google.protobuf.Message
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.SecurityGroup
+import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
@@ -98,6 +99,8 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
         val translatedSg = translate(sg)
 
         val ops = new ListBuffer[Operation[_ <: Message]]
+
+        sg.getSecurityGroupRulesList.asScala foreach(r => ops += Create(r))
 
         ops += Create(translatedSg.inboundChain)
         ops += Create(translatedSg.outboundChain)
