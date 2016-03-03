@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5a72e520_48aa761a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-03-03T16:21:01Z",
+      "side": 1,
+      "message": "This should be [Void] to match the example above",
+      "range": {
+        "startLine": 83,
+        "startChar": 55,
+        "endLine": 83,
+        "endChar": 67
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_358677ba",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 15
@@ -41,6 +64,29 @@
         "startChar": 36,
         "endLine": 95,
         "endChar": 46
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_a8bbeac2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-03-03T16:21:01Z",
+      "side": 1,
+      "message": "Maybe this could default to None for the usual case where only server and port are required...",
+      "range": {
+        "startLine": 138,
+        "startChar": 49,
+        "endLine": 138,
+        "endChar": 64
       },
       "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -140,6 +186,29 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_4b1d1066",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-03-03T16:21:01Z",
+      "side": 1,
+      "message": "This should probably be a \u0027private val\u0027 (see comment below)",
+      "range": {
+        "startLine": 226,
+        "startChar": 8,
+        "endLine": 226,
+        "endChar": 23
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_35ad9732",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 15
@@ -151,6 +220,30 @@
       "writtenOn": "2016-03-03T14:16:12Z",
       "side": 1,
       "message": "Is this method needed? In all the other classes we do the initialization in the constructor (including starting the service/cache).",
+      "range": {
+        "startLine": 232,
+        "startChar": 4,
+        "endLine": 232,
+        "endChar": 22
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_0b13185d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-03-03T16:21:01Z",
+      "side": 1,
+      "message": "good point. in the cases when a service needs to re-register, it could create a new instance of the MidonetServiceInstance... This would also allow to convert the serviceInstance member into a \u0027val\u0027",
+      "parentUuid": "5a72e520_35ad9732",
       "range": {
         "startLine": 232,
         "startChar": 4,
