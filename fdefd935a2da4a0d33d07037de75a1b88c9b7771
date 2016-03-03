@@ -16,6 +16,24 @@
       "revId": "fdefd935a2da4a0d33d07037de75a1b88c9b7771",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_f25dd5ea",
+        "filename": "misc/dashboards/midonet.dash",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-03T07:30:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_124b512c",
+      "revId": "fdefd935a2da4a0d33d07037de75a1b88c9b7771",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
