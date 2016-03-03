@@ -236,4 +236,23 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
             delResults.foreach(r => r should be(empty))
         }
     }
+
+    "SecurityGroupTranslator" should "add rules created with it" in {
+        val r1Id= UUID.randomUUID()
+        val sgId= UUID.randomUUID()
+        val r1 = ruleJson(r1Id, sgId, direction = RuleDirection.INGRESS)
+        createSecurityGroup(2, sgId, rules=Seq(r1))
+
+        eventually {
+            val sgr = storage.get(classOf[SecurityGroupRule], r1Id).await()
+            sgr.getSecurityGroupId shouldBe toProto(sgId)
+        }
+
+        insertDeleteTask(3, SecurityGroupRuleType, r1Id)
+
+        eventually {
+            val sg = storage.get(classOf[SecurityGroup], sgId).await()
+            sg.getSecurityGroupRulesCount shouldBe (0)
+        }
+    }
 }
