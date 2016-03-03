@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_f2aa35d3",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-03T06:41:37Z",
+      "side": 1,
+      "message": "Should probably create at least two rules.",
+      "range": {
+        "startLine": 214,
+        "startChar": 0,
+        "endLine": 215,
+        "endChar": 51
+      },
+      "revId": "ea0fccbde15dceac7e58897bf81b472af9977d17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
