@@ -223,7 +223,7 @@ object MidonetBackend {
                              classOf[BgpPeer], "router_id", CLEAR)
 
         store.declareBinding(classOf[Route], "gateway_dhcp_id", CLEAR,
-                             classOf[Dhcp], "gateway_route_ids", CLEAR)
+                             classOf[Dhcp], "gateway_route_ids", CASCADE)
 
         store.declareBinding(classOf[Rule], "chain_id", CLEAR,
                              classOf[Chain], "rule_ids", CASCADE)
