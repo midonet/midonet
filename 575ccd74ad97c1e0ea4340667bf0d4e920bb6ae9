@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_728d657b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-03T06:48:26Z",
+      "side": 1,
+      "message": "For consistency:\n\nops ++\u003d sg.getSecurityGroupRulesList.asScala.map(Create(_))",
+      "revId": "575ccd74ad97c1e0ea4340667bf0d4e920bb6ae9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
