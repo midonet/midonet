@@ -167,7 +167,7 @@ class SubnetTranslatorTest extends TranslatorTestBase {
         bind(nSubnetWithRoutes.getId, nSubnetWithRoutes)
         val midoOps = translator.translate(
             neutron.Delete(classOf[NeutronSubnet], nSubnetWithRoutes.getId))
-        midoOps shouldBe empty
+        midoOps should contain only midonet.Delete(classOf[Dhcp], subnetId)
     }
 
     "DELETE subnet with no default route" should "delete the DHCP" in {
@@ -180,8 +180,7 @@ class SubnetTranslatorTest extends TranslatorTestBase {
 
         val midoOps = translator.translate(
             neutron.Delete(classOf[NeutronSubnet], subnetId))
-        midoOps should have size 1
-        midoOps.head shouldBe midonet.Delete(classOf[Dhcp], subnetId)
+        midoOps should contain only midonet.Delete(classOf[Dhcp], subnetId)
     }
 
     private val mDhcpWithGWRoutes = mDhcpFromTxt(s"""
@@ -207,9 +206,7 @@ class SubnetTranslatorTest extends TranslatorTestBase {
         val midoOps = translator.translate(
             neutron.Delete(classOf[NeutronSubnet], subnetId))
 
-        midoOps should have size 2
-        midoOps.head shouldBe midonet.Delete(classOf[Route], rt1.getId)
-        midoOps(1) shouldBe midonet.Delete(classOf[Dhcp], subnetId)
+        midoOps should contain only midonet.Delete(classOf[Dhcp], subnetId)
     }
 
     "UPDATE subnet with dhcp port" should "update Opt121 routes" in {
