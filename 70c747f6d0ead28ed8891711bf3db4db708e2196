@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_2b37f4e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-03T16:54:44Z",
+      "side": 1,
+      "message": "remove.",
+      "revId": "70c747f6d0ead28ed8891711bf3db4db708e2196",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
