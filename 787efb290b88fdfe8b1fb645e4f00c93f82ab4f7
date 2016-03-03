@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_32f5ad83",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-03T09:14:07Z",
+      "side": 1,
+      "message": "True. That\u0027s basically a countdownlatch. I missed that when I reviewed.",
+      "parentUuid": "5a72e520_b2e27dd3",
+      "revId": "787efb290b88fdfe8b1fb645e4f00c93f82ab4f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_83f1b6cf",
         "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
         "patchSetId": 3
