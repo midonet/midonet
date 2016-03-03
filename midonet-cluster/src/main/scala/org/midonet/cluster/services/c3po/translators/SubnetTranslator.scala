@@ -62,22 +62,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
     }
 
     override protected def translateDelete(id: UUID): OperationList = {
-        // Update any routes using this port as a gateway.
-        val ns = storage.get(classOf[NeutronSubnet], id).await()
-
-        // Uplink networks don't exist in Midonet, nor do their subnets.
-        if (isOnUplinkNetwork(ns)) return List()
-
-        val midoOps = new OperationListBuffer
-
-        // Delete any routes using this subnet as a gateway.
-        val oldDhcp = storage.get(classOf[Dhcp], id).await()
-
-        for (routeId <- oldDhcp.getGatewayRouteIdsList.asScala) {
-            midoOps += Delete(classOf[Route], routeId)
-        }
-        midoOps += Delete(classOf[Dhcp], id)
-        midoOps.toList
+        List(Delete(classOf[Dhcp], id))
     }
 
     override protected def translateUpdate(ns: NeutronSubnet): OperationList = {
