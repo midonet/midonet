@@ -223,7 +223,7 @@ class HaproxyTest extends MidolmanSpec
         val defaults =
            s"""
               |agent.haproxy_health_monitor.haproxy_file_loc =
-              | "${FileUtils.getTempDirectoryPath}"
+              | "${FileUtils.getTempDirectoryPath}/"
             """.stripMargin
 
         config.withFallback(ConfigFactory.parseString(defaults))
@@ -617,7 +617,7 @@ class HaproxyTest extends MidolmanSpec
     }
 
     feature("Public methods") {
-        ignore("parsing ha-proxy responses/makeChannel/writeConfig") { // MI-683
+        scenario("parsing ha-proxy responses/makeChannel/writeConfig") { // MI-683
             Given("One router")
             val routerId = makeRouter()
 
@@ -689,7 +689,7 @@ class HaproxyTest extends MidolmanSpec
             haProxy.shouldWriteConf = true
             haProxy.writeConf(poolConfig)
             val tmpPath = FileUtils.getTempDirectoryPath
-            val file = new File(tmpPath + poolId.toString + "/" +
+            val file = new File(tmpPath + "/" + poolId.toString + "/" +
                                 PoolConfig.CONF)
             file.exists() shouldBe true
             file.delete()
