@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_124b512c",
+        "filename": "misc/dashboards/midonet.dash",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-03T07:26:51Z",
+      "side": 1,
+      "message": "There should be staging/v5.0 as well",
+      "revId": "fdefd935a2da4a0d33d07037de75a1b88c9b7771",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
