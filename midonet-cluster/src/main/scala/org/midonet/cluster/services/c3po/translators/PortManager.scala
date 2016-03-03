@@ -19,6 +19,10 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+import com.typesafe.scalalogging.Logger
+
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
@@ -165,6 +169,28 @@ trait PortManager extends ChainManager with RouteManager {
             Delete(classOf[Chain], antiSpoofChainId(portId)))
     }
 
+    def removePortIpfromIpAddrGroup(sgId: UUID, nPort: NeutronPort): Operation[IPAddrGroup] = {
+        val ips = nPort.getFixedIpsList.asScala.map(_.getIpAddress)
+        val addrGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+        val addrGrpBldr = addrGrp.toBuilder
+        var ipPortIdx = 0
+        while (ipPortIdx < addrGrpBldr.getIpAddrPortsCount) {
+            val ipPort = addrGrpBldr.getIpAddrPortsBuilder(ipPortIdx)
+            if (ips.contains(ipPort.getIpAddress)) {
+                val idx = ipPort.getPortIdsList.indexOf(nPort.getId)
+                if (idx >= 0) {
+                    ipPort.removePortIds(idx)
+                    if (ipPort.getPortIdsCount == 0) {
+                        addrGrpBldr.removeIpAddrPorts(ipPortIdx)
+                        ipPortIdx -= 1
+                    }
+                }
+            }
+            ipPortIdx += 1
+        }
+        Update(addrGrpBldr.build)
+    }
+
     /** Operations to remove a port's IP addresses from its IPAddrGroups */
     protected def removeIpsFromIpAddrGroupsOps(port: NeutronPort)
     : Seq[Operation[IPAddrGroup]] = {
@@ -173,14 +199,7 @@ trait PortManager extends ChainManager with RouteManager {
         val sgIds = port.getSecurityGroupsList.asScala.toList
         val addrGrps = storage.getAll(classOf[IPAddrGroup], sgIds).await()
         for (addrGrp <- addrGrps) yield {
-            val addrGrpBldr = addrGrp.toBuilder
-            for (ipPort <- addrGrpBldr.getIpAddrPortsBuilderList.asScala) {
-                if (ips.contains(ipPort.getIpAddress)) {
-                    val idx = ipPort.getPortIdsList.indexOf(port.getId)
-                    if (idx >= 0) ipPort.removePortIds(idx)
-                }
-            }
-            Update(addrGrpBldr.build())
+            removePortIpfromIpAddrGroup(addrGrp.getId, port)
         }
     }
 }

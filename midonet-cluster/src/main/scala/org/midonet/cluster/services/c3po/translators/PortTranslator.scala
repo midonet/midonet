@@ -455,11 +455,31 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                     added -= ipPorts.getIpAddress
                 }
             }
-            for (newIp <- added)
+
+            var addedIps = added
+            if (nPortOld != null &&
+                !(nPortOld.getSecurityGroupsList.asScala contains sgId)) {
+                // If we are adding a new Security Group to a port, we need
+                // to add all of the IPs, not just the new ones.
+                addedIps = ips
+            }
+            for (newIp <- addedIps)
                 updatedIpAddrG.addIpAddrPortsBuilder()
                               .setIpAddress(newIp)
                               .addPortIds(portId)
             portCtx.updatedIpAddrGrps += Update(updatedIpAddrG.build)
+        }
+
+        // Now remove the IP from all ipAddr groups
+        if (nPortOld != null) {
+            val oldSgs = nPortOld.getSecurityGroupsList.asScala
+            val newSgs = nPort.getSecurityGroupsList.asScala
+            val removeSgs = oldSgs filterNot(newSgs contains _)
+
+            for (sgId <- removeSgs) {
+                portCtx.updatedIpAddrGrps +=
+                    removePortIpfromIpAddrGroup(sgId, nPortOld)
+            }
         }
 
         // Drop non-ARP traffic that wasn't accepted by earlier rules.
