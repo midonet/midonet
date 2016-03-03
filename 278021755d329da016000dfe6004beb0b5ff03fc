@@ -22,6 +22,30 @@
       "revId": "278021755d329da016000dfe6004beb0b5ff03fc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_755f0f0f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 412,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-03T17:07:49Z",
+      "side": 1,
+      "message": "Better to make it explicit, given there are several executor contexts, isn\u0027t it?",
+      "parentUuid": "5a72e520_bdba53df",
+      "range": {
+        "startLine": 412,
+        "startChar": 25,
+        "endLine": 412,
+        "endChar": 31
+      },
+      "revId": "278021755d329da016000dfe6004beb0b5ff03fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
