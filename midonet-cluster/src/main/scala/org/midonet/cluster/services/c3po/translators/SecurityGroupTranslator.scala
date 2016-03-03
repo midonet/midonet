@@ -101,6 +101,8 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
 
         val ops = new ListBuffer[Operation[_ <: Message]]
 
+        ops ++= sg.getSecurityGroupRulesList.asScala map(Create(_))
+
         ops += Create(translatedSg.inboundChain)
         ops += Create(translatedSg.outboundChain)
         ops ++= translatedSg.inboundRules.map(Create(_))
