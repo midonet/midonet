@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_f29eb555",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-03T09:07:08Z",
+      "side": 1,
+      "message": "Good point: the exceptions weren\u0027t handled, fixed. Added reentrance test too.",
+      "parentUuid": "5a72e520_c3bacee0",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 26
+      },
+      "revId": "787efb290b88fdfe8b1fb645e4f00c93f82ab4f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_63e4ba0d",
         "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
         "patchSetId": 3
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_b2e27dd3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-03T09:07:08Z",
+      "side": 1,
+      "message": "But the context should be busy not until the task finishes executing but rather until its future completes. Since the future does not complete until line 92, the context should be busy until then regardless of whether the executor is available.",
+      "parentUuid": "5a72e520_63e4ba0d",
+      "revId": "787efb290b88fdfe8b1fb645e4f00c93f82ab4f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_83f1b6cf",
         "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
         "patchSetId": 3
@@ -53,6 +95,30 @@
       "writtenOn": "2016-03-02T16:58:49Z",
       "side": 1,
       "message": "likewise",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 36
+      },
+      "revId": "787efb290b88fdfe8b1fb645e4f00c93f82ab4f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_d2e7f9e2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerContextTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-03T09:07:08Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "5a72e520_83f1b6cf",
       "range": {
         "startLine": 88,
         "startChar": 0,
