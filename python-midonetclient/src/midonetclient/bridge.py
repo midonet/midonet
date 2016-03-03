@@ -81,7 +81,8 @@ class Bridge(resource_base.ResourceBase,
             for vxlan_port_dto in vxlan_ports_dto:
                 vxlan_port = port.Port(vxlan_port_dto, {'uri': vxlan_port_dto},
                                        self.auth)
-                vxlan_port.get({'Accept': vendor_media_type.APPLICATION_PORT_JSON})
+                vxlan_port.get({'Accept':
+                                vendor_media_type.APPLICATION_PORT_JSON})
                 if vxlan_port:
                     ports.append(vxlan_port)
         return ports
