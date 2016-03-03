@@ -223,7 +223,7 @@ class HaproxyTest extends MidolmanSpec
         val defaults =
            s"""
               |agent.haproxy_health_monitor.haproxy_file_loc =
-              | "${FileUtils.getTempDirectoryPath}"
+              | "${FileUtils.getTempDirectoryPath}/"
             """.stripMargin
 
         config.withFallback(ConfigFactory.parseString(defaults))
