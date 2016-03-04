@@ -514,6 +514,7 @@ def test_multisession_icmp_remove_session():
 
 @bindings(binding_multisession_direct, binding_multisession_indirect)
 @with_setup(None, clear_bgp)
+@nottest # MI-685
 def test_multisession_icmp_failback():
     """
     Title: BGP session failover/failback
