@@ -34,11 +34,15 @@ _sem = threading.Semaphore(1)
 
 class Auth(object):
 
-    def __init__(self, uri, username, password, project_id=None):
+    def __init__(
+            self, uri, username, password, project_id=None,
+            disable_ssl_certificate_validation=False):
         self.uri = uri
         self.username = username
         self.password = password
         self.project_id = project_id
+        self.disable_ssl_certificate_validation = \
+            disable_ssl_certificate_validation
 
     def login(self):
         '''Login a user
@@ -59,8 +63,10 @@ class Auth(object):
                     headers['X-Auth-Project'] = self.project_id
 
                 LOG.info("Logging in to MidoNet API server")
-                resp, _body = api_lib.do_request(self.uri, 'POST', body={},
-                                                 headers=headers)
+                resp, _body = api_lib.do_request(
+                    self.uri, 'POST', body={}, headers=headers,
+                    disable_ssl_certificate_validation=
+                    self.disable_ssl_certificate_validation)
                 set_cookie = resp['set-cookie']
                 session, sep, exp = set_cookie.partition(";")
                 session_key, sep, _token = session.partition("=")
@@ -88,7 +94,9 @@ class Auth(object):
         header['X-Auth-Token'] = self.get_token(force)
 
     # This is used by resource_base.ResourceBase, calls api_lib
-    def do_request(self, uri, method, body=None, query=None, headers=None):
+    def do_request(
+            self, uri, method, body=None, query=None, headers=None,
+            disable_ssl_certificate_validation=False):
         '''Wrapper for api_lib.do_request that includes auth logic.
         '''
         query = query or dict()
@@ -98,14 +106,18 @@ class Auth(object):
         if self.username is not None:
             self.set_header_token(headers)
         try:
-            return api_lib.do_request(uri, method, body=body,
-                                      query=query, headers=headers)
+            return api_lib.do_request(
+                uri, method, body=body, query=query, headers=headers,
+                disable_ssl_certificate_validation=
+                disable_ssl_certificate_validation)
         except exc.HTTPUnauthorized:
             # Try one more time after logging in
             LOG.info("Got HTTPUnauthorized error, try logging in again")
             self.set_header_token(headers, force=True)
-            return api_lib.do_request(uri, method, body=body, query=query,
-                                      headers=headers)
+            return api_lib.do_request(
+                uri, method, body=body, query=query, headers=headers,
+                disable_ssl_certificate_validation=
+                disable_ssl_certificate_validation)
 
     def do_upload(self, uri, body=None, query=None, headers=None):
         '''Wrapper for api_lib.do_upload that includes auth logic.
