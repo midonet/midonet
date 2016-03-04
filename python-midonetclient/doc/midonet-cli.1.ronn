@@ -135,6 +135,9 @@ the `[cli]` section:
   * `api_url`:
     MidoNet API server URL.
 
+  * `disable_ssl_certificate_validation`:
+    Set this to `true` to disable SSL certificate validation.
+
   * `username`:
     Username for connection to the REST API.
 
@@ -158,6 +161,9 @@ Authentication options:
 
   * `--midonet-url` <URL>:
     MidoNet API server URL.
+
+  * `--disable_ssl_certificate_validation` <true|false>:
+    Set this to `true` to disable SSL certificate validation.
 
   * `-u` <USERNAME>, `--user` <USERNAME>:
     The username to use when connecting to the REST API.
@@ -192,6 +198,9 @@ Miscellaneous options:
   * `MIDO_API_URL`:
     The URL for the MidoNet's REST API (see [FILES][] above).
 
+  * `MIDO_DISABLE_SSL_CERTIFICATE_VALIDATION`:
+    Set this to `true` to disable SSL certificate validation (see [FILES][] above).
+
   * `MIDO_USER`:
     REST API user name (see [FILES][] above).
 
@@ -207,6 +216,7 @@ This is an example configuration file:
 
   `[cli]`<br>
   `api_url`=<http://localhost:8181/midonet-api><br>
+  `disable_ssl_certificate_validation`=true<br>
   `username`=admin<br>
   `password`=admin_pass<br>
   `project_id`=midonet_provider<br>

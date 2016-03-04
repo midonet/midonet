@@ -52,7 +52,7 @@ def from_json(content):
     return content
 
 
-def do_request(uri, method, body=None, query=None, headers=None):
+def do_request(uri, method, body=None, query=None, headers=None, disable_ssl_certificate_validation=False):
     """Process a http rest request with input and output json strings.
 
     Sends json string serialized from body to uri with verb method and returns
@@ -62,6 +62,7 @@ def do_request(uri, method, body=None, query=None, headers=None):
     LOG.debug("do_request: uri=%s, method=%s" % (uri, method))
     LOG.debug("do_request: body=%s" % body)
     LOG.debug("do_request: headers=%s" % headers)
+    LOG.debug("do_request: disable_ssl_certificate_validation=%s" % disable_ssl_certificate_validation)
 
     if query:
         uri += '?' + urllib.urlencode(query)
@@ -69,8 +70,9 @@ def do_request(uri, method, body=None, query=None, headers=None):
     headers = headers or dict()
 
     try:
-        response, content = httplib2.Http().request(uri, method, data,
-                                                    headers=headers)
+        response, content = httplib2.Http(
+            disable_ssl_certificate_validation=disable_ssl_certificate_validation)\
+            .request(uri, method, data, headers=headers)
     except socket.error as serr:
         if serr[1] == "ECONNREFUSED":
             raise exc.MidoApiConnectionRefused()

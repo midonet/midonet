@@ -53,6 +53,7 @@ class UserException(Exception):
 class Session(object):
     def __init__(self):
         self.api_url = None
+        self.disable_ssl_certificate_validation = False
         self.username = None
         self.password = None
         self.project_id = None
@@ -87,6 +88,8 @@ class Session(object):
             return
         if cfg.has_option('cli', 'api_url'):
             self.api_url = cfg.get('cli', 'api_url')
+        if cfg.has_option('cli', 'disable_ssl_certificate_validation'):
+            self.disable_ssl_certificate_validation = cfg.get('cli', 'disable_ssl_certificate_validation')
         if cfg.has_option('cli', 'username'):
             self.username = cfg.get('cli', 'username')
         if cfg.has_option('cli', 'password'):
@@ -102,6 +105,8 @@ class Session(object):
         import os
         if os.environ.has_key('MIDO_API_URL'):
             self.api_url = os.environ['MIDO_API_URL']
+        if os.environ.has_key('MIDO_DISABLE_SSL_CERTIFICATE_VALIDATION'):
+            self.disable_ssl_certificate_validation = os.environ['MIDO_DISABLE_SSL_CERTIFICATE_VALIDATION']
         if os.environ.has_key('MIDO_USER'):
             self.username = os.environ['MIDO_USER']
         if os.environ.has_key('MIDO_PASSWORD'):
@@ -119,6 +124,8 @@ class Session(object):
                             help="Skip authentication")
         parser.add_option("--midonet-url", dest="api_url",
                             help="Midonet API server URL", metavar="URL")
+        parser.add_option("--disable_ssl_certificate_validation", dest="disable_ssl_certificate_validation",
+                            help="Disable SSL certificate validation", metavar="DISABLE_SSL_CERTIFICATE_VALIDATION")
         parser.add_option("-u", "--user", dest="username",
                             help="Username", metavar="USERNAME")
         parser.add_option("-i", "--project-id", dest="project_id",
@@ -146,6 +153,8 @@ class Session(object):
             self.password = getpass()
         if options.api_url is not None:
             self.api_url = options.api_url
+        if options.disable_ssl_certificate_validation is not None:
+            self.disable_ssl_certificate_validation = options.disable_ssl_certificate_validation
         if options.username is not None:
             self.username = options.username
         if options.project_id is not None:
@@ -169,6 +178,8 @@ class Session(object):
 
         if self.api_url is None:
             raise Exception("Missing: Midonet API URL")
+        if self.disable_ssl_certificate_validation is not None:
+            self.disable_ssl_certificate_validation = str(self.disable_ssl_certificate_validation).lower() == "true"
         if self.do_auth and self.username is None:
             raise Exception("Missing: username")
         if self.do_auth and self.project_id is None:
@@ -179,7 +190,8 @@ class Session(object):
 
     def connect(self):
         auth = None
-        return MidonetApi(self.api_url, self.username, self.password, self.project_id)
+        return MidonetApi(self.api_url, self.username, self.password, self.project_id,
+                          self.disable_ssl_certificate_validation)
 
 
 

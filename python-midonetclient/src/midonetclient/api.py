@@ -33,12 +33,12 @@ def _net_addr(addr):
 
 class MidonetApi(object):
 
-    def __init__(self, base_uri, username, password, project_id=None):
+    def __init__(self, base_uri, username, password, project_id=None, disable_ssl_certificate_validation=False):
         self.base_uri = base_uri.rstrip('/')
         self.project_id = project_id
         self.app = None
         self.auth = auth_lib.Auth(self.base_uri + '/login', username, password,
-                                  project_id)
+                                  project_id, disable_ssl_certificate_validation)
 
     def get_tenants(self, query={}):
         self._ensure_application()
