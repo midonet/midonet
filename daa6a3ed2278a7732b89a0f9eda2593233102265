@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_2bd8d4ee",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_48aa761a",
+      "range": {
+        "startLine": 83,
+        "startChar": 55,
+        "endLine": 83,
+        "endChar": 67
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_358677ba",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 15
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-03T14:16:12Z",
       "side": 1,
       "message": "Shouldn\u0027t this be the root path from configuration?",
+      "range": {
+        "startLine": 90,
+        "startChar": 31,
+        "endLine": 90,
+        "endChar": 39
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_8bee288a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "Done. Used the curator instance to know the root path.",
+      "parentUuid": "5a72e520_358677ba",
       "range": {
         "startLine": 90,
         "startChar": 31,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_abf3e471",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_5593f3f9",
+      "range": {
+        "startLine": 95,
+        "startChar": 36,
+        "endLine": 95,
+        "endChar": 46
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_a8bbeac2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 15
@@ -82,6 +154,30 @@
       "writtenOn": "2016-03-03T16:21:01Z",
       "side": 1,
       "message": "Maybe this could default to None for the usual case where only server and port are required...",
+      "range": {
+        "startLine": 138,
+        "startChar": 49,
+        "endLine": 138,
+        "endChar": 64
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_2bfff435",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_a8bbeac2",
       "range": {
         "startLine": 138,
         "startChar": 49,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_2b8614ba",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "The discovery service is in the nsdb package (as both cluster and agents need to access it). So the cluster package (in midonet-cluster module) is not accessible from nsdb. I added a constant on the companion object.\n\nNot sure what do you mean by add to the configuration. Doesn\u0027t seem to be anything in particular to configure here.",
+      "parentUuid": "5a72e520_9563ab19",
+      "range": {
+        "startLine": 160,
+        "startChar": 53,
+        "endLine": 160,
+        "endChar": 72
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_f5a4df58",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 15
@@ -128,6 +248,30 @@
       "writtenOn": "2016-03-03T14:16:12Z",
       "side": 1,
       "message": "For what is this?",
+      "range": {
+        "startLine": 195,
+        "startChar": 12,
+        "endLine": 195,
+        "endChar": 21
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_eb495c8c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "5a72e520_f5a4df58",
       "range": {
         "startLine": 195,
         "startChar": 12,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_0b5eb845",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_b5c187e6",
+      "range": {
+        "startLine": 204,
+        "startChar": 8,
+        "endLine": 204,
+        "endChar": 11
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_d5b6038a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 15
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_4b2fd0a1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "getInstances returns an iterable, that\u0027s why the toList. Should I change it to toSeq? leave it as iterable?",
+      "parentUuid": "5a72e520_d5b6038a",
+      "range": {
+        "startLine": 205,
+        "startChar": 34,
+        "endLine": 205,
+        "endChar": 41
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_4b1d1066",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 15
@@ -197,6 +389,30 @@
       "writtenOn": "2016-03-03T16:21:01Z",
       "side": 1,
       "message": "This should probably be a \u0027private val\u0027 (see comment below)",
+      "range": {
+        "startLine": 226,
+        "startChar": 8,
+        "endLine": 226,
+        "endChar": 23
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_eb179c4f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_4b1d1066",
       "range": {
         "startLine": 226,
         "startChar": 8,
@@ -244,6 +460,30 @@
       "side": 1,
       "message": "good point. in the cases when a service needs to re-register, it could create a new instance of the MidonetServiceInstance... This would also allow to convert the serviceInstance member into a \u0027val\u0027",
       "parentUuid": "5a72e520_35ad9732",
+      "range": {
+        "startLine": 232,
+        "startChar": 4,
+        "endLine": 232,
+        "endChar": 22
+      },
+      "revId": "daa6a3ed2278a7732b89a0f9eda2593233102265",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_cb12e061",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-04T14:26:08Z",
+      "side": 1,
+      "message": "I just left the API for this object as it was before. Changed.",
+      "parentUuid": "5a72e520_0b13185d",
       "range": {
         "startLine": 232,
         "startChar": 4,
