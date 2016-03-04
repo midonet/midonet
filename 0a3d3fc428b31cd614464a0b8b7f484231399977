@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_61774d03",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-04T08:03:37Z",
+      "side": 1,
+      "message": "are these necessary?",
+      "revId": "0a3d3fc428b31cd614464a0b8b7f484231399977",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_21547553",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-04T08:03:37Z",
+      "side": 1,
+      "message": "this function is not called when port-sec gets disabled.",
+      "revId": "0a3d3fc428b31cd614464a0b8b7f484231399977",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_c1cc8138",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-04T08:03:37Z",
+      "side": 1,
+      "message": "\"oldsSgs diff newSgs\" might be simpler",
+      "revId": "0a3d3fc428b31cd614464a0b8b7f484231399977",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
