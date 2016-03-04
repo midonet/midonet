@@ -100,7 +100,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .setFipPortId(fip.getPortId)
-            .setCondition(Condition.newBuilder
+            .setCondition(anyFragCondition
                               .addOutPortIds(routerGwPortId)
                               .setNwSrcIp(IPSubnetUtil.fromAddr(
                                               fip.getFixedIpAddress)))
@@ -112,7 +112,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .setFipPortId(fip.getPortId)
-            .setCondition(Condition.newBuilder
+            .setCondition(anyFragCondition
                               .addInPortIds(routerGwPortId)
                               .setNwDstIp(IPSubnetUtil.fromAddr(
                                               fip.getFloatingIpAddress)))
