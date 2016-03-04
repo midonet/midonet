@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_f7877f0d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T14:09:15Z",
+      "side": 1,
+      "message": "bound_ip",
+      "range": {
+        "startLine": 61,
+        "startChar": 50,
+        "endLine": 61,
+        "endChar": 57
+      },
+      "revId": "2c4e28ef1536c1aa74bfa80324d8ae00973cc6d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_177c1b20",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T14:09:15Z",
+      "side": 1,
+      "message": "indentation",
+      "range": {
+        "startLine": 95,
+        "startChar": 46,
+        "endLine": 96,
+        "endChar": 72
+      },
+      "revId": "2c4e28ef1536c1aa74bfa80324d8ae00973cc6d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_37791730",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T14:09:15Z",
+      "side": 1,
+      "message": "same comment as in previous patch set:\nShouldn\u0027t this go to the description of the MidonetDiscoveryClient class?",
+      "range": {
+        "startLine": 112,
+        "startChar": 8,
+        "endLine": 116,
+        "endChar": 46
+      },
+      "revId": "2c4e28ef1536c1aa74bfa80324d8ae00973cc6d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_5776933f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T14:09:15Z",
+      "side": 1,
+      "message": "same comment as in previous patch set:\ns\"Changed state for: $serviceName service discovery: $newState\"",
+      "range": {
+        "startLine": 178,
+        "startChar": 22,
+        "endLine": 178,
+        "endChar": 63
+      },
+      "revId": "2c4e28ef1536c1aa74bfa80324d8ae00973cc6d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_77738f4d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T14:09:15Z",
+      "side": 1,
+      "message": "ZooKeeper",
+      "range": {
+        "startLine": 202,
+        "startChar": 50,
+        "endLine": 202,
+        "endChar": 52
+      },
+      "revId": "2c4e28ef1536c1aa74bfa80324d8ae00973cc6d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
