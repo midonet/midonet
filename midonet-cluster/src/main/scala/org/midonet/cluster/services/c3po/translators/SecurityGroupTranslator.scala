@@ -71,9 +71,9 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
         val (neutronIngressRules, neutronEgressRules) =
             neutronRules.partition(_.getDirection == RuleDirection.INGRESS)
 
-        val outboundRules = neutronIngressRules.map(
+        val outboundRules = neutronIngressRules.flatMap(
             SecurityGroupRuleManager.translate)
-        val inboundRules = neutronEgressRules.map(
+        val inboundRules = neutronEgressRules.flatMap(
             SecurityGroupRuleManager.translate)
 
         val inboundChainId = inChainId(sg.getId)
