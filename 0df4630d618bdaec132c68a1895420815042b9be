@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_77bb8f0e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/HostCollector.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T13:50:14Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 32,
+        "startChar": 27,
+        "endLine": 32,
+        "endChar": 28
+      },
+      "revId": "0df4630d618bdaec132c68a1895420815042b9be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_17725b7c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/ObjectRecycler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T13:50:14Z",
+      "side": 1,
+      "message": "and corresponding state nodes for the namespaces of the current hosts?",
+      "range": {
+        "startLine": 30,
+        "startChar": 30,
+        "endLine": 31,
+        "endChar": 74
+      },
+      "revId": "0df4630d618bdaec132c68a1895420815042b9be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_97056bc4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclableValidator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T13:50:14Z",
+      "side": 1,
+      "message": "It\u0027s an obfuscation competition? ;-)",
+      "range": {
+        "startLine": 26,
+        "startChar": 66,
+        "endLine": 28,
+        "endChar": 53
+      },
+      "revId": "0df4630d618bdaec132c68a1895420815042b9be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_7700efaa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T13:50:14Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 215,
+        "startChar": 62,
+        "endLine": 216,
+        "endChar": 40
+      },
+      "revId": "0df4630d618bdaec132c68a1895420815042b9be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_972c8b4c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T13:50:14Z",
+      "side": 1,
+      "message": "missing dot or perhaps list the steps as bullet points below?",
+      "revId": "0df4630d618bdaec132c68a1895420815042b9be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_17e7bb13",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T13:50:14Z",
+      "side": 1,
+      "message": "next",
+      "range": {
+        "startLine": 305,
+        "startChar": 57,
+        "endLine": 305,
+        "endChar": 61
+      },
+      "revId": "0df4630d618bdaec132c68a1895420815042b9be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_37e4b70c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T13:50:14Z",
+      "side": 1,
+      "message": "reschedule the task here?",
+      "revId": "0df4630d618bdaec132c68a1895420815042b9be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_77ee2fee",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/StateCollector.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T13:50:14Z",
+      "side": 1,
+      "message": "state objects?",
+      "range": {
+        "startLine": 39,
+        "startChar": 39,
+        "endLine": 39,
+        "endChar": 46
+      },
+      "revId": "0df4630d618bdaec132c68a1895420815042b9be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_97bacbdf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/StateCollector.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-04T13:50:14Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 46,
+        "startChar": 38,
+        "endLine": 46,
+        "endChar": 39
+      },
+      "revId": "0df4630d618bdaec132c68a1895420815042b9be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
