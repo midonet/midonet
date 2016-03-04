@@ -2,3 +2,4 @@
 host=review.gerrithub.io
 port=29418
 project=midonet/midonet.git
+defaultbranch=staging/v5.0
