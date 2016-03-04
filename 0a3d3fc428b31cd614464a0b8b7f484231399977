@@ -105,6 +105,52 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_21b0f58a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-04T08:43:35Z",
+      "side": 1,
+      "message": "Nit: maybe this doesn\u0027t need to be wrapped as a scala list",
+      "range": {
+        "startLine": 461,
+        "startChar": 48,
+        "endLine": 461,
+        "endChar": 56
+      },
+      "revId": "0a3d3fc428b31cd614464a0b8b7f484231399977",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_81a7e94e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-04T08:43:35Z",
+      "side": 1,
+      "message": "Is it possible that the IpAddrGroup already contains the IP for a different port?",
+      "range": {
+        "startLine": 467,
+        "startChar": 16,
+        "endLine": 467,
+        "endChar": 54
+      },
+      "revId": "0a3d3fc428b31cd614464a0b8b7f484231399977",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_c1cc8138",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
