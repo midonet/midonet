@@ -1,0 +1,150 @@
+zookeeper1:
+  extends:
+    file: $BASE/zookeeper.yml
+    service: zookeeper
+  hostname: zookeeper1
+  image: sandbox/zookeeper:3.4.5
+  labels:
+      interface: mdts.services.zookeeper.ZookeeperHost
+      type: zookeeper
+  volumes:
+  - /zoo/conf/
+  environment:
+  - ZOO_ID=1
+
+zookeeper2:
+  extends:
+    file: $BASE/zookeeper.yml
+    service: zookeeper
+  image: sandbox/zookeeper:3.4.5
+  hostname: zookeeper2
+  labels:
+      interface: mdts.services.zookeeper.ZookeeperHost
+      type: zookeeper
+  environment:
+  - ZOO_ID=2
+  volumes_from:
+  - zookeeper1
+
+zookeeper3:
+  extends:
+    file: $BASE/zookeeper.yml
+    service: zookeeper
+  image: sandbox/zookeeper:3.4.5
+  hostname: zookeeper3
+  labels:
+      interface: mdts.services.zookeeper.ZookeeperHost
+      type: zookeeper
+  environment:
+  - ZOO_ID=3
+  volumes_from:
+  - zookeeper1
+  links:
+  - zookeeper1:zookeeper1
+  - zookeeper2:zookeeper2
+
+cluster1:
+  extends:
+    file: $BASE/midonet-cluster.yml
+    service: cluster
+  image: sandbox/midonet-cluster:master
+  hostname: cluster1
+  labels:
+      interface: mdts.services.midonet_cluster.MidonetClusterHost
+      type: midonet-cluster
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"
+  - "keystone:keystone"
+
+cassandra1:
+  extends:
+    file: $BASE/cassandra.yml
+    service: cassandra
+  image: sandbox/cassandra:2.0
+  hostname: cassandra1
+  labels:
+      interface: mdts.services.cassandra.CassandraHost
+      type: cassandra
+
+midolman1:
+  extends:
+    file: $BASE/midolman.yml
+    service: midolman
+  image: sandbox/midolman:master
+  hostname: midolman1
+  volumes:
+  - /lib/modules:/lib/modules
+  labels:
+      interface: mdts.services.midonet_agent.MidonetAgentHost
+      type: midolman
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"
+  - "cassandra1:cs1"
+
+midolman2:
+  extends:
+    file: $BASE/midolman.yml
+    service: midolman
+  image: sandbox/midolman:master
+  hostname: midolman2
+  volumes:
+  - /lib/modules:/lib/modules
+  labels:
+      interface: mdts.services.midonet_agent.MidonetAgentHost
+      type: midolman
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"
+  - "cassandra1:cs1"
+
+jmxtrans:
+  image: sandbox/jmxtrans:253
+  hostname: jmxtrans
+  labels:
+    interface: mdts.services.jmxtrans.JmxTransHost
+    type: jmxtrans
+  volumes:
+    - "/tmp/jmxtrans-conf:/var/lib/jmxtrans"
+    - "/tmp/jmxtrans-data:/data"
+  links:
+    - midolman1
+    - midolman2
+    - cluster1
+
+#########################################
+## OpenStack Components                ##
+#########################################
+keystone:
+  extends:
+    file: $BASE/keystone.yml
+    service: keystone
+  image: sandbox/keystone:kilo
+  hostname: keystone
+  labels:
+    interface: mdts.services.keystone.KeystoneHost
+    type: keystone
+
+mariadb:
+  image: mariadb:5.5
+  hostname: mariadb
+  environment:
+  - MYSQL_ROOT_PASSWORD=root
+
+neutron:
+  extends:
+    file: $BASE/neutron.yml
+    service: neutron
+  image: sandbox/neutron:kilo
+  hostname: neutron
+  labels:
+    interface: mdts.services.neutron.NeutronHost
+    type: neutron
+  links:
+  - "keystone:keystone"
+  - "cluster1:midonetapi"
+  - "mariadb:mariadb"
