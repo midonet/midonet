@@ -101,6 +101,7 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         Map<String, Object> matches = new HashMap<>();
         matches.put("type", "ForwardNat");
         matches.put("condition.nwDstIp.address", floatingIpAddr);
+        matches.put("condition.fragmentPolicy", "ANY");
         matches.put("natTargets[0].nwStart", fixedIpAddr);
         matches.put("natTargets[0].nwEnd", fixedIpAddr);
 
@@ -118,6 +119,7 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         Map<String, Object> matches = new HashMap<>();
         matches.put("type", "ForwardNat");
         matches.put("condition.nwSrcIp.address", fixedIpAddr);
+        matches.put("condition.fragmentPolicy", "ANY");
         matches.put("natTargets[0].nwStart", floatingIpAddr);
         matches.put("natTargets[0].nwEnd", floatingIpAddr);
 
