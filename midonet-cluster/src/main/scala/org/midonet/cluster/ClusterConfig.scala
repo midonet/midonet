@@ -17,15 +17,17 @@ package org.midonet.cluster
 
 import java.util.concurrent.TimeUnit
 
-import com.typesafe.config.{ConfigFactory, Config}
-import org.midonet.cluster.services.containers.ContainerService
-import org.midonet.cluster.services.rest_api.Vladimir
-import org.midonet.cluster.services.{ScheduledMinionConfig, MinionConfig}
+import com.typesafe.config.{Config, ConfigFactory}
+
 import org.midonet.cluster.services.c3po.C3POMinion
+import org.midonet.cluster.services.containers.ContainerService
+import org.midonet.cluster.services.flowstate.FlowStateService
 import org.midonet.cluster.services.heartbeat.Heartbeat
+import org.midonet.cluster.services.rest_api.Vladimir
 import org.midonet.cluster.services.topology.TopologyApiService
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.services.{MinionConfig, ScheduledMinionConfig}
+import org.midonet.cluster.storage.{CassandraConfig, MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 
 object ClusterConfig {
@@ -65,6 +67,8 @@ class ClusterConfig(_conf: Config) {
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)
     val translators = new TranslatorsConfig(conf)
+    val flowState = new FlowStateConfig(conf)
+    val cassandra = new CassandraConfig(conf)
 
     def threadPoolSize = conf.getInt(s"$prefix.max_thread_pool_size")
     def threadPoolShutdownTimeoutMs =
@@ -161,4 +165,11 @@ class ContainersConfig(val conf: Config) extends MinionConfig[ContainerService] 
     def schedulerRetryMs = conf.getDuration(s"$Prefix.scheduler_retry", TimeUnit.MILLISECONDS)
     def schedulerMaxRetries = conf.getInt(s"$Prefix.scheduler_max_retries")
     def schedulerBadHostLifetimeMs = conf.getDuration(s"$Prefix.scheduler_bad_host_lifetime", TimeUnit.MILLISECONDS)
+}
+
+class FlowStateConfig(val conf: Config) extends MinionConfig[FlowStateService] {
+    final val Prefix = "cluster.flow_state"
+
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    def port = conf.getInt(s"$Prefix.port")
 }
