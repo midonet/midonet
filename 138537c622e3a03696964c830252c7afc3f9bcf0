@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_cb2c97ae",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-07T09:14:44Z",
+      "side": 1,
+      "message": "Is it necessary to fetch this? It looks like we keep default_gateway in sync with the NeutronSubnet\u0027s gateway_ip.",
+      "range": {
+        "startLine": 365,
+        "startChar": 8,
+        "endLine": 365,
+        "endChar": 76
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_0b1eaf70",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-07T09:14:44Z",
+      "side": 1,
+      "message": "If the DHCP has no server_address, then this returns false, and we create a route with no next hop gateway. That\u0027s not what we want, is it?",
+      "range": {
+        "startLine": 238,
+        "startChar": 12,
+        "endLine": 238,
+        "endChar": 33
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_8b09bf33",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-07T09:14:44Z",
+      "side": 1,
+      "message": "This isn\u0027t really clear. How about \"revert DHCP\u0027s serverAddress to its gatewayIp when deleting the DhcpPort\"?",
+      "range": {
+        "startLine": 253,
+        "startChar": 15,
+        "endLine": 253,
+        "endChar": 45
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_ab067b1e",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-07T09:14:44Z",
+      "side": 1,
+      "message": "This can be replaced with:\n\n  val nwId \u003d createTenantNetwork(2)\n  val snId \u003d createSubnet(3, nwId, \"10.0.2.0/24\", gatewayIp \u003d gwIp)",
+      "range": {
+        "startLine": 258,
+        "startChar": 0,
+        "endLine": 264,
+        "endChar": 53
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_e6ffcaff",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-07T09:14:44Z",
+      "side": 1,
+      "message": "val p1Id \u003d createDhcpPort(40, nwId, snId, dhcpIp)\n\nTo make this work, you\u0027d need to modify createDhcpPort to have a default value for portId (UUID.randomUUID()) and return portId.\n\nAlso, if this is 40, did you mean to make the first two 20 and 30? Or 10/20/30?",
+      "range": {
+        "startLine": 271,
+        "startChar": 0,
+        "endLine": 274,
+        "endChar": 52
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_260ac221",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-07T09:14:44Z",
+      "side": 1,
+      "message": "Maybe also test the case where the DHCP has no gatewayIp so serverAddress gets cleared, or is that covered in another test?",
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
