@@ -51,7 +51,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
                                        "non-edge routers." in {
         createTenantNetwork(2, tenantNetworkId)
         createSubnet(3, tenantNetworkId, "10.0.0.0/24", subnetId, "10.0.0.1")
-        createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        createDhcpPort(4, tenantNetworkId, subnetId, "10.0.0.2",
+                       portId = dhcpPortId)
         createRouter(5, routerId)
 
         // Creating a router interface Port should result in a port being
@@ -119,7 +120,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
     it should "handle translation for interfaces on edge routers" in {
         createUplinkNetwork(2, uplinkNetworkId)
         createSubnet(3, uplinkNetworkId, "10.0.0.0/24", subnetId)
-        createDhcpPort(4, dhcpPortId, uplinkNetworkId, subnetId, "10.0.0.2")
+        createDhcpPort(4, uplinkNetworkId, subnetId, "10.0.0.2",
+                       portId = dhcpPortId)
         createRouter(5, routerId)
 
         // Creating a router interface Port on the uplink network should do
@@ -150,7 +152,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
     it should "get the router correctly even if not set on the port" in {
         createTenantNetwork(2, tenantNetworkId)
         createSubnet(3, tenantNetworkId, "10.0.0.0/24", subnetId)
-        createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        createDhcpPort(4, tenantNetworkId, subnetId, "10.0.0.2",
+                       portId = dhcpPortId)
         createRouter(5, routerId)
 
         val json = portJson(rifPortId, tenantNetworkId, null,
@@ -169,7 +172,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
     it should "convert VIF port on tenant network to RIF port on create" in {
         createTenantNetwork(10, tenantNetworkId)
         createSubnet(20, tenantNetworkId, "10.0.0.0/24", subnetId)
-        createDhcpPort(30, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        createDhcpPort(30, tenantNetworkId, subnetId, "10.0.0.2",
+                       portId = dhcpPortId)
         createRouter(40, routerId)
         val sgId = createSecurityGroup(50)
 
@@ -258,7 +262,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
               "on create" in {
         createUplinkNetwork(2, tenantNetworkId)
         createSubnet(3, tenantNetworkId, "10.0.0.0/24", subnetId)
-        createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        createDhcpPort(4, tenantNetworkId, subnetId, "10.0.0.2",
+                       portId = dhcpPortId)
         createRouter(5, routerId)
 
         val json = portJson(rifPortId, tenantNetworkId, name = null,
@@ -371,8 +376,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
                                   "10.0.2.1", "01:02:03:04:05:06", subnetId)
         createRouterInterface(50, routerId, rifPortId, subnetId)
 
-        val dhcpPortId = UUID.randomUUID()
-        createDhcpPort(60, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        val dhcpPortId = createDhcpPort(60, tenantNetworkId, subnetId, "10.0.0.2")
         eventually(checkDhcpAndMetadataRoute(rifPortId))
 
         // Now create a router interface with the DHCP's gateway IP.
@@ -393,7 +397,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             storage.exists(classOf[Route], mdRouteId).await() shouldBe false
         }
 
-        createDhcpPort(110, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        createDhcpPort(110, tenantNetworkId, subnetId, "10.0.0.2", dhcpPortId)
         eventually(checkDhcpAndMetadataRoute(rtr2IfPortId))
     }
 
