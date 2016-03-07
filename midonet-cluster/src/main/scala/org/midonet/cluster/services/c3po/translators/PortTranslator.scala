@@ -16,13 +16,15 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import org.midonet.cluster.models.{Commons, Neutron}
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter, VpnService}
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
@@ -360,7 +362,13 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
      * IP address from DHCP (the mac is actually not being used here). */
     private def delDhcpServer(dhcp: Dhcp.Builder, mac: String,
                               nextHopGw: IPAddress): Unit = if (dhcp.isIpv4) {
-        dhcp.clearServerAddress()
+        val subnet = storage.get(classOf[NeutronSubnet], dhcp.getId).await()
+        if (subnet.hasGatewayIp) {
+            dhcp.setServerAddress(subnet.getGatewayIp)
+            dhcp.setDefaultGateway(subnet.getGatewayIp)
+        } else {
+            dhcp.clearServerAddress()
+        }
         val route = dhcp.getOpt121RoutesOrBuilderList.asScala
                         .indexWhere(isMetaDataSvrOpt121Route(_, nextHopGw))
         if (route >= 0) dhcp.removeOpt121Routes(route)

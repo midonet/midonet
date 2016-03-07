@@ -25,6 +25,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Subnet => SubnetType}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
@@ -246,6 +247,42 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         insertDeleteTask(10, PortType, vifPortId)
         eventually{
             arpTable.containsLocal(vifPortIp) shouldBe false
+        }
+    }
+
+    it should "not clear subnet if one exists" in {
+
+        val gwIp = "10.0.2.7"
+        val dhcpIp = "10.0.3.7"
+
+        val nwId = UUID.randomUUID()
+        val nwJson = networkJson(nwId, "tenant", "network1")
+        val snId = UUID.randomUUID()
+        val snJson = subnetJson(id = snId, nwId, cidr = "10.0.2.0/24", gatewayIp = gwIp)
+
+        insertCreateTask(2, NetworkType, nwJson, nwId)
+        insertCreateTask(3, SubnetType, snJson, snId)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            dhcp.getServerAddress.getAddress shouldBe gwIp
+        }
+
+        val p1Id = UUID.randomUUID()
+        val p1Json = portJson(p1Id, nwId, deviceOwner = DeviceOwner.DHCP,
+                              fixedIps = Seq(IPAlloc(dhcpIp, snId)))
+        insertCreateTask(40, PortType, p1Json, p1Id)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            dhcp.getServerAddress.getAddress shouldBe dhcpIp
+        }
+
+        insertDeleteTask(50, PortType, p1Id)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            dhcp.getServerAddress.getAddress shouldBe gwIp
         }
     }
 

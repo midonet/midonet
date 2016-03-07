@@ -235,7 +235,8 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
         // port, then its serverAdress field will be the same as its gatewayIp.
         // Otherwise it will be the address of the DHCP port.
         val dhcp = storage.get(classOf[Dhcp], subnetId).await()
-        if (dhcp.getServerAddress == dhcp.getDefaultGateway) None else {
+        if (dhcp.hasServerAddress &&
+            dhcp.getServerAddress == dhcp.getDefaultGateway) None else {
             Some(Create(newMetaDataServiceRoute(
                 subnetAddr, routerPortId, dhcp.getServerAddress)))
         }
