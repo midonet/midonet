@@ -38,6 +38,7 @@ import org.midonet.util.collection.Bimap
 
 object FlowStateStorage {
     val KEYSPACE_NAME = "MidonetFlowState"
+    val SERVICE_DISCOVERY_NAME = "FlowState"
 
     val CONNTRACK_BY_INGRESS_TABLE = "conntrack_by_ingress_port"
     val CONNTRACK_BY_EGRESS_TABLE = "conntrack_by_egress_port"
