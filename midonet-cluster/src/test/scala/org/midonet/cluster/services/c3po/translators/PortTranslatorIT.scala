@@ -25,6 +25,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Subnet => SubnetType}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
@@ -246,6 +247,55 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         insertDeleteTask(10, PortType, vifPortId)
         eventually{
             arpTable.containsLocal(vifPortIp) shouldBe false
+        }
+    }
+
+    it should "revert DHCP's serverAddress to its gatewayIp when deleting the DhcpPort" in {
+
+        val gwIp = "10.0.2.7"
+        val dhcpIp = "10.0.3.7"
+
+        val nwId = createTenantNetwork(10)
+        val snId = createSubnet(20, nwId, "10.0.2.0/24", gatewayIp = gwIp)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            dhcp.getServerAddress.getAddress shouldBe gwIp
+        }
+
+        val pId = createDhcpPort(30, nwId, snId, dhcpIp)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            dhcp.getServerAddress.getAddress shouldBe dhcpIp
+        }
+
+        insertDeleteTask(40, PortType, pId)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            dhcp.getServerAddress.getAddress shouldBe gwIp
+        }
+    }
+
+    it should "clear DHCP's serverAddress when deleting the DhcpPort" in {
+
+        val dhcpIp = "10.0.3.7"
+
+        val nwId = createTenantNetwork(10)
+        val snId = createSubnet(20, nwId, "10.0.2.0/24")
+        val pId = createDhcpPort(30, nwId, snId, dhcpIp)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            dhcp.getServerAddress.getAddress shouldBe dhcpIp
+        }
+
+        insertDeleteTask(40, PortType, pId)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            dhcp.hasServerAddress shouldBe false
         }
     }
 
