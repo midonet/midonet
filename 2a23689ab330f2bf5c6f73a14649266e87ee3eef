@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5a72e520_66af5ae4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-07T09:54:06Z",
+      "side": 1,
+      "message": "There\u0027s a missing s before the double quote:\ns\"...\"\n\nThis s is to indicate that the variables will be substituted with their actual values.",
+      "range": {
+        "startLine": 185,
+        "startChar": 16,
+        "endLine": 185,
+        "endChar": 17
+      },
+      "revId": "2a23689ab330f2bf5c6f73a14649266e87ee3eef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_b717c7a2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 17
