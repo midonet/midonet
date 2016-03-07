@@ -300,7 +300,9 @@ rpm.doLast {
 mainClassName = "org.midonet.midolman.Midolman"
 
 task runWithSudo(type:Exec, dependsOn: installApp) {
-    commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
+    commandLine 'sudo', '../misc/run-java-with-env.sh'
+    commandLine += "${project.projectDir}/conf/midolman-env.sh"
+    commandLine += '-Djava.library.path=/lib:/usr/lib'
     commandLine += '-cp'
     commandLine += sourceSets.main.runtimeClasspath.collect{ it.toString() }.join(':')
     commandLine += mainClassName
