@@ -115,7 +115,8 @@ public class SecurityGroupZkManager extends BaseZkManager {
         throws StateAccessException, SerializationException {
         UUID jumpChainId = gc.getPropertyUuid(dir);
         ChainConfig jChain = chainZkManager.get(jumpChainId);
-        return new RuleBuilder(chainId).jumpTo(jumpChainId, jChain.name);
+        return new RuleBuilder(chainId).isAnyFragmentState().
+            jumpTo(jumpChainId, jChain.name);
     }
 
     private void putPortChainRules(List<Rule> inRules, List<Rule> outRules,
