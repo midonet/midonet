@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.l4lb
 
+import java.io.File
 import java.util
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
@@ -24,18 +25,21 @@ import scala.concurrent.Future
 
 import akka.actor.{Actor, ActorRef, Props}
 import akka.testkit.TestActorRef
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.commons.io.FileUtils
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
 import org.mockito.Mockito
-import org.mockito.Mockito.{mock, times, verify, spy}
+import org.mockito.Mockito.{mock, spy, times, verify}
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.SpanSugar
 
 import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.models.Commons.LBStatus
+import org.midonet.cluster.models.Topology.{HealthMonitor => protoHM, _}
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
-import org.midonet.cluster.models.Topology.{HealthMonitor => topHM, LoadBalancer, Pool => topPool, Port, Route, Router, Vip => topVip}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
@@ -49,7 +53,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.{MockScheduler, layer3}
-import org.midonet.packets.{MAC, IPv4Addr, IPv4Subnet}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
@@ -66,9 +70,12 @@ class HaproxyTest extends MidolmanSpec
     var lockFactory: ZookeeperLockFactory = _
     var poolConfig: PoolConfig = _
     var checkHealthReceived = 0
-
+    var haProxy: TestableHaproxy = _
     val vipIp1 = "10.0.0.1"
     val vipIp2 = "10.0.0.2"
+
+    protected val backendCfg = new MidonetBackendConfig(
+        ConfigFactory.parseString(""" zookeeper.root_key = '/' """))
 
     def makeRouter(): UUID = {
         val rid = UUID.randomUUID()
@@ -108,6 +115,16 @@ class HaproxyTest extends MidolmanSpec
         vipId
     }
 
+    def makePoolMember(poolId: UUID): UUID = {
+        val member =
+            createPoolMember(UUID.randomUUID(), adminStateUp = Some(true),
+                             Some(poolId), Some(LBStatus.ACTIVE),
+                             Some(IPv4Addr.fromString(vipIp1)),
+                             protocolPort = Some(7777))
+        backend.store.create(member)
+        member.getId.asJava
+    }
+
     def makePool(hmId: UUID, lbId: UUID, vipId: UUID): UUID = {
         val poolId = UUID.randomUUID()
         val p = createPool(id = poolId,
@@ -127,23 +144,49 @@ class HaproxyTest extends MidolmanSpec
         backend.store.get(classOf[Port], portId).value.get.get
     }
 
-    protected val backendCfg = new MidonetBackendConfig(
-        ConfigFactory.parseString(""" zookeeper.root_key = '/' """))
-
     def getRoute(routeId: UUID): Route = {
         backend.store.get(classOf[Route], routeId).value.get.get
     }
 
-    def getPool(poolId: UUID): topPool = {
-        backend.store.get(classOf[topPool], poolId).value.get.get
+    def getPool(poolId: UUID): Pool = {
+        backend.store.get(classOf[Pool], poolId).value.get.get
     }
 
     def getLoadBalancer(lbId: UUID): LoadBalancer = {
         backend.store.get(classOf[LoadBalancer], lbId).value.get.get
     }
 
-    def getVip(vipId: UUID): topVip = {
-        backend.store.get(classOf[topVip], vipId).value.get.get
+    def getVip(vipId: UUID): Vip = {
+        backend.store.get(classOf[Vip], vipId).value.get.get
+    }
+
+    class TestableHaproxy(config: PoolConfig, hm: ActorRef, routerId: UUID,
+                          store: Storage, hostId: UUID,
+                          lockFactory: ZookeeperLockFactory,
+                          seqDispenser: SequenceDispenser)
+        extends HaproxyHealthMonitor(config, hm, routerId, store, hostId,
+                                     lockFactory, seqDispenser) {
+
+        var shouldWriteConf = false
+
+        override def writeConf(config: PoolConfig): Unit = {
+            if (shouldWriteConf)
+                super.writeConf(config)
+        }
+
+        override def receive = ({
+            case HaproxyHealthMonitor.CheckHealth =>
+                checkHealthReceived += 1
+        }: Actor.Receive) orElse super.receive
+
+        override def parseResponse(resp: String): (Set[UUID], Set[UUID]) = {
+            super.parseResponse(resp)
+        }
+
+        override def setMembersStatus(activeMembers: Set[UUID],
+                                      inactiveMembers: Set[UUID]): Unit = {
+            super.setMembersStatus(activeMembers, inactiveMembers)
+        }
     }
 
     class TestableHealthMonitor extends HMSystem(conf, backend, lockFactory,
@@ -167,20 +210,26 @@ class HaproxyTest extends MidolmanSpec
                                               routerId: UUID) = {
             poolConfig = config
             context.actorOf(
-                Props(
-                    new HaproxyHealthMonitor(config, self, routerId, store,
-                                             hostId, lockFactory,
-                                             seqDispenser) {
-                        override def writeConf(config: PoolConfig): Unit = {}
-
-                        override def receive = ({
-                            case HaproxyHealthMonitor.CheckHealth =>
-                                checkHealthReceived += 1
-                        }: Actor.Receive) orElse super.receive
-                    }
-                ).withDispatcher(context.props.dispatcher),
+                Props({
+                    haProxy = new TestableHaproxy(config, self, routerId,
+                                                  store, hostId, lockFactory,
+                                                  seqDispenser)
+                    haProxy
+                }).withDispatcher(context.props.dispatcher),
                 config.id.toString)
         }
+    }
+
+    override def fillConfig(conf: Config): Config = {
+        val config = super.fillConfig(conf)
+        val defaults =
+            s"""
+               |agent.haproxy_health_monitor.haproxy_file_loc =
+               | "${FileUtils.getTempDirectoryPath}/"
+               | agent.haproxy_health_monitor.health_monitor_enable = "false"
+            """.stripMargin
+
+        config.withFallback(ConfigFactory.parseString(defaults))
     }
 
     override def beforeTest(): Unit = {
@@ -195,6 +244,7 @@ class HaproxyTest extends MidolmanSpec
                                    org.mockito.Matchers.anyObject()))
                .thenReturn(true)
         HMSystem.ipCommand = mock(classOf[IP])
+
         hmSystem = TestActorRef(Props(new TestableHealthMonitor()))(actorSystem)
     }
 
@@ -211,15 +261,13 @@ class HaproxyTest extends MidolmanSpec
                                         " type veth peer name " + ns)
         verify(HMSystem.ipCommand).link("set " + dp + " up")
         verify(HMSystem.ipCommand).link("set " + ns + " netns " + hmName)
-        verify(HMSystem.ipCommand).execIn(hmName, "ip link set "
-            + ns + " address " + HaproxyHealthMonitor.NameSpaceMAC)
         verify(HMSystem.ipCommand).execIn(hmName, "ip link set " +
-                                                  ns + " up")
+            ns + " address " + HaproxyHealthMonitor.NameSpaceMAC)
+        verify(HMSystem.ipCommand).execIn(hmName, "ip link set " + ns + " up")
         verify(HMSystem.ipCommand).execIn(hmName, "ip address add " +
             HaproxyHealthMonitor.NameSpaceIp + "/30 dev " + ns)
         verify(HMSystem.ipCommand).execIn(hmName, "ip link set dev lo up")
-        verify(HMSystem.ipCommand).execIn(hmName,
-            "route add default gateway " +
+        verify(HMSystem.ipCommand).execIn(hmName, "route add default gateway " +
             HaproxyHealthMonitor.RouterIp + " " + ns)
     }
 
@@ -250,9 +298,9 @@ class HaproxyTest extends MidolmanSpec
         checkCreateNameSpace(hmName)
 
         val port = topoRouter.getPortIdsList.asScala
-                      .map(id => getPort(id.asJava))
-                      .filter(p => p.getInterfaceName == hmName + "_dp")
-                      .last
+            .map(id => getPort(id.asJava))
+            .filter(p => p.getInterfaceName == hmName + "_dp")
+            .last
         val portId = port.getId.asJava
         port.getRouteIdsCount shouldBe 1
 
@@ -272,7 +320,7 @@ class HaproxyTest extends MidolmanSpec
             IPSubnetUtil.univSubnet4.asJava.asInstanceOf[IPv4Subnet],
             IPSubnetUtil.fromAddr(vipIp).asJava.asInstanceOf[IPv4Subnet],
             NextHop.PORT, portId, HaproxyHealthMonitor.NameSpaceIp,
-            100 /* weight */, null /* routerId */)
+            100 /* weight */ , null /* routerId */)
         simRoute shouldBeDeviceOf route
 
         checkIpTables(hmName, "append", vipIp)
@@ -280,11 +328,12 @@ class HaproxyTest extends MidolmanSpec
     }
 
     private def checkHaproxyStopped(hmName: String, poolId: UUID, routerId: UUID,
-                                    routerPortCount: Int = 0)
+                                    ip: String, routerPortCount: Int = 0)
     : Unit = {
         val router = getRouter(routerId)
         router.getPortIdsCount shouldBe routerPortCount
         verify(HMSystem.ipCommand).namespaceExist(hmName)
+        checkIpTables(hmName, "delete", ip)
         getPool(poolId).getMappingStatus shouldBe INACTIVE
     }
 
@@ -361,8 +410,8 @@ class HaproxyTest extends MidolmanSpec
             When("We modify the load-balancer attached to the router")
             val routerId2 = makeRouter()
             val lb = getLoadBalancer(lbId).toBuilder
-                                          .setRouterId(routerId2.asProto)
-                                          .build()
+                .setRouterId(routerId2.asProto)
+                .build()
             backend.store.update(lb)
 
             eventually {
@@ -420,8 +469,6 @@ class HaproxyTest extends MidolmanSpec
                 checkHaproxyStarted(hmName, vipIp1, poolId, routerId)
                 checkHealthReceived should be >= 1
             }
-
-
         }
     }
 
@@ -448,10 +495,10 @@ class HaproxyTest extends MidolmanSpec
             eventually { checkHaproxyStarted(hmName, vipIp1, poolId, routerId) }
 
             When("We delete the health monitor")
-            backend.store.delete(classOf[topHM], hmId)
+            backend.store.delete(classOf[protoHM], hmId)
 
             Then("Eventually the ha proxy is stopped")
-            eventually { checkHaproxyStopped(hmName, poolId, routerId) }
+            eventually { checkHaproxyStopped(hmName, poolId, routerId, vipIp1) }
         }
 
         scenario("Two load-balancers on two routers") {
@@ -494,19 +541,19 @@ class HaproxyTest extends MidolmanSpec
             eventually { checkHaproxyStarted(hmName2, vipIp2, poolId2, routerId2) }
 
             When("We delete the 1st health monitor")
-            backend.store.delete(classOf[topHM], hmId1)
+            backend.store.delete(classOf[protoHM], hmId1)
 
             Then("Eventually the 1st HM is stopped and the 2nd is still running")
             eventually {
-                checkHaproxyStopped(hmName1, poolId1, routerId1)
+                checkHaproxyStopped(hmName1, poolId1, routerId1, vipIp1)
                 checkHaproxyStarted(hmName2, vipIp2, poolId2, routerId2)
             }
 
             When("We delete the 2nd health monitor")
-            backend.store.delete(classOf[topHM], hmId2)
+            backend.store.delete(classOf[protoHM], hmId2)
 
             Then("Eventually the 2nd HA proxy is stopped")
-            eventually { checkHaproxyStopped(hmName2, poolId2, routerId2) }
+            eventually { checkHaproxyStopped(hmName2, poolId2, routerId2, vipIp2) }
         }
 
         scenario("Two load-balancers on the same router") {
@@ -540,27 +587,30 @@ class HaproxyTest extends MidolmanSpec
                                              routerLbCount = 2) }
 
             When("We delete the 1st health monitor")
-            backend.store.delete(classOf[topHM], hmId1)
+            backend.store.delete(classOf[protoHM], hmId1)
 
             Then("Eventually the 1st HA proxy is stopped and the 2nd one " +
                  "is still running")
             eventually {
-                checkHaproxyStopped(hmName1, poolId1, routerId,
+                checkHaproxyStopped(hmName1, poolId1, routerId, vipIp1,
                                     routerPortCount = 1)
                 checkHaproxyStarted(hmName2, vipIp2, poolId2, routerId)
             }
 
             When("We delete the 2nd health monitor")
-            backend.store.delete(classOf[topHM], hmId2)
+            backend.store.delete(classOf[protoHM], hmId2)
 
             Then("Eventually the 2nd HA proxy is stopped")
-            eventually { checkHaproxyStopped(hmName2, poolId2, routerId) }
+            eventually { checkHaproxyStopped(hmName2, poolId2, routerId, vipIp2) }
         }
     }
 
     private def ipMockWithSetup(): IP = {
         val ip = spy(new IP())
         Mockito.doReturn(0).when(ip).exec(org.mockito.Matchers.anyString())
+        Mockito.doReturn(false)
+               .when(ip)
+               .namespaceExist(org.mockito.Matchers.anyString())
         Mockito.doReturn(0)
                .when(ip)
                .execNoErrors(org.mockito.Matchers.anyString())
@@ -568,6 +618,102 @@ class HaproxyTest extends MidolmanSpec
                .when(ip)
                .execGetOutput(org.mockito.Matchers.anyString())
         ip
+    }
+
+    feature("Public methods") {
+        scenario("parsing ha-proxy responses/makeChannel/writeConfig") {
+            Given("One router")
+            val routerId = makeRouter()
+
+            When("When we make a health monitor for the router")
+            val lbId = makeLB(routerId)
+            val hmId = makeHM(2, 2, 2)
+            val vipId = makeVip(80, vipIp1)
+            val poolId = makePool(hmId, lbId, vipId)
+            val memberId = makePoolMember(poolId)
+            val hmName = poolId.toString.substring(0, 8) + "_hm"
+
+            Then("Eventually an HA proxy should be started")
+            eventually { haProxy should not be null }
+
+            When("Parsing an ha proxy response with 1 up and 1 down node")
+            val backendId1 = UUID.randomUUID()
+            val backendId2 = UUID.randomUUID()
+            val name1 = UUID.randomUUID()
+            val name2 = UUID.randomUUID()
+            var response =
+                s"""
+                   | $backendId1,$name1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                   | $backendId2,$name2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,DOWN
+                """.stripMargin
+
+            Then("The ha proxy responds correctly")
+            haProxy.parseResponse(response) shouldBe (Set(name1), Set(name2))
+
+            When("Parsing an ha proxy response with backends, frontends, and" +
+                 "field names")
+            val backendStr = HaproxyHealthMonitor.Backend
+            val frontend = HaproxyHealthMonitor.Frontend
+            val fieldName = HaproxyHealthMonitor.FieldName
+            response =
+                s"""
+                   | ${UUID.randomUUID()},$backendStr,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                   | ${UUID.randomUUID()},$frontend,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                   | ${UUID.randomUUID()},$fieldName,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                   | $backendId1,$name1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                   | $backendId2,$name2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,DOWN
+                """.stripMargin
+
+            Then("The ha proxy ignores backends, frontends, and fields")
+            haProxy.parseResponse(response) shouldBe (Set(name1), Set(name2))
+
+            val backendId3 = UUID.randomUUID()
+            val backendId4 = UUID.randomUUID()
+            val name3 = UUID.randomUUID()
+            val name4 = UUID.randomUUID()
+
+            When("Parsing an ha proxy response with incorrectly formatted lines")
+            response =
+               s"""
+                  | $backendId1,$name1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                  | $backendId2,$name2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,UP
+                  | $backendId3,$name3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,TOTO
+                  | $backendId4,$name4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,DOWN
+               """.stripMargin
+
+            Then("The ha proxy incorrectly formatted lines")
+            haProxy.parseResponse(response) shouldBe (Set(name1, name2),
+                Set.empty)
+
+            When("Making a unix domain channel")
+            Then("No exceptions are raised")
+            haProxy.makeChannel()
+
+            When("Writing the pool configuration to a file")
+            haProxy.shouldWriteConf = true
+            haProxy.writeConf(poolConfig)
+            val tmpPath = FileUtils.getTempDirectoryPath
+            val file = new File(tmpPath + "/" + poolId.toString + "/" +
+                                PoolConfig.CONF)
+            file.exists() shouldBe true
+            file.delete()
+
+            When("Setting member status to inactive")
+            haProxy.setMembersStatus(Set.empty, Set(memberId))
+
+            Then("The member should be inactive")
+            var m = backend.store.get(classOf[PoolMember],
+                                      memberId).value.get.get
+            m.getStatus shouldBe LBStatus.INACTIVE
+
+            When("Setting member status to active")
+            haProxy.setMembersStatus(Set(memberId), Set.empty)
+
+            Then("The member should be active")
+            m = backend.store.get(classOf[PoolMember],
+                                  memberId).value.get.get
+            m.getStatus shouldBe LBStatus.ACTIVE
+        }
     }
 
     feature("IP class") {
@@ -600,36 +746,37 @@ class HaproxyTest extends MidolmanSpec
             ip.deleteNS(namespace)
             verify(ip).exec(s"ip netns del $namespace")
 
-            ip.namespaceExist(namespace)
-            verify(ip).execGetOutput(s"ip netns list")
-
             ip = ipMockWithSetup()
 
             ip.ensureNamespace(namespace)
             verify(ip, times(1)).exec(s"ip netns add $namespace")
 
-            val namespaces = new util.LinkedList[String]()
-            namespaces.add(namespace)
-            Mockito.doReturn(namespaces).when(ip)
-                   .execGetOutput(org.mockito.Matchers.anyString())
+            Mockito.doReturn(true)
+                   .when(ip)
+                   .namespaceExist(org.mockito.Matchers.anyString())
             ip.ensureNamespace(namespace)
+            // ip.addNs is not called a 2nd time.
             verify(ip, times(1)).exec(s"ip netns add $namespace")
 
             val interface = "eth0"
-            ip.ensureNoInterface(interface) shouldBe
+            ip.ensureNoInterface(interface) shouldBe 0
             verify(ip).exec(s"ip link delete $interface")
 
-            Mockito.doReturn(-1).when(ip)
+            Mockito.doReturn(-1)
+                   .when(ip)
                    .execNoErrors(org.mockito.Matchers.anyString())
             ip.ensureNoInterface(interface)
             verify(ip).exec(s"ip link delete $interface")
 
-            ip.interfaceExistsInNs(namespace, interface) shouldBe true
-            verify(ip).exec(s"ip netns exec $namespace ip link show $interface")
-
-            Mockito.doReturn(new util.LinkedList[String]()).when(ip)
-                   .execGetOutput(org.mockito.Matchers.anyString())
+            Mockito.doReturn(false)
+                   .when(ip)
+                   .namespaceExist(org.mockito.Matchers.anyString())
             ip.interfaceExistsInNs(namespace, interface) shouldBe false
+
+            Mockito.doReturn(true)
+                   .when(ip)
+                   .namespaceExist(org.mockito.Matchers.anyString())
+            ip.interfaceExistsInNs(namespace, interface) shouldBe true
             verify(ip).exec(s"ip netns exec $namespace ip link show $interface")
 
             val mirrorInterface = "mirror"
@@ -655,6 +802,6 @@ class HaproxyTest extends MidolmanSpec
             ip.configureIp(interface, addr.toString, namespace)
             verify(ip).exec(s"ip netns exec $namespace ip addr add $addr dev " +
                             s"$interface")
-        }
+         }
     }
 }

@@ -257,7 +257,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     /**
       * Sets the health status of active and inactive pool members.
       */
-    private def setMembersStatus(activeMemberIds: Set[UUID], inactiveMemberIds: Set[UUID]) = {
+    protected def setMembersStatus(activeMemberIds: Set[UUID], inactiveMemberIds: Set[UUID]) = {
         val ops = new mutable.MutableList[PersistenceOp]()
         HealthMonitor.zkLock(lockFactory) {
             val upMembers = store.getAll(classOf[PoolMember], activeMemberIds.toSeq).await()
