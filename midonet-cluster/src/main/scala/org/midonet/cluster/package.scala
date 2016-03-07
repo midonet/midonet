@@ -41,6 +41,9 @@ package object cluster {
     def containerLog(containerId: UUID): String =
         s"org.midonet.cluster.services.containers.container-$containerId"
 
+    final val flowStateLog =
+        "org.midonet.cluster.service.flow-state"
+
     final val heartbeatLog =
         "org.midonet.cluster.services.heartbeat"
 
