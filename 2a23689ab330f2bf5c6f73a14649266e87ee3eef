@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_a6907296",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-07T09:50:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_b717c7a2",
+      "range": {
+        "startLine": 236,
+        "startChar": 4,
+        "endLine": 236,
+        "endChar": 7
+      },
+      "revId": "2a23689ab330f2bf5c6f73a14649266e87ee3eef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_f7113fad",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 17
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-04T15:01:28Z",
       "side": 1,
       "message": "private val?",
+      "range": {
+        "startLine": 246,
+        "startChar": 4,
+        "endLine": 246,
+        "endChar": 7
+      },
+      "revId": "2a23689ab330f2bf5c6f73a14649266e87ee3eef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_c68d6e7d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-07T09:50:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_f7113fad",
       "range": {
         "startLine": 246,
         "startChar": 4,
