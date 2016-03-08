@@ -58,11 +58,13 @@ FIREWALLS = "application/vnd.org.midonet.neutron.Firewall-v1+json"
 
 # VPNaaS extension
 VPN_SERVICE = "application/vnd.org.midonet.neutron.VPNService-v1+json"
-IPSEC_SITE_CONN = "application/vnd.org.midonet.neutron.IpsecSiteConnection-v1+json"
+IPSEC_SITE_CONN = ("application/vnd.org.midonet.neutron"
+                   ".IpsecSiteConnection-v1+json")
 
 # Gateway Device extension
 GATEWAY_DEVICE = "application/vnd.org.midonet.neutron.GatewayDevice-v1+json"
 REMOTE_MAC_ENTRY = "application/vnd.org.midonet.neturon.RemoteMacEntry-v1+json"
 
 # L2 Gateway extension
-L2_GATEWAY_CONN = "application/vnd.org.midonet.neutron.L2GatewayConnection-v1+json"
+L2_GATEWAY_CONN = ("application/vnd.org.midonet.neutron"
+                   ".L2GatewayConnection-v1+json")

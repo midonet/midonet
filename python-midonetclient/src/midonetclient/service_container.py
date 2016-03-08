@@ -16,6 +16,7 @@
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
 
+
 class ServiceContainer(resource_base.ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_SERVICE_CONTAINER_JSON
