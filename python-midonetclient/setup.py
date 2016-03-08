@@ -35,23 +35,28 @@ def _readme():
     with open("README") as f:
         return f.read()
 
+
 def _git_revcount():
     try:
-        return int(subprocess.check_output(["git", "rev-list", "--count", "HEAD"]))
-    except:
+        return int(subprocess.check_output(["git", "rev-list", "--count",
+                                            "HEAD"]))
+    except Exception:
         return 0
+
 
 def _version():
     toplevel = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     regex = re.compile('\s*midonetVersion\s*=\s*"([^"]+)"')
     with open('/'.join([toplevel, 'build.gradle'])) as f:
-        version = [regex.search(l).group(1) for l in f.readlines() if regex.search(l) is not None]
+        version = [regex.search(l).group(1) for l in f.readlines()
+                   if regex.search(l) is not None]
         if len(version) != 1:
             return "0.0unknown"
         elif version[0].find("-SNAPSHOT") >= 0:
             return version[0].replace("-SNAPSHOT", ".dev%d" % _git_revcount())
         else:
             return version[0].replace("-rc", "rc")
+
 
 def build_proto(proto_path, include_path, out_path):
     protoc = spawn.find_executable('protoc')

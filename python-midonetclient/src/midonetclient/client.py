@@ -20,9 +20,9 @@ from midonetclient import httpclient
 from midonetclient.neutron import bgp
 from midonetclient.neutron import bridge as br
 from midonetclient.neutron import chain_rule as cr
-from midonetclient.neutron import gateway_device as gd
 from midonetclient.neutron import dhcp
 from midonetclient.neutron import firewall as fw
+from midonetclient.neutron import gateway_device as gd
 from midonetclient.neutron import host
 from midonetclient.neutron import ipaddr_group as ipg
 from midonetclient.neutron import l2gw
