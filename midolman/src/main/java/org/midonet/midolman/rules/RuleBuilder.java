@@ -15,9 +15,13 @@
  */
 package org.midonet.midolman.rules;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import scala.collection.JavaConversions;
 
 import org.midonet.cluster.data.neutron.RuleProtocol;
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
@@ -27,6 +31,7 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Unsigned;
+import org.midonet.util.UUIDUtil;
 
 
 public class RuleBuilder {
@@ -186,13 +191,11 @@ public class RuleBuilder {
         return this;
     }
 
-    public RuleBuilder securityGroupRule(SecurityGroupRule sgRule) {
+    private RuleBuilder securityGroupCommonRule(
+            SecurityGroupRule sgRule) {
         c.nwProto = sgRule.protocolNumber();
         c.etherType = sgRule.ethertype();
         c.matchForwardFlow = sgRule.isEgress();
-        c.tpDst = sgRule.portRange();
-        c.id = sgRule.id;
-
         if (sgRule.isIngress()) {
             c.nwSrcIp = sgRule.remoteIpv4Subnet();
             c.ipAddrGroupIdSrc = sgRule.remoteGroupId;
@@ -201,5 +204,35 @@ public class RuleBuilder {
             c.ipAddrGroupIdDst = sgRule.remoteGroupId;
         }
         return this;
+    }
+
+    public RuleBuilder securityGroupHeaderRule(SecurityGroupRule sgRule) {
+        securityGroupCommonRule(sgRule);
+        c.id = sgRule.id;
+        c.tpDst = sgRule.portRange();
+        c.fragmentPolicy = FragmentPolicy.HEADER;
+        return this;
+    }
+
+    public RuleBuilder securityGroupNonHeaderRule(SecurityGroupRule sgRule) {
+        securityGroupCommonRule(sgRule);
+        c.id = nonHeaderRuleId(sgRule.id);
+        c.fragmentPolicy = FragmentPolicy.NONHEADER;
+        return this;
+    }
+
+    public RuleBuilder securityGroupAnyRule(SecurityGroupRule sgRule) {
+        securityGroupCommonRule(sgRule);
+        c.id = sgRule.id;
+        c.fragmentPolicy = FragmentPolicy.ANY;
+        return this;
+    }
+
+    // Deterministically generate rule Id for Non Header rule
+    public static UUID nonHeaderRuleId(UUID headerRuleId) {
+        List<UUID> ids = new ArrayList<>(3);
+        ids.add(headerRuleId);
+        ids.add(UUID.fromString("933733b5-db0f-5cce-eaa6-31e8b0b34cef"));
+        return UUIDUtil.xor(JavaConversions.asScalaBuffer(ids));
     }
 }
