@@ -134,7 +134,6 @@ class Bridge(val id: UUID,
     override def process(context: PacketContext): Result = {
         implicit val ctx = context
 
-        context.currentDevice = id
         context.addFlowTag(deviceTag)
 
         context.log.debug(s"Entering bridge $id with infilter: $infilters")

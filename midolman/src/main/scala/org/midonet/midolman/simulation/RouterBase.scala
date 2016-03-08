@@ -82,7 +82,6 @@ abstract class RouterBase[IP <: IPAddr]()
      */
     override def process(context: PacketContext): SimulationResult = {
         implicit val packetContext = context
-        context.currentDevice = id
 
         if (context.wcmatch.isVlanTagged) {
             context.log.debug("Dropping VLAN tagged traffic")

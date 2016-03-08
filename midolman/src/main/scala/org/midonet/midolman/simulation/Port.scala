@@ -196,6 +196,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
             context.addFlowTag(deviceTag)
             context.addFlowTag(rxTag)
             context.inPortId = id
+            context.currentDevice = deviceId
             mirroringInbound(context, portIngress)
         }
     }
