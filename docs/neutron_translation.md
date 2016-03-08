@@ -527,13 +527,11 @@ Otherwise,:
 
 If the direction is 'egress', set the following fields:
 
- * matchForwardFlow = True
  * remote_group_id => ipAddrGroupIdDst
  * remote_ip_prefix => nwDstIp
 
 If the direction is 'ingress', set the following fields:
 
- * matchForwardFlow = False
  * remote_group_id => ipAddrGroupIdSrc
  * remote_ip_prefix => nwSrcIp
 
