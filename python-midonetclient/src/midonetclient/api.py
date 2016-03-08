@@ -252,7 +252,7 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_service_container_group()
 
-    def delete_service_container(self, id_):
+    def delete_service_container_group(self, id_):
         self._ensure_application()
         return self.app.delete_service_container_group(id_)
 
