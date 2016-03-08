@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_b9eed0ea",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-08T08:52:18Z",
+      "side": 1,
+      "message": "\"if the Subnet has no gateway IP\". Otherwise it looks like this test and the previous one are disagreeing about what should happen.",
+      "revId": "a65c8d3df71bbfe91fbc9db9098c3045397fdcdd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
