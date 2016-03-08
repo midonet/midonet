@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_0f423210",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 29
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-08T14:47:31Z",
+      "side": 1,
+      "message": "Why do you change the root key?",
+      "range": {
+        "startLine": 60,
+        "startChar": 10,
+        "endLine": 60,
+        "endChar": 48
+      },
+      "revId": "93ffee2f9f752cbe6d3402c9d8eddf8df468198d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
