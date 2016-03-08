@@ -685,6 +685,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         Rule rule = new RuleBuilder(chainId)
             .goingOutPort(portId)
             .fromIp(matchIp)
+            .isAnyFragmentState()
             .sourceNat(new NatTarget(targetIp, 0, 0));
         prepareCreateRuleFirstPosition(ops, rule);
     }
@@ -697,6 +698,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         Rule rule = new RuleBuilder(chainId)
             .comingInPort(portId)
             .toIp(matchIp)
+            .isAnyFragmentState()
             .destNat(new NatTarget(targetIp, 0, 0));
         prepareCreateRuleFirstPosition(ops, rule);
     }
