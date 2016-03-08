@@ -15,10 +15,13 @@
  */
 package org.midonet.midolman.services
 
+import java.util.concurrent.TimeoutException
+
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.{gracefulStop, ask}
@@ -35,6 +38,16 @@ import org.midonet.midolman.l4lb.HealthMonitor
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
+import org.midonet.midolman.services.MidolmanActorsService._
+
+object MidolmanActorsService {
+
+    final val ActorsStartTimeout = 60 seconds
+    final val ActorsStopTimeout = 3 seconds
+    final val ChildActorStartTimeout = 60 seconds
+    final val ChildActorStopTimeout = 200 millis
+
+}
 
 /*
  * A base trait for a simple guice service that starts an actor system,
@@ -57,8 +70,7 @@ class MidolmanActorsService extends AbstractService {
     implicit val system: ActorSystem = null
 
     implicit def ex: ExecutionContext = system.dispatcher
-    implicit protected val childActorTimeout = 200.milliseconds
-    implicit protected val tout = new Timeout(60 seconds)
+    implicit protected val timeout = new Timeout(ChildActorStartTimeout)
 
     protected def actorSpecs = {
         val actors = ListBuffer(
@@ -101,19 +113,19 @@ class MidolmanActorsService extends AbstractService {
 
             childrenActors = actorSpecs map { s =>
                 try {
-                    Await.result(startActor(s), tout.duration)
+                    Await.result(startActor(s), ChildActorStartTimeout)
                 } catch {
-                    case t: Throwable =>
+                    case NonFatal(e) =>
                         // rethrow and propagate up to the injector
-                        throw new Exception(s"$s._2 creation failed", t)
+                        throw new Exception(s"${s._2} creation failed", e)
                 }
             }
 
-            childrenActors.awaitStart(30 seconds)
+            childrenActors.awaitStart(ActorsStartTimeout)
             notifyStarted()
             log.info("Actors system started")
         } catch {
-            case e: Throwable =>
+            case NonFatal(e) =>
                 log.error("Error while starting midolman actors", e)
                 notifyFailed(e)
         }
@@ -124,18 +136,22 @@ class MidolmanActorsService extends AbstractService {
         try {
             var stopFutures = childrenActors map stopActor
             stopFutures ::= stopActor(supervisorActor)
-            val aggregationTimout = childActorTimeout * stopFutures.length
+            val aggregationTimout = ChildActorStopTimeout * stopFutures.length
             Await.result(Future.sequence(stopFutures), aggregationTimout)
             log.info("All actors stopped successfully")
         } catch {
-            case e: Throwable =>
+            case NonFatal(e) =>
                 log.error("Failed to gracefully stop all actors", e)
         }
 
         try {
             log.info("Stopping the actor system")
             system.shutdown()
-            system.awaitTermination()
+            try { system.awaitTermination(ActorsStopTimeout) }
+            catch {
+                case e: TimeoutException =>
+                    log.warn("Failed to gracefully stop the actor system")
+            }
             system.dispatchers
                   .defaultGlobalDispatcher
                   .asInstanceOf[{def shutdown(): Unit}]
@@ -143,7 +159,7 @@ class MidolmanActorsService extends AbstractService {
             log.info("Actor system stopped")
             notifyStopped()
         } catch {
-            case e: Throwable =>
+            case NonFatal(e) =>
                 log.error("Failed to stop the actors system", e)
                 notifyFailed(e)
         }
@@ -154,7 +170,7 @@ class MidolmanActorsService extends AbstractService {
 
     protected def stopActor(actorRef: ActorRef) = {
         log.debug("Stopping actor: {}", actorRef.toString())
-        gracefulStop(actorRef, childActorTimeout)
+        gracefulStop(actorRef, ChildActorStopTimeout)
     }
 
     private def startTopActor(actorProps: Props, actorName: String) = {
