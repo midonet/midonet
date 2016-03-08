@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_d64a7b82",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-08T07:41:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_cb2c97ae",
+      "range": {
+        "startLine": 365,
+        "startChar": 8,
+        "endLine": 365,
+        "endChar": 76
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_0b1eaf70",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-07T09:14:44Z",
       "side": 1,
       "message": "If the DHCP has no server_address, then this returns false, and we create a route with no next hop gateway. That\u0027s not what we want, is it?",
+      "range": {
+        "startLine": 238,
+        "startChar": 12,
+        "endLine": 238,
+        "endChar": 33
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_d982ac51",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-08T07:41:41Z",
+      "side": 1,
+      "message": "No it isn\u0027t. Fixed to make sense.",
+      "parentUuid": "5a72e520_0b1eaf70",
       "range": {
         "startLine": 238,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_f64f7790",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-08T07:41:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_8b09bf33",
+      "range": {
+        "startLine": 253,
+        "startChar": 15,
+        "endLine": 253,
+        "endChar": 45
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_ab067b1e",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2016-03-07T09:14:44Z",
       "side": 1,
       "message": "This can be replaced with:\n\n  val nwId \u003d createTenantNetwork(2)\n  val snId \u003d createSubnet(3, nwId, \"10.0.2.0/24\", gatewayIp \u003d gwIp)",
+      "range": {
+        "startLine": 258,
+        "startChar": 0,
+        "endLine": 264,
+        "endChar": 53
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_163c13e2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-08T07:41:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_ab067b1e",
       "range": {
         "startLine": 258,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_b91a506c",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-08T07:41:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_e6ffcaff",
+      "range": {
+        "startLine": 271,
+        "startChar": 0,
+        "endLine": 274,
+        "endChar": 52
+      },
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_260ac221",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
         "patchSetId": 1
@@ -128,6 +248,24 @@
       "writtenOn": "2016-03-07T09:14:44Z",
       "side": 1,
       "message": "Maybe also test the case where the DHCP has no gatewayIp so serverAddress gets cleared, or is that covered in another test?",
+      "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_79ac58ee",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-08T07:41:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_260ac221",
       "revId": "138537c622e3a03696964c830252c7afc3f9bcf0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
