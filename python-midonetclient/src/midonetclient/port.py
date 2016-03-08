@@ -17,15 +17,15 @@
 from midonetclient import admin_state_up_mixin
 from midonetclient import bgp
 from midonetclient import port_group_port
+from midonetclient import port_type
 from midonetclient import resource_base
-from midonetclient import vendor_media_type
-from midonetclient.port_type import VXLAN
-from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
+from midonetclient import vendor_media_type as vmt
+
 
 class Port(resource_base.ResourceBase,
            admin_state_up_mixin.AdminStateUpMixin):
 
-    media_type = vendor_media_type.APPLICATION_PORT_JSON
+    media_type = vmt.APPLICATION_PORT_JSON
 
     def __init__(self, uri, dto, auth):
         super(Port, self).__init__(uri, dto, auth)
@@ -58,7 +58,7 @@ class Port(resource_base.ResourceBase,
         return self.dto['interfaceName']
 
     def get_vlan_id(self):
-        if self.dto['type'] == VXLAN:
+        if self.dto['type'] == port_type.VXLAN:
             return None
         return self.dto['vlanId']
 
@@ -80,7 +80,7 @@ class Port(resource_base.ResourceBase,
     def get_bgps(self):
         query = {}
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_BGP_COLLECTION_JSON}
+                   vmt.APPLICATION_BGP_COLLECTION_JSON}
         return self.get_children(self.dto['bgps'], query, headers, bgp.Bgp)
 
     def get_mgmt_ip(self):
@@ -135,7 +135,7 @@ class Port(resource_base.ResourceBase,
     def link(self, peer_uuid):
         self.dto['peerId'] = peer_uuid
         headers = {'Content-Type':
-                   vendor_media_type.APPLICATION_PORT_LINK_JSON}
+                   vmt.APPLICATION_PORT_LINK_JSON}
         self.auth.do_request(self.dto['link'], 'POST', self.dto,
                              headers=headers)
 
@@ -148,6 +148,7 @@ class Port(resource_base.ResourceBase,
         return self
 
     def get_port_groups(self, query=None):
-        headers = {'Accept': APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
+        headers = {'Accept':
+                   vmt.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
         return self.get_children(self.dto['portGroups'], query, headers,
                                  port_group_port.PortGroupPort)
