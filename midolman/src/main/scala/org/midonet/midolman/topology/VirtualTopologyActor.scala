@@ -382,7 +382,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         }
     }
 
-    override def receive = super.receive orElse {
+    override def receive = {
         case null =>
             log.warn("Received null device?")
         case r: DeviceRequest =>

@@ -39,7 +39,6 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 
-import org.midonet.cluster.storage.CuratorFrameworkProvider;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.LoggerLevelWatcher;
 import org.midonet.conf.MidoNodeConfigurator;

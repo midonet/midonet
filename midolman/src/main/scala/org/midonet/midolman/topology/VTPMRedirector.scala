@@ -25,7 +25,6 @@ import akka.actor.{Actor, ActorRef}
 import com.google.inject.Inject
 import rx.Subscriber
 
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe, TunnelZoneRequest, TunnelZoneUnsubscribe}
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -48,9 +47,6 @@ import org.midonet.midolman.topology.devices.{Host, TunnelZone}
 abstract class VTPMRedirector extends Actor with MidolmanLogging {
 
     override def logSource = "org.midonet.devices.underlay"
-
-    @Inject
-    var backend: MidonetBackend = _
 
     /* Device subscriptions per device id */
     private val deviceSubscriptions =
@@ -147,31 +143,5 @@ abstract class VTPMRedirector extends Actor with MidolmanLogging {
         deviceSubscriptions.remove(deviceId)
         removeAllClientSubscriptions[D](deviceId)
         removeFromCache[D](deviceId)
-    }
-
-    def receive = if (!backend.isEnabled) Actor.emptyBehavior else {
-        case r: TunnelZoneRequest =>
-            log.debug("Request for tunnel zone with id {}", r.zoneId)
-            onRequest[TunnelZone](r)
-        case r: HostRequest =>
-            log.debug("Request for host with id {}", r.hostId)
-            onRequest[Host](r)
-        case r: TunnelZoneUnsubscribe =>
-            log.debug("Unsubscribe request for tunnel zone {} from {}",
-                      r.zoneId, sender())
-            onUnsubscribe[TunnelZone](r, sender())
-        case r: HostUnsubscribe =>
-            log.debug("Unsubscribe request for host {} from {}", r.hostId,
-                      sender())
-            onUnsubscribe[Host](r, sender())
-        case OnCompleted(deviceId: UUID, t: ClassTag[_]) =>
-            log.debug("Device {} update stream completed", deviceId)
-            onCompleted(deviceId)(t)
-        case OnError(deviceId: UUID, e: Throwable, t: ClassTag[_]) =>
-            log.warn("Device {} update stream error {}", deviceId, e)
-            onError(deviceId, e)(t)
-        case OnNext(deviceId: UUID, device: Device) =>
-            log.debug("Device {} update", deviceId)
-            deviceUpdated(device, createHandler=false)
     }
 }
