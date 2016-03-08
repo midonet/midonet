@@ -29,7 +29,9 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.ReverseNatRule;
 import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.FragmentPolicy;
 import org.midonet.midolman.rules.NatTarget;
+import org.midonet.midolman.rules.RuleBuilder;
 import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PathBuilder;
@@ -332,7 +334,12 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
 
     private void verifySecurityGroupRule()
         throws SerializationException, StateAccessException {
+        Boolean hasL4 = (securityGroupRule.portRangeMax != null ||
+                         securityGroupRule.portRangeMin != null);
+        UUID nonHeaderRuleId =
+            RuleBuilder.nonHeaderRuleId(securityGroupRule.id);
         Rule mr = dataClient.rulesGet(securityGroupRule.id);
+
         if (securityGroupRule.isEgress() &&
             securityGroupRule.remoteGroupId != null) {
             Assert.assertTrue(mr.getCondition()
@@ -362,6 +369,19 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
             Assert.assertTrue(
                 securityGroupRule.portRangeMax.equals(
                         mr.getCondition().tpSrc.end()));
+        }
+        if (hasL4) {
+            Assert.assertEquals(mr.getCondition().fragmentPolicy,
+                               FragmentPolicy.HEADER);
+            Rule mr2 = dataClient.rulesGet(nonHeaderRuleId);
+            Assert.assertNull(mr2.getCondition().tpDst);
+            Assert.assertEquals(mr2.getCondition().fragmentPolicy,
+                               FragmentPolicy.NONHEADER);
+        } else {
+            Assert.assertEquals(mr.getCondition().fragmentPolicy,
+                               FragmentPolicy.ANY);
+            Assert.assertNull(mr.getCondition().tpDst);
+            Assert.assertNull(dataClient.rulesGet(nonHeaderRuleId));
         }
     }
 

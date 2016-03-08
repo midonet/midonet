@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
@@ -348,15 +349,9 @@ public class SecurityGroupZkManager extends BaseZkManager {
 
         for (SecurityGroupRule sgr : sg.securityGroupRules) {
             if (sgr.isEgress()) {
-                Rule r = new RuleBuilder(sgr.id, inboundChainId)
-                    .securityGroupRule(sgr)
-                    .accept();
-                egressRules.add(r);
+                egressRules.addAll(securityGroupRules(sgr, inboundChainId));
             } else {
-                Rule r = new RuleBuilder(sgr.id, outboundChainId)
-                    .securityGroupRule(sgr)
-                    .accept();
-                ingressRules.add(r);
+                ingressRules.addAll(securityGroupRules(sgr, outboundChainId));
             }
             String rulePath = paths.getNeutronSecurityGroupRulePath(sgr.id);
             ops.add(
@@ -427,6 +422,33 @@ public class SecurityGroupZkManager extends BaseZkManager {
         return rules;
     }
 
+    private List<Rule> securityGroupRules(SecurityGroupRule sgr,
+                                          UUID chainId) {
+        List<Rule> rules = new ArrayList<>();
+
+        if (sgr.portRange() == null) {
+            // Non L4 rules
+            Rule r = new RuleBuilder(sgr.id, chainId)
+                .securityGroupAnyRule(sgr)
+                .accept();
+
+            rules.add(r);
+        } else {
+            // L4 rules
+            Rule r1 = new RuleBuilder(sgr.id, chainId)
+                .securityGroupHeaderRule(sgr)
+                .accept();
+            Rule r2 = new RuleBuilder(RuleBuilder.nonHeaderRuleId(sgr.id),
+                                     chainId)
+                .securityGroupNonHeaderRule(sgr)
+                .accept();
+
+            rules.add(r1);
+            rules.add(r2);
+        }
+        return rules;
+    }
+
     public void prepareCreateSecurityGroupRule(List<Op> ops,
                                                SecurityGroupRule rule)
         throws SerializationException, StateAccessException,
@@ -439,21 +461,28 @@ public class SecurityGroupZkManager extends BaseZkManager {
         RuleDirection dir = rule.isIngress() ?
                             RuleDirection.INGRESS : RuleDirection.EGRESS;
         UUID chainId = ipAddrGroupConfig.getPropertyUuid(dir);
-
-        Rule r = new RuleBuilder(rule.id, chainId)
-            .securityGroupRule(rule)
-            .accept();
-        ops.addAll(ruleZkManager.prepareInsertPositionOrdering(rule.id, r, 1));
+        List<Rule> rules = securityGroupRules(rule, chainId);
+        ruleZkManager.prepareRulesAppendToEndOfChain(ops, chainId, rules);
 
         String path = paths.getNeutronSecurityGroupRulePath(rule.id);
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(rule)));
     }
 
-    public void prepareDeleteSecurityGroupRule(List<Op> ops, UUID ruleId)
+    public void prepareDeleteSecurityGroupRule(List<Op> ops, final UUID ruleId)
         throws StateAccessException, SerializationException {
         Preconditions.checkNotNull(ruleId);
+        final UUID nonHeaderRuleId = RuleBuilder.nonHeaderRuleId(ruleId);
+        Rule rule = ruleZkManager.get(ruleId);
+        UUID chainId = rule.chainId;
 
-        ops.addAll(ruleZkManager.prepareDelete(ruleId));
+        ruleZkManager.prepareDeleteRules(ops, chainId,
+                                         new Function<Rule, Boolean>() {
+            @Override public Boolean apply(Rule r) {
+                return Objects.equal(r.id, ruleId)
+                    || Objects.equal(r.id, nonHeaderRuleId);
+            }
+        });
+
         String path = paths.getNeutronSecurityGroupRulePath(ruleId);
         ops.add(zk.getDeleteOp(path));
     }
