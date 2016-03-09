@@ -25,7 +25,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Subnet => SubnetType}
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
@@ -296,6 +295,199 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         eventually {
             val dhcp = storage.get(classOf[Dhcp], snId).await()
             dhcp.hasServerAddress shouldBe false
+        }
+    }
+
+    it should "update ip addr groups" in {
+        val ip1 = "10.0.0.3"
+        val ip2 = "10.0.0.4"
+
+        val nwId = createTenantNetwork(10)
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+
+        val sgId = createSecurityGroup(30)
+        val sg2Id = createSecurityGroup(31)
+        val sg3Id = createSecurityGroup(32)
+        def checkAddrGrpAddrCounts(counts: Seq[Int]): Unit = {
+            val iags = storage.getAll(classOf[IPAddrGroup],
+                                      Seq(sgId, sg2Id, sg3Id)).await()
+            iags.map(_.getIpAddrPortsCount) shouldBe counts
+        }
+
+        // Create one port in groups 1-3 and one in only 1-2.
+        val pId = createVifPort(50, nwId,
+                                fixedIps = List(IPAlloc(ip1, snId)),
+                                sg = List(sgId, sg2Id, sg3Id))
+        createVifPort(51, nwId, fixedIps = List(IPAlloc(ip2, snId)),
+                      sg = List(sgId, sg2Id))
+        eventually(checkAddrGrpAddrCounts(Seq(2, 2, 1)))
+
+        // Remove the first port from groups 1 and 3.
+        var pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip1, snId)),
+                         securityGroups = Seq(sg2Id))
+        insertUpdateTask(60, PortType, pJson, pId)
+        eventually(checkAddrGrpAddrCounts(Seq(1, 2, 0)))
+
+        // Re-add the first port to groups 1 and 3.
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip1, snId)),
+                         securityGroups = Seq(sgId, sg2Id, sg3Id))
+        insertUpdateTask(70, PortType, pJson, pId)
+        eventually(checkAddrGrpAddrCounts(Seq(2, 2, 1)))
+
+        // Remove the first port from all groups.
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip1, snId)),
+                         securityGroups = Seq())
+        insertUpdateTask(80, PortType, pJson, pId)
+        eventually(checkAddrGrpAddrCounts(Seq(1, 1, 0)))
+    }
+
+    it should "update ip addr groups correctly when port security and SGs" +
+              "are updated simultaneously" in  {
+
+        val ip = "10.0.0.3"
+        val nwId = createTenantNetwork(10)
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+        val sgId = createSecurityGroup(30)
+
+        def checkAddrGrpAddrCounts(counts: Int): Unit = {
+            val iag = storage.get(classOf[IPAddrGroup], sgId).await()
+            iag.getIpAddrPortsCount shouldBe counts
+        }
+
+        // Create a VIF port with port security enabled, and verify that there
+        // is one entry in IP address group.
+        val pId = createVifPort(50, nwId,
+                                fixedIps = List(IPAlloc(ip, snId)),
+                                sg = List(sgId),
+                                portSecurityEnabled = true)
+        eventually(checkAddrGrpAddrCounts(1))
+
+        // Update the port with port security disabled and SGs removed, and
+        // verify that there is no item in the ip address group.
+        val pJson1 = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                              securityGroups = Seq(),
+                              portSecurityEnabled = false)
+        insertUpdateTask(60, PortType, pJson1, pId)
+        eventually(checkAddrGrpAddrCounts(0))
+
+        // Update the port with port security enabled and SGs added, and verify
+        // that IP address group has an entry again.
+        val pJson2 = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                              securityGroups = Seq(sgId),
+                              portSecurityEnabled = true)
+        insertUpdateTask(70, PortType, pJson2, pId)
+        eventually(checkAddrGrpAddrCounts(1))
+    }
+
+    it should "update ip addr groups with same IP" in {
+        val ip = "10.0.0.3"
+        val nwId = createTenantNetwork(10)
+        val nw2Id = createTenantNetwork(11)
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+        val sn2Id = createSubnet(21, nwId, "10.0.0.0/24")
+
+        val sgId = createSecurityGroup(30)
+        val sg2Id = createSecurityGroup(31)
+        val sg3Id = createSecurityGroup(32)
+
+        // counts is, for sg, sg2, and sg3 respectively, the number of ports
+        // for each address in the group.
+        def checkAddrGroupAddrPortCounts(counts: Seq[Seq[Int]]): Unit = {
+            val iags = storage.getAll(classOf[IPAddrGroup],
+                                      Seq(sgId, sg2Id, sg3Id)).await()
+            val actualCounts = for (iag <- iags) yield
+                for (apl <- iag.getIpAddrPortsList.asScala.toSeq) yield
+                    apl.getPortIdsCount
+            actualCounts shouldBe counts
+        }
+
+        val pId = createVifPort(50, nwId,
+                                fixedIps = List(IPAlloc(ip, snId)),
+                                sg = List(sgId, sg2Id, sg3Id))
+        val p2Id = createVifPort(51, nwId,
+                                 fixedIps = List(IPAlloc(ip, snId)),
+                                 sg = List(sgId, sg2Id))
+        eventually(checkAddrGroupAddrPortCounts(Seq(Seq(2), Seq(2), Seq(1))))
+
+        var pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                             securityGroups = Seq(sg2Id))
+        insertUpdateTask(60, PortType, pJson, pId)
+        eventually(checkAddrGroupAddrPortCounts(Seq(Seq(1), Seq(2), Seq())))
+
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                         securityGroups = Seq(sgId, sg2Id, sg3Id))
+        insertUpdateTask(70, PortType, pJson, pId)
+        eventually(checkAddrGroupAddrPortCounts(Seq(Seq(2), Seq(2), Seq(1))))
+
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                         securityGroups = Seq())
+        insertUpdateTask(80, PortType, pJson, pId)
+        eventually(checkAddrGroupAddrPortCounts(Seq(Seq(1), Seq(1), Seq())))
+    }
+
+    it should "update ip addr groups with updated IPs" in {
+        val ip1 = "10.0.0.3"
+        val ip2 = "10.0.0.4"
+
+        val nwId = createTenantNetwork(10)
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+        val sgId = createSecurityGroup(30)
+
+        val pId = createVifPort(40, nwId,
+                                fixedIps = List(IPAlloc(ip1, snId)),
+                                sg = List(sgId))
+
+        val p2Id = createVifPort(50, nwId,
+                                 fixedIps = List(IPAlloc(ip2, snId)),
+                                 sg = List(sgId))
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            val ipAddrGroupList = ipGrp.getIpAddrPortsList.asScala
+            val grpList = ipAddrGroupList map (_.getIpAddress.getAddress)
+
+            grpList should contain theSameElementsAs Seq(ip1, ip2)
+
+            val ip1Grp = ipAddrGroupList.find(_.getIpAddress.getAddress == ip1).get
+            ip1Grp.getPortIdsList should contain theSameElementsAs Seq(toProto(pId))
+
+            val ip2Grp = ipAddrGroupList.find(_.getIpAddress.getAddress == ip2).get
+            ip2Grp.getPortIdsList should contain theSameElementsAs Seq(toProto(p2Id))
+        }
+
+        var pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip2, snId)),
+                             securityGroups = Seq(sgId))
+
+        insertUpdateTask(60, PortType, pJson, pId)
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            val ipAddrGroupList = ipGrp.getIpAddrPortsList.asScala
+            val grpList = ipAddrGroupList map (_.getIpAddress.getAddress)
+
+            grpList should contain theSameElementsAs Seq(ip2)
+
+            val ip2Grp = ipAddrGroupList.find(_.getIpAddress.getAddress == ip2).get
+            ip2Grp.getPortIdsList should contain theSameElementsAs Seq(toProto(p2Id), toProto(pId))
+        }
+
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip1, snId)),
+                         securityGroups = Seq(sgId))
+
+        insertUpdateTask(70, PortType, pJson, pId)
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            val ipAddrGroupList = ipGrp.getIpAddrPortsList.asScala
+            val grpList = ipAddrGroupList map (_.getIpAddress.getAddress)
+
+            grpList should contain theSameElementsAs Seq(ip1, ip2)
+
+            val ip1Grp = ipAddrGroupList.find(_.getIpAddress.getAddress == ip1).get
+            ip1Grp.getPortIdsList should contain theSameElementsAs Seq(toProto(pId))
+
+            val ip2Grp = ipAddrGroupList.find(_.getIpAddress.getAddress == ip2).get
+            ip2Grp.getPortIdsList should contain theSameElementsAs Seq(toProto(p2Id))
         }
     }
 

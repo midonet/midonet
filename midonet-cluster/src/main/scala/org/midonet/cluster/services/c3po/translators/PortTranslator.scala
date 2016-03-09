@@ -104,7 +104,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             updateDhcpEntries(nPort,
                               portContext.midoDhcps,
                               addDhcpHost)
-            updateSecurityBindings(nPort, null, midoPortBldr, portContext)
+            updateSecurityBindings(nPort, None, midoPortBldr, portContext)
         } else if (isDhcpPort(nPort)) {
             updateDhcpEntries(nPort,
                               portContext.midoDhcps,
@@ -281,7 +281,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             updateDhcpEntries(nPort,
                               portContext.midoDhcps,
                               addDhcpHost)
-            updateSecurityBindings(nPort, oldNPort, mPort, portContext)
+            updateSecurityBindings(nPort, Some(oldNPort), mPort, portContext)
             addMidoOps(portContext, midoOps)
 
             // TODO: Can other port types update MAC/IP?
@@ -426,13 +426,76 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             .build())
     }
 
+    private def addPortIpToIpAddrGrp(ipAddrGrp: IPAddrGroup.Builder,
+                                     ip: IPAddress,
+                                     portId: UUID): Unit = {
+        ipAddrGrp.getIpAddrPortsBuilderList.asScala.find(_.getIpAddress == ip) match {
+            case Some(ipPort) => ipPort.addPortIds(portId)
+            case None => ipAddrGrp.addIpAddrPortsBuilder()
+                                  .setIpAddress(ip)
+                                  .addPortIds(portId)
+        }
+    }
+
+    private def removePortIpFromIpAddrGrp(ipAddrGroup: IPAddrGroup.Builder,
+                                          ip: IPAddress,
+                                          portId: UUID): Unit = {
+        ipAddrGroup.getIpAddrPortsBuilderList.asScala.find(_.getIpAddress == ip) match {
+            case Some(ipPort) =>
+                val idx = ipPort.getPortIdsList.indexOf(portId)
+                if (idx >= 0) ipPort.removePortIds(idx)
+                if (ipPort.getPortIdsCount == 0) {
+                    val ipx = ipAddrGroup.getIpAddrPortsBuilderList.asScala.indexOf(ipPort)
+                    if (ipx >= 0) ipAddrGroup.removeIpAddrPorts(ipx)
+                }
+            case None =>
+        }
+    }
+
+    private def updatePortSgAssociations(nPort: NeutronPort,
+                                         nPortOld: Option[NeutronPort],
+                                         portCtx: PortContext): Unit = {
+        val newIps = nPort.getFixedIpsList.asScala map (_.getIpAddress)
+        val newSgs = nPort.getSecurityGroupsList.asScala
+
+        val oldIps = nPortOld.toList.flatMap(
+            _.getFixedIpsList.asScala.map(_.getIpAddress))
+        val oldSgs = nPortOld.toList.flatMap(_.getSecurityGroupsList.asScala)
+
+        val removedSgs = oldSgs diff newSgs
+        val addedSgs = newSgs diff oldSgs
+        val keptSgs = newSgs diff addedSgs
+
+        val removedIps = oldIps diff newIps
+        val addedIps = newIps diff oldIps
+
+        def updateSgIpAddrs(sgIds: Seq[UUID], ipsToAdd: Seq[IPAddress],
+                            ipsToRemove: Seq[IPAddress]): Unit = {
+            for (iag <- storage.getAll(classOf[IPAddrGroup], sgIds).await()) {
+                val iagBldr = iag.toBuilder
+                for (ip <- ipsToAdd)
+                    addPortIpToIpAddrGrp(iagBldr, ip, nPort.getId)
+                for (ip <- ipsToRemove)
+                    removePortIpFromIpAddrGrp(iagBldr, ip, nPort.getId)
+                portCtx.updatedIpAddrGrps += Update(iagBldr.build())
+            }
+        }
+
+        // Remove all port/ips from the removed SGs
+        updateSgIpAddrs(removedSgs, Seq(), oldIps)
+
+        // Add all new port/ips to new SGs
+        updateSgIpAddrs(addedSgs, newIps, Seq())
+
+        // For all the SGs that have not changed, removed the IPs that have
+        // been removed, and add the IPs that have been added to the port.
+        updateSgIpAddrs(keptSgs, addedIps, removedIps)
+    }
+
     private def buildSecurityGroupJumpRules(nPort: NeutronPort,
-                                            nPortOld: NeutronPort,
                                             portCtx: PortContext,
-                                            portId: UUID,
                                             inChainId: UUID,
                                             outChainId: UUID): Unit = {
-
         // Add jump rules to corresponding inbound / outbound chains of IP
         // Address Groups (Neutron's Security Groups) that the port belongs to.
         for (sgId <- nPort.getSecurityGroupsList.asScala) {
@@ -442,31 +505,6 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                                                ipAddrGrp.getInboundChainId))
             portCtx.outRules += Create(jumpRule(outChainId,
                                                 ipAddrGrp.getOutboundChainId))
-
-            // Compute IP addresses that were removed from the IP Address Group
-            // or added to it.
-            val updatedIpAddrG = ipAddrGrp.toBuilder
-            val ips = nPort.getFixedIpsList.asScala.map(_.getIpAddress)
-            val oldIps = if (nPortOld != null) {
-                    nPortOld.getFixedIpsList.asScala.map(_.getIpAddress)
-                } else List()
-            val removed = oldIps diff ips
-            var added = ips diff oldIps
-            for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
-                if (removed.contains(ipPorts.getIpAddress)) {
-                    val idx = ipPorts.getPortIdsList.indexOf(portId)
-                    if (idx >= 0) ipPorts.removePortIds(idx)
-                } else  if (added contains ipPorts.getIpAddress) {
-                    // Exclude IPs that are already in IP Address Groups.
-                    ipPorts.addPortIds(portId)
-                    added -= ipPorts.getIpAddress
-                }
-            }
-            for (newIp <- added)
-                updatedIpAddrG.addIpAddrPortsBuilder()
-                              .setIpAddress(newIp)
-                              .addPortIds(portId)
-            portCtx.updatedIpAddrGrps += Update(updatedIpAddrG.build)
         }
 
         // Drop non-ARP traffic that wasn't accepted by earlier rules.
@@ -484,7 +522,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* Create chains, rules and IP Address Groups associated with nPort. */
     private def updateSecurityBindings(nPort: NeutronPort,
-                                       nPortOld: NeutronPort,
+                                       nPortOld: Option[NeutronPort],
                                        mPort: PortOrBuilder,
                                        portCtx: PortContext) {
         val portId = nPort.getId
@@ -502,17 +540,20 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // If this is an update, clear the chains. Ideally we would be a bit
         // smarter about this and only delete rules that actually need deleting,
         // but this is simpler.
-        if (nPortOld != null) { // Update
-            portCtx.inRules ++= deleteRulesOps(
-                storage.get(classOf[Chain], inChainId).await())
-            portCtx.outRules ++= deleteRulesOps(
-                storage.get(classOf[Chain], outChainId).await())
-            portCtx.antiSpoofRules ++= deleteRulesOps(
-                storage.get(classOf[Chain], antiSpfChainId).await())
-        } else { // Create
-            portCtx.chains += (
-                Create(inChain), Create(outChain), Create(antiSpoofChain))
+        nPortOld match {
+            case Some(_) =>
+                portCtx.inRules ++= deleteRulesOps(
+                    storage.get(classOf[Chain], inChainId).await())
+                portCtx.outRules ++= deleteRulesOps(
+                    storage.get(classOf[Chain], outChainId).await())
+                portCtx.antiSpoofRules ++= deleteRulesOps(
+                    storage.get(classOf[Chain], antiSpfChainId).await())
+            case None =>
+                portCtx.chains += (
+                    Create(inChain), Create(outChain), Create(antiSpoofChain))
         }
+
+        updatePortSgAssociations(nPort, nPortOld, portCtx)
 
         // Add new rules if appropriate.
         if (nPort.getPortSecurityEnabled) {
@@ -525,8 +566,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             // Create return flow rules matching for inbound chain.
             portCtx.inRules += Create(returnFlowRule(inChainId))
 
-            buildSecurityGroupJumpRules(nPort, nPortOld, portCtx, portId,
-                                        inChainId, outChainId)
+            buildSecurityGroupJumpRules(nPort, portCtx, inChainId, outChainId)
         }
     }
 
