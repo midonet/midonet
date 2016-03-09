@@ -16,6 +16,8 @@
 
 package org.midonet.util.concurrent
 
+import java.util.ArrayList
+
 import org.junit.runner.RunWith
 import org.scalatest.{OneInstancePerTest, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
@@ -77,6 +79,19 @@ class InstanceStashTest extends FeatureSpec
             stash(1)
             stash.size should be (0)
             stash.leasedInstances should be (4)
+        }
+
+        scenario("Reset objects for InstanceStash0") {
+            val Stack = new InstanceStash0[ArrayList[Int]](
+                () => new ArrayList[Int], _.clear)
+            for (_ <- 1 to 10) {
+                val stack = Stack()
+
+                stack.size should be (0)
+                stack.add(2)
+                stack.size should be (1)
+                Stack.reUp()
+            }
         }
     }
 }
