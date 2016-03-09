@@ -394,6 +394,9 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         bind(nIpv6Subnet1Id, mIpv6Dhcp)
         bind(sgId1, ipAddrGroup1)
         bind(sgId2, ipAddrGroup2)
+        bindAll(Seq(sgId1, sgId2), Seq(ipAddrGroup1, ipAddrGroup2))
+        bindAll(Seq(sgId1), Seq(ipAddrGroup1))
+        bindAll(Seq(sgId2), Seq(ipAddrGroup2))
     }
 
     "Anti Spoof Chain" should "exist on a port with allowed addr pairs" in {
@@ -831,6 +834,9 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         bind(inboundChainId, inboundChain)
         bind(outboundChainId, outboundChain)
         bind(spoofChainId, antiSpoofChain)
+        bindAll(Seq(sgId1, sgId2), Seq(ipAddrGroup1, ipAddrGroup2))
+        bindAll(Seq(sgId1), Seq(ipAddrGroup1))
+        bindAll(Seq(sgId2), Seq(ipAddrGroup2))
     }
 
     "VIF port UPDATE" should "update port admin state" in {
