@@ -34,7 +34,7 @@ import java.util.ArrayList
 * Threads using pools of this type need to invoke reUp() in between requests,
 * to let the pool know when to collect leased objects.
 */
-sealed abstract class InstanceStash[T](factory: () => T) {
+sealed abstract class InstanceStash[T](factory: () => T, clear: T => Unit) {
     private val poolStorage = new ThreadLocal[ArrayList[T]] {
         override def initialValue = new ArrayList[T]()
     }
@@ -57,17 +57,28 @@ sealed abstract class InstanceStash[T](factory: () => T) {
     }
 
     final def reUp(): Unit = {
+        if (clear ne null) {
+            val next = nextStorage.get()
+            val pool = poolStorage.get()
+            var i = 0
+            while (i < next) {
+                clear(pool.get(i))
+                i += 1
+            }
+        }
         nextStorage.set(0)
     }
 }
 
-class InstanceStash0[T](factory: () => T) extends InstanceStash[T](factory) {
+class InstanceStash0[T](factory: () => T, clear: T => Unit = null) extends
+       InstanceStash[T](factory, clear) {
 
     def apply(): T = get()
 }
 
-class InstanceStash1[T, A](factory: () => T, fill: (T, A) => Unit) extends
-       InstanceStash[T](factory) {
+class InstanceStash1[T, A](factory: () => T, fill: (T, A) => Unit,
+                           clear: T => Unit = null) extends
+       InstanceStash[T](factory, clear) {
 
    def apply(arg: A): T = {
        val obj = get()
@@ -76,8 +87,9 @@ class InstanceStash1[T, A](factory: () => T, fill: (T, A) => Unit) extends
    }
 }
 
-class InstanceStash2[T, A, B](factory: () => T, fill: (T, A, B) => Unit) extends
-       InstanceStash[T](factory) {
+class InstanceStash2[T, A, B](factory: () => T, fill: (T, A, B) => Unit,
+                              clear: T => Unit = null) extends
+       InstanceStash[T](factory, clear) {
 
    def apply(arg1: A, arg2: B): T = {
        val obj = get()

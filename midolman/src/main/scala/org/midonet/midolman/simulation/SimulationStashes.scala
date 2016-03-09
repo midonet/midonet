@@ -25,7 +25,7 @@ import org.midonet.util.concurrent.{InstanceStash1, InstanceStash2, InstanceStas
 
 object SimulationStashes {
     val Stack = new InstanceStash0[ArrayList[SimulationResult]](
-            () => new ArrayList[SimulationResult])
+            () => new ArrayList[SimulationResult], _.clear)
 
     val Fork = new InstanceStash2[ForkAction, SimulationResult, SimulationResult](
             () => ForkAction(null, null),
