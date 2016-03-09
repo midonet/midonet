@@ -31,7 +31,7 @@ import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.{NatTarget, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, Simulator, PacketContext}
 import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser}
-import org.midonet.midolman.state.{SbeEncoder, TraceState}
+import org.midonet.midolman.state.{FlowStateSbeEncoder, TraceState}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
@@ -384,7 +384,7 @@ class FlowTracingTest extends MidolmanSpec {
             flowTrace1.equals(flowTrace2) shouldBe false
             packetsSent.size shouldBe 4
 
-            val encoder = new SbeEncoder
+            val encoder = new FlowStateSbeEncoder
             def parse(p: Ethernet): FlowState = {
                 encoder.decodeFrom(FlowStatePackets.parseDatagram(p).getData)
             }

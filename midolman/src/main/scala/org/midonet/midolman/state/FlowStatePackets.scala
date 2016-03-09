@@ -16,18 +16,15 @@
 
 package org.midonet.midolman.state
 
-import java.io.ByteArrayInputStream
 import java.util.UUID
-
-import uk.co.real_logic.sbe.codec.java.DirectBuffer
 
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, _}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
 import org.midonet.midolman.state.TraceState.TraceKey
 import org.midonet.odp.FlowMatch
-import org.midonet.odp.flows.FlowKeyEtherType
 import org.midonet.packets._
+
 
 object FlowStatePackets {
     /**
@@ -62,7 +59,7 @@ object FlowStatePackets {
     // 20(IP) + 8(GRE+Key) + 14(Ethernet w/o preamble and CRC) + 20(IP) + 8(UDP)
     val OVERHEAD = 70
 
-    val MessageHeaderVersion = 1
+    val MessageHeaderVersion = FlowStateSbeEncoder.MessageHeaderVersion
 
     def isStateMessage(fmatch: FlowMatch): Boolean =
         fmatch.getTunnelKey == TUNNEL_KEY
@@ -235,40 +232,5 @@ object FlowStatePackets {
                 }
             case _ => null
         }
-    }
-}
-
-class SbeEncoder {
-    val flowStateHeader = new MessageHeader
-    val flowStateMessage = new FlowStateSbe
-    val flowStateBuffer = new DirectBuffer(new Array[Byte](0))
-
-    def encodeTo(bytes: Array[Byte]): FlowStateSbe = {
-        flowStateBuffer.wrap(bytes)
-        flowStateHeader.wrap(flowStateBuffer, 0,
-                             FlowStatePackets.MessageHeaderVersion)
-            .blockLength(flowStateMessage.sbeBlockLength)
-            .templateId(flowStateMessage.sbeTemplateId)
-            .schemaId(flowStateMessage.sbeSchemaId)
-            .version(flowStateMessage.sbeSchemaVersion)
-        flowStateMessage.wrapForEncode(flowStateBuffer, flowStateHeader.size)
-        flowStateMessage
-    }
-
-    def encodedLength(): Int = flowStateHeader.size + flowStateMessage.size
-
-    def decodeFrom(bytes: Array[Byte]): FlowStateSbe = {
-        flowStateBuffer.wrap(bytes)
-        flowStateHeader.wrap(flowStateBuffer, 0,
-                             FlowStatePackets.MessageHeaderVersion)
-        val templateId = flowStateHeader.templateId
-        if (templateId != FlowStateSbe.TEMPLATE_ID) {
-            throw new IllegalArgumentException(
-                s"Invalid template id for flow state $templateId")
-        }
-        flowStateMessage.wrapForDecode(flowStateBuffer, flowStateHeader.size,
-                                       flowStateHeader.blockLength,
-                                       flowStateHeader.version)
-        flowStateMessage
     }
 }
