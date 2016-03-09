@@ -31,6 +31,7 @@ import rx.functions.Func1;
 
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.StateAccessException;
@@ -45,7 +46,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
     PortConfigCache portConfigCache;
     // These watchers belong to classes of the cluster (eg ClusterBridgeManager)
     // they don't implement the PortBuilder interface
-    Map<UUID, Runnable> clusterWatchers = new HashMap<UUID, Runnable>();
+    Map<UUID, Runnable> clusterWatchers = new HashMap<>();
 
     @Inject
     @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -89,7 +90,8 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
                         return (config != null);
                     }
                 })
-            .subscribe(new Action1<PortConfig>() {
+            .subscribe(
+                new Action1<PortConfig>() {
                     @Override
                     public void call(PortConfig config) {
                         buildFromConfig(id, config);
@@ -98,8 +100,15 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
                 new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
-                        log.info("Exception thrown getting config for {}",
-                                 id, t);
+                        if (t instanceof NoStatePathException) {
+                            PortBuilder builder = unregisterBuilder(id);
+                            if (builder != null) {
+                                builder.deleted();
+                            }
+                        } else {
+                            log.info("Exception thrown getting config for {}",
+                                     id, t);
+                        }
                     }
                 });
     }
@@ -140,6 +149,9 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         return new Runnable() {
             @Override
             public void run() {
+                if (getBuilder(portId) != builder)
+                    return;
+
                 log.debug("Port liveness changed: {}", portId);
                 builder.setActive(isActive(portId, this));
                 builder.build();
@@ -147,15 +159,15 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         };
     }
 
-    public Callback1<UUID> getPortsWatcher(){
+    public Callback1<UUID> getPortsWatcher() {
         return new Callback1<UUID>() {
             @Override
             public void call(UUID portId) {
-               // this will be executed by the watcher in PortConfigCache
-               // that is triggered by ZkDirectory, that has the same reactor as
-               // the cluster client.
+                // this will be executed by the watcher in PortConfigCache
+                // that is triggered by ZkDirectory, that has the same reactor as
+                // the cluster client.
                 log.debug("Port changed: {}", portId);
-               getConfig(portId);
+                getConfig(portId);
             }
         };
     }

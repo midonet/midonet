@@ -24,8 +24,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import java.util.concurrent.TimeoutException;
-
 import rx.Observable;
 import rx.Subscriber;
 import rx.Observable.OnSubscribe;
@@ -51,7 +49,6 @@ import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.VlanPathExistsException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1140,6 +1137,18 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     public List<UUID> getVlanBridgeLogicalPortIDs(UUID bridgeId)
         throws StateAccessException {
         return getVlanBridgeLogicalPortIDs(bridgeId, null);
+    }
+
+    /***
+     * Deletes a port and its related data from the ZooKeeper directories
+     * atomically.
+     *
+     * @param id
+     *            ID of the port to delete.
+     */
+    public void delete(UUID id) throws StateAccessException,
+            SerializationException {
+        zk.multi(prepareDelete(id));
     }
 
     public void link(UUID id, UUID peerId) throws StateAccessException,

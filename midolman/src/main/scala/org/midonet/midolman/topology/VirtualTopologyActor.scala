@@ -53,6 +53,7 @@ object VirtualTopologyActor extends Referenceable {
     override val Name: String = "VirtualTopologyActor"
 
     case class InvalidateFlowsByTag(tag: FlowTag)
+    case class DeleteDevice(id: UUID) extends AnyVal
 
     sealed trait DeviceRequest {
         val id: UUID

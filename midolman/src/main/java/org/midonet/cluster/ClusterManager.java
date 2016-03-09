@@ -78,6 +78,10 @@ abstract class ClusterManager<T> {
         return builderMap.get(id);
     }
 
+    protected T unregisterBuilder(UUID id) {
+        return builderMap.remove(id);
+    }
+
     abstract protected void getConfig(UUID id);
 
     /* The following classes provide base implementations for callbacks/watchers

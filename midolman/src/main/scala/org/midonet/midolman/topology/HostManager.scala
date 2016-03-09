@@ -27,7 +27,6 @@ import org.midonet.cluster.Client
 import org.midonet.cluster.client.HostBuilder
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.midolman.topology.devices.Host
-import org.midonet.packets.IPAddr
 
 class HostManager(clusterClient: Client,
                   actor: ActorRef) extends DeviceHandler {
@@ -75,13 +74,14 @@ class HostManager(clusterClient: Client,
             this
         }
 
-        def start() = null
-
         def build() {
             val tunnelZones = hostTunnelZoneConfigs.map(tzConfig =>
                 (tzConfig._1, tzConfig._2.getIp)
             )
             actor ! new Host(hostId, alive, hostLocalPorts.toMap, tunnelZones.toMap)
         }
+
+        override def deleted(): Unit = { }
+
     }
 }

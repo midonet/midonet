@@ -18,13 +18,14 @@ package org.midonet.midolman.topology
 import java.util.UUID
 
 import org.midonet.cluster.Client
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
+import org.midonet.midolman.topology.VirtualTopologyActor.{DeleteDevice, InvalidateFlowsByTag}
 import org.midonet.midolman.topology.builders.PortBuilderImpl
-import org.midonet.midolman.topology.PortManager.TriggerUpdate
+import org.midonet.midolman.topology.PortManager.{TriggerDelete, TriggerUpdate}
 import org.midonet.midolman.topology.devices.Port
 
 object PortManager{
     case class TriggerUpdate(port: Port)
+    case object TriggerDelete
 }
 
 class PortManager(id: UUID, val clusterClient: Client)
@@ -55,5 +56,7 @@ class PortManager(id: UUID, val clusterClient: Client)
             changed = cfg != null
             cfg = p
             prefetchTopology()
+        case TriggerDelete =>
+            VirtualTopologyActor ! DeleteDevice(id)
     }
 }

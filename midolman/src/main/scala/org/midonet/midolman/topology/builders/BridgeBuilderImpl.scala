@@ -109,8 +109,6 @@ class BridgeBuilderImpl(val id: UUID, val bridgeMgr: ActorRef) extends BridgeBui
         this
     }
 
-    def start() = null
-
     def setLogicalPortsMap(newMacToLogicalPortId: JMap[MAC, UUID],
                            newIpToMac: JMap[IPAddr, MAC]) {
         oldMacToLogicalPortId = macToLogicalPortId
@@ -170,6 +168,8 @@ class BridgeBuilderImpl(val id: UUID, val bridgeMgr: ActorRef) extends BridgeBui
 
          sendFlowInvalidation()
     }
+
+    override def deleted(): Unit = { }
 
     override def setExteriorPorts(ports: JList[UUID]) {
         exteriorPorts = asScalaBuffer(ports).toList

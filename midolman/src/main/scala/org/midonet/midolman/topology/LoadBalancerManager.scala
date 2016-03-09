@@ -102,6 +102,9 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
                 loadBalancerMgr ! TriggerUpdate(cfg, vipSet)
             }
         }
+
+        override def deleted(): Unit = { }
+
     }
 
 }

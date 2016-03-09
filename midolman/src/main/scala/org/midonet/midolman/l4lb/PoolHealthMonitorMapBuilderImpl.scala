@@ -37,6 +37,8 @@ class PoolHealthMonitorMapBuilderImpl(val poolHealthMonitorMapManager: ActorRef)
             PoolHealthMonitorMapManager.TriggerUpdate(poolIdToMappingConfig)
     }
 
+    override def deleted(): Unit = { }
+
     /**
     * Adds a map of pools and health monitors..
     *
