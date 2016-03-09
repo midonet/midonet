@@ -234,6 +234,23 @@
       "revId": "2c4e28ef1536c1aa74bfa80324d8ae00973cc6d2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_cb09002e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T11:33:45Z",
+      "side": 1,
+      "message": "doesn\u0027t need to be a member of this class",
+      "revId": "2c4e28ef1536c1aa74bfa80324d8ae00973cc6d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
