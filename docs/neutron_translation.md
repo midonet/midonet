@@ -498,7 +498,8 @@ of the chain in the appropriate direction.  The following fields are set:
  * protocol_number => nwProto
  * ethertype => etherType
 
-If port_range_min or port_range_max is set:
+If port_range_min or port_range_max is set, it's an L4 rule.
+In that case,:
 
  * For ICMP, port_range_min is the ICMP type and port_range_max is the ICMP
    code.  For both, set the start and the end of the range:
@@ -509,6 +510,10 @@ If port_range_min or port_range_max is set:
  * For non-ICMP, only the destination port range needs to be set:
 
    * range(port_range_min, port_range_max) => tpDst
+
+Otherwise,:
+
+ * fragmentPolicy => ANY
 
 If the direction is 'egress', set the following fields:
 

@@ -20,6 +20,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Commons.{Protocol, UUID}
+import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Delete, Create}
@@ -209,5 +210,25 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         mRule.getCondition.getTpDst.getStart shouldBe 1
         mRule.getCondition.getTpDst.hasEnd shouldBe true
         mRule.getCondition.getTpDst.getEnd shouldBe 1
+    }
+
+    "Non-L4 ingress SecurityGroupRule translation" should "correspond " +
+    "to a mido rule" in {
+        val ip = "1.1.1.0"
+        val len = "24"
+        val nRule = nSecurityGroupRuleFromTxt(s"""
+         id { $sgrId }
+         protocol: TCP
+         security_group_id: { $sgId }
+         tenant_id: 'neutron tenant'
+         direction: INGRESS
+         remote_ip_prefix: '$ip/$len'
+         """.stripMargin)
+
+        val mRule = SecurityGroupRuleManager.translate(nRule)
+        mRule.getId shouldBe sgrId
+        mRule.getCondition.getNwProto shouldBe Protocol.TCP.getNumber
+        mRule.getCondition.getFragmentPolicy shouldBe FragmentPolicy.ANY
+        mRule.getCondition.getNwSrcIp.getAddress shouldBe ip
     }
 }
