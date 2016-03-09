@@ -35,7 +35,8 @@ import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{Ethernet, FlowStateSbeEncoder}
+import org.midonet.packets.FlowStateSbeEncoder._
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
@@ -102,7 +103,7 @@ class FlowStateReplicator(
 
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
-    private val flowStateEncoder = new SbeEncoder
+    private val flowStateEncoder = new FlowStateSbeEncoder
 
     /* Used for message building */
     private[this] var txIngressPort: UUID = _
