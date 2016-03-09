@@ -304,9 +304,18 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                    "10.0.1.50", snatEnabled = true,
                                    extNwArpTable))
 
+        // Delete the subnet altogether.
+        val extNwSubnetDeleteJson =
+            subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24")
+        insertDeleteTask(23, SubnetType, extNwSubnetId)
+        eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
+                                   "10.0.1.4", "ab:cd:ef:00:00:04", null,
+                                   snatEnabled = true, extNwArpTable,
+                                   gwRouteExists = false))
+
         // Delete gateway and router.
-        insertDeleteTask(23, PortType, extNwGwPortId)
-        insertDeleteTask(24, RouterType, tntRtrId)
+        insertDeleteTask(24, PortType, extNwGwPortId)
+        insertDeleteTask(25, RouterType, tntRtrId)
         eventually {
             val extNwF = storage.get(classOf[Network], extNwId)
             List(storage.exists(classOf[Router], tntRtrId),
@@ -421,7 +430,9 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                 extSubnetCidr: String, gatewayIp: String,
                                 trPortMac: String, nextHopIp: String,
                                 snatEnabled: Boolean,
-                                extNwArpTable: Ip4ToMacReplicatedMap): Unit = {
+                                extNwArpTable: Ip4ToMacReplicatedMap,
+                                gwRouteExists: Boolean=true)
+    : Unit = {
         // Tenant router should have gateway port and no routes.
         val trGwPortId = tenantGwPortId(nwGwPortId)
         val tr = eventually {
@@ -442,17 +453,16 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val trLocalRtId = RouteManager.localRouteId(trGwPortId)
         val trGwRtId = RouteManager.gatewayRouteId(trGwPortId)
 
-        val List(trLocalRt, trGwRt) =
-            List(trLocalRtId, trGwRtId)
-                .map(storage.get(classOf[Route], _)).map(_.await())
-
         val List(nwGwPort, trGwPort) = portFs.await()
+
+        val trLocalRt =
+            storage.get(classOf[Route], trLocalRtId).await()
 
         // Check router port has correct router and route IDs.  This also
         // validates that there is no network route created for the gw port.
         trGwPort.getRouterId shouldBe UUIDUtil.toProto(rtrId)
         trGwPort.getRouteIdsList.asScala should
-            contain only (trGwRtId, trRifRtId, trLocalRtId)
+          contain only(trGwRtId, trRifRtId, trLocalRtId)
 
         // Network port has no routes.
         nwGwPort.getRouteIdsCount shouldBe 0
@@ -466,12 +476,20 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         validateLocalRoute(trLocalRt, trGwPort)
 
-        trGwRt.getNextHop shouldBe NextHop.PORT
-        trGwRt.getNextHopPortId shouldBe trGwPort.getId
-        trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
-        trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-        if (nextHopIp == null) trGwRt.hasNextHopGateway shouldBe false
-        else trGwRt.getNextHopGateway.getAddress shouldBe nextHopIp
+        if (gwRouteExists) {
+            val trGwRt =
+                storage.get(classOf[Route], trGwRtId).await()
+
+            trGwRt.getNextHop shouldBe NextHop.PORT
+            trGwRt.getNextHopPortId shouldBe trGwPort.getId
+            trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
+            trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+            if (nextHopIp == null) trGwRt.hasNextHopGateway shouldBe false
+            else trGwRt.getNextHopGateway.getAddress shouldBe nextHopIp
+
+        } else {
+            storage.exists(classOf[Route], trGwRtId).await() shouldBe false
+        }
 
         if (snatEnabled)
             validateGatewayNatRules(tr, gatewayIp, trGwPortId)
