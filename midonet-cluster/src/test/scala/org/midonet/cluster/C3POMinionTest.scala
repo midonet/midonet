@@ -911,27 +911,41 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         portId
     }
 
-    protected def createRouterGatewayPort(taskId: Int, portId: UUID,
-                                          networkId: UUID, routerId: UUID,
-                                          gwIpAddr: String, macAddr: String,
-                                          subnetId: UUID) : Unit = {
-        val gwIpAlloc = IPAlloc(gwIpAddr, subnetId)
-        val json = portJson(portId, networkId, fixedIps = List(gwIpAlloc),
-                            deviceId = routerId, macAddr = macAddr,
-                            deviceOwner = DeviceOwner.ROUTER_GATEWAY)
-        insertCreateTask(taskId, PortType, json, portId)
+    protected def createVifPort(taskId: Int, nwId: UUID, snId: UUID,
+                                ipAddr: String, id: UUID = UUID.randomUUID(),
+                                mac: String = MAC.random().toString): UUID = {
+
+        val json = portJson(id, nwId, macAddr = mac,
+                            fixedIps = Seq(IPAlloc(ipAddr, snId)),
+                            deviceOwner = DeviceOwner.COMPUTE)
+        insertCreateTask(taskId, PortType, json, id)
+        id
     }
 
-    protected def createRouterInterfacePort(taskId: Int, portId: UUID,
-                                            networkId: UUID, routerId: UUID,
+    protected def createRouterGatewayPort(taskId: Int, networkId: UUID,
+                                          gwIpAddr: String, macAddr: String,
+                                          subnetId: UUID,
+                                          id: UUID = UUID.randomUUID())
+    : UUID = {
+        val json = portJson(id, networkId, macAddr = macAddr,
+                            fixedIps = Seq(IPAlloc(gwIpAddr, subnetId)),
+                            deviceOwner = DeviceOwner.ROUTER_GATEWAY)
+        insertCreateTask(taskId, PortType, json, id)
+        id
+    }
+
+    protected def createRouterInterfacePort(taskId: Int, nwId: UUID,
+                                            subnetId: UUID, rtrId: UUID,
                                             ipAddr: String, macAddr: String,
-                                            subnetId: UUID, hostId: UUID = null,
-                                            ifName: String = null): Unit = {
-        val json = portJson(portId, networkId, deviceId = routerId,
-                            deviceOwner = DeviceOwner.ROUTER_INTERFACE, macAddr = macAddr,
-                            fixedIps = List(IPAlloc(ipAddr, subnetId)),
-                            hostId = hostId, ifName = ifName)
-        insertCreateTask(taskId, NeutronResourceType.Port, json, portId)
+                                            id: UUID = UUID.randomUUID(),
+                                            hostId: UUID = null,
+                                            ifName: String = null): UUID = {
+        val json = portJson(id, nwId, hostId = hostId, ifName = ifName,
+                            deviceOwner = DeviceOwner.ROUTER_INTERFACE,
+                            deviceId = rtrId, macAddr = macAddr,
+                            fixedIps = List(IPAlloc(ipAddr, subnetId)))
+        insertCreateTask(taskId, PortType, json, id)
+        id
     }
 
     protected def createRouterInterface(taskId: Int, routerId: UUID,
