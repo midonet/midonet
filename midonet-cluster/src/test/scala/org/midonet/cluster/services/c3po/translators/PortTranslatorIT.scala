@@ -42,6 +42,7 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
     /* Set up legacy Data Client for testing Replicated Map. */
     override protected val useLegacyDataClient = true
 
+    /*
     "Port translator" should " handle VIF port CRUD" in {
         // Create a network with two VIF ports.
         val nw1Id = UUID.randomUUID()
@@ -296,6 +297,171 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         eventually {
             val dhcp = storage.get(classOf[Dhcp], snId).await()
             dhcp.hasServerAddress shouldBe false
+        }
+    }
+    */
+
+    it should "update ip addr groups" in {
+        val ip1 = "10.0.0.3"
+        val ip2 = "10.0.0.4"
+
+        val nwId = createTenantNetwork(10)
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+
+        val sgId = createSecurityGroup(30)
+        val sg2Id = createSecurityGroup(31)
+        val sg3Id = createSecurityGroup(32)
+
+        val pId = createPort(50, nwId, fixedIps = List(IPAlloc(ip1, snId)),
+                             securityGroups = List(sgId, sg2Id, sg3Id))
+
+        val p2Id = createPort(51, nwId, fixedIps = List(IPAlloc(ip2, snId)),
+                              securityGroups = List(sgId, sg2Id))
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 2
+
+            val ipGrp2 = storage.get(classOf[IPAddrGroup], sg2Id).await()
+            ipGrp2.getIpAddrPortsCount shouldBe 2
+
+            val ipGrp3 = storage.get(classOf[IPAddrGroup], sg3Id).await()
+            ipGrp3.getIpAddrPortsCount shouldBe 1
+        }
+
+        var pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip1, snId)),
+                         securityGroups = Seq(sg2Id))
+
+        insertUpdateTask(60, PortType, pJson, pId)
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 1
+
+            val ip2Grp = storage.get(classOf[IPAddrGroup], sg2Id).await()
+            ip2Grp.getIpAddrPortsCount shouldBe 2
+
+            val ip3Grp = storage.get(classOf[IPAddrGroup], sg3Id).await()
+            ip3Grp.getIpAddrPortsCount shouldBe 0
+        }
+
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip1, snId)),
+                         securityGroups = Seq(sgId, sg2Id, sg3Id))
+
+        insertUpdateTask(70, PortType, pJson, pId)
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 2
+
+            val ip2Grp = storage.get(classOf[IPAddrGroup], sg2Id).await()
+            ip2Grp.getIpAddrPortsCount shouldBe 2
+
+            val ip3Grp = storage.get(classOf[IPAddrGroup], sg3Id).await()
+            ip3Grp.getIpAddrPortsCount shouldBe 1
+        }
+
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip1, snId)),
+                         securityGroups = Seq())
+
+        insertUpdateTask(80, PortType, pJson, pId)
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 1
+
+            val ip2Grp = storage.get(classOf[IPAddrGroup], sg2Id).await()
+            ip2Grp.getIpAddrPortsCount shouldBe 1
+
+            val ip3Grp = storage.get(classOf[IPAddrGroup], sg3Id).await()
+            ip3Grp.getIpAddrPortsCount shouldBe 0
+        }
+    }
+
+    it should "update ip addr groups with same IP" in {
+        val ip = "10.0.0.3"
+        val nwId = createTenantNetwork(10)
+        val nw2Id = createTenantNetwork(11)
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+        val sn2Id = createSubnet(21, nwId, "10.0.0.0/24")
+
+        val sgId = createSecurityGroup(30)
+        val sg2Id = createSecurityGroup(31)
+        val sg3Id = createSecurityGroup(32)
+
+        val pId = createPort(50, nwId, fixedIps = List(IPAlloc(ip, snId)),
+            securityGroups = List(sgId, sg2Id, sg3Id))
+
+        val p2Id = createPort(51, nwId, fixedIps = List(IPAlloc(ip, snId)),
+            securityGroups = List(sgId, sg2Id))
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 1
+            ipGrp.getIpAddrPorts(0).getPortIdsCount shouldBe 2
+
+            val ipGrp2 = storage.get(classOf[IPAddrGroup], sg2Id).await()
+            ipGrp2.getIpAddrPortsCount shouldBe 1
+            ipGrp2.getIpAddrPorts(0).getPortIdsCount shouldBe 2
+
+            val ipGrp3 = storage.get(classOf[IPAddrGroup], sg3Id).await()
+            ipGrp3.getIpAddrPortsCount shouldBe 1
+            ipGrp3.getIpAddrPorts(0).getPortIdsCount shouldBe 1
+        }
+
+        var pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                             securityGroups = Seq(sg2Id))
+
+        insertUpdateTask(60, PortType, pJson, pId)
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 1
+            ipGrp.getIpAddrPorts(0).getPortIdsCount shouldBe 1
+
+            val ip2Grp = storage.get(classOf[IPAddrGroup], sg2Id).await()
+            ip2Grp.getIpAddrPortsCount shouldBe 1
+            ip2Grp.getIpAddrPorts(0).getPortIdsCount shouldBe 2
+
+            val ip3Grp = storage.get(classOf[IPAddrGroup], sg3Id).await()
+            ip3Grp.getIpAddrPortsCount shouldBe 0
+        }
+
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                         securityGroups = Seq(sgId, sg2Id, sg3Id))
+
+        insertUpdateTask(70, PortType, pJson, pId)
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 1
+            ipGrp.getIpAddrPorts(0).getPortIdsCount shouldBe 2
+
+            val ip2Grp = storage.get(classOf[IPAddrGroup], sg2Id).await()
+            ip2Grp.getIpAddrPortsCount shouldBe 1
+            ip2Grp.getIpAddrPorts(0).getPortIdsCount shouldBe 2
+
+            val ip3Grp = storage.get(classOf[IPAddrGroup], sg3Id).await()
+            ip3Grp.getIpAddrPortsCount shouldBe 1
+            ip3Grp.getIpAddrPorts(0).getPortIdsCount shouldBe 1
+        }
+
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                         securityGroups = Seq())
+
+        insertUpdateTask(80, PortType, pJson, pId)
+
+        eventually {
+            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            ipGrp.getIpAddrPortsCount shouldBe 1
+            ipGrp.getIpAddrPorts(0).getPortIdsCount shouldBe 1
+
+            val ip2Grp = storage.get(classOf[IPAddrGroup], sg2Id).await()
+            ip2Grp.getIpAddrPortsCount shouldBe 1
+            ip2Grp.getIpAddrPorts(0).getPortIdsCount shouldBe 1
+
+            val ip3Grp = storage.get(classOf[IPAddrGroup], sg3Id).await()
+            ip3Grp.getIpAddrPortsCount shouldBe 0
         }
     }
 

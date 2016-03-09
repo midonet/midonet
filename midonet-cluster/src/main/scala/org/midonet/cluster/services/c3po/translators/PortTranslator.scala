@@ -425,12 +425,95 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             .build())
     }
 
+    def addPortIpToIpAddrGrp(ipAddrGrp: IPAddrGroup.Builder, ip: IPAddress,
+                             portId: UUID): Unit = {
+        ipAddrGrp.getIpAddrPortsBuilderList.asScala.find(_.getIpAddress == ip) match {
+            case Some(ipPort) => ipPort.addPortIds(portId)
+            case None => ipAddrGrp.addIpAddrPortsBuilder()
+                                  .setIpAddress(ip)
+                                  .addPortIds(portId)
+        }
+    }
+
+    def removePortIpFromIpAddrGrp(iPAddrGroup: IPAddrGroup.Builder,
+                                  ip: IPAddress, portId: UUID): Unit = {
+        iPAddrGroup.getIpAddrPortsBuilderList.asScala.find(_.getIpAddress == ip) match {
+            case Some(ipPort) =>
+                val idx = ipPort.getPortIdsList.asScala.indexOf(portId)
+                if (idx >= 0) ipPort.removePortIds(idx)
+                if (ipPort.getPortIdsCount == 0) {
+                    val ipx = iPAddrGroup.getIpAddrPortsBuilderList.asScala.indexOf(ipPort)
+                    if (ipx >= 0) iPAddrGroup.removeIpAddrPorts(ipx)
+                }
+            case None =>
+        }
+    }
+
     private def buildSecurityGroupJumpRules(nPort: NeutronPort,
                                             nPortOld: NeutronPort,
                                             portCtx: PortContext,
                                             portId: UUID,
                                             inChainId: UUID,
                                             outChainId: UUID): Unit = {
+
+        val newIps = nPort.getFixedIpsList.asScala map (_.getIpAddress)
+        val newSgs = nPort.getSecurityGroupsList.asScala
+
+        var oldIps = mutable.Buffer[Commons.IPAddress]()
+        var oldSgs = mutable.Buffer[Commons.UUID]()
+
+        if (nPortOld != null) {
+            oldIps = nPortOld.getFixedIpsList.asScala map (_.getIpAddress)
+            oldSgs = nPortOld.getSecurityGroupsList.asScala
+        }
+
+        val removedSgs = oldSgs diff newSgs
+        val addedSgs = newSgs diff oldSgs
+        var keptSgs = mutable.Buffer[Commons.UUID]()
+
+        if (nPortOld != null) {
+            keptSgs = newSgs -- addedSgs
+        }
+
+        val removedIps = oldIps diff newIps
+        val addedIps = newIps diff oldIps
+
+        // Remove all port/ips from the removed SGs
+        val removedIpAddrGrps = storage.getAll(classOf[IPAddrGroup], removedSgs).await()
+        removedIpAddrGrps foreach { ipAddrGrp =>
+            val iagBldr = ipAddrGrp.toBuilder
+            val portId = nPort.getId
+            for (ip <- oldIps) {
+                removePortIpFromIpAddrGrp(iagBldr, ip, portId)
+            }
+            portCtx.updatedIpAddrGrps += Update(iagBldr.build)
+        }
+
+        // Add all new port/ips to new SGs
+        val newIpAddrGrps = storage.getAll(classOf[IPAddrGroup], newSgs).await()
+        newIpAddrGrps foreach {ipAddrGrp =>
+            val iagBldr = ipAddrGrp.toBuilder
+            val portId = nPort.getId
+            for (ip <- newIps) {
+                addPortIpToIpAddrGrp(iagBldr, ip, portId)
+            }
+            portCtx.updatedIpAddrGrps += Update(iagBldr.build)
+        }
+
+        // For all the SGs that have not changed, removed the IPs that have
+        // been removed, and add the IPs that have been added to the port.
+        val keptIpAddrGrps = storage.getAll(classOf[IPAddrGroup], keptSgs).await()
+        keptIpAddrGrps foreach {ipAddrGrp =>
+            val iagBldr = ipAddrGrp.toBuilder
+            val portId = nPort.getId
+            for (ip <- addedIps) {
+                addPortIpToIpAddrGrp(iagBldr, ip, portId)
+            }
+            for (ip <- removedIps) {
+                removePortIpFromIpAddrGrp(iagBldr, ip, portId)
+            }
+            portCtx.updatedIpAddrGrps += Update(iagBldr.build)
+        }
 
         // Add jump rules to corresponding inbound / outbound chains of IP
         // Address Groups (Neutron's Security Groups) that the port belongs to.
@@ -441,31 +524,6 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                                                ipAddrGrp.getInboundChainId))
             portCtx.outRules += Create(jumpRule(outChainId,
                                                 ipAddrGrp.getOutboundChainId))
-
-            // Compute IP addresses that were removed from the IP Address Group
-            // or added to it.
-            val updatedIpAddrG = ipAddrGrp.toBuilder
-            val ips = nPort.getFixedIpsList.asScala.map(_.getIpAddress)
-            val oldIps = if (nPortOld != null) {
-                    nPortOld.getFixedIpsList.asScala.map(_.getIpAddress)
-                } else List()
-            val removed = oldIps diff ips
-            var added = ips diff oldIps
-            for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
-                if (removed.contains(ipPorts.getIpAddress)) {
-                    val idx = ipPorts.getPortIdsList.indexOf(portId)
-                    if (idx >= 0) ipPorts.removePortIds(idx)
-                } else  if (added contains ipPorts.getIpAddress) {
-                    // Exclude IPs that are already in IP Address Groups.
-                    ipPorts.addPortIds(portId)
-                    added -= ipPorts.getIpAddress
-                }
-            }
-            for (newIp <- added)
-                updatedIpAddrG.addIpAddrPortsBuilder()
-                              .setIpAddress(newIp)
-                              .addPortIds(portId)
-            portCtx.updatedIpAddrGrps += Update(updatedIpAddrG.build)
         }
 
         // Drop non-ARP traffic that wasn't accepted by earlier rules.
