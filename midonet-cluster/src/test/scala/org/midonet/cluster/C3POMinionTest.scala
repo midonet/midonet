@@ -902,6 +902,19 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         subnetId
     }
 
+    protected def createVifPort(taskId: Int, networkId: UUID,
+                                portId: UUID = UUID.randomUUID(),
+                                fixedIps: List[IPAlloc] = List[IPAlloc](),
+                                sg: List[UUID] = List[UUID](),
+                                portSecurityEnabled: Boolean = true): UUID = {
+        val json = portJson(portId, networkId,
+                            deviceOwner = DeviceOwner.COMPUTE,
+                            fixedIps = fixedIps, securityGroups = sg,
+                            portSecurityEnabled = portSecurityEnabled)
+        insertCreateTask(taskId, PortType, json, portId)
+        portId
+    }
+
     protected def createDhcpPort(taskId: Int, networkId: UUID, subnetId: UUID,
                                  ipAddr: String,
                                  portId: UUID = UUID.randomUUID()): UUID = {
