@@ -61,9 +61,14 @@ sealed abstract class InstanceStash[T](factory: () => T) {
     }
 }
 
-class InstanceStash0[T](factory: () => T) extends InstanceStash[T](factory) {
+class InstanceStash0[T](factory: () => T, fill: T => Unit) extends
+       InstanceStash[T](factory) {
 
-    def apply(): T = get()
+    def apply(): T = {
+        val obj = get()
+        fill(obj)
+        obj
+    }
 }
 
 class InstanceStash1[T, A](factory: () => T, fill: (T, A) => Unit) extends
