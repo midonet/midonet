@@ -165,6 +165,11 @@ If the port is a VIF port (device_owner == 'compute:nova'):
    the request.
  * If IP address changed, refresh the DHCP Host entries on the MidoNet network.
  * Update the DHCP extra options in DHCP Host entries.
+ * If IP address or security group association changed, update the ip address
+   group - port associations appropriately.  Make sure that this is handled
+   even if port security is disabled because it is possible that a single
+   update request could disable port security and change security group
+   associations.
 
 If the port is a DHCP port (device_owner == 'network:dhcp'):
 
