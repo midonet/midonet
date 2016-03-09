@@ -166,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_3372f849",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T17:31:37Z",
+      "side": 1,
+      "message": "Ah, good point. Leave as is then.",
+      "parentUuid": "5a72e520_104fb2be",
+      "range": {
+        "startLine": 200,
+        "startChar": 29,
+        "endLine": 200,
+        "endChar": 41
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_50ea0a10",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 30
@@ -201,6 +225,30 @@
       "side": 1,
       "message": "Not sure I follow. The observable is the rx interface of the client. In fact, The cache is managed by curator and we register a callback for updates on the cache. That callback is the one sending the updated cache to the observable.",
       "parentUuid": "5a72e520_50ea0a10",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 13
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_d3ca844e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T17:31:37Z",
+      "side": 1,
+      "message": "I wanted both to be accessing the same data source. the cache only populates observable via a callback, so I wouldn\u0027t consider them the same data source as such. Ignore me though. I\u0027m just being picky.",
+      "parentUuid": "5a72e520_90d2c2d0",
       "range": {
         "startLine": 219,
         "startChar": 8,
@@ -295,6 +343,30 @@
       "side": 1,
       "message": "Yes, I had the same feeling. Ernest wanted to specify everything on the payload as it could handle all necessary information in one object though. I don\u0027t have a strong opinion. As a compromise, we decided to make everything optional and check that at least the payload is defined if server/port are empty at registration time (line 152).",
       "parentUuid": "5a72e520_d0afdae1",
+      "range": {
+        "startLine": 237,
+        "startChar": 25,
+        "endLine": 237,
+        "endChar": 67
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_53b774d8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T17:31:37Z",
+      "side": 1,
+      "message": "sharing hosts and ports is the most basic thing that service discovery does. I\u0027d need to see a strong motivating usecase to make them optional.",
+      "parentUuid": "5a72e520_50968af1",
       "range": {
         "startLine": 237,
         "startChar": 25,
