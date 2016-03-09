@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_70646649",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-09T15:25:24Z",
+      "side": 1,
+      "message": "mmm that would be great. But this is \"feature\"/\"limitation\" of curator/jackson. I\u0027ll check if protobufs can be serialized as json by jackson, but it doesn\u0027t ring a bell on me.",
+      "parentUuid": "5a72e520_f063f6da",
+      "range": {
+        "startLine": 52,
+        "startChar": 34,
+        "endLine": 55,
+        "endChar": 31
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_7078e68f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 30
@@ -59,6 +83,30 @@
       "writtenOn": "2016-03-09T11:33:45Z",
       "side": 1,
       "message": "you could just put one @Inject outside the (",
+      "range": {
+        "startLine": 99,
+        "startChar": 28,
+        "endLine": 99,
+        "endChar": 34
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_f04f76bc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-09T15:25:24Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "5a72e520_7078e68f",
       "range": {
         "startLine": 99,
         "startChar": 28,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_104fb2be",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-09T15:25:24Z",
+      "side": 1,
+      "message": "Just did that to limit the visibility, so clients wouldn\u0027t be able to send events to it.",
+      "parentUuid": "5a72e520_70862667",
+      "range": {
+        "startLine": 200,
+        "startChar": 29,
+        "endLine": 200,
+        "endChar": 41
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_50ea0a10",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 30
@@ -105,6 +177,30 @@
       "writtenOn": "2016-03-09T11:33:45Z",
       "side": 1,
       "message": "I feel like this should use the observable, rather than going directly to the cache, but I can\u0027t find a method on Observable that does what I want :/",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 13
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_90d2c2d0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-09T15:25:24Z",
+      "side": 1,
+      "message": "Not sure I follow. The observable is the rx interface of the client. In fact, The cache is managed by curator and we register a callback for updates on the cache. That callback is the one sending the updated cache to the observable.",
+      "parentUuid": "5a72e520_50ea0a10",
       "range": {
         "startLine": 219,
         "startChar": 8,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "5a72e520_d0db5aeb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-09T15:25:24Z",
+      "side": 1,
+      "message": "Yes, I\u0027ll remove.",
+      "parentUuid": "5a72e520_10ba5223",
+      "range": {
+        "startLine": 223,
+        "startChar": 8,
+        "endLine": 223,
+        "endChar": 22
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_d0afdae1",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 30
@@ -151,6 +271,30 @@
       "writtenOn": "2016-03-09T11:33:45Z",
       "side": 1,
       "message": "I\u0027d make these mandatory. Perhaps even use Guava\u0027s HostAndPort.",
+      "range": {
+        "startLine": 237,
+        "startChar": 25,
+        "endLine": 237,
+        "endChar": 67
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_50968af1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-09T15:25:24Z",
+      "side": 1,
+      "message": "Yes, I had the same feeling. Ernest wanted to specify everything on the payload as it could handle all necessary information in one object though. I don\u0027t have a strong opinion. As a compromise, we decided to make everything optional and check that at least the payload is defined if server/port are empty at registration time (line 152).",
+      "parentUuid": "5a72e520_d0afdae1",
       "range": {
         "startLine": 237,
         "startChar": 25,
