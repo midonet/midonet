@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_f3bf80fa",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/InstanceStash.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-09T15:42:56Z",
+      "side": 1,
+      "message": "the spirit of fill in the other overloads is to initialize the object with the passed parameters. if the idea is to clear the objects so they can be reused - which i think is a good idea -, a better approach would be to bake that behavior into the InstanceStash base class. for example:\n\nclass InstanceStash[T](f[actory: () \u003d\u003e T, clear: T \u003d\u003e ()) {\n   final def reUp(): Unit \u003d {\n      val pool \u003d poolStorage.get()\n      var next \u003d nextStorage.get()\n      var i \u003d 0\n      while (i \u003c next) {\n         clear(pool.get(i))\n         i +\u003d 1\n      }\n   }\n}\n\nThis also avoids leaks in case a pooled object never gets requested again, and thus we don\u0027t get a chance to apply fill().",
+      "revId": "17fba2eee1b7de736d07a0f3c31f75283eb26973",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
