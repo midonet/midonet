@@ -36,8 +36,8 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
         val sgId = sgr.getSecurityGroupId
         val sg = storage.get(classOf[SecurityGroup], sgId).await()
         val updatedSg = sg.toBuilder.addSecurityGroupRules(sgr).build()
-        List(Create(SecurityGroupRuleManager.translate(sgr)),
-             Update(updatedSg))
+        SecurityGroupRuleManager.translate(sgr).map(Create(_)) :+
+            Update(updatedSg)
     }
 
     protected override def translateUpdate(newSgr: SecurityGroupRule)
@@ -58,6 +58,8 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
             }
         }
         ops += Delete(classOf[Rule], sgrId)
+        ops += Delete(classOf[Rule],
+                      SecurityGroupRuleManager.nonHeaderRuleId(sgrId))
         ops.toList
     }
 }
