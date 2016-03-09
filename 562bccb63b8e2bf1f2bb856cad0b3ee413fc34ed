@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_f03cd6c1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/package.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T11:33:45Z",
+      "side": 1,
+      "message": "the presence of this change confuses me",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_f063f6da",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T11:33:45Z",
+      "side": 1,
+      "message": "It should be a protobuf to keep things consistent. It must be possible to easily extend the payload in new versions and have old versions be compatible, since it\u0027s effectively a message between the server and the client.",
+      "range": {
+        "startLine": 52,
+        "startChar": 34,
+        "endLine": 55,
+        "endChar": 31
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_7078e68f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T11:33:45Z",
+      "side": 1,
+      "message": "you could just put one @Inject outside the (",
+      "range": {
+        "startLine": 99,
+        "startChar": 28,
+        "endLine": 99,
+        "endChar": 34
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_70862667",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T11:33:45Z",
+      "side": 1,
+      "message": "a subject is already an observable.",
+      "range": {
+        "startLine": 200,
+        "startChar": 29,
+        "endLine": 200,
+        "endChar": 41
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_50ea0a10",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T11:33:45Z",
+      "side": 1,
+      "message": "I feel like this should use the observable, rather than going directly to the cache, but I can\u0027t find a method on Observable that does what I want :/",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 13
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_10ba5223",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T11:33:45Z",
+      "side": 1,
+      "message": "doesn\u0027t seem like something that should be a member of the client class.",
+      "range": {
+        "startLine": 223,
+        "startChar": 8,
+        "endLine": 223,
+        "endChar": 22
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a72e520_d0afdae1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-09T11:33:45Z",
+      "side": 1,
+      "message": "I\u0027d make these mandatory. Perhaps even use Guava\u0027s HostAndPort.",
+      "range": {
+        "startLine": 237,
+        "startChar": 25,
+        "endLine": 237,
+        "endChar": 67
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
