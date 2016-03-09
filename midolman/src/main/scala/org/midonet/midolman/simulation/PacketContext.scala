@@ -28,7 +28,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.flows.ManagedFlow
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.PacketWorkflow.{GeneratedPhysicalPacket, GeneratedLogicalPacket}
-import org.midonet.midolman.state.{ArpRequestBroker, FlowStatePackets}
+import org.midonet.midolman.state.{FlowStateSbeEncoder, ArpRequestBroker, FlowStatePackets}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
@@ -370,7 +370,7 @@ class PacketContext(val cookie: Long,
 
     def isGenerated = (egressPort ne null) || (egressPortNo ne null)
     def ingressed = !isGenerated
-    def isStateMessage = origMatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
+    def isStateMessage = origMatch.getTunnelKey == FlowStateSbeEncoder.TUNNEL_KEY
 
     def cookieStr = s"[cookie:$cookie]"
 

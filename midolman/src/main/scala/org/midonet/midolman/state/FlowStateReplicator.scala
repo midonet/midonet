@@ -102,7 +102,7 @@ class FlowStateReplicator(
 
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
-    private val flowStateEncoder = new SbeEncoder
+    private val flowStateEncoder = new FlowStateSbeEncoder
 
     /* Used for message building */
     private[this] var txIngressPort: UUID = _

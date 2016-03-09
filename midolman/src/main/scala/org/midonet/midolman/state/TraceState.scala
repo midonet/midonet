@@ -181,7 +181,7 @@ trait TraceState extends FlowState { this: PacketContext =>
 
     def hasTraceTunnelBit: Boolean = {
         TraceState.traceBitPresent(origMatch.getTunnelKey) &&
-                origMatch.getTunnelKey != FlowStatePackets.TUNNEL_KEY
+                origMatch.getTunnelKey != FlowStateSbeEncoder.TUNNEL_KEY
     }
 
     def stripTraceBit(m: FlowMatch): Unit = {

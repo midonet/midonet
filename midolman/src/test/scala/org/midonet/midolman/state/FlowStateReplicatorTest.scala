@@ -263,7 +263,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             When("Flow state packet payload is the empty protobuf messsage")
             val encodingBytes = new Array[Byte](
                 FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
-            val encoder = new SbeEncoder()
+            val encoder = new FlowStateSbeEncoder()
             val flowStateMessage = encoder.encodeTo(encodingBytes)
             val sender = UUID.randomUUID
             uuidToSbe(sender, flowStateMessage.sender)
