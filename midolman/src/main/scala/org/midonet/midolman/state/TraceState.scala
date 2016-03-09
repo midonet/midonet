@@ -27,7 +27,7 @@ import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{MAC, IPAddr, ICMP}
+import org.midonet.packets.{FlowStateSbeEncoder, MAC, IPAddr, ICMP}
 import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
@@ -181,7 +181,7 @@ trait TraceState extends FlowState { this: PacketContext =>
 
     def hasTraceTunnelBit: Boolean = {
         TraceState.traceBitPresent(origMatch.getTunnelKey) &&
-                origMatch.getTunnelKey != FlowStatePackets.TUNNEL_KEY
+                origMatch.getTunnelKey != FlowStateSbeEncoder.TUNNEL_KEY
     }
 
     def stripTraceBit(m: FlowMatch): Unit = {

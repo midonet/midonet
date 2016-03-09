@@ -47,6 +47,7 @@ import org.midonet.midolman.topology.devices.{TunnelZone => SimTunnelZone}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets._
+import org.midonet.packets.FlowStateSbeEncoder._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -263,7 +264,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             When("Flow state packet payload is the empty protobuf messsage")
             val encodingBytes = new Array[Byte](
                 FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
-            val encoder = new SbeEncoder()
+            val encoder = new FlowStateSbeEncoder()
             val flowStateMessage = encoder.encodeTo(encodingBytes)
             val sender = UUID.randomUUID
             uuidToSbe(sender, flowStateMessage.sender)
