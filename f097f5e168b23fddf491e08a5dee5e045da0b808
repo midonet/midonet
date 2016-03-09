@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a72e520_cde74111",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 9
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-09T07:34:06Z",
+      "side": 1,
+      "message": "can you explain what\u0027s the purpose of this utility?\ndebug?",
+      "revId": "f097f5e168b23fddf491e08a5dee5e045da0b808",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
