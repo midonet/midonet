@@ -30,7 +30,7 @@ import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.layer3.{Route => L3Route}
 import org.midonet.midolman.simulation.{Bridge => SimBridge, PacketContext, Router => SimRouter}
-import org.midonet.midolman.state.{FlowStatePackets, TraceState}
+import org.midonet.midolman.state.{FlowStateSbeEncoder, FlowStatePackets, TraceState}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology._
@@ -225,7 +225,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         // should be sending a trace state to other host
         packetOutQueueIngress.size should be (2)
         val (_, stateActions) = packetOutQueueIngress.remove()
-        getTunnelId(stateActions) should be (FlowStatePackets.TUNNEL_KEY)
+        getTunnelId(stateActions) should be (FlowStateSbeEncoder.TUNNEL_KEY)
 
         // should have executed flow with tunnel mask set
         val (packet, actions) = packetOutQueueIngress.remove()

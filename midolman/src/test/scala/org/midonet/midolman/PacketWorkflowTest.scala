@@ -37,7 +37,7 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockFlowStateTable, MockStateStorage}
+import org.midonet.midolman.state._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.FlowActions.output
@@ -104,9 +104,9 @@ class PacketWorkflowTest extends MidolmanSpec {
     def makePacket(variation: Short): Packet = makeFrame(variation)
 
     def makeStatePacket(): Packet = {
-        val eth = FlowStatePackets.makeUdpShell(Array())
+        val eth = FlowStateSbeEncoder.makeUdpShell(Array())
         val fmatch = FlowMatches.fromEthernetPacket(eth)
-        fmatch.addKey(tunnel(FlowStatePackets.TUNNEL_KEY, 1, 2, 0))
+        fmatch.addKey(tunnel(FlowStateSbeEncoder.TUNNEL_KEY, 1, 2, 0))
         new Packet(eth, fmatch)
     }
 
