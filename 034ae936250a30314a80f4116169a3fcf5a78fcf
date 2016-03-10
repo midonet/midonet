@@ -33,6 +33,24 @@
       "revId": "034ae936250a30314a80f4116169a3fcf5a78fcf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_2d873563",
+        "filename": "nsdb/src/main/scala/org/midonet/midolman/state/FlowStateSbeEncoder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-10T15:32:20Z",
+      "side": 1,
+      "message": "We have all interchange formats (ZK, topology API, etc.) in nsdb. Do we want all protobuf dependencies in midonet-util?",
+      "parentUuid": "3a6ff13c_cd6141d5",
+      "revId": "034ae936250a30314a80f4116169a3fcf5a78fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
