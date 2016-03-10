@@ -76,6 +76,8 @@ trait UnderlayResolver {
 
     def vtepTunnellingOutputAction: FlowActionOutput
 
+    def tunnelOverlayOutputAction: FlowActionOutput
+
     def tunnelRecircOutputAction: FlowActionOutput
 
     def hostRecircOutputAction: FlowActionOutput
@@ -83,6 +85,9 @@ trait UnderlayResolver {
     def isVtepTunnellingPort(portNumber: Integer): Boolean
 
     def isOverlayTunnellingPort(portNumber: Integer): Boolean
+
+    var hostTunnelIp: Int
+
 }
 
 trait VirtualPortsResolver {
@@ -264,6 +269,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             tzSubscriptions += zone -> VirtualToPhysicalMapper.tunnelZones(zone)
                                                               .subscribe(this)
         }
+
+        updateHostTunnelIp()
     }
 
     override def receive: Receive = super.receive orElse {
@@ -322,7 +329,15 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                 case _ =>
                     log.info("Could not find this host's ip for zone {}", zone)
             }
+    }
 
+    private def updateHostTunnelIp() = {
+        zones.headOption match {
+            case Some((uuid: UUID, srcIp: IPv4Addr)) =>
+                driver.hostTunnelIp = srcIp.toInt
+            case _ =>
+                log.info("This host does not belong to any tunnel zone.")
+        }
     }
 
     override def addToDatapath(port: String): Future[(DpPort, Int)] = {
@@ -404,6 +419,7 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     var tunnelVtepVxLan: VxLanTunnelPort = _
     var tunnelRecircVxLanPort: VxLanTunnelPort = _
     var hostRecircPort: NetDevPort = _
+    var hostTunnelIp: Int = _
 
     val interfaceToTriad = new ConcurrentHashMap[String, DpTriad]()
     val vportToTriad = new ConcurrentHashMap[UUID, DpTriad]()
@@ -411,6 +427,7 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     val dpPortNumToTriad = new ConcurrentHashMap[Int, DpTriad]
 
     override def vtepTunnellingOutputAction = tunnelVtepVxLan.toOutputAction
+    override def tunnelOverlayOutputAction = tunnelOverlayVxLan.toOutputAction
     override def tunnelRecircOutputAction = tunnelRecircVxLanPort.toOutputAction
     override def hostRecircOutputAction = hostRecircPort.toOutputAction
 
@@ -506,4 +523,5 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
         else
             null
     }
+
 }

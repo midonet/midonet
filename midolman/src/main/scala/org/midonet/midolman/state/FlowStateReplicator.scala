@@ -35,7 +35,7 @@ import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.packets.{Ethernet, FlowStateSbeEncoder}
+import org.midonet.packets.{IPv4Addr, Ethernet, FlowStateSbeEncoder}
 import org.midonet.packets.FlowStateSbeEncoder._
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
@@ -118,8 +118,6 @@ class FlowStateReplicator(
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
                            v: ConnTrackValue): ArrayList[Callback0] = {
             log.debug("touch conntrack key: {}", k)
-            if (storage ne null)
-                storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = conntrackTable.unref(k)
@@ -142,8 +140,6 @@ class FlowStateReplicator(
         override def apply(callbacks: ArrayList[Callback0], k: NatKey,
                            v: NatBinding): ArrayList[Callback0] = {
             log.debug("touch nat key: {}", k)
-            if (storage ne null)
-                storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = natTable.unref(k)
@@ -264,11 +260,19 @@ class FlowStateReplicator(
                 case None =>
             }
         }
+        // We always send flow state to the cluster, send and forget
+        storage.serviceIp match {
+            case Some(ip) =>
+                log.debug(s"Sending FlowState to ${IPv4Addr.fromInt(ip)} " +
+                          s"from ${IPv4Addr.fromInt(underlay.hostTunnelIp)}")
+                val key = setKey(tunnel(TUNNEL_KEY, underlay.hostTunnelIp, ip, tos))
+                actions.add(key)
+                actions.add(underlay.tunnelOverlayOutputAction)
+            case None =>
+                log.debug(s"No FlowStateService cluster node registered. Not " +
+                          s"sending flow state to storage.")
+        }
     }
-
-    def touchState(): Unit =
-        if (storage ne null)
-            storage.submit()
 
     private def acceptNewState(msg: FlowStateSbe) {
         val conntrackIter = msg.conntrack

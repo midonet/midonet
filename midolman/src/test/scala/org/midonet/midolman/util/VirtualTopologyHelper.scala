@@ -254,6 +254,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override def hostRecircPort: NetDevPort = null
             override def tunnelRecircOutputAction: FlowActionOutput = null
             override def hostRecircOutputAction: FlowActionOutput = null
+            override def tunnelOverlayOutputAction: FlowActionOutput = null
+            var hostTunnelIp = 0
         }
 
         val dhcpConfig = new DhcpConfigFromNsdb(
