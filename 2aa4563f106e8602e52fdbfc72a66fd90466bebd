@@ -22,6 +22,30 @@
       "revId": "2aa4563f106e8602e52fdbfc72a66fd90466bebd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_6d468d25",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-10T15:52:45Z",
+      "side": 1,
+      "message": "no, it\u0027s related to updating jctools. it\u0027s finding the next power of 2 of the max capacity, which overflows if it\u0027s Int.MAX_VALUE. the ctor throws an IllegalArgumentException because the initial size (256) will be bigger.",
+      "parentUuid": "3a6ff13c_0dd0b952",
+      "range": {
+        "startLine": 206,
+        "startChar": 76,
+        "endLine": 206,
+        "endChar": 83
+      },
+      "revId": "2aa4563f106e8602e52fdbfc72a66fd90466bebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
