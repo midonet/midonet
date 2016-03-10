@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_4d58f1fa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStatePackets.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-10T16:01:52Z",
+      "side": 1,
+      "message": "I tried. NatStateKey and ConnTrackStateKey extend FlowStateKey trait which use classes from flowtagger which use simulation channels which... Tried to isolate at the FlowState level but failed miserably.\n\nAnyway, on the cluster we don\u0027t need those case classes anyway and having the translation methods from/to sbe is enough.",
+      "parentUuid": "3a6ff13c_edb51d32",
+      "revId": "034ae936250a30314a80f4116169a3fcf5a78fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_cd6141d5",
         "filename": "nsdb/src/main/scala/org/midonet/midolman/state/FlowStateSbeEncoder.scala",
         "patchSetId": 2
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "Ah that\u0027s true. We don\u0027t want protobuf in util. Still, I\u0027d change the package, since this isn\u0027t midolman only anymore.",
       "parentUuid": "3a6ff13c_2d873563",
+      "revId": "034ae936250a30314a80f4116169a3fcf5a78fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_cdbdc104",
+        "filename": "nsdb/src/main/scala/org/midonet/midolman/state/FlowStateSbeEncoder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-10T16:01:52Z",
+      "side": 1,
+      "message": "kept in nsdb and changed package.",
+      "parentUuid": "3a6ff13c_6d812d4a",
       "revId": "034ae936250a30314a80f4116169a3fcf5a78fcf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
