@@ -203,7 +203,7 @@ class SingleRouterArpRequestBroker(id: UUID,
      * ArpCache's reactor to write events to this concurrent queue. It will later
      * process these events sequentially when process() is invoked.
      */
-    private val macsDiscovered = new SpscGrowableArrayQueue[MacChange](256, Integer.MAX_VALUE)
+    private val macsDiscovered = new SpscGrowableArrayQueue[MacChange](256, 1 << 30)
 
     /**
      * Notify this ArpRequestBroker when the ArpTable has discovered a new
