@@ -33,6 +33,24 @@
       "revId": "4b55dbfc7ed1dc7ac1319243e2b6210e05a603cc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_e44a9aab",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-10T04:40:23Z",
+      "side": 1,
+      "message": "This test is not testing the update of the port IPs. That test does not exist right now (except indirectly in an arp entry test in this file). The second IP is used in a second port, so that the ip addr groups have multiple IPs associated with them in this test. The idea is to make sure that the ip addr groups don\u0027t have incorrect ips removed from them during deletes, for example.",
+      "parentUuid": "3a6ff13c_24659245",
+      "revId": "4b55dbfc7ed1dc7ac1319243e2b6210e05a603cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
