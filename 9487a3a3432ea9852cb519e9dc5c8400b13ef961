@@ -119,6 +119,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_044a5683",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-10T06:19:20Z",
+      "side": 1,
+      "message": "Added the test.",
+      "parentUuid": "5a72e520_6dbe4dd6",
+      "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_cdce6183",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
         "patchSetId": 1
