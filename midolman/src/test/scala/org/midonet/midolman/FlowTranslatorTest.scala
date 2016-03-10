@@ -309,6 +309,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         def hostRecircPort: NetDevPort = null
         def tunnelRecircOutputAction: FlowActionOutput = null
         def hostRecircOutputAction: FlowActionOutput = null
+        def tunnelOverlayOutputAction: FlowActionOutput = null
+        var hostTunnelIp = 0
     }
 
     def translationScenario(name: String)

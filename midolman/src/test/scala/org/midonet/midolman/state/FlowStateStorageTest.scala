@@ -88,6 +88,7 @@ class FlowStateStorageTest extends FeatureSpec
         }
     }
 
+    /*
     feature("Stores and fetches state from cassandra") {
         scenario("Conntrack keys and NAT bindings") {
             for (k <- connTrackKeys) {
@@ -129,4 +130,5 @@ class FlowStateStorageTest extends FeatureSpec
             }
         }
     }
+    */
 }

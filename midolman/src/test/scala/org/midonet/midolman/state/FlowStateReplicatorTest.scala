@@ -38,6 +38,7 @@ import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
 import org.midonet.midolman.{HostRequestProxy, UnderlayResolver}
 import org.midonet.midolman.datapath.StatePacketExecutor
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.FlowStateSbeEncoder._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.util.MidolmanSpec
@@ -607,5 +608,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
         override def tunnelRecircOutputAction: FlowActionOutput = null
         override def hostRecircOutputAction: FlowActionOutput = null
+        override def tunnelOverlayOutputAction: FlowActionOutput = null
+        var hostTunnelIp = 0
     }
 }

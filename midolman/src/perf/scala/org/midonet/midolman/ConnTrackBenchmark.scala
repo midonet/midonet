@@ -56,8 +56,10 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
         override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
         override def vtepTunnellingOutputAction: FlowActionOutput = null
+        override def tunnelOverlayOutputAction: FlowActionOutput = null
         override def tunnelRecircOutputAction: FlowActionOutput = null
         override def hostRecircOutputAction: FlowActionOutput = null
+        override var hostTunnelIp = 0
     }
     val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue].addShard()
     val natTable = new ShardedFlowStateTable[NatKey, NatBinding].addShard()
