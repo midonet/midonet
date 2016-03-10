@@ -16,12 +16,13 @@
 
 package org.midonet.midolman
 
+import java.net.URI
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{Promise, Future, ExecutionContext}
 
 import akka.actor.{OneForOneStrategy, SupervisorStrategy, ActorSystem}
 import com.codahale.metrics.MetricRegistry
@@ -35,6 +36,7 @@ import org.slf4j.{LoggerFactory, Logger}
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.HostIdGenerator
@@ -120,8 +122,6 @@ class MidolmanModule(injector: Injector,
 
         bind(classOf[DatapathConnectionService]).asEagerSingleton()
 
-        bind(classOf[FlowStateStorageFactory]).toInstance(flowStateStorageFactory())
-
         bindActorService()
 
         val scanner = interfaceScanner(channelFactory)
@@ -133,8 +133,6 @@ class MidolmanModule(injector: Injector,
         bind(classOf[Plumber]).toInstance(plumber(dpState))
         bind(classOf[DatapathInterface]).toInstance(
             datapathInterface(scanner, dpState, dpConnectionManager))
-
-
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
         bind(classOf[FlowRecorder]).toInstance(flowRecorder(host))
@@ -151,6 +149,13 @@ class MidolmanModule(injector: Injector,
 
         val resolver = peerResolver(host, vt)
         bind(classOf[PeerResolver]).toInstance(resolver)
+
+        val discovery = discoveryService(vt)
+        bind(classOf[MidonetDiscovery[URI]]).toInstance(discovery)
+
+        bind(classOf[FlowStateStorageFactory]).toInstance(
+            flowStateStorageFactory(discovery))
+
 
         bind(classOf[MidolmanService]).asEagerSingleton()
     }
@@ -280,16 +285,15 @@ class MidolmanModule(injector: Injector,
                     "Unknown value for input_channel_threading: " + s)
         }
 
-    protected def flowStateStorageFactory() = {
-        val cass = new CassandraClient(
-            config.zookeeper,
-            config.cassandra,
-            "MidonetFlowState",
-            FlowStateStorage.SCHEMA,
-            FlowStateStorage.SCHEMA_TABLE_NAMES)
+    protected def flowStateStorageFactory(discovery: MidonetDiscovery[URI]) = {
         new FlowStateStorageFactory() {
-            override def create(): Future[FlowStateStorage] =
-                cass.connect().map(FlowStateStorage(_))(ExecutionContext.callingThread)
+            override def create(): Future[FlowStateStorage] = {
+                val client = discovery.getClient("flowstate")
+                val clusterFlowState = new FlowStateStorageCluster(client)
+                val p = Promise[FlowStateStorage]
+                p.trySuccess(clusterFlowState)
+                return p.future
+            }
         }
     }
 
@@ -382,6 +386,13 @@ class MidolmanModule(injector: Injector,
                 new NamedThreadFactory("devices-service", isDaemon = true)),
             () => vtThread.get < 0 || vtThread.get == Thread.currentThread.getId,
             Executors.newCachedThreadPool(new NamedThreadFactory("devices-io-", true)))
+    }
+
+    protected def discoveryService(vt: VirtualTopology) = {
+        new MidonetDiscovery[URI](
+            injector.getInstance(classOf[MidonetBackend]).curator,
+            vt.vtExecutor, // should I use another executor?
+            injector.getInstance(classOf[MidonetBackendConfig]))
     }
 
     protected def virtualToPhysicalMapper(hostId: UUID, vt: VirtualTopology) =
