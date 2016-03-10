@@ -17,7 +17,7 @@ package org.midonet.midolman.topology
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.{TimeUnit, ThreadFactory, Executors, ConcurrentHashMap}
+import java.util.concurrent.{TimeUnit, Executors, ConcurrentHashMap}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
