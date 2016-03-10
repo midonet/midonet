@@ -19,6 +19,7 @@ import java.lang.{Long => JLong}
 import java.util
 import java.util.{ArrayDeque, Comparator, PriorityQueue, UUID}
 
+import scala.annotation.tailrec
 import scala.concurrent.{Future, Promise}
 import scala.util.Random
 
@@ -377,16 +378,20 @@ class SingleRouterArpRequestBroker(id: UUID,
             waiters.next().trySuccess(mac)
     }
 
-    private def processNewMacs(): Unit = while (!macsDiscovered.isEmpty) {
-        val MacChange(ip, oldMac, newMac) = macsDiscovered.poll()
-        if (newMac ne null) {
-            log.debug("Got address for {}: {}", ip, newMac)
-            if ((oldMac ne null) && (newMac != oldMac)) {
-                log.debug("Invalidating flows for {} in router {}", ip, id)
-                backChannel.tell(FlowTagger.tagForArpEntry(id, ip))
-            }
-            keepPromises(ip, newMac)
-        }
+    @tailrec
+    private def processNewMacs(): Unit =
+        macsDiscovered.poll() match {
+            case null =>
+            case MacChange(ip, oldMac, newMac) if newMac ne null =>
+                log.debug("Got address for {}: {}", ip, newMac)
+                if ((oldMac ne null) && (newMac != oldMac)) {
+                    log.debug("Invalidating flows for {} in router {}", ip, id)
+                    backChannel.tell(FlowTagger.tagForArpEntry(id, ip))
+                }
+                keepPromises(ip, newMac)
+                processNewMacs()
+            case _ =>
+                processNewMacs()
     }
 
     private def makeArpRequest(srcMac: MAC, srcIp: IPv4Addr, dstIp: IPv4Addr): Ethernet = {
