@@ -46,6 +46,98 @@
       "revId": "0a50e63a60bdb4b9bf95f5ee7ebdf0c6ac8b48a7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_a75a644e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-10T12:10:16Z",
+      "side": 1,
+      "message": "It seems a very low lower bound to me, potentially running too often for a background maintenance task. Not sure if there are use cases for that low interval (maybe once a day is enough). More on this later.",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 40
+      },
+      "revId": "0a50e63a60bdb4b9bf95f5ee7ebdf0c6ac8b48a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_e72b7c92",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-10T12:10:16Z",
+      "side": 1,
+      "message": "What\u0027s the rational for this runInterval? It seems it\u0027s only used to specify a random initial delay. If so, I\u0027d specify it in the config explicitly (e.g. config.recycler.initial_run)",
+      "range": {
+        "startLine": 228,
+        "startChar": 30,
+        "endLine": 228,
+        "endChar": 54
+      },
+      "revId": "0a50e63a60bdb4b9bf95f5ee7ebdf0c6ac8b48a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_0a4dff72",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-10T12:10:16Z",
+      "side": 1,
+      "message": "If that\u0027s the case, for the initial interval it makes sense to have such a low interval (so the cluster does not need to wait the whole period to kick this in). So I\u0027d put two minimums (for recyclingInterval of 1d and for initialInterval of 1m).",
+      "range": {
+        "startLine": 228,
+        "startChar": 55,
+        "endLine": 228,
+        "endChar": 74
+      },
+      "revId": "0a50e63a60bdb4b9bf95f5ee7ebdf0c6ac8b48a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_6a5cb326",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-10T12:10:16Z",
+      "side": 1,
+      "message": "recyclingInterval",
+      "range": {
+        "startLine": 357,
+        "startChar": 21,
+        "endLine": 357,
+        "endChar": 32
+      },
+      "revId": "0a50e63a60bdb4b9bf95f5ee7ebdf0c6ac8b48a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
