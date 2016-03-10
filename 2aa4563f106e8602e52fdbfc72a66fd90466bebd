@@ -46,6 +46,30 @@
       "revId": "2aa4563f106e8602e52fdbfc72a66fd90466bebd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_4dfe316d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-10T16:57:49Z",
+      "side": 1,
+      "message": "Got it.",
+      "parentUuid": "3a6ff13c_6d468d25",
+      "range": {
+        "startLine": 206,
+        "startChar": 76,
+        "endLine": 206,
+        "endChar": 83
+      },
+      "revId": "2aa4563f106e8602e52fdbfc72a66fd90466bebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
