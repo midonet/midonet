@@ -376,6 +376,30 @@
       "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_a7cd0460",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-03-10T10:16:47Z",
+      "side": 1,
+      "message": "@Ivan, one of usual things we need in MEM is a full URI, which does not only have a host and port, but also, at least, a protocol and a path. We could pass the host and port via the pre-defined parameters, and the protocol and path in the payload, but it is a bit weird having to separate them (I would prefer being able to fetch all the information in the same way). Nevertheless, we can also live with that, so I will not fight over it ;-)",
+      "parentUuid": "5a72e520_53b774d8",
+      "range": {
+        "startLine": 237,
+        "startChar": 25,
+        "endLine": 237,
+        "endChar": 67
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
