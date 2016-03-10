@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_84f7268c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-10T04:14:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_edc95d7a",
+      "range": {
+        "startLine": 428,
+        "startChar": 8,
+        "endLine": 428,
+        "endChar": 28
+      },
+      "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_0dc95978",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -36,6 +60,24 @@
       "writtenOn": "2016-03-09T08:07:33Z",
       "side": 1,
       "message": "ditto",
+      "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_a4f42288",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-10T04:14:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_0dc95978",
       "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_e4ee1ab4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-10T04:14:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_6dbe4dd6",
+      "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_cdce6183",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
         "patchSetId": 1
@@ -70,6 +130,24 @@
       "writtenOn": "2016-03-09T08:09:42Z",
       "side": 1,
       "message": "Not a big deal, but to be consistent with the existing create*Port methods, why not define createComputePort (or something equivalent).  It\u0027s fine to keep this, but if you do, the other create*Port methods should call it.",
+      "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_a43b4237",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 905,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-10T04:14:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_cdce6183",
       "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -110,6 +188,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_c4483ecf",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-10T04:14:43Z",
+      "side": 1,
+      "message": "Mistake. Removed.",
+      "parentUuid": "5a72e520_adb845e6",
+      "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a72e520_2dc4555e",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
         "patchSetId": 1
@@ -121,6 +217,24 @@
       "writtenOn": "2016-03-09T08:09:42Z",
       "side": 1,
       "message": "I don\u0027t understand the difference between this test and the next.  Here, I see ip2 defined but can\u0027t find anywhere that it\u0027s being used.  Is this test supposed to include changes to the ip address?",
+      "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_e4453ab4",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-03-10T04:14:43Z",
+      "side": 1,
+      "message": "This test uses 2 ips, whereas the second test uses 1 ip. ip2 is used to create the second port (line 318).",
+      "parentUuid": "5a72e520_2dc4555e",
       "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
