@@ -238,6 +238,24 @@
       "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_a42262ff",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-10T04:21:05Z",
+      "side": 1,
+      "message": "ok found it thanks",
+      "parentUuid": "3a6ff13c_e4453ab4",
+      "revId": "9487a3a3432ea9852cb519e9dc5c8400b13ef961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
