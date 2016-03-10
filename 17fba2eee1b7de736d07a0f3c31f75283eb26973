@@ -16,6 +16,24 @@
       "revId": "17fba2eee1b7de736d07a0f3c31f75283eb26973",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_24303256",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/InstanceStash.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-10T04:11:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a72e520_f3bf80fa",
+      "revId": "17fba2eee1b7de736d07a0f3c31f75283eb26973",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
