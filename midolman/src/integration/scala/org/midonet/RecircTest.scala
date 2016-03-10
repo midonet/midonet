@@ -143,6 +143,7 @@ class RecircTest extends FeatureSpec
             override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
             override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
             override def vtepTunnellingOutputAction: FlowActionOutput = null
+            override def tunnelOverlayOutputAction: FlowActionOutput = null
 
             override def getDpPortNumberForVport(vportId: UUID): Integer =
                 Map(tapVport -> tapDpPort.getPortNo).get(vportId).orNull
@@ -152,6 +153,8 @@ class RecircTest extends FeatureSpec
             override def hostRecircPort = recircPort.asInstanceOf[NetDevPort]
             override def tunnelRecircOutputAction = vxlanRecircPort.toOutputAction
             override def hostRecircOutputAction = recircPort.toOutputAction
+            override var hostTunnelIp = 0
+
         }
 
         translator = new FlowTranslator {
