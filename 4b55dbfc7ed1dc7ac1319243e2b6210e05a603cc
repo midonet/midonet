@@ -16,6 +16,23 @@
       "revId": "4b55dbfc7ed1dc7ac1319243e2b6210e05a603cc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_24659245",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-10T04:31:26Z",
+      "side": 1,
+      "message": "Still not exactly sure how this is used.  I see that this port is created, but I would have expected the test a port update where the port IP changes.  But I can\u0027t find port update with the IP change.  p2Id is not used anywhere either.",
+      "revId": "4b55dbfc7ed1dc7ac1319243e2b6210e05a603cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
