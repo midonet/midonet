@@ -472,6 +472,30 @@
       "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_edc43d61",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-10T16:34:39Z",
+      "side": 1,
+      "message": "Yep, forgot to answer. I don\u0027t think it\u0027s possible.\n\nSo protobufs are json serializable with jackson (the underlying serializer used by curator) but using an extra library (jackson-dataformat-protobuf). Sounds good until you realize that you need to bind this new data format with the jackson instance used by curator, but I don\u0027t see how to do it as the curator discovery framework doesn\u0027t expose any way to do it.",
+      "parentUuid": "3a6ff13c_0d9b59ca",
+      "range": {
+        "startLine": 237,
+        "startChar": 25,
+        "endLine": 237,
+        "endChar": 67
+      },
+      "revId": "562bccb63b8e2bf1f2bb856cad0b3ee413fc34ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
