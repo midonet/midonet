@@ -2,6 +2,184 @@
   "comments": [
     {
       "key": {
+        "uuid": "3a6ff13c_840ba62a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-10T08:28:26Z",
+      "side": 1,
+      "message": "lower case",
+      "range": {
+        "startLine": 439,
+        "startChar": 43,
+        "endLine": 439,
+        "endChar": 44
+      },
+      "revId": "d0b95c835420858be7790efaa3268276c527c239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_a736e4e5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-10T08:28:26Z",
+      "side": 1,
+      "message": "Not necessary. Java List has indexOf().",
+      "range": {
+        "startLine": 444,
+        "startChar": 47,
+        "endLine": 444,
+        "endChar": 55
+      },
+      "revId": "d0b95c835420858be7790efaa3268276c527c239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_c733e0f4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-10T08:28:26Z",
+      "side": 1,
+      "message": "Seq, since you never modify them.",
+      "range": {
+        "startLine": 464,
+        "startChar": 21,
+        "endLine": 464,
+        "endChar": 35
+      },
+      "revId": "d0b95c835420858be7790efaa3268276c527c239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_27791494",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-10T08:28:26Z",
+      "side": 1,
+      "message": "This uses --, but the other four list subtractions use diff. They\u0027re functionally interchangeable, but you should stick to one or the other for consistency.",
+      "range": {
+        "startLine": 477,
+        "startChar": 29,
+        "endLine": 477,
+        "endChar": 31
+      },
+      "revId": "d0b95c835420858be7790efaa3268276c527c239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_c74a0055",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-10T08:28:26Z",
+      "side": 1,
+      "message": "I don\u0027t know if this is better, but if you make nPortOld is an Option, you can replace this block with:\n\n        val oldIps \u003d nPortOld.toList.flatMap(_.getFixedIpsList.asScala.map(_.getIpAddress))\n        val oldSgs \u003d nPortOld.toList.flatMap(_.getSecurityGroupsList.asScala)\n\n        val removedSgs \u003d oldSgs diff newSgs\n        val addedSgs \u003d newSgs diff oldSgs\n        val keptSgs \u003d newSgs -- addedSgs\n\nIf you make nPortOld an Option in the function that calls this as well, you need to replace a check for nPortOld !\u003d null with a match or something similar. I tried this on my computer without fixing that, and the error I got was very confusing.",
+      "range": {
+        "startLine": 464,
+        "startChar": 0,
+        "endLine": 478,
+        "endChar": 9
+      },
+      "revId": "d0b95c835420858be7790efaa3268276c527c239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_a76424e6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 521,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-10T08:28:26Z",
+      "side": 1,
+      "message": "Can replace these three blocks with:\n\n        def updateSgIpAddrs(sgIds: Seq[UUID], addedIps: Seq[IPAddress],\n                            removedIps: Seq[IPAddress]): Unit \u003d {\n            for (iag \u003c- storage.getAll(classOf[IPAddrGroup], sgIds).await()) {\n                val iagBldr \u003d iag.toBuilder\n                for (ip \u003c- addedIps)\n                    addPortIpToIpAddrGrp(iagBldr, ip, nPort.getId)\n                for (ip \u003c- removedIps)\n                    removePortIpFromIpAddrGrp(iagBldr, ip, nPort.getId)\n                portCtx.updatedIpAddrGrps +\u003d Update(iagBldr.build())\n            }\n\n        }\n\n        // Remove all port/ips from the removed SGs\n        updateSgIpAddrs(removedSgs, Seq(), oldIps)\n\n        // Add all new port/ips to new SGs\n        updateSgIpAddrs(addedSgs, newIps, Seq())\n\n        // For all the SGs that have not changed, removed the IPs that have\n        // been removed, and add the IPs that have been added to the port.\n        updateSgIpAddrs(keptSgs, addedIps, removedIps)\n\nYou could also move the def outside this function, but then you have to add portId and portCtx as arguments.",
+      "range": {
+        "startLine": 483,
+        "startChar": 0,
+        "endLine": 521,
+        "endChar": 9
+      },
+      "revId": "d0b95c835420858be7790efaa3268276c527c239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_c76120d5",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-10T08:28:26Z",
+      "side": 1,
+      "message": "Define this function:\n\n        def checkIpAddrGroupIpCounts(iag1Count: Int, iag2Count: Int,\n                                     iag3Count: Int): Unit \u003d {\n            storage.getAll(classOf[IPAddrGroup], Seq(sgId, sg2Id, sg3Id))\n                .await() shouldBe Seq(iag1Count, iag2Count, iag3Count)\n        }\n\nThen use that instead of repeating this code four times with different values.\n\nOr define it outside the function, but then you have to pass the sgIds as arguments.",
+      "revId": "d0b95c835420858be7790efaa3268276c527c239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_67aa2cd6",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-10T08:28:26Z",
+      "side": 1,
+      "message": "You can do something similar here, too.",
+      "range": {
+        "startLine": 399,
+        "startChar": 0,
+        "endLine": 409,
+        "endChar": 63
+      },
+      "revId": "d0b95c835420858be7790efaa3268276c527c239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_845d664b",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
         "patchSetId": 4
