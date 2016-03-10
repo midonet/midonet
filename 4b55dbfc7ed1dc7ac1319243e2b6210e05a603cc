@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_247e72e5",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 907,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-10T04:21:05Z",
+      "side": 1,
+      "message": "By naming it createComputePort, the deviceOwner arg should be unnecessary.",
+      "revId": "4b55dbfc7ed1dc7ac1319243e2b6210e05a603cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
