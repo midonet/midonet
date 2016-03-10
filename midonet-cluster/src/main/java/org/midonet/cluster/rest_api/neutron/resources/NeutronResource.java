@@ -83,8 +83,8 @@ public class NeutronResource {
     }
 
     @Path(LBUriBuilder.LB)
-    public LBResource getLoadBalancerResource() {
-        return new LBResource(uriInfo, api);
+    public LbResource getLoadBalancerResource() {
+        return new LbResource(uriInfo, api);
     }
 
     @Path(NeutronUriBuilder.FIREWALLS)
