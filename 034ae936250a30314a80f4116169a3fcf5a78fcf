@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_cd6141d5",
+        "filename": "nsdb/src/main/scala/org/midonet/midolman/state/FlowStateSbeEncoder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-10T15:26:21Z",
+      "side": 1,
+      "message": "Missing license.\n\nAlso, I don\u0027t think nsdb is the correct place for this. midonet-utils, under org.midonet.packets would be better.",
+      "revId": "034ae936250a30314a80f4116169a3fcf5a78fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
