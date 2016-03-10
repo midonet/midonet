@@ -378,8 +378,8 @@ class PacketWorkflow(
         if (pktCtx.runs > 1)
             waitingRoom leave pktCtx
 
-        handoff(pktCtx)
 
+        handoff(pktCtx)
         if (pktCtx.ingressed) {
             simRes match {
                 case StateMessage | FlowCreated | UserspaceFlow =>
@@ -497,7 +497,6 @@ class PacketWorkflow(
     private def applyState(context: PacketContext): Unit = {
         context.log.debug("Applying connection state")
         replicator.accumulateNewKeys(context)
-        replicator.touchState()
         context.commitStateTransactions()
     }
 

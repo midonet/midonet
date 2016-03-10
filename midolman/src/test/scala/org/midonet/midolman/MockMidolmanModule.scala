@@ -101,12 +101,6 @@ class MockMidolmanModule(override val hostId: UUID,
 
     protected override def bindHostService(): Unit = { }
 
-    protected override def flowStateStorageFactory() =
-        new FlowStateStorageFactory() {
-            override def create(): Future[FlowStateStorage] =
-                Future.successful(new MockStateStorage)
-        }
-
     protected override def flowRecorder(hostId: UUID) =
         NullFlowRecorder
 

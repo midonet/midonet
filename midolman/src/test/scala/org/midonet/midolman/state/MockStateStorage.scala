@@ -28,12 +28,10 @@ import org.midonet.midolman.state.NatState.NatBinding
 
 class MockStateStorage extends FlowStateStorage {
     override def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID,
-            weakRefs: JIterator[UUID]): Unit = {}
+                                   weakRefs: JIterator[UUID]): Unit = {}
 
     override def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID,
-            weakRefs: JIterator[UUID]): Unit = {}
-
-    override def submit(): Unit = {}
+                             weakRefs: JIterator[UUID]): Unit = {}
 
     override def fetchStrongConnTrackRefs(port: UUID)
             (implicit ec: ExecutionContext, as: ActorSystem) =
@@ -50,4 +48,6 @@ class MockStateStorage extends FlowStateStorage {
     override def fetchWeakNatRefs(port: UUID)
             (implicit ec: ExecutionContext, as: ActorSystem) =
                 Future.successful(new JHashMap[NatKey, NatBinding]())
+
+    override def serviceIp: Option[Int] = None
 }
