@@ -83,8 +83,8 @@ public class NeutronResource {
     }
 
     @Path(LBUriBuilder.LB)
-    public LBResource getLoadBalancerResource() {
-        return new LBResource(uriInfo, api);
+    public LbResource getLoadBalancerResource() {
+        return new LbResource(uriInfo, api);
     }
 
     @Path(NeutronUriBuilder.FIREWALLS)
@@ -123,7 +123,7 @@ public class NeutronResource {
             NeutronUriBuilder.getSecurityGroupRules(baseUri);
         neutron.securityGroupRuleTemplate =
             NeutronUriBuilder.getSecurityGroupRuleTemplate(baseUri);
-        neutron.loadBalancer = LBResource.buildLoadBalancer(baseUri);
+        neutron.loadBalancer = LbResource.buildLoadBalancer(baseUri);
         neutron.firewalls = NeutronUriBuilder.getFirewalls(baseUri);
         neutron.firewallTemplate = NeutronUriBuilder.getFirewallTemplate(
             baseUri);
