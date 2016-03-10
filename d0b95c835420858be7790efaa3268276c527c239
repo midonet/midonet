@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_845d664b",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-10T06:31:16Z",
+      "side": 1,
+      "message": "This test confuses me since after this operation you\u0027d end up with two ports with the same IP.  I understand that it won\u0027t matter for the test you are writing but maybe a comment would help clarify the intent.  Also, in the test above, two networks are created, probably to create a proper topology, so it makes sense to do that here too.",
+      "revId": "d0b95c835420858be7790efaa3268276c527c239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
