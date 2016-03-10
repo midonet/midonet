@@ -394,7 +394,7 @@ class MidolmanModule(injector: Injector,
     protected def crashStrategy(): SupervisorStrategy =
         new OneForOneStrategy()({ case t =>
             log.warn("Actor crashed, aborting", t)
-            System.exit(-1)
+            Midolman.exitAsync(-1)
             akka.actor.SupervisorStrategy.stop
         })
 }
