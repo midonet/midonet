@@ -71,7 +71,9 @@ public class MockDirectory implements Directory {
         CreateMode mode;
         int sequence;
         Map<String, Node> children;
-        Set<Watcher> watchers;
+        Set<Watcher> existsWatchers;
+        Set<Watcher> dataWatchers;
+        Set<Watcher> childrenWatchers;
 
         // We currently have no need for Watchers on 'exists'.
 
@@ -82,8 +84,10 @@ public class MockDirectory implements Directory {
             this.mode = mode;
             this.sequence = 0;
             this.children = new HashMap<>();
-            this.watchers = new HashSet<>();
-            this.watchers.addAll(existsWatchers.removeAll(path));
+            this.existsWatchers = new HashSet<>();
+            this.dataWatchers = new HashSet<>();
+            this.childrenWatchers = new HashSet<>();
+            this.existsWatchers.addAll(MockDirectory.this.existsWatchers.removeAll(path));
         }
 
         synchronized Node getChild(String name) throws NoNodeException {
@@ -125,7 +129,7 @@ public class MockDirectory implements Directory {
 
         synchronized byte[] getData(Watcher watcher) {
             if (watcher != null)
-                watchers.add(watcher);
+                dataWatchers.add(watcher);
 
             if (data == null) {
                 return null;
@@ -135,14 +139,14 @@ public class MockDirectory implements Directory {
 
         synchronized Set<String> getChildren(Runnable watcher) {
             if (watcher != null)
-                watchers.add(wrapCallback(watcher));
+                childrenWatchers.add(wrapCallback(watcher));
 
             return new HashSet<String>(children.keySet());
         }
 
         synchronized boolean exists(Watcher watcher) {
             if (watcher != null)
-                watchers.add(watcher);
+                existsWatchers.add(watcher);
             return true;
         }
 
@@ -163,8 +167,20 @@ public class MockDirectory implements Directory {
         synchronized void fireWatchers(boolean isMulti, EventType eventType) {
             // Each Watcher is called back at most once for every time they
             // register.
-            Set<Watcher> watchers = new HashSet<Watcher>(this.watchers);
-            this.watchers.clear();
+            Set<Watcher> watchers = new HashSet<>();
+            if (eventType == EventType.NodeCreated) {
+                watchers.addAll(existsWatchers);
+                existsWatchers.clear();
+            } else if (eventType == EventType.NodeDataChanged ||
+                       eventType == EventType.NodeDeleted) {
+                watchers.addAll(existsWatchers);
+                watchers.addAll(dataWatchers);
+                existsWatchers.clear();
+                dataWatchers.clear();
+            } else if (eventType == EventType.NodeChildrenChanged) {
+                watchers.addAll(childrenWatchers);
+                childrenWatchers.clear();
+            }
 
             for (Watcher watcher : watchers) {
                 WatchedEvent watchedEvent = new WatchedEvent(

@@ -370,13 +370,13 @@ public class TestMockDirectory {
         dir.add("/a/b", null, CreateMode.PERSISTENT);
         MyTypedWatcher aWatcher = new MyTypedWatcher();
 
-        dir.get("/a", aWatcher);
+        dir.getChildren("/a", aWatcher);
         dir.add("/a/c", null, CreateMode.PERSISTENT);
         Assert.assertEquals(1, aWatcher.childUpdates);
 
         // install watcher
         dir.get("/a/c", aWatcher);
-        dir.get("/a", aWatcher);
+        dir.getChildren("/a", aWatcher);
         dir.delete("/a/c");
         Assert.assertEquals(1, aWatcher.deletes);
         Assert.assertEquals(2, aWatcher.childUpdates);
