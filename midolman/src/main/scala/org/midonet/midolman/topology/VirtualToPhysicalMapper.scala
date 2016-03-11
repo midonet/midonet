@@ -15,8 +15,8 @@
  */
 package org.midonet.midolman.topology
 
-import java.util.concurrent.ConcurrentHashMap
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable

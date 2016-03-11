@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.google.common.annotations.VisibleForTesting;
 import scala.concurrent.Promise;
@@ -71,6 +73,8 @@ public class Midolman {
 
     public static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
     public static final int MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP = 2;
+
+    private static final long MIDOLMAN_EXIT_TIMEOUT_MILLIS = 30000;
 
     private Injector injector;
 
@@ -316,5 +320,20 @@ public class Midolman {
             dumpStacks();
             System.exit(-1);
         }
+    }
+
+    public static void exitAsync(final int status) {
+        new Thread("exit") {
+            @Override
+            public void run() {
+                Runtime.getRuntime().exit(status);
+            }
+        }.start();
+        new Timer("exit-timer", true).schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Runtime.getRuntime().halt(status);
+            }
+        }, MIDOLMAN_EXIT_TIMEOUT_MILLIS);
     }
 }
