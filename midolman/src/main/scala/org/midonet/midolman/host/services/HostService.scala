@@ -274,7 +274,10 @@ class HostService (config: MidolmanConfig,
                 if (!isSameHost(currentHost, currentState)) {
                     log.error("Failed to create host {} with name {} because " +
                               "the host already exists with a different name, " +
-                              "tunnel-zones or interfaces", hostId, hostName)
+                              "tunnel-zones or interfaces: if you renamed the " +
+                              "host, delete it from the topology and restart " +
+                              "the MidoNet agent (see documentation for more " +
+                              "information)", hostId, hostName)
                     aliveState.set(OwnershipState.Released)
                     return false
                 }
