@@ -63,7 +63,7 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def securityGroupRuleResource: SecurityGroupRuleResource = new SecurityGroupRuleResource(uriInfo, api)
 
     @Path("lb")
-    def loadBalancerResource: LBResource = new LBResource(uriInfo, api)
+    def loadBalancerResource: LbResource = new LbResource(uriInfo, api)
 
     @Path("firewalls")
     def firewallResource: FirewallResource = new FirewallResource(uriInfo, api)
@@ -111,7 +111,7 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.securityGroupRules = getSecurityGroupRules(baseUri)
         neutron.securityGroupRuleTemplate =
             getSecurityGroupRuleTemplate(baseUri)
-        neutron.loadBalancer = LBResource.buildLoadBalancer(baseUri)
+        neutron.loadBalancer = LbResource.buildLoadBalancer(baseUri)
         neutron.firewalls = getFirewalls(baseUri)
         neutron.firewallTemplate = getFirewallTemplate(baseUri)
         neutron.vpnServices = getVpnServices(baseUri)

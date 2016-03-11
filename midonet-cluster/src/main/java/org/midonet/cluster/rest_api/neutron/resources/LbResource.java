@@ -26,13 +26,13 @@ import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest_api.neutron.models.LoadBalancer;
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin;
 
-public class LBResource {
+public class LbResource {
 
     private final UriInfo uriInfo;
     private final NeutronZoomPlugin api;
 
     @Inject
-    public LBResource(UriInfo uriInfo, NeutronZoomPlugin api) {
+    public LbResource(UriInfo uriInfo, NeutronZoomPlugin api) {
         this.uriInfo = uriInfo;
         this.api = api;
     }
@@ -52,11 +52,6 @@ public class LBResource {
         lb.poolHealthMonitor = NeutronUriBuilder.getPoolHealthMonitor(baseUri);
 
         return lb;
-    }
-
-    @Path(NeutronUriBuilder.LB)
-    public LBResource getLoadBalancerResource() {
-        return new LBResource(uriInfo, api);
     }
 
     @Path(NeutronUriBuilder.HEALTH_MONITORS)
