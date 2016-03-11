@@ -27,7 +27,7 @@ source $TOP_DIR/functions
 set -x
 
 sudo ip link set dev uplinkbridge down 2> /dev/null
-sudo brctl delbr uplinkbridge 2> /dev/null
+sudo ip link del uplinkbridge 2> /dev/null
 sudo ip link set veth0 down 2> /dev/null
 sudo ip link set veth1 down 2> /dev/null
 sudo ip link del veth0 2> /dev/null # This should delete veth1

@@ -4,7 +4,7 @@ echo "Provisioning l2gw interfaces..."
 
 # Cleaning previous bridge if exists
 sudo ip link set dev brl2gw down
-sudo brctl delbr brl2gw
+sudo ip link del brl2gw
 
 # Provisioning midolman trunk interfaces with tagged traffic
 sudo pipework/pipework brl2gw -i l2gw0 mnsandboxmdts_midolman1_1 0/0 aa:bb:cc:00:01:02
@@ -20,4 +20,4 @@ sudo pipework/pipework brl2gw -i l2gw1 mnsandboxmdts_externalhost2_1 172.16.1.22
 
 
 # Setting stp on
-sudo brctl stp brl2gw on
+sudo sh -c "echo 1 > /sys/devices/virtual/net/brl2gw/bridge/stp_state"

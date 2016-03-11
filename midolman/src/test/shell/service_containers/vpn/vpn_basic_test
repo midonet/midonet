@@ -65,9 +65,10 @@ ip link set R_LEFT_ns netns ROUTER
 ip netns exec ROUTER ip link set R_LEFT_ns up
 ip netns exec ROUTER ip address add 100.100.100.1/24 dev R_LEFT_ns
 
-brctl addbr LEFTBR
+ip link add LEFTBR type bridge
 ifconfig LEFTBR up
-brctl addif LEFTBR LEFT_dp R_LEFT_dp
+ip link set LEFT_dp master LEFTBR
+ip link set R_LEFT_dp master LEFTBR
 
 # Hook the router up to a bridge that connects it with RIGHT
 ip link add name R_RIGHT_dp type veth peer name R_RIGHT_ns
@@ -76,9 +77,10 @@ ip link set R_RIGHT_ns netns ROUTER
 ip netns exec ROUTER ip link set R_RIGHT_ns up
 ip netns exec ROUTER ip address add 200.200.200.1/24 dev R_RIGHT_ns
 
-brctl addbr RIGHTBR
-ifconfig RIGHTBR up
-brctl addif RIGHTBR RIGHT_dp R_RIGHT_dp
+ip link add RIGHTBR type bridge
+ip link set RIGHTBR up
+ip link set RIGHT_dp master RIGHTBR
+ip link set R_RIGHT_dp master RIGHTBR
 
 # Add the VPN subnets, so we can ping FROM the appropriate source
 ip netns exec LEFT ip addr add 10.1.0.1/24 dev lo
@@ -101,10 +103,10 @@ $VPN cleanns -n RIGHT
 rm -rf /opt/stack/data/neutron/
 
 ifconfig LEFTBR down
-brctl delbr LEFTBR
+ip link del LEFTBR
 
-ifconfig RIGHTBR down
-brctl delbr RIGHTBR
+ip link set RIGHTBR down
+ip link del RIGHTBR
 
 ip netns del ROUTER
 

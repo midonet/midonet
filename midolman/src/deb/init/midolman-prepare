@@ -39,9 +39,9 @@ cleanup_bgp_space() {
     ns="${prefix}_ns"
     br="${prefix}_br"
     echo "cleaning up br: $br"
-    brctl delif $br "${prefix}_vty"
+    ip link set "${prefix}_vty" nomaster
     ip link set $br down
-    brctl delbr $br
+    ip link del "$br"
 
     echo "cleaning up ns: $ns"
     ip netns exec $ns ip link delete "${prefix}_m"
