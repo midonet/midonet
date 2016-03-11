@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_5ee7b5e4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-11T09:41:49Z",
+      "side": 1,
+      "message": "Capital D",
+      "range": {
+        "startLine": 93,
+        "startChar": 14,
+        "endLine": 93,
+        "endChar": 15
+      },
+      "revId": "fdbe90bb02b4da6c9d7de10e0c452e40cf76edc8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_7eec71c8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-11T09:41:49Z",
+      "side": 1,
+      "message": "Put this in the cluster package",
+      "range": {
+        "startLine": 95,
+        "startChar": 14,
+        "endLine": 95,
+        "endChar": 15
+      },
+      "revId": "fdbe90bb02b4da6c9d7de10e0c452e40cf76edc8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_5e35f544",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-11T09:41:49Z",
+      "side": 1,
+      "message": "The service discovery builder can take a serializer argument, which must implement: \n\n  org.apache.curator.x.discovery.details.InstanceSerializer\u003cT\u003e\n\nthat only has 2 methods:\n\n  public byte[] serialize(ServiceInstance\u003cT\u003e instance) throws Exception;\n  public ServiceInstance\u003cT\u003e deserialize(byte[] bytes) throws Exception;\n\nWith this, I think you can replace the default Jackson 1.9 serializer with your custom one, including protobuf or Jackson 2.x",
+      "range": {
+        "startLine": 109,
+        "startChar": 35,
+        "endLine": 109,
+        "endChar": 58
+      },
+      "revId": "fdbe90bb02b4da6c9d7de10e0c452e40cf76edc8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_feeea1b3",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-11T09:41:49Z",
+      "side": 1,
+      "message": "For future use: in Scala you can define a class for use with Jackson as:\n\ncase class TestScalaServiceDetails @JsonCreator()(\n        @(JsonProperty @getter @param)(\"description\") description: String) {\n    }\n\nThen, you wouldn\u0027t need all the boiler plate (default constructor, equals, hashCode, ...)",
+      "range": {
+        "startLine": 273,
+        "startChar": 4,
+        "endLine": 285,
+        "endChar": 5
+      },
+      "revId": "fdbe90bb02b4da6c9d7de10e0c452e40cf76edc8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
