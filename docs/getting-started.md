@@ -26,7 +26,7 @@ documentation in [ DEVELOPMENT.md ][development] before continuing.
 
 [development]: ../DEVELOPMENT.md
 
-    $ sudo apt-get install zookeeper haproxy quagga bridge-utils zookeeperd
+    $ sudo apt-get install zookeeper haproxy quagga zookeeperd
     $ sudo /etc/init.d/zookeeper start
     $ sudo /etc/init.d/tomcat7 start
 

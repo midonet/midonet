@@ -94,7 +94,7 @@ bindings_multi_mm = {
 #   - Remove any route that sends 10.0.0.0/24 towards the
 #     physical ifc. This is so the kernel gives that traffic to MMM's br0
 #   - Remove the ip from the interface (ip address del dev eth1 <addr>)
-#   - Add eth1 to the br0 bridge (brctl addif br0 eth1)
+#   - Add eth1 to the br0 bridge (ip link set eth1 master br0)
 #   - Ask a MidoCloud operator to remove the rules from this port that DROP
 #     traffic that doesn't have the VM's src IP and MAC
 #

@@ -108,14 +108,14 @@ sudo ip link set dev veth1 up
 # create the linux bridge, give to it an IP address and attach the veth0
 # interface
 if ! ip link show dev uplinkbridge; then
-    sudo brctl addbr uplinkbridge
+    sudo ip link add uplinkbridge type bridge
 fi
 
-if ! brctl show uplinkbridge | grep veth0; then
-    sudo brctl addif uplinkbridge veth0
-fi
 
-if ! ip addr | grep uplinkbridge | grep 172.19.0.1; then
+ip -d -o link show veth0 | grep -q "master uplinkbridge" || sudo ip link set veth0 master uplinkbridge
+
+
+if ! ip -o -4 addr show uplinkbridge | grep 172.19.0.1; then
     sudo ip addr flush uplinkbridge
     sudo ip addr add 172.19.0.1/30 dev uplinkbridge
 fi
