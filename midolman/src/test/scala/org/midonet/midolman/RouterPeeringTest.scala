@@ -25,14 +25,18 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.PacketWorkflow.{ShortDrop, AddVirtualWildcardFlow}
+import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.{Bridge, Router}
+import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.OpenVSwitch
 import org.midonet.odp.flows.{FlowKeyEthernet, FlowActionSetKey}
 import org.midonet.packets.{UDP, IPv4Subnet, MAC, IPv4Addr}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.VirtualActions.{Decap, Encap}
+import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
 class RouterPeeringTest extends MidolmanSpec {
@@ -232,6 +236,54 @@ class RouterPeeringTest extends MidolmanSpec {
             (pktCtx.virtualFlowActions.collectFirst {
                 case Decap(vni) => vni
             } isDefined) should be (false)
+        }
+    }
+
+    feature("conntrack with router peering") {
+        scenario("connection tracking should apply inner packet") {
+            val router = newRouter("vtep-router")
+            val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
+                    .addShard()
+            implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
+
+            val rp1Mac = MAC.random
+            val rp1 = newRouterPort(router, rp1Mac, "1.1.1.2", "1.1.1.0", 24, vni = 100,
+                                    tunnelIp = Some(IPv4Addr("2.2.2.2")))
+
+            val chain = newInboundChainOnPort("router port chain", rp1)
+
+            val fwdCond = new Condition()
+            fwdCond.matchForwardFlow = true
+            newLiteralRuleOnChain(chain, 1, fwdCond, RuleResult.Action.ACCEPT)
+
+            feedPeeringTable(rp1, rp1Mac, IPv4Addr.fromString("5.5.5.5"))
+
+            val ttl = 2.toByte
+            val fromMac = MAC.random
+            val fromIp = "4.4.4.4"
+            val toIp = "1.1.1.3"
+            val pkt = { eth src fromMac dst rp1Mac} <<
+                      { ip4 src fromIp dst toIp ttl ttl } <<
+                      { icmp.echo request }
+
+            newRoute(router, "0.0.0.0", 0, "1.1.1.0", 24, NextHop.PORT,
+                    rp1, null, 2)
+
+            val (simRes, pktCtx) = simulate(packetContextFor(pkt, rp1))
+
+            val dstIp = pktCtx.recircMatch.getNetworkDstIP.asInstanceOf[IPv4Addr]
+            val srcIp = pktCtx.recircMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr]
+
+            dstIp.toString shouldBe toIp
+            srcIp.toString shouldBe fromIp
+
+            val innerKey = EgressConnTrackKey(pktCtx.recircMatch, rp1)
+            val outerKey = EgressConnTrackKey(pktCtx.wcmatch, rp1)
+
+            pktCtx.trackConnection(rp1)
+
+            conntrackTx.get(innerKey) shouldBe RETURN_FLOW
+            conntrackTx.get(outerKey) shouldBe null
         }
     }
 
