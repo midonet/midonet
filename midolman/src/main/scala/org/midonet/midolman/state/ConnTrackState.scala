@@ -25,6 +25,7 @@ import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.FlowMatch
+import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.{ICMP, IPAddr, IPv4, TCP, UDP}
 import org.midonet.sdn.state.FlowStateTransaction
 
@@ -53,6 +54,22 @@ object ConnTrackState {
                                 s"$networkDst:$icmpIdOrTransportDst:" +
                                 s"$networkProtocol:$deviceId"
     }
+
+    implicit def toConnTrackKey(key: ConnTrackKeyStore): ConnTrackKey =
+        ConnTrackKey(key.networkSrc,
+                     key.icmpIdOrTransportSrc,
+                     key.networkDst,
+                     key.icmpIdOrTransportDst,
+                     key.networkProtocol,
+                     key.deviceId)
+
+    implicit def toConnTrackKeyStore(key: ConnTrackKey): ConnTrackKeyStore =
+        ConnTrackKeyStore(key.networkSrc,
+                          key.icmpIdOrTransportSrc,
+                          key.networkDst,
+                          key.icmpIdOrTransportDst,
+                          key.networkProtocol,
+                          key.deviceId)
 
     def EgressConnTrackKey(wcMatch: FlowMatch, egressDeviceId: UUID): ConnTrackKey =
         ConnTrackKey(wcMatch.getNetworkDstIP,

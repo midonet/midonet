@@ -28,9 +28,9 @@ import rx.Subscription
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
-import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.FlowStateStorage
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.packets.ConnTrackState.{ConnTrackKeyStore => ConnTrackKey}
+import org.midonet.packets.NatState.{NatKeyStore => NatKey, NatBindingStore => NatBinding}
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopology}

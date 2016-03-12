@@ -30,8 +30,9 @@ import com.datastax.driver.core._
 import com.google.common.util.concurrent.{FutureCallback, Futures}
 import org.slf4j.{Logger, LoggerFactory}
 
-import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.NatState.{KeyType, NatKey, NatBinding}
+import org.midonet.packets.ConnTrackState.{ConnTrackKeyStore => ConnTrackKey}
+import org.midonet.packets.NatState.{NatKeyStore => NatKey, NatBindingStore => NatBinding}
+import org.midonet.packets.NatState._
 import org.midonet.packets.{IPv4Addr, IPAddr}
 import org.midonet.util.collection.Bimap
 
@@ -93,13 +94,13 @@ object FlowStateStorage {
         NAT_BY_INGRESS_TABLE, NAT_BY_INGRESS_TABLE,
         NAT_BY_EGRESS_TABLE, NAT_BY_EGRESS_TABLE)
 
-    val NAT_KEY_TYPES = Bimap[NatState.KeyType, String](List(
-        NatState.FWD_DNAT -> "fwd_dnat",
-        NatState.FWD_SNAT -> "fwd_snat",
-        NatState.FWD_STICKY_DNAT -> "fwd_sticky_dnat",
-        NatState.REV_DNAT -> "rev_dnat",
-        NatState.REV_SNAT -> "rev_snat",
-        NatState.REV_STICKY_DNAT -> "rev_sticky_dnat"))
+    val NAT_KEY_TYPES = Bimap[KeyType, String](List(
+        FWD_DNAT -> "fwd_dnat",
+        FWD_SNAT -> "fwd_snat",
+        FWD_STICKY_DNAT -> "fwd_sticky_dnat",
+        REV_DNAT -> "rev_dnat",
+        REV_SNAT -> "rev_snat",
+        REV_STICKY_DNAT -> "rev_sticky_dnat"))
 
     def natKeyTypeFromString(str: String): Option[KeyType] = NAT_KEY_TYPES.inverse.get(str)
 
