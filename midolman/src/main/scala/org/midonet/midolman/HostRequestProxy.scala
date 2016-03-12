@@ -25,12 +25,14 @@ import akka.actor.ActorRef
 
 import rx.Subscription
 
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
-import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.FlowStateStorage
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.ConnTrackState._
+import org.midonet.midolman.state.NatState._
+import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
+import org.midonet.packets.NatState.{NatKeyStore, NatBinding}
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopology}
@@ -38,6 +40,28 @@ import org.midonet.util.concurrent.ReactiveActor.{OnError, OnCompleted}
 import org.midonet.util.concurrent._
 
 object HostRequestProxy {
+
+    object FlowStateBatch {
+        implicit def toFlowTaggedConnTrack(connTrack: JSet[ConnTrackKeyStore])
+        : JSet[ConnTrackKey] = {
+            val newConnTrack = new JHashSet[ConnTrackKey]()
+            val it = connTrack.iterator
+            while (it.hasNext) newConnTrack.add(it.next())
+            newConnTrack
+        }
+
+        implicit def toFlowTaggedNat(nat: JMap[NatKeyStore, NatBinding])
+        : JMap[NatKey, NatBinding] = {
+            val newNat = new JHashMap[NatKey, NatBinding]()
+            val it = nat.entrySet().iterator
+            while (it.hasNext) {
+                val entry = it.next()
+                newNat.put(entry.getKey, entry.getValue)
+            }
+            newNat
+        }
+    }
+
     case class FlowStateBatch(
             strongConnTrack: JSet[ConnTrackKey],
             weakConnTrack: JSet[ConnTrackKey],
@@ -79,6 +103,8 @@ class HostRequestProxy(hostId: UUID,
                        subscriber: ActorRef) extends ReactiveActor[DevicesHost]
                                              with ActorLogWithoutPath
                                              with SingleThreadExecutionContextProvider {
+
+    import HostRequestProxy.FlowStateBatch._
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
@@ -173,7 +199,8 @@ class HostRequestProxy(hostId: UUID,
                 lastPorts = h.portBindings.keySet
                 storageFuture.flatMap(stateForPorts(_, ps)).andThen {
                     case Success(stateBatch) =>
-                        log.debug(s"Fetched ${stateBatch.size()} pieces of flow state for ports $ps")
+                        log.debug(s"Fetched ${stateBatch.size()} pieces of " +
+                                  s"flow state for ports $ps")
                         backChannel tell stateBatch
                     case Failure(e) =>
                         log.warn("Failed to fetch state", e)

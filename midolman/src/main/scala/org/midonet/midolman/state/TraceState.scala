@@ -17,17 +17,18 @@
 package org.midonet.midolman.state
 
 import java.util.{ArrayList, List, Objects, UUID}
-import scala.concurrent.duration._
 
 import com.datastax.driver.core.utils.UUIDs
 
-import org.slf4j.{LoggerFactory,MDC}
+import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{MAC, IPAddr, ICMP}
+import org.midonet.packets.FlowStateStore.IdleExpiration
+import org.midonet.packets.TraceState.TraceKeyStore
+import org.midonet.packets.{FlowStatePackets, MAC, IPAddr, ICMP}
 import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
@@ -62,15 +63,27 @@ object TraceState {
             flowMatch.doTrackSeenFields()
             key
         }
+
+        def apply(tks: TraceKeyStore): TraceKey = {
+            TraceKey(
+                tks.ethSrc, tks.ethDst, tks.etherType,
+                tks.networkSrc, tks.networkDst,
+                tks.networkProto, tks.srcPort, tks.dstPort)
+        }
+
+        def apply(ethSrc: MAC, ethDst: MAC, etherType: Short,
+                  networkSrc: IPAddr, networkDst: IPAddr,
+                  networkProto: Byte, srcPort: Int, dstPort: Int): TraceKey =
+            TraceKey(
+                ethSrc, ethDst, etherType,
+                networkSrc, networkDst,
+                networkProto, srcPort, dstPort)
     }
 
-    case class TraceKey(ethSrc: MAC, ethDst: MAC, etherType: Short,
-                        networkSrc: IPAddr, networkDst: IPAddr,
-                        networkProto: Byte,
-                        srcPort: Int, dstPort: Int)
-            extends FlowStateKey {
-        expiresAfter = 5 seconds
-    }
+    type TraceKey = TraceKeyStore with FlowStateKey
+
+    implicit def fromTraceKeyStore(tks: TraceKeyStore): TraceKey =
+        TraceKey(tks)
 
     class TraceContext(var flowTraceId: UUID = UUIDs.timeBased()) {
         var _enabled = false

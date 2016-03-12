@@ -19,11 +19,11 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.{Objects, UUID}
 
-import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.l4lb.PoolLBMethod
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.packets.{ICMP, IPAddr}
+import org.midonet.packets.NatState
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.collection.WeightedSelector
 

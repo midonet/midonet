@@ -30,14 +30,14 @@ import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationRe
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.{NatTarget, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, Simulator, PacketContext}
-import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser}
-import org.midonet.midolman.state.{SbeEncoder, TraceState}
+import org.midonet.midolman.state.HappyGoLuckyLeaser
+import org.midonet.midolman.state.TraceState
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.odp.{FlowMatches, Packet}
-import org.midonet.packets.{Ethernet, IPv4Addr}
+import org.midonet.packets.{SbeEncoder, FlowStatePackets, Ethernet, IPv4Addr}
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.ShardedFlowStateTable

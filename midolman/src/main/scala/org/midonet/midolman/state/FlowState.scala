@@ -21,15 +21,19 @@ import scala.concurrent.duration._
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.odp.FlowMatch
+import org.midonet.packets.FlowStatePackets
+import org.midonet.packets.FlowStateStore.IdleExpiration
 import org.midonet.sdn.flows.FlowTagger.FlowStateTag
-import org.midonet.sdn.state.IdleExpiration
 import org.midonet.util.Clearable
 
 object FlowState {
-    val DEFAULT_EXPIRATION = 60 seconds
 
-    trait FlowStateKey extends FlowStateTag with IdleExpiration {
-        var expiresAfter: Duration = DEFAULT_EXPIRATION
+    trait FlowStateKey extends FlowStateTag with IdleExpiration
+
+    @inline
+    def isStateMessage(fmatch: FlowMatch): Boolean = {
+        fmatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
     }
 }
 /**
