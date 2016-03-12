@@ -28,12 +28,13 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.midonet.ErrorCode.{EBUSY, EEXIST, EADDRINUSE}
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.state.FlowStatePackets
+import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.{PacketWorkflow, NetlinkCallbackDispatcher, PacketsEntryPoint}
 import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.packets.FlowStatePackets
 import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.{BatchCollector, Bucket}
 import org.midonet.util.eventloop.SelectLoop
@@ -203,7 +204,7 @@ abstract class UpcallDatapathConnectionManagerBase(
 
                 data.startTimeNanos = NanoClock.DEFAULT.tick
 
-                if (FlowStatePackets.isStateMessage(data.getMatch)) {
+                if (FlowState.isStateMessage(data.getMatch)) {
                     var i = 0
                     while (i < NUM_WORKERS) {
                         addToWorkerBatch(i, data)
@@ -221,6 +222,7 @@ abstract class UpcallDatapathConnectionManagerBase(
                 if (cursors(worker) == BATCH_SIZE)
                     endBatch(worker)
             }
+
         }
 }
 

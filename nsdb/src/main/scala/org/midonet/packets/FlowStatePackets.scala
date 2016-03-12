@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state
+package org.midonet.packets
 
-import java.io.ByteArrayInputStream
 import java.util.UUID
 
 import uk.co.real_logic.sbe.codec.java.DirectBuffer
 
-import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, _}
-import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.NatState._
-import org.midonet.midolman.state.TraceState.TraceKey
-import org.midonet.odp.FlowMatch
-import org.midonet.odp.flows.FlowKeyEtherType
-import org.midonet.packets._
+import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, MessageHeader, InetAddrType, NatKeyType}
+import org.midonet.packets.ConnTrackState.{ConnTrackKeyStore => ConnTrackKey}
+import org.midonet.packets.NatState.{NatKeyStore => NatKey, NatBindingStore => NatBinding}
+import org.midonet.packets.TraceState.{TraceKeyStore => TraceKey}
+import org.midonet.packets.NatState._
 
 object FlowStatePackets {
     /**
@@ -63,9 +60,6 @@ object FlowStatePackets {
     val OVERHEAD = 70
 
     val MessageHeaderVersion = 1
-
-    def isStateMessage(fmatch: FlowMatch): Boolean =
-        fmatch.getTunnelKey == TUNNEL_KEY
 
     def makeUdpShell(data: Array[Byte]): Ethernet = {
         import org.midonet.packets.util.PacketBuilder._
@@ -123,22 +117,22 @@ object FlowStatePackets {
     }
 
     def natKeyTypeFromSbe(t: NatKeyType): KeyType = t match {
-        case NatKeyType.FWD_SNAT => NatState.FWD_SNAT
-        case NatKeyType.FWD_DNAT => NatState.FWD_DNAT
-        case NatKeyType.FWD_STICKY_DNAT => NatState.FWD_STICKY_DNAT
-        case NatKeyType.REV_SNAT => NatState.REV_SNAT
-        case NatKeyType.REV_DNAT => NatState.REV_DNAT
-        case NatKeyType.REV_STICKY_DNAT => NatState.REV_STICKY_DNAT
+        case NatKeyType.FWD_SNAT => FWD_SNAT
+        case NatKeyType.FWD_DNAT => FWD_DNAT
+        case NatKeyType.FWD_STICKY_DNAT => FWD_STICKY_DNAT
+        case NatKeyType.REV_SNAT => REV_SNAT
+        case NatKeyType.REV_DNAT => REV_DNAT
+        case NatKeyType.REV_STICKY_DNAT => REV_STICKY_DNAT
         case _ => null
     }
 
     def natKeySbeType(t: KeyType): NatKeyType = t match {
-        case NatState.FWD_SNAT => NatKeyType.FWD_SNAT
-        case NatState.FWD_DNAT => NatKeyType.FWD_DNAT
-        case NatState.FWD_STICKY_DNAT => NatKeyType.FWD_STICKY_DNAT
-        case NatState.REV_SNAT => NatKeyType.REV_SNAT
-        case NatState.REV_DNAT => NatKeyType.REV_DNAT
-        case NatState.REV_STICKY_DNAT => NatKeyType.REV_STICKY_DNAT
+        case FWD_SNAT => NatKeyType.FWD_SNAT
+        case FWD_DNAT => NatKeyType.FWD_DNAT
+        case FWD_STICKY_DNAT => NatKeyType.FWD_STICKY_DNAT
+        case REV_SNAT => NatKeyType.REV_SNAT
+        case REV_DNAT => NatKeyType.REV_DNAT
+        case REV_STICKY_DNAT => NatKeyType.REV_STICKY_DNAT
     }
 
     def connTrackKeyFromSbe(conntrack: FlowStateSbe.Conntrack): ConnTrackKey = {

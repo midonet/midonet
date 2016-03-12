@@ -25,17 +25,20 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue, toConnTrackKey}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey, toNatBinding, toNatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.packets.Ethernet
+import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
+import org.midonet.packets.NatState.{NatKeyStore, NatBindingStore}
+import org.midonet.packets.{SbeEncoder, FlowStatePackets, Ethernet}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
@@ -182,7 +185,7 @@ class FlowStateReplicator(
         importNat(batch.weakNat.entrySet().iterator())
     }
 
-    private def importConnTrack(keys: JIterator[ConnTrackKey], v: ConnTrackState.ConnTrackValue) {
+    private def importConnTrack(keys: JIterator[ConnTrackKeyStore], v: ConnTrackState.ConnTrackValue) {
         while (keys.hasNext) {
             val k = keys.next()
             log.debug("importing state key from storage: {}", k)
@@ -192,7 +195,7 @@ class FlowStateReplicator(
         }
     }
 
-    private def importNat(entries: JIterator[java.util.Map.Entry[NatKey, NatBinding]]) {
+    private def importNat(entries: JIterator[java.util.Map.Entry[NatKeyStore, NatBindingStore]]) {
         while (entries.hasNext) {
             val e = entries.next()
             log.debug("importing state key from storage: {}", e.getKey)

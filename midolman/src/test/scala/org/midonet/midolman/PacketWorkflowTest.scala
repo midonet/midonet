@@ -37,14 +37,14 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockFlowStateTable, MockStateStorage}
+import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable, MockStateStorage}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.flows.{FlowActions, FlowAction}
 import org.midonet.odp.{Datapath, FlowMatches, Packet}
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{FlowStatePackets, Ethernet}
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.{udp, _}
 import org.midonet.sdn.flows.FlowTagger

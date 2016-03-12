@@ -47,6 +47,7 @@ import org.midonet.midolman.topology.devices.{TunnelZone => SimTunnelZone}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets._
+import org.midonet.packets.NatState._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -147,9 +148,9 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             ConnTrackKey("10.0.0.9", 4578, "10.0.0.12", 80, 2, UUID.randomUUID()))
 
     val natMappings = Map(
-        NatKey(NatState.FWD_SNAT, "192.168.10.1", 10001, "17.16.15.1", 80, 1, UUID.randomUUID()) ->
+        NatKey(FWD_SNAT, "192.168.10.1", 10001, "17.16.15.1", 80, 1, UUID.randomUUID()) ->
                NatBinding("1.2.3.4", 54321),
-        NatKey(NatState.FWD_SNAT, "192.168.10.2", 10002, "17.16.15.2", 443, 2, UUID.randomUUID()) ->
+        NatKey(FWD_SNAT, "192.168.10.2", 10002, "17.16.15.2", 443, 2, UUID.randomUUID()) ->
             NatBinding("4.3.2.1", 12345))
 
     val rand = new Random
@@ -250,7 +251,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
 
     feature("State packets serialization") {
         scenario("A (de)serialized packet should be the same as before") {
-            import org.midonet.midolman.state.FlowStatePackets._
+            import FlowStatePackets._
 
             Given("Flow state packet shell")
             val buffer = new Array[Byte](

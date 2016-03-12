@@ -23,12 +23,13 @@ import org.midonet.packets.util.PacketBuilder._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{TraceState, NatState, ConnTrackState}
+import org.midonet.midolman.state.{TraceState, ConnTrackState}
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions
 import org.midonet.packets.{MAC, IPv4Addr, Ethernet}
+import org.midonet.packets.NatState
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.functors.Callback0
 

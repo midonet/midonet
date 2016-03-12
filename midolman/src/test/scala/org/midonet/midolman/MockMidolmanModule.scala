@@ -19,6 +19,7 @@ package org.midonet.midolman
 import java.util.{UUID, LinkedList}
 import java.util.concurrent.ConcurrentHashMap
 
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.monitoring.NullFlowRecorder
 import scala.concurrent.Future
 
