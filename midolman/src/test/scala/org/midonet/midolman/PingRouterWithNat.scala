@@ -26,10 +26,11 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.PacketWorkflow.HandlePackets
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{Packet, FlowMatch}
 import org.midonet.odp.flows.{FlowActions, FlowKeys}
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}

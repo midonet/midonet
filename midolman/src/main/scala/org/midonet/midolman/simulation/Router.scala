@@ -28,12 +28,13 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.{ArpCache, NoOpNatLeaser}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.state.{FlowStateTransaction, NoOpFlowStateTable}

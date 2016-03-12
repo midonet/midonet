@@ -18,6 +18,8 @@ package org.midonet.midolman.state
 
 import java.util.UUID
 
+import scala.concurrent.duration.Duration
+
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.simulation.PacketContext
@@ -25,6 +27,7 @@ import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.FlowMatch
+import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.{ICMP, IPAddr, IPv4, TCP, UDP}
 import org.midonet.sdn.state.FlowStateTransaction
 
@@ -41,18 +44,27 @@ object ConnTrackState {
                          icmpIdOr(wcMatch, wcMatch.getDstPort),
                          wcMatch.getNetworkProto.byteValue(),
                          deviceId)
+
+        // Used when accepting new messages from other agents
+        def apply(networkSrc: IPAddr,
+                  icmpIdOrTransportSrc: Int,
+                  networkDst: IPAddr,
+                  icmpIdOrTransportDst: Int,
+                  networkProtocol: Byte,
+                  deviceId: UUID): ConnTrackKey =
+            new ConnTrackKeyStore(networkSrc, icmpIdOrTransportSrc,
+                                  networkDst, icmpIdOrTransportDst,
+                                  networkProtocol, deviceId) with FlowStateKey
+
+        // Used when translating from storage (cassandra)
+        def apply(ctks: ConnTrackKeyStore): ConnTrackKey = {
+            new ConnTrackKeyStore(ctks.networkSrc, ctks.icmpIdOrTransportSrc,
+                                  ctks.networkDst, ctks.icmpIdOrTransportDst,
+                                  ctks.networkProtocol, ctks.deviceId) with FlowStateKey
+        }
     }
 
-    case class ConnTrackKey(networkSrc: IPAddr,
-                            icmpIdOrTransportSrc: Int,
-                            networkDst: IPAddr,
-                            icmpIdOrTransportDst: Int,
-                            networkProtocol: Byte,
-                            deviceId: UUID) extends FlowStateKey {
-        override def toString = s"conntrack:$networkSrc:$icmpIdOrTransportSrc:" +
-                                s"$networkDst:$icmpIdOrTransportDst:" +
-                                s"$networkProtocol:$deviceId"
-    }
+    type ConnTrackKey = ConnTrackKeyStore with FlowStateKey
 
     def EgressConnTrackKey(wcMatch: FlowMatch, egressDeviceId: UUID): ConnTrackKey =
         ConnTrackKey(wcMatch.getNetworkDstIP,

@@ -21,12 +21,13 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
+import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, Router}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
-import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
+import org.midonet.packets.NatState.NatBinding
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
 class IcmpThroughNatTest extends MidolmanSpec {

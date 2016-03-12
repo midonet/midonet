@@ -19,7 +19,6 @@ package org.midonet.midolman
 import java.util.{UUID, LinkedList}
 import java.util.concurrent.ConcurrentHashMap
 
-import org.midonet.midolman.monitoring.NullFlowRecorder
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
@@ -31,6 +30,7 @@ import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
@@ -39,6 +39,7 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.FlowTracingAppender
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.monitoring.NullFlowRecorder
 import org.midonet.midolman.services.{MidolmanActorsService, SelectLoopService}
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology

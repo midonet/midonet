@@ -26,10 +26,11 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.l4lb.LBStatus
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger

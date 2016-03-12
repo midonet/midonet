@@ -33,9 +33,7 @@ import org.slf4j.helpers.NOPLogger;
 import org.midonet.midolman.TraceRequiredException;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
-import org.midonet.midolman.state.ConnTrackState;
 import org.midonet.midolman.state.HappyGoLuckyLeaser$;
-import org.midonet.midolman.state.NatState;
 import org.midonet.midolman.state.TraceState;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
@@ -43,6 +41,10 @@ import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.ConnTrackState.ConnTrackKeyStore;
+import org.midonet.packets.NatState.NatKeyStore;
+import org.midonet.packets.NatState.NatBinding;
+import org.midonet.packets.TraceState.TraceKeyStore;
 import org.midonet.packets.TCP;
 import org.midonet.sdn.state.FlowStateTable;
 import org.midonet.sdn.state.FlowStateTransaction;
@@ -61,9 +63,9 @@ public class TestRules {
     static Condition cond;
     static Set<NatTarget> nats;
     PacketContext pktCtx;
-    FlowStateTransaction<ConnTrackState.ConnTrackKey, Boolean> conntrackTx;
-    FlowStateTransaction<NatState.NatKey, NatState.NatBinding> natTx;
-    FlowStateTransaction<TraceState.TraceKey, TraceState.TraceContext> traceTx;
+    FlowStateTransaction<ConnTrackKeyStore, Boolean> conntrackTx;
+    FlowStateTransaction<NatKeyStore, NatBinding> natTx;
+    FlowStateTransaction<TraceKeyStore, TraceState.TraceContext> traceTx;
 
     @BeforeClass
     public static void setupOnce() {
@@ -114,18 +116,18 @@ public class TestRules {
     public void setup() {
         pktCtx = new PacketContext(1, null, pktMatch, null);
         @SuppressWarnings("unchecked")
-        ShardedFlowStateTable<ConnTrackState.ConnTrackKey, Boolean> shardedConntrack =
+        ShardedFlowStateTable<ConnTrackKeyStore, Boolean> shardedConntrack =
                 ShardedFlowStateTable.create();
         pktCtx = new PacketContext(1, null, pktMatch, null);
-        FlowStateTable<ConnTrackState.ConnTrackKey, Boolean> conntrackTable =
+        FlowStateTable<ConnTrackKeyStore, Boolean> conntrackTable =
                 shardedConntrack.addShard(
                     Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
-        ShardedFlowStateTable<NatState.NatKey, NatState.NatBinding> shardedNat =
+        ShardedFlowStateTable<NatKeyStore, NatBinding> shardedNat =
                 ShardedFlowStateTable.create();
-        FlowStateTable<NatState.NatKey, NatState.NatBinding> natTable =
+        FlowStateTable<NatKeyStore, NatBinding> natTable =
                 shardedNat.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
-        FlowStateTable<TraceState.TraceKey, TraceState.TraceContext> traceTable =
-            ShardedFlowStateTable.<TraceState.TraceKey, TraceState.TraceContext>create().addShard(
+        FlowStateTable<TraceKeyStore, TraceState.TraceContext> traceTable =
+            ShardedFlowStateTable.<TraceKeyStore, TraceState.TraceContext>create().addShard(
                     Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);

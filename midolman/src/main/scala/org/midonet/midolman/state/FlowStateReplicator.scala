@@ -25,17 +25,19 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
+import org.midonet.midolman.state.ConnTrackState._
+import org.midonet.midolman.state.NatState._
+import org.midonet.midolman.state.TraceState._
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.packets.Ethernet
+import org.midonet.packets.NatState.NatBinding
+import org.midonet.packets.{SbeEncoder, Ethernet}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
@@ -98,7 +100,7 @@ class FlowStateReplicator(
         underlay: UnderlayResolver,
         flowInvalidation: FlowTagIndexer,
         tos: Byte) {
-    import FlowStatePackets._
+    import FlowStateAgentPackets._
 
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
