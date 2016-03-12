@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state
+package org.midonet.cluster.storage
 
 import java.lang.{Integer => JInt}
 import java.net.InetAddress
-import java.util.{UUID, Set => JSet, Map => JMap, HashMap => JHashMap,
-                  HashSet => JHashSet, Iterator => JIterator}
-import java.util.concurrent.{TimeoutException, TimeUnit}
+import java.util.concurrent.{TimeUnit, TimeoutException}
+import java.util.{HashMap => JHashMap, HashSet => JHashSet, Iterator => JIterator, Map => JMap, Set => JSet, UUID}
 
-import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import akka.actor.ActorSystem
+
 import com.datastax.driver.core._
 import com.google.common.util.concurrent.{FutureCallback, Futures}
+
 import org.slf4j.{Logger, LoggerFactory}
 
-import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.NatState.{KeyType, NatKey, NatBinding}
-import org.midonet.packets.{IPv4Addr, IPAddr}
+import org.midonet.packets.ConnTrackState.{ConnTrackKeyStore => ConnTrackKey}
+import org.midonet.packets.NatState.{NatBindingStore => NatBinding, NatKeyStore => NatKey, _}
+import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.collection.Bimap
 
 object FlowStateStorage {
@@ -93,13 +94,13 @@ object FlowStateStorage {
         NAT_BY_INGRESS_TABLE, NAT_BY_INGRESS_TABLE,
         NAT_BY_EGRESS_TABLE, NAT_BY_EGRESS_TABLE)
 
-    val NAT_KEY_TYPES = Bimap[NatState.KeyType, String](List(
-        NatState.FWD_DNAT -> "fwd_dnat",
-        NatState.FWD_SNAT -> "fwd_snat",
-        NatState.FWD_STICKY_DNAT -> "fwd_sticky_dnat",
-        NatState.REV_DNAT -> "rev_dnat",
-        NatState.REV_SNAT -> "rev_snat",
-        NatState.REV_STICKY_DNAT -> "rev_sticky_dnat"))
+    val NAT_KEY_TYPES = Bimap[KeyType, String](List(
+        FWD_DNAT -> "fwd_dnat",
+        FWD_SNAT -> "fwd_snat",
+        FWD_STICKY_DNAT -> "fwd_sticky_dnat",
+        REV_DNAT -> "rev_dnat",
+        REV_SNAT -> "rev_snat",
+        REV_STICKY_DNAT -> "rev_sticky_dnat"))
 
     def natKeyTypeFromString(str: String): Option[KeyType] = NAT_KEY_TYPES.inverse.get(str)
 
@@ -133,7 +134,10 @@ object FlowStateStorage {
     def apply(session: Session): FlowStateStorage = new FlowStateStorageImpl(session)
 }
 
-trait FlowStateStorage {
+trait FlowStateStorage extends FlowStateStorageReader with FlowStateStorageWriter
+
+trait FlowStateStorageReader {
+
     def fetchStrongConnTrackRefs(portId: UUID)
         (implicit ec: ExecutionContext, as: ActorSystem): Future[JSet[ConnTrackKey]]
 
@@ -145,6 +149,9 @@ trait FlowStateStorage {
 
     def fetchWeakNatRefs(portId: UUID)
         (implicit ec: ExecutionContext, as: ActorSystem): Future[JMap[NatKey, NatBinding]]
+}
+
+trait FlowStateStorageWriter {
 
     def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID, weakRefs: JIterator[UUID])
     def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID, weakRefs: JIterator[UUID])

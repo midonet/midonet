@@ -21,7 +21,7 @@ import java.util.ArrayDeque
 import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.state.FlowState
+import org.midonet.packets.{FlowStateStore => FlowState}
 
 object FlowExpirationIndexer {
     sealed abstract class Expiration {

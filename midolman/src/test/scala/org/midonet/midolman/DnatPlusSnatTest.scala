@@ -26,9 +26,10 @@ import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.state.NatState.{FWD_SNAT, FWD_DNAT, NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows._
+import org.midonet.packets.NatState.{FWD_SNAT, FWD_DNAT}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
