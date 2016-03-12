@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.midonet.midolman.state
 
-package org.midonet.midolman.state;
+import scala.concurrent.Future
 
-import scala.concurrent.Future;
+import org.midonet.cluster.storage.FlowStateStorage
+import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
+import org.midonet.midolman.state.NatState.NatKey
 
-public interface FlowStateStorageFactory {
-    Future<FlowStateStorage> create();
+trait FlowStateStorageFactory {
+
+    def create: Future[FlowStateStorage[ConnTrackKey, NatKey]]
 }

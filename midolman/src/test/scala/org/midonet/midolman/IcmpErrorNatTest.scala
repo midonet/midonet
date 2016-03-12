@@ -17,23 +17,25 @@
 package org.midonet.midolman
 
 import java.nio.ByteBuffer
-import java.util.{HashSet,UUID}
+import java.util.{HashSet, UUID}
 
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.midolman.PacketWorkflow.HandlePackets
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
-import org.midonet.midolman.simulation.{Bridge, Router}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.simulation.Router
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.{FlowActions, FlowKeys}
 import org.midonet.odp.{FlowMatch, Packet}
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC, _}
 import org.midonet.sdn.state.ShardedFlowStateTable
-import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class IcmpErrorNatTest extends MidolmanSpec {

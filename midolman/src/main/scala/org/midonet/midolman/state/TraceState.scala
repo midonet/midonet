@@ -17,16 +17,16 @@
 package org.midonet.midolman.state
 
 import java.util.{ArrayList, List, Objects, UUID}
-import scala.concurrent.duration._
 
 import com.datastax.driver.core.utils.UUIDs
 
-import org.slf4j.{LoggerFactory,MDC}
+import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
+import org.midonet.packets.TraceState.{TraceKeyAllocator, TraceKeyStore}
 import org.midonet.packets.{MAC, IPAddr, ICMP}
 import org.midonet.sdn.state.FlowStateTransaction
 
@@ -39,7 +39,7 @@ object TraceState {
         (tunnelId & TraceTunnelKeyMask) != 0
     }
 
-    object TraceKey {
+    object TraceKey extends TraceKeyAllocator[TraceKey] {
         def fromFlowMatch(flowMatch: FlowMatch): TraceKey = {
             flowMatch.doNotTrackSeenFields()
             val srcPort =
@@ -62,15 +62,18 @@ object TraceState {
             flowMatch.doTrackSeenFields()
             key
         }
+
+        def apply(ethSrc: MAC, ethDst: MAC, etherType: Short,
+                  networkSrc: IPAddr, networkDst: IPAddr,
+                  networkProto: Byte, srcPort: Int, dstPort: Int): TraceKey =
+            new TraceKeyStore(
+                ethSrc, ethDst, etherType,
+                networkSrc, networkDst,
+                networkProto, srcPort, dstPort) with FlowStateKey
+
     }
 
-    case class TraceKey(ethSrc: MAC, ethDst: MAC, etherType: Short,
-                        networkSrc: IPAddr, networkDst: IPAddr,
-                        networkProto: Byte,
-                        srcPort: Int, dstPort: Int)
-            extends FlowStateKey {
-        expiresAfter = 5 seconds
-    }
+    type TraceKey = TraceKeyStore with FlowStateKey
 
     class TraceContext(var flowTraceId: UUID = UUIDs.timeBased()) {
         var _enabled = false
@@ -181,7 +184,7 @@ trait TraceState extends FlowState { this: PacketContext =>
 
     def hasTraceTunnelBit: Boolean = {
         TraceState.traceBitPresent(origMatch.getTunnelKey) &&
-                origMatch.getTunnelKey != FlowStatePackets.TUNNEL_KEY
+                origMatch.getTunnelKey != FlowStateAgentPackets.TUNNEL_KEY
     }
 
     def stripTraceBit(m: FlowMatch): Unit = {

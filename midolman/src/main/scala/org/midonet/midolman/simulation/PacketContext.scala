@@ -28,7 +28,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.flows.ManagedFlow
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.PacketWorkflow.{GeneratedPhysicalPacket, GeneratedLogicalPacket}
-import org.midonet.midolman.state.{ArpRequestBroker, FlowStatePackets}
+import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets, ArpRequestBroker}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._

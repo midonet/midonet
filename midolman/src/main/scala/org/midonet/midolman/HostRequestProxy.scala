@@ -25,12 +25,13 @@ import akka.actor.ActorRef
 
 import rx.Subscription
 
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
-import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.FlowStateStorage
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.ConnTrackState._
+import org.midonet.midolman.state.NatState._
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopology}
@@ -38,6 +39,7 @@ import org.midonet.util.concurrent.ReactiveActor.{OnError, OnCompleted}
 import org.midonet.util.concurrent._
 
 object HostRequestProxy {
+
     case class FlowStateBatch(
             strongConnTrack: JSet[ConnTrackKey],
             weakConnTrack: JSet[ConnTrackKey],
@@ -75,10 +77,12 @@ object HostRequestProxy {
   */
 class HostRequestProxy(hostId: UUID,
                        backChannel: SimulationBackChannel,
-                       storageFuture: Future[FlowStateStorage],
+                       storageFuture: Future[FlowStateStorage[ConnTrackKey, NatKey]],
                        subscriber: ActorRef) extends ReactiveActor[DevicesHost]
                                              with ActorLogWithoutPath
                                              with SingleThreadExecutionContextProvider {
+
+    import HostRequestProxy.FlowStateBatch._
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
@@ -103,7 +107,7 @@ class HostRequestProxy(hostId: UUID,
         }
     }
 
-    private def stateForPort(storage: FlowStateStorage,
+    private def stateForPort(storage: FlowStateStorage[ConnTrackKey, NatKey],
                              port: UUID): Future[FlowStateBatch] = {
         val scf = storage.fetchStrongConnTrackRefs(port)
         val wcf = storage.fetchWeakConnTrackRefs(port)
@@ -115,7 +119,7 @@ class HostRequestProxy(hostId: UUID,
         }
     }
 
-    private def stateForPorts(storage: FlowStateStorage,
+    private def stateForPorts(storage: FlowStateStorage[ConnTrackKey, NatKey],
                               ports: Iterable[UUID]): Future[FlowStateBatch] =
         Future.fold(ports map (stateForPort(storage, _)))(EmptyFlowStateBatch()) {
             (batch: FlowStateBatch, v: FlowStateBatch) => batch.merge(v)
@@ -173,7 +177,8 @@ class HostRequestProxy(hostId: UUID,
                 lastPorts = h.portBindings.keySet
                 storageFuture.flatMap(stateForPorts(_, ps)).andThen {
                     case Success(stateBatch) =>
-                        log.debug(s"Fetched ${stateBatch.size()} pieces of flow state for ports $ps")
+                        log.debug(s"Fetched ${stateBatch.size()} pieces of " +
+                                  s"flow state for ports $ps")
                         backChannel tell stateBatch
                     case Failure(e) =>
                         log.warn("Failed to fetch state", e)

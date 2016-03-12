@@ -16,22 +16,29 @@
 
 package org.midonet.midolman.state
 
-import scala.concurrent.duration._
-
-import com.typesafe.scalalogging.Logger
-
+import org.midonet.cluster.flowstate.proto.FlowState.{Conntrack, Nat, Trace}
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
+import org.midonet.midolman.state.NatState.NatKey
+import org.midonet.midolman.state.TraceState.TraceKey
+import org.midonet.odp.FlowMatch
+import org.midonet.packets.{IPv4Addr, FlowStatePackets}
 import org.midonet.sdn.flows.FlowTagger.FlowStateTag
-import org.midonet.sdn.state.IdleExpiration
 import org.midonet.util.Clearable
 
-object FlowState {
-    val DEFAULT_EXPIRATION = 60 seconds
+object FlowStateAgentPackets
+    extends FlowStatePackets[ConnTrackKey, NatKey, TraceKey]
 
-    trait FlowStateKey extends FlowStateTag with IdleExpiration {
-        var expiresAfter: Duration = DEFAULT_EXPIRATION
+object FlowState {
+
+    trait FlowStateKey extends FlowStateTag
+
+    @inline
+    def isStateMessage(fmatch: FlowMatch): Boolean = {
+        fmatch.getTunnelKey == FlowStateAgentPackets.TUNNEL_KEY
     }
 }
+
 /**
  * Base trait for flow state management during a simulation. Implementers of
  * this trait must ensure it is stackable with other state traits.

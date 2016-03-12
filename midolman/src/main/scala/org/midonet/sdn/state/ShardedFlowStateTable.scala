@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
 
+import org.midonet.packets.FlowStateStore.IdleExpiration
 import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
 

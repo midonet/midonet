@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.slf4j.helpers.NOPLogger;
 import com.typesafe.scalalogging.Logger$;
 
+import org.midonet.packets.FlowStateStore;
 import org.midonet.util.collection.Reducer;
 import org.midonet.util.concurrent.MockClock;
 
@@ -35,7 +36,7 @@ import static org.hamcrest.Matchers.*;
 public class FlowStateTableTest {
     static final Duration IDLE_EXPIRATION = new FiniteDuration(60, TimeUnit.SECONDS);
 
-    static class TestKey implements IdleExpiration  {
+    static class TestKey implements FlowStateStore.IdleExpiration  {
         private final String key;
 
         public TestKey(String key) {
@@ -45,6 +46,11 @@ public class FlowStateTableTest {
         @Override
         public Duration expiresAfter() {
             return IDLE_EXPIRATION;
+        }
+
+        @Override
+        public void expiresAfter_$eq(Duration expiresAfter) {
+            expiresAfter.equals(IDLE_EXPIRATION);
         }
 
         @Override
@@ -60,6 +66,7 @@ public class FlowStateTableTest {
         public int hashCode() {
             return key.hashCode();
         }
+
     }
 
     private static TestKey key(String k) {
