@@ -33,6 +33,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
+import org.midonet.packets.NatState._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.Reducer
@@ -67,7 +68,7 @@ class NatStateTest extends MidolmanSpec {
     feature("DNAT state is correctly managed") {
         scenario("New bindings are created") {
             val ctx = context()
-            val forwardKey = NatKey(ctx.wcmatch, deviceId, NatState.FWD_DNAT)
+            val forwardKey = NatKey(ctx.wcmatch, deviceId, FWD_DNAT)
             val binding = NatBinding(ipTarget, portTarget)
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
@@ -91,7 +92,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("Existing bindings are recognized") {
             val ctx = context()
-            val forwardKey = NatKey(ctx.wcmatch, deviceId, NatState.FWD_DNAT)
+            val forwardKey = NatKey(ctx.wcmatch, deviceId, FWD_DNAT)
             val binding = NatBinding(ipTarget, portTarget)
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
@@ -118,7 +119,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("DNAT is reversed when there are bindings") {
             val ctx = context()
-            val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_DNAT)
+            val key = NatKey(ctx.wcmatch, deviceId, REV_DNAT)
             val binding = NatBinding(ipTarget, portTarget)
 
             natStateTable.putAndRef(key, binding)
@@ -134,7 +135,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("Flow is tagged even when DNAT is not reversed") {
             val ctx = context()
-            val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_DNAT)
+            val key = NatKey(ctx.wcmatch, deviceId, REV_DNAT)
             val binding = NatBinding(ipTarget, portTarget)
 
             ctx.reverseDnat() should be (false)
@@ -150,7 +151,7 @@ class NatStateTest extends MidolmanSpec {
     feature("SNAT state is correctly managed") {
         scenario("New bindings are created") {
             val ctx = context()
-            val forwardKey = NatKey(ctx.wcmatch, deviceId, NatState.FWD_SNAT)
+            val forwardKey = NatKey(ctx.wcmatch, deviceId, FWD_SNAT)
             val binding = NatBinding(ipTarget, portTarget)
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
@@ -174,7 +175,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("Existing bindings are recognized") {
             val ctx = context()
-            val forwardKey = NatKey(ctx.wcmatch, deviceId, NatState.FWD_SNAT)
+            val forwardKey = NatKey(ctx.wcmatch, deviceId, FWD_SNAT)
             val binding = NatBinding(ipTarget, portTarget)
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
@@ -201,7 +202,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("SNAT is reversed when there are bindings") {
             val ctx = context()
-            val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_SNAT)
+            val key = NatKey(ctx.wcmatch, deviceId, REV_SNAT)
             val binding = NatBinding(ipTarget, portTarget)
 
             natStateTable.putAndRef(key, binding)
@@ -217,7 +218,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("Flow is tagged even when SNAT is not reversed") {
             val ctx = context()
-            val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_SNAT)
+            val key = NatKey(ctx.wcmatch, deviceId, REV_SNAT)
             val binding = NatBinding(ipTarget, portTarget)
 
             ctx.reverseSnat() should be (false)
@@ -238,7 +239,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("New bindings are created") {
             val ctx = context(ping)
-            val forwardKey = NatKey(ctx.wcmatch, deviceId, NatState.FWD_SNAT)
+            val forwardKey = NatKey(ctx.wcmatch, deviceId, FWD_SNAT)
             val binding = NatBinding(ipTarget, 10 /* ICMP id */)
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
@@ -266,7 +267,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("Existing bindings are recognized") {
             val ctx = context(ping)
-            val forwardKey = NatKey(ctx.wcmatch, deviceId, NatState.FWD_SNAT)
+            val forwardKey = NatKey(ctx.wcmatch, deviceId, FWD_SNAT)
             val binding = NatBinding(ipTarget, 10 /* ICMP id */)
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
@@ -297,7 +298,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("SNAT is reversed when there are bindings") {
             val ctx = context(ping)
-            val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_SNAT)
+            val key = NatKey(ctx.wcmatch, deviceId, REV_SNAT)
             val binding = NatBinding(ipTarget, 10 /* ICMP id */)
 
             natStateTable.putAndRef(key, binding)
@@ -317,7 +318,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("Flow is tagged even when SNAT is not reversed") {
             val ctx = context()
-            val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_SNAT)
+            val key = NatKey(ctx.wcmatch, deviceId, REV_SNAT)
             val binding = NatBinding(ipTarget, 10 /* ICMP id */)
 
             val oldSrcPort = ctx.wcmatch.getSrcPort
@@ -346,7 +347,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("New bindings are created") {
             val ctx = context(error)
-            val forwardKey = NatKey(ctx.wcmatch, deviceId, NatState.FWD_SNAT)
+            val forwardKey = NatKey(ctx.wcmatch, deviceId, FWD_SNAT)
             val binding = NatBinding(ipTarget, forwardKey.transportDst)
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
@@ -374,7 +375,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("Existing bindings are recognized") {
             val ctx = context(error)
-            val forwardKey = NatKey(ctx.wcmatch, deviceId, NatState.FWD_SNAT)
+            val forwardKey = NatKey(ctx.wcmatch, deviceId, FWD_SNAT)
             val binding = NatBinding(ipTarget, forwardKey.transportDst)
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
@@ -405,7 +406,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("The inner packet's SNAT is reversed when there are bindings") {
             val ctx = context(error)
-            val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_SNAT)
+            val key = NatKey(ctx.wcmatch, deviceId, REV_SNAT)
             val binding = NatBinding(ipTarget, portTarget)
 
             natStateTable.putAndRef(key, binding)
@@ -432,7 +433,7 @@ class NatStateTest extends MidolmanSpec {
 
         scenario("Flow is tagged even when SNAT is not reversed") {
             val ctx = context()
-            val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_SNAT)
+            val key = NatKey(ctx.wcmatch, deviceId, REV_SNAT)
             val binding = NatBinding(ipTarget, 10 /* ICMP id */)
 
             val oldSrcPort = ctx.wcmatch.getSrcPort

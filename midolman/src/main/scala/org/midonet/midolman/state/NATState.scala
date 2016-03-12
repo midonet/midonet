@@ -27,34 +27,13 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
+import org.midonet.packets.FlowStateStore._
+import org.midonet.packets.NatState._
 import org.midonet.packets._
 import org.midonet.sdn.state.FlowStateTransaction
 
 object NatState {
     private val WILDCARD_PORT = 0
-
-    sealed abstract class KeyType {
-        def inverse: KeyType
-    }
-
-    case object FWD_SNAT extends KeyType {
-        def inverse = REV_SNAT
-    }
-    case object FWD_DNAT extends KeyType {
-        def inverse = REV_DNAT
-    }
-    case object FWD_STICKY_DNAT extends KeyType {
-        def inverse = REV_STICKY_DNAT
-    }
-    case object REV_SNAT extends KeyType {
-        def inverse = FWD_SNAT
-    }
-    case object REV_DNAT extends KeyType {
-        def inverse = FWD_DNAT
-    }
-    case object REV_STICKY_DNAT extends KeyType {
-        def inverse = FWD_STICKY_DNAT
-    }
 
     object NatKey {
         final val USHORT = 0xffff // Constant used to prevent sign extension
@@ -125,11 +104,11 @@ object NatState {
 
         expiresAfter = keyType match {
             case FWD_STICKY_DNAT | REV_STICKY_DNAT => 5 minutes
-            case _ => FlowState.DEFAULT_EXPIRATION
+            case _ => FlowStateStore.DEFAULT_EXPIRATION
         }
 
         def returnKey(binding: NatBinding): NatKey = keyType match {
-            case NatState.FWD_SNAT =>
+            case FWD_SNAT =>
                 NatKey(keyType.inverse,
                        networkDst,
                        transportDst,
@@ -137,7 +116,7 @@ object NatState {
                        binding.transportPort,
                        networkProtocol,
                        deviceId)
-            case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
+            case FWD_DNAT | FWD_STICKY_DNAT =>
                 NatKey(keyType.inverse,
                        binding.networkAddress,
                        binding.transportPort,
@@ -149,9 +128,9 @@ object NatState {
         }
 
         def returnBinding: NatBinding = keyType match {
-            case NatState.FWD_SNAT =>
+            case FWD_SNAT =>
                 NatBinding(networkSrc, transportSrc)
-            case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
+            case FWD_DNAT | FWD_STICKY_DNAT =>
                 NatBinding(networkDst, transportDst)
             case _ => throw new UnsupportedOperationException
         }
@@ -161,11 +140,36 @@ object NatState {
     case class NatBinding(var networkAddress: IPv4Addr, var transportPort: Int)
 
     def releaseBinding(key: NatKey, binding: NatBinding, natLeaser: NatLeaser): Unit =
-        if ((key.keyType eq NatState.FWD_SNAT) &&
+        if ((key.keyType eq FWD_SNAT) &&
             key.networkProtocol != ICMP.PROTOCOL_NUMBER) {
                 natLeaser.freeNatBinding(key.deviceId, key.networkDst,
                                          key.transportDst, binding)
         }
+
+    implicit def toNatKey(key: NatKeyStore): NatKey =
+        NatKey(key.keyType,
+               key.networkSrc,
+               key.transportSrc,
+               key.networkDst,
+               key.transportDst,
+               key.networkProtocol,
+               key.deviceId)
+
+    implicit def toNatKeyStore(key: NatKey): NatKeyStore =
+        NatKeyStore(key.keyType,
+                    key.networkSrc,
+                    key.transportSrc,
+                    key.networkDst,
+                    key.transportDst,
+                    key.networkProtocol,
+                    key.deviceId)
+
+    implicit def toNatBinding(binding: NatBindingStore): NatBinding =
+        NatBinding(binding.networkAddress: IPv4Addr, binding.transportPort: Int)
+
+    implicit def toNatBindingStore(binding: NatBinding): NatBindingStore =
+        NatBindingStore(binding.networkAddress: IPv4Addr, binding.transportPort: Int)
+
 }
 
 trait NatState extends FlowState { this: PacketContext =>
@@ -273,17 +277,17 @@ trait NatState extends FlowState { this: PacketContext =>
             addFlowTag(natKey)
             false
         } else natKey.keyType match {
-            case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
+            case FWD_DNAT | FWD_STICKY_DNAT =>
                 dnatTransformation(natKey, binding)
                 refKey(natKey, binding)
                 true
-            case NatState.REV_DNAT | NatState.REV_STICKY_DNAT =>
+            case REV_DNAT | REV_STICKY_DNAT =>
                 reverseDnatTransformation(natKey, binding)
-            case NatState.FWD_SNAT =>
+            case FWD_SNAT =>
                 snatTransformation(natKey, binding)
                 refKey(natKey, binding)
                 true
-            case NatState.REV_SNAT =>
+            case REV_SNAT =>
                 reverseSnatTransformation(natKey, binding)
         }
     }
