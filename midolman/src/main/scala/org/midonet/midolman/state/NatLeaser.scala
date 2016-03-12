@@ -29,7 +29,7 @@ import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.NatBlockAllocator.NoFreeNatBlocksException
-import org.midonet.midolman.state.NatState.NatBinding
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}

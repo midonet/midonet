@@ -19,16 +19,18 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.util.PacketBuilder._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{TraceState, NatState, ConnTrackState}
+import org.midonet.midolman.state.{TraceState, ConnTrackState}
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions
 import org.midonet.packets.{MAC, IPv4Addr, Ethernet}
+import org.midonet.packets.NatState
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.functors.Callback0
 

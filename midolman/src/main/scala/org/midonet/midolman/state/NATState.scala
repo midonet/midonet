@@ -25,58 +25,53 @@ import scala.concurrent.duration._
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
+import org.midonet.midolman.state.NatState._
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
+import org.midonet.packets.NatState._
 import org.midonet.packets._
 import org.midonet.sdn.state.FlowStateTransaction
 
 object NatState {
     private val WILDCARD_PORT = 0
 
-    sealed abstract class KeyType {
-        def inverse: KeyType
-    }
-
-    case object FWD_SNAT extends KeyType {
-        def inverse = REV_SNAT
-    }
-    case object FWD_DNAT extends KeyType {
-        def inverse = REV_DNAT
-    }
-    case object FWD_STICKY_DNAT extends KeyType {
-        def inverse = REV_STICKY_DNAT
-    }
-    case object REV_SNAT extends KeyType {
-        def inverse = FWD_SNAT
-    }
-    case object REV_DNAT extends KeyType {
-        def inverse = FWD_DNAT
-    }
-    case object REV_STICKY_DNAT extends KeyType {
-        def inverse = FWD_STICKY_DNAT
-    }
-
     object NatKey {
         final val USHORT = 0xffff // Constant used to prevent sign extension
 
+        def apply(keyType: KeyType, networkSrc: IPv4Addr, transportSrc: Int,
+                  networkDst: IPv4Addr, transportDst: Int, networkProtocol: Byte,
+                  deviceId: UUID): NatKey =
+            NatKey(NatKeyStore(keyType,
+                               networkSrc,
+                               transportSrc,
+                               networkDst,
+                               transportDst,
+                               networkProtocol,
+                               deviceId))
+
         def apply(wcMatch: FlowMatch, deviceId: UUID, keyType: KeyType): NatKey = {
-            val key = NatKey(keyType,
-                             wcMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr],
-                             if (keyType eq FWD_STICKY_DNAT) WILDCARD_PORT
-                             else wcMatch.getSrcPort,
-                             wcMatch.getNetworkDstIP.asInstanceOf[IPv4Addr],
-                             if (keyType eq REV_STICKY_DNAT) WILDCARD_PORT
-                             else wcMatch.getDstPort,
-                             wcMatch.getNetworkProto.byteValue(),
-                             deviceId)
+            val key = NatKeyStore(
+                            keyType,
+                            wcMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr],
+                            if (keyType eq FWD_STICKY_DNAT) WILDCARD_PORT
+                            else wcMatch.getSrcPort,
+                            wcMatch.getNetworkDstIP.asInstanceOf[IPv4Addr],
+                            if (keyType eq REV_STICKY_DNAT) WILDCARD_PORT
+                            else wcMatch.getDstPort,
+                            wcMatch.getNetworkProto.byteValue(),
+                            deviceId)
 
             if (wcMatch.getNetworkProto == ICMP.PROTOCOL_NUMBER)
                 processIcmp(key, wcMatch)
 
-            key
+            NatKey(key)
         }
 
-        private def processIcmp(natKey: NatKey, wcMatch: FlowMatch): Unit =
+        implicit def toStore(nat: NatKey): NatKeyStore = {
+            nat.natKey
+        }
+
+        private def processIcmp(natKey: NatKeyStore, wcMatch: FlowMatch): Unit =
             wcMatch.getSrcPort.byteValue() match {
                 case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
                     val port = wcMatch.getIcmpIdentifier.intValue() & USHORT
@@ -113,23 +108,23 @@ object NatState {
             }
         }
 
-    case class NatKey(var keyType: KeyType,
-                      var networkSrc: IPv4Addr,
-                      var transportSrc: Int,
-                      var networkDst: IPv4Addr,
-                      var transportDst: Int,
-                      var networkProtocol: Byte,
-                      var deviceId: UUID) extends FlowStateKey {
-        override def toString = s"nat:$keyType:$networkSrc:$transportSrc:" +
-                                s"$networkDst:$transportDst:$networkProtocol"
+    case class NatKey(var natKey: NatKeyStore) extends FlowStateKey {
+        def keyType: KeyType = natKey.keyType
+        def transportDst: Int = natKey.transportDst
+        def transportSrc: Int = natKey.transportSrc
+        def networkDst: IPv4Addr = natKey.networkDst
+        def networkSrc: IPv4Addr = natKey.networkSrc
+        def networkProtocol: Byte = natKey.networkProtocol
+        def deviceId: UUID = natKey.deviceId
+        override def toString = natKey.toString
 
         expiresAfter = keyType match {
             case FWD_STICKY_DNAT | REV_STICKY_DNAT => 5 minutes
-            case _ => FlowState.DEFAULT_EXPIRATION
+            case _ => FlowStateStore.DEFAULT_EXPIRATION
         }
 
         def returnKey(binding: NatBinding): NatKey = keyType match {
-            case NatState.FWD_SNAT =>
+            case FWD_SNAT =>
                 NatKey(keyType.inverse,
                        networkDst,
                        transportDst,
@@ -137,7 +132,7 @@ object NatState {
                        binding.transportPort,
                        networkProtocol,
                        deviceId)
-            case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
+            case FWD_DNAT | FWD_STICKY_DNAT =>
                 NatKey(keyType.inverse,
                        binding.networkAddress,
                        binding.transportPort,
@@ -149,28 +144,25 @@ object NatState {
         }
 
         def returnBinding: NatBinding = keyType match {
-            case NatState.FWD_SNAT =>
+            case FWD_SNAT =>
                 NatBinding(networkSrc, transportSrc)
-            case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
+            case FWD_DNAT | FWD_STICKY_DNAT =>
                 NatBinding(networkDst, transportDst)
             case _ => throw new UnsupportedOperationException
         }
 
     }
 
-    case class NatBinding(var networkAddress: IPv4Addr, var transportPort: Int)
-
     def releaseBinding(key: NatKey, binding: NatBinding, natLeaser: NatLeaser): Unit =
-        if ((key.keyType eq NatState.FWD_SNAT) &&
+        if ((key.keyType eq FWD_SNAT) &&
             key.networkProtocol != ICMP.PROTOCOL_NUMBER) {
                 natLeaser.freeNatBinding(key.deviceId, key.networkDst,
                                          key.transportDst, binding)
         }
+
 }
 
 trait NatState extends FlowState { this: PacketContext =>
-    import org.midonet.midolman.state.NatState._
-    import org.midonet.midolman.state.NatState.NatKey._
 
     var natTx: FlowStateTransaction[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
@@ -273,17 +265,17 @@ trait NatState extends FlowState { this: PacketContext =>
             addFlowTag(natKey)
             false
         } else natKey.keyType match {
-            case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
+            case FWD_DNAT | FWD_STICKY_DNAT =>
                 dnatTransformation(natKey, binding)
                 refKey(natKey, binding)
                 true
-            case NatState.REV_DNAT | NatState.REV_STICKY_DNAT =>
+            case REV_DNAT | REV_STICKY_DNAT =>
                 reverseDnatTransformation(natKey, binding)
-            case NatState.FWD_SNAT =>
+            case FWD_SNAT =>
                 snatTransformation(natKey, binding)
                 refKey(natKey, binding)
                 true
-            case NatState.REV_SNAT =>
+            case REV_SNAT =>
                 reverseSnatTransformation(natKey, binding)
         }
     }

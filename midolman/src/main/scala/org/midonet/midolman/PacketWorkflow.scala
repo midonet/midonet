@@ -30,6 +30,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.slf4j.{LoggerFactory, MDC}
 
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
@@ -44,14 +45,16 @@ import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.{Port, _}
 import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState
+import org.midonet.midolman.state.NatState.{NatKey, releaseBinding}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser, _}
+import org.midonet.midolman.state.{FlowStateReplicator, NatLeaser, _}
 import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
 import org.midonet.midolman.topology.{VirtualTopology, VxLanPortMappingService}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowActions.output
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger._
@@ -229,7 +232,7 @@ class PacketWorkflow(
         new Reducer[NatKey, NatBinding, Unit]() {
             override def apply(u: Unit, k: NatKey, v: NatBinding): Unit = {
                 invalidateFlowsFor(k)
-                NatState.releaseBinding(k, v, natLeaser)
+                releaseBinding(k, v, natLeaser)
             }
         }
 
@@ -450,7 +453,7 @@ class PacketWorkflow(
         }
 
     private def handlePacket(packet: Packet): Unit =
-        if (FlowStatePackets.isStateMessage(packet.getMatch)) {
+        if (FlowState.isStateMessage(packet.getMatch)) {
             handleStateMessage(packetContext(packet))
             packetOut(1)
         } else {

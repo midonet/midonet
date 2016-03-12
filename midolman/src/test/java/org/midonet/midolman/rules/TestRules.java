@@ -43,6 +43,7 @@ import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.NatState.NatBinding;
 import org.midonet.packets.TCP;
 import org.midonet.sdn.state.FlowStateTable;
 import org.midonet.sdn.state.FlowStateTransaction;
@@ -62,7 +63,7 @@ public class TestRules {
     static Set<NatTarget> nats;
     PacketContext pktCtx;
     FlowStateTransaction<ConnTrackState.ConnTrackKey, Boolean> conntrackTx;
-    FlowStateTransaction<NatState.NatKey, NatState.NatBinding> natTx;
+    FlowStateTransaction<NatState.NatKey, NatBinding> natTx;
     FlowStateTransaction<TraceState.TraceKey, TraceState.TraceContext> traceTx;
 
     @BeforeClass
@@ -120,9 +121,9 @@ public class TestRules {
         FlowStateTable<ConnTrackState.ConnTrackKey, Boolean> conntrackTable =
                 shardedConntrack.addShard(
                     Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
-        ShardedFlowStateTable<NatState.NatKey, NatState.NatBinding> shardedNat =
+        ShardedFlowStateTable<NatState.NatKey, NatBinding> shardedNat =
                 ShardedFlowStateTable.create();
-        FlowStateTable<NatState.NatKey, NatState.NatBinding> natTable =
+        FlowStateTable<NatState.NatKey, NatBinding> natTable =
                 shardedNat.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         FlowStateTable<TraceState.TraceKey, TraceState.TraceContext> traceTable =
             ShardedFlowStateTable.<TraceState.TraceKey, TraceState.TraceContext>create().addShard(

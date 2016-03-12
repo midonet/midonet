@@ -34,13 +34,13 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
 import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.state.FlowState
-import org.midonet.midolman.state.NatState
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.odp.flows._
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets._
+import org.midonet.packets.{FlowStateStore => FlowState, NatState}
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger

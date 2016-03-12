@@ -17,7 +17,8 @@
 package org.midonet.midolman.state
 
 import java.util.{ArrayList, List, Objects, UUID}
-import scala.concurrent.duration._
+
+import scala.concurrent.duration.Duration
 
 import com.datastax.driver.core.utils.UUIDs
 
@@ -27,7 +28,8 @@ import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{MAC, IPAddr, ICMP}
+import org.midonet.packets.TraceState.TraceKeyStore
+import org.midonet.packets.{FlowStatePackets, MAC, IPAddr, ICMP}
 import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
@@ -53,23 +55,39 @@ object TraceState {
                 else
                     flowMatch.getDstPort
 
-            val key = TraceKey(flowMatch.getEthSrc, flowMatch.getEthDst,
-                               flowMatch.getEtherType,
-                               flowMatch.getNetworkSrcIP,
-                               flowMatch.getNetworkDstIP,
-                               flowMatch.getNetworkProto,
-                               srcPort, dstPort)
+            val key = TraceKey(TraceKeyStore(
+                flowMatch.getEthSrc, flowMatch.getEthDst, flowMatch.getEtherType,
+                flowMatch.getNetworkSrcIP, flowMatch.getNetworkDstIP,
+                flowMatch.getNetworkProto, srcPort, dstPort))
             flowMatch.doTrackSeenFields()
             key
         }
+
+        def apply(ethSrc: MAC, ethDst: MAC, etherType: Short,
+                  networkSrc: IPAddr, networkDst: IPAddr,
+                  networkProto: Byte, srcPort: Int, dstPort: Int): TraceKey =
+            TraceKey(TraceKeyStore(
+                ethSrc, ethDst, etherType,
+                networkSrc, networkDst,
+                networkProto, srcPort, dstPort))
+
+        implicit def toStore(trace: TraceKey): TraceKeyStore = {
+            trace.key
+        }
     }
 
-    case class TraceKey(ethSrc: MAC, ethDst: MAC, etherType: Short,
-                        networkSrc: IPAddr, networkDst: IPAddr,
-                        networkProto: Byte,
-                        srcPort: Int, dstPort: Int)
-            extends FlowStateKey {
-        expiresAfter = 5 seconds
+    case class TraceKey(var key: TraceKeyStore) extends FlowStateKey {
+        def ethSrc: MAC = key.ethSrc
+        def srcPort: Int = key.srcPort
+        def dstPort: Int = key.dstPort
+        def etherType: Short = key.etherType
+        def ethDst: MAC = key.ethDst
+        def networkDst: IPAddr = key.networkDst
+        def networkSrc: IPAddr = key.networkSrc
+        def networkProto: Byte = key.networkProto
+
+        expiresAfter = key.expiresAfter
+
     }
 
     class TraceContext(var flowTraceId: UUID = UUIDs.timeBased()) {
