@@ -18,6 +18,8 @@ package org.midonet.midolman.state
 
 import java.util.UUID
 
+import scala.concurrent.duration.Duration
+
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.simulation.PacketContext
@@ -25,6 +27,7 @@ import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.FlowMatch
+import org.midonet.packets.ConnTrackState.{ConnTrackKeyStore}
 import org.midonet.packets.{ICMP, IPAddr, IPv4, TCP, UDP}
 import org.midonet.sdn.state.FlowStateTransaction
 
@@ -35,23 +38,46 @@ object ConnTrackState {
 
     object ConnTrackKey {
         def apply(wcMatch: FlowMatch, deviceId: UUID): ConnTrackKey =
-            ConnTrackKey(wcMatch.getNetworkSrcIP,
-                         icmpIdOr(wcMatch, wcMatch.getSrcPort),
-                         wcMatch.getNetworkDstIP,
-                         icmpIdOr(wcMatch, wcMatch.getDstPort),
-                         wcMatch.getNetworkProto.byteValue(),
-                         deviceId)
+            ConnTrackKey(ConnTrackKeyStore(
+                wcMatch.getNetworkSrcIP,
+                icmpIdOr(wcMatch, wcMatch.getSrcPort),
+                wcMatch.getNetworkDstIP,
+                icmpIdOr(wcMatch, wcMatch.getDstPort),
+                wcMatch.getNetworkProto.byteValue(),
+                deviceId))
+
+        def apply(networkSrc: IPAddr,
+                  icmpIdOrTransportSrc: Int,
+                  networkDst: IPAddr,
+                  icmpIdOrTransportDst: Int,
+                  networkProtocol: Byte,
+                  deviceId: UUID): ConnTrackKey =
+            ConnTrackKey(ConnTrackKeyStore(networkSrc,
+                                           icmpIdOrTransportSrc,
+                                           networkDst,
+                                           icmpIdOrTransportDst,
+                                           networkProtocol,
+                                           deviceId))
+
+        // Implicit conversion to avoid modifying current code.
+        // No new allocations necessary.
+        implicit def toStore(conntrack: ConnTrackKey): ConnTrackKeyStore = {
+            conntrack.conntrack
+        }
     }
 
-    case class ConnTrackKey(networkSrc: IPAddr,
-                            icmpIdOrTransportSrc: Int,
-                            networkDst: IPAddr,
-                            icmpIdOrTransportDst: Int,
-                            networkProtocol: Byte,
-                            deviceId: UUID) extends FlowStateKey {
+    case class ConnTrackKey(var conntrack: ConnTrackKeyStore) extends FlowStateKey {
+        def networkSrc: IPAddr = conntrack.networkSrc
+        def icmpIdOrTransportSrc: Int = conntrack.icmpIdOrTransportSrc
+        def networkDst: IPAddr = conntrack.networkDst
+        def icmpIdOrTransportDst: Int = conntrack.icmpIdOrTransportDst
+        def networkProtocol: Byte = conntrack.networkProtocol
+        def deviceId: UUID = conntrack.deviceId
+
         override def toString = s"conntrack:$networkSrc:$icmpIdOrTransportSrc:" +
                                 s"$networkDst:$icmpIdOrTransportDst:" +
                                 s"$networkProtocol:$deviceId"
+
     }
 
     def EgressConnTrackKey(wcMatch: FlowMatch, egressDeviceId: UUID): ConnTrackKey =

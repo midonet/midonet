@@ -28,12 +28,14 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.backend.cassandra.CassandraClient
+import org.midonet.cluster.storage.{FlowStateStorageImpl, FlowStateStorage}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.cluster.util.CuratorTestFramework
-
+import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.IPv4Addr
+import org.midonet.packets.NatState.{NatBinding, FWD_SNAT}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -56,9 +58,9 @@ class FlowStateStorageTest extends FeatureSpec
             ConnTrackKey("10.0.0.9", 4578, "10.0.0.12", 80, 2, UUID.randomUUID()))
 
     val natMappings = Map(
-        NatKey(NatState.FWD_SNAT, "192.168.10.1", 10001, "17.16.15.1", 80, 1, UUID.randomUUID()) ->
+        NatKey(FWD_SNAT, "192.168.10.1", 10001, "17.16.15.1", 80, 1, UUID.randomUUID()) ->
                NatBinding("1.2.3.4", 54321),
-        NatKey(NatState.FWD_SNAT, "192.168.10.2", 10002, "17.16.15.2", 443, 2, UUID.randomUUID()) ->
+        NatKey(FWD_SNAT, "192.168.10.2", 10002, "17.16.15.2", 443, 2, UUID.randomUUID()) ->
                NatBinding("4.3.2.1", 12345))
 
     val ingressPort = UUID.randomUUID()
@@ -98,7 +100,7 @@ class FlowStateStorageTest extends FeatureSpec
             }
             storage.submit()
 
-            var strongConn: java.util.Set[ConnTrackKey] = null
+            var strongConn: java.util.Set[ConnTrackKeyStore] = null
             eventually {
                 strongConn = storage.fetchStrongConnTrackRefs(ingressPort).await()
                 strongConn should not be null

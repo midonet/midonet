@@ -19,19 +19,20 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.layer3.Route._
-import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
+import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.state.NatState.{FWD_SNAT, FWD_DNAT, NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows._
+import org.midonet.packets.NatState.{FWD_DNAT, FWD_SNAT, NatBinding}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
+import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 import org.midonet.util.Range
 
 @RunWith(classOf[JUnitRunner])

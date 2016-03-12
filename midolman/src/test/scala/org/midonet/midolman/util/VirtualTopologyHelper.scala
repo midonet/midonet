@@ -36,7 +36,7 @@ import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.{NullFlowRecorder, FlowRecorder}
 import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain, DhcpConfigFromNsdb, PacketContext, Port => SimPort, Router => SimRouter, _}
 import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -45,6 +45,7 @@ import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort, InternalPort}
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
 import org.midonet.util.UnixClock

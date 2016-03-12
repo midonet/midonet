@@ -21,10 +21,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor.ActorSystem
 
-import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.NatState.NatKey
-import org.midonet.midolman.state.NatState.NatBinding
-
+import org.midonet.cluster.storage.FlowStateStorage
+import org.midonet.packets.ConnTrackState.{ConnTrackKeyStore => ConnTrackKey}
+import org.midonet.packets.NatState.{NatKeyStore => NatKey, NatBinding}
 
 class MockStateStorage extends FlowStateStorage {
     override def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID,

@@ -25,17 +25,19 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.packets.Ethernet
+import org.midonet.packets.NatState.NatBinding
+import org.midonet.packets.{SbeEncoder, FlowStatePackets, Ethernet}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
@@ -272,7 +274,7 @@ class FlowStateReplicator(
     private def acceptNewState(msg: FlowStateSbe) {
         val conntrackIter = msg.conntrack
         while (conntrackIter.hasNext()) {
-            val k = connTrackKeyFromSbe(conntrackIter.next())
+            val k = ConnTrackKey(connTrackKeyFromSbe(conntrackIter.next()))
             log.debug("got new conntrack key: {}", k)
             conntrackTable.touch(k, ConnTrackState.RETURN_FLOW)
             flowInvalidation.invalidateFlowsFor(k)
@@ -281,7 +283,7 @@ class FlowStateReplicator(
         val natIter = msg.nat
         while (natIter.hasNext()) {
             val nat = natIter.next()
-            val k = natKeyFromSbe(nat)
+            val k = NatKey(natKeyFromSbe(nat))
             val v = natBindingFromSbe(nat)
             log.debug("Got new nat mapping: {} -> {}", k, v)
             natTable.touch(k, v)
@@ -291,7 +293,7 @@ class FlowStateReplicator(
         val traceIter = msg.trace
         if (traceIter.hasNext()) {
             val trace = traceIter.next()
-            val k = traceFromSbe(trace)
+            val k = TraceKey(traceFromSbe(trace))
             val ctx = new TraceContext(uuidFromSbe(trace.flowTraceId))
             ctx.enable()
 
