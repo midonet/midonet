@@ -27,7 +27,8 @@ import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{MAC, IPAddr, ICMP}
+import org.midonet.packets.TraceState.TraceKeyStore
+import org.midonet.packets.{FlowStatePackets, MAC, IPAddr, ICMP}
 import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
@@ -71,6 +72,26 @@ object TraceState {
             extends FlowStateKey {
         expiresAfter = 5 seconds
     }
+
+    implicit def toTraceKey(key: TraceKeyStore): TraceKey =
+        TraceKey(key.ethSrc,
+                 key.ethDst,
+                 key.etherType,
+                 key.networkSrc,
+                 key.networkDst,
+                 key.networkProto,
+                 key.srcPort,
+                 key.dstPort)
+
+    implicit def toTraceKeyStore(key: TraceKey): TraceKeyStore =
+        TraceKeyStore(key.ethSrc,
+                      key.ethDst,
+                      key.etherType,
+                      key.networkSrc,
+                      key.networkDst,
+                      key.networkProto,
+                      key.srcPort,
+                      key.dstPort)
 
     class TraceContext(var flowTraceId: UUID = UUIDs.timeBased()) {
         var _enabled = false
