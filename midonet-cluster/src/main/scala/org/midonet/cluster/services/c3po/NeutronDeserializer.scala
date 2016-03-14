@@ -63,7 +63,7 @@ object NeutronDeserializer {
         toMessage(parseJson(jsonStr), clazz)
 
     private def toMessage[M <: Message](node: JsonNode, clazz: Class[M]): M = {
-        log.debug("Translating json {} to class {}", Array(node, clazz):_*)
+        log.debug("Translating json {} to {}", Array(node, clazz):_*)
         val bldr = builderFor(clazz)
         val classDesc = descriptorFor(clazz)
         for (field <- node.fields.asScala
