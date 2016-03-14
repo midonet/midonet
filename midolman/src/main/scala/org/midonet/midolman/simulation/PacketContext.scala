@@ -80,7 +80,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
 
     var flow: ManagedFlow = _
 
-    def isRecirc: Boolean = recircMatch ne null
+    def isRecirc: Boolean = recircPayload ne null
 
     def isDrop: Boolean = flowActions.isEmpty
 
@@ -123,7 +123,8 @@ trait FlowContext extends Clearable { this: PacketContext =>
 
         calculateActionsFromMatchDiff()
         virtualFlowActions.add(Encap(vni))
-        recircMatch = SimulationStashes.PooledMatches.get()
+        if (recircMatch eq null)
+            recircMatch = new FlowMatch()
         recircMatch.reset(origMatch)
         recircMatch.allFieldsSeen()
         recircPayload = packet.getEthernet
