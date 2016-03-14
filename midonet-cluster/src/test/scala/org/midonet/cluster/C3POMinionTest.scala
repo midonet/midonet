@@ -24,11 +24,10 @@ import java.util.concurrent.TimeUnit
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
-import scala.util.{Random, Try}
+import scala.util.Try
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode}
 import com.google.inject.{Guice, Inject, Injector, PrivateModule}
 import com.typesafe.config.ConfigFactory
 
@@ -47,12 +46,12 @@ import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => 
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.StateTableStorage
-import org.midonet.cluster.models.{Topology, Commons}
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.c3po.translators.StateTableManager
@@ -66,7 +65,7 @@ import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
 import org.midonet.midolman.state.PathBuilder
-import org.midonet.packets.{IPv4Addr, IPSubnet, IPv4Subnet, MAC}
+import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -169,7 +168,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     // We need to keep one connection open to maintain the shared in-memory DB
     // during the test.
-    private val dummyConnection = dataSrc.getConnection()
+    private val dummyConnection: Connection = dataSrc.getConnection
 
     // ---------------------
     // DATA FIXTURES
@@ -178,7 +177,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     private def withStatement[T](fn: Statement => T) = {
         var c: Connection = null
         try {
-            c = eventually(dataSrc.getConnection())
+            c = eventually(dataSrc.getConnection)
             val stmt = c.createStatement()
             val t = fn(stmt)
             stmt.close()
@@ -902,19 +901,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         subnetId
     }
 
-    protected def createVifPort(taskId: Int, networkId: UUID,
-                                portId: UUID = UUID.randomUUID(),
-                                fixedIps: Seq[IPAlloc] = Seq(),
-                                sg: Seq[UUID] = Seq(),
-                                portSecurityEnabled: Boolean = true): UUID = {
-        val json = portJson(portId, networkId,
-                            deviceOwner = DeviceOwner.COMPUTE,
-                            fixedIps = fixedIps, securityGroups = sg,
-                            portSecurityEnabled = portSecurityEnabled)
-        insertCreateTask(taskId, PortType, json, portId)
-        portId
-    }
-
     protected def createDhcpPort(taskId: Int, networkId: UUID, subnetId: UUID,
                                  ipAddr: String,
                                  portId: UUID = UUID.randomUUID()): UUID = {
@@ -924,27 +910,45 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         portId
     }
 
-    protected def createRouterGatewayPort(taskId: Int, portId: UUID,
-                                          networkId: UUID, routerId: UUID,
-                                          gwIpAddr: String, macAddr: String,
-                                          subnetId: UUID) : Unit = {
-        val gwIpAlloc = IPAlloc(gwIpAddr, subnetId)
-        val json = portJson(portId, networkId, fixedIps = List(gwIpAlloc),
-                            deviceId = routerId, macAddr = macAddr,
-                            deviceOwner = DeviceOwner.ROUTER_GATEWAY)
-        insertCreateTask(taskId, PortType, json, portId)
+    protected def createVifPort(taskId: Int, nwId: UUID,
+                                fixedIps: Seq[IPAlloc] = Seq(),
+                                id: UUID = UUID.randomUUID(),
+                                mac: String = MAC.random().toString,
+                                sgs: Seq[UUID] = Seq(),
+                                securityEnabled: Boolean = true): UUID = {
+
+        val json = portJson(id, nwId, macAddr = mac, fixedIps = fixedIps,
+                            deviceOwner = DeviceOwner.COMPUTE,
+                            securityGroups = sgs,
+                            portSecurityEnabled = securityEnabled)
+        insertCreateTask(taskId, PortType, json, id)
+        id
     }
 
-    protected def createRouterInterfacePort(taskId: Int, portId: UUID,
-                                            networkId: UUID, routerId: UUID,
+    protected def createRouterGatewayPort(taskId: Int, networkId: UUID,
+                                          gwIpAddr: String, macAddr: String,
+                                          subnetId: UUID,
+                                          id: UUID = UUID.randomUUID())
+    : UUID = {
+        val json = portJson(id, networkId, macAddr = macAddr,
+                            fixedIps = Seq(IPAlloc(gwIpAddr, subnetId)),
+                            deviceOwner = DeviceOwner.ROUTER_GATEWAY)
+        insertCreateTask(taskId, PortType, json, id)
+        id
+    }
+
+    protected def createRouterInterfacePort(taskId: Int, nwId: UUID,
+                                            subnetId: UUID, rtrId: UUID,
                                             ipAddr: String, macAddr: String,
-                                            subnetId: UUID, hostId: UUID = null,
-                                            ifName: String = null): Unit = {
-        val json = portJson(portId, networkId, deviceId = routerId,
-                            deviceOwner = DeviceOwner.ROUTER_INTERFACE, macAddr = macAddr,
-                            fixedIps = List(IPAlloc(ipAddr, subnetId)),
-                            hostId = hostId, ifName = ifName)
-        insertCreateTask(taskId, NeutronResourceType.Port, json, portId)
+                                            id: UUID = UUID.randomUUID(),
+                                            hostId: UUID = null,
+                                            ifName: String = null): UUID = {
+        val json = portJson(id, nwId, hostId = hostId, ifName = ifName,
+                            deviceOwner = DeviceOwner.ROUTER_INTERFACE,
+                            deviceId = rtrId, macAddr = macAddr,
+                            fixedIps = List(IPAlloc(ipAddr, subnetId)))
+        insertCreateTask(taskId, PortType, json, id)
+        id
     }
 
     protected def createRouterInterface(taskId: Int, routerId: UUID,

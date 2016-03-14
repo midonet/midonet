@@ -16,8 +16,6 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.models.{Commons, Neutron}
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -396,7 +394,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val dhcpTo = RangeUtil.toProto(new Range[Integer](67, 67))
 
         portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
-            .setCondition(anyFragCondition().setTpDst(dhcpTo).setTpSrc(dhcpFrom))
+            .setCondition(anyFragCondition.setTpDst(dhcpTo).setTpSrc(dhcpFrom))
             .build())
 
         for (fixedIp <- nPort.getFixedIpsList.asScala) {
@@ -410,7 +408,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
 
         portCtx.antiSpoofRules += Create(dropRuleBuilder(spoofChainId)
-                                             .setCondition(anyFragCondition())
+                                             .setCondition(anyFragCondition)
                                              .build())
     }
 
@@ -418,11 +416,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                              spoofChainId: UUID,
                              ip: IPSubnet, mac: String) = {
         antiSpoofRules += Create(returnRule(spoofChainId)
-            .setCondition(anyFragCondition().setDlType(ARP.ETHERTYPE)
+            .setCondition(anyFragCondition.setDlType(ARP.ETHERTYPE)
                                             .setNwSrcIp(ip))  // ARP.SPA
             .build())
         antiSpoofRules += Create(returnRule(spoofChainId)
-            .setCondition(anyFragCondition().setNwSrcIp(ip).setDlSrc(mac))
+            .setCondition(anyFragCondition.setNwSrcIp(ip).setDlSrc(mac))
             .build())
     }
 
@@ -509,12 +507,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         // Drop non-ARP traffic that wasn't accepted by earlier rules.
         portCtx.inRules += Create(dropRuleBuilder(inChainId)
-                                  .setCondition(anyFragCondition()
+                                  .setCondition(anyFragCondition
                                                     .setDlType(ARP.ETHERTYPE)
                                                     .setInvDlType(true))
                                    .build)
         portCtx.outRules += Create(dropRuleBuilder(outChainId)
-                                   .setCondition(anyFragCondition()
+                                   .setCondition(anyFragCondition
                                                      .setDlType(ARP.ETHERTYPE)
                                                      .setInvDlType(true))
                                    .build)
