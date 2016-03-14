@@ -152,44 +152,6 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         }
     }
 
-    // TODO: Fix issue 1533982 and enable this test. Should also
-    // test adding more than one port to the security group.
-    it should "handle upgrades to VIF's security groups" ignore {
-        val nwId = createTenantNetwork(10)
-        val snId = createSubnet(20, nwId, "10.0.0.0/24")
-        val sgId = createSecurityGroup(30)
-
-        val p1Id = UUID.randomUUID()
-        val p1Json = portJson(p1Id, nwId,
-                              fixedIps = Seq(IPAlloc("10.0.0.3", snId)))
-        insertCreateTask(40, PortType, p1Json, p1Id)
-        eventually {
-            val ipGrpF = storage.get(classOf[IPAddrGroup], sgId)
-            storage.exists(classOf[Port], p1Id).await() shouldBe true
-            ipGrpF.await().getIpAddrPortsCount shouldBe 0
-        }
-
-        // Add a security group.
-        val p1v2Json = portJson(p1Id, nwId,
-                                fixedIps = Seq(IPAlloc("10.0.0.3", snId)),
-                                securityGroups = Seq(sgId))
-        insertUpdateTask(50, PortType, p1v2Json, p1Id)
-        eventually {
-            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
-            ipGrp.getIpAddrPortsCount shouldBe 1
-            ipGrp.getIpAddrPorts(0).getIpAddress.getAddress shouldBe "10.0.0.3"
-            ipGrp.getIpAddrPorts(0).getPortIdsCount shouldBe 1
-            ipGrp.getIpAddrPorts(0).getPortIds(0).asJava shouldBe p1Id
-        }
-
-        // Remove the security group.
-        insertUpdateTask(60, PortType, p1Json, p1Id)
-        eventually {
-            val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
-            ipGrp.getIpAddrPortsCount shouldBe 0
-        }
-    }
-
     it should "seed Network's ARP table." in {
         val nw1Id = UUID.randomUUID()
         val nw1Json = networkJson(nw1Id, "tenant", "network1")
@@ -266,11 +228,10 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         }
 
         // Create one port in groups 1-3 and one in only 1-2.
-        val pId = createVifPort(50, nwId,
-                                fixedIps = List(IPAlloc(ip1, snId)),
-                                sg = List(sgId, sg2Id, sg3Id))
-        createVifPort(51, nwId, fixedIps = List(IPAlloc(ip2, snId)),
-                      sg = List(sgId, sg2Id))
+        val pId = createVifPort(50, nwId, fixedIps = Seq(IPAlloc(ip1, snId)),
+                                sgs = Seq(sgId, sg2Id, sg3Id))
+        createVifPort(51, nwId, sgs = Seq(sgId, sg2Id),
+                      fixedIps = Seq(IPAlloc(ip2, snId)))
         eventually(checkAddrGrpAddrCounts(Seq(2, 2, 1)))
 
         // Remove the first port from groups 1 and 3.
@@ -307,10 +268,8 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         // Create a VIF port with port security enabled, and verify that there
         // is one entry in IP address group.
-        val pId = createVifPort(50, nwId,
-                                fixedIps = List(IPAlloc(ip, snId)),
-                                sg = List(sgId),
-                                portSecurityEnabled = true)
+        val pId = createVifPort(50, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                                sgs = Seq(sgId), securityEnabled = true)
         eventually(checkAddrGrpAddrCounts(1))
 
         // Update the port with port security disabled and SGs removed, and
@@ -333,9 +292,10 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
     it should "update ip addr groups with same IP" in {
         val ip = "10.0.0.3"
         val nwId = createTenantNetwork(10)
-        val nw2Id = createTenantNetwork(11)
+        createTenantNetwork(11)
+
         val snId = createSubnet(20, nwId, "10.0.0.0/24")
-        val sn2Id = createSubnet(21, nwId, "10.0.0.0/24")
+        createSubnet(21, nwId, "10.0.0.0/24")
 
         val sgId = createSecurityGroup(30)
         val sg2Id = createSecurityGroup(31)
@@ -352,12 +312,10 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
             actualCounts shouldBe counts
         }
 
-        val pId = createVifPort(50, nwId,
-                                fixedIps = List(IPAlloc(ip, snId)),
-                                sg = List(sgId, sg2Id, sg3Id))
-        val p2Id = createVifPort(51, nwId,
-                                 fixedIps = List(IPAlloc(ip, snId)),
-                                 sg = List(sgId, sg2Id))
+        val pId = createVifPort(50, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                                sgs = Seq(sgId, sg2Id, sg3Id))
+        createVifPort(51, nwId, sgs = Seq(sgId, sg2Id),
+                      fixedIps = Seq(IPAlloc(ip, snId)))
         eventually(checkAddrGroupAddrPortCounts(Seq(Seq(2), Seq(2), Seq(1))))
 
         var pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
@@ -384,13 +342,10 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         val snId = createSubnet(20, nwId, "10.0.0.0/24")
         val sgId = createSecurityGroup(30)
 
-        val pId = createVifPort(40, nwId,
-                                fixedIps = List(IPAlloc(ip1, snId)),
-                                sg = List(sgId))
-
-        val p2Id = createVifPort(50, nwId,
-                                 fixedIps = List(IPAlloc(ip2, snId)),
-                                 sg = List(sgId))
+        val pId = createVifPort(40, nwId, sgs = Seq(sgId),
+                                fixedIps = Seq(IPAlloc(ip1, snId)))
+        val p2Id = createVifPort(50, nwId, sgs = Seq(sgId),
+                                 fixedIps = Seq(IPAlloc(ip2, snId)))
 
         eventually {
             val ipGrp = storage.get(classOf[IPAddrGroup], sgId).await()
