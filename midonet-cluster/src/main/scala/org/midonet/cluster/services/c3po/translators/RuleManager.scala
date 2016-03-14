@@ -74,7 +74,7 @@ trait RuleManager {
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(RETURN)
 
-    protected def anyFragCondition(): Condition.Builder =
+    protected def anyFragCondition: Condition.Builder =
         Condition.newBuilder.setFragmentPolicy(FragmentPolicy.ANY)
 
     protected def natRuleData(addr: IPAddress, dnat: Boolean,
