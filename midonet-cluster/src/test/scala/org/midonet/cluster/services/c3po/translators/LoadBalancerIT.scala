@@ -504,7 +504,6 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
     "VIPTranslator" should "add an ARP table entry if when the VIP is on an " +
     "external Network" in {
         val tntRtr1Id = UUID.randomUUID()
-        val rtrGwPortId = UUID.randomUUID()
         val poolId = UUID.randomUUID()
         val vip1Id = UUID.randomUUID()
         val vip2Id = UUID.randomUUID()
@@ -516,8 +515,8 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         // Create a tenant router with a gateway via external network.
         val extNwId = createTenantNetwork(2, external = true)
         val subnetId = createSubnet(3, extNwId, "10.0.1.0/24")
-        createRouterGatewayPort(4, rtrGwPortId, extNwId, tntRtr1Id,
-                                "10.0.1.1", rtrGwPortMac, subnetId)
+        val rtrGwPortId = createRouterGatewayPort(
+            4, extNwId, "10.0.1.1", rtrGwPortMac, subnetId)
         createRouter(5, tntRtr1Id, rtrGwPortId)
 
         // Create a Load Balancer Pool on the tenant Router.

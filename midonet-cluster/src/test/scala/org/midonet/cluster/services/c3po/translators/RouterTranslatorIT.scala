@@ -17,7 +17,11 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Pool => PoolType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.storage.StateTable
@@ -31,11 +35,8 @@ import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPo
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.util.AddressConversions._
-import org.midonet.packets.{IPv4Addr, ICMP, MAC}
+import org.midonet.packets.{ICMP, IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
-import org.scalatest.junit.JUnitRunner
-
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase {
@@ -108,17 +109,15 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                     gatewayIp = "192.168.1.1")
 
         // Create a router with gateway
-        val routerId = UUID.randomUUID()
-        val extNwGwPortId = UUID.randomUUID()
-        createRouterGatewayPort(6, extNwGwPortId, extNwId, routerId,
-                                "200.0.0.2", "ab:cd:ef:00:00:03",
-                                extNwSubnetId)
-        createRouter(7, routerId, gwPortId = extNwGwPortId, enableSnat = true)
+        val extNwGwPortId =
+            createRouterGatewayPort(6, extNwId, "200.0.0.2",
+                                    "ab:cd:ef:00:00:03", extNwSubnetId)
+        val routerId = createRouter(7, gwPortId = extNwGwPortId,
+                                    enableSnat = true)
 
         // Create a router interface
-        val rtrIfId = UUID.randomUUID()
-        createRouterInterfacePort(8, rtrIfId, nwId, routerId, "192.168.1.2",
-                                  "02:02:02:02:02:02", subnetId)
+        val rtrIfId = createRouterInterfacePort(
+            8, nwId, subnetId, routerId, "192.168.1.2", "02:02:02:02:02:02")
         createRouterInterface(9, routerId, rtrIfId, subnetId)
 
         // Update with extra routes
@@ -165,27 +164,18 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         val hostId = UUID.randomUUID()
 
-        val edgeRtrId = UUID.randomUUID()
-        val edgeRtrUplNwIfPortId = UUID.randomUUID()
-        val edgeRtrExtNwIfPortId = UUID.randomUUID()
-
-        val tntRtrId = UUID.randomUUID()
-        val extNwGwPortId = UUID.randomUUID()
-
         // Create uplink network.
         val uplNetworkId = createUplinkNetwork(2)
         val uplNwSubnetId = createSubnet(3, uplNetworkId, "10.0.0.0/16")
-        val uplNwDhcpPortId = createDhcpPort(4, uplNetworkId, uplNwSubnetId,
-                                             "10.0.0.1")
+        createDhcpPort(4, uplNetworkId, uplNwSubnetId, "10.0.0.1")
 
         createHost(hostId)
 
         // Create edge router.
-        createRouter(5, edgeRtrId)
-        createRouterInterfacePort(6, edgeRtrUplNwIfPortId, uplNetworkId,
-                                  edgeRtrId, "10.0.0.2", "02:02:02:02:02:02",
-                                  uplNwSubnetId, hostId = hostId,
-                                  ifName = "eth0")
+        val edgeRtrId = createRouter(5)
+        val edgeRtrUplNwIfPortId = createRouterInterfacePort(
+            6, uplNetworkId, uplNwSubnetId, edgeRtrId, "10.0.0.2",
+            "02:02:02:02:02:02", hostId = hostId, ifName = "eth0")
         createRouterInterface(7, edgeRtrId, edgeRtrUplNwIfPortId, uplNwSubnetId)
 
         // Create external network.
@@ -195,9 +185,9 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val extNwDhcpPortId = createDhcpPort(10, extNwId, extNwSubnetId,
                                              "10.0.1.0")
 
-        createRouterInterfacePort(11, edgeRtrExtNwIfPortId, extNwId, edgeRtrId,
-                                  "10.0.1.2", "03:03:03:03:03:03",
-                                  extNwSubnetId)
+        val edgeRtrExtNwIfPortId = createRouterInterfacePort(
+            11, extNwId, extNwSubnetId, edgeRtrId,
+            "10.0.1.2", "03:03:03:03:03:03")
         createRouterInterface(12, edgeRtrId,
                               edgeRtrExtNwIfPortId, extNwSubnetId)
         val extNwArpTable = stateTableStorage.bridgeArpTable(extNwId)
@@ -221,10 +211,10 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         }
 
         // Create tenant router and check gateway setup.
-        createRouterGatewayPort(13, extNwGwPortId, extNwId, tntRtrId,
-                                "10.0.1.3", "ab:cd:ef:00:00:03", extNwSubnetId)
-
-        createRouter(14, tntRtrId, gwPortId = extNwGwPortId, enableSnat = true)
+        val extNwGwPortId = createRouterGatewayPort(
+            13, extNwId, "10.0.1.3", "ab:cd:ef:00:00:03", extNwSubnetId)
+        val tntRtrId = createRouter(14, gwPortId = extNwGwPortId,
+                                    enableSnat = true)
         validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24", "10.0.1.3",
                         "ab:cd:ef:00:00:03", "10.0.1.2", snatEnabled = true,
                         extNwArpTable)
@@ -258,8 +248,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         }
 
         // Re-add gateway.
-        createRouterGatewayPort(17, extNwGwPortId, extNwId, tntRtrId,
-                                "10.0.1.4", "ab:cd:ef:00:00:04", extNwSubnetId)
+        createRouterGatewayPort(17, extNwId, "10.0.1.4", "ab:cd:ef:00:00:04",
+                                extNwSubnetId, id = extNwGwPortId)
         val trAddGwJson = routerJson(tntRtrId, name = "tr-add-gw",
                                      gwPortId = extNwGwPortId,
                                      enableSnat = true)
@@ -302,8 +292,6 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                    extNwArpTable))
 
         // Delete the subnet altogether.
-        val extNwSubnetDeleteJson =
-            subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24")
         insertDeleteTask(23, SubnetType, extNwSubnetId)
         eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
                                    "10.0.1.4", "ab:cd:ef:00:00:04", null,
@@ -334,11 +322,9 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val snId = createSubnet(20, nwId, "10.0.1.0/24", gatewayIp = "10.0.1.1")
 
         // Create router with gateway port.
-        val rtrId = UUID.randomUUID()
-        val gwPortId = UUID.randomUUID()
-        createRouterGatewayPort(30, gwPortId, nwId, rtrId, "10.0.1.2",
-                                "ab:ab:ab:ab:ab:ab", snId)
-        createRouter(40, rtrId, gwPortId)
+        val gwPortId = createRouterGatewayPort(
+            30, nwId, "10.0.1.2", "ab:ab:ab:ab:ab:ab", snId)
+        val rtrId = createRouter(40, gwPortId = gwPortId)
 
         // Create pool to give router load balancer ID.
         val lbPoolId = UUID.randomUUID()

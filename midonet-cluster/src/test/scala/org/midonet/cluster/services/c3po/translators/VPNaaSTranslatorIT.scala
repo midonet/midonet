@@ -259,10 +259,9 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
     private def setupRouter1(firstTaskId: Int): Unit = {
         createSubnet(firstTaskId, externalNetworkId,
                      router1SubnetCidr, router1SubnetId, router1GatewayIp)
-        createRouterGatewayPort(firstTaskId + 1, router1GatewayPortId,
-                                externalNetworkId,
-                                router1Id, router1GatewayIp,
-                                router1GatewayMac, router1SubnetId)
+        createRouterGatewayPort(firstTaskId + 1, externalNetworkId,
+                                router1GatewayIp, router1GatewayMac,
+                                router1SubnetId, id = router1GatewayPortId)
         createRouter(firstTaskId + 2, router1Id, router1GatewayPortId)
         eventually(storage.exists(classOf[Router],
                                   router1Id).await() shouldBe true)
