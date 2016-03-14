@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
@@ -93,7 +94,9 @@ public class ZkManager {
         this.zk.asyncDelete(relativePath);
     }
 
-    protected StateAccessException processException(Exception ex, String action) {
+    public static StateAccessException processException(Exception ex,
+                                                        String basePath,
+                                                        String action) {
         if (ex instanceof NodeExistsException) {
             return new StatePathExistsException(
                     "Zookeeper error occurred while " + action + ": " +
@@ -118,10 +121,18 @@ public class ZkManager {
             return new StateAccessException(
                     "Zookeeper thread interrupted while " + action + ": " +
                     ex.getMessage(), ex);
+        } else if (ex instanceof TimeoutException) {
+            return new StateAccessException(
+                    "Zookeeper timeout while " + action + ": " +
+                    ex.getMessage(), ex);
         }
 
         log.error("Unexpected exception while " + action, ex);
         throw new RuntimeException(ex);
+    }
+
+    private StateAccessException processException(Exception ex, String action) {
+        return processException(ex, basePath, action);
     }
 
     public String add(String path, byte[] data, CreateMode mode)

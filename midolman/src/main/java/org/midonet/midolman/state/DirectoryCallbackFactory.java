@@ -58,14 +58,17 @@ public class DirectoryCallbackFactory {
                 obs.onNext(value);
                 obs.onCompleted();
             }
+
             @Override
             public void onTimeout() {
-                obs.onError(new StateAccessException(new TimeoutException()));
+                obs.onError(ZkManager.processException(
+                    new TimeoutException(), "", "directory callback"));
             }
 
             @Override
             public void onError(KeeperException ke) {
-                obs.onError(new StateAccessException(ke));
+                obs.onError(ZkManager.processException(
+                    ke, "", "directory callback"));
             }
         };
     }
