@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_5a65fa43",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-14T10:18:43Z",
+      "side": 1,
+      "message": "Scala style says that it should be upper camel case:\nhttp://docs.scala-lang.org/style/naming-conventions.html#constants-values-variable-and-methods\n\nWhere it\u0027s not like this, we just wrote it wrong.",
+      "parentUuid": "3a6ff13c_de764506",
+      "range": {
+        "startLine": 93,
+        "startChar": 14,
+        "endLine": 93,
+        "endChar": 15
+      },
+      "revId": "fdbe90bb02b4da6c9d7de10e0c452e40cf76edc8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_7eec71c8",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 34
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "This is nsdb as it\u0027s going to be used by different components. Other nsdb classes doesn\u0027t use a shared place to define their logging strings as in cluster. Should we start with this one and make it consistent in future patches? Or should we go with what we have now?",
       "parentUuid": "3a6ff13c_7eec71c8",
+      "range": {
+        "startLine": 95,
+        "startChar": 14,
+        "endLine": 95,
+        "endChar": 15
+      },
+      "revId": "fdbe90bb02b4da6c9d7de10e0c452e40cf76edc8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_7ad1d6cc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-14T10:18:43Z",
+      "side": 1,
+      "message": "Oh, right. Leave it like this then. Although I think we should standardize this in the future, to not go back to the logging mess we had in 1.9, where loggers were spread all over.",
+      "parentUuid": "3a6ff13c_be698927",
       "range": {
         "startLine": 95,
         "startChar": 14,
