@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_1a48e25a",
+        "filename": "docs/getting-started.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-14T08:09:38Z",
+      "side": 0,
+      "message": "we don\u0027t need tomcat7 either.",
+      "revId": "c6374cbe3a494beb1f5eb39ddbe7b7e744ab5ede",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_daabaad4",
+        "filename": "tests/setup_test_server",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-14T08:09:38Z",
+      "side": 0,
+      "message": "This is needed by pipework on the host for testing. Do not remove until we get rid of the pipework dependency.",
+      "range": {
+        "startLine": 17,
+        "startChar": 48,
+        "endLine": 17,
+        "endChar": 60
+      },
+      "revId": "c6374cbe3a494beb1f5eb39ddbe7b7e744ab5ede",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

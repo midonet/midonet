@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_da648ae7",
+        "filename": "midolman/src/deb/control/control",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-14T08:09:38Z",
+      "side": 1,
+      "message": "this shouldn\u0027t be here?",
+      "range": {
+        "startLine": 6,
+        "startChar": 73,
+        "endLine": 6,
+        "endChar": 95
+      },
+      "revId": "62740611b0a784326ef18f31094043720cec277d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
