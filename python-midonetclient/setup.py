@@ -45,7 +45,7 @@ def _version():
     toplevel = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     regex = re.compile('\s*midonetVersion\s*=\s*"([^"]+)"')
     with open('/'.join([toplevel, 'build.gradle'])) as f:
-        version = [regex.search(l).group(1) for l in f.readlines() if regex.search(l) != None]
+        version = [regex.search(l).group(1) for l in f.readlines() if regex.search(l) is not None]
         if len(version) != 1:
             return "0.0unknown"
         elif version[0].find("-SNAPSHOT") >= 0:
