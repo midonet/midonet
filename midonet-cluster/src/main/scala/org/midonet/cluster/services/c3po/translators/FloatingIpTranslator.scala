@@ -16,15 +16,18 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage}
-import org.midonet.cluster.models.Commons.{Condition, UUID}
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
-import org.midonet.cluster.models.Topology.{Chain, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
-import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, PathBuilder}
+import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.midolman.state.PathBuilder
+import org.midonet.packets.IPAddr
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for FloatingIp. */
@@ -35,6 +38,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
                 with RouteManager
                 with RuleManager
                 with StateTableManager {
+    import PortManager.routerInterfacePortPeerId
     import RouterTranslator.tenantGwPortId
     import org.midonet.cluster.services.c3po.translators.RouteManager._
 
@@ -70,16 +74,17 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             // FIP is newly associated.
             associateFipOps(fip)
         } else {
-            val newGwPortId = getRouterGwPortId(fip.getRouterId)
+            val fipAddrStr = fip.getFloatingIpAddress.getAddress
+            val newPortPair = getFipRtrPortId(fip.getRouterId, fipAddrStr)
             val midoOps = new OperationListBuffer
             if (oldFip.getRouterId != fip.getRouterId) {
-                val oldGwPortId = getRouterGwPortId(oldFip.getRouterId)
-                midoOps += removeArpEntry(fip, oldGwPortId)
-                midoOps += addArpEntry(fip, newGwPortId)
+                val oldPortPair = getFipRtrPortId(oldFip.getRouterId, fipAddrStr)
+                midoOps += removeArpEntry(fip, oldPortPair.nwPortId)
+                midoOps += addArpEntry(fip, newPortPair.nwPortId)
             }
 
             midoOps ++= removeNatRules(oldFip)
-            midoOps ++= addNatRules(fip, newGwPortId)
+            midoOps ++= addNatRules(fip, newPortPair.rtrPortId)
             midoOps.toList
         }
     }
@@ -96,17 +101,16 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         CreateNode(fipArpEntryPath(fip, gwPortId))
 
     /* Generate Create Ops for SNAT and DNAT for the floating IP address. */
-    private def addNatRules(fip: FloatingIp, gwPortId: UUID): OperationList = {
+    private def addNatRules(fip: FloatingIp, rtrPortId: UUID): OperationList = {
         val iChainId = inChainId(fip.getRouterId)
         val oChainId = outChainId(fip.getRouterId)
-        val routerGwPortId = tenantGwPortId(gwPortId)
         val snatRule = Rule.newBuilder
             .setId(fipSnatRuleId(fip.getId))
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .setFipPortId(fip.getPortId)
             .setCondition(anyFragCondition
-                              .addOutPortIds(routerGwPortId)
+                              .addOutPortIds(rtrPortId)
                               .setNwSrcIp(IPSubnetUtil.fromAddr(
                                               fip.getFixedIpAddress)))
             .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = false,
@@ -118,7 +122,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .setAction(Rule.Action.ACCEPT)
             .setFipPortId(fip.getPortId)
             .setCondition(anyFragCondition
-                              .addInPortIds(routerGwPortId)
+                              .addInPortIds(rtrPortId)
                               .setNwDstIp(IPSubnetUtil.fromAddr(
                                               fip.getFloatingIpAddress)))
             .setNatRuleData(natRuleData(fip.getFixedIpAddress, dnat = true,
@@ -155,22 +159,70 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         ops.toList
     }
 
-    private def getRouterGwPortId(routerId: UUID): UUID = {
-        val router = storage.get(classOf[NeutronRouter], routerId).await()
-        if (!router.hasGwPortId)
-            throw new IllegalStateException(
-                "No gateway port was found to configure Floating IP.")
-        router.getGwPortId
+    /** Return both port IDs (network and router) of the gateway or interface
+      * between the router routerId and the network whose subnet contains the
+      * floating IP fipAddrStr.
+      */
+    private case class PortPair(nwPortId: UUID, rtrPortId: UUID)
+    private def getFipRtrPortId(routerId: UUID, fipAddrStr: String)
+    : PortPair = {
+        val fipAddr = IPAddr.fromString(fipAddrStr)
+        val nRouter = storage.get(classOf[NeutronRouter], routerId).await()
+
+        // It will usually be the gateway port, so check that before scanning
+        // the router's other ports.
+        val rGwPortIdOpt = if (nRouter.hasGwPortId) {
+            val nwGwPortId = nRouter.getGwPortId
+            val rGwPortId = tenantGwPortId(nwGwPortId)
+            val rGwPort = storage.get(classOf[Port], rGwPortId).await()
+            val subnet = IPSubnetUtil.fromProto(rGwPort.getPortSubnet)
+            if (subnet.containsAddress(fipAddr))
+                return PortPair(nwGwPortId, tenantGwPortId(nwGwPortId))
+            Some(rGwPortId)
+        } else None
+
+        // The FIP didn't belong to the router's gateway port's subnet, so
+        // we need to scan all of its other ports.
+        val mRouter = storage.get(classOf[Router], routerId).await()
+        val portIds = mRouter.getPortIdsList.asScala -- rGwPortIdOpt
+        val rPorts = storage.getAll(classOf[Port], portIds).await()
+        for (rPort <- rPorts if rPort.hasPortSubnet) {
+            val subnet = IPSubnetUtil.fromProto(rPort.getPortSubnet)
+            if (subnet.containsAddress(fipAddr)) {
+                // routerInterfacePortPeerId() is an involution; applying it to
+                // the network port ID gives the peer router port ID, and
+                // vice-versa.
+                val nwPortId = routerInterfacePortPeerId(rPort.getId)
+
+                // Make sure the corresponding NeutronPort exists.
+                if (storage.exists(classOf[NeutronPort], nwPortId).await())
+                    return PortPair(nwPortId, rPort.getId)
+
+                // Midonet-only port's CIDR conflicts with a Neutron port's.
+                val rPortJUuid = UUIDUtil.fromProto(rPort.getId)
+                val subnet = IPSubnetUtil.fromProto(rPort.getPortSubnet)
+                log.warn(
+                    s"Midonet router port $rPortJUuid does not have a " +
+                    s"corresponding Neutron port, but its subnet, $subnet, " +
+                    s"contains the Neutron floating IP $fipAddrStr.")
+            }
+        }
+
+        throw new IllegalStateException(
+            s"Router ${UUIDUtil.fromProto(routerId)} has no port whose subnet" +
+            s"contains $fipAddrStr.")
     }
 
     private def associateFipOps(fip: FloatingIp): OperationList = {
-        val rGwPortId = getRouterGwPortId(fip.getRouterId)
-        addArpEntry(fip, rGwPortId) +: addNatRules(fip, rGwPortId)
+        val pp = getFipRtrPortId(fip.getRouterId,
+                                 fip.getFloatingIpAddress.getAddress)
+        addArpEntry(fip, pp.nwPortId) +: addNatRules(fip, pp.rtrPortId)
     }
 
     private def disassociateFipOps(fip: FloatingIp): OperationList = {
-        val rGwPortId = getRouterGwPortId(fip.getRouterId)
-        removeArpEntry(fip, rGwPortId) +: removeNatRules(fip)
+        val pp = getFipRtrPortId(fip.getRouterId,
+                                 fip.getFloatingIpAddress.getAddress)
+        removeArpEntry(fip, pp.nwPortId) +: removeNatRules(fip)
     }
 
     /* Since DeleteNode is idempotent, it is fine if the path does not exist. */
