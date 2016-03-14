@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_faa94625",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-14T10:45:01Z",
+      "side": 1,
+      "message": "better to avoid shadowing.",
+      "range": {
+        "startLine": 471,
+        "startChar": 46,
+        "endLine": 471,
+        "endChar": 54
+      },
+      "revId": "b87d02c2c8e01a0e04e9e2d6caa9c0ca4cd95ac4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_1aef02b2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-14T10:45:01Z",
+      "side": 1,
+      "message": "extra blank line",
+      "revId": "b87d02c2c8e01a0e04e9e2d6caa9c0ca4cd95ac4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
