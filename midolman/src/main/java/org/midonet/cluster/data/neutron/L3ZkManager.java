@@ -488,9 +488,12 @@ public class L3ZkManager extends BaseZkManager {
         // Remove all the NAT rules referencing this port from the tenant
         // router.
         PortConfig peer = portZkManager.getPeerPort(port.id);
-        RouterConfig rCfg = routerZkManager.get(peer.device_id);
-        ruleZkManager.prepareDeleteSourceNatRules(ops, rCfg.inboundFilter,
-            rCfg.outboundFilter, port.firstIpv4Addr(), peer.id);
+        if (peer != null) {
+            RouterConfig rCfg = routerZkManager.get(peer.device_id);
+            ruleZkManager.prepareDeleteSourceNatRules(
+                ops, rCfg.inboundFilter, rCfg.outboundFilter,
+                port.firstIpv4Addr(), peer.id);
+        }
     }
 
     private UUID prepareLinkToGwRouter(List<Op> ops, UUID rId, UUID gwPortId)
