@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_1f1d34be",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-14T05:46:45Z",
+      "side": 1,
+      "message": "Doesn\u0027t look like the Midonet API validates that. I\u0027d better add a check to make sure that the corresponding Neutron port exists, and log an error if it doesn\u0027t.",
+      "parentUuid": "3a6ff13c_bfc9805c",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_dfc63c49",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 1
@@ -47,6 +65,24 @@
       "writtenOn": "2016-03-14T03:40:43Z",
       "side": 1,
       "message": "why \u0027pp\u0027?",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_ff1f78b5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-14T05:46:45Z",
+      "side": 1,
+      "message": "PortPair. And because there\u0027s no good way to break \"addArpEntry(fip, portPair.nwPortId) +: addNatRules(fip, portPair.rtrPortId) across two lines.",
+      "parentUuid": "3a6ff13c_dfc63c49",
       "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -115,6 +151,24 @@
       "writtenOn": "2016-03-14T03:40:43Z",
       "side": 1,
       "message": "Why not put this in C3POMinionTest?",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_3f7910fd",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-14T05:46:45Z",
+      "side": 1,
+      "message": "It\u0027s only used here. I could move it up, but it seems unlikely to be needed elsewhere, and C3POMinionTest is getting crowded.",
+      "parentUuid": "3a6ff13c_5fe24cd6",
       "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
