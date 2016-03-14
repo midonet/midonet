@@ -56,6 +56,11 @@
   <sbe:message name="FlowState" id="1" description="Flow state">
     <field name="sender" id="1" type="UUID" />
 
+    <field name="ingressPortId" id="400" type="UUID" presence="optional" />
+    <group name="egressPortIds" id="401" presence="optional">
+      <field name="egressPortId" id="402" type="UUID" presence="optional" />
+    </group>
+
     <group name="conntrack" id="100">
       <field name="device" id="101" type="UUID" />
       <field name="srcIp" id="102" type="InetAddr" />
