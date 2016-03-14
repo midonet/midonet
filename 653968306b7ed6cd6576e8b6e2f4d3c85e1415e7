@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_3fbcb06c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-14T06:03:17Z",
+      "side": 1,
+      "message": "sg ip needs to be updated even when port-sec is going to be disabled, doesn\u0027t it?",
+      "revId": "653968306b7ed6cd6576e8b6e2f4d3c85e1415e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
