@@ -57,8 +57,9 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         // Creating a router interface Port should result in a port being
         // created on the network.
-        createRouterInterfacePort(6, rifPortId, tenantNetworkId, routerId,
-                                  "10.0.0.1", "ab:cd:ef:01:02:03", subnetId)
+        createRouterInterfacePort(6, tenantNetworkId, subnetId, routerId,
+                                  "10.0.0.1", "ab:cd:ef:01:02:03",
+                                  id = rifPortId)
         eventually {
             val nwPort = storage.get(classOf[Port], rifPortId).await()
             nwPort.hasPeerId shouldBe false
@@ -126,9 +127,10 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         // Creating a router interface Port on the uplink network should do
         // nothing.
-        createRouterInterfacePort(6, rifPortId, uplinkNetworkId, routerId,
-                                  "10.0.0.3", "ab:cd:ef:01:02:03", subnetId,
-                                  hostId = hostId, ifName = "eth0")
+        createRouterInterfacePort(
+            6, uplinkNetworkId, subnetId, routerId, "10.0.0.3",
+            "ab:cd:ef:01:02:03",
+            id = rifPortId, hostId = hostId, ifName = "eth0")
         eventually {
             storage.exists(classOf[NeutronPort], rifPortId)
                 .await() shouldBe true
@@ -372,19 +374,19 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Create a router interface with a different IP than the subnet's
         // gateway.
         createRouter(30, routerId)
-        createRouterInterfacePort(40, rifPortId, tenantNetworkId, routerId,
-                                  "10.0.2.1", "01:02:03:04:05:06", subnetId)
+        createRouterInterfacePort(40, tenantNetworkId, subnetId, routerId,
+                                  "10.0.2.1", "01:02:03:04:05:06",
+                                  id = rifPortId)
         createRouterInterface(50, routerId, rifPortId, subnetId)
 
         val dhcpPortId = createDhcpPort(60, tenantNetworkId, subnetId, "10.0.0.2")
         eventually(checkDhcpAndMetadataRoute(rifPortId))
 
         // Now create a router interface with the DHCP's gateway IP.
-        val rtr2Id = UUID.randomUUID()
-        val rtr2IfPortId = UUID.randomUUID()
-        createRouter(70, rtr2Id)
-        createRouterInterfacePort(80, rtr2IfPortId, tenantNetworkId, rtr2Id,
-                                  "10.0.1.1", "ab:ab:ab:ab:ab:ab", subnetId)
+        val rtr2Id = createRouter(70)
+        val rtr2IfPortId = createRouterInterfacePort(
+            80, tenantNetworkId, subnetId, rtr2Id,
+            "10.0.1.1", "ab:ab:ab:ab:ab:ab", subnetId)
         createRouterInterface(90, rtr2Id, rtr2IfPortId, subnetId)
         eventually(checkDhcpAndMetadataRoute(rtr2IfPortId))
 
