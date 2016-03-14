@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_1faa9470",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-14T03:40:43Z",
+      "side": 1,
+      "message": "I won\u0027t -1 for it, but this should be a separate patch.",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_bfc9805c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-14T03:40:43Z",
+      "side": 1,
+      "message": "If a new patch is ever going to be submitted, it might be a good idea to mention that we do not check whether rPort is not a midonet-only port because that means we have a midonet port and a neutron port that have overlapping CIDRs, which should not be allowed (though I don\u0027t know if midonet API validates this).",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_dfc63c49",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-14T03:40:43Z",
+      "side": 1,
+      "message": "why \u0027pp\u0027?",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_1fc1b42e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-14T03:40:43Z",
+      "side": 1,
+      "message": "unrelated change but won\u0027t -1",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_ffc3f835",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-14T03:40:43Z",
+      "side": 1,
+      "message": "unrelated change but won\u0027t -1",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_3fdd9015",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-14T03:40:43Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_5fe24cd6",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-14T03:40:43Z",
+      "side": 1,
+      "message": "Why not put this in C3POMinionTest?",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_bfd0a0f8",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-14T03:40:43Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_9fecc4c9",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-14T03:40:43Z",
+      "side": 1,
+      "message": "nit: extra blank line",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
