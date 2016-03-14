@@ -26,15 +26,16 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{FloatingIp => FloatingIpType, Network => NetworkType, Port => PortType, PortBinding => PortBindingType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{FloatingIp => FloatingIpType, Port => PortType, PortBinding => PortBindingType}
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
-import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
@@ -241,6 +242,94 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         }
 
         arpTable.stop()
+    }
+
+    it should "select the router port whose subnet contains the FIP" in {
+        // Create two external networks with subnets.
+        val extNw1Id = createTenantNetwork(10, external = true)
+        val extNw1SnId = createSubnet(20, extNw1Id, "10.0.0.0/24",
+                                      gatewayIp = "10.0.0.1")
+        val extNw2Id = createTenantNetwork(30, external = true)
+        val extNw2SnId = createSubnet(40, extNw2Id, "20.0.0.0/24",
+                                      gatewayIp = "20.0.0.1")
+
+        // Create a private network with two VIF ports.
+        val prvNwId = createTenantNetwork(50)
+        val prvNwSnId = createSubnet(60, prvNwId, "30.0.0.0/24",
+                                     gatewayIp = "30.0.0.1")
+        val vifIp1 = "30.0.0.3"
+        val vifIp2 = "30.0.0.4"
+        val vifPort1Id = createVifPort(
+            70, prvNwId, fixedIps = Seq(IPAlloc(vifIp1, prvNwSnId)))
+        val vifPort2Id = createVifPort(
+            80, prvNwId, fixedIps = Seq(IPAlloc(vifIp2, prvNwSnId)))
+
+        // Create a router with a gateway to extNw1 and interfaces to the other
+        // two networks.
+        val rGwMac = "10:00:00:00:00:02"
+        val rGwPortId = createRouterGatewayPort(90, extNw1Id, "10.0.0.2",
+                                                rGwMac, extNw1SnId)
+        val rtrId = createRouter(100, gwPortId = rGwPortId)
+        eventually(storage.exists(classOf[Router], rtrId).await() shouldBe true)
+
+        // Create a Midonet-only router port with the same CIDR as the interface
+        // to extNw2Subnet. The translator should log a warning and ignore it
+        // since it has no corresponding Neutron port.
+        storage.create(Port.newBuilder
+                           .setId(toProto(UUID.randomUUID()))
+                           .setRouterId(rtrId)
+                           .setPortSubnet(IPSubnetUtil.toProto("20.0.0.0/24"))
+                           .build())
+
+        val extNw2RifMac = "20:00:00:00:00:02"
+        val extNw2RifPort = createRouterInterfacePort(
+            110, extNw2Id, extNw2SnId, rtrId, "20.0.0.2", extNw2RifMac)
+        createRouterInterface(120, rtrId, extNw2RifPort, extNw2SnId)
+
+        val prvNwRifPortId = createRouterInterfacePort(
+            130, prvNwId, prvNwSnId, rtrId, "30.0.0.2", "30:00:00:00:00:02")
+        createRouterInterface(140, rtrId, prvNwRifPortId, prvNwSnId)
+
+        // Wait for topology operations to finish.
+        eventually {
+            val prvNwRifPeerPortId =
+                routerInterfacePortPeerId(toProto(prvNwRifPortId))
+            storage.exists(classOf[Port], prvNwRifPeerPortId)
+                .await() shouldBe true
+        }
+
+        // Create ARP tables to check ARP entries
+        val extNw1ArpTable = stateTableStorage.bridgeArpTable(extNw1Id)
+        val extNw2ArpTable = stateTableStorage.bridgeArpTable(extNw2Id)
+        eventually(extNw1ArpTable.start())
+        eventually(extNw2ArpTable.start())
+
+        // Create a floating IP in extNw1's subnet.
+        val extNw1FipIp = "10.0.0.3"
+        val extNw1FipId = createFip(
+            150, extNw1Id, extNw1FipIp, fixedIp = vifIp1,
+            rtrId = rtrId, portId = vifPort1Id)
+        eventually {
+            checkFipAssociated(extNw1ArpTable, extNw1FipIp, extNw1FipId,
+                               vifIp1, vifPort1Id, rtrId, rGwMac,
+                               tenantGwPortId(toProto(rGwPortId)))
+            checkNeutronPortFipBackref(vifPort1Id, extNw1FipId)
+        }
+
+        // Create a floating IP in extNw2's subnet.
+        val extNw2FipIp = "20.0.0.3"
+        val extNw2FipId = createFip(
+            160, extNw2Id, extNw2FipIp, fixedIp = vifIp2,
+            rtrId = rtrId, portId = vifPort2Id)
+        eventually {
+            val rtrPortId = routerInterfacePortPeerId(toProto(extNw2RifPort))
+            checkFipAssociated(extNw2ArpTable, extNw2FipIp, extNw2FipId, vifIp2,
+                               vifPort2Id, rtrId, extNw2RifMac, rtrPortId)
+            checkNeutronPortFipBackref(vifPort2Id, extNw2FipId)
+        }
+
+        extNw1ArpTable.stop()
+        extNw2ArpTable.stop()
     }
 
     private def checkFipAssociated(arpTable: StateTable[IPv4Addr, MAC],
