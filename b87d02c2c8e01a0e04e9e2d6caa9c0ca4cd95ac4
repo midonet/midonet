@@ -39,6 +39,52 @@
       "revId": "b87d02c2c8e01a0e04e9e2d6caa9c0ca4cd95ac4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_552b0b82",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 907,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-14T11:28:34Z",
+      "side": 1,
+      "message": "I think this can be inferred from the argument type, so you can just put List() on the right-hand side.",
+      "range": {
+        "startLine": 907,
+        "startChar": 62,
+        "endLine": 907,
+        "endChar": 71
+      },
+      "revId": "b87d02c2c8e01a0e04e9e2d6caa9c0ca4cd95ac4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_950e6333",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 908,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-14T11:28:34Z",
+      "side": 1,
+      "message": "Seq is an interface, and List is an implementation. Functions should generally consume Seq rather than List, unless you need something specific to List. To be really technical, we should probably be consuming something like TraversableOnce, but Seq is a good compromise between generality and non-obscurity.",
+      "range": {
+        "startLine": 908,
+        "startChar": 36,
+        "endLine": 908,
+        "endChar": 40
+      },
+      "revId": "b87d02c2c8e01a0e04e9e2d6caa9c0ca4cd95ac4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
