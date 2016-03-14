@@ -39,9 +39,7 @@ import org.midonet.conf.HostIdGenerator;
 import org.midonet.cluster.data.storage.OwnershipType;
 import org.midonet.cluster.data.storage.StorageWithOwnership;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendConfig;
-import org.midonet.cluster.storage.MidonetTestBackend;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
@@ -65,7 +63,6 @@ import static org.junit.Assert.assertThat;
 public class HostServiceTest {
     private ZkManager zkManager;
     private HostZkManager hostZkManager;
-    private StorageWithOwnership store;
 
     private UUID hostId;
     private String hostName;
@@ -86,7 +83,6 @@ public class HostServiceTest {
             bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
             bind(InterfaceScanner.class).to(MockInterfaceScanner.class);
             bind(MidolmanConfig.class).toInstance(new MidolmanConfig(config, ConfigFactory.empty()));
-            bind(MidonetBackend.class).to(MidonetTestBackend.class).asEagerSingleton();
             bind(MidonetBackendConfig.class).toInstance(
                     new MidonetBackendConfig(config.withFallback(MidoTestConfigurator.forAgents())));
         }
@@ -127,15 +123,11 @@ public class HostServiceTest {
 
         zkManager = injector.getInstance(ZkManager.class);
         hostZkManager = injector.getInstance(HostZkManager.class);
-        store = injector.getInstance(MidonetBackend.class).ownershipStore();
         versionPath = injector.getInstance(PathBuilder.class)
                         .getHostVersionPath(hostId, DataWriteVersion.CURRENT);
         alivePath = injector.getInstance(PathBuilder.class)
                         .getHostPath(hostId) + "/alive";
         hostName = InetAddress.getLocalHost().getHostName();
-
-        store.registerClass(Topology.Host.class, OwnershipType.Exclusive());
-        store.build();
     }
 
     private HostService makeHostService() {
@@ -151,30 +143,12 @@ public class HostServiceTest {
     }
 
     @Test
-    public void createsNewZkHostInBackendStore() throws Throwable {
-        setup(true);
-        HostService hostService = startService();
-        assertBackendHostState();
-        stopService(hostService);
-    }
-
-    @Test
     public void recoversZkHostIfAliveInLegacyStore() throws Throwable {
         setup(false);
         HostService hostService = startService();
         stopService(hostService);
         hostService = startService();
         assertLegacyHostState();
-        stopService(hostService);
-    }
-
-    @Test
-    public void recoversZkHostIfAliveInBackendStore() throws Throwable {
-        setup(true);
-        HostService hostService = startService();
-        stopService(hostService);
-        hostService = startService();
-        assertBackendHostState();
         stopService(hostService);
     }
 
@@ -222,50 +196,11 @@ public class HostServiceTest {
         startAndStopService();
     }
 
-    @Test
-    public void hostServiceDoesNotOverwriteExistingHostInBackendStore()
-        throws Throwable {
-        setup(true);
-        startAndStopService();
-
-        Topology.Host oldHost = await(store.get(Topology.Host.class, hostId));
-        Topology.Host newHost = oldHost.toBuilder()
-            .addTunnelZoneIds(UUIDUtil.toProto(UUID.randomUUID()))
-            .build();
-        store.update(newHost);
-
-        startAndStopService();
-
-        Topology.Host host = await(store.get(Topology.Host.class, hostId));
-
-        assertThat(host.getTunnelZoneIds(0), is(newHost.getTunnelZoneIds(0)));
-    }
-
-    @Test
-    public void cleanupServiceAfterStopInBackendStore() throws Throwable {
-        setup(true);
-        startAndStopService();
-
-        assertThat((Boolean) await(store.exists(Topology.Host.class, hostId)),
-                   is(true));
-        assertThat(await(store.getOwners(Topology.Host.class, hostId))
-                       .isEmpty(), is(true));
-    }
-
     private void assertLegacyHostState() throws Exception {
         assertThat(hostZkManager.exists(hostId), is(true));
         assertThat(hostZkManager.isAlive(hostId), is(true));
         assertThat(hostZkManager.get(hostId).getName(), is(hostName));
         assertThat(zkManager.exists(versionPath), is(true));
-    }
-
-    private void assertBackendHostState() throws Exception {
-        assertThat((Boolean)await(store.exists(Topology.Host.class, hostId)),
-                   is(true));
-        assertThat(await(store.get(Topology.Host.class, hostId)).getName(),
-                   is(hostName));
-        assertThat(await(store.getOwners(Topology.Host.class, hostId))
-                       .contains(hostId.toString()), is(true));
     }
 
     private HostService startService() throws Throwable {

@@ -26,7 +26,6 @@ import rx.Observable
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.config.MidolmanConfig
@@ -155,9 +154,7 @@ object VirtualTopology extends MidolmanLogging {
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
  */
-class VirtualTopology @Inject() (val backend: MidonetBackend,
-                                 val config: MidolmanConfig,
-                                 val state: StateStorage,
+class VirtualTopology @Inject() (val config: MidolmanConfig,
                                  val dataClient: DataClient,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val flowInvalidator: FlowInvalidator,
@@ -184,23 +181,9 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
     private[topology] val observables =
         new ConcurrentHashMap[UUID, Observable[_]]()
 
-    private val factories = Map[ClassTag[_], DeviceFactory](
-        classTag[Port] -> (new PortMapper(_, this)),
-        classTag[RouterPort] -> (new PortMapper(_, this)),
-        classTag[BridgePort] -> (new PortMapper(_, this)),
-        classTag[VxLanPort] -> (new PortMapper(_, this)),
-        classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[Host] -> (new HostMapper(_, this)),
-        classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system)),
-        classTag[Chain] -> (new ChainMapper(_, this)),
-        classTag[IPAddrGroup] -> (new IPAddrGroupMapper(_, this)),
-        classTag[PortGroup] -> (new PortGroupMapper(_, this)),
-        classTag[LoadBalancer] -> (new LoadBalancerMapper(_, this))
-    )
+    private val factories = Map[ClassTag[_], DeviceFactory]()
 
     register(this)
-
-    def store = backend.ownershipStore
 
     private def observableOf[D <: Device](id: UUID,
                                           tag: ClassTag[D]): Observable[D] = {

@@ -31,7 +31,6 @@ import com.google.inject.Inject
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Host
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.IPAddressUtil._
@@ -58,14 +57,11 @@ object HostService {
 
 class HostService @Inject()(config: MidolmanConfig,
                             backendConfig: MidonetBackendConfig,
-                            backend: MidonetBackend,
                             scanner: InterfaceScanner,
                             interfaceDataUpdater: InterfaceDataUpdater,
                             hostZkManager: HostZkManager,
                             zkManager: ZkManager)
     extends AbstractService with HostIdProviderService with MidolmanLogging {
-
-    private final val store = backend.ownershipStore
 
     private final val timeout = 5 seconds
     private var hostId: UUID = null
@@ -80,11 +76,8 @@ class HostService @Inject()(config: MidolmanConfig,
                 : Unit = {
                     // Update the host interfaces only if the legacy storage is
                     // enabled
-                    // TODO: Update host interfaces in ZOOM
-                    if (!backendConfig.useNewStack) {
-                        interfaceDataUpdater
-                            .updateInterfacesData(hostId, null, data)
-                    }
+                    interfaceDataUpdater
+                        .updateInterfacesData(hostId, null, data)
                 }
                 override def onError(e: NetlinkException): Unit = { }
             })
@@ -103,21 +96,9 @@ class HostService @Inject()(config: MidolmanConfig,
         log.info("Stopping MidoNet Agent host service")
         scanner.shutdown()
 
-        // If the cluster storage is enabled, delete the ownership.
-        if (backendConfig.useNewStack) {
-            try {
-                store.deleteOwner(classOf[Host], hostId, hostId.toString)
-            } catch {
-                case e @ (_: NotFoundException |
-                          _: OwnershipConflictException) =>
-                    log.error("MidoNet Agent host service failed to cleanup " +
-                              "host ownership")
-            }
-        } else {
-            // Disconnect from zookeeper: this will cause the ephemeral nodes to
-            // disappear.
-            zkManager.disconnect()
-        }
+        // Disconnect from zookeeper: this will cause the ephemeral nodes to
+        // disappear.
+        zkManager.disconnect()
 
         notifyStopped()
         log.info("MidoNet Agent host service stopped")
@@ -161,14 +142,12 @@ class HostService @Inject()(config: MidolmanConfig,
     @throws(classOf[StateAccessException])
     @throws(classOf[SerializationException])
     private def create(id: UUID, metadata: HostMetadata): Boolean = {
-        createLegacy(id, metadata) && createCluster(id, metadata)
+        createLegacy(id, metadata)
     }
 
     @throws(classOf[StateAccessException])
     @throws(classOf[SerializationException])
     private def createLegacy(id: UUID, metadata: HostMetadata): Boolean = {
-        if (backendConfig.useNewStack)
-            return true
         if (hostZkManager.exists(id)) {
             if (!metadata.isSameHost(hostZkManager.get(id))) {
                 if (hostZkManager.isAlive(id)) {
@@ -183,48 +162,6 @@ class HostService @Inject()(config: MidolmanConfig,
         hostZkManager.makeAlive(id)
         hostZkManager.setHostVersion(id)
         true
-    }
-
-    private def createCluster(id: UUID, metadata: HostMetadata): Boolean = {
-        if (!backendConfig.useNewStack)
-            return true
-        try {
-            // If the host entry exists
-            if (Await.result(store.exists(classOf[Host], id), timeout)) {
-                // Read the current host.
-                val currentHost =
-                    Await.result(store.get(classOf[Host], id), timeout)
-                val host = currentHost.toBuilder
-                    .setName(metadata.getName)
-                    .clearAddresses()
-                    .addAllAddresses(metadata.getAddresses.map(_.asProto)
-                                         .toList.asJava)
-                    .build()
-                // Take ownership and update host in storage.
-                store.multi(Seq(
-                    UpdateOwnerOp(classOf[Host], hostId, hostId.toString,
-                                  throwIfExists = true),
-                    UpdateWithOwnerOp(host, hostId.toString,
-                                      validator = null)
-                ))
-            } else {
-                // Create a new host.
-                val host = Host.newBuilder
-                    .setId(id.asProto)
-                    .setName(metadata.getName)
-                    .addAllAddresses(metadata.getAddresses.map(_.asProto)
-                                         .toList.asJava)
-                    .build()
-                // Create the host object.
-                store.create(host, hostId)
-            }
-            true
-        } catch {
-            case e @ (_: NotFoundException |
-                      _: ObjectExistsException |
-                      _: ReferenceConflictException |
-                      _: OwnershipConflictException) => false
-        }
     }
 
     override def getHostId: UUID =  hostId

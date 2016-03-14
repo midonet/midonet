@@ -492,7 +492,7 @@ abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
                                                + s" devices of type $t")
     }
 
-    override def receive = super.receive orElse {
+    override def receive = {
         case request: VTPMRequest[_] =>
             deviceRequested(request, createHandler=true)
 

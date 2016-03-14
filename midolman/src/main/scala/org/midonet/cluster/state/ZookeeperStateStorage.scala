@@ -27,7 +27,6 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.storage.{NotFoundException, OwnershipConflictException}
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterRouterManager, DataClient}
 import org.midonet.midolman.logging.MidolmanLogging
@@ -43,7 +42,6 @@ import org.midonet.util.functors._
  * managers as backend.
  */
 class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
-                                       backend: MidonetBackend,
                                        dataClient: DataClient,
                                        @Named("directoryReactor") reactor: Reactor,
                                        connectionWatcher: ZkConnectionAwareWatcher,
@@ -78,57 +76,33 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
 
     override def setPortLocalAndActive(portId: UUID, hostId: UUID,
                                        active: Boolean): Unit = runOnReactor {
-        // Activate the port for legacy ZK storage.
-        if (!backendCfg.useNewStack) {
-            portZkManager.setActivePort(portId, hostId, active)
-                .observeOn(reactor.rxScheduler)
-                .flatMap(makeFunc1[Void,Observable[PortConfig]](
-                             (x: Void) => { portZkManager.getWithObservable(portId) }))
-                .doOnNext(makeAction1[PortConfig](portConfig => {
-                             if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
-                                 val deviceId: UUID = portConfig.device_id
-                                 routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                                     deviceId, portId, active)
-                             }
-                         }))
-                .subscribe(makeAction1[PortConfig](
-                               (p) => { subjectLocalPortActive.onNext(
-                                           LocalPortActive(portId, active)) }),
-                           makeAction1[Throwable](
-                               (t: Throwable) => {
-                                   t match {
-                                       case e: StateAccessException =>
-                                           log.error("Error retrieving the configuration for port {}",
-                                                     portId, e)
-                                       case e: SerializationException =>
-                                           log.error("Error serializing the configuration for port {}",
-                                                     portId, e)
-                                       case e: Exception =>
-                                           log.error("Unexpected exception caught", e)
-                                   }
-                               }))
-        }
-
-        // Activate the port for cluster storage.
-        if (backend.isEnabled) {
-            try {
-                val storage = backend.ownershipStore
-                if (active) {
-                    storage.updateOwner(classOf[Port], portId, hostId,
-                                        throwIfExists = true)
-                } else {
-                    storage.deleteOwner(classOf[Port], portId, hostId)
-                }
-            } catch {
-                case e: NotFoundException =>
-                    log.error("Port {} does not exist", portId)
-                case e: OwnershipConflictException =>
-                    log.error("Host {} does not have permission to activate " +
-                              "or deactivate port {}", hostId, portId)
-            }
-            subjectLocalPortActive.onNext(
-                                LocalPortActive(portId, active))
-        }
+        portZkManager.setActivePort(portId, hostId, active)
+            .observeOn(reactor.rxScheduler)
+            .flatMap(makeFunc1[Void,Observable[PortConfig]](
+                         (x: Void) => { portZkManager.getWithObservable(portId) }))
+            .doOnNext(makeAction1[PortConfig](portConfig => {
+                                                  if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
+                                                      val deviceId: UUID = portConfig.device_id
+                                                      routerManager.updateRoutesBecauseLocalPortChangedStatus(
+                                                          deviceId, portId, active)
+                                                  }
+                                              }))
+            .subscribe(makeAction1[PortConfig](
+                           (p) => { subjectLocalPortActive.onNext(
+                                       LocalPortActive(portId, active)) }),
+                       makeAction1[Throwable](
+                           (t: Throwable) => {
+                               t match {
+                                   case e: StateAccessException =>
+                                       log.error("Error retrieving the configuration for port {}",
+                                                 portId, e)
+                                   case e: SerializationException =>
+                                       log.error("Error serializing the configuration for port {}",
+                                                 portId, e)
+                                   case e: Exception =>
+                                       log.error("Unexpected exception caught", e)
+                               }
+                           }))
     }
 
     override def observableLocalPortActive: Observable[LocalPortActive] =

@@ -22,7 +22,6 @@ import com.typesafe.config.{Config, ConfigFactory}
 import org.midonet.cluster.services.conf.ConfMinion
 import org.midonet.cluster.services.flowtracing.FlowTracingMinion
 import org.midonet.cluster.services.heartbeat.Heartbeat
-import org.midonet.cluster.services.topology.TopologyApiService
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
 import org.midonet.cluster.storage.{CassandraConfig, MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
@@ -55,7 +54,6 @@ class ClusterConfig(_conf: Config) {
     val embedding = new EmbeddedClusterNodeConfig(conf)
     val hearbeat = new HeartbeatConfig(conf)
     val vxgw = new VxGwConfig(conf)
-    val topologyApi = new TopologyApiConfig(conf)
     val topologyUpdater = new TopologyZoomUpdaterConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
     val confApi = new ConfApiConfig(conf)
@@ -80,21 +78,6 @@ class VxGwConfig(val conf: Config) extends MinionConfig[VxlanGatewayService] {
     override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
     override def minionClass = conf.getString(s"$PREFIX.with")
     def networkBufferSize = conf.getInt(s"$PREFIX.network_buffer_size")
-}
-
-class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiService] {
-    val PREFIX = "cluster.topology_api"
-
-    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
-    override def minionClass = conf.getString(s"$PREFIX.with")
-
-    def socketEnabled = conf.getBoolean(s"$PREFIX.socket_enabled")
-    def port = conf.getInt(s"$PREFIX.port")
-    def wsEnabled = conf.getBoolean(s"$PREFIX.ws_enabled")
-    def wsPort = conf.getInt(s"$PREFIX.ws_port")
-    def wsPath = conf.getString(s"$PREFIX.ws_path")
-    def sessionGracePeriod = conf.getDuration(s"$PREFIX.session_grace_period", TimeUnit.MILLISECONDS)
-    def sessionBufferSize = conf.getInt(s"$PREFIX.session_buffer_size")
 }
 
 class TopologyZoomUpdaterConfig(val conf: Config) {

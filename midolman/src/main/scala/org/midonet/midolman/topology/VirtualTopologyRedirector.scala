@@ -24,7 +24,6 @@ import akka.actor.{Actor, ActorRef}
 import com.google.inject.Inject
 import rx.Subscriber
 
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup}
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -56,9 +55,6 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
     }
 
     private val subscriptions = new mutable.HashMap[UUID, DeviceSubscriber]()
-
-    @Inject
-    private val newBackend: MidonetBackend = null
 
     protected def manageDevice(request: DeviceRequest, createManager: Boolean): Unit
     protected def deviceRequested(request: DeviceRequest): Unit
@@ -126,38 +122,4 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
             }
         }
     }
-
-    def receive = if (!newBackend.isEnabled) Actor.emptyBehavior else {
-        case r: PortRequest =>
-            log.debug("Request for port {}", r.id)
-            onRequest[Port](r)
-        case r: BridgeRequest =>
-            log.debug("Request for bridge {}", r.id)
-            onRequest[Bridge](r)
-        case r: ChainRequest =>
-            log.debug("Request for chain: {}", r.id)
-            onRequest[Chain](r)
-        case r: IPAddrGroupRequest =>
-            log.debug("Request for IP address group {}", r.id)
-            onRequest[IPAddrGroup](r)
-        case r: PortGroupRequest =>
-            log.debug("Request for port group: {}", r.id)
-            onRequest[PortGroup](r)
-        case r: LoadBalancerRequest =>
-            log.debug("Request for load-balancer {}", r.id)
-            onRequest[LoadBalancer](r)
-        case u: Unsubscribe =>
-            log.debug("Unsubscribe for device {} from {}", u.id, sender())
-            onUnsubscribe(u.id, sender())
-        case OnNext(id: UUID, device: Device) =>
-            log.debug("Device update {}", id)
-            onNext(id, device)
-        case OnCompleted(id: UUID) =>
-            log.debug("Device completed {}", id)
-            onCompleted(id)
-        case OnError(id: UUID, e: Throwable) =>
-            log.warn("Device error {}: {}", id, e)
-            onError(id, e)
-    }
-
 }
