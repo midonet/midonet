@@ -18,7 +18,7 @@
 <sbe:messageSchema xmlns:sbe="http://www.fixprotocol.org/ns/simple/1.0"
                    package="org.midonet.cluster.flowstate.proto"
                    id="1"
-                   version="0"
+                   version="1"
                    semanticVersion="5.2"
                    description="Flow state"
                    byteOrder="littleEndian">
@@ -55,6 +55,11 @@
 
   <sbe:message name="FlowState" id="1" description="Flow state">
     <field name="sender" id="1" type="UUID" />
+
+    <field name="ingressPortId" id="50" type="UUID" presence="optional" sinceVersion="1"/>
+    <group name="egressPortIds" id="51" presence="optional" sinceVersion="1">
+      <field name="egressPortId" id="52" type="UUID" presence="optional" sinceVersion="1"/>
+    </group>
 
     <group name="conntrack" id="100">
       <field name="device" id="101" type="UUID" />

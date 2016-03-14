@@ -138,6 +138,15 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
         case REV_STICKY_DNAT => NatKeyType.REV_STICKY_DNAT
     }
 
+    def egressPortIdFromSbe(egress: FlowStateSbe.EgressPortIds): UUID =
+        uuidFromSbe(egress.egressPortId)
+
+    def egressPortIdToSbe(uuid: UUID, egress: FlowStateSbe.EgressPortIds) {
+        if (uuid != null) {
+            uuidToSbe(uuid, egress.egressPortId)
+        }
+    }
+
     def connTrackKeyFromSbe(conntrack: FlowStateSbe.Conntrack): ConnTrackKeyT
 
     def connTrackKeyToSbe(key: ConnTrackKeyT,
