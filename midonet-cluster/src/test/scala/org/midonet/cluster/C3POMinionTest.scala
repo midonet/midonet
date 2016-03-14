@@ -306,6 +306,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     }
 
     protected def storage = backend.store
+    protected def stateTableStorage = backend.stateStore
 
     before {
         curator = CuratorFrameworkFactory.newClient(ZK_HOST,

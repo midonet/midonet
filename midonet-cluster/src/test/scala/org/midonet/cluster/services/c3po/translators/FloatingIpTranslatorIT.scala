@@ -31,11 +31,10 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
-import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap
-import org.midonet.packets.MAC
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.concurrent.toFutureOps
 
@@ -176,9 +175,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                              fixedIpAddress = fixedIp)
         insertUpdateTask(120, FloatingIpType, assignedFipJson, fipId)
         eventually {
-            checkFipAssociated(arpTable, fipIp, fipId, fixedIp,
-                               vifPortId, tRouterId, rgwMac,
-                               tenantGwPortId(toProto(rgwPortId)))
+            checkFipAssociated(fipIp, fipId, fixedIp, vifPortId, tRouterId,
+                               rgwMac, tenantGwPortId(toProto(rgwPortId)))
         }
 
         // Update the VIF. Test that the back reference to Floating IP
@@ -209,8 +207,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             portId = vifPort2Id, fixedIpAddress = vifPort2FixedIp)
         insertUpdateTask(150, FloatingIpType, reassignedFipJson, fipId)
         eventually {
-            checkFipAssociated(arpTable, fipIp, fipId, vifPort2FixedIp,
-                               vifPort2Id, tRouterId, rgwMac,
+            checkFipAssociated(fipIp, fipId, vifPort2FixedIp, vifPort2Id,
+                               tRouterId, rgwMac,
                                tenantGwPortId(toProto(rgwPortId)))
             checkNeutronPortFipBackref(vifPortId, null)
         }
@@ -218,8 +216,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Deleting a Floating IP should clear the NAT rules and ARP entry.
         insertDeleteTask(160, FloatingIpType, fipId)
         eventually {
-            checkFipDisassociated(arpTable, fipIp, fipId, tRouterId,
-                                  deleted = true)
+            checkFipDisassociated(fipIp, fipId, tRouterId, deleted = true)
             checkNeutronPortFipBackref(vifPort2Id, null)
         }
 
@@ -228,29 +225,102 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val fip2Id = createFip(170, extNetworkId, fip2Ip, fixedIp = fixedIp,
                                rtrId = tRouterId, portId = vifPortId)
         eventually {
-            checkFipAssociated(arpTable, fip2Ip, fip2Id, fixedIp,
-                               vifPortId, tRouterId, rgwMac,
-                               tenantGwPortId(toProto(rgwPortId)))
+            checkFipAssociated(fip2Ip, fip2Id, fixedIp, vifPortId, tRouterId,
+                               rgwMac, tenantGwPortId(toProto(rgwPortId)))
         }
 
         // Delete the first VIF port, which should disassociate the second FIP.
         insertDeleteTask(180, PortType, vifPortId)
         eventually {
-            checkFipDisassociated(arpTable, fip2Ip, fip2Id, tRouterId,
-                                  deleted = false)
+            checkFipDisassociated(fip2Ip, fip2Id, tRouterId, deleted = false)
         }
 
         arpTable.stop()
     }
 
-    private def checkFipAssociated(arpTable: Ip4ToMacReplicatedMap,
-                                   fipAddr: String, fipId: UUID,
+    it should "select the router port whose subnet contains the FIP" in {
+        // Create two external networks with subnets.
+        val extNw1Id = createTenantNetwork(10, external = true)
+        val extNw1SnId = createSubnet(20, extNw1Id, "10.0.0.0/24",
+                                      gatewayIp = "10.0.0.1")
+        val extNw2Id = createTenantNetwork(30, external = true)
+        val extNw2SnId = createSubnet(40, extNw2Id, "20.0.0.0/24",
+                                      gatewayIp = "20.0.0.1")
+
+        // Create a private network with two VIF ports.
+        val prvNwId = createTenantNetwork(50)
+        val prvNwSnId = createSubnet(60, prvNwId, "30.0.0.0/24",
+                                     gatewayIp = "30.0.0.1")
+        val vifIp1 = "30.0.0.3"
+        val vifIp2 = "30.0.0.4"
+        val vifPort1Id = createVifPort(
+            70, prvNwId, fixedIps = Seq(IPAlloc(vifIp1, prvNwSnId)))
+        val vifPort2Id = createVifPort(
+            80, prvNwId, fixedIps = Seq(IPAlloc(vifIp2, prvNwSnId)))
+
+        // Create a router with a gateway to extNw1 and interfaces to the other
+        // two networks.
+        val rGwMac = "10:00:00:00:00:02"
+        val rGwPortId = createRouterGatewayPort(90, extNw1Id, "10.0.0.2",
+                                                rGwMac, extNw1SnId)
+        val rtrId = createRouter(100, gwPortId = rGwPortId)
+        eventually(storage.exists(classOf[Router], rtrId).await() shouldBe true)
+
+        // Create a Midonet-only router port with the same CIDR as the interface
+        // to extNw2Subnet. The translator should log a warning and ignore it
+        // since it has no corresponding Neutron port.
+        storage.create(Port.newBuilder
+                           .setId(toProto(UUID.randomUUID()))
+                           .setRouterId(rtrId)
+                           .setPortSubnet(IPSubnetUtil.toProto("20.0.0.0/24"))
+                           .build())
+
+        val extNw2RifMac = "20:00:00:00:00:02"
+        val extNw2RifPort = createRouterInterfacePort(
+            110, extNw2Id, extNw2SnId, rtrId, "20.0.0.2", extNw2RifMac)
+        createRouterInterface(120, rtrId, extNw2RifPort, extNw2SnId)
+
+        val prvNwRifPortId = createRouterInterfacePort(
+            130, prvNwId, prvNwSnId, rtrId, "30.0.0.2", "30:00:00:00:00:02")
+        createRouterInterface(140, rtrId, prvNwRifPortId, prvNwSnId)
+
+        // Wait for topology operations to finish.
+        eventually {
+            val prvNwRifPeerPortId =
+                routerInterfacePortPeerId(toProto(prvNwRifPortId))
+            storage.exists(classOf[Port], prvNwRifPeerPortId)
+                .await() shouldBe true
+        }
+
+        // Create a floating IP in extNw1's subnet.
+        val extNw1FipIp = "10.0.0.3"
+        val extNw1FipId = createFip(
+            150, extNw1Id, extNw1FipIp, fixedIp = vifIp1,
+            rtrId = rtrId, portId = vifPort1Id)
+        eventually {
+            checkFipAssociated(extNw1FipIp, extNw1FipId,
+                               vifIp1, vifPort1Id, rtrId, rGwMac,
+                               tenantGwPortId(toProto(rGwPortId)))
+            checkNeutronPortFipBackref(vifPort1Id, extNw1FipId)
+        }
+
+        // Create a floating IP in extNw2's subnet.
+        val extNw2FipIp = "20.0.0.3"
+        val extNw2FipId = createFip(
+            160, extNw2Id, extNw2FipIp, fixedIp = vifIp2,
+            rtrId = rtrId, portId = vifPort2Id)
+        eventually {
+            val rtrPortId = routerInterfacePortPeerId(toProto(extNw2RifPort))
+            checkFipAssociated(extNw2FipIp, extNw2FipId, vifIp2,
+                               vifPort2Id, rtrId, extNw2RifMac, rtrPortId)
+            checkNeutronPortFipBackref(vifPort2Id, extNw2FipId)
+        }
+    }
+
+    private def checkFipAssociated(fipAddr: String, fipId: UUID,
                                    fixedIp: String, vifPortId: UUID,
                                    rtrId: UUID, rgwMac: String,
                                    rtrPortId: Commons.UUID): Unit = {
-        // External network's ARP table should contain an ARP entry
-        arpTable.get(fipAddr) shouldBe MAC.fromString(rgwMac)
-
         val snatRuleId = RouteManager.fipSnatRuleId(fipId)
         val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
         val iChainId = inChainId(rtrId)
@@ -304,8 +374,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         else nPort.getFloatingIpIdsList should contain only toProto(fipId)
     }
 
-    private def checkFipDisassociated(arpTable: Ip4ToMacReplicatedMap,
-                                      fipAddr: String, fipId: UUID,
+    private def checkFipDisassociated(fipAddr: String, fipId: UUID,
                                       rtrId: UUID, deleted: Boolean): Unit = {
         // NAT rules should be deleted, and FIP iff deleted == true
         val snatRuleId = RouteManager.fipSnatRuleId(fipId)
@@ -321,7 +390,5 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             storage.getAll(classOf[Chain], List(iChainId, oChainId)).await()
         inChain.getRuleIdsList should not contain dnatRuleId
         outChain.getRuleIdsList should not contain snatRuleId
-
-        arpTable.containsKey(fipAddr) shouldBe false
     }
 }
