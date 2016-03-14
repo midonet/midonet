@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "3a6ff13c_3ae91e1b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-14T08:26:50Z",
+      "side": 1,
+      "message": "How do we know how to connect to the service when the protocol is not specified (the URI has that information)?",
+      "range": {
+        "startLine": 138,
+        "startChar": 8,
+        "endLine": 138,
+        "endChar": 31
+      },
+      "revId": "3052af78199b819007b37a991d85113523f94250",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_7aa55603",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-14T08:26:50Z",
+      "side": 1,
+      "message": "Nitpick: the port could just be a short",
+      "range": {
+        "startLine": 138,
+        "startChar": 76,
+        "endLine": 138,
+        "endChar": 79
+      },
+      "revId": "3052af78199b819007b37a991d85113523f94250",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_c1f585cc",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 35
@@ -89,6 +135,52 @@
         "startChar": 16,
         "endLine": 251,
         "endChar": 17
+      },
+      "revId": "3052af78199b819007b37a991d85113523f94250",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_7af3960a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-14T08:26:50Z",
+      "side": 1,
+      "message": "This is not clear to me. Do you mean that the service remains available if the discovery crashes? If midolman crashes, then the service instance will not be present in ZK anymore because it is stored as an ephemeral node, right?",
+      "range": {
+        "startLine": 274,
+        "startChar": 35,
+        "endLine": 275,
+        "endChar": 49
+      },
+      "revId": "3052af78199b819007b37a991d85113523f94250",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_da472a1c",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-14T08:26:50Z",
+      "side": 1,
+      "message": "nitpick: The unregistered service is not visible to the client",
+      "range": {
+        "startLine": 186,
+        "startChar": 22,
+        "endLine": 186,
+        "endChar": 76
       },
       "revId": "3052af78199b819007b37a991d85113523f94250",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
