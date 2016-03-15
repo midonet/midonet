@@ -606,7 +606,7 @@ class MidonetApi(object):
                                                self.auth)
             try:
                 self.app.get()
-            except exc.MidoApiConnectionRefused:
+            except:
                 self.app = None
                 raise
 
