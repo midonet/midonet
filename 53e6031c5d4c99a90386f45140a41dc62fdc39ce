@@ -201,6 +201,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_a525eaac",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-15T14:33:34Z",
+      "side": 1,
+      "message": "actually, scratch that.\n\nthe expiresAfter value refers to the grace time the piece of flow state will remain alive after all flows unreference it. so, the C* expiration should not be expiresAfter, but expiresAfter + the flow expiration time.",
+      "parentUuid": "3a6ff13c_aa405957",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_df955589",
         "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
         "patchSetId": 5
