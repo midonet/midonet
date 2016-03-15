@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_1f4b6d5a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-15T10:12:36Z",
+      "side": 1,
+      "message": "Nit: long line. Fix later",
+      "range": {
+        "startLine": 197,
+        "startChar": 65,
+        "endLine": 197,
+        "endChar": 99
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_1fb9ad2e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-15T10:12:36Z",
+      "side": 1,
+      "message": "You can also use flatMap; no need for implicit conversion: cache.getInstances.asScala.flatMap(asMidonetService)",
+      "range": {
+        "startLine": 235,
+        "startChar": 34,
+        "endLine": 235,
+        "endChar": 65
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_9fcafd9f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-15T10:12:36Z",
+      "side": 1,
+      "message": "Is it needed (not used in match)? Btw, is match needed at all, it only compares typeOf[S]?",
+      "range": {
+        "startLine": 239,
+        "startChar": 9,
+        "endLine": 239,
+        "endChar": 12
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_9ff3dd09",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-15T10:12:36Z",
+      "side": 1,
+      "message": "None",
+      "range": {
+        "startLine": 249,
+        "startChar": 16,
+        "endLine": 249,
+        "endChar": 31
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
