@@ -28,7 +28,8 @@ import com.lmax.disruptor.{SequenceBarrier, RingBuffer}
 import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
 
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.MidonetDiscovery
+import org.midonet.cluster.services.{MockMidonetDiscovery, MidonetBackend}
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
@@ -131,6 +132,10 @@ class MockMidolmanModule(override val hostId: UUID,
             channelFactory: NetlinkChannelFactory,
             backChannel: SimulationBackChannel) =
         new MockFlowProcessor(flowsTable)
+
+    protected override def discoveryService(vt: VirtualTopology): MidonetDiscovery = {
+        new MockMidonetDiscovery()
+    }
 
     protected override def datapathChannel(
             ringBuffer: RingBuffer[PacketContextHolder],
