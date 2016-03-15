@@ -237,6 +237,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_651db273",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-15T17:15:38Z",
+      "side": 1,
+      "message": "Well, it\u0027s always the same for stateful packets, so the can cluster can know. This might be a bit dirty because it\u0027s an implicit coupling.",
+      "parentUuid": "3a6ff13c_c553c66a",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_df955589",
         "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
         "patchSetId": 5
