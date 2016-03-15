@@ -19,6 +19,7 @@ package org.midonet.midolman.util
 import java.util.UUID
 
 import akka.actor.ActorSystem
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.topology.VirtualTopology
 
@@ -58,6 +59,9 @@ trait MidolmanServices {
 
     def peerResolver =
         injector.getInstance(classOf[PeerResolver])
+
+    def discoveryService =
+        injector.getInstance(classOf[MidonetDiscovery])
 
     def virtualTopology =
         injector.getInstance(classOf[VirtualTopology])
