@@ -80,6 +80,8 @@ trait UnderlayResolver {
 
     def hostRecircOutputAction: FlowActionOutput
 
+    def tunnelOverlayOutputAction: FlowActionOutput
+
     def isVtepTunnellingPort(portNumber: Integer): Boolean
 
     def isOverlayTunnellingPort(portNumber: Integer): Boolean
@@ -413,6 +415,7 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     override def vtepTunnellingOutputAction = tunnelVtepVxLan.toOutputAction
     override def tunnelRecircOutputAction = tunnelRecircVxLanPort.toOutputAction
     override def hostRecircOutputAction = hostRecircPort.toOutputAction
+    override def tunnelOverlayOutputAction = tunnelOverlayVxLan.toOutputAction
 
     def isVtepTunnellingPort(portNumber: Integer) =
         tunnelVtepVxLan.getPortNo == portNumber

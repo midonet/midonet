@@ -17,6 +17,7 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.midolman.topology.VirtualTopology
 
 import scala.concurrent.{Future, Promise}
@@ -448,6 +449,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    metrics,
                                    NullFlowRecorder,
                                    injector.getInstance(classOf[VirtualTopology]),
+                                   injector.getInstance(classOf[MidonetDiscovery]),
                                    packetOut)
             with MessageAccumulator {
 
