@@ -183,6 +183,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_aa405957",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-15T14:18:42Z",
+      "side": 1,
+      "message": "oh, that\u0027s wrong. expires after should be used by the ingress host to determine how long the piece of flow state lives. everything else, including cassandra, should expire state and flows after 1 minute, and get refreshed data from the ingress host.",
+      "parentUuid": "3a6ff13c_7f30e156",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_df955589",
         "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
         "patchSetId": 5
