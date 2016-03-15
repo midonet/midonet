@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_3f48295b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-15T10:02:01Z",
+      "side": 1,
+      "message": "maybe cache this?",
+      "revId": "5d057a5286aa7bbe5a17badf1b7a653ac93e8a14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_9f6e7dc8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-15T10:02:01Z",
+      "side": 1,
+      "message": "there\u0027s only one conn track entry per state message",
+      "revId": "5d057a5286aa7bbe5a17badf1b7a653ac93e8a14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
