@@ -106,6 +106,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_7ff38173",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T11:19:50Z",
+      "side": 1,
+      "message": "It\u0027s the same as NatBinding, etc. Replied there.",
+      "parentUuid": "3a6ff13c_7f1701a4",
+      "range": {
+        "startLine": 76,
+        "startChar": 4,
+        "endLine": 94,
+        "endChar": 34
+      },
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_bf81794c",
         "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
         "patchSetId": 5
@@ -205,6 +229,30 @@
       "writtenOn": "2016-03-15T11:04:47Z",
       "side": 1,
       "message": "Also include the deviceId?",
+      "range": {
+        "startLine": 64,
+        "startChar": 21,
+        "endLine": 64,
+        "endChar": 29
+      },
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_9fe83d7e",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T11:19:50Z",
+      "side": 1,
+      "message": "It\u0027s replicating the information on the NatKey object of the agent side. I wonder why it wasn\u0027t there in the first place (if it was a mistake, we can add it now, but not sure if it was intentional).",
+      "parentUuid": "3a6ff13c_bf8899e8",
       "range": {
         "startLine": 64,
         "startChar": 21,
