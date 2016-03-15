@@ -1,5 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
 # Copyright 2013 Midokura PTE LTD.
 # All Rights Reserved
 #
@@ -71,10 +69,8 @@ def do_request(uri, method, body=None, query=None, headers=None):
     try:
         response, content = httplib2.Http().request(uri, method, data,
                                                     headers=headers)
-    except socket.error as serr:
-        if serr[1] == "ECONNREFUSED":
-            raise exc.MidoApiConnectionRefused()
-        raise
+    except socket.error:
+        raise exc.MidoApiConnectionError()
 
     LOG.debug("do_request: response=%s | content=%s" % (response, content))
 
@@ -102,10 +98,8 @@ def do_upload(uri, body=None, query=None, headers=None):
     try:
         response, content = httplib2.Http().request(uri, 'POST', body,
                                                     headers=headers)
-    except socket.error as serr:
-        if serr[1] == "ECONNREFUSED":
-            raise exc.MidoApiConnectionRefused()
-        raise
+    except socket.error:
+        raise exc.MidoApiConnectionError()
 
     if is_http_error(response['status']):
         err = http_errors[response['status']](content)
