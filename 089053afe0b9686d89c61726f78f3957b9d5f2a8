@@ -91,6 +91,46 @@
       "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_1f6c4d9c",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-15T10:37:20Z",
+      "side": 1,
+      "message": "give the eventuallys a longer timeout (like 1 second). I think it\u0027s 150ms by default, which is a little short for anything that uses a real zk instance in tests (would introduce flake).",
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_3f69098c",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-15T10:37:20Z",
+      "side": 1,
+      "message": "why is it toSet here, but not above?",
+      "range": {
+        "startLine": 119,
+        "startChar": 33,
+        "endLine": 119,
+        "endChar": 38
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
