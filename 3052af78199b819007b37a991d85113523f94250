@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_79f3a173",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T01:59:17Z",
+      "side": 1,
+      "message": "Seems like address/port is the most minimal information you may need. The protocol could be a service convention (e.g. all clients know that a service is exposed through udp). That\u0027s why we also provide a method to register a service by URI (in which you can specify the protocol with the \u0027scheme\u0027 section of the uri).",
+      "parentUuid": "3a6ff13c_3ae91e1b",
+      "range": {
+        "startLine": 138,
+        "startChar": 8,
+        "endLine": 138,
+        "endChar": 31
+      },
+      "revId": "3052af78199b819007b37a991d85113523f94250",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_99e85d7e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T01:59:17Z",
+      "side": 1,
+      "message": "Right. Internally, the curator discovery framework uses an Int though.",
+      "parentUuid": "3a6ff13c_7aa55603",
+      "range": {
+        "startLine": 138,
+        "startChar": 76,
+        "endLine": 138,
+        "endChar": 79
+      },
+      "revId": "3052af78199b819007b37a991d85113523f94250",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_c1f585cc",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 35
@@ -83,6 +131,30 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "3a6ff13c_c1f585cc",
+      "range": {
+        "startLine": 177,
+        "startChar": 12,
+        "endLine": 177,
+        "endChar": 34
+      },
+      "revId": "3052af78199b819007b37a991d85113523f94250",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_d901f53a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T01:59:17Z",
+      "side": 1,
+      "message": "Created a trait for both the client and the handler as declaring them private prevents users of the class to access its methods.",
+      "parentUuid": "3a6ff13c_7acab6a2",
       "range": {
         "startLine": 177,
         "startChar": 12,
@@ -165,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_10b6013e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T01:59:17Z",
+      "side": 1,
+      "message": "Yes, it\u0027s not clear, I\u0027ll rephrase.",
+      "parentUuid": "3a6ff13c_7af3960a",
+      "range": {
+        "startLine": 274,
+        "startChar": 35,
+        "endLine": 275,
+        "endChar": 49
+      },
+      "revId": "3052af78199b819007b37a991d85113523f94250",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_da472a1c",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
         "patchSetId": 35
@@ -176,6 +272,30 @@
       "writtenOn": "2016-03-14T08:26:50Z",
       "side": 1,
       "message": "nitpick: The unregistered service is not visible to the client",
+      "range": {
+        "startLine": 186,
+        "startChar": 22,
+        "endLine": 186,
+        "endChar": 76
+      },
+      "revId": "3052af78199b819007b37a991d85113523f94250",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_f9acf137",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T01:59:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a6ff13c_da472a1c",
       "range": {
         "startLine": 186,
         "startChar": 22,
