@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_b9d6f9c3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T01:59:17Z",
+      "side": 1,
+      "message": "Agreed. Done.",
+      "parentUuid": "3a6ff13c_5a65fa43",
+      "range": {
+        "startLine": 93,
+        "startChar": 14,
+        "endLine": 93,
+        "endChar": 15
+      },
+      "revId": "fdbe90bb02b4da6c9d7de10e0c452e40cf76edc8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_7eec71c8",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 34
@@ -132,6 +156,30 @@
       "side": 1,
       "message": "Oh, right. Leave it like this then. Although I think we should standardize this in the future, to not go back to the logging mess we had in 1.9, where loggers were spread all over.",
       "parentUuid": "3a6ff13c_be698927",
+      "range": {
+        "startLine": 95,
+        "startChar": 14,
+        "endLine": 95,
+        "endChar": 15
+      },
+      "revId": "fdbe90bb02b4da6c9d7de10e0c452e40cf76edc8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_394be9b1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T01:59:17Z",
+      "side": 1,
+      "message": "Makes sense. Created an issue to do it on a later patch (MI-731)",
+      "parentUuid": "3a6ff13c_7ad1d6cc",
       "range": {
         "startLine": 95,
         "startChar": 14,
