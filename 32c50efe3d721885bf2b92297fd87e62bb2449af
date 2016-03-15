@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_7c1d4f73",
+        "filename": "tools/data_migration/data_migration/v198/migration.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-15T10:14:42Z",
+      "side": 1,
+      "message": "plugin_v2 is a plugin for 5.x.\nit seems strange to use it to pull data from 1.9.",
+      "revId": "32c50efe3d721885bf2b92297fd87e62bb2449af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_5c31730a",
+        "filename": "tools/data_migration/test-requirements.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-15T10:14:42Z",
+      "side": 1,
+      "message": "you don\u0027t need to specify what you have in requirements.txt",
+      "revId": "32c50efe3d721885bf2b92297fd87e62bb2449af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_9c3bebea",
+        "filename": "tools/data_migration/tox.ini",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-15T10:14:42Z",
+      "side": 1,
+      "message": "looks stale copy",
+      "revId": "32c50efe3d721885bf2b92297fd87e62bb2449af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
