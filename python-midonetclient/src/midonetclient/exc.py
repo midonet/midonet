@@ -1,5 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
 # Copyright 2013 Midokura PTE LTD.
 # All Rights Reserved
 #
@@ -28,10 +26,5 @@ def get_exception(status_code):
 
 
 class MidoApiConnectionError(Exception):
-    pass
-
-
-class MidoApiConnectionRefused(MidoApiConnectionError):
     def __init__(self):
-        MidoApiConnectionError.__init__(
-            self, "Could not connect to the midonet-api.")
+        Exception.__init__(self, "Could not connect to the MidoNet API")
