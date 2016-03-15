@@ -17,7 +17,9 @@ package org.midonet.cluster.storage
 
 import com.typesafe.config.Config
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.state.ConnectionState
+import org.apache.curator.framework.listen.Listenable
+import org.apache.curator.framework.state.{ConnectionStateListener, ConnectionState}
+import org.apache.curator.x.discovery.details.ServiceDiscoveryImpl
 import org.mockito.Mockito._
 import rx.subjects.BehaviorSubject
 
@@ -25,6 +27,7 @@ import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWat
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor
