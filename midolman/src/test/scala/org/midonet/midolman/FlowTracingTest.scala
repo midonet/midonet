@@ -385,10 +385,12 @@ class FlowTracingTest extends MidolmanSpec {
 
             val encoder = new SbeEncoder
             def parse(p: Ethernet): FlowState = {
-                encoder.decodeFrom(FlowStatePackets.parseDatagram(p).getData)
+                val fs = encoder.decodeFrom(FlowStatePackets.parseDatagram(p).getData)
+                fs
             }
 
             val packet0 = parse(packetsSent.get(0))
+
             packet0.conntrack.iterator().hasNext() shouldBe false
             packet0.nat.iterator().hasNext() shouldBe false
             val iter0 = packet0.trace.iterator()
