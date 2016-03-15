@@ -65,6 +65,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_dfdab5e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T11:16:20Z",
+      "side": 1,
+      "message": "Those are applied when serializing/deserialiing to/from sbe on the agent (i.e. when pushing and receiving state on the agents). Right, it will allocate a new object... Same for conntrackKey.\n\nI\u0027ll see how I can remove that new allocation (probably duplicating the encoding/decoding code).",
+      "parentUuid": "3a6ff13c_1f90cd94",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_7f1701a4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
         "patchSetId": 5
@@ -123,6 +141,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_7f30e156",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T11:16:20Z",
+      "side": 1,
+      "message": "Yes, it is (FlowStateStorage.scala:214)",
+      "parentUuid": "3a6ff13c_5f37a5b0",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_df955589",
         "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
         "patchSetId": 5
@@ -134,6 +170,24 @@
       "writtenOn": "2016-03-15T10:06:54Z",
       "side": 1,
       "message": "isn\u0027t this just the NatKey?",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_9fb03ddf",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T11:16:20Z",
+      "side": 1,
+      "message": "yeah :/ I need to replicate the data structure because NatKey extends FlowStateKey that extends FlowStateTag that extends BackChannelMessage which is used in simulation... That\u0027s the only way I found to move the FlowStatePackets into nsdb for sharing with cluster without moving the whole agent.\n\nThen have converstions from the agent dto to the storage (cluster dto that does not depend on FlowStateTag.",
+      "parentUuid": "3a6ff13c_df955589",
       "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -174,6 +228,24 @@
       "writtenOn": "2016-03-15T10:06:54Z",
       "side": 1,
       "message": "this is agent specific, shouldn\u0027t really be here",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_ff221100",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T11:16:20Z",
+      "side": 1,
+      "message": "Do you mean the IdleExpiration or the whole TraceState? True, I didn\u0027t look much into flow tracing, I\u0027ll do.",
+      "parentUuid": "3a6ff13c_5fe96519",
       "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
