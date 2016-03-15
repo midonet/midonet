@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_3f2ca9ab",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T12:02:49Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "3a6ff13c_1f4b6d5a",
+      "range": {
+        "startLine": 197,
+        "startChar": 65,
+        "endLine": 197,
+        "endChar": 99
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_1fb9ad2e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 37
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-15T10:12:36Z",
       "side": 1,
       "message": "You can also use flatMap; no need for implicit conversion: cache.getInstances.asScala.flatMap(asMidonetService)",
+      "range": {
+        "startLine": 235,
+        "startChar": 34,
+        "endLine": 235,
+        "endChar": 65
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_1f2feda2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T12:02:49Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "3a6ff13c_1fb9ad2e",
       "range": {
         "startLine": 235,
         "startChar": 34,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_df2475c8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T12:02:49Z",
+      "side": 1,
+      "message": "tag -\u003e true, removed, it was from a previous attempt to compare instance types.\n\nmatch -\u003e match aso checks for non-null values no? so you make sure that the values for a given type are not null. I can remove if that\u0027s not the case.",
+      "parentUuid": "3a6ff13c_9fcafd9f",
+      "range": {
+        "startLine": 239,
+        "startChar": 9,
+        "endLine": 239,
+        "endChar": 12
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_9ff3dd09",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 37
@@ -82,6 +154,30 @@
       "writtenOn": "2016-03-15T10:12:36Z",
       "side": 1,
       "message": "None",
+      "range": {
+        "startLine": 249,
+        "startChar": 16,
+        "endLine": 249,
+        "endChar": 31
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_ff2131b5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T12:02:49Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "3a6ff13c_9ff3dd09",
       "range": {
         "startLine": 249,
         "startChar": 16,
@@ -111,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_ca12f557",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T12:02:49Z",
+      "side": 1,
+      "message": "It\u0027s already 5 seconds from MidonetEventually trait.",
+      "parentUuid": "3a6ff13c_1f6c4d9c",
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_3f69098c",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
         "patchSetId": 37
@@ -122,6 +236,30 @@
       "writtenOn": "2016-03-15T10:37:20Z",
       "side": 1,
       "message": "why is it toSet here, but not above?",
+      "range": {
+        "startLine": 119,
+        "startChar": 33,
+        "endLine": 119,
+        "endChar": 38
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_0a1ded66",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-15T12:02:49Z",
+      "side": 1,
+      "message": "Right, inheritance from previous patch. Removed as not necessary.",
+      "parentUuid": "3a6ff13c_3f69098c",
       "range": {
         "startLine": 119,
         "startChar": 33,
