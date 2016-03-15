@@ -86,7 +86,7 @@ public class Router extends UriResource {
     @ZoomField(name = "outbound_mirror_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> outboundMirrorIds;
 
-    @ZoomField(name = "forward_chain_id")
+    @ZoomField(name = "forward_chain_id", converter = UUIDUtil.Converter.class)
     public UUID forwardChainId;
 
     public Router() {
