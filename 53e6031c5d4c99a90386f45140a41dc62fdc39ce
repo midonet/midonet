@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_1f90cd94",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-15T10:06:54Z",
+      "side": 1,
+      "message": "when and how are these conversions applied? are there any extra allocations involved?",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_bf81794c",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-15T10:06:54Z",
+      "side": 1,
+      "message": "seems awkward for this to be here since it\u0027s agent specific. should be in midolman",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_df955589",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-15T10:06:54Z",
+      "side": 1,
+      "message": "isn\u0027t this just the NatKey?",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_5fe96519",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-15T10:06:54Z",
+      "side": 1,
+      "message": "this is agent specific, shouldn\u0027t really be here",
+      "revId": "53e6031c5d4c99a90386f45140a41dc62fdc39ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
