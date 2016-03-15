@@ -77,6 +77,9 @@ class Service(object):
     def get_info(self):
         return self.info
 
+    def get_volumes(self):
+        return self.info['Volumes']
+
     def get_service_name(self):
         raise NotImplementedError()
 
