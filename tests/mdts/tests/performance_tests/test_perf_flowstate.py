@@ -15,10 +15,12 @@
 from nose.plugins.attrib import attr
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.lib.bindings import BindingManager
+from mdts.services import service
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils.utils import bindings
 
 from hamcrest import *
+from nose.tools import with_setup
 
 import logging
 import time
@@ -55,13 +57,14 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                     'security_group_rule': {
                         'direction': 'ingress',
                         'port_range_min': 0,
-                        'port_range_max': 65536,
+                        'port_range_max': 65535,
                         'protocol': 'udp',
                         'security_group_id': port2['port']['security_groups'][0]
                     }
                 }))
-        except:
-            LOG.debug('Security group already created... continuing.')
+        except Exception, e:
+            LOG.debug('Error creating security group ' +
+                      '(It could already exist)... continuing. %s' % e)
 
         fip = self.create_resource(
             self.api.create_floatingip({
@@ -137,9 +140,20 @@ binding_multihost = {
     ]
 }
 
+def start_metric_capture():
+    service.get_container_by_hostname('jmxtrans')\
+           .start_monitoring_hosts("perf_flow_state",
+                                   ["midolman1", "midolman2"])
+
+def stop_metric_capture():
+    service.get_container_by_hostname('jmxtrans')\
+           .stop_monitoring_hosts("perf_flow_state")
+
+
 @attr(version="v1.2.0", slow=True, flaky=False)
 @bindings(binding_multihost,
           binding_manager=BM)
+@with_setup(start_metric_capture, stop_metric_capture)
 def perf_flowstate():
     """
     Title: Run a 1 hour workload that generates a lot of flow state
