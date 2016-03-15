@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.data.neutron;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -489,5 +491,47 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
 
         arpEntries = zk.getChildren(bridgeArpPath);
         Assert.assertTrue(arpEntries.size() == 0);
+    }
+
+    @Test
+    public void testVifPortIpAddrUpdate()
+        throws Rule.RuleIndexOutOfBoundsException, SerializationException,
+               StateAccessException {
+
+        // Assert the initial condition that there is one entry in the IP
+        // address group matching this security group
+        String iagPath = pathBuilder.getIpAddrGroupAddrsPath(securityGroup.id);
+        Assert.assertTrue(zk.exists(iagPath));
+        Set<String> ipAddrs = zk.getChildren(iagPath);
+        Assert.assertEquals(1, ipAddrs.size());
+        Assert.assertEquals("10.0.0.5", ipAddrs.iterator().next());
+
+        // Update the SG association and IP address
+        UUID newSgId = UUID.randomUUID();
+        SecurityGroup newSecurityGroup = new SecurityGroup(
+            newSgId, TENANT_ID, "sg_new", "sg_new_desc",
+            new ArrayList<SecurityGroupRule>());
+        plugin.createSecurityGroup(newSecurityGroup);
+
+        org.midonet.cluster.data.neutron.Port updatedPort =
+            new org.midonet.cluster.data.neutron.Port(
+            port.id, network.id, TENANT_ID, port.name, port.macAddress,
+            Collections.singletonList(new IPAllocation("10.0.0.6", subnet.id)),
+            port.deviceOwner, port.deviceId,
+            Collections.singletonList(newSgId));
+        plugin.updatePort(port.id, updatedPort);
+
+        // Verify that the new IP address group was created with a new IP
+        // address.  Also verify that the old IP address group is updated
+        // correctly.
+        String newIagPath = pathBuilder.getIpAddrGroupAddrsPath(newSgId);
+        Assert.assertTrue(zk.exists(newIagPath));
+        ipAddrs = zk.getChildren(newIagPath);
+        Assert.assertEquals(1, ipAddrs.size());
+        Assert.assertEquals("10.0.0.6", ipAddrs.iterator().next());
+
+        Assert.assertTrue(zk.exists(iagPath));
+        ipAddrs = zk.getChildren(iagPath);
+        Assert.assertEquals(0, ipAddrs.size());
     }
 }
