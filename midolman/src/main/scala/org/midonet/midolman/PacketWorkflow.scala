@@ -30,6 +30,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.slf4j.{LoggerFactory, MDC}
 
+import org.midonet.cluster.services.discovery.{MidonetServiceURI, MidonetDiscovery}
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
@@ -183,6 +184,7 @@ class PacketWorkflow(
             val metrics: PacketPipelineMetrics,
             val flowRecorder: FlowRecorder,
             val vt: VirtualTopology,
+            val discovery: MidonetDiscovery,
             val packetOut: Int => Unit)
         extends Actor with ActorLogWithoutPath with Stash with DisruptorBackChannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
@@ -213,6 +215,7 @@ class PacketWorkflow(
             peerResolver,
             dpState,
             this,
+            discovery,
             config.datapath.controlPacketTos)
 
     protected val datapathId = dpState.datapath.getIndex
@@ -499,7 +502,7 @@ class PacketWorkflow(
     private def applyState(context: PacketContext): Unit = {
         context.log.debug("Applying connection state")
         replicator.accumulateNewKeys(context)
-        replicator.touchState()
+        replicator.touchState(context)
         context.commitStateTransactions()
     }
 

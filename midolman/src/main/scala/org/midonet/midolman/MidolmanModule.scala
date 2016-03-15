@@ -29,12 +29,14 @@ import com.google.inject.{Key, Injector, AbstractModule}
 import com.google.inject.name.Names
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
+import org.apache.curator.framework.CuratorFramework
 import org.reflections.Reflections
 import org.slf4j.{LoggerFactory, Logger}
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{MidonetDiscoveryImpl, MidonetDiscovery}
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
@@ -134,8 +136,6 @@ class MidolmanModule(injector: Injector,
         bind(classOf[DatapathInterface]).toInstance(
             datapathInterface(scanner, dpState, dpConnectionManager))
 
-
-
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
         bind(classOf[FlowRecorder]).toInstance(flowRecorder(host))
 
@@ -151,6 +151,9 @@ class MidolmanModule(injector: Injector,
 
         val resolver = peerResolver(host, vt)
         bind(classOf[PeerResolver]).toInstance(resolver)
+
+        val discovery = discoveryService(vt)
+        bind(classOf[MidonetDiscovery]).toInstance(discovery)
 
         bind(classOf[MidolmanService]).asEagerSingleton()
     }
@@ -368,6 +371,13 @@ class MidolmanModule(injector: Injector,
 
     protected def peerResolver(hostId: UUID, vt: VirtualTopology): PeerResolver =
         new PeerResolver(hostId, injector.getInstance(classOf[MidonetBackend]), vt)
+
+    protected def discoveryService(vt: VirtualTopology): MidonetDiscovery = {
+        new MidonetDiscoveryImpl(
+            injector.getInstance(classOf[CuratorFramework]),
+            vt.vtExecutor, //Should I use another thread for discovery callbacks?
+            injector.getInstance(classOf[MidonetBackendConfig]))
+    }
 
     protected def virtualTopology(simBackChannel: SimulationBackChannel) = {
         val vtThread: AtomicLong = new AtomicLong(-1)

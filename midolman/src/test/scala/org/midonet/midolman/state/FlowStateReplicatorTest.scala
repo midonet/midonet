@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.state
 
+import java.net.URI
 import java.nio.ByteBuffer
 import java.util.{ArrayList, Collection, HashSet => JHashSet}
 import java.util.{Set => JSet, UUID}
@@ -30,8 +31,12 @@ import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import rx.Observable
+
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.services.MockMidonetDiscovery
+import org.midonet.cluster.services.discovery.{MidonetServiceHandler, MidonetDiscoveryClient, MidonetDiscovery}
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
@@ -572,10 +577,12 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
         val natTable = new MockFlowStateTable[NatKey, NatBinding]()
         val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
+        val discovery = new MockMidonetDiscovery()
     } with FlowStateReplicator(conntrackTable, natTable, traceTable,
                                Future.successful(new MockStateStorage),
                                hostId, peerResolver, underlay,
-                               mockFlowInvalidation, 0) {
+                               mockFlowInvalidation,
+                               discovery, 0) {
 
         override def resolvePeers(ingressPort: UUID,
                                   egressPorts: ArrayList[UUID],
@@ -607,5 +614,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
         override def tunnelRecircOutputAction: FlowActionOutput = null
         override def hostRecircOutputAction: FlowActionOutput = null
+        override def tunnelOverlayOutputAction: FlowActionOutput = null
     }
+
 }

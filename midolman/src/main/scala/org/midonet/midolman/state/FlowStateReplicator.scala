@@ -16,15 +16,18 @@
 
 package org.midonet.midolman.state
 
+import java.net.URI
 import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JIterator, Set => JSet, UUID}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Random
 
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
+import org.midonet.cluster.services.discovery.{MidonetServiceURI, MidonetDiscovery}
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.flows.FlowTagIndexer
@@ -37,7 +40,7 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.packets.NatState.NatBinding
-import org.midonet.packets.{SbeEncoder, Ethernet}
+import org.midonet.packets.{IPv4Addr, SbeEncoder, Ethernet}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
@@ -99,6 +102,7 @@ class FlowStateReplicator(
         peerResolver: PeerResolver,
         underlay: UnderlayResolver,
         flowInvalidation: FlowTagIndexer,
+        discovery: MidonetDiscovery,
         tos: Byte) {
     import FlowStateAgentPackets._
 
@@ -115,13 +119,12 @@ class FlowStateReplicator(
 
     storageFuture.onSuccess { case s => storage = s }(ExecutionContext.callingThread)
 
+    private val discoveryClient = discovery.getClient[MidonetServiceURI]("flowstate")
+
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
                            v: ConnTrackValue): ArrayList[Callback0] = {
-            log.debug("touch conntrack key: {}", k)
-            if (storage ne null)
-                storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
-
+            log.debug("touch conntrack key callback for unref: {}", k)
             callbacks.add(new Callback0 {
                 override def call(): Unit = conntrackTable.unref(k)
             })
@@ -142,10 +145,7 @@ class FlowStateReplicator(
     private val _natAdder = new Reducer[NatKey, NatBinding, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: NatKey,
                            v: NatBinding): ArrayList[Callback0] = {
-            log.debug("touch nat key: {}", k)
-            if (storage ne null)
-                storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
-
+            log.debug("touch nat key callback for unref: {}", k)
             callbacks.add(new Callback0 {
                 override def call(): Unit = natTable.unref(k)
             })
@@ -161,6 +161,7 @@ class FlowStateReplicator(
             nat
         }
     }
+
 
     private def addTraceState(flowStateMessage: FlowStateSbe,
                               k: TraceKey, ctx: TraceContext): Unit = {
@@ -236,6 +237,14 @@ class FlowStateReplicator(
             context.stateMessage)
         uuidToSbe(hostId, flowStateMessage.sender)
 
+        uuidToSbe(context.inputPort, flowStateMessage.ingressPortId)
+
+        val egressPortsSbe = flowStateMessage.egressPortIdsCount(context.outPorts.size)
+        val egressPorts = context.outPorts.iterator
+        while (egressPortsSbe.hasNext) {
+            egressPortIdToSbe(egressPorts.next, egressPortsSbe.next)
+        }
+
         context.conntrackTx.fold(
             flowStateMessage.conntrackCount(context.conntrackTx.size),
             _conntrackEncoder)
@@ -267,11 +276,32 @@ class FlowStateReplicator(
         }
     }
 
-    def touchState(): Unit =
-        if (storage ne null)
-            storage.submit()
+    def touchState(context: PacketContext): Unit = {
+        val actions = context.stateActions
+        // always send flow state to a stateless random cluster node
+        val randomService = Random.shuffle(discoveryClient.instances).headOption
+        randomService match {
+            case Some(service) =>
+                val ipv4 = randomService.get.uri.getHost
+                log.debug(s"Sending FlowState to cluster node in $ipv4.")
+                // Stateless packet, no need to know a route with a src ip
+                val key = setKey(tunnel(TUNNEL_KEY, 0, IPv4Addr(ipv4).toInt, tos))
+                actions.add(key)
+                actions.add(underlay.tunnelOverlayOutputAction)
+            case None =>
+                log.debug("No FlowStateService cluster node registered. Not " +
+                          "sending flow state to storage.")
+        }
+    }
 
     private def acceptNewState(msg: FlowStateSbe) {
+        // Read ingress and egress ports if they exist but ignore them
+        uuidFromSbe(msg.ingressPortId)
+        val egressIter = msg.egressPortIds
+        while (egressIter.hasNext()) {
+            egressPortIdFromSbe(egressIter.next())
+        }
+
         val conntrackIter = msg.conntrack
         while (conntrackIter.hasNext()) {
             val k = connTrackKeyFromSbe(conntrackIter.next())

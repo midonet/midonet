@@ -29,6 +29,7 @@ import akka.util.Timeout.durationToTimeout
 
 import com.google.inject.Injector
 
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman._
@@ -255,6 +256,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override def hostRecircPort: NetDevPort = null
             override def tunnelRecircOutputAction: FlowActionOutput = null
             override def hostRecircOutputAction: FlowActionOutput = null
+            override def tunnelOverlayOutputAction: FlowActionOutput = null
+
         }
 
         val dhcpConfig = new DhcpConfigFromNsdb(
@@ -281,6 +284,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             metrics,
             flowRecorder,
             injector.getInstance(classOf[VirtualTopology]),
+            injector.getInstance(classOf[MidonetDiscovery]),
             _ => { }) {
 
             override def runWorkflow(pktCtx: PacketContext) = {
