@@ -303,6 +303,7 @@ class ArpRequestBrokerTest extends Suite
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
         eventually(ZK_RTT_TIMEOUT) {
             arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+            arpBroker.shouldProcess() should be (true)
         }
 
         arpBroker.process()
