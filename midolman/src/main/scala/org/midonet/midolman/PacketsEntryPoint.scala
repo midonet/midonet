@@ -25,6 +25,7 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.services.discovery.MidonetDiscovery
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
@@ -116,6 +117,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     @Inject
     var peerResolver: PeerResolver = _
 
+    @Inject
+    var discoveryService: MidonetDiscovery = _
+
     var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
     var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
@@ -186,6 +190,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             metrics,
             flowRecorder,
             vt,
+            discoveryService,
             counter.addAndGet(index, _: Int)))
     }
 
