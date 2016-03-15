@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_c501063b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-15T16:46:22Z",
+      "side": 1,
+      "message": "Agree, leave it like this",
+      "parentUuid": "3a6ff13c_df2475c8",
+      "range": {
+        "startLine": 239,
+        "startChar": 9,
+        "endLine": 239,
+        "endChar": 12
+      },
+      "revId": "089053afe0b9686d89c61726f78f3957b9d5f2a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_9ff3dd09",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 37
