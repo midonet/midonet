@@ -34,6 +34,24 @@
       "revId": "aef5dce44a82af311a82b32920af950ba512205e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_20f645d8",
+        "filename": "tests/mdts/lib/nose_plugin.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-16T10:47:52Z",
+      "side": 1,
+      "message": "ah right. forget it.",
+      "parentUuid": "3a6ff13c_dd039a71",
+      "revId": "aef5dce44a82af311a82b32920af950ba512205e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
