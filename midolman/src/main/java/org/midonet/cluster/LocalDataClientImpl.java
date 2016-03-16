@@ -100,6 +100,7 @@ import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.ZkOpList;
 import org.midonet.midolman.state.ZkUtil;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.l4lb.LBStatus;
@@ -243,6 +244,12 @@ public class LocalDataClientImpl implements DataClient {
 
     private final static Logger log =
             LoggerFactory.getLogger(LocalDataClientImpl.class);
+
+    private void commitOps(List<Op> ops) throws StateAccessException {
+        ZkOpList opList = new ZkOpList(zkManager);
+        opList.addAll(ops);
+        opList.commit();
+    }
 
     @Override
     public @CheckForNull AdRoute adRoutesGet(UUID id)
@@ -1361,7 +1368,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void portsDelete(UUID id)
             throws StateAccessException, SerializationException {
-        portZkManager.delete(id);
+        commitOps(portZkManager.prepareDelete(id));
     }
 
     @Override
