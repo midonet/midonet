@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_bdb09ede",
+        "filename": "tests/mdts/services/jmxtrans.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-16T08:29:18Z",
+      "side": 1,
+      "message": "This seems to belong to the service.py (generic container methods, there are plenty of them in there). Something like get_volumes()",
+      "range": {
+        "startLine": 24,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 49
+      },
+      "revId": "57417c43b59fb1fbf933299cfb43ddd265c92f32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_3dc4ae3f",
+        "filename": "tests/sandbox/flavors/default_v2_neutron+kilo+perf.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-16T08:29:18Z",
+      "side": 1,
+      "message": "do we need quagga, vteps and external_hosts for these tests?",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 8
+      },
+      "revId": "57417c43b59fb1fbf933299cfb43ddd265c92f32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
