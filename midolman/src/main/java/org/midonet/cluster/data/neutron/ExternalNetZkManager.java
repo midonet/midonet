@@ -191,6 +191,19 @@ public class ExternalNetZkManager extends BaseZkManager {
             return;
         }
 
+        // If the gateway IP is set, link the subnet to the provider router.
+        if (null == oldSubnet.gatewayIp && null != subnet.gatewayIp) {
+            prepareLinkToProvider(ops, subnet);
+            return;
+        }
+
+        // If the gateway IP is unset, unlink the subnet from the provider router.
+        if (null != oldSubnet.gatewayIp && null == subnet.gatewayIp) {
+            prepareUnlinkFromProvider(ops, subnet);
+            return;
+        }
+
+        // Else, update the IP address of the provider router port.
         RouterPortConfig pCfg = portZkManager.findGatewayRouterPortFromBridge(
             oldSubnet.networkId, oldSubnet.gatewayIpAddr());
 

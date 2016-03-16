@@ -218,9 +218,10 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         try {
             networkZkManager.prepareCreateSubnet(ops, subnet);
 
-            // For external network, link the bridge to the provider router.
+            // For external network, link the bridge to the provider router if
+            // the gateway address is not null.
             Network network = getNetwork(subnet.networkId);
-            if (network.external) {
+            if (network.external && subnet.gatewayIp != null) {
                 externalNetZkManager.prepareLinkToProvider(ops, subnet);
             }
 
