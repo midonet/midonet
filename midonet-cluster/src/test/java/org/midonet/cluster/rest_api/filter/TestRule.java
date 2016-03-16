@@ -431,6 +431,7 @@ public class TestRule {
             dnatRule.setNwDstAddress("192.168.100.10");
             dnatRule.setNwDstLength(32);
             dnatRule.setInvNwDst(true);
+            dnatRule.setFragmentPolicy("unfragmented");
             dnatRule.setTpSrc(new DtoRule.DtoRange<>(1024, 3000));
             dnatRule.setTpDst(new DtoRule.DtoRange<>(1024, 3000));
             dnatRule.setInvTpDst(true);
@@ -454,12 +455,12 @@ public class TestRule {
             revDnatRule.setNwDstAddress("192.168.100.10");
             revDnatRule.setNwDstLength(32);
             revDnatRule.setInvNwDst(true);
+            revDnatRule.setFragmentPolicy("unfragmented");
             revDnatRule.setTpSrc(new DtoRule.DtoRange<>(1024, 3000));
             revDnatRule.setTpDst(new DtoRule.DtoRange<>(1024, 3000));
             revDnatRule.setInvTpDst(true);
             revDnatRule.setType("rev_dnat");
             revDnatRule.setFlowAction("accept");
-            revDnatRule.setNatTargets(natTargets);
             revDnatRule.setPosition(1);
             revDnatRule.setProperties(properties);
 
@@ -477,6 +478,7 @@ public class TestRule {
             snatRule.setNwDstAddress("192.168.100.10");
             snatRule.setNwDstLength(32);
             snatRule.setInvNwDst(true);
+            snatRule.setFragmentPolicy("unfragmented");
             snatRule.setTpSrc(new DtoRule.DtoRange<>(1024, 3000));
             snatRule.setTpDst(new DtoRule.DtoRange<>(1024, 3000));
             snatRule.setInvTpDst(true);
@@ -500,12 +502,12 @@ public class TestRule {
             revSnatRule.setNwDstAddress("192.168.100.10");
             revSnatRule.setNwDstLength(32);
             revSnatRule.setInvNwDst(true);
+            revSnatRule.setFragmentPolicy("unfragmented");
             revSnatRule.setTpSrc(new DtoRule.DtoRange<>(1024, 3000));
             revSnatRule.setTpDst(new DtoRule.DtoRange<>(1024, 3000));
             revSnatRule.setInvTpDst(true);
             revSnatRule.setType("rev_snat");
             revSnatRule.setFlowAction("accept");
-            revSnatRule.setNatTargets(natTargets);
             revSnatRule.setPosition(1);
             revSnatRule.setProperties(properties);
 
@@ -514,6 +516,7 @@ public class TestRule {
             filteringRule.setDlDst("aa:bb:cc:dd:ee:ff");
             filteringRule.setDlSrc("11:22:33:44:55:66");
             filteringRule.setDlType(Unsigned.unsign(ARP.ETHERTYPE));
+            filteringRule.setFragmentPolicy("unfragmented");
             filteringRule.setType(DtoRule.Drop);
             filteringRule.setPosition(1);
             filteringRule.setProperties(properties);
@@ -521,6 +524,7 @@ public class TestRule {
             DtoRule l2TransformRuleAccept = new DtoRule();
             l2TransformRuleAccept.setType(DtoRule.L2Transform);
             l2TransformRuleAccept.setFlowAction(DtoRule.Accept);
+            l2TransformRuleAccept.setFragmentPolicy("unfragmented");
             l2TransformRuleAccept.setPopVlan(true);
             l2TransformRuleAccept.setPushVlan(0x7000);
             l2TransformRuleAccept.setTargetPortId(UUID.randomUUID());
@@ -532,6 +536,7 @@ public class TestRule {
             DtoRule l2TransformRuleRedirect = new DtoRule();
             l2TransformRuleRedirect.setType(DtoRule.L2Transform);
             l2TransformRuleRedirect.setFlowAction(DtoRule.Redirect);
+            l2TransformRuleRedirect.setFragmentPolicy("unfragmented");
             l2TransformRuleRedirect.setPopVlan(true);
             l2TransformRuleRedirect.setPushVlan(0x7000);
             l2TransformRuleRedirect.setTargetPortId(UUID.randomUUID());
@@ -540,11 +545,22 @@ public class TestRule {
             l2TransformRuleRedirect.setPosition(1);
             l2TransformRuleRedirect.setProperties(properties);
 
+            DtoRule vlanRule = new DtoRule();
+            vlanRule.setType(DtoRule.Accept);
+            vlanRule.setFragmentPolicy("any");
+            vlanRule.setVlan(10);
+
+            DtoRule noVlanRule = new DtoRule();
+            noVlanRule.setType(DtoRule.Accept);
+            noVlanRule.setFragmentPolicy("any");
+            noVlanRule.setNoVlan(true);
+
             return Arrays.asList(new Object[][] { { dnatRule, null },
                     { revDnatRule, null }, { snatRule, null },
                     { revSnatRule, null }, { filteringRule, "portgroup1" },
-                    { l2TransformRuleAccept, null},
-                    { l2TransformRuleRedirect, null}});
+                    { l2TransformRuleAccept, null },
+                    { l2TransformRuleRedirect, null },
+                    { vlanRule, null }, { noVlanRule, null } });
         }
 
         @Test
@@ -562,8 +578,7 @@ public class TestRule {
             // Add a rule
             DtoRule outRule = dtoResource.postAndVerifyCreated(rulesUri,
                     APPLICATION_RULE_JSON_V2(), rule, DtoRule.class);
-            // TODO: Implement 'equals' for DtoRule
-            assertEquals(rule.getType(), outRule.getType());
+            assertEquals(rule, outRule);
             assertEquals(1, outRule.getPosition());
             URI rule1Uri = outRule.getUri();
 
