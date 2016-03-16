@@ -16,6 +16,24 @@
       "revId": "aef5dce44a82af311a82b32920af950ba512205e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_dd039a71",
+        "filename": "tests/mdts/lib/nose_plugin.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T08:43:10Z",
+      "side": 1,
+      "message": "stderr is being written to the same file handle as stdout. I don\u0027t see value in having another file for this.",
+      "parentUuid": "3a6ff13c_3dad8e89",
+      "revId": "aef5dce44a82af311a82b32920af950ba512205e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
