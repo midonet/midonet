@@ -17,27 +17,14 @@
 
 import logging
 from midonetclient import httpclient
-from midonetclient.neutron import bgp
-from midonetclient.neutron import bridge as br
-from midonetclient.neutron import chain_rule as cr
-from midonetclient.neutron import dhcp
-from midonetclient.neutron import firewall as fw
 from midonetclient.neutron import gateway_device as gd
-from midonetclient.neutron import host
-from midonetclient.neutron import ipaddr_group as ipg
+from midonetclient.neutron import firewall as fw
 from midonetclient.neutron import l2gw
 from midonetclient.neutron import l3
 from midonetclient.neutron import loadbalancer as lb
 from midonetclient.neutron import network as net
-from midonetclient.neutron import port
-from midonetclient.neutron import port_group as pg
-from midonetclient.neutron import router as rtr
-from midonetclient.neutron import routing_table as rt
 from midonetclient.neutron import securitygroup as sg
-from midonetclient.neutron import system
-from midonetclient.neutron import tunnel_zone as tz
 from midonetclient.neutron import vpn
-from midonetclient.neutron import vtep
 
 LOG = logging.getLogger(__name__)
 
@@ -48,20 +35,7 @@ class MidonetClient(net.NetworkClientMixin,
                     l3.L3ClientMixin,
                     sg.SecurityGroupClientMixin,
                     lb.LoadBalancerClientMixin,
-                    bgp.BgpClientMixin,
-                    br.BridgeClientMixin,
-                    cr.ChainRuleClientMixin,
-                    dhcp.DhcpClientMixin,
                     fw.FirewallClientMixin,
-                    host.HostClientMixin,
-                    ipg.IpAddrGroupClientMixin,
-                    port.PortClientMixin,
-                    pg.PortGroupClientMixin,
-                    rtr.RouterClientMixin,
-                    rt.RoutingTableClientMixin,
-                    system.SystemClientMixin,
-                    tz.TunnelZoneClientMixin,
-                    vtep.VtepClientMixin,
                     vpn.VPNClientMixin):
     """Main MidoNet client class
 
