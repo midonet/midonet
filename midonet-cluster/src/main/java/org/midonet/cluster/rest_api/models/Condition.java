@@ -239,50 +239,6 @@ public class Condition extends UriResource {
         return null;
     }
 
-    public Condition copyFrom(Condition condition) {
-        this.nwDst = condition.nwDst;
-        this.nwDstAddress = condition.nwDstAddress;
-        this.nwDstLength = condition.nwDstLength;
-        this.nwSrc = condition.nwSrc;
-        this.nwSrcAddress = condition.nwSrcAddress;
-        this.nwSrcLength = condition.nwSrcLength;
-        this.condInvert = condition.condInvert;
-        this.matchForwardFlow = condition.matchForwardFlow;
-        this.matchReturnFlow = condition.matchReturnFlow;
-        this.inPorts = condition.inPorts;
-        this.invInPorts = condition.invInPorts;
-        this.outPorts = condition.outPorts;
-        this.invOutPorts = condition.invOutPorts;
-        this.portGroup = condition.portGroup;
-        this.invPortGroup = condition.invPortGroup;
-        this.ipAddrGroupSrc = condition.ipAddrGroupSrc;
-        this.invIpAddrGroupSrc = condition.invIpAddrGroupSrc;
-        this.ipAddrGroupDst = condition.ipAddrGroupDst;
-        this.invIpAddrGroupDst = condition.invIpAddrGroupDst;
-        this.traversedDevice = condition.traversedDevice;
-        this.invTraversedDevice = condition.invTraversedDevice;
-        this.dlType = condition.dlType;
-        this.invDlType = condition.invDlType;
-        this.dlSrc = condition.dlSrc;
-        this.dlSrcMask = condition.dlSrcMask;
-        this.invDlSrc = condition.invDlSrc;
-        this.dlDst = condition.dlDst;
-        this.dlDstMask = condition.dlDstMask;
-        this.invDlDst = condition.invDlDst;
-        this.nwTos = condition.nwTos;
-        this.invNwTos = condition.invNwTos;
-        this.nwProto = condition.nwProto;
-        this.invNwProto = condition.invNwProto;
-        this.invNwSrc = condition.invNwSrc;
-        this.invNwDst = condition.invNwDst;
-        this.fragmentPolicy = condition.fragmentPolicy;
-        this.tpSrc = condition.tpSrc;
-        this.tpDst = condition.tpDst;
-        this.invTpSrc = condition.invTpSrc;
-        this.invTpDst = condition.invTpDst;
-        return this;
-    }
-
     protected void addConditionToStringHelper(ToStringHelper tsh) {
         tsh.add("nwDst", nwDst);
         tsh.add("nwDstAddress", nwDstAddress);
@@ -324,5 +280,7 @@ public class Condition extends UriResource {
         tsh.add("tpDst", tpDst);
         if (invTpSrc) tsh.add("invTpSrc", true);
         if (invTpDst) tsh.add("invTpDst", true);
+        tsh.add("vlan", vlan);
+        tsh.add("noVlan", noVlan);
     }
 }
