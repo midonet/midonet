@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_0b588f55",
+        "filename": "tools/data_migration/data_migration/v198/migration.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-03-16T02:03:58Z",
+      "side": 1,
+      "message": "Oh?  I thought it was more about neutron support, not based on midonet version.  If plugin_v2 is not compatible (or not generally used) on MidoNet 1.9, then yes, I should use whatever plugin version does work (plugin.MidonetPLugin() I assume?)",
+      "parentUuid": "3a6ff13c_7c1d4f73",
+      "revId": "32c50efe3d721885bf2b92297fd87e62bb2449af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_5c31730a",
         "filename": "tools/data_migration/test-requirements.txt",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_2b554b1d",
+        "filename": "tools/data_migration/test-requirements.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-03-16T02:03:58Z",
+      "side": 1,
+      "message": "Can this be empty?  If so, I will clear this out, then. :)",
+      "parentUuid": "3a6ff13c_5c31730a",
+      "revId": "32c50efe3d721885bf2b92297fd87e62bb2449af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_9c3bebea",
         "filename": "tools/data_migration/tox.ini",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2016-03-15T10:14:42Z",
       "side": 1,
       "message": "looks stale copy",
+      "revId": "32c50efe3d721885bf2b92297fd87e62bb2449af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_4b31a70a",
+        "filename": "tools/data_migration/tox.ini",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-03-16T02:03:58Z",
+      "side": 1,
+      "message": "I copied from the networking-midonet stable/kilo branch.  If there are lines (like these) that make no sense, I can remove them.  If the entire file is obsolete, should I pull tox.ini from networking-midonet\u0027s master branch?",
+      "parentUuid": "3a6ff13c_9c3bebea",
       "revId": "32c50efe3d721885bf2b92297fd87e62bb2449af",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
