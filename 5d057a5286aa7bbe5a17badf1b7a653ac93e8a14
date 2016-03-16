@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_1d3c522f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-16T08:49:49Z",
+      "side": 1,
+      "message": "True. This class is not thread safe, as netty could be configured multithreaded. We could add a thread safe cache indexed by thread id?",
+      "parentUuid": "3a6ff13c_3f48295b",
+      "revId": "5d057a5286aa7bbe5a17badf1b7a653ac93e8a14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_9f6e7dc8",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
         "patchSetId": 26
@@ -30,6 +48,24 @@
       "writtenOn": "2016-03-15T10:02:01Z",
       "side": 1,
       "message": "there\u0027s only one conn track entry per state message",
+      "revId": "5d057a5286aa7bbe5a17badf1b7a653ac93e8a14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_9d092298",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-16T08:49:49Z",
+      "side": 1,
+      "message": "In the proto is specified as a group (repeated elements) and the agent also expects a list. Even if there\u0027s only one, I\u0027d like to keep it consistent with the agent side.",
+      "parentUuid": "3a6ff13c_9f6e7dc8",
       "revId": "5d057a5286aa7bbe5a17badf1b7a653ac93e8a14",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
