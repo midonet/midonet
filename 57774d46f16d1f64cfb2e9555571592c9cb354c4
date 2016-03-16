@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_56e4e73a",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T17:44:27Z",
+      "side": 1,
+      "message": "having this as 80 is confusing. It looks like the packet is being redirected to http, but the original ports look to be synthetic. Is nat happening? Usually it\u0027d be in the other direction, original being 80, new being something else. In any case, probably clearer to change this to 54321",
+      "range": {
+        "startLine": 108,
+        "startChar": 31,
+        "endLine": 108,
+        "endChar": 33
+      },
+      "revId": "57774d46f16d1f64cfb2e9555571592c9cb354c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_56bb070e",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T17:44:27Z",
+      "side": 1,
+      "message": "I don\u0027t see where the other flow sets the udp encap packets dst port to this.",
+      "range": {
+        "startLine": 112,
+        "startChar": 244,
+        "endLine": 112,
+        "endChar": 248
+      },
+      "revId": "57774d46f16d1f64cfb2e9555571592c9cb354c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_b6f35b09",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T17:44:27Z",
+      "side": 1,
+      "message": "Port\u003d4 is the other end of the veth? Where does the tun_id come from?",
+      "revId": "57774d46f16d1f64cfb2e9555571592c9cb354c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_36b92b2f",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T17:44:27Z",
+      "side": 1,
+      "message": "trailing whitespace.",
+      "revId": "57774d46f16d1f64cfb2e9555571592c9cb354c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
