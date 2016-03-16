@@ -123,7 +123,7 @@ class ClientSession(val host: String, val port: Int, val wspath: String,
         new ProtoBufWebSocketClientAdapter(handler,
                                            Commands.Response.getDefaultInstance,
                                            wspath)
-    private val srv = new ClientFrontEnd(adapter, host, port)
+    private val srv = new ClientFrontEnd(adapter, host, port, false /*datagram*/)
 
     private def channelReady(ch: Channel): Future[Channel] = adapter match {
         case ws: ProtoBufWebSocketAdapter[_] => ws.checkHandshake(ch)

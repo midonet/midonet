@@ -40,6 +40,7 @@ public class ServerFrontEnd extends AbstractService {
         LoggerFactory.getLogger(ServerFrontEnd.class);
 
     private final boolean datagram;
+    private final String ip;
     private final int port;
     private final Integer rcvbufSize;
     private final EventLoopGroup boss;
@@ -49,22 +50,31 @@ public class ServerFrontEnd extends AbstractService {
     private final ChannelInboundHandlerAdapter adapter;
 
     public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter,
+                                     String ip, int port) {
+        return new ServerFrontEnd(adapter, ip, port, true, null);
+    }
+    public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter,
                                      int port) {
-        return new ServerFrontEnd(adapter, port, true, null);
+        return new ServerFrontEnd(adapter, null, port, true, null);
     }
     public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter,
                                      int port, Integer rcvbufSize) {
-        return new ServerFrontEnd(adapter, port, true, rcvbufSize);
+        return new ServerFrontEnd(adapter, null, port, true, rcvbufSize);
     }
 
     public static ServerFrontEnd tcp(ChannelInboundHandlerAdapter adapter,
                                      int port) {
-        return new ServerFrontEnd(adapter, port, false, null);
+        return new ServerFrontEnd(adapter, null, port, false, null);
+    }
+    public static ServerFrontEnd tcp(ChannelInboundHandlerAdapter adapter,
+                                     String ip, int port) {
+        return new ServerFrontEnd(adapter, ip, port, false, null);
     }
 
-    private ServerFrontEnd(ChannelInboundHandlerAdapter adapter, int port,
-                           boolean datagram, Integer rcvbufSize) {
+    private ServerFrontEnd(ChannelInboundHandlerAdapter adapter, String ip,
+                           int port, boolean datagram, Integer rcvbufSize) {
         this.adapter = adapter;
+        this.ip = ip;
         this.port = port;
         this.datagram = datagram;
         this.rcvbufSize = rcvbufSize;
@@ -89,7 +99,11 @@ public class ServerFrontEnd extends AbstractService {
                     boot.option(ChannelOption.SO_RCVBUF, rcvbufSize)
                         .option(ChannelOption.RCVBUF_ALLOCATOR,
                                 new FixedRecvByteBufAllocator(rcvbufSize));
-                sock = boot.bind(port).sync();
+                if (ip != null) {
+                    sock = boot.bind(ip, port).sync();
+                } else {
+                    sock = boot.bind(port).sync();
+                }
             } else {
                 log.info("Starting Netty TCP server on port {}", port);
                 ServerBootstrap boot = new ServerBootstrap();
@@ -98,7 +112,11 @@ public class ServerFrontEnd extends AbstractService {
                     .childHandler(adapter)
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .option(ChannelOption.SO_KEEPALIVE, true);
-                sock = boot.bind(port).sync();
+                if (ip != null) {
+                    sock = boot.bind(ip, port).sync();
+                } else {
+                    sock = boot.bind(port).sync();
+                }
             }
             log.info("Netty server started");
             notifyStarted();

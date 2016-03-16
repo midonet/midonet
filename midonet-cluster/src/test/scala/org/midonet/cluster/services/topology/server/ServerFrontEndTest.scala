@@ -229,7 +229,8 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
 
             val clienthandler = new ApiClientHandler(client)
             val cli = new ClientFrontEnd(
-                new ProtoBufSocketAdapter(clienthandler, clientExpected), host, port)
+                new ProtoBufSocketAdapter(clienthandler, clientExpected),
+                host, port, false /* datagram */)
 
             cli.startAsync().awaitRunning()
             cli.isRunning shouldBe true
