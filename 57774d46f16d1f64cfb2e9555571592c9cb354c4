@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_31f135ce",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-16T22:01:32Z",
+      "side": 1,
+      "message": "will do, but this is just an arbitrary port, no meaning behind it.",
+      "parentUuid": "3a6ff13c_56e4e73a",
+      "range": {
+        "startLine": 108,
+        "startChar": 31,
+        "endLine": 108,
+        "endChar": 33
+      },
+      "revId": "57774d46f16d1f64cfb2e9555571592c9cb354c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_56bb070e",
         "filename": "docs/flow-recirculation.md",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-16T17:44:27Z",
       "side": 1,
       "message": "I don\u0027t see where the other flow sets the udp encap packets dst port to this.",
+      "range": {
+        "startLine": 112,
+        "startChar": 244,
+        "endLine": 112,
+        "endChar": 248
+      },
+      "revId": "57774d46f16d1f64cfb2e9555571592c9cb354c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_51eeb1ed",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-16T22:01:32Z",
+      "side": 1,
+      "message": "by sending it out of port 4, which i describe to be the recirc vxlan tunnel port",
+      "parentUuid": "3a6ff13c_56bb070e",
       "range": {
         "startLine": 112,
         "startChar": 244,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_91bf49d0",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-16T22:01:32Z",
+      "side": 1,
+      "message": "no, it\u0027s the tunnel port. if you don\u0027t emit from the tunnel port, there\u0027s no encapsulation.",
+      "parentUuid": "3a6ff13c_b6f35b09",
+      "revId": "57774d46f16d1f64cfb2e9555571592c9cb354c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_36b92b2f",
         "filename": "docs/flow-recirculation.md",
         "patchSetId": 3
@@ -76,6 +142,24 @@
       "writtenOn": "2016-03-16T17:44:27Z",
       "side": 1,
       "message": "trailing whitespace.",
+      "revId": "57774d46f16d1f64cfb2e9555571592c9cb354c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_b1b445f3",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2016-03-16T22:01:32Z",
+      "side": 1,
+      "message": "dang, forgot to :%s/\\s\\+$//",
+      "parentUuid": "3a6ff13c_36b92b2f",
       "revId": "57774d46f16d1f64cfb2e9555571592c9cb354c4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
