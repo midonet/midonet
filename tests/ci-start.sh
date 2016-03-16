@@ -29,7 +29,7 @@ popd
 pushd tests/
 echo "docker_registry=artifactory.bcn.midokura.com" >> sandbox.conf
 echo "docker_insecure_registry=True" >> sandbox.conf
-SANDBOX_FLAVOUR="default_v2_neutron+kilo"
+SANDBOX_FLAVOUR=${SANDBOX_FLAVOUR:-"default_v2_neutron+kilo"}
 sudo sandbox-manage -c sandbox.conf pull-all $SANDBOX_FLAVOUR
 sudo sandbox-manage -c sandbox.conf \
                     run $SANDBOX_FLAVOUR \
