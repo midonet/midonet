@@ -79,9 +79,22 @@ object ZoomConvert {
      */
     def toProto[T <: ZoomObject, U <: Message]
         (pojo: T, protoClass: Class[U]): U = {
+        toProto(pojo, pojo.getClass.asInstanceOf[Class[T]], protoClass)
+    }
+
+    /**
+      * Converts a Java object to a Protocol Buffers message.
+      *
+      * @param pojo The Java object.
+      * @param pojoClass The Java class for which the fields are converted.
+      * @param protoClass The Protocol Buffers message class.
+      * @return The Protocol Buffers message.
+      */
+    def toProto[T <: ZoomObject, U <: Message]
+        (pojo: T, pojoClass: Class[T], protoClass: Class[U]): U = {
         pojo.beforeToProto()
         val builder = newBuilder(protoClass)
-        to(pojo, pojo.getClass, builder)
+        to(pojo, pojoClass, builder)
         pojo.afterToProto(builder)
         builder.build().asInstanceOf[U]
     }
@@ -89,7 +102,8 @@ object ZoomConvert {
     /**
      * Converts a Protocol Buffers message to a Java object. The method creates
      * a new instance of the specified Java class, where the class must have
-     * a parameter-less public constructor.
+     * a parameter-less public constructor. The method returns null if the
+     * Protocol Buffers message is null.
      *
      * @param proto The Protocol Buffers message.
      * @param pojoClass The Java object class.
@@ -113,6 +127,42 @@ object ZoomConvert {
             pojo
         }
     }
+
+    /**
+      * Converts a Protocol Buffers message to an existing Java object. The
+      * method initializes the fields from the given instance, according to the
+      * data stored in the message. The method returns null if the Protocol
+      * Buffers message is null.
+      *
+      * @param proto The Protocol Buffers message.
+      * @param pojo The Java object.
+      * @return The Java object.
+      */
+    def fromProto[T >: Null <: ZoomObject, U <: Message](proto: U, pojo: T): T = {
+        fromProto(proto, pojo, pojo.getClass.asInstanceOf[Class[T]])
+    }
+
+    /**
+      * Converts a Protocol Buffers message to an existing Java object. The
+      * method initializes the fields from the given instance, according to the
+      * data stored in the message. The method returns the object unchanged if
+      * the Protocol Buffers message is null.
+      *
+      * @param proto The Protocol Buffers message.
+      * @param pojo The Java object.
+      * @param pojoClass The Java class for which the fields are converted.
+      * @return The Java object.
+      */
+    def fromProto[T >: Null <: ZoomObject, U <: Message]
+        (proto: U, pojo: T, pojoClass: Class[T]): T = {
+        if (proto eq null) {
+            return pojo
+        }
+        from(proto, pojo, pojoClass)
+        pojo.afterFromProto(proto)
+        pojo
+    }
+
 
     /**
      * Internal method to convert a Java object to the corresponding Protocol

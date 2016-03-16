@@ -19,6 +19,7 @@ import java.util.Random;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -372,6 +373,69 @@ public class ZoomConvertTest {
         Top top = ZoomConvert.fromProto(proto, Top.class);
 
         assertTrue(obj.equals(top));
+    }
+
+    /**
+     * Conversion of a Top class to a message considering only the fields from
+     * a base class.
+     */
+    @Test
+    public void testToProtoTopClassToBaseClass() {
+        Top obj = new Top();
+
+        TestFlatMessage proto =
+            ZoomConvert.toProto(obj, Base.class, TestFlatMessage.class);
+
+        assertTrue(proto.hasAbstractBaseInt());
+        assertTrue(proto.hasAbstractDerivedInt());
+        assertTrue(proto.hasBaseInt());
+        assertTrue(proto.hasBaseEnum());
+        assertEquals(obj.abstractBaseInt, proto.getAbstractBaseInt());
+        assertEquals(obj.abstractDerivedInt, proto.getAbstractDerivedInt());
+        assertEquals(obj.baseInt, proto.getBaseInt());
+        assertEquals(obj.baseEnum.toString(), proto.getBaseEnum().toString());
+        assertFalse(proto.hasFirstDerivedInt());
+        assertFalse(proto.hasSecondDerivedInt());
+        assertFalse(proto.hasThirdDerivedInt());
+        assertFalse(proto.hasIsTop());
+        assertFalse(proto.hasTopInt());
+    }
+
+    /**
+     * Conversion of a Base class to an existing Base class instance.
+     */
+    @Test
+    public void testFromProtoBaseClassToBaseInstance() {
+        Base obj = new Base();
+
+        TestFlatMessage proto =
+            ZoomConvert.toProto(obj, TestFlatMessage.class);
+
+        Base base = new Base();
+
+        ZoomConvert.fromProto(proto, base);
+
+        assertTrue(base.compare(proto));
+    }
+
+    /**
+     * Conversion of a Base class to an existing Top class instance.
+     */
+    @Test
+    public void testFromProtoBaseClassToTopInstance() {
+        Base obj = new Base();
+
+        TestFlatMessage proto =
+            ZoomConvert.toProto(obj, TestFlatMessage.class);
+
+        Top top = new Top();
+
+        ZoomConvert.fromProto(proto, top, Base.class);
+
+        assertEquals(top.abstractBaseInt, obj.abstractBaseInt);
+        assertEquals(top.abstractDerivedInt, obj.abstractDerivedInt);
+        assertEquals(top.baseInt, obj.baseInt);
+        assertEquals(top.baseEnum, obj.baseEnum);
     }
 
     public static abstract class AbstractBase extends ZoomObject {
