@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_bd35fe47",
+        "filename": "tests/mdts/services/jmxtrans.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T08:48:03Z",
+      "side": 1,
+      "message": "will move",
+      "parentUuid": "3a6ff13c_bdb09ede",
+      "range": {
+        "startLine": 24,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 49
+      },
+      "revId": "57417c43b59fb1fbf933299cfb43ddd265c92f32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_3dc4ae3f",
         "filename": "tests/sandbox/flavors/default_v2_neutron+kilo+perf.yml",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-16T08:29:18Z",
       "side": 1,
       "message": "do we need quagga, vteps and external_hosts for these tests?",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 8
+      },
+      "revId": "57417c43b59fb1fbf933299cfb43ddd265c92f32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_9d304258",
+        "filename": "tests/sandbox/flavors/default_v2_neutron+kilo+perf.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T08:48:03Z",
+      "side": 1,
+      "message": "was just being lazy. The problem is that the provisioning-all looks for them. Will fix this though.",
+      "parentUuid": "3a6ff13c_3dc4ae3f",
       "range": {
         "startLine": 134,
         "startChar": 0,
