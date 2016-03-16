@@ -202,6 +202,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_7682c353",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T17:44:27Z",
+      "side": 1,
+      "message": "my point was that \"for all intents and purposes\" wasn\u0027t needed.",
+      "parentUuid": "3a6ff13c_4020a1f7",
+      "range": {
+        "startLine": 104,
+        "startChar": 26,
+        "endLine": 104,
+        "endChar": 55
+      },
+      "revId": "1a33706d0a5640f0bfe60664fb55a21fb7c0d8ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_a0095597",
         "filename": "docs/flow-recirculation.md",
         "patchSetId": 2
@@ -284,6 +308,30 @@
       "side": 1,
       "message": "i wanted directed, as in, addressed. i\u0027ll make that clearer.",
       "parentUuid": "3a6ff13c_8004597f",
+      "range": {
+        "startLine": 113,
+        "startChar": 21,
+        "endLine": 113,
+        "endChar": 29
+      },
+      "revId": "1a33706d0a5640f0bfe60664fb55a21fb7c0d8ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_d681b74b",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T17:44:27Z",
+      "side": 1,
+      "message": "u",
+      "parentUuid": "3a6ff13c_601d9dbd",
       "range": {
         "startLine": 113,
         "startChar": 21,
