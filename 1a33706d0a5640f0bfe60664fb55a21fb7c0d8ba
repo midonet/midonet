@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_a0bb15c3",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T11:31:17Z",
+      "side": 1,
+      "message": "why not, and why is that important?",
+      "range": {
+        "startLine": 89,
+        "startChar": 16,
+        "endLine": 90,
+        "endChar": 24
+      },
+      "revId": "1a33706d0a5640f0bfe60664fb55a21fb7c0d8ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_e0b50dce",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T11:31:17Z",
+      "side": 1,
+      "message": "only 1 \u0027s\u0027",
+      "range": {
+        "startLine": 97,
+        "startChar": 30,
+        "endLine": 97,
+        "endChar": 41
+      },
+      "revId": "1a33706d0a5640f0bfe60664fb55a21fb7c0d8ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_c0b011e0",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T11:31:17Z",
+      "side": 1,
+      "message": "It would be useful to have examples of what the installed flows look like for both encap and decap.",
+      "revId": "1a33706d0a5640f0bfe60664fb55a21fb7c0d8ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_60c11d2e",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T11:31:17Z",
+      "side": 1,
+      "message": "clashes with simply. implies there\u0027s some small unimportant caveat",
+      "range": {
+        "startLine": 104,
+        "startChar": 26,
+        "endLine": 104,
+        "endChar": 55
+      },
+      "revId": "1a33706d0a5640f0bfe60664fb55a21fb7c0d8ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_a0095597",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T11:31:17Z",
+      "side": 1,
+      "message": "delivers",
+      "range": {
+        "startLine": 113,
+        "startChar": 59,
+        "endLine": 113,
+        "endChar": 68
+      },
+      "revId": "1a33706d0a5640f0bfe60664fb55a21fb7c0d8ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_8004597f",
+        "filename": "docs/flow-recirculation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-16T11:31:17Z",
+      "side": 1,
+      "message": "directly",
+      "range": {
+        "startLine": 113,
+        "startChar": 21,
+        "endLine": 113,
+        "endChar": 29
+      },
+      "revId": "1a33706d0a5640f0bfe60664fb55a21fb7c0d8ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
