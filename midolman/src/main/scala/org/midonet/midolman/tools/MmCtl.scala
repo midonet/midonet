@@ -17,7 +17,7 @@
 package org.midonet.midolman.tools
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -27,9 +27,11 @@ import com.sun.security.auth.module.UnixSystem
 
 import org.apache.commons.cli._
 import org.apache.curator.framework.CuratorFramework
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
@@ -41,7 +43,6 @@ import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.toFutureOps
-
 
 object MmCtlResult {
 
@@ -81,37 +82,44 @@ trait PortBinder {
 class ZoomPortBinder(storage: Storage,
                      lockFactory: ZookeeperLockFactory) extends PortBinder {
 
-    private val LockWaitSec = 5
+    private val log = LoggerFactory.getLogger("org.midonet.MmCtl")
+    private val lockOpNumber = new AtomicInteger(0)
 
     private def getPortBuilder(portId: UUID): Topology.Port.Builder =
         storage.get(classOf[Topology.Port], portId).await().toBuilder
 
-    override def bindPort(portId: UUID, hostId: UUID,
-                          deviceName: String): Unit = {
-
-        val lock = lockFactory.createShared(
-            ZookeeperLockFactory.ZOOM_TOPOLOGY)
-        lock.acquire(LockWaitSec, TimeUnit.SECONDS)
-
+    def tryWrite(f: => Unit): Unit = {
+        val lock = new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
+                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
+        try lock.acquire() catch {
+            case NonFatal(e) =>
+                log.info("Could not acquire exclusive write access to " +
+                         "storage.", e)
+                throw e
+        }
         try {
-            val p = getPortBuilder(portId)
-                         .setHostId(UUIDUtil.toProto(hostId))
-                         .setInterfaceName(deviceName)
-                         .build()
-            storage.update(p)
-        } finally {
+            f
+        }
+        finally {
             lock.release()
         }
     }
 
+    override def bindPort(portId: UUID, hostId: UUID,
+                          deviceName: String): Unit = {
+        tryWrite {
+            val p = getPortBuilder(portId)
+                        .setHostId(UUIDUtil.toProto(hostId))
+                        .setInterfaceName(deviceName)
+                        .build()
+            storage.update(p)
+        }
+    }
+
     override def unbindPort(portId: UUID, hostId: UUID): Unit = {
+        val pHostId = UUIDUtil.toProto(hostId)
 
-        val lock = lockFactory.createShared(
-            ZookeeperLockFactory.ZOOM_TOPOLOGY)
-        lock.acquire(LockWaitSec, TimeUnit.SECONDS)
-
-        try {
-            val pHostId = UUIDUtil.toProto(hostId)
+        tryWrite {
             val p = storage.get(classOf[Port], portId).await()
 
             // Unbind only if the port is currently bound to an interface on
@@ -119,14 +127,11 @@ class ZoomPortBinder(storage: Storage,
             // new host happens before unbind on live migration, and we don't
             // want remove the existing binding on the new host.
             if (p.hasHostId && pHostId == p.getHostId) {
-                val p = getPortBuilder(portId)
-                              .clearHostId()
-                              .clearInterfaceName()
-                              .build()
-                storage.update(p)
+                storage.update(p.toBuilder
+                                .clearHostId()
+                                .clearInterfaceName()
+                                .build())
             }
-        } finally {
-            lock.release()
         }
     }
 }
