@@ -18,8 +18,10 @@ package org.midonet.client.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @XmlRootElement
@@ -85,12 +87,87 @@ public class DtoRule {
     private DtoNatTarget[] natTargets;
     private int position;
     private String meterName;
+    private Integer vlan;
+    private boolean noVlan;
     private boolean popVlan;
     private int pushVlan;
     private UUID targetPortId;
     private boolean ingress;
     private boolean failOpen;
-    private Map<String, String> properties = new HashMap<String, String>();
+    private Map<String, String> properties = new HashMap<>();
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (null == obj) return false;
+        if (!(obj instanceof DtoRule)) return false;
+
+        DtoRule rule = (DtoRule) obj;
+        return Objects.equals(chainId, rule.chainId) &&
+               condInvert == rule.condInvert &&
+               matchForwardFlow == rule.matchForwardFlow &&
+               matchReturnFlow == rule.matchReturnFlow &&
+               Objects.equals(portGroup, rule.portGroup) &&
+               invPortGroup == rule.invPortGroup &&
+               Objects.equals(ipAddrGroupSrc, rule.ipAddrGroupSrc) &&
+               invIpAddrGroupSrc == rule.invIpAddrGroupSrc &&
+               Objects.equals(ipAddrGroupDst, rule.ipAddrGroupDst) &&
+               invIpAddrGroupDst == rule.invIpAddrGroupDst &&
+               Objects.equals(traversedDevice, rule.traversedDevice) &&
+               invTraversedDevice == rule.invTraversedDevice &&
+               Objects.equals(dlType, rule.dlType) &&
+               invDlType == rule.invDlType &&
+               Objects.equals(dlSrc, rule.dlSrc) &&
+               Objects.equals(dlSrcMask, rule.dlSrcMask) &&
+               invDlSrc == rule.invDlSrc &&
+               Objects.equals(dlDst, rule.dlDst) &&
+               Objects.equals(dlDstMask, rule.dlDstMask) &&
+               invDlDst == rule.invDlDst &&
+               nwTos == rule.nwTos &&
+               invNwTos == rule.invNwTos &&
+               nwProto == rule.nwProto &&
+               invNwProto == rule.invNwProto &&
+               Objects.equals(nwSrcAddress, rule.nwSrcAddress) &&
+               nwSrcLength == rule.nwSrcLength &&
+               invNwSrc == rule.invNwSrc &&
+               Objects.equals(nwDstAddress, rule.nwDstAddress) &&
+               nwDstLength == rule.nwDstLength &&
+               invNwDst == rule.invNwDst &&
+               Objects.equals(fragmentPolicy, rule.fragmentPolicy) &&
+               Objects.equals(tpSrc, rule.tpSrc) &&
+               invTpSrc == rule.invTpSrc &&
+               Objects.equals(tpDst, rule.tpDst) &&
+               invTpDst == rule.invTpDst &&
+               Objects.equals(type, rule.type) &&
+               Objects.equals(jumpChainName, rule.jumpChainName) &&
+               Objects.equals(jumpChainId, rule.jumpChainId) &&
+               Objects.equals(flowAction, rule.flowAction) &&
+               Arrays.equals(natTargets, rule.natTargets) &&
+               Objects.equals(meterName, rule.meterName) &&
+               Objects.equals(vlan, rule.vlan) &&
+               noVlan == rule.noVlan &&
+               popVlan == rule.popVlan &&
+               pushVlan == rule.pushVlan &&
+               Objects.equals(targetPortId, rule.targetPortId) &&
+               ingress == rule.ingress &&
+               failOpen == rule.failOpen;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(chainId, matchForwardFlow, matchReturnFlow,
+                            portGroup, invPortGroup, ipAddrGroupSrc,
+                            invIpAddrGroupSrc, ipAddrGroupDst, invIpAddrGroupDst,
+                            traversedDevice, invTraversedDevice, dlType,
+                            invDlType, dlSrc, dlSrcMask, invDlSrc, dlDst,
+                            dlDstMask, invDlDst, nwTos, invNwTos, nwProto,
+                            invNwProto, nwSrcAddress, nwSrcLength, invNwSrc,
+                            nwDstAddress, nwDstLength, invNwDst, fragmentPolicy,
+                            tpSrc, invTpSrc, tpDst, invTpDst, type,
+                            jumpChainName, jumpChainId, flowAction, natTargets,
+                            meterName, vlan, noVlan, popVlan, pushVlan,
+                            targetPortId, ingress, failOpen);
+    }
 
     public URI getUri() {
         return uri;
@@ -485,6 +562,22 @@ public class DtoRule {
         this.meterName = meterName;
     }
 
+    public Integer getVlan() {
+        return vlan;
+    }
+
+    public void setVlan(Integer vlan) {
+        this.vlan = vlan;
+    }
+
+    public boolean getNoVlan() {
+        return noVlan;
+    }
+
+    public void setNoVlan(boolean noVlan) {
+        this.noVlan = noVlan;
+    }
+
     public boolean getPopVlan() {
         return popVlan;
     }
@@ -547,6 +640,24 @@ public class DtoRule {
             this.portFrom = portFrom;
             this.portTo = portTo;
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (null == obj) return false;
+            if (!(obj instanceof DtoNatTarget)) return false;
+
+            DtoNatTarget target = (DtoNatTarget) obj;
+            return Objects.equals(addressFrom, target.addressFrom) &&
+                   Objects.equals(addressTo, target.addressTo) &&
+                   portFrom == target.portFrom &&
+                   portTo == target.portTo;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(addressFrom, addressTo, portFrom, portTo);
+        }
     }
 
     public static class DtoRange<E> {
@@ -561,5 +672,20 @@ public class DtoRule {
             this.end = end_;
         }
 
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (null == obj) return false;
+            if (!(obj instanceof DtoRange)) return false;
+
+            DtoRange range = (DtoRange) obj;
+            return Objects.equals(start, range.start) &&
+                   Objects.equals(end, range.end);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(start, end);
+        }
     }
 }
