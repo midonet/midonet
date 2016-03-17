@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_0cc7c246",
+        "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-17T10:02:38Z",
+      "side": 1,
+      "message": "I noticed that these fields are omitted from the comparison:\n    private UUID[] inPorts;\n    private boolean invInPorts;\n    private UUID[] outPorts;\n    private boolean invOutPorts;\n    private int position;\n    private Map\u003cString, String\u003e properties \u003d new HashMap\u003c\u003e();\n\nIs that on purpose?\n\nAlso, should hashCode be implemented as well?",
+      "range": {
+        "startLine": 100,
+        "startChar": 19,
+        "endLine": 100,
+        "endChar": 25
+      },
+      "revId": "ebacfd9bcc8701e6c654be14003daba5124a4490",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_4caa9a71",
+        "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-17T10:02:38Z",
+      "side": 1,
+      "message": "Should hashCode be implemented as well?",
+      "range": {
+        "startLine": 629,
+        "startChar": 23,
+        "endLine": 629,
+        "endChar": 29
+      },
+      "revId": "ebacfd9bcc8701e6c654be14003daba5124a4490",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_6cb676de",
+        "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 655,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-17T10:02:38Z",
+      "side": 1,
+      "message": "same question",
+      "range": {
+        "startLine": 655,
+        "startChar": 23,
+        "endLine": 655,
+        "endChar": 29
+      },
+      "revId": "ebacfd9bcc8701e6c654be14003daba5124a4490",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
