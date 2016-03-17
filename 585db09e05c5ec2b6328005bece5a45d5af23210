@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_2c20fef6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-17T10:39:27Z",
+      "side": 1,
+      "message": "Perhaps add that if the proto is null the pojo object remains unchanged.",
+      "revId": "585db09e05c5ec2b6328005bece5a45d5af23210",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
