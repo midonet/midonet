@@ -19,15 +19,12 @@ package org.midonet.cluster;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
@@ -36,7 +33,6 @@ import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.state.Directory;
-import org.midonet.packets.IPv4Subnet;
 
 public class LocalDataClientImplTestBase {
 
@@ -68,15 +64,5 @@ public class LocalDataClientImplTestBase {
         injector.injectMembers(this);
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
     }
-
-    protected Bridge getStockBridge() {
-        return new Bridge()
-                .setAdminStateUp(true);
-    }
-
-    protected Subnet getStockSubnet(String cidr) {
-        return new Subnet().setSubnetAddr(IPv4Subnet.fromCidr(cidr));
-    }
-
 }
 
