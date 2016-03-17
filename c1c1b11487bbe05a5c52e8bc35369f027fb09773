@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_0c79822f",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/StateKeys.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-17T08:54:18Z",
+      "side": 1,
+      "message": "Unless this makes tests fail, adding the deviceId here would not hurt, isnt\u0027it?",
+      "range": {
+        "startLine": 65,
+        "startChar": 34,
+        "endLine": 65,
+        "endChar": 76
+      },
+      "revId": "c1c1b11487bbe05a5c52e8bc35369f027fb09773",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
