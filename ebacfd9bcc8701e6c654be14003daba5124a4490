@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_0cad0232",
+        "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-17T11:46:51Z",
+      "side": 1,
+      "message": "Yes, I only added the fields that were relevant for the unit test, and not those that are inserted/modified by the API, e.g. position, checked during other tests, or otherwise no longer supported in v5.",
+      "parentUuid": "3a6ff13c_0cc7c246",
+      "range": {
+        "startLine": 100,
+        "startChar": 19,
+        "endLine": 100,
+        "endChar": 25
+      },
+      "revId": "ebacfd9bcc8701e6c654be14003daba5124a4490",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_4caa9a71",
         "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRule.java",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_4ca7fa4f",
+        "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-17T11:46:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a6ff13c_4caa9a71",
+      "range": {
+        "startLine": 629,
+        "startChar": 23,
+        "endLine": 629,
+        "endChar": 29
+      },
+      "revId": "ebacfd9bcc8701e6c654be14003daba5124a4490",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_6cb676de",
         "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRule.java",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-03-17T10:02:38Z",
       "side": 1,
       "message": "same question",
+      "range": {
+        "startLine": 655,
+        "startChar": 23,
+        "endLine": 655,
+        "endChar": 29
+      },
+      "revId": "ebacfd9bcc8701e6c654be14003daba5124a4490",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_6c63d61a",
+        "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 655,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-17T11:46:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a6ff13c_6cb676de",
       "range": {
         "startLine": 655,
         "startChar": 23,
