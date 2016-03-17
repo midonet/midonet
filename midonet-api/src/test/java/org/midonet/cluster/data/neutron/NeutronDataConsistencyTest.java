@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.PathBuilder;
@@ -127,5 +128,26 @@ public final class NeutronDataConsistencyTest extends NeutronPluginTest {
         Assert.assertFalse(zk.exists(path));
 
         Assert.assertNull(dataClient.poolGet(pool.id));
+    }
+
+    /**
+     * Test the deleting a Neutron network works even if there is a Midonet
+     * port in the corresponding bridge
+     */
+    @Test
+    public void testDeleteNetworkWithMidonetPort()
+        throws SerializationException, StateAccessException {
+
+        BridgePort port = new BridgePort()
+            .setDeviceId(network.id)
+            .setAdminStateUp(true);
+        UUID portId = dataClient.portsCreate(port);
+
+        Assert.assertTrue(dataClient.portsExists(portId));
+
+        plugin.deleteNetwork(network.id);
+
+        Assert.assertFalse(dataClient.portsExists(portId));
+        Assert.assertFalse(dataClient.bridgeExists(network.id));
     }
 }
