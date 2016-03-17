@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.curator.test.TestingServer;
+import org.apache.zookeeper.CreateMode;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -28,13 +29,17 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.midolman.layer3.Route.NextHop;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader;
 import org.midonet.packets.IPv4Addr;
@@ -65,8 +70,25 @@ public class LocalDataClientImplTest {
             .setAdminStateUp(true);
     }
 
+    protected static Router getStockRouter() {
+        return new Router()
+            .setAdminStateUp(true);
+    }
+
     protected static Subnet getStockSubnet(String cidr) {
         return new Subnet().setSubnetAddr(IPv4Subnet.fromCidr(cidr));
+    }
+
+    protected static Port getStockBridgePort(UUID bridgeId) {
+        return new BridgePort()
+            .setDeviceId(bridgeId)
+            .setAdminStateUp(true);
+    }
+
+    protected static Port getStockRouterPort(UUID routerId) {
+        return new RouterPort()
+            .setDeviceId(routerId)
+            .setAdminStateUp(true);
     }
 
     protected static void assertSubnetCidrs(List<Subnet> actual,
@@ -87,6 +109,8 @@ public class LocalDataClientImplTest {
 
         protected static TestingServer server;
         private DataClient client;
+        private Directory directory;
+        private PathBuilder pathBuilder;
 
         @BeforeClass
         public static void initZkTestingServer() throws Exception {
@@ -114,6 +138,8 @@ public class LocalDataClientImplTest {
         public void setUp() throws Exception {
             super.setUp();
             this.client = injector.getInstance(DataClient.class);
+            this.directory = getDirectory();
+            this.pathBuilder = getPathBuilder();
         }
 
         @Test
@@ -199,6 +225,30 @@ public class LocalDataClientImplTest {
             assertEquals(node1, owner1);
             assertEquals(node1, owner2);
             assertEquals(node1, owner3);
+        }
+
+        @Test
+        public void bridgePortDeletionWithLeftOverDataTest() throws Exception {
+            UUID bridgeId = client.bridgesCreate(getStockBridge());
+            UUID portId = client.portsCreate(getStockBridgePort(bridgeId));
+
+            // Add data that used to exist in an older version
+            directory.add(pathBuilder.getFilterPath(portId) + "/snat_blocks",
+                          null, CreateMode.PERSISTENT);
+
+            client.portsDelete(portId);
+        }
+
+        @Test
+        public void routerPortDeletionWithLeftOverDataTest() throws Exception {
+            UUID routerId = client.routersCreate(getStockRouter());
+            UUID portId = client.portsCreate(getStockRouterPort(routerId));
+
+            // Add data that used to exist in an older version
+            directory.add(pathBuilder.getFilterPath(portId) + "/snat_blocks",
+                          null, CreateMode.PERSISTENT);
+
+            client.portsDelete(portId);
         }
     }
 

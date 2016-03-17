@@ -1142,18 +1142,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return getVlanBridgeLogicalPortIDs(bridgeId, null);
     }
 
-    /***
-     * Deletes a port and its related data from the ZooKeeper directories
-     * atomically.
-     *
-     * @param id
-     *            ID of the port to delete.
-     */
-    public void delete(UUID id) throws StateAccessException,
-            SerializationException {
-        zk.multi(prepareDelete(id));
-    }
-
     public void link(UUID id, UUID peerId) throws StateAccessException,
             SerializationException {
         List<Op> ops = new ArrayList<Op>();
