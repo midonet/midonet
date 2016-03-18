@@ -161,23 +161,25 @@ public abstract class Rule extends Condition {
         if (proto instanceof Topology.Rule) {
             Topology.Rule rule = (Topology.Rule)proto;
             if (rule.hasCondition()) {
-                Condition c = ZoomConvert.fromProto(rule.getCondition(),
-                                                    Condition.class);
-                this.copyFrom(c);
+                ZoomConvert.fromProto(rule.getCondition(), this, Condition.class);
             }
+        } else if (proto instanceof Commons.Condition) {
+            // Ignore: this is called when converting the condition fields.
         } else {
-            throw new ZoomConvert.ConvertException("Message should be a Rule");
+            throw new ZoomConvert.ConvertException("Message should be a rule");
         }
     }
 
     @Override
     public void afterToProto(Message.Builder builder) {
         super.afterToProto(builder);
+
         if (builder instanceof Topology.Rule.Builder) {
             Topology.Rule.Builder ruleBuilder = (Topology.Rule.Builder)builder;
-            Condition c = new Condition().copyFrom(this);
             ruleBuilder.setCondition(
-                    ZoomConvert.toProto(c, Commons.Condition.class));
+                    ZoomConvert.toProto(this, Condition.class, Commons.Condition.class));
+        } else if (builder instanceof Commons.Condition.Builder) {
+            // Ignore: this is called when converting the condition fields.
         } else {
             throw new ZoomConvert.ConvertException("Wrong builder type");
         }
