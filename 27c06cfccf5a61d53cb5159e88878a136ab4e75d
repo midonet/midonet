@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_0b0fa531",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-03-18T04:21:30Z",
+      "side": 1,
+      "message": "Change IP address to retrigger tests.",
+      "revId": "27c06cfccf5a61d53cb5159e88878a136ab4e75d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
