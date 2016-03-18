@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_119fd253",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T16:57:41Z",
+      "side": 1,
+      "message": "So I intended this only as a guard non-zero lower bound. It\u0027s the configuration that will specify the recycling interval, and the default is 1 day. Do yo think we should set a higher minimum?",
+      "parentUuid": "3a6ff13c_a75a644e",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 40
+      },
+      "revId": "0a50e63a60bdb4b9bf95f5ee7ebdf0c6ac8b48a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_e72b7c92",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 7
@@ -118,6 +142,54 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_91aae26e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T16:57:41Z",
+      "side": 1,
+      "message": "So like I said above: this is just a lower bound, to make sure the interval is not zero. Otherwise, it\u0027s the configuration that determines it.",
+      "parentUuid": "3a6ff13c_0a4dff72",
+      "range": {
+        "startLine": 228,
+        "startChar": 55,
+        "endLine": 228,
+        "endChar": 74
+      },
+      "revId": "0a50e63a60bdb4b9bf95f5ee7ebdf0c6ac8b48a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_f1b076df",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T16:57:41Z",
+      "side": 1,
+      "message": "So this because multiple cluster nodes coordinate over whether they must run a recycling operation. The recycling interval is the minimum duration from the last operation, and this is written to NSDB. However, several cluster nodes use polling to periodically check if the NSDB needs a cleanup.\n\nThis is the run interval, and here I selected it smaller than the recycling interval to accommodate for cluster nodes churn, startup time difference, etc. Otherwise it\u0027s possible that the interval between recycling operations is greater than the set one (e.g 1 day). For example:\n\n* last recycling was at 2016/1/1 00:00 y cluster node A, next recycling scheduled at 2016/1/2 00:00\n* cluster node B goes online at 2016/1/1 22:00, next recycling scheduled at 2016/1/1 23:00, cluster node A goes offline (maintenance :P)\n* cluster node B starts recycling: NSDB has been recycled less than 1 day ago: gives up, scheduled next recycling at 2016/1/2 23:00\n\n\u003d\u003e NSDB will be recycled after 47h, rather than intended ~24h\n\nNow, maybe choosing a run interval 10 smaller is too often, we could make it maybe 5-6 times smaller?  After all, it\u0027s only needed for coordinating between different nodes.",
+      "parentUuid": "3a6ff13c_e72b7c92",
+      "range": {
+        "startLine": 228,
+        "startChar": 30,
+        "endLine": 228,
+        "endChar": 54
+      },
+      "revId": "0a50e63a60bdb4b9bf95f5ee7ebdf0c6ac8b48a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_6a5cb326",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
         "patchSetId": 7
@@ -129,6 +201,30 @@
       "writtenOn": "2016-03-10T12:10:16Z",
       "side": 1,
       "message": "recyclingInterval",
+      "range": {
+        "startLine": 357,
+        "startChar": 21,
+        "endLine": 357,
+        "endChar": 32
+      },
+      "revId": "0a50e63a60bdb4b9bf95f5ee7ebdf0c6ac8b48a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_b1dd1e17",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T16:57:41Z",
+      "side": 1,
+      "message": "See above: this should be the run interval.",
+      "parentUuid": "3a6ff13c_6a5cb326",
       "range": {
         "startLine": 357,
         "startChar": 21,
