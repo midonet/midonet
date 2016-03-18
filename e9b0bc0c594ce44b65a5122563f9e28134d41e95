@@ -22,6 +22,30 @@
       "revId": "e9b0bc0c594ce44b65a5122563f9e28134d41e95",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_8b4635be",
+        "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T09:19:47Z",
+      "side": 1,
+      "message": "Good catch.",
+      "parentUuid": "3a6ff13c_e767dfe8",
+      "range": {
+        "startLine": 158,
+        "startChar": 36,
+        "endLine": 158,
+        "endChar": 37
+      },
+      "revId": "e9b0bc0c594ce44b65a5122563f9e28134d41e95",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
