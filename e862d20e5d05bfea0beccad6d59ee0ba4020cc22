@@ -117,6 +117,30 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_6ee587a7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-18T13:55:10Z",
+      "side": 1,
+      "message": "No without having to do a new allocation. So when reading from storage, you get a NatKeyStore (because now storage resides in nsdb, you cannot instantiate a NatKey which depends on simulation/agent classes).\n\nIf you want to turn this into a NatKey (from the agent side), you need to allocate a new object and copy the attributes. \n\nWe can extend from NatKeyStore but then be aware that reading from storage implies extra memory allocations. I wanted to avoid it although it\u0027s not in the fastpath.",
+      "parentUuid": "3a6ff13c_4e6feb92",
+      "range": {
+        "startLine": 111,
+        "startChar": 15,
+        "endLine": 111,
+        "endChar": 46
+      },
+      "revId": "e862d20e5d05bfea0beccad6d59ee0ba4020cc22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_0e5ed3e6",
         "filename": "midolman/src/test/scala/org/midonet/midolman/MockMidolmanModule.scala",
         "patchSetId": 7
