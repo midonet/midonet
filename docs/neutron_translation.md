@@ -931,16 +931,14 @@ NeutronFirewall.  For each, delete the corresponding jump rules.
 
 ### CREATE
 
-If the 'type' field is anything other than 'router_vtep', throw an illegal
-argument exception.
+If the 'type' field is anything other than 'router_vtep' or 'network_vlan',
+throw an illegal argument exception.
 
 Copy the Neutron gateway device object to the MidoNet topology store.
-
 
 ### DELETE
 
 Delete the corresponding gateway device data in MidoNet.
-
 
 ## UPDATE
 
@@ -984,9 +982,30 @@ mac entry.
 
 ### CREATE
 
-In the 'l2_gateway' object, there is 'devices' field which is a list of
-'l2_gateway_device' objects.  There should only be one element in this list.
-Take that device object and do the following:
+From the  'l2_gateway_connection' object, get the 'l2_gateway' object.
+
+'l2_gateway' object should have exactly one element in the 'devices' list.
+Take the first element.  This is the gateway device associated with
+'l2_gateway_connection'.
+
+Fetch the gateway device object and check the 'type' field.  The following
+types ar supported:
+
+ * 'router_vtep' -> VTEP Router GW
+ * 'network_vlan' -> VLAN GW
+
+VLAN L2 GATEWAY:
+
+ * Get the network using the 'resource_id' of the 'gateway_device' object.
+ * Create a port on the network with ID generated from the 'network_id' of
+   'l2_gateway_connection' object.  Set 'vlan' of the port to 'segmentation_id'
+   of 'l2_gateway_connection'.  With at least one VLAN port created, this
+   network has now become a VLAN-Aware Bridge (VAB).
+ * Create a port on the Midonet network that corresponds to the Neutron
+   network ID specified in 'l2_gateway_connection'.
+ * Link the network and VAB ports.
+
+VTEP Router Gateway:
 
  * Create a MidoNet network port on the network matching 'network_id' provided
    in the top level 'l2_gateway_connection' object.  Generate the port ID based
@@ -996,22 +1015,23 @@ Take that device object and do the following:
  * Create a port on the router matching the value specified in 'resource_id',
    also derived from the 'network_id', set the VNI to 'segmentation_id' set in
    'l2_gateway_connection' object.
- * Link the router and network ports
+ * Link the router and network ports.
+ * For each 'remote_mac_entries' item in the gateway device object, do the
+   following:
+   * If the 'segmentation_id' of the remote_mac entry matches the VNI of the
+     VTEP router port just created, add the 'mac_address' and 'vtep_adress'
+     pair to the peer table of the port.
 
-For each 'remote_mac_entries' item in the gateway device object, do the
-following:
 
- * If the 'segmentation_id' of the remote_mac entry matches the VNI of the VTEP
-   router port just created, add the 'mac_address' and 'vtep_adress' pair to
-   the peer table of the port.
-
+Note that in both gateway types, the port IDs are generated the same way.
 
 ### DELETE
 
-Fetch the original l2 gateway connection data, and using its 'network_id',
-locate the port that was creatd based off of it, and delete it.  Delete the
-remote mac entries associated with the port, the corresponding entries in
-the port's peering table, and the peer network port.
+Using 'network_id' of the 'l2_gateway_connectin' object, locate the ports
+created based on this ID, and delete them.
+
+Delete the remote mac entries associated with the port, and the corresponding
+entries in the peering table of the port (applicable only to VTEP router case).
 
 
 # References
