@@ -178,6 +178,7 @@ is_package_installed libreadline-dev || install_package libreadline-dev
 is_package_installed ncurses-dev || install_package ncurses-dev
 is_package_installed wget || install_package wget
 is_package_installed ruby-ronn || install_package ruby-ronn
+is_package_installed software-properties-common || install_package software-properties-common
 
 if ! is_package_installed zulu-8; then
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0x219BD9C9
