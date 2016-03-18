@@ -32,6 +32,7 @@ import rx.{Observable, Observer, Subscription}
 
 import org.midonet.Util
 import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.host.interfaces.InterfaceDescription.Type.VIRT
 import org.midonet.netlink._
 import org.midonet.netlink.rtnetlink._
 import org.midonet.util.concurrent.NanoClock
@@ -379,7 +380,17 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
         clone.setEndpoint(ifdesc.getEndpoint)
         ifdesc.getInetAddresses foreach clone.setInetAddress
         clone.setHasLink(ifdesc.hasLink)
-        clone.setMac(MAC.fromAddress(ifdesc.getMac.getAddress))
+
+        // When an interface has an L2 address that is not 6-bytes long, the MAC
+        // address of the interface description is null.
+        // Setting the mac address to null here means that the corresponding
+        // interface will not be notified to the outside world, which is fine in
+        // this case.
+        if (ifdesc.getMac == null) {
+            clone.setMac(null.asInstanceOf[MAC])
+        } else {
+            clone.setMac(MAC.fromAddress(ifdesc.getMac.getAddress))
+        }
         clone.setMtu(ifdesc.getMtu)
         clone.setPortType(ifdesc.getPortType)
         clone.setType(ifdesc.getType)
