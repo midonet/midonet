@@ -71,12 +71,22 @@ public class FiltersZkManager extends BaseZkManager {
      *
      * @param id
      *            ID of port, bridge or router whose filter is to be deleted.
+     * @param ops
+     *            Zookeeper Op list to add filter delete operations into
      * @return A list of Op objects representing the operations to perform.
      * @throws org.midonet.midolman.state.StateAccessException
      */
-    public List<Op> prepareDelete(UUID id) throws StateAccessException {
+    public void prepareDelete(List<Op> ops, UUID id)
+        throws StateAccessException {
+        // There may be old 'snat_blocks' path still in ZK.  Delete if it
+        // exists.
+        String oldSnatPath = paths.getFilterSnatBlocksPath(id);
+        if (zk.exists(oldSnatPath)) {
+            ops.add(Op.delete(oldSnatPath, -1));
+        }
+
         String filterPath = paths.getFilterPath(id);
-        return Arrays.asList(Op.delete(filterPath, -1));
+        ops.add(Op.delete(filterPath, -1));
     }
 
     /**
@@ -88,17 +98,5 @@ public class FiltersZkManager extends BaseZkManager {
     public void create(UUID id) throws StateAccessException,
             SerializationException {
         zk.multi(prepareCreate(id));
-    }
-
-    /***
-     * Deletes a filter and its related data from the ZooKeeper directories
-     * atomically.
-     *
-     * @param id
-     *            ID of the filter state to delete.
-     * @throws org.midonet.midolman.state.StateAccessException
-     */
-    public void delete(UUID id) throws StateAccessException {
-        zk.multi(prepareDelete(id));
     }
 }

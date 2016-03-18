@@ -360,7 +360,7 @@ public class BridgeZkManager
         // Delete the bridge
         ops.add(Op.delete(paths.getBridgePath(id), -1));
 
-        ops.addAll(filterZkManager.prepareDelete(id));
+        filterZkManager.prepareDelete(ops, id);
 
         return ops;
     }

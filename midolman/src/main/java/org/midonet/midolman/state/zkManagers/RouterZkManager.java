@@ -330,7 +330,7 @@ public class RouterZkManager
         String routerPath = paths.getRouterPath(id);
         log.debug("Preparing to delete: " + routerPath);
         ops.add(Op.delete(routerPath, -1));
-        ops.addAll(filterZkManager.prepareDelete(id));
+        filterZkManager.prepareDelete(ops, id);
         return ops;
     }
 
