@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_0b41655a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-18T10:21:28Z",
+      "side": 1,
+      "message": "it has always been a mystery to me what these files are for.",
+      "range": {
+        "startLine": 11,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 25
+      },
+      "revId": "2b773092abc078642e0e6ce86309dab75306a562",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
