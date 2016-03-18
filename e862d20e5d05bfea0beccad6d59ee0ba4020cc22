@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_ced59b44",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T11:58:52Z",
+      "side": 1,
+      "message": "Nit: long line, same below. Address later.",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 102
+      },
+      "revId": "e862d20e5d05bfea0beccad6d59ee0ba4020cc22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_2ec46f91",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T11:58:52Z",
+      "side": 1,
+      "message": "Not used",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 42
+      },
+      "revId": "e862d20e5d05bfea0beccad6d59ee0ba4020cc22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_4ec1ab7f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/FlowExpirationIndexer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T11:58:52Z",
+      "side": 1,
+      "message": "So is this the state or the state store?",
+      "range": {
+        "startLine": 24,
+        "startChar": 46,
+        "endLine": 24,
+        "endChar": 55
+      },
+      "revId": "e862d20e5d05bfea0beccad6d59ee0ba4020cc22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_ae377faf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T11:58:52Z",
+      "side": 1,
+      "message": "Not used",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 43
+      },
+      "revId": "e862d20e5d05bfea0beccad6d59ee0ba4020cc22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_4e6feb92",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T11:58:52Z",
+      "side": 1,
+      "message": "Wasn\u0027t it possible for NatKey to extend NatKeyStore rather than wrap it? I have the same comment for ConnTrackKey and TraceKey.",
+      "range": {
+        "startLine": 111,
+        "startChar": 15,
+        "endLine": 111,
+        "endChar": 46
+      },
+      "revId": "e862d20e5d05bfea0beccad6d59ee0ba4020cc22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_0e5ed3e6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/MockMidolmanModule.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T11:58:52Z",
+      "side": 1,
+      "message": "Move to bottom.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 55
+      },
+      "revId": "e862d20e5d05bfea0beccad6d59ee0ba4020cc22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_2e72af7c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PacketContextTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-18T11:58:52Z",
+      "side": 1,
+      "message": "Same here",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 47
+      },
+      "revId": "e862d20e5d05bfea0beccad6d59ee0ba4020cc22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
