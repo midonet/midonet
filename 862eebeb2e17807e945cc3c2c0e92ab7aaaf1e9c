@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_abb691da",
+        "filename": "tests/mdts/lib/nose_plugin.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-18T09:02:06Z",
+      "side": 1,
+      "message": "I\u0027d keep this outside the \u0027midolman\u0027 if, and do a similar check under comment in line 169 to see if there exists a zookeeper where to do a zkdump (I assume MEM also uses zookeeper and might be useful for your tests).\n\nNeed to check if the zookeeper containers have zkdump though.",
+      "range": {
+        "startLine": 173,
+        "startChar": 12,
+        "endLine": 176,
+        "endChar": 38
+      },
+      "revId": "862eebeb2e17807e945cc3c2c0e92ab7aaaf1e9c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
