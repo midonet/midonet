@@ -167,13 +167,15 @@ class Mdts(Plugin):
 
         # Any midolman works for us in here.
         # FIXME: should be zk maybe? whatever works but still
-        midolman = service.get_container_by_hostname('midolman1')
-        zkdump_output = midolman.exec_command(
-            'zkdump -z zookeeper1:2181 -d -p')
-        with open("%s/zkdump_output.log" % dump_dir, 'w') as f:
-            f.write(zkdump_output)
-
         midolmans = service.get_all_containers('midolman')
+        if len(midolmans) > 0:
+            midolman = midolmans[0]
+            zkdump_output = midolman.exec_command(
+                'zkdump -z zookeeper1:2181 -d -p')
+            with open("%s/zkdump_output.log" % dump_dir, 'w') as f:
+                f.write(zkdump_output)
+
+
         for midolman in midolmans:
             mmdpctl_show = midolman.exec_command(
                 'mm-dpctl --timeout 10 datapath --show midonet')
