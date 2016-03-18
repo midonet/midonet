@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_cbc10de6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-18T10:05:35Z",
+      "side": 1,
+      "message": "Nit, you added a space to the whole block.",
+      "range": {
+        "startLine": 505,
+        "startChar": 12,
+        "endLine": 505,
+        "endChar": 13
+      },
+      "revId": "8587fdd4fd618799ab5755979418a3f5944208e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
