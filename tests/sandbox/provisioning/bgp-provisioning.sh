@@ -6,9 +6,9 @@ echo "Provisioning bgp interfaces..."
 sudo ip link set dev brbgp0 down
 sudo ip link set dev brbgp1 down
 sudo ip link set dev brbgp2 down
-sudo brctl delbr brbgp0
-sudo brctl delbr brbgp1
-sudo brctl delbr brbgp2
+sudo ip link del brbgp0
+sudo ip link del brbgp1
+sudo ip link del brbgp2
 
 # One quagga (master) advertising "inet" networks connected to two
 # quaggas (peers) which will do the peering with midolman

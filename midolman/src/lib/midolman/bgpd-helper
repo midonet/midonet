@@ -89,8 +89,8 @@ bgpd_prepare() {
     ip link set dev $vty_port_name up
 
     echo "Preparing vty bridge"
-    brctl addbr $vty_bridge_name
-    brctl addif $vty_bridge_name $vty_port_name
+    ip link add "$vty_bridge_name" type bridge
+    ip link set "$vty_port_name" master "$vty_bridge_name"
     ip address add $local_vty_ip dev $vty_bridge_name
     ip link set dev $vty_bridge_name up
 
@@ -124,9 +124,9 @@ bgpd_down() {
     if [ $? -eq 0 ] ; then
         echo "Found bridge, cleaning up: $vty_bridge_name"
         ip link show $vty_port_name >/dev/null 2>&1 && \
-            brctl delif $vty_bridge_name $vty_port_name
+            ip link set "$vty_port_name" nomaster
         ip link set $vty_bridge_name down
-        brctl delbr $vty_bridge_name
+        ip link del "$vty_bridge_name"
     fi
     ip link show $vty_port_name >/dev/null 2>&1 && \
         ip link delete $vty_port_name
