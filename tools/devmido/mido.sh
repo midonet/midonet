@@ -180,6 +180,8 @@ is_package_installed wget || install_package wget
 is_package_installed ruby-ronn || install_package ruby-ronn
 
 if ! is_package_installed zulu-8; then
+    # software-properties-common includes apt-add-repository
+    is_package_installed software-properties-common || install_package software-properties-common
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0x219BD9C9
     sudo apt-add-repository "deb http://repos.azulsystems.com/ubuntu stable main"
     REPOS_UPDATED=False install_package zulu-8
