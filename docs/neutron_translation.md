@@ -931,16 +931,11 @@ NeutronFirewall.  For each, delete the corresponding jump rules.
 
 ### CREATE
 
-If the 'type' field is anything other than 'vtep_router', throw an illegal
-argument exception.
-
 Copy the Neutron gateway device object to the MidoNet topology store.
-
 
 ### DELETE
 
 Delete the corresponding gateway device data in MidoNet.
-
 
 ## UPDATE
 
@@ -979,24 +974,90 @@ Iterate over these ports, and for each port that has its VNI set to the
 the paths containing the 'mac_address' and 'vtep_address' pair of the remote
 mac entry.
 
+## L2GATEWAY
+
+### CREATE
+
+L2 Gateway ('l2_gateway') could be for either VTEP router or VLAN L2 gateway.
+To differentiate, check whether it is associated with a gateway device:
+
+ * associated -> VTEP Router GW
+ * otherwise -> VLAN GW
+
+Gateway device association can be determined by inspecting the 'devices' field
+of 'l2_gateway' object.  There should be exactly one 'devices' item for VTEP
+router, and the 'device_id' set to the ID of the associated gateway device
+object.  For VLAN GW, there may be multiple 'devices' items, but none has
+'device_id' set.
+
+For L2 gateway creation, only VLAN L2 gateway needs to be handled.
+
+VLAN L2 gateway connection is implemented using the VLAN-Aware Bridge (VAB).
+Each L2 gateway object maps to a VAB.  With VAB, it is possible to bind its
+exterior ports to multiple physical hosts for redundancy.  Physical
+host-interface pairs are specified in 'devices' where each device item includes
+the host and the interface to which a port would be bound.
+
+Create a new VAB object with ID derived from the 'l2_gateway' object ID.
+
+For each item in 'devices':
+ * Get the Neutron host ID from 'device_name'.  Find the MidoNet host ID from
+   it.
+ * For each item in 'interfaces':
+   * Get the interface name from 'name'.
+   * Create a port on VAB and bind it to the host ID and interface name
+     determined in the previous steps.
+
+### UPDATE
+
+Only VLAN L2 gateway needs to be handled for update.
+
+Update of 'devices' field is supported for VLAN L2GW.
+
+Delete the VAB ports if the binding has been removed when comparing the old
+'devices' and the new 'devices'.
+
+Create and bind new VAB ports if there are new items in 'devices', following
+the instruction in CREATE.
+
+### DELETE
+
+Only VLAN L2 gateway needs to be handled for delete.
+
+Delete the VAB corresponding to the 'l2_gateway' object.
+
 
 ## L2GATEWAYCONNECTION
 
 ### CREATE
 
-In the 'l2_gateway' object, there is 'devices' field which is a list of
-'l2_gateway_device' objects.  There should only be one element in this list.
-Take that device object and do the following:
+Determine whether 'l2_gateway_connection' is for VLAN L2 gateway or VTEP router
+gateway following the logic described in CREATE of L2GATEWAY.
 
- * Create a MidoNet network port on the network matching 'network_id' provided
-   in the top level 'l2_gateway_connection' object.  Generate the port ID based
-   on 'network_id' so it will be easy to retrieve it later.
- * Fetch the gateway device object using the 'device_id' value of the device
-   object.
- * Create a port on the router matching the value specified in 'resource_id',
-   also derived from the 'network_id', set the VNI to 'segmentation_id' set in
-   'l2_gateway_connection' object.
- * Link the router and network ports
+VLAN L2GW:
+
+ * Check that 'segmentation_id' is set.  If not set, check to see if
+   'segmentation_id' is set on the 'l2_gateway' object.  If neither is set,
+   raise an error.  This is the VLAN ID.
+ * Fetch the VAB using the ID of 'l2_gateway' object.
+ * Create a port on the VAB and link it to the network ('network_id'),
+   and set the VLAN ID on the VAB port to the value determined in the above
+   step.
+
+VTEP Router GW:
+
+VTEP Router GW requires that a gateway device object has already been created.
+From the gateway device, remote MAC entry table entries will be populated.
+
+* Create a MidoNet network port on the network matching 'network_id' provided
+  in the top level 'l2_gateway_connection' object.  Generate the port ID based
+  on 'network_id' so it will be easy to retrieve it later.
+* Fetch the gateway device object using the 'device_id' value of the device
+  object.
+* Create a port on the router matching the value specified in 'resource_id',
+  also derived from the 'network_id', set the VNI to 'segmentation_id' set in
+  'l2_gateway_connection' object.
+* Link the router and network ports
 
 For each 'remote_mac_entries' item in the gateway device object, do the
 following:
@@ -1008,10 +1069,17 @@ following:
 
 ### DELETE
 
-Fetch the original l2 gateway connection data, and using its 'network_id',
-locate the port that was creatd based off of it, and delete it.  Delete the
-remote mac entries associated with the port, the corresponding entries in
-the port's peering table, and the peer network port.
+Fetch the original 'l2_gateway_connection' object. Determine whether it is a
+VLAN L2GW or VTEP router by following the steps in CREATE of L2GATEWAY.
+
+For VLAN L2GW, fetch the VAB and delete the port with the VLAN ID
+('segmentation_id') of 'l2_gateway_connection' assigned.  Make sure to delete
+the peer port as well.
+
+For VTEP router, using 'network_id', locate the port that was created based off
+of it, and delete it.  Delete the remote mac entries associated with the port,
+the corresponding entries in the peering table of the port, and the peer
+network port.
 
 
 # References
