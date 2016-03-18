@@ -16,21 +16,30 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
+import java.util.{Map => JMap, Set => JSet}
 
 import org.midonet.packets.IPAddr
 import org.midonet.midolman.topology.VirtualTopology.Device
 
-class IPAddrGroup(val id: UUID, val addrs: Set[IPAddr]) extends Device {
-    def contains(addr: IPAddr) = addrs.contains(addr)
+import scala.collection.JavaConversions._
+
+class IPAddrGroup(val id: UUID,
+                  val addrPorts: Map[IPAddr, Set[UUID]]) extends Device {
+    def contains(addr: IPAddr, portId: UUID) = {
+        // If portID is null, just match on IP address
+        addrPorts.contains(addr) && (portId == null || addrPorts.get(addr).get.contains(portId))
+    }
     override def toString =
-        "IPAddrGroup[id=%s, addrs=[%s]]".format(id, addrs.mkString(", "))
+        "IPAddrGroup[id=%s, addrs=[%s]]".format(id, addrPorts.mkString(", "))
 }
 
 object IPAddrGroup {
     /**
-     * Added because initializing an immutable set from Java is a pain.
+     *
+     * Added because initializing an immutable map/set from Java is a pain.
      */
-    def fromAddrs(id: UUID, addrs: Array[IPAddr]): IPAddrGroup = {
-        new IPAddrGroup(id, addrs.toSet)
+    def fromAddrs(id: UUID, addrs: JMap[IPAddr, JSet[UUID]]): IPAddrGroup = {
+        val sAddrs = addrs.map{item => (item._1, item._2.toSet)}.toMap
+        new IPAddrGroup(id, sAddrs)
     }
 }

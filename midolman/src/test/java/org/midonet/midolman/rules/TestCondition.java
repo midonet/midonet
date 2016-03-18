@@ -25,10 +25,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+
+import com.google.common.collect.Sets;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
@@ -516,9 +520,14 @@ public class TestCondition {
         Condition cond = new Condition();
         Assert.assertTrue(cond.matches(pktCtx));
 
+        UUID inPortId = UUID.randomUUID();
+        UUID outPortId = UUID.randomUUID();
+        pktCtx.inPortId_$eq(inPortId);
+
         // Should fail to match with empty IPAddrGroup for source or dest.
+        Map<IPAddr, Set<UUID>> ipAddrPorts = new HashMap<>();
         IPAddrGroup ipAddrGroupEmpty = IPAddrGroup.fromAddrs(
-                UUID.randomUUID(), new IPAddr[]{});
+                UUID.randomUUID(), ipAddrPorts);
         cond.ipAddrGroupDst = ipAddrGroupEmpty;
         Assert.assertFalse(cond.matches(pktCtx));
 
@@ -537,9 +546,24 @@ public class TestCondition {
         cond.invIpAddrGroupIdSrc = true;
         Assert.assertTrue(cond.matches(pktCtx));
 
-        // Should match with dest set containing dest address.
-        IPAddrGroup ipAddrGroupDst = IPAddrGroup.fromAddrs(UUID.randomUUID(),
-                new IPAddr[]{dstIpAddr, new IPv4Addr(0x12345678)});
+        // Should match with dest set containing dest address, even if the
+        // egress port is unknown in packet context
+        ipAddrPorts.clear();
+        ipAddrPorts.put(dstIpAddr, Sets.newHashSet(outPortId));
+        ipAddrPorts.put(new IPv4Addr(0x12345678), Sets.newHashSet(inPortId));
+        IPAddrGroup ipAddrGroupDst = IPAddrGroup.fromAddrs(
+            UUID.randomUUID(), ipAddrPorts);
+
+        cond = new Condition();
+        cond.ipAddrGroupDst = ipAddrGroupDst;
+        Assert.assertTrue(cond.matches(pktCtx));
+
+        // And not when inverted.
+        cond.invIpAddrGroupIdDst = true;
+        Assert.assertFalse(cond.matches(pktCtx));
+
+        // Should match also when egress port is known
+        pktCtx.outPortId_$eq(outPortId);
         cond = new Condition();
         cond.ipAddrGroupDst = ipAddrGroupDst;
         Assert.assertTrue(cond.matches(pktCtx));
@@ -556,8 +580,11 @@ public class TestCondition {
         Assert.assertTrue(cond.matches(pktCtx));
 
         // The above with source and dest inverted.
+        ipAddrPorts.clear();
+        ipAddrPorts.put(srcIpAddr, Sets.newHashSet(inPortId));
+        ipAddrPorts.put(new IPv4Addr(0x87654321), Sets.newHashSet(outPortId));
         IPAddrGroup ipAddrGroupSrc = IPAddrGroup.fromAddrs(UUID.randomUUID(),
-                new IPAddr[]{srcIpAddr, new IPv4Addr(0x87654321)});
+                                                           ipAddrPorts);
         cond = new Condition();
         cond.ipAddrGroupSrc = ipAddrGroupSrc;
         Assert.assertTrue(cond.matches(pktCtx));

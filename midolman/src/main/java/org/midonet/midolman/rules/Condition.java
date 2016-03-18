@@ -242,9 +242,11 @@ public class Condition extends BaseConfig {
         if (!matchRange(
                 tpDst, pktMatch.getDstPort(), tpDstInv))
             return conjunctionInv;
-        if (!matchIpToGroup(ipAddrGroupSrc, pmSrcIP, invIpAddrGroupIdSrc))
+        if (!matchIpToGroup(ipAddrGroupSrc, pmSrcIP, inPortId,
+                            invIpAddrGroupIdSrc))
             return conjunctionInv;
-        if (!matchIpToGroup(ipAddrGroupDst, pmDstIP, invIpAddrGroupIdDst))
+        if (!matchIpToGroup(ipAddrGroupDst, pmDstIP, outPortId,
+                            invIpAddrGroupIdDst))
             return conjunctionInv;
         if (!matchTraversedDevice(pktCtx))
             return conjunctionInv;
@@ -285,9 +287,10 @@ public class Condition extends BaseConfig {
     }
 
     private boolean matchIpToGroup(
-            IPAddrGroup ipAddrGroup, IPAddr ipAddr, boolean negate) {
+            IPAddrGroup ipAddrGroup, IPAddr ipAddr, UUID portId,
+            boolean negate) {
         return ipAddrGroup == null ||
-                negate ^ ipAddrGroup.contains(ipAddr);
+                negate ^ ipAddrGroup.contains(ipAddr, portId);
     }
 
     private boolean matchTraversedDevice(PacketContext pktCtx) {

@@ -33,10 +33,12 @@ class IPAddrGroupMapper(addrGroupId: UUID, vt: VirtualTopology, metricRegistry: 
 
     private def toSimIPAddrGroup(ipAddGroup: TopologyIPAddrGroup)
     : SimIPAddrGroup = {
-        val addrs = ipAddGroup.getIpAddrPortsList.asScala.map(ipAddrPort =>
-            toIPAddr(ipAddrPort.getIpAddress)
-        ).toSet
-        new SimIPAddrGroup(ipAddGroup.getId.asJava, addrs)
+        val addrPorts = ipAddGroup.getIpAddrPortsList.asScala.map(
+            ipAddrPort =>
+                (toIPAddr(ipAddrPort.getIpAddress),
+                    ipAddrPort.getPortIdsList.asScala.map(fromProto(_)).toSet)
+        ).toMap
+        new SimIPAddrGroup(ipAddGroup.getId.asJava, addrPorts)
     }
 
     protected override lazy val observable =

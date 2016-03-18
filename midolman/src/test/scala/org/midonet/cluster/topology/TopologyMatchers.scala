@@ -250,7 +250,7 @@ object TopologyMatchers {
 
         override def shouldBeDeviceOf(g: TopologyIpAddrGroup): Unit = {
             ipAddrGroup.id shouldBe g.getId.asJava
-            ipAddrGroup.addrs should contain theSameElementsAs
+            ipAddrGroup.addrPorts should contain theSameElementsAs
                 g.getIpAddrPortsList.asScala.map(_.getIpAddress.asIPAddress)
         }
     }
