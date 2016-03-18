@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a6ff13c_ee3b37e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-18T14:35:41Z",
+      "side": 1,
+      "message": "I\u0027m having trouble digesting this patch and i think it\u0027s the naming. Context and Handler are so generic I have to keep remind myself what they do. Could you rename context to ExecutionContext or ThreadContext or something?",
+      "revId": "f7351e6ab4ee8f44b923ac302000e0c2d12ecf66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_6e2f47a2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-18T14:35:41Z",
+      "side": 1,
+      "message": "The referencing here still feels wrong. It\u0027s circular.\n\nHow about an object ContainerInstance, which has an immutable reference to the handler and the execution context. the handler then has a reference to the execution context. There\u0027s no circles, just a diamond.\n\nWhen starting a container, you can look up the previous instance by id, and reuse the execution context associated with it.",
+      "revId": "f7351e6ab4ee8f44b923ac302000e0c2d12ecf66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
