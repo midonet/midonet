@@ -36,6 +36,9 @@ parser_opts = [
         'debug', short='d', default=False, dest='debug',
         help='Turn on debug logging (off by default).'),
     cfg.StrOpt(
+        'zookeeper', short='z', default=None, dest='zk_server',
+        help='Location of the '),
+    cfg.StrOpt(
         'from', short='f',
         default=valid_from_versions[0], dest='from_version',
         help='Specify which version you are upgrading from.  '
@@ -68,7 +71,7 @@ script_module = None
 try:
     script_module = __import__(name='data_migration.' +
                                     script_package_name +
-                                    '.migration',
+                                    '.neutron_migration',
                                fromlist=['migrate'])
 except ImportError:
     raise upg.UpgradeScriptException('No module found in data_migration '
