@@ -318,18 +318,6 @@ run_process midolman "./gradlew -a :midolman:runWithSudo"
 # MidoNet Client
 # --------------
 
-sudo pip install -U webob readline httplib2 protobuf
-cd $TOP_DIR/python-midonetclient
-sudo python setup.py build_py
-sudo python setup.py develop
-
-# Make sure to remove system lib path in case it exists
-PYTHON_PACKAGE_DIR=/usr/lib/python2.7/dist-packages
-EASY_INSTALL_FILE=/usr/local/lib/python2.7/dist-packages/easy-install.pth
-if grep -qw $PYTHON_PACKAGE_DIR $EASY_INSTALL_FILE; then
-    grep -v $PYTHON_PACKAGE_DIR $EASY_INSTALL_FILE | sudo tee $EASY_INSTALL_FILE
-fi
-
 # Wait for HostService to register the host
 if ! timeout 60 sh -c 'while test -z $(midonet-cli -e host list); do sleep 1; done'; then
     die $LINENO "HostService didn't register the host"
