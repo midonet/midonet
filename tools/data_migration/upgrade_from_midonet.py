@@ -15,7 +15,7 @@
 #    under the License.
 
 
-import data_migration.upgrade_base as upg
+from data_migration.migration_funcs import UpgradeScriptException
 import logging
 from oslo_config import cfg
 
@@ -35,6 +35,14 @@ parser_opts = [
     cfg.BoolOpt(
         'debug', short='d', default=False, dest='debug',
         help='Turn on debug logging (off by default).'),
+    cfg.BoolOpt(
+        'changes', short='c', default=False, dest='changed_obejcts',
+        help='Set this flag to also migrate any objects changed in '
+             'the MidoNet API/CLI that were NOT changed in the '
+             'Neutron DB.  Default behavior is to only migrate objects '
+             'that are either in the Neutron DB (in which case, use the '
+             'Neutron DB version of the object), or were added as a new '
+             'object through the MidoNet CLI/API.'),
     cfg.StrOpt(
         'from', short='f',
         default=valid_from_versions[0], dest='from_version',
@@ -53,6 +61,7 @@ cli_conf.register_cli_opts(parser_opts)
 cli_conf()
 
 debug = cli_conf['debug']
+migrate_changed_obejcts = cli_conf['changed_obejcts']
 dry_run = cli_conf['dryrun']
 script_params = cli_conf['params']
 from_version = cli_conf['from_version']
@@ -68,20 +77,22 @@ script_module = None
 try:
     script_module = __import__(name='data_migration.' +
                                     script_package_name +
-                                    '.migration',
+                                    '.midonet_migration',
                                fromlist=['migrate'])
-except ImportError:
-    raise upg.UpgradeScriptException('No module found in data_migration '
-                                     'package: ' + script_package_name)
+except ImportError as e:
+    raise UpgradeScriptException('No module found in data_migration '
+                                 'package: ' + script_package_name + ": " +
+                                 str(e))
 
 migration_func = None
 try:
     migration_func = getattr(script_module, 'migrate')
 except AttributeError:
-    raise upg.UpgradeScriptException('The "' + script_package_name +
-                                     '" module is present, but has no "'
-                                     '"migrate" entry point function.')
+    raise UpgradeScriptException('The "' + script_package_name +
+                                 '" module is present, but has no "'
+                                 '"migrate" entry point function.')
 
 migration_func(debug=debug, dry_run=dry_run,
+               migrate_changed_obejcts=migrate_changed_obejcts,
                from_version=from_version,
                **script_params)
