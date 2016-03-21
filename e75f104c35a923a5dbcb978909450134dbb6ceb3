@@ -16,6 +16,24 @@
       "revId": "e75f104c35a923a5dbcb978909450134dbb6ceb3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a6ced46_c6da0417",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-21T17:39:43Z",
+      "side": 1,
+      "message": "Yes, sorry, shouldn\u0027t have submitted yet, I noticed that and was working on another patchset. It was even worse as the apply method was recursive :(",
+      "parentUuid": "1a6ced46_26d59843",
+      "revId": "e75f104c35a923a5dbcb978909450134dbb6ceb3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
