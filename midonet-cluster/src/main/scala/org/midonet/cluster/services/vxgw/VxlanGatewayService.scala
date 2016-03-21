@@ -28,7 +28,7 @@ import com.google.inject.Inject
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
-import rx.{Observable, Observer, Subscription}
+import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.cluster._
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher
@@ -64,13 +64,12 @@ class VxlanGatewayService @Inject()(
         ovsdbCnxnProvider: OvsdbVtepConnectionProvider,
         zkConnWatcher: ZookeeperConnectionWatcher,
         metrics: MetricRegistry,
-        conf: ClusterConfig)
-    extends Minion(nodeCtx) {
+        conf: ClusterConfig) extends Minion(nodeCtx) {
 
     private val log = LoggerFactory.getLogger(vxgwLog)
 
     private var fpManager: FloodingProxyManager = _
-    private val vtepSyncers = new util.HashMap[UUID, Subscription]()
+    private val vtepSyncers = new util.HashMap[UUID, Subscriber[Vtep]]()
     private val knownVteps = new util.HashMap[UUID, Snatcher[Vtep]]
 
     // Executor on which we schedule tasks to release the ZK event thread.
@@ -80,7 +79,7 @@ class VxlanGatewayService @Inject()(
 
     private val maxVtepBuffer = 10000
     private val alertOverflow = makeAction0 {
-        log.error(s"VTEP buffer overflow (>$maxVtepBuffer) - terminating")
+        log.error(s"VTEP buffer overflow ($maxVtepBuffer) - terminating")
         notifyFailed(new IllegalStateException(s"Using > $maxVtepBuffer VTEPs"))
         shutdown()
     }
@@ -99,8 +98,8 @@ class VxlanGatewayService @Inject()(
             }
         }
         override def onError(t: Throwable): Unit = {
-            log.warn(s"VTEP $vtepId error emitted on update stream, this will" +
-                     s" stop the synchronization process for this VTEP.")
+            log.warn(s"VTEP $vtepId error emitted on update stream, this will " +
+                     "stop the synchronization process for this VTEP.")
             onCompleted()
         }
         override def onNext(vtep: Vtep): Unit = {
@@ -129,10 +128,8 @@ class VxlanGatewayService @Inject()(
         val syncer = new VtepSynchronizer(vtepId, backend.store,
                                           backend.stateStore, dataClient,
                                           fpManager.herald, loadOvdsbCnxn)
-        vtepSyncers.put(
-            vtepId,
-            backend.store.observable(classOf[Vtep], vtepId).subscribe(syncer)
-        )
+        vtepSyncers.put(vtepId, syncer)
+        backend.store.observable(classOf[Vtep], vtepId).subscribe(syncer)
     }
 
     private def stopVtepSync(vtepId: UUID): Unit = {
@@ -140,6 +137,7 @@ class VxlanGatewayService @Inject()(
             case null =>
             case syncer =>
                 log.info(s"Stop managing VTEP $vtepId")
+                syncer.onCompleted()
                 syncer.unsubscribe()
         }
     }
@@ -151,10 +149,10 @@ class VxlanGatewayService @Inject()(
             .observeOn(Schedulers.from(executor))
             .subscribe(new Observer[Observable[Topology.Vtep]] {
                     override def onCompleted(): Unit = {
-                        log.warn("Vtep stream is closed.")
+                        log.warn("VTEP stream is closed.")
                     }
                     override def onError(e: Throwable): Unit = {
-                        log.warn("Vtep stream fails", e)
+                        log.warn("VTEP stream fails", e)
                     }
                     override def onNext(v: Observable[Vtep]): Unit = {
                         v.subscribe(watchVtep)
