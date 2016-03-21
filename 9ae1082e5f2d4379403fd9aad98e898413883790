@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a6ced46_c333d6f4",
+        "filename": "python-midonetclient/src/midonetclient/api_lib.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-21T08:53:20Z",
+      "side": 1,
+      "message": "Shouldn\u0027t the copyright be changed? This is the old version right?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 69
+      },
+      "revId": "9ae1082e5f2d4379403fd9aad98e898413883790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a6ced46_e330d2ea",
+        "filename": "python-midonetclient/src/midonetclient/exc.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-21T08:53:20Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 69
+      },
+      "revId": "9ae1082e5f2d4379403fd9aad98e898413883790",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
