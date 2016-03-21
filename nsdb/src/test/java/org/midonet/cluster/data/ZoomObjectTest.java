@@ -66,6 +66,30 @@ public class ZoomObjectTest {
     }
 
     @Test
+    public void testConversionWithInstance() {
+        TestMessage message = buildMessage();
+
+        TestableZoomObject pojo = new TestableZoomObject();
+        TestableZoomObject object = ZoomConvert.fromProto(message, pojo);
+
+        assertEquals(pojo, object);
+
+        assertPojo(message, pojo);
+        assertEquals(pojo.after, pojo.int32Field);
+        assertEquals(pojo.baseAfter, pojo.baseField);
+        assertEquals(pojo.before, 0);
+        assertEquals(pojo.baseBefore, 0);
+
+        TestMessage proto = pojo.toProto(TestMessage.class);
+
+        assertProto(message, proto);
+        assertEquals(pojo.after, pojo.int32Field);
+        assertEquals(pojo.baseAfter, pojo.baseField);
+        assertEquals(pojo.before, pojo.int32Field);
+        assertEquals(pojo.baseBefore, pojo.baseField);
+    }
+
+    @Test
     public void testConversionForByteFields() {
         TestableZoomObject2 pojo = new TestableZoomObject2();
         TestMessage proto = pojo.toProto(TestMessage.class);
