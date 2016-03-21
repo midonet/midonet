@@ -144,7 +144,7 @@ def _test_resiliency_from_transient_loop(ping, midoVmIface, exHostIface):
         #
         ping(midoVmIface, exHostIface, count=5, do_arp=True)
 
-
+@nottest # MI-749
 @attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
 def test_icmp_from_mn():
@@ -166,6 +166,7 @@ def test_icmp_from_mn():
     # make sure Midonet has recovered from a transient loop.
     _test_resiliency_from_transient_loop(_ping_from_mn, midoVmIface, exHostIface)
 
+@nottest # MI-749
 @attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
 def test_icmp_to_mn():
@@ -230,6 +231,7 @@ def _test_failover_on_ifdown_with_icmp_from_mn():
 
     _test_failover(_ping_from_mn, failover, restore)
 
+@nottest # MI-749
 @attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
 def test_failover_on_ifdown_with_icmp_from_mn():
@@ -256,6 +258,7 @@ def _test_failover_on_ifdown_with_icmp_to_mn():
 
     _test_failover(_ping_to_mn, failover, restore)
 
+@nottest # MI-749
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failover_on_ifdown_with_icmp_to_mn():
@@ -281,6 +284,7 @@ def _test_failover_on_generic_failure_with_icmp_from_mn():
 
     _test_failover(_ping_from_mn, failover, restore)
 
+@nottest # MI-749
 @attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
 def test_failover_on_generic_failure_with_icmp_from_mn():
@@ -306,6 +310,7 @@ def _test_failover_on_generic_failure_with_icmp_to_mn():
 
     _test_failover(_ping_to_mn, failover, restore)
 
+@nottest # MI-749
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failover_on_generic_failure_with_icmp_to_mn():
@@ -340,6 +345,7 @@ def _test_failback(test_failover, ping, migrate=None):
 
     ping(midoVmIface, exHostIface)
 
+@nottest # MI-749
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failback_on_ifdown_with_icmp_from_mn():
@@ -351,6 +357,7 @@ def test_failback_on_ifdown_with_icmp_from_mn():
     _test_failback(_test_failover_on_ifdown_with_icmp_from_mn,
                    _ping_from_mn, _send_random_udp_to_mn)
 
+@nottest # MI-749
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failback_on_ifdown_with_icmp_to_mn():
@@ -362,6 +369,7 @@ def test_failback_on_ifdown_with_icmp_to_mn():
     _test_failback(_test_failover_on_ifdown_with_icmp_to_mn,
                    _ping_to_mn, _send_random_udp_to_mn)
 
+@nottest # MI-749
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failback_on_generic_failure_with_icmp_from_mn():
@@ -373,6 +381,7 @@ def test_failback_on_generic_failure_with_icmp_from_mn():
     _test_failback(_test_failover_on_generic_failure_with_icmp_from_mn,
                    _ping_from_mn, _send_random_udp_to_mn)
 
+@nottest # MI-749
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failback_on_generic_failure_with_icmp_to_mn():
