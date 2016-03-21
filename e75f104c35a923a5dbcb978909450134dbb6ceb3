@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a6ced46_26d59843",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-21T15:10:54Z",
+      "side": 1,
+      "message": "this will alloc. you\u0027re returning a NatKeyStore from natKeyFromSbe and then passing that into natTable, which expects a NatKey. Worse, its also passed into flowInvalidation.invalidateFlowFors, which would call the implicit _again_ thus allocating again. implicits are bloody dangerous.\n\nPerhaps you could create a nat key factory, that you pass to natKeyFromSbe. have one method on it (like the apply method) that creates the concrete NatKey class that we use in the agent.",
+      "revId": "e75f104c35a923a5dbcb978909450134dbb6ceb3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
