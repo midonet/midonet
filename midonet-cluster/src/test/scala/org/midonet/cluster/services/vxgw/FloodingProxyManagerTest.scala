@@ -103,7 +103,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
                }
     }
 
-    "The happy case" should "yield happy results" in {
+    ignore /*"The happy case" DISABLED MI-747 */should "yield happy results" in {
         fpManager.start()
 
         val tzId = makeTz(TunnelZone.Type.VTEP)
