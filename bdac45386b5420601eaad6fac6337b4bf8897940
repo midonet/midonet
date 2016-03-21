@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a6ced46_86948c45",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-21T15:37:56Z",
+      "side": 1,
+      "message": "Right, but can you remove the references to openVpn and IPv6? This is confusing since are not strongly related to tun interfaces (I don\u0027t think there is such thing as an IPv6 hardware address). In this case, I think the null check is self-explanatory. Same comment for the commit msg.",
+      "range": {
+        "startLine": 384,
+        "startChar": 8,
+        "endLine": 392,
+        "endChar": 81
+      },
+      "revId": "bdac45386b5420601eaad6fac6337b4bf8897940",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
