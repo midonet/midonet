@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a6ced46_77aad8d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-22T09:53:33Z",
+      "side": 0,
+      "message": "Should this be flow.linkedFlow in the original patch?",
+      "range": {
+        "startLine": 159,
+        "startChar": 27,
+        "endLine": 159,
+        "endChar": 31
+      },
+      "revId": "ae4c652c7934e950a1890732ef4f9ef0e01b1154",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
