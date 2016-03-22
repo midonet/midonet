@@ -43,7 +43,7 @@ class IpAddrGroupUrlProviderMixin(url_provider.UrlProviderMixin):
         return self.ipaddr_group_url(ipg_id) + "/ip_addrs"
 
     def ipaddr_group_version_addr_url(self, ipg_id, v, addr):
-        return self.ipaddr_group_version_url(ipg_id, v) + "/" + addr
+        return self.ipaddr_group_version_url(ipg_id, v) + "ip_addrs/" + addr
 
     def ipaddr_group_version_url(self, ipg_id, v):
         return self.ipaddr_group_url(ipg_id) + "/versions/" + v
