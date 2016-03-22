@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a6ced46_97c3d489",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 8
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-22T10:22:51Z",
+      "side": 1,
+      "message": "Why not operations? I\u0027m saying this because you do both reads and writes to NSDB. Also 100 it\u0027s quite high because some of these operations retrieve all children of a node. I\u0027d specify 10 as a default. What do you think?",
+      "range": {
+        "startLine": 178,
+        "startChar": 64,
+        "endLine": 178,
+        "endChar": 70
+      },
+      "revId": "0670bcd7eaeb54d1d08b24d4ae555a99e5ed7c51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a6ced46_b7d9b085",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/ObjectRecycler.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-22T10:22:51Z",
+      "side": 1,
+      "message": "This should go above line 88.",
+      "range": {
+        "startLine": 101,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 49
+      },
+      "revId": "0670bcd7eaeb54d1d08b24d4ae555a99e5ed7c51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a6ced46_d7b8ec2c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclingContext.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2016-03-22T10:22:51Z",
+      "side": 1,
+      "message": "Since the interval is expressed in nanoseconds, this should be 10^9 instead of 10^6.",
+      "range": {
+        "startLine": 67,
+        "startChar": 36,
+        "endLine": 67,
+        "endChar": 44
+      },
+      "revId": "0670bcd7eaeb54d1d08b24d4ae555a99e5ed7c51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
