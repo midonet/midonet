@@ -569,6 +569,7 @@ def test_disabling_topology_loadbalancing():
     disable_and_assert_traffic_fails(sender, action_loadbalancer, vips=vips)
     enable_and_assert_traffic_succeeds(sender, action_loadbalancer, vips=vips)
 
+@nottest # MI-751
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_haproxy_failback():
@@ -625,6 +626,7 @@ def test_haproxy_failback():
 
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
+@nottest # MI-751
 def test_health_monitoring_backend_failback():
     """
     Title: Health monitoring backend failure resilience test
