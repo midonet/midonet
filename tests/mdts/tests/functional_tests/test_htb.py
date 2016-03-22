@@ -18,6 +18,7 @@ from mdts.lib.binding_manager import BindingManager
 from mdts.lib.failure.scan_port_failure import ScanPortFailure
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils import *
+from mdts.tests.utils.utils import bindings
 from nose.tools import with_setup, nottest
 from nose.plugins.attrib import attr
 
