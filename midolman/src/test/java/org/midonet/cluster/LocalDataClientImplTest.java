@@ -233,10 +233,14 @@ public class LocalDataClientImplTest {
             UUID portId = client.portsCreate(getStockBridgePort(bridgeId));
 
             // Add data that used to exist in an older version
-            directory.add(pathBuilder.getFilterPath(portId) + "/snat_blocks",
+            directory.add(pathBuilder.getFilterSnatBlocksPath(portId),
                           null, CreateMode.PERSISTENT);
 
+            assertThat(client.portsExists(portId), equalTo(true));
+
             client.portsDelete(portId);
+
+            assertThat(client.portsExists(portId), equalTo(false));
         }
 
         @Test
@@ -245,10 +249,54 @@ public class LocalDataClientImplTest {
             UUID portId = client.portsCreate(getStockRouterPort(routerId));
 
             // Add data that used to exist in an older version
-            directory.add(pathBuilder.getFilterPath(portId) + "/snat_blocks",
+            directory.add(pathBuilder.getFilterSnatBlocksPath(portId),
                           null, CreateMode.PERSISTENT);
 
+            assertThat(client.portsExists(portId), equalTo(true));
+
             client.portsDelete(portId);
+
+            assertThat(client.portsExists(portId), equalTo(false));
+        }
+
+        @Test
+        public void bridgeDeletionWithLeftOverDataTest() throws Exception {
+            UUID bridgeId = client.bridgesCreate(getStockBridge());
+            UUID portId = client.portsCreate(getStockBridgePort(bridgeId));
+
+            // Add data that used to exist in an older version
+            directory.add(pathBuilder.getFilterSnatBlocksPath(portId),
+                          null, CreateMode.PERSISTENT);
+            directory.add(pathBuilder.getFilterSnatBlocksPath(bridgeId),
+                          null, CreateMode.PERSISTENT);
+
+            assertThat(client.portsExists(portId), equalTo(true));
+            assertThat(client.bridgeExists(bridgeId), equalTo(true));
+
+            client.bridgesDelete(bridgeId);
+
+            assertThat(client.portsExists(portId), equalTo(false));
+            assertThat(client.bridgeExists(bridgeId), equalTo(false));
+        }
+
+        @Test
+        public void routerDeletionWithLeftOverDataTest() throws Exception {
+            UUID routerId = client.routersCreate(getStockRouter());
+            UUID portId = client.portsCreate(getStockRouterPort(routerId));
+
+            // Add data that used to exist in an older version
+            directory.add(pathBuilder.getFilterSnatBlocksPath(portId),
+                          null, CreateMode.PERSISTENT);
+            directory.add(pathBuilder.getFilterSnatBlocksPath(routerId),
+                          null, CreateMode.PERSISTENT);
+
+            assertThat(client.portsExists(portId), equalTo(true));
+            assertThat(client.routerExists(routerId), equalTo(true));
+
+            client.routersDelete(routerId);
+
+            assertThat(client.portsExists(portId), equalTo(false));
+            assertThat(client.routerExists(routerId), equalTo(false));
         }
     }
 

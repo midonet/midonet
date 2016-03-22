@@ -686,7 +686,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         String portPath = paths.getPortPath(id);
         log.debug("Preparing to delete: " + portPath);
         ops.add(Op.delete(portPath, -1));
-        ops.addAll(filterZkManager.prepareDelete(id));
+        filterZkManager.prepareDelete(ops, id);
 
         // Remove the reference of this port from the port groups
         if (config.portGroupIDs != null) {
@@ -704,7 +704,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         // bridge ports
         List<Op> ops = new ArrayList<Op>();
         ops.add(Op.delete(paths.getPortPath(id), -1));
-        ops.addAll(filterZkManager.prepareDelete(id));
+        filterZkManager.prepareDelete(ops, id);
 
         // Remove the reference of this port from the port groups
         if (config.portGroupIDs != null) {

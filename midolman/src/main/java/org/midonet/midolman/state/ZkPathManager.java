@@ -252,6 +252,10 @@ public class ZkPathManager {
         return buildFiltersPath().append("/").append(id);
     }
 
+    public String getFilterSnatBlocksPath(UUID id) {
+        return buildFilterPath(id).append("/snat_blocks").toString();
+    }
+
     /**
      * Get Versions path.
      *

@@ -672,8 +672,7 @@ public class LocalDataClientImpl implements DataClient {
             return;
         }
 
-        List<Op> ops = bridgeZkManager.prepareBridgeDelete(id);
-        zkManager.multi(ops);
+        commitOps(bridgeZkManager.prepareBridgeDelete(id));
     }
 
      @Override
@@ -2927,8 +2926,7 @@ public class LocalDataClientImpl implements DataClient {
             return;
         }
 
-        List<Op> ops = routerZkManager.prepareRouterDelete(id);
-        zkManager.multi(ops);
+        commitOps(routerZkManager.prepareRouterDelete(id));
     }
 
     @Override
