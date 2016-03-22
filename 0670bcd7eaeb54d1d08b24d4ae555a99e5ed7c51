@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a6ced46_779e5858",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 8
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-22T11:21:43Z",
+      "side": 1,
+      "message": "Hmm, I might change it for the read, because some writes use the read timestamp to determine the write, or the version number provider by the read, so maybe they should be back-to-back.\n\nI\u0027ll wait for more feedback on this. The throttling rate: maybe 10 a second is too low (this would allow only 864,000 ops  or writes/day)",
+      "parentUuid": "1a6ced46_97c3d489",
+      "range": {
+        "startLine": 178,
+        "startChar": 64,
+        "endLine": 178,
+        "endChar": 70
+      },
+      "revId": "0670bcd7eaeb54d1d08b24d4ae555a99e5ed7c51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a6ced46_b7d9b085",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/ObjectRecycler.scala",
         "patchSetId": 8
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1a6ced46_57995c6d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/ObjectRecycler.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-22T11:21:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a6ced46_b7d9b085",
+      "range": {
+        "startLine": 101,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 49
+      },
+      "revId": "0670bcd7eaeb54d1d08b24d4ae555a99e5ed7c51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a6ced46_d7b8ec2c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclingContext.scala",
         "patchSetId": 8
@@ -59,6 +107,30 @@
       "writtenOn": "2016-03-22T10:22:51Z",
       "side": 1,
       "message": "Since the interval is expressed in nanoseconds, this should be 10^9 instead of 10^6.",
+      "range": {
+        "startLine": 67,
+        "startChar": 36,
+        "endLine": 67,
+        "endChar": 44
+      },
+      "revId": "0670bcd7eaeb54d1d08b24d4ae555a99e5ed7c51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a6ced46_3794e036",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclingContext.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-22T11:21:43Z",
+      "side": 1,
+      "message": "Damn, I\u0027m always making this mistake. Will fix.",
+      "parentUuid": "1a6ced46_d7b8ec2c",
       "range": {
         "startLine": 67,
         "startChar": 36,
