@@ -63,17 +63,14 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
         tags.clear()
     }
 
-    override def toString: String =
-        toString(linkedFlow ne null)
-
-    private def toString(printLinked: Boolean): String = {
+    override def toString: String = {
         "ManagedFlow{" +
             s"objref=${System.identityHashCode(this)}" +
             s", flowMatch=$flowMatch" +
             s", flowMatch hash=${flowMatch.hashCode()}" +
             s", sequence=$sequence" +
             s", refs=$currentRefCount" +
-            (if (printLinked) s", linked flow=${linkedFlow.toString(false)}" else "") +
+            (if (linkedFlow ne null) s", linked flow=$linkedFlow" else "") +
             '}'
     }
 }

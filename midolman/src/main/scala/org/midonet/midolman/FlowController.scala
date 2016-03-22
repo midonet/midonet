@@ -90,8 +90,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
             // the inner packets flow first, make that the main ManagedFlow
             val outerFlow = takeFlow()
             outerFlow.reset(
-                context.origMatch, NO_TAGS, NO_CALLBACKS,
-                0L, expiration, clock.tick, flow)
+                context.origMatch, NO_TAGS, NO_CALLBACKS, 0L, expiration, clock.tick)
             flow.reset(
                 context.recircMatch, context.flowTags, context.flowRemovedCallbacks,
                 0L, expiration, clock.tick, outerFlow)
@@ -117,14 +116,16 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         val flow = indexToFlow(mark & mask)
         if ((flow ne null) && flow.mark == mark && !flow.removed) {
             log.debug(s"Removing duplicate flow $flow")
-            forgetFlow(flow)
+            super.removeFlow(flow)
+            clearFlowIndex(flow)
+            flow.callbacks.runAndClear()
+            flow.removed = true
             var flowsRemoved = 1
             if (flow.linkedFlow ne null) {
-                removeFlowFromDatapath(flow.linkedFlow)
-                forgetFlow(flow.linkedFlow)
                 flowsRemoved += 1
             }
             metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
+            flow.unref()
         }
     }
 
@@ -139,36 +140,25 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         super.registerFlow(flow)
         indexFlow(flow)
         meters.trackFlow(flow.flowMatch, flow.tags)
-        var flowsAdded = 1
-        if (flow.linkedFlow ne null) {
-            indexFlow(flow.linkedFlow)
-            flow.linkedFlow.ref()
-            flowsAdded += 1
-        }
-        metrics.dpFlowsMetric.mark(flowsAdded)
+        metrics.dpFlowsMetric.mark()
         flow.ref()
     }
 
     override def removeFlow(flow: ManagedFlow): Unit =
         if (!flow.removed) {
+            super.removeFlow(flow)
+            clearFlowIndex(flow)
+            flow.callbacks.runAndClear()
+            flow.removed = true
             removeFlowFromDatapath(flow)
-            forgetFlow(flow)
             var flowsRemoved = 1
             if (flow.linkedFlow ne null) {
                 removeFlowFromDatapath(flow.linkedFlow)
-                forgetFlow(flow)
                 flowsRemoved += 1
             }
             metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
+            flow.unref()
         }
-
-    private def forgetFlow(flow: ManagedFlow): Unit = {
-        super.removeFlow(flow)
-        clearFlowIndex(flow)
-        flow.callbacks.runAndClear()
-        flow.removed = true
-        flow.unref()
-    }
 
     private def processCompletedFlowOperations(): Unit = {
         var req: FlowOperation = null

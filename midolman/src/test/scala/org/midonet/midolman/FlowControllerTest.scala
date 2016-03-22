@@ -18,7 +18,6 @@ package org.midonet.midolman
 
 import akka.actor.Actor
 import akka.testkit.{TestActorRef, TestProbe}
-import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 import org.slf4j.helpers.NOPLogger
@@ -84,30 +83,6 @@ class FlowControllerTest extends MidolmanSpec {
             flow.callbackCalled should be (true)
         }
 
-        scenario("The linked flow of a duplicate flow is removed") {
-            Given("A flow in the flow controller")
-            var flow = new TestableFlow(linked = new FlowMatch)
-            var managedFlow = flow.add()
-            managedFlow should not be null
-
-            When("Marking one of the flows as duplicate")
-            flowController.duplicateFlow(managedFlow.mark)
-
-            Then("Both flows should be marked as removed")
-            flow.callbackCalled should be (true)
-            flow.linkedCallbackCalled should be (true)
-
-            When("Marking the other flow as duplicate")
-            flow = new TestableFlow(linked = new FlowMatch)
-            managedFlow = flow.add()
-            managedFlow should not be null
-            flowController.duplicateFlow(managedFlow.linkedFlow.mark)
-
-            Then("Both flows should be marked as removed")
-            flow.callbackCalled should be (true)
-            flow.linkedCallbackCalled should be (true)
-        }
-
         scenario("A removed flow is not removed again") {
             Given("A flow in the flow controller")
             val flow = new TestableFlow()
@@ -146,10 +121,8 @@ class FlowControllerTest extends MidolmanSpec {
         }
     }
 
-    final class TestableFlow(val fmatch: FlowMatch = new FlowMatch(),
-                             val linked: FlowMatch = null) {
+    final class TestableFlow(val fmatch: FlowMatch = new FlowMatch()) {
         var callbackCalled = false
-        var linkedCallbackCalled = false
 
         def add(tags: FlowTag*): ManagedFlow = {
             val context = new PacketContext(0, null, fmatch)
@@ -157,18 +130,8 @@ class FlowControllerTest extends MidolmanSpec {
             context addFlowRemovedCallback new Callback0 {
                 def call() = callbackCalled = true
             }
-            if (linked ne null) {
-                context.recircPayload = new Ethernet()
-                context.recircMatch = linked
-            }
             flowController.addFlow(context, FlowExpirationIndexer.FLOW_EXPIRATION)
-            val flow = context.flow
-            if (flow.linkedFlow ne null) {
-                flow.linkedFlow.callbacks.add(new Callback0 {
-                    def call() = linkedCallbackCalled = true
-                })
-            }
-            flow
+            context.flow
         }
 
         def remove(flow: ManagedFlow): Unit =
