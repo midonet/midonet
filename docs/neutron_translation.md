@@ -155,8 +155,9 @@ If the port is a DHCP port (device_owner == 'network:dhcp'):
 For all port types, if there is a binding information included in the Neutron
 port data, perform the binding.  The binding information are as follows:
 
- * 'binding:host' => host ID
+ * 'binding:host' => host name (find the host ID from host name)
  * 'binding:profile[interface_name]' => interface name
+
 
 ### UPDATE
 
@@ -192,8 +193,10 @@ For VIF and DHCP ports, the following fields are copied over directly:
 For all port types, if there is a binding information included in the Neutron
 port data, perform the binding.  The binding information are as follows:
 
- * 'binding:host' => host ID
+ * 'binding:host' => host name (find the host ID from host name)
  * 'binding:profile[interface_name]' => interface name
+
+To complete the binding, find the host ID from the host name provided.
 
 If there is 'binding:profile' in the Port data but the value is null, it
 indicates unbinding.  Perform unbinding in such case.
