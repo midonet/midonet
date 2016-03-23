@@ -108,6 +108,25 @@ class FlowControllerTest extends MidolmanSpec {
             flow.linkedCallbackCalled should be (true)
         }
 
+        scenario("both flows are removed if marked as duplicate") {
+            Given("2 linked flows in the flow controller")
+            val flow = new TestableFlow(linked = new FlowMatch)
+            val managedFlow = flow.add()
+            managedFlow should not be null
+
+            val flow2 = new TestableFlow(linked = new FlowMatch)
+            val managedFlow2 = flow2.add()
+            managedFlow2 should not be null
+            managedFlow.linkedFlow = managedFlow2
+
+            When("one of the flows is removed from the flow controller")
+            flow.remove(managedFlow)
+
+            Then("both flows should be removed")
+            managedFlow.removed should be (true)
+            managedFlow2.removed should be (true)
+        }
+
         scenario("A removed flow is not removed again") {
             Given("A flow in the flow controller")
             val flow = new TestableFlow()
