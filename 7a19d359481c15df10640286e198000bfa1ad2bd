@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_67ff6635",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 941,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-23T08:58:37Z",
+      "side": 1,
+      "message": "Yes it is",
+      "parentUuid": "da9b358b_0712dab4",
+      "range": {
+        "startLine": 941,
+        "startChar": 17,
+        "endLine": 941,
+        "endChar": 35
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_271ddebd",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-23T08:01:28Z",
       "side": 1,
       "message": "why don\u0027t you make a client specify host ID, similarly to binding:host?",
+      "range": {
+        "startLine": 946,
+        "startChar": 5,
+        "endLine": 946,
+        "endChar": 57
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_479342fb",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 946,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-23T08:58:37Z",
+      "side": 1,
+      "message": "Even in binding:host, hostname is specified.  MidoNet\u0027s host ID is actually unknown to Neutron (but midonet knows hostnames).  Or did you mean something else as in define a new field similar to \u0027binding:host\u0027 instead?",
+      "parentUuid": "da9b358b_271ddebd",
       "range": {
         "startLine": 946,
         "startChar": 5,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_e7c016e3",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 949,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-23T08:58:37Z",
+      "side": 1,
+      "message": "Right it would, though not attached to any Neutron object.  Not sure if that\u0027s problematic.  We could delay the binding until later if this is concerning.",
+      "parentUuid": "da9b358b_4777c202",
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_c70bd27c",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 5
@@ -76,6 +142,30 @@
       "writtenOn": "2016-03-23T08:01:28Z",
       "side": 1,
       "message": "router_vtep?",
+      "range": {
+        "startLine": 1008,
+        "startChar": 11,
+        "endLine": 1008,
+        "endChar": 22
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_c7b5127f",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 1008,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-23T08:58:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_c70bd27c",
       "range": {
         "startLine": 1008,
         "startChar": 11,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_a7ba0e6d",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 1011,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-23T08:58:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_a710cea9",
+      "range": {
+        "startLine": 1011,
+        "startChar": 65,
+        "endLine": 1011,
+        "endChar": 75
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_0779bafc",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 5
@@ -122,6 +236,30 @@
       "writtenOn": "2016-03-23T08:01:28Z",
       "side": 1,
       "message": "l2_gateway_connection\n\nditto for below",
+      "range": {
+        "startLine": 1012,
+        "startChar": 49,
+        "endLine": 1012,
+        "endChar": 70
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_87b02a8d",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 1012,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-23T08:58:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_0779bafc",
       "range": {
         "startLine": 1012,
         "startChar": 49,
