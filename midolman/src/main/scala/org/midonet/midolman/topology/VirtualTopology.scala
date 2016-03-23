@@ -163,16 +163,15 @@ object VirtualTopology extends MidolmanLogging {
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
  */
-class VirtualTopology(
-        val backend: MidonetBackend,
-        val config: MidolmanConfig,
-        val state: LegacyStorage,
-        val connectionWatcher: ZkConnectionAwareWatcher,
-        val simBackChannel: SimulationBackChannel,
-        val metricRegistry: MetricRegistry,
-        val vtExecutor: ExecutorService,
-        vtExecutorCheck: () => Boolean,
-        ioExecutor: ExecutorService)
+class VirtualTopology(val backend: MidonetBackend,
+                      val config: MidolmanConfig,
+                      val state: LegacyStorage,
+                      val connectionWatcher: ZkConnectionAwareWatcher,
+                      val simBackChannel: SimulationBackChannel,
+                      val metricRegistry: MetricRegistry,
+                      val vtExecutor: ExecutorService,
+                      val ioExecutor: ExecutorService,
+                      vtExecutorCheck: () => Boolean)
     extends MidolmanLogging {
 
     import VirtualTopology._
@@ -308,7 +307,7 @@ class VirtualTopology(
         if (!vtExecutorCheck()) {
             val curThread = Thread.currentThread()
             throw new DeviceMapperException(
-                s"Call expected on vtExecutor thread but received on " +
+                s"Call expected on VT executor thread but received on " +
                 s"${curThread.getId} - ${curThread.getName}")
         }
     }

@@ -18,6 +18,7 @@ package org.midonet.midolman.services;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.state.PeerResolver;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
+import org.midonet.midolman.topology.VirtualTopology;
 
 /**
  * Basic controller of the internal midolman services.
@@ -56,6 +58,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject(optional = true)
     HostService hostService;
+
+    @Inject
+    VirtualTopology virtualTopology;
 
     @Inject
     VirtualToPhysicalMapper virtualToPhysicalMapper;
@@ -127,6 +132,24 @@ public class MidolmanService extends AbstractService {
                 notifyFailed(e);
                 // Keep stopping services.
             }
+        }
+
+        log.info("Stopping executors");
+        try {
+            virtualTopology.vtExecutor().shutdown();
+            virtualTopology.ioExecutor().shutdown();
+            if (!virtualTopology.vtExecutor()
+                .awaitTermination(5, TimeUnit.SECONDS)) {
+                log.warn("Stopping the VT executor timed out");
+                virtualTopology.vtExecutor().shutdownNow();
+            }
+            if (!virtualTopology.ioExecutor()
+                                .awaitTermination(5, TimeUnit.SECONDS)) {
+                log.warn("Stopping the I/O executor timed out");
+                virtualTopology.ioExecutor().shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            log.error("Exception while stopping the executors", e);
         }
 
         if (state() != State.FAILED)
