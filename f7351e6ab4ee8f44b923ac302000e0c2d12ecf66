@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_8a202f4b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-23T13:44:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a6ff13c_ee3b37e9",
+      "revId": "f7351e6ab4ee8f44b923ac302000e0c2d12ecf66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_6e2f47a2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2016-03-18T14:35:41Z",
       "side": 1,
       "message": "The referencing here still feels wrong. It\u0027s circular.\n\nHow about an object ContainerInstance, which has an immutable reference to the handler and the execution context. the handler then has a reference to the execution context. There\u0027s no circles, just a diamond.\n\nWhen starting a container, you can look up the previous instance by id, and reuse the execution context associated with it.",
+      "revId": "f7351e6ab4ee8f44b923ac302000e0c2d12ecf66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_551d2c65",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-23T13:44:50Z",
+      "side": 1,
+      "message": "Done. I added a new instance class that encapsulates both the context and the handler. The handler is not immutable though because we need the ability to clear the handler from the instance but keeping the instance with the context in the map until the context finishes executing all tasks. However, the instance should be ready of accepting a recreation of the same container with a new handler, if one occurs before the context finishes executing the current jobs.",
+      "parentUuid": "3a6ff13c_6e2f47a2",
       "revId": "f7351e6ab4ee8f44b923ac302000e0c2d12ecf66",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
