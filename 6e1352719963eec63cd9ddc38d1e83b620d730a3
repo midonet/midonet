@@ -22,6 +22,29 @@
       "revId": "6e1352719963eec63cd9ddc38d1e83b620d730a3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_e78c9637",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 935,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-23T08:01:28Z",
+      "side": 0,
+      "message": "did you intentionally avoid mentioning the specific exception?",
+      "range": {
+        "startLine": 934,
+        "startChar": 58,
+        "endLine": 935,
+        "endChar": 18
+      },
+      "revId": "6e1352719963eec63cd9ddc38d1e83b620d730a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

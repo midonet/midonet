@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_0712dab4",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 941,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-23T08:01:28Z",
+      "side": 1,
+      "message": "interfaces field of gateway_device?\nis it a new field?",
+      "range": {
+        "startLine": 941,
+        "startChar": 17,
+        "endLine": 941,
+        "endChar": 35
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_271ddebd",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 946,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-23T08:01:28Z",
+      "side": 1,
+      "message": "why don\u0027t you make a client specify host ID, similarly to binding:host?",
+      "range": {
+        "startLine": 946,
+        "startChar": 5,
+        "endLine": 946,
+        "endChar": 57
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_4777c202",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 949,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-23T08:01:28Z",
+      "side": 1,
+      "message": "does this mean that just creating a gateway device starts bridging among its interfaces?",
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_c70bd27c",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 1008,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-23T08:01:28Z",
+      "side": 1,
+      "message": "router_vtep?",
+      "range": {
+        "startLine": 1008,
+        "startChar": 11,
+        "endLine": 1008,
+        "endChar": 22
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_a710cea9",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 1011,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-23T08:01:28Z",
+      "side": 1,
+      "message": "l2_gateway\n\nditto for below",
+      "range": {
+        "startLine": 1011,
+        "startChar": 65,
+        "endLine": 1011,
+        "endChar": 75
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_0779bafc",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 1012,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-23T08:01:28Z",
+      "side": 1,
+      "message": "l2_gateway_connection\n\nditto for below",
+      "range": {
+        "startLine": 1012,
+        "startChar": 49,
+        "endLine": 1012,
+        "endChar": 70
+      },
+      "revId": "7a19d359481c15df10640286e198000bfa1ad2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
