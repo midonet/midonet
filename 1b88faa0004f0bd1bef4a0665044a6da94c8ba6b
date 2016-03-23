@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_1537a4b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowState.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-23T14:31:37Z",
+      "side": 1,
+      "message": "This works, and doesn\u0027t allocate, but it\u0027s putting the deserialization code in two places. \n\nMy previous suggesting was to add a factory parameter to {natKey,connTrackKey,trace}FromSbe.\n\nFor example\n\ntrait ConnTrackAllocator[T] \u003d {\n   def allocateConntrack(networkSrc: IPAddr,\n                         icmpIdOrTransportSrc: Int,\n                         networkDst: IPAddr,\n                         icmpIdOrTransportDst: Int,\n                         networkProtocol: Byte,\n                         deviceId: UUID): T\n}\n\nThat can then be implemented once for a storage conntrack key and once for a agent conntrack key, which would be just passing the allocators to the correct constructor.\n\nConnTrackKeyFromSbe(in nsdb) could take it as the second parameter.\n\ndef connTrackKeyFromSbe(conntrack: Conntrack,\n                        allocator: ConnTrackAllocator[T]): T \u003d {\n    ...\n}\n\nIt\u0027s very similar to what you have, but it removes the need to have ipFromSbe and uuidFromSbe etc in two places.",
+      "revId": "1b88faa0004f0bd1bef4a0665044a6da94c8ba6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
