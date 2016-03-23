@@ -156,7 +156,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
             var flowsRemoved = 1
             if (flow.linkedFlow ne null) {
                 removeFlowFromDatapath(flow.linkedFlow)
-                forgetFlow(flow)
+                forgetFlow(flow.linkedFlow)
                 flowsRemoved += 1
             }
             metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
