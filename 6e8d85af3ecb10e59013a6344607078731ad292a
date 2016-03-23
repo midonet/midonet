@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_2aeec3ec",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-23T12:06:19Z",
+      "side": 1,
+      "message": "how about \"Neutron host ID (different from MidoNet host ID)\"?",
+      "revId": "6e8d85af3ecb10e59013a6344607078731ad292a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
