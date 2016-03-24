@@ -120,5 +120,10 @@ message Condition {
 
     optional bool no_vlan = 60;
     optional uint32 vlan = 61;
+
+    optional IPSubnet icmp_data_src_ip = 62;
+    optional bool icmp_data_src_ip_inv = 63;
+    optional IPSubnet icmp_data_dst_ip = 64;
+    optional bool icmp_data_dst_ip_inv = 65;
     // end of condition fields
 }

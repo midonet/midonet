@@ -218,9 +218,22 @@ trait NatState extends FlowState { this: PacketContext =>
     private def reverseDnatTransformation(natKey: NatKey, binding: NatBinding): Boolean = {
         log.debug("Found reverse DNAT. Use {} for {}", binding, natKey)
         if (isIcmp) {
-            if (natKey.keyType ne REV_STICKY_DNAT)
-                reverseNatOnICMPData(natKey, binding, isSnat = false)
-            else false
+
+            if (natKey.keyType ne REV_STICKY_DNAT) {
+                val changedIp = if (wcmatch.getNetworkSrcIP == natKey.networkSrc) {
+                    wcmatch.setNetworkSrc(binding.networkAddress)
+                    true
+                } else {
+                    false
+                }
+                val transformedICMP = transformICMPData(dnatTransformer,
+                                                        natKey.networkSrc,
+                                                        binding.networkAddress,
+                                                        binding.transportPort)
+                changedIp || transformedICMP
+            } else {
+                false
+            }
         } else {
             wcmatch.setNetworkSrc(binding.networkAddress)
             wcmatch.setSrcPort(binding.transportPort)
@@ -242,7 +255,17 @@ trait NatState extends FlowState { this: PacketContext =>
     private def reverseSnatTransformation(natKey: NatKey, binding: NatBinding): Boolean = {
         log.debug("Found reverse SNAT. Use {} for {}", binding, natKey)
         if (isIcmp) {
-            reverseNatOnICMPData(natKey, binding, isSnat = true)
+            val changedIp = if (wcmatch.getNetworkDstIP == natKey.networkDst) {
+                wcmatch.setNetworkDst(binding.networkAddress)
+                true
+            } else {
+                false
+            }
+            val transformedICMP = transformICMPData(snatTransformer,
+                                                    natKey.networkDst,
+                                                    binding.networkAddress,
+                                                    binding.transportPort)
+            changedIp || transformedICMP
         } else {
             wcmatch.setNetworkDst(binding.networkAddress)
             wcmatch.setDstPort(binding.transportPort)
@@ -307,44 +330,72 @@ trait NatState extends FlowState { this: PacketContext =>
             }
         } else false
 
-    private def reverseNatOnICMPData(
-            natKey: NatKey,
-            binding: NatBinding,
-            isSnat: Boolean): Boolean =
+    // Default port value, signifying no port set.
+    // In an ideal world, I'd use a Option, but that would allocate
+    val NO_NAT_PORT = Int.MaxValue
+
+    val snatTransformer = (ipv4: IPv4, from: IPv4Addr, to: IPv4Addr,
+                           port: Int) => {
+        if (ipv4.getSourceIPAddress() == from) {
+            ipv4.setSourceAddress(to)
+
+            ipv4.getPayload match {
+                case transport: Transport if port != NO_NAT_PORT =>
+                    transport.setSourcePort(port)
+                    transport.clearChecksum()
+                case _ =>
+            }
+            true
+        } else {
+            log.debug("Source address {} doesn't match {}",
+                      ipv4.getSourceIPAddress(), from)
+            false
+        }
+    }
+
+    val dnatTransformer = (ipv4: IPv4, from: IPv4Addr, to: IPv4Addr,
+                           port: Int) =>
+        if (ipv4.getDestinationIPAddress() == from) {
+            ipv4.setDestinationAddress(to)
+
+            ipv4.getPayload match {
+                case transport: Transport if port != NO_NAT_PORT =>
+                    transport.setDestinationPort(port)
+                    transport.clearChecksum()
+                case _ =>
+            }
+            true
+        } else {
+            log.debug("Destination address {} doesn't match {}",
+                      ipv4.getDestinationIPAddress(), from)
+            false
+        }
+
+    def snatOnICMPData(from: IPv4Addr, to: IPv4Addr): Boolean =
+        transformICMPData(snatTransformer, from, to)
+
+    def dnatOnICMPData(from: IPv4Addr, to: IPv4Addr): Boolean =
+        transformICMPData(dnatTransformer, from, to)
+
+    private def transformICMPData(transformer: (IPv4, IPv4Addr, IPv4Addr, Int) => Boolean,
+                                  from: IPv4Addr,
+                                  to: IPv4Addr,
+                                  port: Int = NO_NAT_PORT): Boolean =
         wcmatch.getSrcPort.byteValue() match {
-            case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
-                if (isSnat)
-                    wcmatch.setNetworkDst(binding.networkAddress)
-                else
-                    wcmatch.setNetworkSrc(binding.networkAddress)
-                true
             case ICMP.TYPE_PARAMETER_PROBLEM | ICMP.TYPE_TIME_EXCEEDED |
                  ICMP.TYPE_UNREACH if wcmatch.getIcmpData ne null =>
                 val data = wcmatch.getIcmpData
                 val bb = ByteBuffer.wrap(data)
                 val icmpPayload = new IPv4
                 icmpPayload.deserialize(bb)
-                if (isSnat) {
-                    icmpPayload.setSourceAddress(binding.networkAddress)
-                    if (wcmatch.getNetworkDstIP == natKey.networkDst)
-                        wcmatch.setNetworkDst(binding.networkAddress)
+
+                if (transformer(icmpPayload, from, to, port)) {
+                    icmpPayload.clearChecksum()
+                    wcmatch.setIcmpData(icmpPayload.serialize())
+                    true
                 } else {
-                    icmpPayload.setDestinationAddress(binding.networkAddress)
-                    if (wcmatch.getNetworkSrcIP == natKey.networkSrc)
-                        wcmatch.setNetworkSrc(binding.networkAddress)
+                    false
                 }
-                icmpPayload.getPayload match {
-                    case transport: Transport =>
-                        if (isSnat)
-                            transport.setSourcePort(binding.transportPort)
-                        else
-                            transport.setDestinationPort(binding.transportPort)
-                        transport.clearChecksum()
-                    case _ =>
-                }
-                icmpPayload.clearChecksum()
-                wcmatch.setIcmpData(icmpPayload.serialize())
-                true
             case _ => false
         }
 
@@ -391,7 +442,7 @@ trait NatState extends FlowState { this: PacketContext =>
             NatBinding(chooseRandomIp(nat), chooseRandomPort(nat))
         }
 
-    private def isIcmp = wcmatch.getNetworkProto == ICMP.PROTOCOL_NUMBER
+    def isIcmp = wcmatch.getNetworkProto == ICMP.PROTOCOL_NUMBER
 
     private def chooseRandomNatTarget(nats: Array[NatTarget]): NatTarget =
         nats(ThreadLocalRandom.current().nextInt(nats.size))
