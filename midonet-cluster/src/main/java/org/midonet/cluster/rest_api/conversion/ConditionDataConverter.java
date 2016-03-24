@@ -115,6 +115,20 @@ public class ConditionDataConverter {
         c.ipAddrGroupIdSrc = dto.ipAddrGroupSrc;
         c.invIpAddrGroupIdSrc = dto.invIpAddrGroupSrc;
 
+        if (dto.icmpDataSrcIpAddress != null) {
+            c.icmpDataSrcIp = new IPv4Subnet(
+                    IPv4Addr.fromString(dto.icmpDataSrcIpAddress),
+                    dto.icmpDataSrcIpLength);
+        }
+        c.icmpDataSrcIpInv = dto.invIcmpDataSrcIp;
+
+        if (dto.icmpDataDstIpAddress != null) {
+            c.icmpDataDstIp = new IPv4Subnet(
+                    IPv4Addr.fromString(dto.icmpDataDstIpAddress),
+                    dto.icmpDataDstIpLength);
+        }
+        c.icmpDataDstIpInv = dto.invIcmpDataDstIp;
+
         return c;
     }
 

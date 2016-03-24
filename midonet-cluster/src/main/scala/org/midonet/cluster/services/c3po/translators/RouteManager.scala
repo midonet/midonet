@@ -206,6 +206,9 @@ object RouteManager {
     def fipDnatRuleId(fipId: UUID): UUID =
         fipId.xorWith(0xe40c77c188694ac0L, 0x9a8e6c1863e2232eL)
 
+    def fipReverseDnatRuleId(fipId: UUID): UUID =
+        fipId.xorWith(0x9a8e6c1863e2232eL, 0xe40c77c188694ac0L)
+
     // Deterministically generate the extra route IDs based on the router ID
     // and the route attributes.
     def extraRouteId(routerId:UUID, route: NeutronRoute): UUID = {

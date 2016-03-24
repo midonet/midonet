@@ -17,8 +17,9 @@ from mdts.services.jmx_monitor import JMXMonitor
 from mdts.services.service import Service
 from mdts.tests.utils.conf import is_cluster_enabled
 from midonetclient.api import MidonetApi
-import time
+import logging, time
 
+LOG = logging.getLogger(__name__)
 
 class MidonetClusterHost(Service):
     def __init__(self, container_id):
@@ -59,7 +60,8 @@ class MidonetClusterHost(Service):
                 # that the compat api is actually talking to the NSDB
                 api.get_hosts()
                 return api
-            except:
+            except Exception, e:
+                LOG.warn("Error getting api, retrying. %s" % e)
                 time.sleep(wait_time)
                 timeout -= wait_time
 
