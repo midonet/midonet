@@ -408,7 +408,7 @@ case class RouterPort(override val id: UUID,
 
     private def sendIcmpProhibited(from: RouterPort, context: PacketContext): Unit = {
         import Icmp.IPv4Icmp._
-        val ethOpt = unreachableProhibitedIcmp(from, context)
+        val ethOpt = unreachableProhibitedIcmp(from, context, context.wcmatch)
         if (ethOpt.isDefined)
             context.addGeneratedPacket(from.id, ethOpt.get)
     }
