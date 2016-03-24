@@ -592,6 +592,108 @@ public class TestCondition {
     }
 
     @Test
+    public void testIcmpDataIps() {
+        pktMatch.setNetworkProto((byte) 1);
+
+        // null data
+        Condition cond = new Condition();
+        cond.icmpDataSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.34"), 22);
+        cond.icmpDataSrcIpInv = false;
+        pktMatch.setIcmpData(null);
+        pktCtx = new PacketContext(1, null, pktMatch, null);
+
+        Assert.assertFalse(cond.matches(pktCtx));
+        cond.icmpDataSrcIpInv = true;
+        Assert.assertTrue(cond.matches(pktCtx));
+
+        // empty data
+        cond = new Condition();
+        cond.icmpDataSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.34"), 22);
+        cond.icmpDataSrcIpInv = false;
+        pktMatch.setIcmpData(new byte[0]);
+        pktCtx = new PacketContext(1, null, pktMatch, null);
+
+        Assert.assertFalse(cond.matches(pktCtx));
+        cond.icmpDataSrcIpInv = true;
+        Assert.assertTrue(cond.matches(pktCtx));
+
+        // junk data
+        cond = new Condition();
+        cond.icmpDataSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.34"), 22);
+        cond.icmpDataSrcIpInv = false;
+
+        byte[] randomBytes = new byte[20];
+        rand.nextBytes(randomBytes);
+        randomBytes[12] = 20; // just in case random does match the ip
+        pktMatch.setIcmpData(randomBytes);
+        pktCtx = new PacketContext(1, null, pktMatch, null);
+
+        Assert.assertFalse(cond.matches(pktCtx));
+        cond.icmpDataSrcIpInv = true;
+        Assert.assertTrue(cond.matches(pktCtx));
+
+        // src 22 prefix
+        cond = new Condition();
+        cond.icmpDataSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.34"), 22);
+        cond.icmpDataSrcIpInv = false;
+
+        IPv4 data = new IPv4();
+        data.setSourceAddress(IPv4Addr.fromString("10.0.11.40"));
+        data.setDestinationAddress(IPv4Addr.fromString("192.168.1.1"));
+        pktMatch.setIcmpData(data.serialize());
+        pktCtx = new PacketContext(1, null, pktMatch, null);
+
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.icmpDataSrcIpInv = true;
+        Assert.assertFalse(cond.matches(pktCtx));
+
+        // dst 12 prefix
+        cond = new Condition();
+        cond.icmpDataDstIp = new IPv4Subnet(IPv4Addr.fromString("192.160.23.12"), 12);
+        cond.icmpDataDstIpInv = false;
+
+        data = new IPv4();
+        data.setSourceAddress(IPv4Addr.fromString("10.0.11.40"));
+        data.setDestinationAddress(IPv4Addr.fromString("192.168.1.1"));
+        pktMatch.setIcmpData(data.serialize());
+        pktCtx = new PacketContext(1, null, pktMatch, null);
+
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.icmpDataDstIpInv = true;
+        Assert.assertFalse(cond.matches(pktCtx));
+
+        // src exact match
+        cond = new Condition();
+        cond.icmpDataSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.34"), 32);
+        cond.icmpDataSrcIpInv = false;
+
+        data = new IPv4();
+        data.setSourceAddress(IPv4Addr.fromString("10.0.11.34"));
+        data.setDestinationAddress(IPv4Addr.fromString("192.168.1.1"));
+        pktMatch.setIcmpData(data.serialize());
+        pktCtx = new PacketContext(1, null, pktMatch, null);
+
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.icmpDataSrcIpInv = true;
+        Assert.assertFalse(cond.matches(pktCtx));
+
+        // dst exact match
+        cond = new Condition();
+        cond.icmpDataDstIp = new IPv4Subnet(IPv4Addr.fromString("192.160.23.12"), 32);
+        cond.icmpDataDstIpInv = false;
+
+        data = new IPv4();
+        data.setSourceAddress(IPv4Addr.fromString("10.0.11.40"));
+        data.setDestinationAddress(IPv4Addr.fromString("192.160.23.12"));
+        pktMatch.setIcmpData(data.serialize());
+        pktCtx = new PacketContext(1, null, pktMatch, null);
+
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.icmpDataDstIpInv = true;
+        Assert.assertFalse(cond.matches(pktCtx));
+    }
+
+    @Test
     public void testIpv6() {
         Condition cond = new Condition();
         cond.etherType = 0x86DD;

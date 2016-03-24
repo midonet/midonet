@@ -127,12 +127,26 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
                                         dynamic = false))
             .build()
 
+        val reverseIcmpDnatRule = Rule.newBuilder
+            .setId(fipReverseDnatRuleId(fip.getId))
+            .setType(Rule.Type.NAT_RULE)
+            .setAction(Rule.Action.CONTINUE)
+            .setFipPortId(fip.getPortId)
+            .setCondition(anyFragCondition
+                              .addOutPortIds(rtrPortId)
+                              .setIcmpDataDstIp(IPSubnetUtil.fromAddr(
+                                                    fip.getFixedIpAddress)))
+            .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = true,
+                                        dynamic = false))
+            .build()
+
         val inChain = storage.get(classOf[Chain], iChainId).await()
         val outChain = storage.get(classOf[Chain], oChainId).await()
 
         val ops = new MidoOpListBuffer
         ops += Create(snatRule)
         ops += Create(dnatRule)
+        ops += Create(reverseIcmpDnatRule)
 
         // When an update changes the FIP's association from one port to another
         // behind the same router, the DNAT and SNAT rules' IDs will already be
@@ -146,13 +160,17 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         // removeNatRules() will clear those rules' IDs from the chains' rule
         // ID lists due to the Zoom bindings between Rule.chain_id and
         // Chain.rule_ids.
-        if (!inChain.getRuleIdsList.contains(dnatRule.getId))
-            ops += Update(prependRule(inChain, dnatRule.getId))
-        else ops += Update(inChain)
+        def prependIfAbsent(chain: Chain, rule: UUID): Chain = {
+            if (!chain.getRuleIdsList.contains(rule)) {
+                prependRule(chain, rule)
+            } else {
+                chain
+            }
+        }
+        ops += Update(prependIfAbsent(inChain, dnatRule.getId))
 
-        if (!outChain.getRuleIdsList.contains(snatRule.getId))
-            ops += Update(prependRule(outChain, snatRule.getId))
-        else ops += Update(outChain)
+        // add snat and reverseicmp to outchain if they aren't already there
+        ops += Update(Seq(snatRule.getId, reverseIcmpDnatRule.getId).foldLeft(outChain)(prependIfAbsent))
 
         ops.toList
     }
@@ -230,6 +248,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
     /* Since Delete is idempotent, it is fine if those rules don't exist. */
     private def removeNatRules(fip: FloatingIp): MidoOpList = {
         List(Delete(classOf[Rule], fipSnatRuleId(fip.getId)),
-             Delete(classOf[Rule], fipDnatRuleId(fip.getId)))
+             Delete(classOf[Rule], fipDnatRuleId(fip.getId)),
+             Delete(classOf[Rule], fipReverseDnatRuleId(fip.getId)))
     }
 }

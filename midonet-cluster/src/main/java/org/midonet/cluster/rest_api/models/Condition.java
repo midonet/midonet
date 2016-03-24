@@ -178,12 +178,51 @@ public class Condition extends UriResource {
     public boolean invTpDst;
 
     @JsonIgnore
+    @ZoomField(name = "icmp_data_src_ip", converter = IPSubnetUtil.Converter.class)
+    public IPSubnet<?> icmpDataSrcIp;
+    @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
+    public String icmpDataSrcIpAddress;
+    @Min(0)
+    @Max(32)
+    public int icmpDataSrcIpLength;
+    @ZoomField(name = "icmp_data_src_ip_inv")
+    public boolean invIcmpDataSrcIp;
+
+    @JsonIgnore
+    @ZoomField(name = "icmp_data_dst_ip", converter = IPSubnetUtil.Converter.class)
+    public IPSubnet<?> icmpDataDstIp;
+    @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
+    public String icmpDataDstIpAddress;
+    @Min(0)
+    @Max(32)
+    public int icmpDataDstIpLength;
+    @ZoomField(name = "icmp_data_dst_ip_inv")
+    public boolean invIcmpDataDstIp;
+
+
+    @JsonIgnore
     @Override
     public void afterFromProto(Message proto) {
         nwDstAddress = nwDst != null ? nwDst.getAddress().toString() : null;
         nwDstLength = nwDst != null ? nwDst.getPrefixLen() : 0;
         nwSrcAddress = nwSrc != null ? nwSrc.getAddress().toString() : null;
         nwSrcLength = nwSrc != null ? nwSrc.getPrefixLen() : 0;
+
+        if (icmpDataSrcIp != null) {
+            icmpDataSrcIpAddress = icmpDataSrcIp.getAddress().toString();
+            icmpDataSrcIpLength = icmpDataSrcIp.getPrefixLen();
+        } else {
+            icmpDataSrcIpAddress = null;
+            icmpDataSrcIpLength = 0;
+        }
+
+        if (icmpDataDstIp != null) {
+            icmpDataDstIpAddress = icmpDataDstIp.getAddress().toString();
+            icmpDataDstIpLength = icmpDataDstIp.getPrefixLen();
+        } else {
+            icmpDataDstIpAddress = null;
+            icmpDataDstIpLength = 0;
+        }
     }
 
     @JsonIgnore
@@ -193,6 +232,10 @@ public class Condition extends UriResource {
                 IPv4Subnet.fromCidr(nwDstAddress + "/" + nwDstLength) : null;
         nwSrc = nwSrcAddress != null ?
                 IPv4Subnet.fromCidr(nwSrcAddress + "/" + nwSrcLength) : null;
+        icmpDataSrcIp = icmpDataSrcIpAddress != null ?
+            IPv4Subnet.fromCidr(icmpDataSrcIpAddress + "/" + icmpDataSrcIpLength) : null;
+        icmpDataDstIp = icmpDataDstIpAddress != null ?
+            IPv4Subnet.fromCidr(icmpDataDstIpAddress + "/" + icmpDataDstIpLength) : null;
         fragmentPolicy = getAndValidateFragmentPolicy();
     }
 
@@ -282,5 +325,11 @@ public class Condition extends UriResource {
         if (invTpDst) tsh.add("invTpDst", true);
         tsh.add("vlan", vlan);
         tsh.add("noVlan", noVlan);
+        tsh.add("icmpDataSrcIpAddress", icmpDataSrcIpAddress);
+        tsh.add("icmpDataSrcIpLength", icmpDataSrcIpLength);
+        if (invIcmpDataSrcIp) tsh.add("invIcmpDataSrcIp", invIcmpDataSrcIp);
+        tsh.add("icmpDataDstIpAddress", icmpDataDstIpAddress);
+        tsh.add("icmpDataDstIpLength", icmpDataDstIpLength);
+        if (invIcmpDataDstIp) tsh.add("invIcmpDataDstIp", invIcmpDataDstIp);
     }
 }

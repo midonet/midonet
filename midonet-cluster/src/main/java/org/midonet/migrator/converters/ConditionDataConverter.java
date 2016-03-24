@@ -92,6 +92,19 @@ public class ConditionDataConverter {
         if (null != c.tpSrc) {
             dto.tpSrc = c.tpSrc;
         }
+
+        if (null != c.icmpDataSrcIp) {
+            dto.icmpDataSrcIpAddress = c.icmpDataSrcIp.getAddress().toString();
+            dto.icmpDataSrcIpLength = c.icmpDataSrcIp.getPrefixLen();
+        }
+        dto.invIcmpDataSrcIp = c.icmpDataSrcIpInv;
+
+        if (null != c.icmpDataDstIp) {
+            dto.icmpDataDstIpAddress = c.icmpDataDstIp.getAddress().toString();
+            dto.icmpDataDstIpLength = c.icmpDataDstIp.getPrefixLen();
+        }
+        dto.invIcmpDataDstIp = c.icmpDataDstIpInv;
+
         return dto;
     }
 
