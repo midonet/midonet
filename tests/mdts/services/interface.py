@@ -417,6 +417,11 @@ class Interface(object):
             LOG.debug("Infered ip = %s" % self.ipv4_addr)
         return self.ipv4_addr
 
+    def get_default_gateway_ip(self):
+        return self.execute(
+            """sh -c "ip r | awk '/default via/ { print $3 }'" """,
+            sync=True)
+
     def get_mac_addr(self, update=False):
         if not self.hw_addr or update:
             self.hw_addr = self.execute(

@@ -851,7 +851,11 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                Option(condition.tpDstInv),
                                Option(condition.traversedDevice),
                                Option(condition.traversedDeviceInv),
-                               Option(condition.fragmentPolicy))
+                               Option(condition.fragmentPolicy),
+                               Option(condition.icmpDataSrcIp),
+                               Option(condition.icmpDataSrcIpInv),
+                               Option(condition.icmpDataDstIp),
+                               Option(condition.icmpDataDstIpInv))
         builder
     }
 
