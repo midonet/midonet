@@ -27,6 +27,8 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
 import org.midonet.midolman.services.HostIdProvider
+import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.{FlowStateStorageFactory, MockStateStorage}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUpdate
 import org.midonet.midolman.topology.rcu.ResolvedHost
@@ -86,7 +88,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
             simBackChannel,
             clock,
             new FlowStateStorageFactory() {
-                override def create() = Future.successful(new MockStateStorage())
+                override def create = Future.successful(new MockStateStorage())
             },
         new MockNetlinkChannelFactory) {
     }

@@ -15,23 +15,24 @@
  */
 package org.midonet.midolman.state
 
-import java.util.{UUID, HashMap => JHashMap,
-                  HashSet => JHashSet, Iterator => JIterator}
+import java.util
+import java.util.{UUID, HashMap => JHashMap, HashSet => JHashSet}
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor.ActorSystem
 
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
-import org.midonet.midolman.state.NatState.NatBinding
+import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
+import org.midonet.packets.NatState.{NatKeyStore, NatBinding}
 
+class MockStateStorage extends FlowStateStorage[ConnTrackKey, NatKey] {
+    override def touchConnTrackKey(k: ConnTrackKeyStore, strongRef: UUID,
+                                   weakRefs: util.Iterator[UUID]): Unit = {}
 
-class MockStateStorage extends FlowStateStorage {
-    override def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID,
-            weakRefs: JIterator[UUID]): Unit = {}
-
-    override def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID,
-            weakRefs: JIterator[UUID]): Unit = {}
+    override def touchNatKey(k: NatKeyStore, v: NatBinding, strongRef: UUID,
+                             weakRefs: util.Iterator[UUID]): Unit = {}
 
     override def submit(): Unit = {}
 
@@ -50,4 +51,5 @@ class MockStateStorage extends FlowStateStorage {
     override def fetchWeakNatRefs(port: UUID)
             (implicit ec: ExecutionContext, as: ActorSystem) =
                 Future.successful(new JHashMap[NatKey, NatBinding]())
+
 }

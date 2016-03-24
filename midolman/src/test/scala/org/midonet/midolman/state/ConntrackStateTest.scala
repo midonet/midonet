@@ -26,11 +26,12 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.simulation.BridgePort
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowKeys
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}

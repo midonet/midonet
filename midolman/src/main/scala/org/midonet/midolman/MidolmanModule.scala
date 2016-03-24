@@ -36,7 +36,7 @@ import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath._
@@ -49,6 +49,8 @@ import org.midonet.midolman.monitoring._
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
+import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.netlink.{NetlinkUtil, NetlinkProtocol, NetlinkChannelFactory}
@@ -288,8 +290,9 @@ class MidolmanModule(injector: Injector,
             FlowStateStorage.SCHEMA,
             FlowStateStorage.SCHEMA_TABLE_NAMES)
         new FlowStateStorageFactory() {
-            override def create(): Future[FlowStateStorage] =
-                cass.connect().map(FlowStateStorage(_))(ExecutionContext.callingThread)
+            override def create: Future[FlowStateStorage[ConnTrackKey, NatKey]] =
+                cass.connect()
+                    .map(FlowStateStorage(_, NatKey, ConnTrackKey))(ExecutionContext.callingThread)
         }
     }
 

@@ -34,11 +34,12 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.DhcpConfigFromNsdb
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
 import org.midonet.midolman.state.{PeerResolver, FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
 import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.packets.NatState.NatBinding
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
@@ -163,7 +164,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         val traceShard = traceStateTable.addShard(
             log = shardLogger(traceStateTable))
         val backChannelProcessor = backChannel.registerProcessor()
-        val storage = storageFactory.create()
+        val storage = storageFactory.create
         Props(new PacketWorkflow(
             NUM_WORKERS,
             index,

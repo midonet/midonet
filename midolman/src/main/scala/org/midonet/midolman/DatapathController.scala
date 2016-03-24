@@ -181,7 +181,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     private def subscribeToHost(id: UUID): Unit = {
         val props = Props(new HostRequestProxy(
-                            id, backChannel, storageFactory.create(), self))
+                            id, backChannel, storageFactory.create, self))
                         .withDispatcher(context.props.dispatcher)
         context.actorOf(props, s"HostRequestProxy-$id")
     }

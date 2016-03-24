@@ -16,7 +16,8 @@
 
 package org.midonet.midolman.state
 
-import org.midonet.sdn.state.{FlowStateTable, IdleExpiration}
+import org.midonet.packets.FlowStateStore.IdleExpiration
+import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
 
 class MockFlowStateTable[K <: IdleExpiration, V]()(implicit ev: Null <:< V)

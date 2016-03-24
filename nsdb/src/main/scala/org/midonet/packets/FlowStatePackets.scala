@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state
+package org.midonet.packets
 
-import java.io.ByteArrayInputStream
 import java.util.UUID
 
 import uk.co.real_logic.sbe.codec.java.DirectBuffer
 
-import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, _}
-import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.NatState._
-import org.midonet.midolman.state.TraceState.TraceKey
-import org.midonet.odp.FlowMatch
-import org.midonet.odp.flows.FlowKeyEtherType
-import org.midonet.packets._
+import org.midonet.cluster.flowstate.proto.FlowState.{Trace, Nat}
+import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, MessageHeader, InetAddrType, NatKeyType}
+import org.midonet.packets.ConnTrackState.{ConnTrackKeyAllocator, ConnTrackKeyStore}
+import org.midonet.packets.NatState.{NatKeyStore, NatBinding}
+import org.midonet.packets.TraceState.{TraceKeyAllocator, TraceKeyStore}
+import org.midonet.packets.NatState._
 
-object FlowStatePackets {
+trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
+                       NatKeyT <: NatKeyStore,
+                       TraceKeyT <: TraceKeyStore] {
     /**
      * Frame format for state replication messages:
      *
@@ -63,9 +63,6 @@ object FlowStatePackets {
     val OVERHEAD = 70
 
     val MessageHeaderVersion = 1
-
-    def isStateMessage(fmatch: FlowMatch): Boolean =
-        fmatch.getTunnelKey == TUNNEL_KEY
 
     def makeUdpShell(data: Array[Byte]): Ethernet = {
         import org.midonet.packets.util.PacketBuilder._
@@ -123,34 +120,36 @@ object FlowStatePackets {
     }
 
     def natKeyTypeFromSbe(t: NatKeyType): KeyType = t match {
-        case NatKeyType.FWD_SNAT => NatState.FWD_SNAT
-        case NatKeyType.FWD_DNAT => NatState.FWD_DNAT
-        case NatKeyType.FWD_STICKY_DNAT => NatState.FWD_STICKY_DNAT
-        case NatKeyType.REV_SNAT => NatState.REV_SNAT
-        case NatKeyType.REV_DNAT => NatState.REV_DNAT
-        case NatKeyType.REV_STICKY_DNAT => NatState.REV_STICKY_DNAT
+        case NatKeyType.FWD_SNAT => FWD_SNAT
+        case NatKeyType.FWD_DNAT => FWD_DNAT
+        case NatKeyType.FWD_STICKY_DNAT => FWD_STICKY_DNAT
+        case NatKeyType.REV_SNAT => REV_SNAT
+        case NatKeyType.REV_DNAT => REV_DNAT
+        case NatKeyType.REV_STICKY_DNAT => REV_STICKY_DNAT
         case _ => null
     }
 
     def natKeySbeType(t: KeyType): NatKeyType = t match {
-        case NatState.FWD_SNAT => NatKeyType.FWD_SNAT
-        case NatState.FWD_DNAT => NatKeyType.FWD_DNAT
-        case NatState.FWD_STICKY_DNAT => NatKeyType.FWD_STICKY_DNAT
-        case NatState.REV_SNAT => NatKeyType.REV_SNAT
-        case NatState.REV_DNAT => NatKeyType.REV_DNAT
-        case NatState.REV_STICKY_DNAT => NatKeyType.REV_STICKY_DNAT
+        case FWD_SNAT => NatKeyType.FWD_SNAT
+        case FWD_DNAT => NatKeyType.FWD_DNAT
+        case FWD_STICKY_DNAT => NatKeyType.FWD_STICKY_DNAT
+        case REV_SNAT => NatKeyType.REV_SNAT
+        case REV_DNAT => NatKeyType.REV_DNAT
+        case REV_STICKY_DNAT => NatKeyType.REV_STICKY_DNAT
     }
 
-    def connTrackKeyFromSbe(conntrack: FlowStateSbe.Conntrack): ConnTrackKey = {
-        ConnTrackKey(ipFromSbe(conntrack.srcIpType, conntrack.srcIp),
-                     conntrack.srcPort,
-                     ipFromSbe(conntrack.dstIpType, conntrack.dstIp),
-                     conntrack.dstPort,
-                     conntrack.protocol.toByte,
-                     uuidFromSbe(conntrack.device))
+    def connTrackKeyFromSbe(conntrack: FlowStateSbe.Conntrack,
+                            allocator: ConnTrackKeyAllocator[ConnTrackKeyT])
+    : ConnTrackKeyT = {
+        allocator(ipFromSbe(conntrack.srcIpType, conntrack.srcIp),
+                  conntrack.srcPort,
+                  ipFromSbe(conntrack.dstIpType, conntrack.dstIp),
+                  conntrack.dstPort,
+                  conntrack.protocol.toByte,
+                  uuidFromSbe(conntrack.device))
     }
 
-    def connTrackKeyToSbe(key: ConnTrackKey,
+    def connTrackKeyToSbe(key: ConnTrackKeyT,
                           conntrack: FlowStateSbe.Conntrack): Unit = {
         uuidToSbe(key.deviceId, conntrack.device)
         ipToSbe(key.networkSrc, conntrack.srcIp)
@@ -162,20 +161,23 @@ object FlowStatePackets {
         conntrack.dstIpType(ipSbeType(key.networkDst))
     }
 
-    def natKeyFromSbe(nat: FlowStateSbe.Nat): NatKey =
-        NatKey(natKeyTypeFromSbe(nat.keyType),
-               ipFromSbe(nat.keySrcIpType, nat.keySrcIp).asInstanceOf[IPv4Addr],
-               nat.keySrcPort,
-               ipFromSbe(nat.keyDstIpType, nat.keyDstIp).asInstanceOf[IPv4Addr],
-               nat.keyDstPort, nat.keyProtocol.toByte,
-               uuidFromSbe(nat.keyDevice))
+    def natKeyFromSbe(nat: Nat,
+                      allocator: NatKeyAllocator[NatKeyT])
+    : NatKeyT = {
+        allocator(natKeyTypeFromSbe(nat.keyType),
+                  ipFromSbe(nat.keySrcIpType, nat.keySrcIp).asInstanceOf[IPv4Addr],
+                  nat.keySrcPort,
+                  ipFromSbe(nat.keyDstIpType, nat.keyDstIp).asInstanceOf[IPv4Addr],
+                  nat.keyDstPort, nat.keyProtocol.toByte,
+                  uuidFromSbe(nat.keyDevice))
+    }
 
     def natBindingFromSbe(nat: FlowStateSbe.Nat): NatBinding =
         NatBinding(
             ipFromSbe(nat.valueIpType, nat.valueIp).asInstanceOf[IPv4Addr],
             nat.valuePort)
 
-    def natToSbe(key: NatKey, value: NatBinding,
+    def natToSbe(key: NatKeyT, value: NatBinding,
                  nat: FlowStateSbe.Nat): Unit = {
         uuidToSbe(key.deviceId, nat.keyDevice)
         ipToSbe(key.networkSrc, nat.keySrcIp)
@@ -191,16 +193,19 @@ object FlowStatePackets {
         nat.keyType(natKeySbeType(key.keyType))
     }
 
-    def traceFromSbe(trace: FlowStateSbe.Trace): TraceKey =
-        TraceKey(macFromSbe(trace.srcMac),
-                 macFromSbe(trace.dstMac),
-                 trace.etherType.toShort,
-                 ipFromSbe(trace.srcIpType, trace.srcIp),
-                 ipFromSbe(trace.dstIpType, trace.dstIp),
-                 trace.protocol.toByte,
-                 trace.srcPort, trace.dstPort)
+    def traceFromSbe(trace: Trace,
+                     allocator: TraceKeyAllocator[TraceKeyT])
+    : TraceKeyT = {
+        allocator(macFromSbe(trace.srcMac),
+                  macFromSbe(trace.dstMac),
+                  trace.etherType.toShort,
+                  ipFromSbe(trace.srcIpType, trace.srcIp),
+                  ipFromSbe(trace.dstIpType, trace.dstIp),
+                  trace.protocol.toByte,
+                  trace.srcPort, trace.dstPort)
+    }
 
-    def traceToSbe(flowTraceId: UUID, key: TraceKey,
+    def traceToSbe(flowTraceId: UUID, key: TraceKeyT,
                    trace: FlowStateSbe.Trace): Unit = {
         uuidToSbe(flowTraceId, trace.flowTraceId)
         ipToSbe(key.networkSrc, trace.srcIp)
@@ -238,6 +243,9 @@ object FlowStatePackets {
     }
 }
 
+object FlowStateStorePackets
+    extends FlowStatePackets[ConnTrackKeyStore, NatKeyStore, TraceKeyStore]
+
 class SbeEncoder {
     val flowStateHeader = new MessageHeader
     val flowStateMessage = new FlowStateSbe
@@ -246,7 +254,7 @@ class SbeEncoder {
     def encodeTo(bytes: Array[Byte]): FlowStateSbe = {
         flowStateBuffer.wrap(bytes)
         flowStateHeader.wrap(flowStateBuffer, 0,
-                             FlowStatePackets.MessageHeaderVersion)
+                             FlowStateStorePackets.MessageHeaderVersion)
             .blockLength(flowStateMessage.sbeBlockLength)
             .templateId(flowStateMessage.sbeTemplateId)
             .schemaId(flowStateMessage.sbeSchemaId)
@@ -260,7 +268,7 @@ class SbeEncoder {
     def decodeFrom(bytes: Array[Byte]): FlowStateSbe = {
         flowStateBuffer.wrap(bytes)
         flowStateHeader.wrap(flowStateBuffer, 0,
-                             FlowStatePackets.MessageHeaderVersion)
+                             FlowStateStorePackets.MessageHeaderVersion)
         val templateId = flowStateHeader.templateId
         if (templateId != FlowStateSbe.TEMPLATE_ID) {
             throw new IllegalArgumentException(

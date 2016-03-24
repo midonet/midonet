@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state
+package org.midonet.cluster.storage
 
 import java.lang.{Integer => JInt}
 import java.net.InetAddress
-import java.util.{UUID, Set => JSet, Map => JMap, HashMap => JHashMap,
-                  HashSet => JHashSet, Iterator => JIterator}
-import java.util.concurrent.{TimeoutException, TimeUnit}
+import java.util.concurrent.{TimeUnit, TimeoutException}
+import java.util.{HashMap => JHashMap, HashSet => JHashSet, Iterator => JIterator, Map => JMap, Set => JSet, UUID}
 
-import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import akka.actor.ActorSystem
+
 import com.datastax.driver.core._
 import com.google.common.util.concurrent.{FutureCallback, Futures}
+
 import org.slf4j.{Logger, LoggerFactory}
 
-import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.NatState.{KeyType, NatKey, NatBinding}
-import org.midonet.packets.{IPv4Addr, IPAddr}
+import org.midonet.packets.ConnTrackState.{ConnTrackKeyStore, ConnTrackKeyAllocator}
+import org.midonet.packets.NatState.{NatBinding, _}
+import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.collection.Bimap
 
 object FlowStateStorage {
@@ -93,13 +94,13 @@ object FlowStateStorage {
         NAT_BY_INGRESS_TABLE, NAT_BY_INGRESS_TABLE,
         NAT_BY_EGRESS_TABLE, NAT_BY_EGRESS_TABLE)
 
-    val NAT_KEY_TYPES = Bimap[NatState.KeyType, String](List(
-        NatState.FWD_DNAT -> "fwd_dnat",
-        NatState.FWD_SNAT -> "fwd_snat",
-        NatState.FWD_STICKY_DNAT -> "fwd_sticky_dnat",
-        NatState.REV_DNAT -> "rev_dnat",
-        NatState.REV_SNAT -> "rev_snat",
-        NatState.REV_STICKY_DNAT -> "rev_sticky_dnat"))
+    val NAT_KEY_TYPES = Bimap[KeyType, String](List(
+        FWD_DNAT -> "fwd_dnat",
+        FWD_SNAT -> "fwd_snat",
+        FWD_STICKY_DNAT -> "fwd_sticky_dnat",
+        REV_DNAT -> "rev_dnat",
+        REV_SNAT -> "rev_snat",
+        REV_STICKY_DNAT -> "rev_sticky_dnat"))
 
     def natKeyTypeFromString(str: String): Option[KeyType] = NAT_KEY_TYPES.inverse.get(str)
 
@@ -109,45 +110,37 @@ object FlowStateStorage {
 
     def ipAddrToInet(ip: IPAddr): InetAddress = InetAddress.getByAddress(ip.toBytes)
 
-    def rowToConnTrack(r: Row) = ConnTrackKey(
-            networkSrc = r.getInet("srcIp"),
-            networkDst = r.getInet("dstIp"),
-            icmpIdOrTransportSrc = r.getInt("srcPort"),
-            icmpIdOrTransportDst = r.getInt("dstPort"),
-            deviceId = r.getUUID("device"),
-            networkProtocol = r.getInt("proto").toByte)
-
-    def rowToNatKey(r: Row) = NatKey(
-            keyType = NAT_KEY_TYPES.inverse.get(r.getString("type")).get,
-            networkSrc = inetToIPAddr(r.getInet("srcIp")).asInstanceOf[IPv4Addr],
-            networkDst = inetToIPAddr(r.getInet("dstIp")).asInstanceOf[IPv4Addr],
-            transportSrc = r.getInt("srcPort"),
-            transportDst = r.getInt("dstPort"),
-            networkProtocol = r.getInt("proto").toByte,
-            deviceId = r.getUUID("device"))
-
-    def rowToNatBinding(r: Row) = NatBinding(
-            networkAddress = inetToIPAddr(r.getInet("translateIp")).asInstanceOf[IPv4Addr],
-            transportPort = r.getInt("translatePort"))
-
-    def apply(session: Session): FlowStateStorage = new FlowStateStorageImpl(session)
+    def apply[ConnTrackKeyT <: ConnTrackKeyStore,
+              NatKeyT <: NatKeyStore] (session: Session,
+                                       natAllocator: NatKeyAllocator[NatKeyT],
+                                       conntrackAllocator: ConnTrackKeyAllocator[ConnTrackKeyT])
+    : FlowStateStorageImpl[ConnTrackKeyT, NatKeyT] =
+        new FlowStateStorageImpl[ConnTrackKeyT, NatKeyT](session, natAllocator, conntrackAllocator)
 }
 
-trait FlowStateStorage {
+trait FlowStateStorage[ConnTrackKeyT <: ConnTrackKeyStore, NatKeyT <: NatKeyStore]
+    extends FlowStateStorageReader[ConnTrackKeyT, NatKeyT] with FlowStateStorageWriter
+
+trait FlowStateStorageReader[ConnTrackKeyT <: ConnTrackKeyStore,
+                             NatKeyT <: NatKeyStore] {
+
     def fetchStrongConnTrackRefs(portId: UUID)
-        (implicit ec: ExecutionContext, as: ActorSystem): Future[JSet[ConnTrackKey]]
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[JSet[ConnTrackKeyT]]
 
     def fetchWeakConnTrackRefs(portId: UUID)
-        (implicit ec: ExecutionContext, as: ActorSystem): Future[JSet[ConnTrackKey]]
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[JSet[ConnTrackKeyT]]
 
     def fetchStrongNatRefs(portId: UUID)
-        (implicit ec: ExecutionContext, as: ActorSystem): Future[JMap[NatKey, NatBinding]]
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[JMap[NatKeyT, NatBinding]]
 
     def fetchWeakNatRefs(portId: UUID)
-        (implicit ec: ExecutionContext, as: ActorSystem): Future[JMap[NatKey, NatBinding]]
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[JMap[NatKeyT, NatBinding]]
+}
 
-    def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID, weakRefs: JIterator[UUID])
-    def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID, weakRefs: JIterator[UUID])
+trait FlowStateStorageWriter {
+
+    def touchNatKey(k: NatKeyStore, v: NatBinding, strongRef: UUID, weakRefs: JIterator[UUID])
+    def touchConnTrackKey(k: ConnTrackKeyStore, strongRef: UUID, weakRefs: JIterator[UUID])
 
     def submit()
 }
@@ -165,8 +158,15 @@ trait FlowStateStorage {
  * All operations are asynchronous, submit is meant to be fire-and-forget with
  * no error control and for this reason, returns Unit.
  */
-class FlowStateStorageImpl(val session: Session) extends FlowStateStorage {
-    private val log: Logger = LoggerFactory.getLogger(classOf[FlowStateStorage])
+class FlowStateStorageImpl[ConnTrackKeyT <: ConnTrackKeyStore,
+                           NatKeyT <: NatKeyStore]
+        (val session: Session,
+         val natAllocator: NatKeyAllocator[NatKeyT],
+         val conntrackAllocator: ConnTrackKeyAllocator[ConnTrackKeyT])
+    extends FlowStateStorage[ConnTrackKeyT, NatKeyT] {
+
+    private val log: Logger = LoggerFactory.getLogger(
+        classOf[FlowStateStorage[ConnTrackKeyT, NatKeyT]])
 
     import FlowStateStorage._
 
@@ -199,7 +199,7 @@ class FlowStateStorageImpl(val session: Session) extends FlowStateStorage {
     val fetchIngressNat = session.prepare(fetchByPortStatement(NAT_BY_INGRESS_TABLE))
     val fetchEgressNat = session.prepare(fetchByPortStatement(NAT_BY_EGRESS_TABLE))
 
-    private def bind(st: PreparedStatement, port: UUID, k: ConnTrackKey) = {
+    private def bind(st: PreparedStatement, port: UUID, k: ConnTrackKeyStore) = {
         st.bind(port, k.networkProtocol.toInt.asInstanceOf[JInt],
                       ipAddrToInet(k.networkSrc), k.icmpIdOrTransportSrc.asInstanceOf[JInt],
                       ipAddrToInet(k.networkDst), k.icmpIdOrTransportDst.asInstanceOf[JInt],
@@ -207,7 +207,7 @@ class FlowStateStorageImpl(val session: Session) extends FlowStateStorage {
                       k.expiresAfter.toSeconds.toInt: java.lang.Integer)
     }
 
-    private def bind(st: PreparedStatement, port: UUID, k: NatKey, v: NatBinding) = {
+    private def bind(st: PreparedStatement, port: UUID, k: NatKeyStore, v: NatBinding) = {
         st.bind(port, natKeyTypeToString(k.keyType).orNull,
                       k.networkProtocol.toInt.asInstanceOf[JInt],
                       ipAddrToInet(k.networkSrc), k.transportSrc.asInstanceOf[JInt],
@@ -225,7 +225,7 @@ class FlowStateStorageImpl(val session: Session) extends FlowStateStorage {
      * @param strongRef Ingress port.
      * @param weakRefs Egress ports.
      */
-    override def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID,
+    override def touchConnTrackKey(k: ConnTrackKeyStore, strongRef: UUID,
             weakRefs: JIterator[UUID]): Unit = {
         if (strongRef ne null)
             batch.add(bind(touchIngressConnTrack, strongRef, k))
@@ -242,7 +242,7 @@ class FlowStateStorageImpl(val session: Session) extends FlowStateStorage {
      * @param strongRef Ingress port
      * @param weakRefs Egress ports.
      */
-    override def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID,
+    override def touchNatKey(k: NatKeyStore, v: NatBinding, strongRef: UUID,
             weakRefs: JIterator[UUID]): Unit = {
         if (strongRef ne null)
             batch.add(bind(touchIngressNat, strongRef, k, v))
@@ -264,29 +264,55 @@ class FlowStateStorageImpl(val session: Session) extends FlowStateStorage {
     /**
      * Fetch all conntrack keys for which a give port is ingress.
      */
-    override def fetchStrongConnTrackRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem) =
+    override def fetchStrongConnTrackRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem)
+    : Future[JSet[ConnTrackKeyT]] =
         fetch(fetchIngressConnTrack, port, resultSetToConnTrackKeys)
 
     /**
      * Fetch all conntrack keys for which a give port is egress.
      */
-    override def fetchWeakConnTrackRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem) =
+    override def fetchWeakConnTrackRefs(port: UUID)
+                                       (implicit ec: ExecutionContext, as: ActorSystem)
+    : Future[JSet[ConnTrackKeyT]] =
         fetch(fetchEgressConnTrack, port, resultSetToConnTrackKeys)
 
     /**
      * Fetch all nat keys for which a give port is ingress.
      */
-    override def fetchStrongNatRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem) =
+    override def fetchStrongNatRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem)
+    : Future[JMap[NatKeyT, NatBinding]] =
         fetch(fetchIngressNat, port, resultSetToNatBindings)
 
     /**
      * Fetch all nat keys for which a give port is egress.
      */
-    override def fetchWeakNatRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem) =
+    override def fetchWeakNatRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem)
+    : Future[JMap[NatKeyT, NatBinding]] =
         fetch(fetchEgressNat, port, resultSetToNatBindings)
 
-    private def resultSetToConnTrackKeys(rs: ResultSet): JSet[ConnTrackKey] = {
-        val keys = new JHashSet[ConnTrackKey]()
+    private def rowToConnTrack(r: Row) = conntrackAllocator(
+            networkSrc = r.getInet("srcIp"),
+            networkDst = r.getInet("dstIp"),
+            icmpIdOrTransportSrc = r.getInt("srcPort"),
+            icmpIdOrTransportDst = r.getInt("dstPort"),
+            deviceId = r.getUUID("device"),
+            networkProtocol = r.getInt("proto").toByte)
+
+    private def rowToNatKey(r: Row) = natAllocator(
+            keyType = NAT_KEY_TYPES.inverse.get(r.getString("type")).get,
+            networkSrc = inetToIPAddr(r.getInet("srcIp")).asInstanceOf[IPv4Addr],
+            networkDst = inetToIPAddr(r.getInet("dstIp")).asInstanceOf[IPv4Addr],
+            transportSrc = r.getInt("srcPort"),
+            transportDst = r.getInt("dstPort"),
+            networkProtocol = r.getInt("proto").toByte,
+            deviceId = r.getUUID("device"))
+
+    private def rowToNatBinding(r: Row) = NatBinding(
+            networkAddress = inetToIPAddr(r.getInet("translateIp")).asInstanceOf[IPv4Addr],
+            transportPort = r.getInt("translatePort"))
+
+    private def resultSetToConnTrackKeys(rs: ResultSet): JSet[ConnTrackKeyT] = {
+        val keys = new JHashSet[ConnTrackKeyT]()
         val rows = rs.iterator()
         while (rows.hasNext) {
             keys.add(rowToConnTrack(rows.next()))
@@ -294,9 +320,9 @@ class FlowStateStorageImpl(val session: Session) extends FlowStateStorage {
         keys
     }
 
-    private def resultSetToNatBindings(rs: ResultSet): JMap[NatKey, NatBinding] = {
+    private def resultSetToNatBindings(rs: ResultSet): JMap[NatKeyT, NatBinding] = {
         val rows = rs.iterator()
-        val bindings = new JHashMap[NatKey, NatBinding]()
+        val bindings = new JHashMap[NatKeyT, NatBinding]()
         while (rows.hasNext) {
             val row = rows.next()
             bindings.put(rowToNatKey(row), rowToNatBinding(row))
