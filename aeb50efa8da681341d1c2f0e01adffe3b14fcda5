@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_80236b05",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-24T17:47:25Z",
+      "side": 1,
+      "message": "But then the service would need its own thread, isn\u0027t it? The idea with making this asynchronous was to leverage the common cluster thread pool, since the bulk of the wait is either waiting on ZK or on the scheduling, so in principle another thread would be waiting most of the time.",
+      "parentUuid": "da9b358b_e08117fd",
+      "revId": "aeb50efa8da681341d1c2f0e01adffe3b14fcda5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_60c86775",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclerCommons.scala",
         "patchSetId": 10
