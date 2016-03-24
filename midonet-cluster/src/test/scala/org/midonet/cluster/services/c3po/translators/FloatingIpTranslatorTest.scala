@@ -35,6 +35,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
 
     // Floating IP data setup
     protected val fipId = randomUuidProto
+    protected val fipIdThatDoesNotExist = randomUuidProto
     protected val tntRouterId = randomUuidProto
     protected val fipPortId = randomUuidProto
     protected val fipIpAddr = IPAddressUtil.toProto("10.10.10.1")
@@ -412,6 +413,8 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
         initMockStorage()
         translator = new FloatingIpTranslator(storage, stateTableStorage,
                                               pathBldr)
+
+        bind(fipIdThatDoesNotExist, null, classOf[FloatingIp])
     }
 
     "Deleting an unassociated floating IP" should "not create anything" in {
@@ -437,5 +440,11 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
             DeleteNode(fipArpEntryPath),
             Delete(classOf[Rule], snatRuleId),
             Delete(classOf[Rule], dnatRuleId))
+    }
+
+    "Deleting a non-existent FIP" should "not raise an error" in {
+        val midoOps = translator.translate(Delete(classOf[FloatingIp],
+                                                  fipIdThatDoesNotExist))
+        midoOps shouldBe empty
     }
 }
