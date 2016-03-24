@@ -43,7 +43,8 @@ import org.midonet.sdn.flows.FlowTagger;
     @JsonSubTypes.Type(value = LiteralRule.class, name = "Literal"),
     @JsonSubTypes.Type(value = TraceRule.class, name = "Trace"),
     @JsonSubTypes.Type(value = JumpRule.class, name = "Jump"),
-    @JsonSubTypes.Type(value = ForwardNatRule.class, name = "ForwardNat"),
+    @JsonSubTypes.Type(value = DynamicForwardNatRule.class, name = "DynamicForwardNat"),
+    @JsonSubTypes.Type(value = StaticForwardNatRule.class, name = "StaticForwardNat"),
     @JsonSubTypes.Type(value = ReverseNatRule.class, name = "ReverseNat")
 })
 

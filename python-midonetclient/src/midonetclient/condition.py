@@ -302,6 +302,47 @@ class ConditionBase(object):
         self._dto()['vlan'] = vlan
         return self
 
+    def get_icmp_data_src_address(self):
+        return self._dto()['icmpDataSrcIpAddress']
+
+    def get_icmp_data_src_length(self):
+        return self._dto()['icmpDataSrcIpLength']
+
+    def icmp_data_src_address(self, address):
+        self._dto()['icmpDataSrcIpAddress'] = address
+        return self
+
+    def icmp_data_src_address(self, length):
+        self._dto()['icmpDataSrcIpLength'] = length
+        return self
+
+    def is_inv_icmp_data_src(self):
+        return self._dto()['invIcmpDataSrcIp']
+
+    def inv_icmp_data_src(self, cond_invert):
+        self._dto()['invIcmpDataSrcIp'] = cond_invert
+        return self
+
+    def get_icmp_data_dst_address(self):
+        return self._dto()['icmpDataDstIpAddress']
+
+    def get_icmp_data_dst_length(self):
+        return self._dto()['icmpDataDstIpLength']
+
+    def icmp_data_dst_address(self, address):
+        self._dto()['icmpDataDstIpAddress'] = address
+        return self
+
+    def icmp_data_dst_address(self, length):
+        self._dto()['icmpDataDstIpLength'] = length
+        return self
+
+    def is_inv_icmp_data_dst(self):
+        return self._dto()['invIcmpDataDstIp']
+
+    def inv_icmp_data_dst(self, cond_invert):
+        self._dto()['invIcmpDataDstIp'] = cond_invert
+        return self
 
 class Condition(resource_base.ResourceBase, ConditionBase):
 

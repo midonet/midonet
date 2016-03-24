@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.midonet.nsdb.BaseConfig;
 import org.midonet.odp.FlowMatch;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPSubnet;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Unsigned;
 import org.midonet.sdn.flows.FlowTagger;
@@ -113,6 +114,15 @@ public class Condition extends BaseConfig {
     public boolean noVlan;
     @ZoomField(name = "vlan")
     public short vlan;
+    @ZoomField(name = "icmp_data_src_ip", converter = IPSubnetUtil.Converter.class)
+    public IPSubnet<?> icmpDataSrcIp;
+    @ZoomField(name = "icmp_data_src_ip_inv")
+    public boolean icmpDataSrcIpInv;
+    @ZoomField(name = "icmp_data_dst_ip", converter = IPSubnetUtil.Converter.class)
+    public IPSubnet<?> icmpDataDstIp;
+    @ZoomField(name = "icmp_data_dst_ip_inv")
+    public boolean icmpDataDstIpInv;
+
 
     // In production, this should always be initialized via the API, but there
     // are a bunch of tests that bypass the API and create conditions directly.
@@ -248,6 +258,12 @@ public class Condition extends BaseConfig {
             return conjunctionInv;
         if (!matchTraversedDevice(pktCtx))
             return conjunctionInv;
+        if (!matchIcmpDataSrcIp(icmpDataSrcIp, pktMatch,
+                                icmpDataSrcIpInv))
+            return conjunctionInv;
+        if (!matchIcmpDataDstIp(icmpDataDstIp, pktMatch,
+                                icmpDataDstIpInv))
+                                return conjunctionInv;
         return !conjunctionInv;
     }
 
@@ -303,6 +319,35 @@ public class Condition extends BaseConfig {
             }
         }
         return traversedDeviceInv ^ contains;
+    }
+
+    private boolean matchIPv4InBytes(IPSubnet<?> subnet, byte[] icmpData,
+                                     int offset) {
+        if (icmpData == null
+            || icmpData.length < offset + 4
+            || !(subnet instanceof IPv4Subnet)) {
+            return false;
+        }
+        IPv4Subnet subnet4 = (IPv4Subnet)subnet;
+        int dataIp = (icmpData[offset] & 0xff) << 24
+            | (icmpData[offset+1] & 0xff) << 16
+            | (icmpData[offset+2] & 0xff) << 8
+            | (icmpData[offset+3] & 0xff);
+
+        return IPv4Subnet.addrMatch(subnet4.getIntAddress(), dataIp,
+                                    subnet4.getPrefixLen());
+    }
+
+    private boolean matchIcmpDataSrcIp(IPSubnet<?> srcIp, FlowMatch match,
+                                       boolean negate) {
+        return srcIp == null ||
+            (negate ^ matchIPv4InBytes(srcIp, match.getIcmpData(), 12));
+    }
+
+    private boolean matchIcmpDataDstIp(IPSubnet<?> dstIp, FlowMatch match,
+                                       boolean negate) {
+        return dstIp == null ||
+            (negate ^ matchIPv4InBytes(dstIp, match.getIcmpData(), 16));
     }
 
     // This works a bit differently from how one might expect. The packet
@@ -383,6 +428,8 @@ public class Condition extends BaseConfig {
         formatField(sb, tpSrcInv, "port-src", tpSrc);
         formatField(sb, tpDstInv, "port-dst", tpDst);
         formatField(sb, traversedDeviceInv, "traversed-dev", traversedDevice);
+        formatField(sb, icmpDataSrcIpInv, "icmp-data-src-ip", icmpDataSrcIp);
+        formatField(sb, icmpDataDstIpInv, "icmp-data-dst-ip", icmpDataDstIp);
 
         sb.append(")]");
         return sb.toString();
@@ -409,6 +456,8 @@ public class Condition extends BaseConfig {
                 nwTosInv == c.nwTosInv && nwProtoInv == c.nwProtoInv &&
                 nwSrcInv == c.nwSrcInv && nwDstInv == c.nwDstInv &&
                 tpSrcInv == c.tpSrcInv && tpDstInv == c.tpDstInv &&
+                icmpDataSrcIpInv == c.icmpDataSrcIpInv &&
+                icmpDataDstIpInv == c.icmpDataDstIpInv &&
                 Objects.equals(inPortIds, c.inPortIds) &&
                 Objects.equals(outPortIds, c.outPortIds) &&
                 Objects.equals(portGroup, c.portGroup) &&
@@ -423,7 +472,9 @@ public class Condition extends BaseConfig {
                 Objects.equals(nwSrcIp, c.nwSrcIp) &&
                 Objects.equals(nwDstIp, c.nwDstIp) &&
                 Objects.equals(tpSrc, c.tpSrc) &&
-                Objects.equals(tpDst, c.tpDst);
+                Objects.equals(tpDst, c.tpDst) &&
+                Objects.equals(icmpDataSrcIp, c.icmpDataSrcIp) &&
+                Objects.equals(icmpDataDstIp, c.icmpDataDstIp);
     }
 
     @Override
@@ -437,7 +488,7 @@ public class Condition extends BaseConfig {
                 inPortIds, outPortIds, portGroup,
                 ipAddrGroupIdDst, ipAddrGroupIdSrc, unsignShort(etherType),
                 ethSrc, ethDst, nwTos, nwProto, nwSrcIp, nwDstIp, tpSrc, tpDst,
-                traversedDevice);
+                traversedDevice, icmpDataSrcIp, icmpDataDstIp);
     }
 
     public static Integer unsignShort(Integer value) {
