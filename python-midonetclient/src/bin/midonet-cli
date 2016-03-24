@@ -2043,6 +2043,25 @@ class Condition(ObjectType):
                                  getter = 'get_vlan',
                                  setter = 'vlan',
                                  optional = True))
+        self.put_attr(CidrPair(name = 'icmp-data-src',
+                               value_type = StringType(),
+                               addr_getter = 'get_icmp_data_src_address',
+                               mask_getter = 'get_icmp_data_src_length',
+                               addr_setter = 'icmp_data_src_address',
+                               mask_setter = 'icmp_data_src_length',
+                               inv_getter = 'is_inv_icmp_data_src',
+                               inv_setter = 'inv_icmp_data_src',
+                               optional = True))
+        self.put_attr(CidrPair(name = 'icmp-data-dst',
+                               value_type = StringType(),
+                               addr_getter = 'get_icmp_data_dst_address',
+                               mask_getter = 'get_icmp_data_dst_length',
+                               addr_setter = 'icmp_data_dst_address',
+                               mask_setter = 'icmp_data_dst_length',
+                               inv_getter = 'is_inv_icmp_data_dst',
+                               inv_setter = 'inv_icmp_data_dst',
+                               optional = True))
+
 
 
 class Rule(Condition):

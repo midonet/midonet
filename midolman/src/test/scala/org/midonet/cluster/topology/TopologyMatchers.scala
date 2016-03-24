@@ -45,7 +45,7 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
+import org.midonet.midolman.rules.{Condition, DynamicForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, Vip}
 import org.midonet.midolman.state.l4lb
 import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, ConditionMatcher, _}
@@ -205,7 +205,7 @@ object TopologyMatchers {
         override def shouldBeDeviceOf(r: TopologyRule): Unit = {
             super.shouldBeDeviceOf(r)
             if (r.getCondition.getMatchForwardFlow) {
-                val fwdNatRule = rule.asInstanceOf[ForwardNatRule]
+                val fwdNatRule = rule.asInstanceOf[DynamicForwardNatRule]
                 fwdNatRule.getTargetsArray should not be null
                 val targets = fwdNatRule.getNatTargets
                 val protoTargets = r.getNatRuleData.getNatTargetsList.asScala
@@ -215,19 +215,6 @@ object TopologyMatchers {
                                       toIPv4Addr(target.getNwEnd),
                                       target.getTpStart, target.getTpEnd)
                 )
-
-                if (targets.size() == 1) {
-                    val target = targets.iterator.next
-
-                    if (target.nwStart == target.nwEnd &&
-                        target.tpStart == 0 && target.tpEnd == 0) {
-
-                        fwdNatRule.isFloatingIp shouldBe true
-
-                    } else
-                        fwdNatRule.isFloatingIp shouldBe false
-                } else
-                    fwdNatRule.isFloatingIp shouldBe false
             }
         }
     }

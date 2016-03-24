@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ object Icmp {
          */
         protected def icmpAnswer(inPort: RouterPort,
                                  context: PacketContext,
+                                 fmatch: FlowMatch,
                                  icmpType: Byte,
                                  icmpCode: Any): Option[Ethernet]
 
@@ -34,32 +35,33 @@ object Icmp {
          * Will be called whenever an ICMP unreachable is needed for the given
          * IP version.
          */
-        def unreachableProhibitedIcmp(inPort: RouterPort, context: PacketContext) =
-            icmpAnswer(inPort, context, ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
+        def unreachableProhibitedIcmp(inPort: RouterPort, context: PacketContext,
+                                      fmatch: FlowMatch) =
+            icmpAnswer(inPort, context, fmatch, ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FILTER_PROHIB)
 
         /**
          * Will be called whenever an ICMP Unreachable network is needed for the
          * given IP version.
          */
-        def unreachableNetIcmp(inPort: RouterPort, context: PacketContext) =
-            icmpAnswer(inPort, context, ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
+        def unreachableNetIcmp(inPort: RouterPort, context: PacketContext, fmatch: FlowMatch) =
+            icmpAnswer(inPort, context, fmatch, ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_NET)
 
         /**
          * Will be called whenever an ICMP Unreachable host is needed for the
          * given IP version.
          */
-        def unreachableHostIcmp(inPort: RouterPort, context: PacketContext) =
-            icmpAnswer(inPort, context, ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_HOST)
+        def unreachableHostIcmp(inPort: RouterPort, context: PacketContext, fmatch: FlowMatch) =
+            icmpAnswer(inPort, context, fmatch, ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_HOST)
 
-        def unreachableFragNeededIcmp(inPort: RouterPort, context: PacketContext) =
-            icmpAnswer(inPort, context, ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FRAG_NEEDED)
+        def unreachableFragNeededIcmp(inPort: RouterPort, context: PacketContext, fmatch: FlowMatch) =
+            icmpAnswer(inPort, context, fmatch, ICMP.TYPE_UNREACH, UNREACH_CODE.UNREACH_FRAG_NEEDED)
 
         /**
          * Will be called whenever an ICMP Time Exceeded is needed for the given
          * IP version.
          */
-        def timeExceededIcmp(inPort: RouterPort, context: PacketContext) =
-            icmpAnswer(inPort, context, ICMP.TYPE_TIME_EXCEEDED, EXCEEDED_CODE.EXCEEDED_TTL)
+        def timeExceededIcmp(inPort: RouterPort, context: PacketContext, fmatch: FlowMatch) =
+            icmpAnswer(inPort, context, fmatch, ICMP.TYPE_TIME_EXCEEDED, EXCEEDED_CODE.EXCEEDED_TTL)
     }
 
     implicit object IPv4Icmp extends IcmpErrorSender[IPv4Addr] {
@@ -68,11 +70,12 @@ object Icmp {
         override def icmpAnswer(
                 inPort: RouterPort,
                 context: PacketContext,
+                fmatch: FlowMatch,
                 icmpType: Byte,
                 icmpCode: Any): Option[Ethernet] = {
             context.log.debug("Prepare an ICMP response")
             val packet = context.ethernet
-            val fmatch = context.wcmatch
+
             // Check whether the original packet is allowed to trigger ICMP.
             if (inPort == null) {
                 context.log.debug("Don't send ICMP since inPort is null.")
@@ -104,7 +107,7 @@ object Icmp {
 
         private def buildError(icmpType: Byte, icmpCode: Any,
                                forMatch: FlowMatch, forPacket: Ethernet)
-        : ICMP = {
+                : ICMP = {
             forMatch.applyTo(forPacket)
             val ipPkt = forPacket.getPayload.asInstanceOf[IPv4]
             icmpCode match {
