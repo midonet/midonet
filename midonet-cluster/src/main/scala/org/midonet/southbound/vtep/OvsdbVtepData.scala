@@ -28,6 +28,7 @@ import scala.util.{Failure, Success}
 
 import com.typesafe.scalalogging.Logger
 import org.opendaylight.ovsdb.lib.OvsdbClient
+import org.opendaylight.ovsdb.lib.operations.OperationResult
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
@@ -297,11 +298,14 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
             log.debug("Publishing {} MAC to VTEP: {}", `type`, ml)
             if (ml != null) {
                 applyMac(ml)
+            } else {
+                Future.successful(Seq.empty[OperationResult])
+            } onComplete {
+                case _ => request(1)
             }
-            request(1)
         }
 
-        private def applyMac(ml: MacLocation): Unit = {
+        private def applyMac(ml: MacLocation): Future[Seq[OperationResult]] = {
             logicalSwitch(ml.logicalSwitchName) map {
                 case None =>
                     log.warn("Unknown logical switch for {} MAC update: {}",
@@ -318,7 +322,7 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
                     addMcastMac(ml, ls)
             } flatMap {
                 OvsdbOperations.multiOp(client, dbSchema, _)
-            } onComplete {
+            } andThen {
                 case Success(s) =>
                     log.trace("MAC {} tables updated successfully: {}", `type`, s)
                 case Failure(e) =>
