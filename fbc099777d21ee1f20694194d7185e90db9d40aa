@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_96961a93",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 949,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-03-24T02:49:10Z",
+      "side": 1,
+      "message": "Does error occur when specified interface name is not found?",
+      "revId": "fbc099777d21ee1f20694194d7185e90db9d40aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_d6f26206",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-03-24T02:49:10Z",
+      "side": 1,
+      "message": "I assume that we want to rebind port to another host even though l2gateway(s) exist when one of redundancy hosts is down.",
+      "range": {
+        "startLine": 973,
+        "startChar": 37,
+        "endLine": 974,
+        "endChar": 35
+      },
+      "revId": "fbc099777d21ee1f20694194d7185e90db9d40aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_b6f7def4",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 1070,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-03-24T02:49:10Z",
+      "side": 1,
+      "message": "Does error occur if delete_remote_mac_entry is called from neutron after disconnecting l2gatewayconnection correspond to the remote_mac_entry?",
+      "range": {
+        "startLine": 1070,
+        "startChar": 23,
+        "endLine": 1070,
+        "endChar": 78
+      },
+      "revId": "fbc099777d21ee1f20694194d7185e90db9d40aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
