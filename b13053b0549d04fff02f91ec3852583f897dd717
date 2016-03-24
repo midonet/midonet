@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_8d6a8419",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-24T14:33:35Z",
+      "side": 1,
+      "message": "Unused?",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 44
+      },
+      "revId": "b13053b0549d04fff02f91ec3852583f897dd717",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_4defdcb0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-24T14:33:35Z",
+      "side": 1,
+      "message": "Nit: scala style recommends parentheses for the methods with side-effects. That is the case here, isn\u0027t it?",
+      "range": {
+        "startLine": 293,
+        "startChar": 25,
+        "endLine": 293,
+        "endChar": 31
+      },
+      "revId": "b13053b0549d04fff02f91ec3852583f897dd717",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_2d601835",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ConnTrackState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-24T14:33:35Z",
+      "side": 1,
+      "message": "Not used",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 41
+      },
+      "revId": "b13053b0549d04fff02f91ec3852583f897dd717",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_cd39ac43",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-24T14:33:35Z",
+      "side": 1,
+      "message": "A few unused imports now here.",
+      "range": {
+        "startLine": 19,
+        "startChar": 53,
+        "endLine": 19,
+        "endChar": 76
+      },
+      "revId": "b13053b0549d04fff02f91ec3852583f897dd717",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_0d655444",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-24T14:33:35Z",
+      "side": 1,
+      "message": "Same here",
+      "range": {
+        "startLine": 25,
+        "startChar": 28,
+        "endLine": 25,
+        "endChar": 36
+      },
+      "revId": "b13053b0549d04fff02f91ec3852583f897dd717",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
