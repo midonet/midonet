@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_566c129c",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 949,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-24T03:45:15Z",
+      "side": 1,
+      "message": "For the interface, we do not throw an error because it may become available later.  MidoNet\u0027s binding logic is that you can add the binding information before the actual interface exists.",
+      "parentUuid": "da9b358b_96961a93",
+      "revId": "fbc099777d21ee1f20694194d7185e90db9d40aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_d6f26206",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 7
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_16056ac1",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-24T03:45:15Z",
+      "side": 1,
+      "message": "that\u0027s true, will update",
+      "parentUuid": "da9b358b_d6f26206",
+      "range": {
+        "startLine": 973,
+        "startChar": 37,
+        "endLine": 974,
+        "endChar": 35
+      },
+      "revId": "fbc099777d21ee1f20694194d7185e90db9d40aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_b6f7def4",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 7
@@ -53,6 +95,30 @@
       "writtenOn": "2016-03-24T02:49:10Z",
       "side": 1,
       "message": "Does error occur if delete_remote_mac_entry is called from neutron after disconnecting l2gatewayconnection correspond to the remote_mac_entry?",
+      "range": {
+        "startLine": 1070,
+        "startChar": 23,
+        "endLine": 1070,
+        "endChar": 78
+      },
+      "revId": "fbc099777d21ee1f20694194d7185e90db9d40aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_f609e6de",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 1070,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-24T03:45:15Z",
+      "side": 1,
+      "message": "I believe the only thing remote mac entry is associated with is the gateway device as far as midonet is concerned (and IIRC, neutron too).",
+      "parentUuid": "da9b358b_b6f7def4",
       "range": {
         "startLine": 1070,
         "startChar": 23,
