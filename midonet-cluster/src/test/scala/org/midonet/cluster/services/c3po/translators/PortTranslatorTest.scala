@@ -98,6 +98,7 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
 
     protected var translator: PortTranslator = _
     protected val portId = randomUuidProto
+    protected val portIdThatDoesNotExist = randomUuidProto
     protected val portJUuid = UUIDUtil.fromProto(portId)
     protected val networkId = randomUuidProto
     protected val tenantId = "neutron tenant"
@@ -235,6 +236,25 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
             MAC.fromString(mac), UUIDUtil.fromProto(portId))
         pathBldr.getBridgeMacPortEntryPath(UUIDUtil.fromProto(networkId),
                                            Bridge.UNTAGGED_VLAN_ID, entry)
+    }
+}
+
+/* Contains generic port translation tests */
+@RunWith(classOf[JUnitRunner])
+class PortTranslationTest extends PortTranslatorTest {
+
+    before {
+        initMockStorage()
+
+        translator = new PortTranslator(storage, stateTableStorage,
+                                        pathBldr, seqDispenser)
+        bind(portIdThatDoesNotExist, null, classOf[NeutronPort])
+    }
+
+    "Deleting a non-existent port" should "not raise an error" in {
+        val midoOps = translator.translate(DeleteOp(classOf[NeutronPort],
+                                                    portIdThatDoesNotExist))
+        midoOps shouldBe empty
     }
 }
 

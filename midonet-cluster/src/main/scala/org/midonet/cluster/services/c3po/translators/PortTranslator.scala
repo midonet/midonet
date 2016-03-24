@@ -116,7 +116,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     }
 
     override protected def translateDelete(id: UUID): OperationList = {
-        val nPort = storage.get(classOf[NeutronPort], id).await()
+        val nPort = try {
+            storage.get(classOf[NeutronPort], id).await()
+        } catch {
+            case nfe: NotFoundException => return List()
+        }
 
         // Nothing to do for floating IPs or VIPs, since we didn't create
         // anything.
