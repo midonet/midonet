@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_00175ba4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-24T17:49:50Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "da9b358b_60dbc71c",
+      "range": {
+        "startLine": 122,
+        "startChar": 74,
+        "endLine": 122,
+        "endChar": 83
+      },
+      "revId": "3c21ac59b246942524ef444180c26c2d940dbcfc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_80cecb58",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
         "patchSetId": 5
@@ -36,6 +60,24 @@
       "writtenOn": "2016-03-24T17:27:05Z",
       "side": 1,
       "message": "This looks like it\u0027s going to break compatability. I think we should have the compatability test in place before submitting.",
+      "revId": "3c21ac59b246942524ef444180c26c2d940dbcfc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_c08733d6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-24T17:49:50Z",
+      "side": 1,
+      "message": "agree, I\u0027m on it. In theory, it shouldn\u0027t break as the sbe library is able to handle versioning if done properly (receive a message from a previous version by returning null, and receive a message from an onward version by ignoring the fields). We\u0027ll see with the test though.",
+      "parentUuid": "da9b358b_80cecb58",
       "revId": "3c21ac59b246942524ef444180c26c2d940dbcfc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
