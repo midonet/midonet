@@ -16,6 +16,24 @@
       "revId": "e60ff45d7b931529269c811fd6b007a0aba12f06",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_ca72b2ad",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 977,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-24T08:13:14Z",
+      "side": 1,
+      "message": "Yes, we could modify VTEP router to also handle L2 Gateway if we want to avoid it.  But I think we need this here for VLAN L2GW if we want to handle update of bindings.",
+      "parentUuid": "da9b358b_4a48e25b",
+      "revId": "e60ff45d7b931529269c811fd6b007a0aba12f06",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
