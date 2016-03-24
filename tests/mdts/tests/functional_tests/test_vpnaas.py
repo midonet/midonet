@@ -31,6 +31,8 @@ from mdts.tests.utils.utils import wait_on_futures
 
 import neutronclient.neutron.client as neutron
 
+from nose.tools import nottest
+
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -571,6 +573,7 @@ def test_admin_state_up_changes():
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
+@nottest # MI-756
 def test_ipsec_container_failover():
     # Set container weight on midolman1 to 0 so it's not elligible
     midonet_api = VTM._midonet_api
