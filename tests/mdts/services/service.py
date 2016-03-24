@@ -74,6 +74,9 @@ class Service(object):
     def get_environment(self):
         return self.info['Config']['Env']
 
+    def get_volumes(self):
+        return self.info['Volumes']
+
     def get_info(self):
         return self.info
 

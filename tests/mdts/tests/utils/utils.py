@@ -50,6 +50,18 @@ def get_midonet_api():
     """
     return service.get_container_by_hostname('api').get_midonet_api()
 
+def get_neutron_api():
+    """
+    :rtype: neutronclient.v2_0.client.Client
+    """
+    return service.get_container_by_hostname('neutron').get_neutron_api()
+
+def get_keystone_api():
+    """
+    :rtype: keystoneclient.
+    """
+    return service.get_container_by_hostname('keystone').get_keystone_api()
+
 #
 # ``failures'' introduces another decorator @failures which can be used to
 # inject various failures, combined with @bindings, in existing test cases.
