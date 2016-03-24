@@ -155,7 +155,7 @@ If the port is a DHCP port (device_owner == 'network:dhcp'):
 For all port types, if there is a binding information included in the Neutron
 port data, perform the binding.  The binding information are as follows:
 
- * 'binding:host' => host ID
+ * 'binding:host' => Neutron host ID (find the MidoNet host ID from this ID)
  * 'binding:profile[interface_name]' => interface name
 
 ### UPDATE
@@ -192,7 +192,7 @@ For VIF and DHCP ports, the following fields are copied over directly:
 For all port types, if there is a binding information included in the Neutron
 port data, perform the binding.  The binding information are as follows:
 
- * 'binding:host' => host ID
+ * 'binding:host' => Neutron host ID (find the MidoNet host ID from this ID)
  * 'binding:profile[interface_name]' => interface name
 
 If there is 'binding:profile' in the Port data but the value is null, it
