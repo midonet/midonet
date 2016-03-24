@@ -16,6 +16,24 @@
       "revId": "1b88faa0004f0bd1bef4a0665044a6da94c8ba6b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_4a9c6269",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowState.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-24T12:23:39Z",
+      "side": 1,
+      "message": "oh playing with your suggestion, I just realized that we could expose the apply method as an allocator. It saves us some lines of code. So done. Similar approach done for the FlowStateStorage implementation, so no extra allocations to translate between store and agent classes are necessary when fetching from cassandra either.",
+      "parentUuid": "da9b358b_1537a4b1",
+      "revId": "1b88faa0004f0bd1bef4a0665044a6da94c8ba6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
