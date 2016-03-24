@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_e08117fd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-24T16:52:29Z",
+      "side": 1,
+      "message": "I think there\u0027s a lot of complexity added here by making things asynchronous, when a lot of it doesn\u0027t need to be.\n\nThe context object carries a lot of so that it can be available between stages. It would be simple to make a large amount of it synchronous without slowing it down, not that slowing it down would be so bad.\n\nval hosts \u003d collectHosts()\nval namespace \u003d collectNamespaces()\n\nval (deleted, failed) \u003d recyleNamespaces(hosts, namespaces) // code inside is async\nval (deletedObj, failedObj) \u003d recycleObjects(hosts, namespaces) // code inside is async",
+      "revId": "aeb50efa8da681341d1c2f0e01adffe3b14fcda5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_60c86775",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclerCommons.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-24T16:52:29Z",
+      "side": 1,
+      "message": "Why not just create a guava RateLimiter, with a limit of something small, like 50/s, and call acquire on that before each write. It doesn\u0027t matter that it blocks, in fact it\u0027s simpler if it does.",
+      "revId": "aeb50efa8da681341d1c2f0e01adffe3b14fcda5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_e0aa3785",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclerValidator.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-24T16:52:29Z",
+      "side": 1,
+      "message": "this doesn\u0027t need to asynchronous, since it\u0027s only run seldomly, and doesn\u0027t do much work. It should be less code as a synchronous method.",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 39,
+        "endChar": 13
+      },
+      "revId": "aeb50efa8da681341d1c2f0e01adffe3b14fcda5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
