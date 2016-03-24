@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_60f2a79c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-24T17:46:41Z",
+      "side": 1,
+      "message": "probably better to give this it\u0027s own executor so it\u0027s not at the mercy of whatever other minions are doing.",
+      "range": {
+        "startLine": 59,
+        "startChar": 56,
+        "endLine": 59,
+        "endChar": 64
+      },
+      "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_803c8b30",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-24T17:46:41Z",
+      "side": 1,
+      "message": "why have this store state? it could just return the address?",
+      "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_404683c0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-24T17:46:41Z",
+      "side": 1,
+      "message": "This is already handled by AbstractService. If a service is in STARTING state and stop is called, the stop will not run until the notifyStarted() is called.",
+      "range": {
+        "startLine": 127,
+        "startChar": 13,
+        "endLine": 127,
+        "endChar": 25
+      },
+      "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
