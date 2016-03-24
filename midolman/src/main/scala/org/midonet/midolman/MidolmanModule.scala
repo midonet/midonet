@@ -293,7 +293,7 @@ class MidolmanModule(injector: Injector,
             FlowStateStorage.SCHEMA,
             FlowStateStorage.SCHEMA_TABLE_NAMES)
         new FlowStateStorageFactory() {
-            override def create: Future[FlowStateStorage[ConnTrackKey, NatKey]] =
+            override def create(): Future[FlowStateStorage[ConnTrackKey, NatKey]] =
                 cass.connect()
                     .map(FlowStateStorage(_, NatKey, ConnTrackKey))(ExecutionContext.callingThread)
         }

@@ -18,8 +18,6 @@ package org.midonet.midolman.state
 
 import java.util.UUID
 
-import scala.concurrent.duration.Duration
-
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.simulation.PacketContext

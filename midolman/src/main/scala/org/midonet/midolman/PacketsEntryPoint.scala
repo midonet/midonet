@@ -168,7 +168,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         val traceShard = traceStateTable.addShard(
             log = shardLogger(traceStateTable))
         val backChannelProcessor = backChannel.registerProcessor()
-        val storage = storageFactory.create
+        val storage = storageFactory.create()
         Props(new PacketWorkflow(
             NUM_WORKERS,
             index,

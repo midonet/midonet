@@ -107,7 +107,7 @@ class MockMidolmanModule(override val hostId: UUID,
 
     protected override def flowStateStorageFactory(): FlowStateStorageFactory =
         new FlowStateStorageFactory() {
-            override def create: Future[FlowStateStorage[ConnTrackKey, NatKey]] =
+            override def create(): Future[FlowStateStorage[ConnTrackKey, NatKey]] =
                 Future.successful(new MockStateStorage())
         }
 

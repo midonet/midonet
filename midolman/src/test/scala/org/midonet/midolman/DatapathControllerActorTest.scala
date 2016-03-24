@@ -88,7 +88,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
             simBackChannel,
             clock,
             new FlowStateStorageFactory() {
-                override def create = Future.successful(new MockStateStorage())
+                override def create() = Future.successful(new MockStateStorage())
             },
         new MockNetlinkChannelFactory) {
     }

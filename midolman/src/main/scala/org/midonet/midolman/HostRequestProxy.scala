@@ -82,8 +82,6 @@ class HostRequestProxy(hostId: UUID,
                                              with ActorLogWithoutPath
                                              with SingleThreadExecutionContextProvider {
 
-    import HostRequestProxy.FlowStateBatch._
-
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
     import org.midonet.midolman.HostRequestProxy._
