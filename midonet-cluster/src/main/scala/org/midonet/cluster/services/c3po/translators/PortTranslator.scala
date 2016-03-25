@@ -115,14 +115,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         midoOps.toList
     }
 
-    override protected def translateDelete(id: UUID): OperationList = {
-        val nPort = try {
-            storage.get(classOf[NeutronPort], id).await()
-        } catch {
-            case nfe: NotFoundException => return List()
-        }
-
-        // Nothing to do for floating IPs or VIPs, since we didn't create
+    override protected def translateDelete(nPort: NeutronPort)
+    : OperationList = {
+        // Nothing to do for floating IPs, since we didn't create
         // anything.
         if (isVipPort(nPort) || isFloatingIpPort(nPort)) return List()
 
@@ -148,11 +143,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         if (isRemoteSitePort(nPort))
             return midoOps.toList
 
-        midoOps += Delete(classOf[Port], id)
+        midoOps += Delete(classOf[Port], nPort.getId)
 
         if (isRouterGatewayPort(nPort)) {
             // Delete the router port.
-            val rPortId = RouterTranslator.tenantGwPortId(id)
+            val rPortId = RouterTranslator.tenantGwPortId(nPort.getId)
             midoOps += Delete(classOf[Port], rPortId)
 
             // Delete the SNAT rules if they exist.
@@ -179,7 +174,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             updateDhcpEntries(nPort,
                               portContext.midoDhcps,
                               delDhcpHost)
-            portContext.chains ++= deleteSecurityChainsOps(id)
+            portContext.chains ++= deleteSecurityChainsOps(nPort.getId)
             portContext.updatedIpAddrGrps ++=
                 removeIpsFromIpAddrGroupsOps(nPort)
             // Delete the ARP entries for associated Floating IP.
