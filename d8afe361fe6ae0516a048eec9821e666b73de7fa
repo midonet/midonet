@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_b9410a3c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketsEntryPoint.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-25T08:24:04Z",
+      "side": 1,
+      "message": "i think i recently saw style fixes toward the opposite direction.\nwe should have a style guide.",
+      "revId": "d8afe361fe6ae0516a048eec9821e666b73de7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
