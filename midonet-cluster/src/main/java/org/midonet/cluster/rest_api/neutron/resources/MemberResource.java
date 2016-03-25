@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.neutron.resources;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,11 +46,13 @@ public class MemberResource {
 
     private final LoadBalancerApi api;
     private final URI baseUri;
+    private final UriInfo uriInfo;
 
     @Inject
     public MemberResource(UriInfo uriInfo, LoadBalancerApi api) {
         this.api = api;
         this.baseUri = uriInfo.getBaseUri();
+        this.uriInfo = uriInfo;
     }
 
     @GET
@@ -66,7 +69,20 @@ public class MemberResource {
     @GET
     @Produces(NeutronMediaType.MEMBERS_JSON_V1)
     public List<Member> list() {
-        return api.getMembers();
+        List<String> mIds = uriInfo.getQueryParameters().get("id");
+        if (mIds == null) {
+            return api.getMembers();
+        } else {
+            List<UUID> memberIds = new ArrayList<>();
+            for(String mId : mIds) {
+                try {
+                    memberIds.add(UUID.fromString(mId));
+                } catch (IllegalArgumentException ex) {
+                    // we can ignore these
+                }
+            }
+            return api.getMembers(memberIds);
+        }
     }
 
     @POST

@@ -16,10 +16,10 @@
 # under the License.
 
 import logging
+import urllib
 
 from midonetclient.neutron import media_type
 from midonetclient.neutron import url_provider
-
 
 LOG = logging.getLogger(__name__)
 
@@ -48,8 +48,12 @@ class LoadBalancerUrlProviderMixin(url_provider.NeutronUrlProviderMixin):
     def pool_url(self, id):
         return self.load_balancer_template_url("pool_template", id)
 
-    def members_url(self):
-        return self.load_balancer_resource_url("members")
+    def members_url(self, ids=None):
+        url = self.load_balancer_resource_url("members")
+        if ids is not None:
+            ids_enc = [urllib.quote_plus(id) for id in ids]
+            url = url + "?id=" + "&id=".join(ids_enc)
+        return url
 
     def member_url(self, id):
         return self.load_balancer_template_url("member_template", id)
@@ -110,6 +114,14 @@ class LoadBalancerClientMixin(LoadBalancerUrlProviderMixin):
         LOG.info("update_member %r", member)
         return self.client.put(self.member_url(member_id), media_type.MEMBER,
                                member)
+
+    def get_member(self, id):
+        LOG.info("get_member %r", id)
+        return self.client.get(self.member_url(id), media_type.MEMBER)
+
+    def get_members(self, ids=None):
+        LOG.info("get_members %r", ids)
+        return self.client.get(self.members_url(ids), media_type.MEMBERS)
 
     def create_health_monitor(self, health_monitor):
         LOG.info("create_health_monitor %r", health_monitor)

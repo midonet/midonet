@@ -54,6 +54,10 @@ trait LoadBalancerApi {
 
     @throws(classOf[ConflictHttpException])
     @throws(classOf[NotFoundHttpException])
+    def getMembers(ids: util.List[UUID]): util.List[Member]
+
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
     def createMember(member: Member)
 
     @throws(classOf[ConflictHttpException])
