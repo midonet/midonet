@@ -449,6 +449,7 @@ message GatewayDevice {
     enum GatewayType {
         ROUTER_VTEP = 1;
         HW_VTEP = 2;
+        NETWORK_VLAN = 3;
     }
 
     enum GatewayDeviceProtocol {
@@ -470,9 +471,15 @@ message GatewayDevice {
 }
 
 message L2Gateway {
+    message L2GatewayDeviceInterface {
+        optional string name = 1;
+    }
+
     message L2GatewayDevice {
         optional UUID device_id = 1;
         optional uint32 segmentation_id = 2;
+        optional string device_name = 3;
+        repeated L2GatewayDeviceInterface interfaces = 4;
     }
 
     optional UUID id = 1;
