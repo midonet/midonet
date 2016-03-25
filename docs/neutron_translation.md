@@ -1014,6 +1014,94 @@ remote mac entries associated with the port, the corresponding entries in
 the port's peering table, and the peer network port.
 
 
+## TAPSERVICE
+
+Tap-service is mapped to a MidoNet mirror.
+
+ * id => id field of the mirror
+ * port_id => port-to field of the mirror
+
+The rest of fields are not used by translation.
+
+ * tenant_id/project_id
+ * name
+ * description
+ * network_id (will be removed?)
+
+### CREATE
+
+Create a mirror with the following fields.
+
+ * "id" => same as the tap-service's id.
+ * "to-port" => inferred from the given Neutron port-id.
+ * "matches" should have a single entry which matches any packets.
+
+### UPDATE
+
+Nothing to do.
+
+### DELETE
+
+Delete the mirror.
+
+
+## TAPFLOW
+
+Tap-flow is mapped to entries in BridgePort's mirrors.
+
+ * tap_service_id => Which mirror to associate
+ * source_port => Which BridgePort to use
+ * direction => Which set of mirrors to use
+
+The rest of fields are not used by translation.
+
+ * id
+ * tenant_id/project_id
+ * name
+ * description
+
+Semantically, packets should be tapped between the bridge
+and Security Groups.
+
+<pre>
+            HERE!
+             |
+             v
+   Bridge -------- SG filter ------- VM
+</pre>
+
+### CREATE
+
+Find the mirror using "tap_service_id".
+
+Find the BridgePort using "source_port".
+
+Determine mirror lists of the BridgePort using "direction".
+Depending on "direction", the mirror is placed in one or two list
+of mirrors.
+
+|tap-flow direction  |mirror direction     |Description          |
+|:-------------------|:--------------------|:--------------------|
+|IN                  |pre-out-mirrors      |Network to VM        |
+|OUT                 |post-in-mirrors      |VM to Network        |
+|BOTH                |Both                 |Both                 |
+
+Create entries for the mirror in the mirror lists.
+
+### UPDATE
+
+Nothing to do.
+
+### DELETE
+
+Find entries, in the same way as CREATE.
+
+Remove entries.
+Note: A mirror list can have multiple entries for the same mirror.
+It can happen when duplicated flows are configured.  This step should
+remove only one of them.  XXX is it ok to have non-idempotent DELETE?
+
+
 # References
 
 [1]
