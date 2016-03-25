@@ -618,6 +618,7 @@ def test_haproxy_failback():
 
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
+@nottest # MI-185
 def test_health_monitoring_backend_failback():
     """
     Title: Health monitoring backend failure resilience test
