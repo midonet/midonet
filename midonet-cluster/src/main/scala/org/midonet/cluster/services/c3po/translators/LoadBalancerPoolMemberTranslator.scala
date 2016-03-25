@@ -17,8 +17,8 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Commons.LBStatus.ACTIVE
-import org.midonet.cluster.models.Commons.{LBStatus, UUID}
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Topology.PoolMember
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
@@ -46,8 +46,8 @@ class LoadBalancerPoolMemberTranslator(protected val storage: ReadOnlyStorage)
     override protected def translateCreate(nm: NeutronLoadBalancerPoolMember)
     : OperationList = List(Create(translate(nm)))
 
-    override protected def translateDelete(id: UUID)
-    : OperationList = List(Delete(classOf[PoolMember], id))
+    override protected def translateDelete(npm: NeutronLoadBalancerPoolMember)
+    : OperationList = List(Delete(classOf[PoolMember], npm.getId))
 
     override protected def translateUpdate(nm: NeutronLoadBalancerPoolMember)
     : OperationList = {
