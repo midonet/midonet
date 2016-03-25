@@ -122,6 +122,8 @@ public class MessageProperty {
             "{midokura.javarx.OnlyOneGatewayDeviceSupported.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =
             "{midokura.javarx.TunnelZoneMemberExists.message}";
+    public static final String UNSUPPORTED_GATEWAY_DEVICE =
+        "{midokura.javarx.UnsupportedGatewayDevice.message}";
     public static final String VLAN_ID_MATCHES_PORT_VLAN_ID =
             "{midokura.javarx.VlanIdMatchesPortVlanId.message}";
     public static final String VALUE_IS_INVALID =
