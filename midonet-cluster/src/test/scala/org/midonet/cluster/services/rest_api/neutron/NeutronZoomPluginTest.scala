@@ -20,12 +20,10 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
-
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
 import org.midonet.cluster.{RestApiConfig, ZookeeperLockFactory}
 import org.midonet.cluster.data.ZoomConvert.toProto
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException}
@@ -150,6 +148,63 @@ class NeutronZoomPluginTest extends FeatureSpec
 
             plugin.deleteSecurityGroup(sgId)
             doesNotExist(classOf[Topology.IPAddrGroup], sgId)
+        }
+
+        def createPoolMember(poolId: UUID): Member = {
+            val member = new Member()
+            member.id = UUID.randomUUID()
+            member.poolId = poolId
+            plugin.createMember(member)
+            exists(classOf[Topology.PoolMember], member.id)
+            member
+        }
+
+        def updateMemberStatus(memberId: UUID, status: Commons.LBStatus) = {
+            val origMember = backend.store.get(classOf[Topology.PoolMember],
+                                               memberId).await()
+            backend.store.update(origMember.toBuilder.setStatus(status).build())
+            val newMember = backend.store.get(classOf[Topology.PoolMember],
+                                              memberId).await()
+            newMember.getStatus shouldBe status
+        }
+
+        scenario("The plugin handles pool and member create and get") {
+            val router = new Router()
+            router.id = UUID.randomUUID()
+            plugin.createRouter(router)
+            exists(classOf[Topology.Router], router.id)
+
+            val pool = new Pool()
+            pool.id = UUID.randomUUID()
+            pool.routerId = router.id
+            plugin.createPool(pool)
+            exists(classOf[Topology.Pool], pool.id)
+
+            val member1 = createPoolMember(pool.id)
+            val member2 = createPoolMember(pool.id)
+
+            val statusMap = Map(member1.id -> Commons.LBStatus.ACTIVE,
+                                member2.id -> Commons.LBStatus.INACTIVE)
+
+            // update member statuses and verify they are reflected in GET/LIST
+            updateMemberStatus(member1.id, statusMap.get(member1.id).get)
+            updateMemberStatus(member2.id, statusMap.get(member2.id).get)
+
+            val member = plugin.getMember(member1.id)
+            member.status shouldBe statusMap.get(member1.id).get.toString
+
+            // Test the case where you get all members
+            var members = plugin.getMembers
+            members.length shouldBe 2
+            members.foreach(m => m.status
+                                 shouldBe statusMap.get(m.id).get.toString)
+
+            // Test the case where you get specific members
+            members = plugin.getMembers(
+                seqAsJavaList(List(member2.id)))
+            members.length shouldBe 1
+            members.foreach(m => m.status
+                                 shouldBe statusMap.get(m.id).get.toString)
         }
 
         scenario("The plugin gracefully (no 5xx) handles ill-formed requests") {

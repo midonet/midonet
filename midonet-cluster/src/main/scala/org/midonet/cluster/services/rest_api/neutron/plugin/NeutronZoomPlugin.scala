@@ -20,7 +20,6 @@ import java.util
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ConcurrentModificationException, UUID}
-
 import javax.ws.rs.WebApplicationException
 
 import scala.collection.JavaConversions._
@@ -28,18 +27,15 @@ import scala.concurrent.ExecutionContext.fromExecutor
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.Inject
 import com.google.protobuf.Message
-
 import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, PersistenceOp, _}
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.data.{ZoomClass, ZoomConvert, ZoomObject}
-import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.c3po.C3POStorageManager
@@ -303,7 +299,29 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     override def getFloatingIps
     : util.List[FloatingIp] = listAll(classOf[FloatingIp])
 
-    override def getMembers: util.List[Member] = listAll(classOf[Member])
+    private def setMemberStatuses(members: util.List[Member]): Unit = {
+        val mIds = members.map(_.id)
+
+        // They all must exist or fail (NotFoundException)
+        val midoMembers = store.getAll(classOf[Topology.PoolMember],
+                                       mIds).await()
+
+        val statusMap = midoMembers.map(
+            m => UUIDUtil.fromProto(m.getId) -> m.getStatus.toString).toMap
+        members.foreach(m => m.status = statusMap.get(m.id).get)
+    }
+
+    // For pool members, set statuses
+    override def getMembers: util.List[Member] = {
+        val members = listAll(classOf[Member])
+        setMemberStatuses(members)
+        members
+    }
+    override def getMembers(ids: util.List[UUID]): util.List[Member] = {
+        val members = list[Member](ids)
+        setMemberStatuses(members)
+        members
+    }
 
     override def deletePool(id: UUID): Unit = delete(id, classOf[Pool])
 
@@ -312,7 +330,13 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     override def createVip(dto: VIP): Unit = create(dto)
 
-    override def getMember(id: UUID): Member = get[Member](id)
+    // For pool member, set status
+    override def getMember(id: UUID): Member = {
+        val member = get[Member](id)
+        val midoMember = store.get(classOf[Topology.PoolMember], id).await()
+        member.status = midoMember.getStatus.toString
+        member
+    }
 
     override def getPool(id: UUID): Pool = get[Pool](id)
 
