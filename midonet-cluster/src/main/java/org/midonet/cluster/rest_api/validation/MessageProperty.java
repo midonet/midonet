@@ -82,8 +82,6 @@ public class MessageProperty {
             "{midokura.javarx.NetworkSubnetNotFound.message}";
     public static final String NON_NULL =
             "{midokura.javarx.NonNull.message}";
-    public static final String ONLY_ROUTER_VTEP_SUPPORTED =
-        "{midokura.javarx.OnlyRouterVtepSupported.message}";
     public static final String POOL_MEMBER_WEIGHT_NEGATIVE =
             "{midokura.javarx.PoolMemberWeightNegative.message}";
     public static final String PORT_ID_IS_INVALID =
@@ -122,6 +120,8 @@ public class MessageProperty {
             "{midokura.javarx.OnlyOneGatewayDeviceSupported.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =
             "{midokura.javarx.TunnelZoneMemberExists.message}";
+    public static final String UNSUPPORTED_GATEWAY_DEVICE =
+        "{midokura.javarx.UnsupportedGatewayDevice.message}";
     public static final String VLAN_ID_MATCHES_PORT_VLAN_ID =
             "{midokura.javarx.VlanIdMatchesPortVlanId.message}";
     public static final String VALUE_IS_INVALID =

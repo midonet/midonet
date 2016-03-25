@@ -66,7 +66,8 @@ public class GatewayDevice extends ZoomObject {
     @ZoomEnum(clazz = Neutron.GatewayDevice.GatewayType.class)
     public enum GatewayType {
         @ZoomEnumValue("ROUTER_VTEP") ROUTER_VTEP,
-        @ZoomEnumValue("HW_VTEP") HW_VTEP;
+        @ZoomEnumValue("HW_VTEP") HW_VTEP,
+        @ZoomEnumValue("NETWORK_VLAN") NETWORK_VLAN;
 
         @JsonCreator
         @SuppressWarnings("unused")
