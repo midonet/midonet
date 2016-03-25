@@ -818,6 +818,38 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         p
     }
 
+    protected def tapServiceJson(id: UUID = UUID.randomUUID(),
+                                 tenantId: String = "tenant",
+                                 name: String = "name",
+                                 description: String = "description",
+                                 portId: UUID): JsonNode = {
+        val f = nodeFactory.objectNode()
+        f.put("id", id.toString)
+        f.put("tenant_id", tenantId)
+        f.put("name", name)
+        f.put("description", description)
+        f.put("port_id", portId.toString)
+        f
+    }
+
+    protected def tapFlowJson(id: UUID = UUID.randomUUID(),
+                              tenantId: String = "tenant",
+                              name: String = "name",
+                              description: String = "description",
+                              tapServiceId: UUID,
+                              sourcePort: UUID,
+                              direction: String = "BOTH"): JsonNode = {
+        val f = nodeFactory.objectNode()
+        f.put("id", id.toString)
+        f.put("tenant_id", tenantId)
+        f.put("name", name)
+        f.put("description", description)
+        f.put("tap_service_id", tapServiceId.toString)
+        f.put("source_port", sourcePort.toString)
+        f.put("direction", direction)
+        f
+    }
+
     protected case class ChainPair(inChain: Chain, outChain: Chain)
     protected def getChains(inChainId: Commons.UUID,
                             outChainId: Commons.UUID): ChainPair = {
