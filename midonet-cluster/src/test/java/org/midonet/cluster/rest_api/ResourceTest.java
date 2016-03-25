@@ -19,6 +19,7 @@ import org.junit.Before;
 
 import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -49,6 +50,7 @@ public abstract class ResourceTest {
     public void setUp() throws Exception {
 
         doReturn(BASE_URI).when(uriInfo).getBaseUri();
+        MockitoAnnotations.initMocks(this);
     }
 
     public static void assertCreate(Response resp, Object entity,
