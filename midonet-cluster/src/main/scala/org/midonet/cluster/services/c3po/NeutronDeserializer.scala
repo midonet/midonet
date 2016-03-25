@@ -158,6 +158,10 @@ object NeutronDeserializer {
                 toMessage(node, classOf[NeutronVIP.SessionPersistence])
             case "org.midonet.cluster.models.SecurityGroupRule" =>
                 toMessage(node, classOf[NeutronSecurityGroupRule])
+            case "org.midonet.cluster.models.TapFlow" =>
+                toMessage(node, classOf[TapFlow])
+            case "org.midonet.cluster.models.TapService" =>
+                toMessage(node, classOf[TapService])
             case "org.midonet.cluster.models.UUID" =>
                 parseUuid(node.asText)
             case unknown => throw new NeutronDeserializationException(
