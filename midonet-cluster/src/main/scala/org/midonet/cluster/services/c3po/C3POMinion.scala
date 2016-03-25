@@ -226,6 +226,8 @@ object C3POMinion {
                 new RemoteMacEntryTranslator(storage, stateTableStorage, pathBldr),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage),
+             classOf[TapService] -> new TapServiceTranslator(storage),
+             classOf[TapFlow] -> new TapFlowTranslator(storage),
              classOf[VpnService] -> new VpnServiceTranslator(storage, seqDispenser)
         ).asInstanceOf[List[(Class[Message], Translator[Message])]]
          .foreach { pair =>
