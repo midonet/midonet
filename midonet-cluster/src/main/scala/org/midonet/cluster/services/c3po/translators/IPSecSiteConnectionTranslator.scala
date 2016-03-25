@@ -44,7 +44,8 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
         createRemoteRoutes(cnxn, vpn).map(Create(_))
     }
 
-    override protected def translateDelete(id: Commons.UUID): OperationList = {
+    override protected def translateDelete(cnxn: IPSecSiteConnection)
+    : OperationList = {
         // retainHighLevelModel() should delete the IPSecSiteConnection, and
         // this should cascade to the routes due to Zoom bindings.
         List()

@@ -73,12 +73,12 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
-    override protected def translateDelete(id: UUID): OperationList = {
-        List(Delete(classOf[Chain], inChainId(id)),
-             Delete(classOf[Chain], outChainId(id)),
-             Delete(classOf[Chain], fwdChainId(id)),
-             Delete(classOf[PortGroup], PortManager.portGroupId(id)),
-             Delete(classOf[Router], id))
+    override protected def translateDelete(nr: NeutronRouter): OperationList = {
+        List(Delete(classOf[Chain], inChainId(nr.getId)),
+             Delete(classOf[Chain], outChainId(nr.getId)),
+             Delete(classOf[Chain], fwdChainId(nr.getId)),
+             Delete(classOf[PortGroup], PortManager.portGroupId(nr.getId)),
+             Delete(classOf[Router], nr.getId))
     }
 
     override protected def translateUpdate(nr: NeutronRouter): OperationList = {

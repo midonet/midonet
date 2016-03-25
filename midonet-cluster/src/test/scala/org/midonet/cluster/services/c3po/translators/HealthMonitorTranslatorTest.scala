@@ -162,6 +162,7 @@ class HealthMonitorTranslatorDeleteTest
 
     "Neutron Health Monitor DELETE" should "delete the corresponding Midonet " +
     "Health Monitor." in {
+        bind(hmId, neutronHealthMonitor)
         val midoOps = translator.translate(
                 Delete(classOf[NeutronHealthMonitor], hmId))
 

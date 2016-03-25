@@ -60,10 +60,8 @@ class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateDelete(id: UUID): OperationList = {
-        val rm = try storage.get(classOf[RemoteMacEntry], id).await() catch {
-            case ex: NotFoundException => return List() // Idempotent.
-        }
+    override protected def translateDelete(rm: RemoteMacEntry)
+    : OperationList = {
         val ports = storage.getAll(classOf[Port], rm.getPortIdsList).await()
         for (p <- ports.toList) yield {
             DeleteNode(portPeeringEntryPath(p.getId.asJava, rm.getMacAddress,
