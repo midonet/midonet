@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_fee658e7",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-25T04:32:02Z",
+      "side": 1,
+      "message": "i guess this is the best choice, considering that\nthe future taas might support alternative position.",
+      "revId": "20934a1c6e61806b1d4931d77b91636e0738be82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
