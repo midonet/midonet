@@ -176,6 +176,30 @@
       "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_39ff3a03",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 1040,
+      "author": {
+        "id": 1007252
+      },
+      "writtenOn": "2016-03-25T10:00:18Z",
+      "side": 1,
+      "message": "Did you mean segmentation id of l2-gateway-connection? About l2-gateway, it looks segmentation id can be updated because devices attribute can be updated. Anyway, I also think it is fine if segmentation_id cannot be updated.",
+      "parentUuid": "da9b358b_de02746f",
+      "range": {
+        "startLine": 1039,
+        "startChar": 41,
+        "endLine": 1040,
+        "endChar": 54
+      },
+      "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
