@@ -19,16 +19,14 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.AgentMembership
 import org.midonet.cluster.services.c3po.C3POStorageManager.Update
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.util.concurrent.toFutureOps
 
 /**
  * Translator for Neutron's Tunnel Zone Host.
  */
-class AgentMembershipTranslator(storage: ReadOnlyStorage)
+class AgentMembershipTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[AgentMembership]
             with TunnelZoneManager {
     /**
@@ -62,11 +60,10 @@ class AgentMembershipTranslator(storage: ReadOnlyStorage)
      * Neutron AgentMembership and the default Tunnel Zone. Looks for a
      * corresponding HostToIp mapping with the Host ID and deletes it,
      */
-    override protected def translateDelete(id: UUID)
+    override protected def translateDelete(membership: AgentMembership)
     : OperationList = {
         val midoOps = new OperationListBuffer()
         val tz = getNeutronDefaultTunnelZone(storage)
-        val membership = storage.get(classOf[AgentMembership], id).await()
         val hostId = membership.getId  // Membership ID is equal to Host ID.
 
         val hostToDelete = tz.getHostsList.asScala

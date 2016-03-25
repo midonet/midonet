@@ -49,7 +49,7 @@ import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Neutron.NeutronRoute
+import org.midonet.cluster.models.Neutron.{NeutronRouter, NeutronNetwork, NeutronRoute}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
@@ -1177,5 +1177,30 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Tests that the host's reference to the tunnel zone is cleared.
         val hostNoTz = storage.get(classOf[Host], hostId).await()
         hostNoTz.getTunnelZoneIdsCount shouldBe 0
+    }
+
+    it should "treat a delete operation as no-op if the Neutron object " +
+              "doesn't exist in the data store" in {
+        // Create a network.
+        val nwId = createTenantNetwork(10)
+        eventually(
+            storage.exists(classOf[NeutronNetwork], nwId).await() shouldBe true)
+
+        // Delete it.
+        insertDeleteTask(20, NetworkType, nwId)
+        eventually {
+            storage.exists(classOf[NeutronNetwork], nwId).await() shouldBe false
+        }
+
+        // Try to delete it again. The translator should treat this as a no-op
+        // because the Neutron object no longer exists.
+        insertDeleteTask(30, NetworkType, nwId)
+
+        // C3PO won't proceed to the next task until the current one succeeds,
+        // so we can test the success of the last step by inserting a create
+        // task and waiting for it to succeed.
+        val rtrId = createRouter(40)
+        eventually(
+            storage.exists(classOf[NeutronRouter], rtrId).await() shouldBe true)
     }
 }
