@@ -99,7 +99,7 @@ class NetworkTranslatorTest extends TranslatorTestBase {
 
     "Network DELETE" should "produce a corresponding Mido Network DELETE" in {
         val id = genId()
-        bind(id, NeutronNetwork.getDefaultInstance)
+        bind(id, NeutronNetwork.newBuilder.setId(id).build())
         val midoOps =
             translator.translate(neutron.Delete(classOf[NeutronNetwork], id))
 

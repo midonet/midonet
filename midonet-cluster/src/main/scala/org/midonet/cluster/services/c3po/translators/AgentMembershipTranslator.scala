@@ -18,19 +18,15 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.services.c3po.midonet.Update
-import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.AgentMembership
-import org.midonet.cluster.models.Topology.TunnelZone
+import org.midonet.cluster.services.c3po.midonet.Update
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.util.concurrent.toFutureOps
 
 /**
  * Translator for Neutron's Tunnel Zone Host.
  */
-class AgentMembershipTranslator(storage: ReadOnlyStorage)
+class AgentMembershipTranslator(protected val storage: ReadOnlyStorage)
     extends NeutronTranslator[AgentMembership]
     with TunnelZoneManager {
     /**
@@ -41,7 +37,7 @@ class AgentMembershipTranslator(storage: ReadOnlyStorage)
     override protected def translateCreate(membership: AgentMembership)
     : MidoOpList = {
         val tz = getNeutronDefaultTunnelZone(storage)
-        val tzWithHost = tz.toBuilder()
+        val tzWithHost = tz.toBuilder
         tzWithHost.addHostsBuilder()
                   .setHostId(membership.getId)   // Membership ID == Host ID.
                   .setIp(membership.getIpAddress)
@@ -64,11 +60,10 @@ class AgentMembershipTranslator(storage: ReadOnlyStorage)
      * Neutron AgentMembership and the default Tunnel Zone. Looks for a
      * corresponding HostToIp mapping with the Host ID and deletes it,
      */
-    override protected def translateDelete(id: UUID)
+    override protected def translateDelete(membership: AgentMembership)
     : MidoOpList = {
         val midoOps = new MidoOpListBuffer()
         val tz = getNeutronDefaultTunnelZone(storage)
-        val membership = storage.get(classOf[AgentMembership], id).await()
         val hostId = membership.getId  // Membership ID is equal to Host ID.
 
         val hostToDelete = tz.getHostsList.asScala
@@ -78,8 +73,8 @@ class AgentMembershipTranslator(storage: ReadOnlyStorage)
                     s"No host mapping found for host ${fromProto(hostId)}")
 
         val hostIdToDel = tz.getHostIdsList.indexOf(hostId)
-        midoOps += Update(tz.toBuilder().removeHosts(hostToDelete)
-                                        .removeHostIds(hostIdToDel).build())
+        midoOps += Update(tz.toBuilder.removeHosts(hostToDelete)
+                                      .removeHostIds(hostIdToDel).build())
 
         midoOps.toList
     }

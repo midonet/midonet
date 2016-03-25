@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.mutable.ListBuffer
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
@@ -24,21 +25,27 @@ import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.c3poNeutronTranslatorLog
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
 import org.midonet.cluster.services.c3po.midonet.MidoOp
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.{midonet, neutron}
+import org.midonet.cluster.util.UUIDUtil
+import org.midonet.util.concurrent.toFutureOps
 
 /** Defines a class that is able to translate from an operation on the Neutron
   * model to a set of operations on the MidoNet model. */
-trait NeutronTranslator[NeutronModel <: Message] {
+abstract class NeutronTranslator[NeutronModel <: Message](
+    implicit ct: ClassTag[NeutronModel]) {
 
     protected type MidoOpList = List[MidoOp[_ <: Message]]
     protected type MidoOpListBuffer = ListBuffer[MidoOp[_ <: Message]]
 
     protected val log =
         LoggerFactory.getLogger(c3poNeutronTranslatorLog(getClass))
+
+    protected val storage: ReadOnlyStorage
 
     /**
      * Translate the Neutron operation on NeutronModel to a list of MidoNet
@@ -76,7 +83,19 @@ trait NeutronTranslator[NeutronModel <: Message] {
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     protected def translateCreate(nm: NeutronModel): MidoOpList
     protected def translateUpdate(nm: NeutronModel): MidoOpList
-    protected def translateDelete(id: UUID): MidoOpList
+    protected def translateDelete(id: UUID): MidoOpList = {
+        val nm = try storage.get(ct.runtimeClass, id).await() catch {
+            case ex: NotFoundException =>
+                val juuid = UUIDUtil.fromProto(id)
+                log.warn("Received request to delete " +
+                         s"${ct.runtimeClass.getSimpleName} $juuid, which " +
+                         s"does not exist. Ignoring.")
+                return List()
+        }
+        translateDelete(nm.asInstanceOf[NeutronModel])
+    }
+
+    protected def translateDelete(nm: NeutronModel): MidoOpList = List()
 }
 
 /** Thrown by by implementations when they fail to perform the requested

@@ -17,15 +17,14 @@ package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.services.c3po.midonet.Create
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronConfig
 import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a translator for Neutron Config. */
-class ConfigTranslator(storage: ReadOnlyStorage)
+class ConfigTranslator(protected val storage: ReadOnlyStorage)
     extends NeutronTranslator[NeutronConfig]
-    with TunnelZoneManager {
+            with TunnelZoneManager {
 
     override protected def translateCreate(c: NeutronConfig): MidoOpList = {
 
@@ -41,7 +40,7 @@ class ConfigTranslator(storage: ReadOnlyStorage)
             "Config Update is not supported.")
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(ncfg: NeutronConfig): MidoOpList = {
         throw new UnsupportedOperationException(
             "Config Delete is not supported.")
     }

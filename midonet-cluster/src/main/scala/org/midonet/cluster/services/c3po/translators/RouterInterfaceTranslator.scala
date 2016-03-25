@@ -44,7 +44,7 @@ object RouterInterfaceTranslator {
             .xorWith(0x3bcf2eb64be211e5L, 0x84ae0242ac110003L)
 }
 
-class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
+class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
                                 sequenceDispenser: SequenceDispenser,
                                 config: ClusterConfig)
     extends NeutronTranslator[NeutronRouterInterface]
@@ -247,7 +247,8 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(ri: NeutronRouterInterface)
+    : MidoOpList = {
         // The id field of a router interface is the router ID. Since a router
         // can have multiple interfaces, this doesn't uniquely identify it.
         // We need to handle router interface deletion when we delete the peer
