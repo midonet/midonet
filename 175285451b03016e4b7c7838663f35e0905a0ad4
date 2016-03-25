@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_59179eed",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-25T10:54:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_19eeb622",
+      "range": {
+        "startLine": 309,
+        "startChar": 0,
+        "endLine": 311,
+        "endChar": 64
+      },
+      "revId": "175285451b03016e4b7c7838663f35e0905a0ad4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_5969de8a",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-25T10:36:44Z",
       "side": 1,
       "message": "This is just statusMap(member1.id). Map.get() is for when you specifically want an Option, instead of throwing an exception if the element is now found.",
+      "range": {
+        "startLine": 190,
+        "startChar": 43,
+        "endLine": 190,
+        "endChar": 72
+      },
+      "revId": "175285451b03016e4b7c7838663f35e0905a0ad4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_39d3ba3a",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-25T10:54:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_5969de8a",
       "range": {
         "startLine": 190,
         "startChar": 43,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_19d8f652",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-25T10:54:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_f90e72e4",
+      "range": {
+        "startLine": 199,
+        "startChar": 33,
+        "endLine": 200,
+        "endChar": 74
+      },
+      "revId": "175285451b03016e4b7c7838663f35e0905a0ad4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_d913ae0c",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_d9e16e00",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-25T10:54:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_d913ae0c",
+      "range": {
+        "startLine": 202,
+        "startChar": 12,
+        "endLine": 202,
+        "endChar": 59
+      },
+      "revId": "175285451b03016e4b7c7838663f35e0905a0ad4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_99f646d6",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
         "patchSetId": 2
@@ -105,6 +201,30 @@
       "writtenOn": "2016-03-25T10:36:44Z",
       "side": 1,
       "message": "This is fine, but this is a bit more concise:\n\n  import scala.collection.JavaConverters._\n\n  ...\n\n  List(member2.id).asJava",
+      "range": {
+        "startLine": 204,
+        "startChar": 16,
+        "endLine": 204,
+        "endChar": 47
+      },
+      "revId": "175285451b03016e4b7c7838663f35e0905a0ad4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_f9dc3248",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-25T10:54:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_99f646d6",
       "range": {
         "startLine": 204,
         "startChar": 16,
