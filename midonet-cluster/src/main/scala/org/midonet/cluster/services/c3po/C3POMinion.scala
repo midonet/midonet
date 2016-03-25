@@ -200,6 +200,8 @@ object C3POMinion {
                 new GatewayDeviceTranslator(storage, stateTableStorage),
              classOf[IPSecSiteConnection] ->
                 new IPSecSiteConnectionTranslator(storage),
+             classOf[L2Gateway] ->
+                new L2GatewayTranslator(storage, pathBldr, seqDispenser),
              classOf[L2GatewayConnection] ->
                 new L2GatewayConnectionTranslator(storage, stateTableStorage, pathBldr),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
