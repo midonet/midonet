@@ -95,6 +95,8 @@ object NeutronResourceType extends Enumeration {
     val Subnet = NeutronResourceType("SUBNET", classOf[NeutronSubnet])
     val VIP = NeutronResourceType("VIP", classOf[NeutronVIP])
     val VpnService = NeutronResourceType("VPNSERVICE", classOf[VpnService])
+    val TapFlow = NeutronResourceType("TAPFLOW", classOf[TapFlow])
+    val TapService = NeutronResourceType("TAPSERVICE", classOf[TapService])
 
     private val vals = Map[String, NeutronResourceType[_ <: Message]](
         NoData.id -> NoData,
@@ -118,7 +120,9 @@ object NeutronResourceType extends Enumeration {
         SecurityGroupRule.id -> SecurityGroupRule,
         Subnet.id -> Subnet,
         VIP.id -> VIP,
-        VpnService.id -> VpnService)
+        VpnService.id -> VpnService,
+        TapFlow.id -> TapFlow,
+        TapService.id -> TapService)
 
     def valueOf(i: String): NeutronResourceType[_ <: Message] = vals(i)
 }
