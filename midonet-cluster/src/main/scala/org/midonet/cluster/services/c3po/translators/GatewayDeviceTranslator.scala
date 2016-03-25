@@ -21,10 +21,10 @@ import scala.collection.JavaConverters._
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.GatewayDevice
-import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.ROUTER_VTEP
+import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLAN, ROUTER_VTEP}
 import org.midonet.cluster.models.Neutron.L2GatewayConnection
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.rest_api.validation.MessageProperty.ONLY_ROUTER_VTEP_SUPPORTED
+import org.midonet.cluster.rest_api.validation.MessageProperty.UNSUPPORTED_GATEWAY_DEVICE
 import org.midonet.cluster.services.c3po.C3POStorageManager.Update
 import org.midonet.util.concurrent.toFutureOps
 
@@ -36,8 +36,8 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateCreate(gwDev: GatewayDevice)
     : OperationList = {
         // Only router VTEPs are supported.
-        if (gwDev.getType != ROUTER_VTEP)
-            throw new IllegalArgumentException(ONLY_ROUTER_VTEP_SUPPORTED)
+        if (gwDev.getType != ROUTER_VTEP && gwDev.getType != NETWORK_VLAN)
+            throw new IllegalArgumentException(UNSUPPORTED_GATEWAY_DEVICE)
 
         // Nothing to do other than pass the Neutron data through to ZK.
         List()
@@ -57,7 +57,7 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
         }
 
         def updatePortWithTunnelIp(conn: L2GatewayConnection) = {
-            val portId = vtepRouterPortId(conn.getNetworkId)
+            val portId = l2gwGatewayPortId(conn.getNetworkId)
             val port = storage.get(classOf[Port], portId).await()
             val updatedPort = port.toBuilder
                                   .setTunnelIp(gwDev.getTunnelIps(0))
@@ -77,4 +77,3 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
             .toList
     }
 }
-
