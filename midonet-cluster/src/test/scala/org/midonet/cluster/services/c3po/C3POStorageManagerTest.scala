@@ -185,8 +185,6 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
         verify(storage).multi(startsWith(
                 DeleteOp(classOf[NeutronNetwork], networkId,
-                         ignoreIfNotExists = true),
-                DeleteOp(classOf[Network], networkId,
                          ignoreIfNotExists = true)))
     }
 

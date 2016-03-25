@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
-import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronBgpPeer
 
 class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
@@ -29,7 +28,8 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
         List()
     }
 
-    override protected def translateDelete(bgpPeerId: UUID): OperationList = {
+    override protected def translateDelete(bgpPeer: NeutronBgpPeer)
+    : OperationList = {
         // Nothing to do but delete the Neutron data.
         List()
     }

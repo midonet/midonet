@@ -16,23 +16,30 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.mutable.ListBuffer
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.c3poNeutronTranslatorLog
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.services.c3po.C3POStorageManager._
+import org.midonet.cluster.util.UUIDUtil
+import org.midonet.util.concurrent.toFutureOps
 
 /** Defines a class that is able to translate from an operation from a high
   * level model to a set of operations on the MidoNet model.
   */
-trait Translator[HighLevelModel <: Message] {
+abstract class Translator[HighLevelModel <: Message](
+        implicit ct: ClassTag[HighLevelModel]) {
 
     protected val log =
         LoggerFactory.getLogger(c3poNeutronTranslatorLog(getClass))
+
+    protected val storage: ReadOnlyStorage
 
     /**
      * Translate the operation on a high level model to a list of
@@ -71,7 +78,19 @@ trait Translator[HighLevelModel <: Message] {
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     protected def translateCreate(nm: HighLevelModel): OperationList
     protected def translateUpdate(nm: HighLevelModel): OperationList
-    protected def translateDelete(id: UUID): OperationList
+    protected def translateDelete(id: UUID): OperationList = {
+        val nm = try storage.get(ct.runtimeClass, id).await() catch {
+            case ex: NotFoundException =>
+                val juuid = UUIDUtil.fromProto(id)
+                log.warn("Received request to delete " +
+                         s"${ct.runtimeClass.getSimpleName} $juuid, which " +
+                         s"does not exist. Ignoring.")
+                return List()
+        }
+        translateDelete(nm.asInstanceOf[HighLevelModel])
+    }
+
+    protected def translateDelete(nm: HighLevelModel): OperationList = List()
 }
 
 /** Thrown by by implementations when they fail to perform the requested
