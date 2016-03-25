@@ -30,7 +30,7 @@ import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 import org.midonet.util.concurrent.toFutureOps
 
 // TODO: add code to handle connection to provider router.
-class SubnetTranslator(val storage: ReadOnlyStorage)
+class SubnetTranslator(protected val storage: ReadOnlyStorage)
     extends NeutronTranslator[NeutronSubnet] with RouteManager {
 
     override protected def translateCreate(ns: NeutronSubnet): MidoOpList = {
@@ -61,8 +61,8 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
         List(Create(dhcp.build))
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
-        List(Delete(classOf[Dhcp], id))
+    override protected def translateDelete(ns: NeutronSubnet): MidoOpList = {
+        List(Delete(classOf[Dhcp], ns.getId))
     }
 
     override protected def translateUpdate(ns: NeutronSubnet): MidoOpList = {

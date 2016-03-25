@@ -26,7 +26,8 @@ import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for Network. */
-class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
+class NetworkTranslator(protected val storage: ReadOnlyStorage,
+                        pathBldr: PathBuilder)
     extends NeutronTranslator[NeutronNetwork] {
     import NetworkTranslator._
 
@@ -53,14 +54,13 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
         List(Update(bldr.build()))
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(nn: NeutronNetwork): MidoOpList = {
         // Uplink networks don't exist in Midonet.
-        val nn = storage.get(classOf[NeutronNetwork], id).await()
         if (isUplinkNetwork(nn)) return List()
 
         val ops = new MidoOpListBuffer
-        ops += Delete(classOf[Network], id)
-        ops ++= replMapPaths(id).map(DeleteNode)
+        ops += Delete(classOf[Network], nn.getId)
+        ops ++= replMapPaths(nn.getId).map(DeleteNode)
         ops.toList
     }
 

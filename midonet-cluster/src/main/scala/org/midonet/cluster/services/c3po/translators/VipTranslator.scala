@@ -16,12 +16,10 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.data.storage.UpdateValidator
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.models.Topology.{Pool, Vip}
-import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
+import org.midonet.cluster.models.Topology.Vip
+import org.midonet.cluster.services.c3po.midonet._
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
@@ -89,11 +87,11 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         midoOps.toList
     }
 
-    override protected def translateDelete(id: UUID) : MidoOpList = {
+    override protected def translateDelete(nv: NeutronVIP) : MidoOpList = {
         val midoOps = new MidoOpListBuffer
-        midoOps += Delete(classOf[Vip], id)
+        midoOps += Delete(classOf[Vip], nv.getId)
 
-        val vip = storage.get(classOf[Vip], id).await()
+        val vip = storage.get(classOf[Vip], nv.getId).await()
         if (vip.hasGatewayPortId) {
             val gwPort = storage.get(classOf[NeutronPort],
                                      vip.getGatewayPortId).await()
