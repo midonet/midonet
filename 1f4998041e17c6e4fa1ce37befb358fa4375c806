@@ -128,6 +128,30 @@
       "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_be4b302b",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 1040,
+      "author": {
+        "id": 1007252
+      },
+      "writtenOn": "2016-03-25T02:45:42Z",
+      "side": 1,
+      "message": "I guess ignoring that filed is better for simplicity. Considering the change of segmentation id by l2-gateway update API, I\u0027m not sure we should also update VAB port\u0027s vlan id or not.",
+      "parentUuid": "da9b358b_1eee9c22",
+      "range": {
+        "startLine": 1039,
+        "startChar": 41,
+        "endLine": 1040,
+        "endChar": 54
+      },
+      "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
