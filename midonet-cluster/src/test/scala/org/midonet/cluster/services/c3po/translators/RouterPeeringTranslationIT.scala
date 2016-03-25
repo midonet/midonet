@@ -157,7 +157,7 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
         createL2GatewayConnection(40, gwDevId)
 
         eventually {
-            val pId = vtepNetworkPortId(toProto(networkId))
+            val pId = l2gwNetworkPortId(toProto(networkId))
             storage.exists(classOf[Port], pId).await() shouldBe true
         }
     }
@@ -245,9 +245,9 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
             val Seq(rme2, rme3) = storage.getAll(classOf[RemoteMacEntry],
                                                  Seq(rm2.id, rm3.id)).await()
             rme2.getPortIdsList should contain only
-                vtepRouterPortId(toProto(nw2Id))
+                l2gwGatewayPortId(toProto(nw2Id))
             rme3.getPortIdsList should contain only
-                vtepRouterPortId(toProto(nw3Id))
+                l2gwGatewayPortId(toProto(nw3Id))
         }
 
         // Delete the remaining RMEs.
@@ -278,7 +278,7 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
 
         def checkVtepRouterPortTunnelIp(nwId: UUID, ip: String) = {
             eventually {
-                val pId = vtepRouterPortId(nwId)
+                val pId = l2gwGatewayPortId(nwId)
                 val port = storage.get(classOf[Port], pId).await()
                 port.getTunnelIp.getAddress shouldBe ip
             }
@@ -302,8 +302,8 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
 
     private def checkNoL2GatewayConnection(networkId: UUID = networkId)
     : Unit = {
-        val nwPortId = vtepNetworkPortId(toProto(networkId))
-        val rtrPortId = vtepRouterPortId(toProto(networkId))
+        val nwPortId = l2gwNetworkPortId(toProto(networkId))
+        val rtrPortId = l2gwGatewayPortId(toProto(networkId))
         Seq(storage.exists(classOf[Port], nwPortId),
             storage.exists(classOf[Port], rtrPortId))
             .map(_.await()) shouldBe Seq(false, false)
@@ -318,8 +318,8 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
                                          rms: Seq[RemoteMac],
                                          networkId: UUID = networkId,
                                          routerId: UUID = routerId): Unit = {
-        val nwPortId = vtepNetworkPortId(toProto(networkId))
-        val rtrPortId = vtepRouterPortId(toProto(networkId))
+        val nwPortId = l2gwNetworkPortId(toProto(networkId))
+        val rtrPortId = l2gwGatewayPortId(toProto(networkId))
         val rmIds = rms.map(_.id)
 
         val gwDevFtr = storage.get(classOf[GatewayDevice], gwDevId)
