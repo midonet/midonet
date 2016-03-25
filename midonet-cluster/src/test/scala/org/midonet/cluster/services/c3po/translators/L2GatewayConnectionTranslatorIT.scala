@@ -107,10 +107,12 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
 
     private def createGatewayDevice(taskId: Int,
                                     id: UUID = UUID.randomUUID(),
-                                    routerId: UUID = routerId,
+                                    resourceId: UUID = routerId,
+                                    gwType: String = "router_vtep",
                                     tunnelIps: Seq[String] = Seq("30.0.0.1"))
     : UUID = {
-        val json = gatewayDeviceJson(resourceId = routerId, id = id,
+        val json = gatewayDeviceJson(resourceId = resourceId, id = id,
+                                     gwType = gwType,
                                      tunnelIps = tunnelIps)
         insertCreateTask(taskId, GatewayDeviceType, json, id)
         id
@@ -158,8 +160,68 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
         createL2GatewayConnection(40, gwDevId)
 
         eventually {
-            val pId = vtepNetworkPortId(toProto(networkId))
+            val pId = l2gwNetworkPortId(toProto(networkId))
             storage.exists(classOf[Port], pId).await() shouldBe true
+        }
+    }
+
+    "L2 Gateway Connection creation of type NETWORK_VLAN" should
+        "create ports on the gateway network with VLAN set, and on tenant " +
+            "network, and they should be linked" in {
+        createTenantNetwork(10, networkId)
+        val gwNetId = createTenantNetwork(20)
+        val gwDevId = createGatewayDevice(30, resourceId = gwNetId,
+                                          gwType = "network_vlan")
+        createL2GatewayConnection(40, gwDevId)
+        eventually {
+            val p1Id = l2gwGatewayPortId(toProto(networkId))
+            storage.exists(classOf[Port], p1Id).await() shouldBe true
+            val p = storage.get(classOf[Port], p1Id).await()
+            p.getVlanId shouldBe 100
+
+            val p2Id = l2gwNetworkPortId(toProto(networkId))
+            storage.exists(classOf[Port], p2Id).await() shouldBe true
+            p.getPeerId shouldBe p2Id
+        }
+    }
+
+    "L2 Gateway Connection creation with unknown gateway type" should
+        "not create a port on the gateway network" in {
+        createTenantNetwork(10, networkId)
+        val gwNetId = createTenantNetwork(20)
+        val gwDevId = createGatewayDevice(30, resourceId = gwNetId,
+                                          gwType = "invalid_type")
+        createL2GatewayConnection(40, gwDevId)
+
+        // Add another call to force completion of the previous call
+        val netId = createTenantNetwork(50)
+
+        eventually(storage.exists(classOf[Network], netId).await())
+        eventually {
+            val pId = l2gwGatewayPortId(toProto(networkId))
+            storage.exists(classOf[Port], pId).await() shouldBe false
+        }
+    }
+
+    "L2 Gateway Connection deletion" should "delete the ports" in {
+        createTenantNetwork(10, networkId)
+        val gwNetId = createTenantNetwork(20)
+        val gwDevId = createGatewayDevice(30, resourceId = gwNetId,
+                                          gwType = "network_vlan")
+
+        val p1Id = l2gwGatewayPortId(toProto(networkId))
+        val p2Id = l2gwNetworkPortId(toProto(networkId))
+
+        val cxnxId= createL2GatewayConnection(40, gwDevId)
+        eventually {
+            storage.exists(classOf[Port], p1Id).await() shouldBe true
+            storage.exists(classOf[Port], p2Id).await() shouldBe true
+        }
+
+        insertDeleteTask(50, L2ConnType, cxnxId)
+        eventually {
+            storage.exists(classOf[Port], p1Id).await() shouldBe false
+            storage.exists(classOf[Port], p2Id).await() shouldBe false
         }
     }
 
@@ -246,9 +308,9 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
             val Seq(rme2, rme3) = storage.getAll(classOf[RemoteMacEntry],
                                                  Seq(rm2.id, rm3.id)).await()
             rme2.getPortIdsList should contain only
-                vtepRouterPortId(toProto(nw2Id))
+                l2gwGatewayPortId(toProto(nw2Id))
             rme3.getPortIdsList should contain only
-                vtepRouterPortId(toProto(nw3Id))
+                l2gwGatewayPortId(toProto(nw3Id))
         }
 
         // Delete the remaining RMEs.
@@ -273,13 +335,13 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
     "Updating Gateway Device" should "update corresponding router port" in {
         val nId = createTenantNetwork(10)
         val rId = createRouter(20)
-        val gwDevId = createGatewayDevice(30, routerId = rId,
+        val gwDevId = createGatewayDevice(30, resourceId = rId,
                                               tunnelIps = Seq("1.1.1.1"))
         createL2GatewayConnection(40, gwDevId, networkId = nId)
 
         def checkVtepRouterPortTunnelIp(nwId: UUID, ip: String) = {
             eventually {
-                val pId = vtepRouterPortId(nwId)
+                val pId = l2gwGatewayPortId(nwId)
                 val port = storage.get(classOf[Port], pId).await()
                 port.getTunnelIp.getAddress shouldBe ip
             }
@@ -289,7 +351,7 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
 
         val n2Id = createTenantNetwork(50)
         val r2Id = createRouter(60)
-        val gwDev2Id = createGatewayDevice(70, routerId = r2Id,
+        val gwDev2Id = createGatewayDevice(70, resourceId = r2Id,
                                                tunnelIps = Seq("1.1.1.2"))
         createL2GatewayConnection(80, gwDev2Id, networkId = n2Id)
 
@@ -303,8 +365,8 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
 
     private def checkNoL2GatewayConnection(networkId: UUID = networkId)
     : Unit = {
-        val nwPortId = vtepNetworkPortId(toProto(networkId))
-        val rtrPortId = vtepRouterPortId(toProto(networkId))
+        val nwPortId = l2gwNetworkPortId(toProto(networkId))
+        val rtrPortId = l2gwGatewayPortId(toProto(networkId))
         Seq(storage.exists(classOf[Port], nwPortId),
             storage.exists(classOf[Port], rtrPortId))
             .map(_.await()) shouldBe Seq(false, false)
@@ -319,8 +381,8 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
                                          rms: Seq[RemoteMac],
                                          networkId: UUID = networkId,
                                          routerId: UUID = routerId): Unit = {
-        val nwPortId = vtepNetworkPortId(toProto(networkId))
-        val rtrPortId = vtepRouterPortId(toProto(networkId))
+        val nwPortId = l2gwNetworkPortId(toProto(networkId))
+        val rtrPortId = l2gwGatewayPortId(toProto(networkId))
         val rmIds = rms.map(_.id)
 
         val gwDevFtr = storage.get(classOf[GatewayDevice], gwDevId)

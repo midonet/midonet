@@ -62,6 +62,8 @@ public class MessageProperty {
             "{midokura.javarx.IsUniqueChainName.message}";
     public static final String IS_UNIQUE_PORT_GROUP_NAME =
             "{midokura.javarx.IsUniquePortGroupName.message}";
+    public static final String L2GW_CONN_BAD_GW_DEV_COUNT =
+            "{midokura.javarx.L2GwConnBadGwDevCount.message}";
     public static final String MAC_ADDRESS_INVALID =
             "{midokura.javarx.MacAddressInvalid.message}";
     public static final String MAC_MASK_INVALID =
@@ -118,10 +120,10 @@ public class MessageProperty {
             "{midokura.javarx.TunnelZoneNameExists.message}";
     public static final String ONLY_ONE_GW_DEV_SUPPORTED =
             "{midokura.javarx.OnlyOneGatewayDeviceSupported.message}";
-    public static final String ONLY_ROUTER_VTEP_SUPPROTED =
-            "{midokura.javarx.OnlyRouterVtepSupported.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =
             "{midokura.javarx.TunnelZoneMemberExists.message}";
+    public static final String UNSUPPORTED_GATEWAY_DEVICE =
+        "{midokura.javarx.UnsupportedGatewayDevice.message}";
     public static final String VLAN_ID_MATCHES_PORT_VLAN_ID =
             "{midokura.javarx.VlanIdMatchesPortVlanId.message}";
     public static final String VALUE_IS_INVALID =
