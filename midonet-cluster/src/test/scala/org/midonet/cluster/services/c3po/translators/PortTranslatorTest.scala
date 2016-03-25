@@ -37,7 +37,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create => CreateOp, Delete => DeleteOp, Operation, Update => UpdateOp}
 import org.midonet.cluster.services.c3po.OpType
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
-import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.vtepNetworkPortId
+import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.l2gwNetworkPortId
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.SequenceDispenser.{OverlayTunnelKey, SequenceType}
@@ -1652,7 +1652,7 @@ class RemotePortTranslationTest extends PortTranslatorTest {
     protected val remotePortArpEntryPath = arpEntryPath(
         networkId, ipv4Addr1Txt, mac)
     protected val remotePortMacEntryPath = macEntryPath(
-        networkId, mac, vtepNetworkPortId(networkId))
+        networkId, mac, l2gwNetworkPortId(networkId))
 
     before {
         initMockStorage()
