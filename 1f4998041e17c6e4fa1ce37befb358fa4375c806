@@ -22,6 +22,46 @@
       "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_fea41809",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 1038,
+      "author": {
+        "id": 1007252
+      },
+      "writtenOn": "2016-03-25T01:30:41Z",
+      "side": 1,
+      "message": "Can we create multiple l2-gateway-connection resource per l2-gateway? I guess vtep router\u0027s l2-gateway doesn\u0027t allow this currently.",
+      "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_3e74c09a",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 1040,
+      "author": {
+        "id": 1007252
+      },
+      "writtenOn": "2016-03-25T01:30:41Z",
+      "side": 1,
+      "message": "l2-gateway can have more than one device and its interface. So, does this mean the devices of the same l2-gateway must have the same segmentaion ids?",
+      "range": {
+        "startLine": 1039,
+        "startChar": 41,
+        "endLine": 1040,
+        "endChar": 54
+      },
+      "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
