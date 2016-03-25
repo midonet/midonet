@@ -152,6 +152,30 @@
       "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_de02746f",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 1040,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-25T04:37:36Z",
+      "side": 1,
+      "message": "Looking at l2gw neutron API definition, segmentation_id is not update-able.  I personally think that\u0027s fine.  What do you think?",
+      "parentUuid": "da9b358b_be4b302b",
+      "range": {
+        "startLine": 1039,
+        "startChar": 41,
+        "endLine": 1040,
+        "endChar": 54
+      },
+      "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
