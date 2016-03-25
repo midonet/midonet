@@ -1014,6 +1014,53 @@ remote mac entries associated with the port, the corresponding entries in
 the port's peering table, and the peer network port.
 
 
+## TAPSERVICE
+
+### CREATE
+### UPDATE
+### DELETE
+
+
+## TAPFLOW
+
+Basically a tap-flow is mapped to a mirror and an entry in Bridge's
+in-mirrors/out-mirrors.
+
+Semantically, packets should be tapped between the bridge
+and Security Groups.
+
+<pre>
+            HERE!
+             |
+             v
+   Bridge -------- SG filter ------- VM
+</pre>
+
+It means that the current hook for BridgePort's in-mirrors/out-mirror,
+which are taken place between SG and VM, are not appropriate.
+
+BridgePort's in-mirrors/out-mirrors might be more straightforward
+if we don't care about compatibility with the reference implementation
+wrt tapping "position".
+
+|tap-flow direction  |mirror direction     |Description          |
+|:-------------------|:--------------------|:--------------------|
+|IN                  |out-mirrors          |Network to VM        |
+|OUT                 |in-mirrors           |VM to Network        |
+
+XXX Bridge's mirroringOutbound is not called for vlan-tagged frames.
+This seems like a bug.
+
+XXX Using bridge filters means that we need to filter packets by in/out-port.
+But out-port match won't work for flooded packets
+
+### CREATE
+### UPDATE
+### DELETE
+
+TBD
+
+
 # References
 
 [1]
