@@ -399,7 +399,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
 
     private class RemoveTagCallback(dst: IPv4Addr) extends Callback0 {
         override def call(): Unit = {
-            log.debug(s"Remove tag for destination address prefix $dst/28")
+            log.debug(s"Remove tag for destination address prefix $dst")
             IPv4InvalidationArray.current.unref(dst.toInt)
         }
     }
@@ -421,7 +421,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
     private val tagManager = new TagManager {
         override def addIPv4Tag(dst: IPv4Addr, matchLength: Int): Unit = {
             val refs = IPv4InvalidationArray.current.ref(dst.toInt, matchLength)
-            log.debug(s"Increased ref count ip prefix $dst/28 to $refs")
+            log.debug(s"Increased ref count ip prefix $dst/$matchLength to $refs")
         }
         override def getFlowRemovalCallback(dst: IPv4Addr): Callback0 = {
             new RemoveTagCallback(dst)
