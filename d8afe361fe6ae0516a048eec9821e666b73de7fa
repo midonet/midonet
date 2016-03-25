@@ -16,6 +16,24 @@
       "revId": "d8afe361fe6ae0516a048eec9821e666b73de7fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_d4d5b5b9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketsEntryPoint.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-25T21:53:16Z",
+      "side": 1,
+      "message": "We try to follow the scala guideline where applicable http://docs.scala-lang.org/style/naming-conventions.html#parentheses\n\nIn this case, the method has side effects (so parenthesis are suggested).",
+      "parentUuid": "da9b358b_b9410a3c",
+      "revId": "d8afe361fe6ae0516a048eec9821e666b73de7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
