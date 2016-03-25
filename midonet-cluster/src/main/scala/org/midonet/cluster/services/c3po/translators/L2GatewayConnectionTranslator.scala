@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConversions._
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.ROUTER_VTEP
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection, RemoteMacEntry}
@@ -73,13 +73,8 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         List(Create(nwPort), Create(rtrPortBldr.build())) ++ rmOps
     }
 
-    override protected def translateDelete(id: UUID): OperationList = {
-        val cnxn = try {
-            storage.get(classOf[L2GatewayConnection], id).await()
-        } catch {
-            case ex: NotFoundException => return List() // Idempotent.
-        }
-
+    override protected def translateDelete(cnxn: L2GatewayConnection)
+    : OperationList = {
         val rtrPortId = vtepRouterPortId(cnxn.getNetworkId)
         val rtrPort = storage.get(classOf[Port], rtrPortId).await()
         val rms = storage.getAll(classOf[RemoteMacEntry],

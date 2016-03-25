@@ -16,15 +16,15 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage}
-import org.midonet.cluster.models.Commons.{Condition, UUID}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, PathBuilder}
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for FloatingIp. */
@@ -45,13 +45,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         if (!fip.hasPortId) List() else associateFipOps(fip)
     }
 
-    override protected def translateDelete(id: UUID): OperationList = {
-        val fip = try {
-            storage.get(classOf[FloatingIp], id).await()
-        } catch {
-            case nfe: NotFoundException => return List()
-        }
-
+    override protected def translateDelete(fip: FloatingIp): OperationList = {
         if (!fip.hasPortId) List() else disassociateFipOps(fip)
     }
 

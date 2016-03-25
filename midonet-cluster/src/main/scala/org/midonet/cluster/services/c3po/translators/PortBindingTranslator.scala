@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.c3po.C3POStorageManager.Update
@@ -52,8 +51,8 @@ class PortBindingTranslator(protected val storage: ReadOnlyStorage)
      * UPDATE operation on the binding's port. The updates to the host is
      * handled by the Zoom bindings.
      */
-    override protected def translateDelete(id: UUID): OperationList = {
-        val binding = storage.get(classOf[PortBinding], id).await()
+    override protected def translateDelete(binding: PortBinding)
+    : OperationList = {
         val port = storage.get(classOf[Port], binding.getPortId).await()
         val updatedPort = port.toBuilder.clearHostId().clearInterfaceName()
         List(Update(updatedPort.build()))

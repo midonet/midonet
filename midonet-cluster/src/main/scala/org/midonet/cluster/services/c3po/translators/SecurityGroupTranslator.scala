@@ -21,18 +21,16 @@ import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
 
-import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
-import org.midonet.cluster.models.Neutron.SecurityGroup
-import org.midonet.cluster.models.Neutron.SecurityGroupRule
+import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps
 
-class SecurityGroupTranslator(storage: ReadOnlyStorage)
+class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[SecurityGroup] with ChainManager
             with RuleManager {
     import org.midonet.cluster.services.c3po.translators.SecurityGroupTranslator._
@@ -139,23 +137,16 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
         case _ => super.retainHighLevelModel(op)
     }
 
-    protected override def translateDelete(sgId: UUID)
+    protected override def translateDelete(sg: SecurityGroup)
     : List[Operation[_ <: Message]] = {
         val ops = new OperationListBuffer
 
-        ops ++= (try {
-            val sg = storage.get(classOf[SecurityGroup], sgId).await()
-
-            // Delete associated SecurityGroupRules as well.
-            sg.getSecurityGroupRulesList.asScala map (
-                r => Delete(classOf[SecurityGroupRule], r.getId)
-            )
-        } catch {
-            case nfe: NotFoundException => List()
-        })
-        ops += Delete(classOf[Chain], inChainId(sgId))
-        ops += Delete(classOf[Chain], outChainId(sgId))
-        ops += Delete(classOf[IPAddrGroup], sgId)
+        // Delete associated SecurityGroupRules.
+        ops ++= sg.getSecurityGroupRulesList.asScala map (
+                r => Delete(classOf[SecurityGroupRule], r.getId))
+        ops += Delete(classOf[Chain], inChainId(sg.getId))
+        ops += Delete(classOf[Chain], outChainId(sg.getId))
+        ops += Delete(classOf[IPAddrGroup], sg.getId)
         ops.toList
     }
 
