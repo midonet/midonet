@@ -20,10 +20,10 @@ import scala.collection.JavaConversions._
 
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.ROUTER_VTEP
+import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLAN, ROUTER_VTEP}
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection, RemoteMacEntry}
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.rest_api.validation.MessageProperty.{ONLY_ONE_GW_DEV_SUPPORTED, ONLY_ROUTER_VTEP_SUPPORTED}
+import org.midonet.cluster.rest_api.validation.MessageProperty.{ONLY_ONE_GW_DEV_SUPPORTED, UNSUPPORTED_GATEWAY_DEVICE}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
@@ -37,25 +37,17 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
     import L2GatewayConnectionTranslator._
 
 
-    override protected def translateCreate(cnxn: L2GatewayConnection)
+    private def translateRouterVtepCreate(cnxn: L2GatewayConnection,
+                                          gwDev: GatewayDevice)
     : OperationList = {
-        if (cnxn.getL2Gateway.getDevicesCount != 1){
-            throw new IllegalArgumentException(ONLY_ONE_GW_DEV_SUPPORTED)
-        }
-        val gwDevId = cnxn.getL2Gateway.getDevices(0).getDeviceId
-        val gwDev = storage.get(classOf[GatewayDevice], gwDevId).await()
-        if (gwDev.getType != ROUTER_VTEP) {
-            throw new IllegalArgumentException(ONLY_ROUTER_VTEP_SUPPORTED)
-        }
-
         val nwPort = Port.newBuilder
-            .setId(vtepNetworkPortId(cnxn.getNetworkId))
+            .setId(l2gwNetworkPortId(cnxn.getNetworkId))
             .setNetworkId(cnxn.getNetworkId)
             .build()
 
         val vni = cnxn.getSegmentationId
         val rtrPortBldr = Port.newBuilder
-            .setId(vtepRouterPortId(cnxn.getNetworkId))
+            .setId(l2gwGatewayPortId(cnxn.getNetworkId))
             .setPeerId(nwPort.getId)
             .setRouterId(gwDev.getResourceId)
             .setTunnelIp(gwDev.getTunnelIps(0))
@@ -75,6 +67,43 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         List(Create(nwPort), Create(rtrPortBldr.build())) ++ rmOps
     }
 
+    private def translateNetworkVlanCreate(cnxn: L2GatewayConnection,
+                                           gwDev: GatewayDevice)
+    : OperationList = {
+
+        val nwPort = Port.newBuilder
+            .setId(l2gwNetworkPortId(cnxn.getNetworkId))
+            .setNetworkId(cnxn.getNetworkId)
+            .build()
+
+        val vlanPort = Port.newBuilder
+            .setId(l2gwGatewayPortId(cnxn.getNetworkId))
+            .setNetworkId(gwDev.getResourceId)
+            .setVlanId(cnxn.getSegmentationId)
+            .setPeerId(nwPort.getId)
+            .build()
+
+        List(Create(nwPort), Create(vlanPort))
+    }
+
+    override protected def translateCreate(cnxn: L2GatewayConnection)
+    : OperationList = {
+        if (cnxn.getL2Gateway.getDevicesCount != 1) {
+            throw new IllegalArgumentException(ONLY_ONE_GW_DEV_SUPPORTED)
+        }
+        val gwDevId = cnxn.getL2Gateway.getDevices(0).getDeviceId
+        val gwDev = storage.get(classOf[GatewayDevice], gwDevId).await()
+
+        gwDev.getType match {
+            case ROUTER_VTEP =>
+                translateRouterVtepCreate(cnxn, gwDev)
+            case NETWORK_VLAN =>
+                translateNetworkVlanCreate(cnxn, gwDev)
+            case _ =>
+                throw new IllegalArgumentException(UNSUPPORTED_GATEWAY_DEVICE)
+        }
+    }
+
     override protected def translateDelete(id: UUID): OperationList = {
         val cnxn = try {
             storage.get(classOf[L2GatewayConnection], id).await()
@@ -82,17 +111,20 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
             case ex: NotFoundException => return List() // Idempotent.
         }
 
-        val rtrPortId = vtepRouterPortId(cnxn.getNetworkId)
-        val rtrPort = storage.get(classOf[Port], rtrPortId).await()
+        val gwPortId = l2gwGatewayPortId(cnxn.getNetworkId)
+        val gwPort = storage.get(classOf[Port], gwPortId).await()
+
+        // Even though remote mac entries are only applicable to VTEP router
+        // case, it does no harm in other cases to do a fetch here.
         val rms = storage.getAll(classOf[RemoteMacEntry],
-                                 rtrPort.getRemoteMacEntryIdsList).await()
+                                 gwPort.getRemoteMacEntryIdsList).await()
         val rmOps = for (rm <- rms) yield {
-            DeleteNode(portPeeringEntryPath(rtrPortId.asJava, rm.getMacAddress,
+            DeleteNode(portPeeringEntryPath(gwPortId.asJava, rm.getMacAddress,
                                             rm.getVtepAddress.getAddress))
         }
 
-        Delete(classOf[Port], vtepNetworkPortId(cnxn.getNetworkId)) ::
-        Delete(classOf[Port], rtrPortId) ::
+        Delete(classOf[Port], l2gwNetworkPortId(cnxn.getNetworkId)) ::
+        Delete(classOf[Port], gwPortId) ::
         rmOps.toList
     }
 
@@ -105,10 +137,10 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
 }
 
 object L2GatewayConnectionTranslator {
-    def vtepNetworkPortId(nwId: UUID): UUID =
+    def l2gwNetworkPortId(nwId: UUID): UUID =
         nwId.xorWith(0xaf59914959d45f8L, 0xb1b028de11f2ee4eL)
 
-    def vtepRouterPortId(nwId: UUID): UUID = {
+    def l2gwGatewayPortId(nwId: UUID): UUID = {
         nwId.xorWith(0x5ad1c08827cb459eL, 0x80042ee7006a8210L)
     }
 }

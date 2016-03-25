@@ -26,7 +26,7 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
-import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.vtepNetworkPortId
+import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.l2gwNetworkPortId
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
@@ -199,7 +199,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     private def macAndArpTableEntryPaths(nPort: NeutronPort)
     : Seq[String] = {
         val portId = if (isRemoteSitePort(nPort)) {
-            vtepNetworkPortId(nPort.getNetworkId)
+            l2gwNetworkPortId(nPort.getNetworkId)
         } else nPort.getId
         val macPath = macEntryPath(nPort.getNetworkId, nPort.getMacAddress,
                                    portId)
