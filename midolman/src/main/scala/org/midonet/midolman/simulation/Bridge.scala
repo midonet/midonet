@@ -426,11 +426,8 @@ class Bridge(val id: UUID,
     /**
       * Perform post-bridging actions.
       *
-      * It will learn the mac-port entry, and:
       * - If the simulation resulted in single ToPort actions, set the output
       *   port and apply post-chains.
-      * - If the simulation resulted in a Fork action, set the output port to
-      *   the first action in the fork.
       */
     @throws[NotYetException]
     private def doPostBridging(context: PacketContext, act: Result): Result = {
