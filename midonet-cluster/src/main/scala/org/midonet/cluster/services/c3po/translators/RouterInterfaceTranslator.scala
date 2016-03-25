@@ -16,7 +16,6 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
@@ -24,8 +23,8 @@ import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
-import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
+import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
@@ -43,7 +42,7 @@ object RouterInterfaceTranslator {
             .xorWith(0x3bcf2eb64be211e5L, 0x84ae0242ac110003L)
 }
 
-class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
+class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
                                 sequenceDispenser: SequenceDispenser)
     extends Translator[NeutronRouterInterface]
             with ChainManager
@@ -242,7 +241,8 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateDelete(id: UUID): OperationList = {
+    override protected def translateDelete(ri: NeutronRouterInterface)
+    : OperationList = {
         // The id field of a router interface is the router ID. Since a router
         // can have multiple interfaces, this doesn't uniquely identify it.
         // We need to handle router interface deletion when we delete the peer

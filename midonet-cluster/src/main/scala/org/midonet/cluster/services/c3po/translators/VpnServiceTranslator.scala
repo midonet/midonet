@@ -49,7 +49,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
                                       router.getVpnServiceIdsList).await()
         existing.headOption match {
             case Some(existingVpnService) =>
-                return List(Update(vpn.toBuilder()
+                return List(Update(vpn.toBuilder
                                        .setContainerId(existingVpnService.getContainerId)
                                        .setExternalIp(existingVpnService.getExternalIp)
                                        .build()))
@@ -118,7 +118,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             .build()
 
 
-        val modifiedVpnService = vpn.toBuilder()
+        val modifiedVpnService = vpn.toBuilder
             .setContainerId(sc.getId)
             .setExternalIp(externalIp)
             .build()
@@ -132,8 +132,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             List(Update(modifiedVpnService))
     }
 
-    override protected def translateDelete(vpnId: UUID): OperationList = {
-        val vpn = storage.get(classOf[VpnService], vpnId).await()
+    override protected def translateDelete(vpn: VpnService): OperationList = {
         val router = storage.get(classOf[Router], vpn.getRouterId).await()
 
         val otherServices = storage.getAll(classOf[VpnService],
@@ -186,7 +185,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             // updated, to avoid overwriting ipsec_site_conn_ids, which Neutron
             // doesn't know about.
             val oldVpn = storage.get(classOf[VpnService], vpn.getId).await()
-            val newVpn = vpn.toBuilder()
+            val newVpn = vpn.toBuilder
                 .addAllIpsecSiteConnectionIds(oldVpn.getIpsecSiteConnectionIdsList)
                 .setContainerId(oldVpn.getContainerId)
                 .setExternalIp(oldVpn.getExternalIp)
@@ -266,7 +265,6 @@ protected[translators] object VpnServiceTranslator {
     }
 
     def isRedirectForEndpointRule(r: Rule, ip: IPSubnet): Boolean = {
-        val condition = r.getCondition
         val isForEndpoint = r.getCondition.hasNwDstIp &&
             r.getCondition.getNwDstIp.equals(ip)
         isRedirectRule(r) && isForEndpoint

@@ -153,18 +153,17 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         fwdRules(fw).map(Create(_)) ++
         translateRouterAssocs(fw)
 
-    private def translateFwJumpRuleDel(fwId: UUID): OperationList = {
+    private def translateFwJumpRuleDel(fw: NeutronFirewall): OperationList = {
         // Delete the firewall jump rules manually since ZOOM currently does
         // not delete them automatically.
-        val fw = storage.get(classOf[NeutronFirewall], fwId).await()
         fw.getAddRouterIdsList.asScala.flatMap(
             rId => deleteOldJumpRules(rId) ++
                 List(Delete(classOf[Rule], fwdChainFwJumpRuleId(rId)))).toList
     }
 
-    override protected def translateDelete(id: UUID) =
-        translateFwJumpRuleDel(id) ++
-        firewallChains(id).map(c => Delete(classOf[Chain], c.getId))
+    override protected def translateDelete(nfw: NeutronFirewall) =
+        translateFwJumpRuleDel(nfw) ++
+        firewallChains(nfw.getId).map(c => Delete(classOf[Chain], c.getId))
 
     override protected def translateUpdate(fw: NeutronFirewall) = {
         // Note: We need to update the high level model by ourselves

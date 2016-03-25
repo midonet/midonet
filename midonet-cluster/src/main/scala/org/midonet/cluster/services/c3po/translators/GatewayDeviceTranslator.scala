@@ -19,10 +19,8 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
-import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.GatewayDevice
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLAN, ROUTER_VTEP}
-import org.midonet.cluster.models.Neutron.L2GatewayConnection
+import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.rest_api.validation.MessageProperty.UNSUPPORTED_GATEWAY_DEVICE
 import org.midonet.cluster.services.c3po.C3POStorageManager.Update
@@ -43,7 +41,8 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
         List()
     }
 
-    override protected def translateDelete(gwDevId: UUID): OperationList = {
+    override protected def translateDelete(gwDev: GatewayDevice)
+    : OperationList = {
         // Nothing to do but delete the Neutron data.
         List()
     }
