@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_be3a10cc",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 991,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-03-25T00:38:15Z",
+      "side": 1,
+      "message": "Does this document assume as follows?\n*VTEP router\nusing gateway_device\n*VAB\nnot using gateway_device",
+      "range": {
+        "startLine": 990,
+        "startChar": 9,
+        "endLine": 991,
+        "endChar": 16
+      },
+      "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
