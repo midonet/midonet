@@ -24,7 +24,7 @@ import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Update, Delete}
 import org.midonet.util.concurrent.toFutureOps
 
-class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
+class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[SecurityGroupRule] with ChainManager {
 
     /*
@@ -46,7 +46,15 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
             "SecurityGroupRule update not supported.")
     }
 
-    protected override def translateDelete(sgrId: UUID) : OperationList = {
+    // Intentionally overriding the UUID overload instead of the
+    // SecurityGroupRule overload, to bypass the exists check in super
+    // implementation. Prior to 5.2 (change bfb99f08), when translating the
+    // creation of a Neutron SecurityGroup with embedded rules, we didn't create
+    // a corresponding top-level Neutron SecurityGroupRule in ZK. This means
+    // that sometimes we'll get a request to delete a SecurityGroupRule that
+    // doesn't exist as a top-level SGR in ZK, but we still need to delete the
+    // corresponding Midonet rules.
+    protected override def translateDelete(sgrId: UUID): OperationList = {
         val ops = new OperationListBuffer
         if (storage.exists(classOf[SecurityGroupRule], sgrId).await()) {
             val sgr = storage.get(classOf[SecurityGroupRule], sgrId).await()
