@@ -200,6 +200,30 @@
       "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_3905fac1",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 1040,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-27T06:56:25Z",
+      "side": 1,
+      "message": "Yeah I thought you were referring to l2-gateway-conn.  As you said, it would simplify if we just ignore segmentation_id of l2_gateway so that we should also not have to worry about it in \u0027interfaces\u0027 of \u0027l2-gateway\u0027.",
+      "parentUuid": "da9b358b_39ff3a03",
+      "range": {
+        "startLine": 1039,
+        "startChar": 41,
+        "endLine": 1040,
+        "endChar": 54
+      },
+      "revId": "1f4998041e17c6e4fa1ce37befb358fa4375c806",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
