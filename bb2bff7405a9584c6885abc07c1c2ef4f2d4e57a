@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_0941bb0b",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 982,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-28T08:21:22Z",
+      "side": 1,
+      "message": "do you mean to change the rest api for vtep router as well?\ncurrently we have no l2gateway operations.",
+      "revId": "bb2bff7405a9584c6885abc07c1c2ef4f2d4e57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
