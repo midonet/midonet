@@ -34,6 +34,24 @@
       "revId": "d8afe361fe6ae0516a048eec9821e666b73de7fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_be956741",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketsEntryPoint.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-03-28T05:33:29Z",
+      "side": 1,
+      "message": "got it, thank you",
+      "parentUuid": "da9b358b_d4d5b5b9",
+      "revId": "d8afe361fe6ae0516a048eec9821e666b73de7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
