@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_5b68a8f5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-29T03:31:34Z",
+      "side": 1,
+      "message": "why was this not changed?",
+      "revId": "2ea3350ddf3077fab8f77fd8437fa4d961b637ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
