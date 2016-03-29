@@ -1,5 +1,27 @@
 #!/bin/bash
-set -ex
+
+SANDBOX_FLAVOUR="default_v1.9"
+OVERRIDE="sandbox/override_v1"
+PROVISIONING="sandbox/provisioning/all-provisioning.sh"
+
+while getopts ":f:o:p:h" opt; do
+    case $opt in
+    f)
+        SANDBOX_FLAVOUR=$OPTARG
+        ;;
+    o)
+        OVERRIDE=$OPTARG
+        ;;
+    p)
+        PROVISIONING=$OPTARG
+        ;;
+    h)
+        echo "$0 [-f SANDBOX_FLAVOUR] [-o OVERRIDE_DIRECTORY]" \
+             " [-p PROVISIONING_SCRIPT]"
+        exit 1
+        ;;
+    esac
+done
 
 # WARNING: this script is meant to be used on the CI, as it pulls images from
 # the CI infrastructure (artifactory)
@@ -30,12 +52,11 @@ sudo dpkg -i python-midonetclient*.deb
 
 # Start sandbox
 pushd tests/
-SANDBOX_FLAVOUR="default_v1.9"
 sudo sandbox-manage -c sandbox.conf pull-all $SANDBOX_FLAVOUR
 sudo sandbox-manage -c sandbox.conf \
                     run $SANDBOX_FLAVOUR \
                     --name=mdts \
-                    --override=sandbox/override_v1 \
-                    --provision=sandbox/provisioning/all-provisioning.sh
+                    --override=$OVERRIDE \
+                    --provision=$PROVISIONING
 
 popd
