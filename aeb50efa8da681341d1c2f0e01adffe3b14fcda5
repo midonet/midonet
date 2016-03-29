@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_60774703",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/Recycler.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-29T16:21:36Z",
+      "side": 1,
+      "message": "I don\u0027t think having it\u0027s own thread is necessarily a bad thing. It\u0027s a pool in any case, doesn\u0027t it expand if it needs more?",
+      "parentUuid": "da9b358b_80236b05",
+      "revId": "aeb50efa8da681341d1c2f0e01adffe3b14fcda5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_60c86775",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclerCommons.scala",
         "patchSetId": 10
