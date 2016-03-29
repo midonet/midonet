@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_7105cdc0",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 31
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-29T11:35:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_2d63781c",
+      "range": {
+        "startLine": 229,
+        "startChar": 15,
+        "endLine": 229,
+        "endChar": 18
+      },
+      "revId": "1cf9f1d8fcb402ced3bdd9066b5ef21476431b45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_0d68b4f4",
         "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 31
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-29T10:48:42Z",
       "side": 1,
       "message": "VXLAN UDP",
+      "range": {
+        "startLine": 232,
+        "startChar": 61,
+        "endLine": 232,
+        "endChar": 70
+      },
+      "revId": "1cf9f1d8fcb402ced3bdd9066b5ef21476431b45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_310f45e3",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 31
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-29T11:35:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_0d68b4f4",
       "range": {
         "startLine": 232,
         "startChar": 61,
@@ -82,6 +130,24 @@
       "writtenOn": "2016-03-29T10:48:42Z",
       "side": 1,
       "message": "Should you set address here?",
+      "revId": "1cf9f1d8fcb402ced3bdd9066b5ef21476431b45",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_d1f6d9d6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-29T11:35:42Z",
+      "side": 1,
+      "message": "Done in a previous patchset.",
+      "parentUuid": "da9b358b_cd71ace2",
       "revId": "1cf9f1d8fcb402ced3bdd9066b5ef21476431b45",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
