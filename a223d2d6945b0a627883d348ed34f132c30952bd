@@ -62,6 +62,30 @@
       "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_7174ad9b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-29T10:48:42Z",
+      "side": 1,
+      "message": "I suggested the synchronized below, after onComplete",
+      "parentUuid": "da9b358b_404683c0",
+      "range": {
+        "startLine": 127,
+        "startChar": 13,
+        "endLine": 127,
+        "endChar": 25
+      },
+      "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
