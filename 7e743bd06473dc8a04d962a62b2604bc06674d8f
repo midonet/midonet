@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_fb777cd2",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 1102,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-29T03:38:10Z",
+      "side": 1,
+      "message": "In this scenario, you have two flows in neutron created?  All mirror entries are removed after you delete both flows, is that right?  That would make sense to me.",
+      "revId": "7e743bd06473dc8a04d962a62b2604bc06674d8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
