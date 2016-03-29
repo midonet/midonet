@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_4fb6ac3e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-29T11:35:42Z",
+      "side": 1,
+      "message": "The executor is only used for setting up the service. The threads that actually handle message are from the netty framework. The default number of threads it uses is:\n\nMath.max(1, SystemPropertyUtil.getInt(\"io.netty.eventLoopThreads\", Runtime.getRuntime().availableProcessors() * 2));\n\nSo it\u0027s independent of other minions and configurable via a java property. I haven\u0027t seen we set up the java property on startup, but I think it\u0027s safe to assume all processors are available to the cluster?",
+      "parentUuid": "da9b358b_60f2a79c",
+      "range": {
+        "startLine": 59,
+        "startChar": 56,
+        "endLine": 59,
+        "endChar": 64
+      },
+      "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_803c8b30",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
         "patchSetId": 33
@@ -36,6 +60,24 @@
       "writtenOn": "2016-03-24T17:46:41Z",
       "side": 1,
       "message": "why have this store state? it could just return the address?",
+      "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_cf24fcb0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-29T11:35:42Z",
+      "side": 1,
+      "message": "Done. Same for port.",
+      "parentUuid": "da9b358b_803c8b30",
       "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -76,6 +118,54 @@
       "writtenOn": "2016-03-29T10:48:42Z",
       "side": 1,
       "message": "I suggested the synchronized below, after onComplete",
+      "parentUuid": "da9b358b_404683c0",
+      "range": {
+        "startLine": 127,
+        "startChar": 13,
+        "endLine": 127,
+        "endChar": 25
+      },
+      "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_b10355b8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-29T11:35:42Z",
+      "side": 1,
+      "message": "True. Done.",
+      "parentUuid": "da9b358b_7174ad9b",
+      "range": {
+        "startLine": 127,
+        "startChar": 13,
+        "endLine": 127,
+        "endChar": 25
+      },
+      "revId": "a223d2d6945b0a627883d348ed34f132c30952bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_0f79c493",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-29T11:35:42Z",
+      "side": 1,
+      "message": "Yes, it\u0027s handled by the Abstract service. After discussing with Alex, the only issue might be that we are writing and reading these values from different threads, so when calling doStop (after a successful notifyStarted) we could get NPE.\n\nWe either set those vars to volatile, or synchronize to do a memory barrier. Corner case but still.",
       "parentUuid": "da9b358b_404683c0",
       "range": {
         "startLine": 127,
