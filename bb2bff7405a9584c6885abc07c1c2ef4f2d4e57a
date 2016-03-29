@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "da9b358b_0e465c23",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 981,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2016-03-29T07:54:42Z",
+      "side": 1,
+      "message": "it will be HW VTEP in the future as well",
+      "range": {
+        "startLine": 981,
+        "startChar": 61,
+        "endLine": 981,
+        "endChar": 76
+      },
+      "revId": "bb2bff7405a9584c6885abc07c1c2ef4f2d4e57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_0941bb0b",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 12
@@ -13,6 +36,121 @@
       "writtenOn": "2016-03-28T08:21:22Z",
       "side": 1,
       "message": "do you mean to change the rest api for vtep router as well?\ncurrently we have no l2gateway operations.",
+      "revId": "bb2bff7405a9584c6885abc07c1c2ef4f2d4e57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_ee4b382a",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 984,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2016-03-29T07:54:42Z",
+      "side": 1,
+      "message": "or HW VTEP (in the future)",
+      "range": {
+        "startLine": 984,
+        "startChar": 18,
+        "endLine": 984,
+        "endChar": 31
+      },
+      "revId": "bb2bff7405a9584c6885abc07c1c2ef4f2d4e57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_ae5530c7",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 993,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2016-03-29T07:54:42Z",
+      "side": 1,
+      "message": "Not sure what you want to say by this sentence",
+      "range": {
+        "startLine": 993,
+        "startChar": 1,
+        "endLine": 993,
+        "endChar": 66
+      },
+      "revId": "bb2bff7405a9584c6885abc07c1c2ef4f2d4e57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_6e5e08eb",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 996,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2016-03-29T07:54:42Z",
+      "side": 1,
+      "message": "I think currently (Master branch), plugin does not forward the l2gw creation to the driver.",
+      "range": {
+        "startLine": 996,
+        "startChar": 0,
+        "endLine": 996,
+        "endChar": 36
+      },
+      "revId": "bb2bff7405a9584c6885abc07c1c2ef4f2d4e57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_0e5d3ce9",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 1006,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2016-03-29T07:54:42Z",
+      "side": 1,
+      "message": "please provide example of the expected \u0027devices\u0027 format",
+      "range": {
+        "startLine": 1006,
+        "startChar": 17,
+        "endLine": 1006,
+        "endChar": 26
+      },
+      "revId": "bb2bff7405a9584c6885abc07c1c2ef4f2d4e57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_8e694c8e",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 1047,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2016-03-29T07:54:42Z",
+      "side": 1,
+      "message": "this should be checked on the neutron side",
+      "range": {
+        "startLine": 1046,
+        "startChar": 2,
+        "endLine": 1047,
+        "endChar": 15
+      },
       "revId": "bb2bff7405a9584c6885abc07c1c2ef4f2d4e57a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
