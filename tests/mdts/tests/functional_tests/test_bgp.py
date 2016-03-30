@@ -569,6 +569,7 @@ def test_multisession_icmp_failback():
 
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
+@nottest # MI-186
 def test_multisession_icmp_with_redundancy():
     """
     Title: BGP adding double session redundancy to two uplinks
