@@ -1,0 +1,2 @@
+deb http://artifactory.bcn.midokura.com/artifactory/mem-1.9-deb stable main
+deb http://repo.midonet.org/misc stable main
