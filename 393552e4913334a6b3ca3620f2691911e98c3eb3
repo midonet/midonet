@@ -34,6 +34,24 @@
       "revId": "393552e4913334a6b3ca3620f2691911e98c3eb3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_3d94b435",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/MidonetBackendTestModule.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-30T13:32:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_806a4b19",
+      "revId": "393552e4913334a6b3ca3620f2691911e98c3eb3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
