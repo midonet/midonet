@@ -221,7 +221,10 @@ class RuleConversionTest extends FeatureSpec with Matchers
                                              traversedDevice: UUID = UUID.randomUUID,
                                              traversedDeviceInv: Boolean = true,
                                              fragmentPolicy: FragmentPolicy =
-                                                 FragmentPolicy.ANY): Rule.Builder = {
+                                                 FragmentPolicy.ANY,
+                                             vlan: Int = random.nextInt(),
+                                             noVlan: Boolean = random.nextBoolean())
+    : Rule.Builder = {
         val builder = ruleBuilder.getConditionBuilder
 
         if (matchForwardFlow.isDefined) {
@@ -263,6 +266,8 @@ class RuleConversionTest extends FeatureSpec with Matchers
             .setTraversedDevice(traversedDevice.asProto)
             .setTraversedDeviceInv(traversedDeviceInv)
             .setFragmentPolicy(TopologyCondition.FragmentPolicy.valueOf(fragmentPolicy.name))
+            .setVlan(vlan)
+            .setNoVlan(noVlan)
         ruleBuilder
     }
 }
