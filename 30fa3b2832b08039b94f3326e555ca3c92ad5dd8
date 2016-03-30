@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_3d1dd473",
+        "filename": "nsdb/src/main/scala/org/midonet/packets/FlowStatePackets.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-30T15:15:14Z",
+      "side": 1,
+      "message": "Is this guaranteed to have the same number of elements as iterEgress (or add additional iterEgressIds.hasNext for safety)?",
+      "range": {
+        "startLine": 159,
+        "startChar": 22,
+        "endLine": 159,
+        "endChar": 35
+      },
+      "revId": "30fa3b2832b08039b94f3326e555ca3c92ad5dd8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
