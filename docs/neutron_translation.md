@@ -686,9 +686,9 @@ If the pool ID was changed:
  * If the pool ID is null, set the VIP ID of the Neutron pool to null.
  * If the pool ID is not null:
 
-       * Set the VIP ID of the Neutron pool to the new VIP ID.
-       * Associate the VIP to the load balancer
-       * Update the pool health monitor association configuration
+   * Set the VIP ID of the Neutron pool to the new VIP ID.
+   * Associate the VIP to the load balancer
+   * Update the pool health monitor association configuration
 
 If the pool ID was not changed:
 
@@ -969,7 +969,7 @@ the 'segmentation_id' of the remote mac entry, add the 'mac_address' and
 
 Store the remote mac entry in MidoNet.
 
-# DELETE
+### DELETE
 
 Fetch the remote mac entry so that you can get the port IDs associated with the
 remote mac entry.
@@ -1018,7 +1018,9 @@ the port's peering table, and the peer network port.
 
 [1]
 https://github.com/stackforge/networking-midonet/blob/master/specs/kilo/provider_net.rst
+
 [2]
 https://github.com/stackforge/networking-midonet/blob/master/specs/kilo/port_binding.rst
+
 [3]
 https://github.com/stackforge/networking-midonet/blob/master/specs/kilo/dynamic_routing.rst
