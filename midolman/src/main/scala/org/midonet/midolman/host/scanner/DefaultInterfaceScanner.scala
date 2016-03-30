@@ -380,7 +380,11 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
         clone.setEndpoint(ifdesc.getEndpoint)
         ifdesc.getInetAddresses foreach clone.setInetAddress
         clone.setHasLink(ifdesc.hasLink)
-        clone.setMac(MAC.fromAddress(ifdesc.getMac))
+        if (ifdesc.getMac eq null) {
+            clone.setMac(null.asInstanceOf[MAC])
+        } else {
+            clone.setMac(MAC.fromAddress(ifdesc.getMac))
+        }
         clone.setMtu(ifdesc.getMtu)
         clone.setPortType(ifdesc.getPortType)
         clone.setType(ifdesc.getType)
