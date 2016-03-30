@@ -1,0 +1,25 @@
+<testsuite errors="0" failures="1" name="nosetests" skip="0" tests="1"><testcase classname="test_compat_flowstate" name="test_compat_flowstate (with bindings spanning across 2 midolman)" time="54.577"><failure message="&#10;Expected: Interface [iface='pethfff1cba2', vport_id=None, mac_addr=u'fa:16:3e:ee:ed:45'] SHOULD receive packet with tcpdump by filter=u'udp and port 81 and ip dst 10.0.1.2' within 20 sec&#10;     but: Interface [iface='pethfff1cba2', vport_id=None, mac_addr=u'fa:16:3e:ee:ed:45'] did not receive a packet.&#10;" type="exceptions.AssertionError">Traceback (most recent call last):
+  File "/usr/lib/python2.7/unittest/case.py", line 331, in run
+    testMethod()
+  File "/usr/local/lib/python2.7/dist-packages/nose/case.py", line 197, in runTest
+    self.test(*self.arg)
+  File "/home/vagrant/src/midonet/tests/mdts/tests/compatibility_tests/test_compat_flowstate.py", line 253, in test_compat_flowstate
+    wait_on_futures(results)
+  File "/home/vagrant/src/midonet/tests/mdts/tests/utils/utils.py", line 44, in wait_on_futures
+    return map(lambda f: f.result(), futures)
+  File "/home/vagrant/src/midonet/tests/mdts/tests/utils/utils.py", line 44, in &lt;lambda&gt;
+    return map(lambda f: f.result(), futures)
+  File "/usr/local/lib/python2.7/dist-packages/concurrent/futures/_base.py", line 405, in result
+    return self.__get_result()
+  File "/usr/local/lib/python2.7/dist-packages/concurrent/futures/thread.py", line 55, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/hamcrest/core/assert_that.py", line 43, in assert_that
+    _assert_match(actual=arg1, matcher=arg2, reason=arg3)
+  File "/usr/local/lib/python2.7/dist-packages/hamcrest/core/assert_that.py", line 57, in _assert_match
+    raise AssertionError(description)
+AssertionError: 
+Expected: Interface [iface='pethfff1cba2', vport_id=None, mac_addr=u'fa:16:3e:ee:ed:45'] SHOULD receive packet with tcpdump by filter=u'udp and port 81 and ip dst 10.0.1.2' within 20 sec
+     but: Interface [iface='pethfff1cba2', vport_id=None, mac_addr=u'fa:16:3e:ee:ed:45'] did not receive a packet.
+
+
+</failure></testcase></testsuite>

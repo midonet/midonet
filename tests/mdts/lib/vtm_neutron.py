@@ -40,19 +40,24 @@ class NeutronTopologyManager(TopologyManager):
         self.api = get_neutron_api()
         self.keystone = get_keystone_api()
 
-    def create_resource(self, resource):
+    def create_resource(self, resource, name=None):
         # Get the type of the resource just created.
         rtype = resource.keys()[0]
 
         # Keep the reference to the resource created identified by the name.
         # A dictionary mapping the json response.
-        if 'name' in resource[rtype]:
+        if name is not None:
+            self.set_resource(name, resource)
+        elif 'name' in resource[rtype]:
             name = resource[rtype]['name']
             self.set_resource(name, resource)
 
         if 'id' in resource[rtype]:
             id = resource[rtype]['id']
             self.set_resource(id, resource)
+
+        if 'name' not in resource[rtype] and name:
+            self.set_resource(name, resource)
 
         delete_method_name = "%s_%s" % (
             self.method_mappings['create'],
