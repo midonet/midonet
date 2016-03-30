@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_bd48c35c",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 37
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-30T16:01:45Z",
+      "side": 1,
+      "message": "Use MidoNet Agent instead of midolman",
+      "range": {
+        "startLine": 230,
+        "startChar": 8,
+        "endLine": 230,
+        "endChar": 16
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_5d6e57ca",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 37
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-30T16:01:45Z",
+      "side": 1,
+      "message": "Do you mean the cluster must be restarted? If that\u0027s the case, this is true for all configuration options, right?",
+      "range": {
+        "startLine": 232,
+        "startChar": 53,
+        "endLine": 233,
+        "endChar": 55
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_5d41b70a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateMessageHandler.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-30T16:01:45Z",
+      "side": 1,
+      "message": "Some unused imports.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 64
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_fd652be1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateMessageHandler.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-30T16:01:45Z",
+      "side": 1,
+      "message": "Does this have some meaning?",
+      "range": {
+        "startLine": 44,
+        "startChar": 13,
+        "endLine": 44,
+        "endChar": 14
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_7d3c7b93",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-30T16:01:45Z",
+      "side": 1,
+      "message": "FlowStateService.initLocalAddress is not tested. Same for FlowStateMessageHandler.storageProvider",
+      "range": {
+        "startLine": 60,
+        "startChar": 6,
+        "endLine": 60,
+        "endChar": 26
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_1dde8f6d",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-30T16:01:45Z",
+      "side": 1,
+      "message": "Not used",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 67
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
