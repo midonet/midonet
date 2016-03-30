@@ -36,6 +36,13 @@ class PortBuilderImpl(val portActor: ActorRef) extends PortBuilder {
             port = port.copy(active)
     }
 
+    override def deleted(): Unit = {
+        // Make port null to ensure that no subsequent build triggers an update
+        // unless the port was re-created.
+        port = null
+        portActor ! PortManager.TriggerDelete
+    }
+
     def build() {
         if (port != null) {
             portActor ! PortManager.TriggerUpdate(port)

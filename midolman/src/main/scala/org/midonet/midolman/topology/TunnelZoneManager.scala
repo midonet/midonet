@@ -62,9 +62,9 @@ class TunnelZoneManager(clusterClient: Client,
             this
         }
 
-        def start() = null
+        override def build(): Unit = { }
 
-        def build() {
-        }
+        override def deleted(): Unit = { }
+
     }
 }

@@ -40,9 +40,9 @@ import org.midonet.util.eventloop.Reactor;
  * @param <V> The type of the value used by the cache.
  */
 public abstract class LoadingCache<K, V> {
-    private ConcurrentMap<K, V> map = new ConcurrentHashMap<K,V>();
+    private ConcurrentMap<K, V> map = new ConcurrentHashMap<>();
     private ConcurrentMap<K, Long> lastAccessTimes
-        = new ConcurrentHashMap<K,Long>();
+        = new ConcurrentHashMap<>();
     protected Reactor reactor;
 
     public LoadingCache(Reactor reactor) {
@@ -115,11 +115,11 @@ public abstract class LoadingCache<K, V> {
         if (null == value) {
             lastAccessTimes.remove(key);
             map.remove(key);
-        }
-        else {
+        } else {
             V oldValue = map.put(key, value);
             if (null == oldValue)
                 lastAccessTimes.put(key, reactor.currentTimeMillis());
         }
     }
+
 }

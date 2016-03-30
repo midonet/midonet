@@ -20,9 +20,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.inject.Inject;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +29,8 @@ import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 import org.midonet.cache.LoadingCache;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback1;
@@ -59,7 +58,7 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
     Serializer serializer;
 
     private PortZkManager portMgr;
-    private Set<Callback1<UUID>> watchers = new HashSet<Callback1<UUID>>();
+    private Set<Callback1<UUID>> watchers = new HashSet<>();
 
     public PortConfigCache(Reactor reactor, Directory zkDir,
             String zkBasePath, ZkConnectionAwareWatcher connWatcher,
@@ -75,8 +74,7 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
         try {
             return clazz.cast(config);
         } catch (ClassCastException e) {
-            log.error("Failed to cast {} to a {}",
-                      new Object[] {config, clazz, e});
+            log.error("Failed to cast {} to a {}", config, clazz, e);
             return null;
         }
     }
@@ -89,8 +87,8 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
                     try {
                         return clazz.cast(config);
                     } catch (ClassCastException cce) {
-                        log.error("Failed to cast {} to a {}",
-                                  new Object[] {config, clazz, cce});
+                        log.error("Failed to cast {} to a {}", config, clazz,
+                                  cce);
                     }
                     return null;
                 }
@@ -132,10 +130,13 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
         final PortWatcher watcher = new PortWatcher(key);
         return portMgr.getWithObservable(key, watcher)
             .observeOn(Schedulers.trampoline())
-            .doOnError(new Action1<Throwable>() {
+            .doOnError(
+                new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
-                        if (t instanceof StateAccessException) {
+                        if (t instanceof NoStatePathException) {
+                            log.trace("Port {} has been deleted", key);
+                        } else if (t instanceof StateAccessException) {
                             log.warn("Exception retrieving PortConfig", t);
                             connectionWatcher.handleError(
                                     "PortWatcher:" + key.toString(),
@@ -161,7 +162,8 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
             // Update the value and re-register for ZK notifications.
             portMgr.getWithObservable(portID, this)
                 .observeOn(reactor.rxScheduler())
-                .subscribe(new Action1<PortConfig>() {
+                .subscribe(
+                    new Action1<PortConfig>() {
                         @Override
                         public void call(PortConfig config) {
                             put(portID, config);
@@ -174,6 +176,7 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
                             if (t instanceof NoStatePathException) {
                                 log.debug("Port {} has been deleted", portID);
                                 put(portID, null);
+                                notifyWatchers(portID);
                             } else if (t instanceof StateAccessException) {
                                 log.warn("Exception refreshing PortConfig", t);
                                 connectionWatcher.handleError(

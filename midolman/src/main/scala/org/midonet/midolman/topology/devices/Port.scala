@@ -186,7 +186,6 @@ sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
 }
 
 object PortFactory {
-    @Deprecated
     def fromPortConfig(config: PortConfig): Port = {
         val port = config match {
             case cfg: BridgePortConfig =>

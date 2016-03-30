@@ -85,5 +85,6 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
         routerManager ! TriggerUpdate(cfg, arpCache, new RoutingTableWrapper(table))
     }
 
-    def start() = null
+    override def deleted(): Unit = { }
+
 }
