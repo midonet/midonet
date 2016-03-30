@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_bd1a036d",
+        "filename": "tests/mdts/tests/compatibility_tests/nosetests.xml",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-30T15:19:38Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 33
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_9d2f40a1",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-30T15:19:38Z",
+      "side": 1,
+      "message": "by putting a fip on port1, you stop generating nat flow state. since it\u0027ll use static rather than dynamic nat. \n\nIt\u0027d be better to have 2 ports in each network, one with fip, one without, and send packets from non-fip to fip.",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 34
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_fd3f6cd4",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-30T15:19:38Z",
+      "side": 1,
+      "message": "Comment needs update.",
+      "range": {
+        "startLine": 172,
+        "startChar": 0,
+        "endLine": 172,
+        "endChar": 67
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_dd25c8c2",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-30T15:19:38Z",
+      "side": 1,
+      "message": "I think cleanup should be deeper than this. It should wipe the container (i.e. restart the whole sandbox).",
+      "range": {
+        "startLine": 189,
+        "startChar": 1,
+        "endLine": 192,
+        "endChar": 59
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_dd0ca844",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-30T15:19:38Z",
+      "side": 1,
+      "message": "snat should change the port, we should record what the port is and verify that it\u0027s the same after the reboot.",
+      "range": {
+        "startLine": 202,
+        "startChar": 52,
+        "endLine": 202,
+        "endChar": 57
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_3d0ef334",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-30T15:19:38Z",
+      "side": 1,
+      "message": "should also try the same flows as before and ensure that the snat transport ports are the same.",
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_1d3b30ed",
+        "filename": "tests/sandbox/override_v2_compat/cluster/override.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-30T15:19:38Z",
+      "side": 1,
+      "message": "Is there not a better place to get the debs? 5.0.0 should be available in some public repo",
+      "range": {
+        "startLine": 8,
+        "startChar": 16,
+        "endLine": 8,
+        "endChar": 29
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_3d36f403",
+        "filename": "tests/sandbox/override_v2_compat/cluster/override.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-03-30T15:19:38Z",
+      "side": 1,
+      "message": "We should be testing compat since 5.0.0. Are they not available in the repo?\n\nI assumed the sandbox 5.0 images where 5.0.0 in any case.",
+      "range": {
+        "startLine": 13,
+        "startChar": 54,
+        "endLine": 13,
+        "endChar": 55
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
