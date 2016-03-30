@@ -154,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_e226a915",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 12
+      },
+      "lineNbr": 993,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-03-30T08:05:46Z",
+      "side": 1,
+      "message": "I meant it\u0027s no-op for Router VTEP.",
+      "parentUuid": "da9b358b_ae5530c7",
+      "range": {
+        "startLine": 993,
+        "startChar": 1,
+        "endLine": 993,
+        "endChar": 66
+      },
+      "revId": "bb2bff7405a9584c6885abc07c1c2ef4f2d4e57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_6e5e08eb",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 12
