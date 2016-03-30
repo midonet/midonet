@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_fda3ec4d",
+        "filename": "tests/sandbox/override_v2_hotspot/cluster/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-30T14:37:21Z",
+      "side": 1,
+      "message": "This is a harmless type inherited from the override_v2, we can fix it later in all overrides.",
+      "revId": "3b7337af44a469eab41cbd93de089a78e9f77711",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
