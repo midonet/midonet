@@ -258,6 +258,7 @@ def clear_multi_vtep_multi_tz():
 
 @bindings(bindings_single_mm_single_bridge)
 @with_setup(setup_single_vtep, clear_single_vtep)
+@nottest # MI-778
 def test_to_single_vtep_single_bridge():
     """Tests if VMs can ping a host connected to a VTEP from a single host
     with a single bridge."""
@@ -273,6 +274,7 @@ def test_to_single_vtep_single_bridge():
 
 @bindings(bindings_single_mm_multi_bridge_same_subnet)
 @with_setup(setup_single_vtep, clear_single_vtep)
+@nottest # MI-778
 def test_to_single_vtep_multi_bridge():
     """Tests if VMs can ping a host connected to a VTEP from single and
     multiple hosts with multiple bridges."""
