@@ -51,6 +51,7 @@ class Interface(object):
             'mtu': self.mtu
         }
         self._tcpdump_sem = Semaphore(value=0)
+        self._tcpdump_output = []
         # TODO: write all tcpdump output to a file for later inspection
         #self._tcpdump_output = ''
         #f = self.expect('', store_output=True)
@@ -79,15 +80,15 @@ class Interface(object):
                                should_succeed, stream=not sync)
 
     @handle_sync
-    def expect(self, pcap_filter_string, timeout=None, sync=False, count=1, store_output=False, listen_host_interface=False):
-        return EXECUTOR.submit(self.do_expect, pcap_filter_string, timeout, count, store_output, listen_host_interface)
+    def expect(self, pcap_filter_string, timeout=None, sync=False, count=1, listen_host_interface=False):
+        return EXECUTOR.submit(self.do_expect, pcap_filter_string, timeout, count, listen_host_interface)
 
     @handle_sync
     def clear_arp(self, sync=False):
         return EXECUTOR.submit(self.do_clear_arp)
 
     # FIXME: the default number of packets to wait for is 1, should be configurable
-    def do_expect(self, pcap_filter_string, timeout=None, count=1, store_output=False, listen_host_interface=False):
+    def do_expect(self, pcap_filter_string, timeout=None, count=1, listen_host_interface=False):
         """
         Expects packet with pcap_filter_string with tcpdump.
         See man pcap-filter for more details as to what you can match.
@@ -131,8 +132,7 @@ class Interface(object):
             result = ""
             for log_line in log_stream:
                 result += log_line
-                if store_output:
-                    self._tcpdump_output += log_line
+                self._tcpdump_output.append(log_line)
                 LOG.debug('Result is: %s' % log_line.rstrip())
         except StopIteration:
             LOG.debug("Stream didn't block, command %s " % cmdline +
@@ -201,6 +201,11 @@ class Interface(object):
 
     def get_binding_ifname(self):
         return self.ifname
+
+    def get_last_tcpdump_output(self):
+        if len(self._tcpdump_output) > 0:
+            return self._tcpdump_output[-1]
+        return ""
 
     def get_tcpdump_output(self):
         return self._tcpdump_output
