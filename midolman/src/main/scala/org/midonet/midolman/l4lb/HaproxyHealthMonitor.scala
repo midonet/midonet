@@ -402,16 +402,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         dp
     }
 
-    def haproxyCommandLineWithoutPid = "haproxy -f " +
+    def haproxyCommandLine = "haproxy -f " +
         config.haproxyConfFileLoc + " -p " + config.haproxyPidFileLoc
-
-
-    def haproxyCommandLine(): String = {
-        HealthMonitor.getHaproxyPid(config.haproxyPidFileLoc) match {
-            case Some(pid) => haproxyCommandLineWithoutPid + " -st " + pid
-            case None => haproxyCommandLineWithoutPid
-        }
-    }
 
     def killHaproxyIfRunning(name: String, confFileLoc: String,
                              pidFileLoc: String) {
@@ -422,8 +414,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         }
     }
 
-    def startHaproxy(name: String) = ipCommand.execIn(name,
-                                                      haproxyCommandLine())
+    def startHaproxy(name: String) = ipCommand.execIn(name, haproxyCommandLine)
 
     /*
      * This will restart haproxy with the given config file.
