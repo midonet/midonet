@@ -293,7 +293,7 @@ class OvsdbVtepConnection(mgmtIp: IPv4Addr, mgmtPort: Int,
                           _: VtepNotConnectedException) =>
                     if (retries > 0 && retryInterval.length > 0) {
                         log.warn("Connecting ({}): failed {} retries left " +
-                                 "in {})", state.get, Long.box(retries),
+                                 "in {}", state.get, Long.box(retries),
                                  retryInterval, e)
                         val subscription = Observable
                             .timer(retryInterval.toMillis, TimeUnit.MILLISECONDS,

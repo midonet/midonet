@@ -29,13 +29,13 @@ import scala.util.{Failure, Success}
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory.getLogger
+
 import rx.functions.Action1
 import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
-import rx.{Observable, Observer}
+import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.cluster.backend.zookeeper.StateAccessException
-import org.midonet.cluster.{DataClient, vxgwVtepControlLog}
 import org.midonet.cluster.data.storage.{NotFoundException, StateStorage, Storage}
 import org.midonet.cluster.data.vtep.VtepStateException
 import org.midonet.cluster.data.vtep.model.MacLocation
@@ -48,6 +48,7 @@ import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.cluster.{DataClient, vxgwVtepControlLog}
 import org.midonet.midolman.state._
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.ConnectionState._
@@ -94,7 +95,7 @@ class VtepSynchronizer(vtepId: UUID,
                        // abstracting ReplicatedMaps from DataClient
                        fpHerald: FloodingProxyHerald,
                        ovsdbProvider: (IPv4Addr, Int) => OvsdbVtepDataClient)
-    extends Observer[NsdbVtep] {
+    extends Subscriber[NsdbVtep] {
 
     private val log = Logger(getLogger(vxgwVtepControlLog(vtepId)))
     private implicit val ec = VtepSynchronizer.ec
@@ -200,6 +201,8 @@ class VtepSynchronizer(vtepId: UUID,
       * Runs on the event thread from Storage.
       */
     override def onError(t: Throwable): Unit = {
+        if (isUnsubscribed)
+            return
         log.error("VTEP error", t)
         ovsdb.close()
         subscription.unsubscribe()
@@ -212,6 +215,8 @@ class VtepSynchronizer(vtepId: UUID,
       * Runs on the event thread from Storage.
       */
     override def onCompleted(): Unit = {
+        if (isUnsubscribed)
+            return
         log.info("VTEP deleted: cleaning up")
         ovsdb.close()
         subscription.unsubscribe()
