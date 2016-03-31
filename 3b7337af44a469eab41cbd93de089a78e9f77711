@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_e677d800",
+        "filename": "tests/sandbox/override_v2_hotspot/cluster/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-31T08:59:43Z",
+      "side": 1,
+      "message": "Yes, the \"cluster.\" line 19. It does nothing but complain on the logs that this command does not exist :)",
+      "parentUuid": "da9b358b_fda08b92",
+      "revId": "3b7337af44a469eab41cbd93de089a78e9f77711",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_3d25d3aa",
         "filename": "tests/sandbox/override_v2_hotspot/midolman/override.sh",
         "patchSetId": 1
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "Does this work? $(dirname $0) would point to the directory inside the container",
       "parentUuid": "da9b358b_3d25d3aa",
+      "revId": "3b7337af44a469eab41cbd93de089a78e9f77711",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_a660b036",
+        "filename": "tests/sandbox/override_v2_hotspot/midolman/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-31T08:59:43Z",
+      "side": 1,
+      "message": "No afaik, I gave a bit of thought some time ago on how to share scripts between overrides, but ended up being more complicated for a few lines of bash duplicated (e.g. creating shared volumes with the shared parts of the scripts).",
+      "parentUuid": "da9b358b_ddadc789",
       "revId": "3b7337af44a469eab41cbd93de089a78e9f77711",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
