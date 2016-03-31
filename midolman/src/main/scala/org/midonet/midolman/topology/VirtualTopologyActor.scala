@@ -270,6 +270,8 @@ object VirtualTopologyActor extends Referenceable {
 class VirtualTopologyActor extends Actor with MidolmanLogging {
     import VirtualTopologyActor._
 
+    override def logSource = "org.midonet.devices.devices-service"
+
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.
     private val idToSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
