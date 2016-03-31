@@ -95,10 +95,10 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     }
 
     override def toString =
-        s"id=$id active=$isActive adminStateUp=$id inboundFilter=$inboundFilter " +
-        s"outboundFilter=$outboundFilter tunnelKey=$tunnelKey " +
-        s"portGroups=$portGroups peerId=$peerId hostId=$hostId " +
-        s"interfaceName=$interfaceName vlanId=$vlanId"
+        s"id=$id active=$isActive adminStateUp=$adminStateUp " +
+        s"inboundFilter=$inboundFilter outboundFilter=$outboundFilter " +
+        s"tunnelKey=$tunnelKey portGroups=$portGroups peerId=$peerId " +
+        s"hostId=$hostId interfaceName=$interfaceName vlanId=$vlanId"
 }
 
 /** Logical port connected to a peer VTEP gateway. This subtype holds the 24
