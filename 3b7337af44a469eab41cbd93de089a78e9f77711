@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_fda08b92",
+        "filename": "tests/sandbox/override_v2_hotspot/cluster/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-31T08:11:09Z",
+      "side": 1,
+      "message": "The line above?",
+      "parentUuid": "da9b358b_fda3ec4d",
+      "revId": "3b7337af44a469eab41cbd93de089a78e9f77711",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_3d25d3aa",
         "filename": "tests/sandbox/override_v2_hotspot/midolman/override.sh",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-03-30T15:24:44Z",
       "side": 1,
       "message": "source $(dirname $0)/../../override_v2/midolman/override.sh\n\nIt would avoid having to duplicate.",
+      "revId": "3b7337af44a469eab41cbd93de089a78e9f77711",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_ddadc789",
+        "filename": "tests/sandbox/override_v2_hotspot/midolman/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-31T08:11:09Z",
+      "side": 1,
+      "message": "Does this work? $(dirname $0) would point to the directory inside the container",
+      "parentUuid": "da9b358b_3d25d3aa",
       "revId": "3b7337af44a469eab41cbd93de089a78e9f77711",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
