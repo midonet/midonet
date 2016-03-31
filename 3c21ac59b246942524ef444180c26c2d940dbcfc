@@ -105,6 +105,24 @@
       "revId": "3c21ac59b246942524ef444180c26c2d940dbcfc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_ccaab370",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-03-31T16:30:10Z",
+      "side": 1,
+      "message": "I\u0027ve changed where these new fileds are stored on the sbe as the egress port list broke compat (moved to the end of the message). So no new code on this method.",
+      "parentUuid": "da9b358b_c08733d6",
+      "revId": "3c21ac59b246942524ef444180c26c2d940dbcfc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
