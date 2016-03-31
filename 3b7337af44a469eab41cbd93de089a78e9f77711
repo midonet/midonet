@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_113d582b",
+        "filename": "tests/sandbox/override_v2_hotspot/cluster/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-03-31T13:34:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_e677d800",
+      "revId": "3b7337af44a469eab41cbd93de089a78e9f77711",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_3d25d3aa",
         "filename": "tests/sandbox/override_v2_hotspot/midolman/override.sh",
         "patchSetId": 1
