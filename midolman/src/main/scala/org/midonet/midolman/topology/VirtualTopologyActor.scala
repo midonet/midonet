@@ -16,29 +16,31 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import akka.pattern.AskTimeoutException
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect._
 
 import akka.actor._
+import akka.pattern.AskTimeoutException
+
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.flows.FlowInvalidator
-import org.midonet.sdn.flows.FlowTagger.FlowTag
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
+import org.midonet.midolman.{NotYetException, Referenceable}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
-import org.midonet.midolman.NotYetException
-import org.midonet.midolman.Referenceable
-import org.midonet.midolman.simulation._
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
-import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
+import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.simulation._
+import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent._
 
 /**
@@ -265,9 +267,8 @@ object VirtualTopologyActor extends Referenceable {
         getDeviceManagerPath(parentActorName, poolHealthMonitorManagerName())
 }
 
-class VirtualTopologyActor extends VirtualTopologyRedirector {
+class VirtualTopologyActor extends Actor with MidolmanLogging {
     import VirtualTopologyActor._
-    import context.system
 
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.
@@ -293,8 +294,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
       * @param createManager If true, it creates a legacy device manager for
       *                      this device.
       */
-    protected override def manageDevice(req: DeviceRequest,
-                                        createManager: Boolean) : Unit = {
+    private def manageDevice(req: DeviceRequest, createManager: Boolean) : Unit = {
         if (managedDevices.contains(req.id)) {
             return
         }
@@ -312,7 +312,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         idToSubscribers.put(req.id, mutable.Set[ActorRef]())
     }
 
-    protected override def deviceRequested(req: DeviceRequest): Unit = {
+    private def deviceRequested(req: DeviceRequest): Unit = {
         val device = topology.get(req.id)
         if (device eq null) {
             log.debug("Adding requester {} to unanswered clients for {}",
@@ -329,7 +329,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         }
     }
 
-    protected override def deviceUpdated(id: UUID, device: AnyRef) {
+    private def deviceUpdated(id: UUID, device: AnyRef) {
         topology.put(id, device)
         for (client <- idToSubscribers(id)) {
             log.debug("Sending subscriber {} the device update for {}",
@@ -347,11 +347,11 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         idToUnansweredClients(id).clear()
     }
 
-    protected override def deviceDeleted(id: UUID): Unit = {
+    private def deviceDeleted(id: UUID): Unit = {
         topology.remove(id)
     }
 
-    protected override def deviceError(id: UUID, e: Throwable): Unit = {
+    private def deviceError(id: UUID, e: Throwable): Unit = {
         topology.remove(id)
         // Notify the error to promise sender actors that are not subscribers:
         // this allows tryAsk() futures to complete immediately with an error.
@@ -365,7 +365,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         idToUnansweredClients(id).clear()
     }
 
-    protected override def unsubscribe(id: UUID, actor: ActorRef): Unit = {
+    private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
         def remove(setOption: Option[mutable.Set[ActorRef]]) = setOption match {
             case Some(actorSet) => actorSet.remove(actor)
             case None =>
@@ -376,7 +376,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         remove(idToSubscribers.get(id))
     }
 
-    protected override def hasSubscribers(id: UUID): Boolean = {
+    private def hasSubscribers(id: UUID): Boolean = {
         idToSubscribers get id match {
             case Some(set) => set.nonEmpty
             case None => false
