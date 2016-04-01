@@ -29,7 +29,7 @@ fi
 # creating midonet user if it isn't already there
 if ! getent passwd $USER >/dev/null ; then
         # Adding system user
-        adduser \
+        useradd \
           --system \
           --groups $GROUP \
           --home $DATADIR \
