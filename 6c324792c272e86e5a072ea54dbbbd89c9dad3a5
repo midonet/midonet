@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da9b358b_e99324a2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-01T14:51:40Z",
+      "side": 1,
+      "message": "Right, I checked the idempotent deletion should work. However, if the ContainerInstance is created during cleanup, there is no handler. Alternatively we could use null.",
+      "parentUuid": "da9b358b_cccbdc71",
+      "range": {
+        "startLine": 60,
+        "startChar": 42,
+        "endLine": 60,
+        "endChar": 48
+      },
+      "revId": "6c324792c272e86e5a072ea54dbbbd89c9dad3a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_ece7c010",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-29T16:03:54Z",
       "side": 1,
       "message": "why does handler instance need the context? it\u0027s only used in deleteContainerForHandler, and both places that is called, the context is readily available.",
+      "range": {
+        "startLine": 62,
+        "startChar": 31,
+        "endLine": 62,
+        "endChar": 56
+      },
+      "revId": "6c324792c272e86e5a072ea54dbbbd89c9dad3a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_bdc5635c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-01T14:51:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_ece7c010",
       "range": {
         "startLine": 62,
         "startChar": 31,
