@@ -41,8 +41,6 @@ object Simulator {
 
     case class ContinueWith(var step: SimStep) extends ForwardAction
 
-    case object Continue extends ForwardAction
-
     type SimHook = PacketContext => Unit
 
     val NOOP_HOOK: SimHook = _ => { }
