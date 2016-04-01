@@ -162,6 +162,8 @@ message Host {
 
     optional int32 flooding_proxy_weight = 3 [default = 1];
     optional int32 container_weight = 4 [default = 1];
+    optional int32 container_limit = 5 [default = -1];
+    optional bool enforce_container_limit = 6 [default = false];
 
     // Backreferences
     repeated UUID tunnel_zone_ids = 101;
