@@ -185,7 +185,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
                 ErrorDrop
         })
 
-    def ingress(implicit context: PacketContext): SimulationResult = {
+    def ingress(context: PacketContext): SimulationResult = {
         context.log.debug(s"Ingressing port $id at device $deviceId")
         if (context.devicesTraversed >= Simulator.MAX_DEVICES_TRAVERSED) {
             context.log.debug(s"Dropping packet that traversed too many devices "+
@@ -320,7 +320,7 @@ class ServicePort(override val id: UUID,
         s"ServicePort [${super.toString} networkId=$networkId" +
             s" realAdminState=$realAdminStateUp]"
 
-    override def ingress(implicit context: PacketContext): SimulationResult = {
+    override def ingress(context: PacketContext): SimulationResult = {
         if (!realAdminStateUp) {
             context.log.debug("Service port has adminStateUp=false, Dropping")
             Drop
