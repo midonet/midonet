@@ -191,6 +191,9 @@ object PortFactory {
             case cfg: BridgePortConfig =>
                 val p = new BridgePort
                 p.networkId = config.device_id
+                if (cfg.getVlanId ne null) {
+                    p.vlanId = cfg.getVlanId
+                }
                 p
             case cfg: RouterPortConfig =>
                 val p = new RouterPort
