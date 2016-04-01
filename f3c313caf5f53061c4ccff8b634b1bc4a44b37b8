@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_86d00755",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-01T08:29:18Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem to be needed.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 52
+      },
+      "revId": "f3c313caf5f53061c4ccff8b634b1bc4a44b37b8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9b358b_e6c11382",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-01T08:29:18Z",
+      "side": 1,
+      "message": "Does this change do anything? It looks like the function was moved and \"id\" renamed to \"portId\"",
+      "range": {
+        "startLine": 771,
+        "startChar": 0,
+        "endLine": 778,
+        "endChar": 5
+      },
+      "revId": "f3c313caf5f53061c4ccff8b634b1bc4a44b37b8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
