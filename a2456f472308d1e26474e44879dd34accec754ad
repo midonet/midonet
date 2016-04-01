@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9b358b_86600737",
+        "filename": "midolman/src/rhel6/control/postinst",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-01T12:20:40Z",
+      "side": 1,
+      "message": "I think you can use just useradd, no need for both: see master",
+      "range": {
+        "startLine": 33,
+        "startChar": 8,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "a2456f472308d1e26474e44879dd34accec754ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
