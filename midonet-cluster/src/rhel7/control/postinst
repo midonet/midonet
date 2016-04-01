@@ -29,13 +29,25 @@ fi
 # creating midonet user if it isn't already there
 if ! getent passwd $USER >/dev/null ; then
         # Adding system user
-        adduser \
-          --system \
-          --groups $GROUP \
-          --home $DATADIR \
-          --comment "MidoNet" \
-          --shell /bin/false \
-          $USER  >/dev/null
+        if command -v adduser >/dev/null 2>&1 ;
+        then
+                adduser \
+                  --system \
+                  --groups $GROUP \
+                  --home $DATADIR \
+                  --comment "MidoNet" \
+                  --shell /bin/false \
+                  $USER  >/dev/null
+        else
+                useradd \
+                  --system \
+                  --groups $GROUP \
+                  --home $DATADIR \
+                  --comment "MidoNet" \
+                  --shell /bin/false \
+                  --create-home \
+                  $USER  >/dev/null
+        fi
 fi
 
 install -d -o $USER -g $GROUP /var/log/$NAME $DATADIR

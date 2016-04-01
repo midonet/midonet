@@ -15,11 +15,20 @@
 # limitations under the License.
 
 # The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-1.8.0-openjdk-amd64 /usr/lib/jvm/java-8-openjdk-amd64 \
-                 /usr/lib/jvm/java-8-oracle /usr/lib/jvm/zulu-8-amd64 \
-                 /usr/lib/jvm/jre-1.8.0-openjdk \
-                 /usr/lib/jvm/jre-8-oracle-x64 /usr/lib/jvm/jdk-8-oracle-x64"
-
+JVM_SEARCH_DIRS="/usr/lib64/jvm/java-1.8.0-openjdk-amd64 \
+                   /usr/lib/jvm/java-1.8.0-openjdk-amd64 \
+                 /usr/lib64/jvm/java-8-openjdk-amd64 \
+                   /usr/lib/jvm/java-8-openjdk-amd64 \
+                 /usr/lib64/jvm/java-8-oracle \
+                   /usr/lib/jvm/java-8-oracle \
+                 /usr/lib64/jvm/zulu-8-amd64 \
+                   /usr/lib/jvm/zulu-8-amd64 \
+                 /usr/lib64/jvm/jre-1.8.0-openjdk \
+                   /usr/lib/jvm/jre-1.8.0-openjdk \
+                 /usr/lib64/jvm/jre-8-oracle-x64 \
+                   /usr/lib/jvm/jre-8-oracle-x64 \
+                 /usr/lib64/jvm/jdk-8-oracle-x64 \
+                   /usr/lib/jvm/jdk-8-oracle-x64"
 
 # zulu prints "openjdk version" while openjdk and oracle print "java version"
 check_for_java8() {
