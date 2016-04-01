@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,8 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
-import scala.concurrent.TimeoutException
-import scala.reflect.ClassTag
+case class DeviceDeletedException(deviceId: UUID) extends Exception {
 
-case class DeviceQueryTimeoutException(deviceId: UUID, classTag: ClassTag[_])
-    extends TimeoutException {
     override def fillInStackTrace(): Throwable = this
 
-    def deviceType = classTag.runtimeClass.getSimpleName
 }

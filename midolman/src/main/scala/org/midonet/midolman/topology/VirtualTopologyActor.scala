@@ -15,20 +15,18 @@
  */
 package org.midonet.midolman.topology
 
+import java.util
 import java.util.UUID
 
-import scala.collection.mutable
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Promise, ExecutionContext, Future}
 import scala.reflect._
 
 import akka.actor._
 import akka.pattern.AskTimeoutException
 
+import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
-import com.typesafe.scalalogging.Logger
-
-import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
@@ -49,11 +47,12 @@ import org.midonet.util.concurrent._
  * virtual network devices.
  */
 object VirtualTopologyActor extends Referenceable {
-    val deviceRequestTimeout = 30 seconds
-    val log = Logger(LoggerFactory.getLogger("org.midonet.devices.devices-service"))
+
+    val DeviceRequestTimeout = 30 seconds
 
     override val Name: String = "VirtualTopologyActor"
 
+    case class Ask(request: DeviceRequest, promise: Promise[Any])
     case class InvalidateFlowsByTag(tag: FlowTag)
     case class DeleteDevice(id: UUID) extends AnyVal
 
@@ -208,16 +207,19 @@ object VirtualTopologyActor extends Referenceable {
 
     private def requestFuture[D](id: UUID)
                                 (implicit tag: ClassTag[D],
-                                          system: ActorSystem): Future[D] =
-        VirtualTopologyActor
-            .ask(requestsFactory(tag)(id))(deviceRequestTimeout)
-            .mapTo[D](tag).recover{
-                case ex: AskTimeoutException =>
-                    throw DeviceQueryTimeoutException(id, tag)
-                case ex =>
-                    val devType = tag.runtimeClass.getSimpleName
-                    throw new Exception(s"Failed to get $devType: $id", ex)
-            }(ExecutionContext.callingThread)
+                                          system: ActorSystem): Future[D] = {
+        val promise = Promise[Any]()
+        VirtualTopologyActor ! Ask(requestsFactory(tag)(id), promise)
+        promise.future.mapTo[D](tag).recover {
+            case ex: AskTimeoutException =>
+                throw DeviceQueryTimeoutException(id, tag)
+            case ex: DeviceDeletedException =>
+                throw ex
+            case ex =>
+                val devType = tag.runtimeClass.getSimpleName
+                throw new Exception(s"Failed to get $devType: $id", ex)
+        } (ExecutionContext.callingThread)
+    }
 
     def bridgeManagerName(bridgeId: UUID) = "BridgeManager-" + bridgeId
 
@@ -274,10 +276,12 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
 
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.
-    private val idToSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
-    private val idToUnansweredClients = mutable.Map[UUID, mutable.Set[ActorRef]]()
 
-    private val managedDevices = mutable.Set[UUID]()
+    private val promises = HashMultimap.create[UUID, Promise[Any]]()
+    private val senders = HashMultimap.create[UUID, ActorRef]()
+    private val subscribers = HashMultimap.create[UUID, ActorRef]()
+
+    private val devices = new util.HashSet[UUID]()
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
@@ -291,108 +295,130 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
     @Inject
     var flowInvalidator: FlowInvalidator = _
 
+
+    private def askDevice(req: DeviceRequest, promise: Promise[Any]): Unit = {
+        // Check if the device has been received since making the request, in
+        // which case complete the promise immediately and do not add it to
+        // the promises multi-map.
+        val device = topology.get(req.id)
+        if (device ne null) {
+            promise trySuccess device
+        } else {
+            val scheduler = context.system.scheduler
+            promises.put(req.id, promise)
+            implicit val ec = context.dispatcher
+            val f = scheduler.scheduleOnce(DeviceRequestTimeout) {
+                promise tryFailure new AskTimeoutException(
+                    s"Request for device ${req.id} timed out after " +
+                    s"$DeviceRequestTimeout milliseconds")
+            }
+            promise.future onComplete { _ =>
+                try promises.remove(req.id, promise) finally f.cancel()
+            }
+        }
+    }
+
     /** Manages the device, by adding the request sender to the set of
       * unanswered clients and subscribers, if needed.
-      * @param createManager If true, it creates a legacy device manager for
-      *                      this device.
       */
-    private def manageDevice(req: DeviceRequest, createManager: Boolean) : Unit = {
-        if (managedDevices.contains(req.id)) {
-            return
-        }
-
-        log.info("Manage device {}", req.id)
-        if (createManager) {
+    private def manageDevice(req: DeviceRequest) : Unit = {
+        if (devices.add(req.id)) {
+            log.info("Manage device {}", req.id)
             val mgrFactory = req.managerFactory(clusterClient, config)
             val props = Props { mgrFactory() }
                 .withDispatcher(context.props.dispatcher)
             context.actorOf(props, req.managerName)
         }
-
-        managedDevices += req.id
-        idToUnansweredClients.put(req.id, mutable.Set[ActorRef]())
-        idToSubscribers.put(req.id, mutable.Set[ActorRef]())
     }
 
     private def deviceRequested(req: DeviceRequest): Unit = {
+        // Check if the device has been received since making the request, in
+        // which case send the device to the sender immediately.
         val device = topology.get(req.id)
-        if (device eq null) {
-            log.debug("Adding requester {} to unanswered clients for {}",
-                      sender(), req)
-            idToUnansweredClients(req.id).add(sender())
-        } else {
+        if (device ne null) {
             sender ! device
         }
 
         if (req.update) {
+            // If the sender is subscribing, add it to the subscribers map.
             log.debug("Adding requester {} to subscribed clients for {}",
                       sender(), req)
-            idToSubscribers(req.id).add(sender())
+            subscribers.put(req.id, sender)
+        } else if (device eq null) {
+            // Else and if not yet answered, add it to the senders map.
+            log.debug("Adding requester {} to unanswered clients for {}",
+                      sender(), req)
+            senders.put(req.id, sender)
         }
     }
 
     private def deviceUpdated(id: UUID, device: AnyRef) {
+        // Update the topology cache.
         topology.put(id, device)
-        for (client <- idToSubscribers(id)) {
+
+        // Complete the promises for the ask requests, and remove them from the
+        // map.
+        val promiseIterator = promises.removeAll(id).iterator()
+        while (promiseIterator.hasNext) {
+            val promise = promiseIterator.next()
+            log.debug("Complete ask for device {}", id)
+            promise trySuccess device
+        }
+
+        // Answer the senders for direct requests, and remove them from the map.
+        val senderIterator = senders.removeAll(id).iterator()
+        while (senderIterator.hasNext) {
+            val sender = senderIterator.next()
+            log.debug("Send unanswered client {} the device update for {}",
+                      sender, id)
+            sender ! device
+        }
+
+        // Notify all subscribers.
+        val subscriberIterator = subscribers.get(id).iterator()
+        while (subscriberIterator.hasNext) {
+            val subscriber = subscriberIterator.next()
             log.debug("Sending subscriber {} the device update for {}",
-                      client, id)
-            client ! device
+                      subscriber, id)
+            subscriber ! device
         }
-        for (client <- idToUnansweredClients(id)) {
-            // Avoid notifying the subscribed clients twice.
-            if (!idToSubscribers(id).contains(client)) {
-                log.debug("Send unanswered client {} the device update for {}",
-                          client, id)
-                client ! device
-            }
-        }
-        idToUnansweredClients(id).clear()
     }
 
     private def deviceDeleted(id: UUID): Unit = {
         topology.remove(id)
-    }
 
-    private def deviceError(id: UUID, e: Throwable): Unit = {
-        topology.remove(id)
-        // Notify the error to promise sender actors that are not subscribers:
-        // this allows tryAsk() futures to complete immediately with an error.
-        for (client <- idToUnansweredClients(id)
-             if !idToSubscribers(id).contains(client) &&
-                 client.getClass.getName == "akka.pattern.PromiseActorRef") {
-            log.debug("Send unanswered client {} device error for {} " +
-                      ": {}", client, id, e)
-            client ! Status.Failure(e)
+        // Complete the promises for the ask requests immediately, do not let
+        // for them timeout.
+        val promiseIterator = promises.removeAll(id).iterator()
+        while (promiseIterator.hasNext) {
+            promiseIterator.next() tryFailure DeviceDeletedException(id)
         }
-        idToUnansweredClients(id).clear()
+
+        senders.removeAll(id)
+        subscribers.removeAll(id)
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
-        def remove(setOption: Option[mutable.Set[ActorRef]]) = setOption match {
-            case Some(actorSet) => actorSet.remove(actor)
-            case None =>
-        }
-
         log.debug("Client {} is unsubscribing from {}", actor, id)
-        remove(idToUnansweredClients.get(id))
-        remove(idToSubscribers.get(id))
-    }
-
-    private def hasSubscribers(id: UUID): Boolean = {
-        idToSubscribers get id match {
-            case Some(set) => set.nonEmpty
-            case None => false
+        subscribers.remove(id, actor)
+        if (subscribers.get(id).isEmpty) {
+            subscribers.removeAll(id)
         }
     }
 
     override def receive = {
         case null =>
             log.warn("Received null device?")
-        case r: DeviceRequest =>
-            log.debug("Received {}", r)
-            manageDevice(r, createManager = true)
-            deviceRequested(r)
-        case u: Unsubscribe => unsubscribe(u.id, sender())
+        case Ask(request, promise) =>
+            log.debug("Ask {}", request)
+            manageDevice(request)
+            askDevice(request, promise)
+        case request: DeviceRequest =>
+            log.debug("Received {}", request)
+            manageDevice(request)
+            deviceRequested(request)
+        case u: Unsubscribe =>
+            unsubscribe(u.id, sender())
         case bridge: Bridge =>
             log.debug("Received a Bridge for {}", bridge.id)
             deviceUpdated(bridge.id, bridge)
@@ -424,6 +450,9 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
         case InvalidateFlowsByTag(tag) =>
             log.debug("Invalidating flows for tag {}", tag)
             flowInvalidator.scheduleInvalidationFor(tag)
+        case DeleteDevice(id) =>
+            log.debug("Device {} deleted", id)
+            deviceDeleted(id)
         case unexpected: AnyRef =>
             log.error("Received unexpected message: {}", unexpected)
         case _ =>

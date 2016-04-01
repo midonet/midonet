@@ -25,7 +25,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.{InvalidateFlowsByTag, PoolRequest, LoadBalancerRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{Ask, InvalidateFlowsByTag, PoolRequest, LoadBalancerRequest}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, TCP}
 import org.midonet.sdn.flows.FlowTagger
@@ -211,7 +211,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             val vtaMessages = vta.getAndClear()
             vtaMessages.size shouldBe 3
 
-            vtaMessages.contains(poolReqMsg(pool.getId)) shouldBe true
+            vtaMessages(0).asInstanceOf[Ask].request shouldBe poolReqMsg(pool.getId)
 
             And("the VTA should receive the pool itself")
             val poolMessages = vtaMessages.filter(m => m.isInstanceOf[Pool])

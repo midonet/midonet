@@ -17,7 +17,6 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.TimeoutException
 
 import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
@@ -30,7 +29,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.topology.VirtualTopologyActor.{Unsubscribe, DeleteDevice, InvalidateFlowsByTag, PortRequest}
+import org.midonet.midolman.simulation.DeviceDeletedException
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.{BridgePort, Port}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -64,15 +64,17 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             Then("The request throws a NotYetException with a future")
             val future = e1.waitFor.asInstanceOf[Future[Port]]
 
-            And("The future should timeout")
-            intercept[TimeoutException] {
+            And("The future should throw an exception")
+            val e = intercept[DeviceDeletedException] {
                 result(future, timeout)
             }
+            e.deviceId shouldBe id
 
             And("The VTA should have received 2 messages")
-            VirtualTopologyActor.getAndClear() should contain inOrderOnly(
-                PortRequest(id, update = false),
-                DeleteDevice(id))
+            val msg = VirtualTopologyActor.getAndClear()
+            msg should have size 2
+            msg(0).asInstanceOf[Ask].request shouldBe PortRequest(id, update = false)
+            msg(1) shouldBe DeleteDevice(id)
         }
 
         scenario("The port exists and is not cached") {
@@ -97,7 +99,7 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             And("The VTA should have received 4 messages")
             val msg = VirtualTopologyActor.getAndClear()
             msg should have size 4
-            msg(0) shouldBe PortRequest(port.getId, update = false)
+            msg(0).asInstanceOf[Ask].request shouldBe PortRequest(port.getId, update = false)
             msg(1).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(2).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(3) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
@@ -125,7 +127,7 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             And("The VTA should have received 4 messages")
             val msg = VirtualTopologyActor.getAndClear()
             msg should have size 4
-            msg(0) shouldBe PortRequest(port.getId, update = false)
+            msg(0).asInstanceOf[Ask].request shouldBe PortRequest(port.getId, update = false)
             msg(1).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(2).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(3) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
@@ -152,7 +154,7 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             And("The VTA should have received 4 messages")
             var msg = VirtualTopologyActor.getAndClear()
             msg should have size 4
-            msg(0) shouldBe PortRequest(port.getId, update = false)
+            msg(0).asInstanceOf[Ask].request shouldBe PortRequest(port.getId, update = false)
             msg(1).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(2).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(3) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
@@ -175,10 +177,6 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             msg should have size 2
             msg(0).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(1) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
-        }
-
-        scenario("The VTA handles port deletion") {
-            // TODO
         }
     }
 
@@ -254,7 +252,7 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             And("The VTA should have received 5 messages")
             msg = VirtualTopologyActor.getAndClear()
             msg should have size 5
-            msg(0) shouldBe PortRequest(port.getId, update = false)
+            msg(0).asInstanceOf[Ask].request shouldBe PortRequest(port.getId, update = false)
             msg(1).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(2).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(3) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
@@ -400,5 +398,4 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             msg(7) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
         }
     }
-
 }
