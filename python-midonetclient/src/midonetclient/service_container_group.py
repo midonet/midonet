@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from midonetclient import port_group
 from midonetclient import resource_base
 from midonetclient import service_container
 from midonetclient import vendor_media_type
+
 
 class ServiceContainerGroup(resource_base.ResourceBase):
 
@@ -37,10 +37,11 @@ class ServiceContainerGroup(resource_base.ResourceBase):
 
     def get_service_containers(self, query=None):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON}
+                   (vendor_media_type.
+                    APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON)}
         return self.get_children(self.dto['serviceContainers'], query, headers,
                                  service_container.ServiceContainer)
 
     def add_service_container(self):
-        return service_container.ServiceContainer(self.dto['serviceContainers'],
-                                                  {}, self.auth)
+        return service_container.ServiceContainer(
+            self.dto['serviceContainers'], {}, self.auth)

@@ -215,7 +215,6 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_service_container_groups(query)
 
-
     def add_load_balancer(self):
         self._ensure_application()
         return self.app.add_load_balancer()
@@ -255,7 +254,6 @@ class MidonetApi(object):
     def delete_service_container_group(self, id_):
         self._ensure_application()
         return self.app.delete_service_container_group(id_)
-
 
     def delete_load_balancer(self, id_):
         self._ensure_application()

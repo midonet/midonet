@@ -157,13 +157,15 @@ class Application(resource_base.ResourceBase):
         return self.dto['poolStatisticTemplate']
 
     def get_service_container(self, id_):
-        return self._get_resource_by_id(service_container.ServiceContainer, None,
+        return self._get_resource_by_id(service_container.ServiceContainer,
+                                        None,
                                         self.get_service_container_template(),
                                         id_)
 
     def get_service_containers(self, query):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON}
+                   (vendor_media_type.
+                    APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON)}
         return self.get_children(self.dto['serviceContainers'], query, headers,
                                  service_container.ServiceContainer)
 
@@ -174,8 +176,10 @@ class Application(resource_base.ResourceBase):
 
     def get_service_container_groups(self, query):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_SERVICE_CONTAINER_GROUP_COLLECTION_JSON}
-        return self.get_children(self.dto['serviceContainerGroups'], query, headers,
+                   (vendor_media_type.
+                    APPLICATION_SERVICE_CONTAINER_GROUP_COLLECTION_JSON)}
+        return self.get_children(self.dto['serviceContainerGroups'], query,
+                                 headers,
                                  service_container_group.ServiceContainerGroup)
 
     def get_tracerequest_template(self):
@@ -372,12 +376,12 @@ class Application(resource_base.ResourceBase):
         return chain.Chain(self.dto['chains'], {}, self.auth)
 
     def add_service_container(self):
-        return service_container.ServiceContainer(self.dto['serviceContainers'],
-                                                  {}, self.auth)
+        return service_container.ServiceContainer(
+            self.dto['serviceContainers'], {}, self.auth)
 
     def delete_service_container(self, id_):
-        return self._delete_resource_by_id(self.get_service_container_template(),
-                                           id_)
+        return self._delete_resource_by_id(
+            self.get_service_container_template(), id_)
 
     def add_service_container_group(self):
         return service_container_group.ServiceContainerGroup(
