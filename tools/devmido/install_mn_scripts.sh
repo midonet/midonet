@@ -28,6 +28,7 @@ TOP_DIR=$(cd $DEVMIDO_DIR/../../ && pwd)
 # Place our executables in /usr/local/bin
 MM_CTL="/usr/local/bin/mm-ctl"
 MM_DPCTL="/usr/local/bin/mm-dpctl"
+MM_TRACE="/usr/local/bin/mm-trace"
 
 # While this feels fragile, for simplicity, just point MIDO_HOME to where
 # 'prepare_java' script is since that is the only thing needed from that
@@ -39,11 +40,12 @@ MM_SCRIPT_DIR=$TOP_DIR/midolman/src/deb/bin
 sed -e "s@%MIDO_HOME%@$MM_HOME@" \
     -e "s@%MIDO_JAR%@$MM_JAR@" \
     -e "s@%SCRIPT_DIR%@$MM_SCRIPT_DIR@" \
-    $DEVMIDO_DIR/binproxy | tee $MM_CTL $MM_DPCTL
-chmod +x $MM_CTL $MM_DPCTL
+    $DEVMIDO_DIR/binproxy | tee $MM_CTL $MM_DPCTL $MM_TRACE
+chmod +x $MM_CTL $MM_DPCTL $MM_TRACE
 
-# Do the same for mn-conf
+# Do the same for midonet-tools
 MN_CONF="/usr/local/bin/mn-conf"
+MM_METER="/usr/local/bin/mm-meter"
 TOOLS_HOME=$TOP_DIR/midonet-tools/src/share
 TOOLS_JAR=`find $TOP_DIR/midonet-tools/build/installShadow -name "midonet-tools-*-all.jar"`
 TOOLS_SCRIPT_DIR=$TOP_DIR/midonet-tools/src/bin
@@ -51,7 +53,7 @@ TOOLS_SCRIPT_DIR=$TOP_DIR/midonet-tools/src/bin
 sed -e "s@%MIDO_HOME%@$TOOLS_HOME@" \
     -e "s@%MIDO_JAR%@$TOOLS_JAR@" \
     -e "s@%SCRIPT_DIR%@$TOOLS_SCRIPT_DIR@" \
-    $DEVMIDO_DIR/binproxy | tee $MN_CONF
-chmod +x $MN_CONF
+    $DEVMIDO_DIR/binproxy | tee $MN_CONF $MM_METER
+chmod +x $MN_CONF $MM_METER
 
 echo "install_mn_scripts.sh has successfully completed."
