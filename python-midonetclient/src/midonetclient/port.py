@@ -182,6 +182,20 @@ class Port(resource_base.ResourceBase,
         self.dto['outboundMirrorIds'] = outMirrors
         return self
 
+    def get_post_inbound_mirrors(self, query=None):
+        return self.dto['postInboundMirrorIds']
+
+    def post_inbound_mirrors(self, inMirrors):
+        self.dto['postInboundMirrorIds'] = inMirrors
+        return self
+
+    def get_pre_outbound_mirrors(self, query=None):
+        return self.dto['preOutboundMirrorIds']
+
+    def pre_outbound_mirrors(self, outMirrors):
+        self.dto['preOutboundMirrorIds'] = outMirrors
+        return self
+
     def add_remote_peer(self):
         return mac_ip.MacIp(self.dto['peeringTable'], {}, self.auth)
 
