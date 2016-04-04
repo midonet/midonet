@@ -43,6 +43,7 @@ import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus
 import org.midonet.cluster.models.Topology.{Host, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend.{ContainerKey, StatusKey}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.containers.ContainerService.ContainerError.ContainerError
 import org.midonet.midolman.containers.ContainerService._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.ContainerMapper.{Changed, Created, Deleted, Notification}
@@ -55,10 +56,19 @@ object ContainerService {
 
     private val NotificationBufferSize = 0x1000
 
+    object ContainerError extends Enumeration {
+        class ContainerError(val name: String) extends Val
+        val LimitExceeded = new ContainerError("LIMIT_EXCEEDED")
+    }
+
     case class Handler(cp: ContainerPort, handler: ContainerHandler,
                        subscription: Subscription)
 
     case class HostSelector(weight: Int, limit: Int, enforceLimit: Boolean)
+
+    case class ContainerException(containerId: UUID, error: ContainerError,
+                                  message: String)
+        extends Exception
 
 }
 
@@ -326,8 +336,14 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
     private def handleContainerError(t: Throwable, cp: ContainerPort,
                                      errorStatus: Boolean, message: String): Unit = {
-        log.error(message, t)
+        log.warn(message, t)
         if (errorStatus) setContainerStatus(cp, t)
+    }
+
+    @inline
+    private def currentQuota(host: Host): Int = {
+        if (host.getContainerLimit < 0) -1
+        else Integer.max(host.getContainerLimit - handlers.size(), 0)
     }
 
     /**
@@ -336,10 +352,10 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
       */
     @throws[Throwable]
     private def setServiceStatus(): Unit = {
-        val weight = currentHost.getContainerWeight
-        val limit = currentHost.getContainerLimit
-        val quota = if (limit < 0) -1
-        else Integer.max(limit - handlers.size(), 0)
+        val host = currentHost
+        val weight = host.getContainerWeight
+        val limit = host.getContainerLimit
+        val quota = currentQuota(host)
 
         log debug s"Container service is running with weight $weight " +
                   s"limit $limit quota $quota"
@@ -397,6 +413,14 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         // add the initialization code inside a cargo in the conveyor belt such
         // that all container operations maintain the order.
         belt.handle(() => tryOp({
+            // Verify the container quota.
+            val host = currentHost
+            if (currentQuota(host) == 0) {
+                throw ContainerException(
+                    cp.portId, ContainerError.LimitExceeded,
+                    s"Container limit exceeded ${host.getContainerLimit}")
+            }
+
             // Create a new container handler for this container type.
             val handler = provider.getInstance(cp.serviceType, cp.portId,
                                                serviceExecutor)
@@ -495,7 +519,10 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
     @inline
     private def setContainerStatus(cp: ContainerPort, e: Throwable): Unit = {
-        val message = if (e.getMessage ne null) e.getMessage else ""
+        val message = e match {
+            case ContainerException(_, error, _) => error.name
+            case _ => if (e.getMessage ne null) e.getMessage else ""
+        }
         setContainerStatus(cp, Code.ERROR, message)
     }
 
