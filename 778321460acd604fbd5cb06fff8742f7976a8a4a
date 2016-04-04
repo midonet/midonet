@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4ff2399c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-04T09:40:29Z",
+      "side": 1,
+      "message": "why not pass this handler in to the Container instance to avoid having to use an Option?",
+      "range": {
+        "startLine": 345,
+        "startChar": 24,
+        "endLine": 345,
+        "endChar": 31
+      },
+      "revId": "778321460acd604fbd5cb06fff8742f7976a8a4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ef2fcdf4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-04T09:40:29Z",
+      "side": 1,
+      "message": "Why are you putting a new instance here? The instance should already be there from like 449",
+      "range": {
+        "startLine": 463,
+        "startChar": 0,
+        "endLine": 463,
+        "endChar": 52
+      },
+      "revId": "778321460acd604fbd5cb06fff8742f7976a8a4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
