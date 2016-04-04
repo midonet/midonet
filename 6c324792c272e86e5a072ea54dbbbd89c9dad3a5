@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6ff5fd81",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-04T09:40:29Z",
+      "side": 1,
+      "message": "but there is a handler during cleanup.",
+      "parentUuid": "da9b358b_e99324a2",
+      "range": {
+        "startLine": 60,
+        "startChar": 42,
+        "endLine": 60,
+        "endChar": 48
+      },
+      "revId": "6c324792c272e86e5a072ea54dbbbd89c9dad3a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_ece7c010",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
         "patchSetId": 11
