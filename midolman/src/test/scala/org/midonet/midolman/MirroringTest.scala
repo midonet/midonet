@@ -105,7 +105,7 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
         dstPortB = newBridgePort(dstBridge, Some(hostId), Some("dstPortB"))
 
 
-        /* Mirror B: mirror traffic to TCP ports 20 and 23 */
+        /* Mirror A: mirror traffic to TCP ports 22 and 23 */
         var mirrorBuilder = createMirrorBuilder(toPort = dstPortA)
         mirrorBuilder = addMirrorCondition(mirrorBuilder,
                                            tpDst = Option(new Range(22)))
@@ -116,7 +116,7 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
         mirrorA = mirror.getId
 
 
-        /* Mirror B: mirror traffic to TCP ports 80 and 433 */
+        /* Mirror B: mirror traffic to TCP ports 23 and 24 */
         mirrorBuilder = createMirrorBuilder(toPort = dstPortB)
         mirrorBuilder = addMirrorCondition(mirrorBuilder,
                                            tpDst = Option(new Range(23)))
