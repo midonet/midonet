@@ -1,0 +1,259 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_74c15080",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "Maybe an example of actually running the command would be nice.",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_94c4d492",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "Do we have any example of how this can be achieved?  That would be super useful.",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_149b24cb",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "trailing white spaces",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b45c78ee",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "mn-conf command would be good here",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_546c0c9c",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "Install the new v5.X version?  Do you think it\u0027s better that we make the version explicit?",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3469888c",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "maybe mention that 8181 is the default, and if midonet v1.9 API was using it, then it needs to be changed to something else.",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9472947b",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "Do we need to restart midonet-cluster?",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_140564c1",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "I think \u0027truncate\u0027 may not work when deleting the table entries since midonet-cluster keeps the last processed translation ID.  Resetting the ID to \u00271\u0027 may break it.  Worth trying it out.",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b413580d",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "Again, perhaps we should be specific with versions.",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f409e0de",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "8080 if that\u0027s what it was used.",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f4ed6026",
+        "filename": "tools/data_migration/data_migration/migration_config.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "import statements not ordered correctly.  Also as a general rule, we don\u0027t import classes, just modules (so we don\u0027t import UpgradeScriptException).",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d4f25c06",
+        "filename": "tools/data_migration/data_migration/migration_defs.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "Upper case for constants",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b4f7d8f4",
+        "filename": "tools/data_migration/data_migration/migration_defs.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "use the constant variable",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_94ddf472",
+        "filename": "tools/data_migration/data_migration/v198/midonet_diff.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "remove",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f4d44048",
+        "filename": "tools/data_migration/setup.cfg",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T05:02:16Z",
+      "side": 1,
+      "message": "uncomment?",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
