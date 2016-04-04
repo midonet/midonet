@@ -16,6 +16,24 @@
       "revId": "8fb34a338506c65afc71d7c10becbb1db89ecce3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2f7495fb",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-04T09:57:01Z",
+      "side": 1,
+      "message": "Can we make this change now? It has already been released with 5.1.",
+      "parentUuid": "baa041b7_4f9fd95f",
+      "revId": "8fb34a338506c65afc71d7c10becbb1db89ecce3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
