@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2f73754f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-04T09:28:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6fe4dd0c",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 4
+      },
+      "revId": "e50e9a45d7efbf66e4dd546793f127018f70ea82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6fcbbd73",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8fa3a19e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-04T09:28:00Z",
+      "side": 1,
+      "message": "No. Actually they can add new properties, and indeed there may be properties, that we don\u0027t include in the Java objects, that may be present in the JSON, but otherwise we don\u0027t use them. For this reason, I\u0027m setting this flag to false: if there are unknown properties in the JSON, it won\u0027t fail on deserialize.",
+      "parentUuid": "baa041b7_6fcbbd73",
+      "range": {
+        "startLine": 67,
+        "startChar": 42,
+        "endLine": 67,
+        "endChar": 68
+      },
+      "revId": "e50e9a45d7efbf66e4dd546793f127018f70ea82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2fc5b55a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2016-04-04T09:03:56Z",
       "side": 1,
       "message": "what does this mean? I would expect that if a token is scoped to a tenant, you\u0027d have to provide the tenant to validate against it.",
+      "range": {
+        "startLine": 120,
+        "startChar": 32,
+        "endLine": 120,
+        "endChar": 43
+      },
+      "revId": "e50e9a45d7efbf66e4dd546793f127018f70ea82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_afb425d1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/v2/KeystoneClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-04T09:28:00Z",
+      "side": 1,
+      "message": "Good catch: this is wrong, I forgot to add the tenant. The `belongsTo` should have a string after it (not an empty string). I will correct this (have to do it on master and 5.1 as well). The impact of this is small however, since we don\u0027t use scoping by tenant.",
+      "parentUuid": "baa041b7_2fc5b55a",
       "range": {
         "startLine": 120,
         "startChar": 32,
