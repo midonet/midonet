@@ -233,6 +233,8 @@ message Mirror {
     repeated UUID router_outbound_ids = 104;
     repeated UUID port_inbound_ids = 105;
     repeated UUID port_outbound_ids = 106;
+    repeated UUID port_post_inbound_ids = 107;
+    repeated UUID port_pre_outbound_ids = 108;
 }
 
 message Network {
@@ -338,6 +340,10 @@ message Port {
 
     // service containers
     optional UUID service_container_id = 25;
+
+    // mirroring (cont.)
+    repeated UUID post_inbound_mirror_ids = 26;
+    repeated UUID pre_outbound_mirror_ids = 27;
 
     // Overlay VTEP on Routers
     optional uint32 vni = 40;

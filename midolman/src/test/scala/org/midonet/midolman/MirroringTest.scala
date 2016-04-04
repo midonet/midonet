@@ -28,6 +28,7 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge,
                                             Router => TopologyRouter,
                                             Port => TopologyPort}
+import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
@@ -176,14 +177,31 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
         fetchDevice[SimRouter](rtr)
     }
 
-    private def addMirrorToPort(port: UUID, mirror: UUID, inbound: Boolean = true): Unit = {
+    private def addMirrorToPort(port: UUID, mirror: UUID,
+                                inbound: Boolean = true,
+                                alt: Boolean = false): Unit = {
         var dev = store.get(classOf[TopologyPort], port).await()
         if (inbound)
-            dev = dev.toBuilder.addInboundMirrorIds(mirror).build()
+            if (alt)
+                dev = dev.toBuilder.addPostInboundMirrorIds(mirror).build()
+            else
+                dev = dev.toBuilder.addInboundMirrorIds(mirror).build()
         else
-            dev = dev.toBuilder.addOutboundMirrorIds(mirror).build()
+            if (alt)
+                dev = dev.toBuilder.addPreOutboundMirrorIds(mirror).build()
+            else
+                dev = dev.toBuilder.addOutboundMirrorIds(mirror).build()
         store.update(dev)
         fetchDevice[BridgePort](port)
+    }
+
+    private def addDropAll(port: UUID, inbound: Boolean) {
+        val chain = if (inbound)
+            newInboundChainOnPort("test", port, UUID.randomUUID)
+        else
+            newOutboundChainOnPort("test", port, UUID.randomUUID)
+        newLiteralRuleOnChain(chain, 1, new Condition(),
+                              RuleResult.Action.DROP)
     }
 
     feature("Basic mirror on bridge") {
@@ -245,6 +263,72 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
             result should be (AddVirtualWildcardFlow)
             context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
             context should be (toPorts (rightBridgePort, dstPortA))
+        }
+    }
+
+    feature("Basic alt mirror on port") {
+        scenario("Ingress mirror") {
+            addMirrorToPort(leftBridgePort, mirrorA, inbound = true, alt = true)
+
+            val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
+            result should be (AddVirtualWildcardFlow)
+            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (toPorts (rightBridgePort, dstPortA))
+        }
+
+        scenario("Egress mirror") {
+            addMirrorToPort(rightBridgePort, mirrorA, inbound = false,
+                            alt = true)
+
+            val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
+            result should be (AddVirtualWildcardFlow)
+            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (toPorts (rightBridgePort, dstPortA))
+        }
+    }
+
+    feature("Filtering vs mirror on port") {
+        scenario("Ingress mirror") {
+            addDropAll(leftBridgePort, inbound = true)
+            addMirrorToPort(leftBridgePort, mirrorA, inbound = true)
+
+            val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
+            result should be (AddVirtualWildcardFlow)
+            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (toPorts (dstPortA))
+        }
+
+        scenario("Egress mirror") {
+            addDropAll(rightBridgePort, inbound = false)
+            addMirrorToPort(rightBridgePort, mirrorA, inbound = false)
+
+            val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
+            result should be (Drop)
+            context should not be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (toPorts ())
+        }
+    }
+
+    feature("Filtering vs alt mirror on port") {
+        scenario("Ingress mirror") {
+            addDropAll(leftBridgePort, inbound = true)
+            addMirrorToPort(leftBridgePort, mirrorA, inbound = true, alt = true)
+
+            val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
+            result should be (Drop)
+            context should not be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (toPorts ())
+        }
+
+        scenario("Egress mirror") {
+            addDropAll(rightBridgePort, inbound = false)
+            addMirrorToPort(rightBridgePort, mirrorA, inbound = false,
+                            alt = true)
+
+            val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
+            result should be (AddVirtualWildcardFlow)
+            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (toPorts (dstPortA))
         }
     }
 
