@@ -89,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "3a6ff13c_7fb6288c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T16:04:05Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "3a6ff13c_ff1f78b5",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a6ff13c_1fc1b42e",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -169,6 +187,24 @@
       "side": 1,
       "message": "It\u0027s only used here. I could move it up, but it seems unlikely to be needed elsewhere, and C3POMinionTest is getting crowded.",
       "parentUuid": "3a6ff13c_5fe24cd6",
+      "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a6ff13c_5fc16ce3",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-04T16:04:05Z",
+      "side": 1,
+      "message": "Ok we can move it up when it becomes needed.",
+      "parentUuid": "3a6ff13c_3f7910fd",
       "revId": "4e953fff231d7014bb92de3d6752498c46f02438",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
