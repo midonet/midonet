@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_14c7a413",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-04T07:50:49Z",
+      "side": 1,
+      "message": "Wouldn\u0027t this still suffer the same issue when crashing? Midolman crash, pid file in directory, midolman recovers, hm returns at some point to this midolman, pid file is there, restartHaproxy will kill the process.",
+      "revId": "fc26accb7afc2d5f62edf97145faf3d131ad0c2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
