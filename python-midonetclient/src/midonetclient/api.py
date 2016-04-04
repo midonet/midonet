@@ -19,7 +19,6 @@ import logging
 
 from midonetclient import application
 from midonetclient import auth_lib
-from midonetclient import exc
 
 LOG = logging.getLogger(__name__)
 
@@ -606,7 +605,7 @@ class MidonetApi(object):
                                                self.auth)
             try:
                 self.app.get()
-            except:
+            except Exception:
                 self.app = None
                 raise
 
