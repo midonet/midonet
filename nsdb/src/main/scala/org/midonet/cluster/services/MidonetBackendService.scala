@@ -199,6 +199,8 @@ object MidonetBackend {
                              classOf[Mirror], "router_inbound_ids", CLEAR)
         store.declareBinding(classOf[Port], "inbound_mirror_ids", CLEAR,
                              classOf[Mirror], "port_inbound_ids", CLEAR)
+        store.declareBinding(classOf[Port], "post_inbound_mirror_ids", CLEAR,
+                             classOf[Mirror], "port_post_inbound_ids", CLEAR)
 
         store.declareBinding(classOf[Network], "outbound_mirror_ids", CLEAR,
                              classOf[Mirror], "network_outbound_ids", CLEAR)
@@ -206,6 +208,8 @@ object MidonetBackend {
                              classOf[Mirror], "router_outbound_ids", CLEAR)
         store.declareBinding(classOf[Port], "outbound_mirror_ids", CLEAR,
                              classOf[Mirror], "port_outbound_ids", CLEAR)
+        store.declareBinding(classOf[Port], "pre_outbound_mirror_ids", CLEAR,
+                             classOf[Mirror], "port_pre_outbound_ids", CLEAR)
 
         store.declareBinding(classOf[Mirror], "to_port_id", CLEAR,
                              classOf[Port], "mirror_ids", CASCADE)

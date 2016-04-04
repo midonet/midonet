@@ -75,6 +75,8 @@ object Port {
             if (p.hasNetworkId) p.getNetworkId else null,
             p.getInboundMirrorIdsList,
             p.getOutboundMirrorIdsList,
+            p.getPostInboundMirrorIdsList,
+            p.getPreOutboundMirrorIdsList,
             servicePorts)
 
     private def routerPort(p: Topology.Port,
@@ -97,6 +99,8 @@ object Port {
             p.getRouteIdsList,
             p.getInboundMirrorIdsList,
             p.getOutboundMirrorIdsList,
+            p.getPostInboundMirrorIdsList,
+            p.getPreOutboundMirrorIdsList,
             if (p.hasVni) p.getVni else 0,
             if (p.hasTunnelIp) toIPv4Addr(p.getTunnelIp) else null,
             peeringTable)
@@ -114,7 +118,9 @@ object Port {
             if (p.hasNetworkId) p.getNetworkId else null,
             if (p.hasVtepId) p.getVtepId else null,
             inboundMirrors = p.getInboundMirrorIdsList,
-            outboundMirrors = p.getOutboundMirrorIdsList)
+            outboundMirrors = p.getOutboundMirrorIdsList,
+            p.getPostInboundMirrorIdsList,
+            p.getPreOutboundMirrorIdsList)
 
     private def servicePort(p: Topology.Port,
                             infilters: JList[UUID]) =
@@ -129,10 +135,12 @@ object Port {
             p.getPortGroupIdsList, false, p.getVlanId.toShort,
             if (p.hasNetworkId) p.getNetworkId else null,
             p.getInboundMirrorIdsList,
-            p.getOutboundMirrorIdsList)
+            p.getOutboundMirrorIdsList,
+            p.getPostInboundMirrorIdsList,
+            p.getPreOutboundMirrorIdsList)
 }
 
-trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with Cloneable {
+trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with AltMirroringDevice with Cloneable {
     def id: UUID
     def inboundFilters: JList[UUID]
     def outboundFilters: JList[UUID]
@@ -212,7 +220,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     }
 
     def egress(context: PacketContext): SimulationResult = {
-        egressCommon(context, filterAndContinueOut)
+        egressCommon(context, mirrorFilterAndContinueOut)
     }
 
     private[this] val ingressDevice: SimStep = context => {
@@ -220,16 +228,19 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         dev.continue(context, dev.process(context))
     }
 
-    protected val continueIn: SimStep = c => ingressDevice(c)
-    protected val continueOut: SimStep = c => mirroringOutbound(c, emit)
-    protected val filterAndContinueOut: SimStep = context => {
-        filterOut(context, continueOut)
-    }
+    private def mirrorFilterAndContinueOut: SimStep =
+        mirroringPreOutbound(_, filterAndContinueOut)
+    private val filterAndContinueOut = ContinueWith(filterOut(_, continueOut))
+    private val continueOut: SimStep = c => mirroringOutbound(c, emit)
+
     val egressNoFilter: SimStep = context => {
         egressCommon(context, continueOut)
     }
 
-    private val portIngress = ContinueWith(filterIn(_, continueIn))
+    private val portIngress = ContinueWith(filterIn(_, mirrorAndContinueIn))
+    private val mirrorAndContinueIn: SimStep =
+        mirroringPostInbound(_, continueIn)
+    private val continueIn = ContinueWith(ingressDevice(_))
 
     override protected val preIn: SimHook = c => {
         if (isExterior && (portGroups ne null))
@@ -268,12 +279,15 @@ class BridgePort(override val id: UUID,
                  val networkId: UUID,
                  override val inboundMirrors: JArrayList[UUID] = NO_MIRRORS,
                  override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS,
+                 override val postInboundMirrors: JArrayList[UUID] = NO_MIRRORS,
+                 override val preOutboundMirrors: JArrayList[UUID] = NO_MIRRORS,
                  override val servicePorts: JList[UUID] = new JArrayList(0))
         extends Port {
     override def toggleActive(active: Boolean) = new BridgePort(
         id, inboundFilters, outboundFilters, tunnelKey, peerId, hostId,
         interfaceName, adminStateUp, portGroups, active, vlanId,
-        networkId, inboundMirrors, outboundMirrors, servicePorts)
+        networkId, inboundMirrors, outboundMirrors,
+        postInboundMirrors, preOutboundMirrors, servicePorts)
     override def toString =
         s"BridgePort [${super.toString} networkId=$networkId]"
 
@@ -305,7 +319,9 @@ class ServicePort(override val id: UUID,
                   override val vlanId: Short = Bridge.UntaggedVlanId,
                   override val networkId: UUID,
                   override val inboundMirrors: JArrayList[UUID] = NO_MIRRORS,
-                  override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS)
+                  override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS,
+                  override val postInboundMirrors: JArrayList[UUID] = NO_MIRRORS,
+                  override val preOutboundMirrors: JArrayList[UUID] = NO_MIRRORS)
         extends BridgePort(id, inboundFilters, new JArrayList(0),
                            tunnelKey, peerId, hostId, interfaceName, true,
                            portGroups, isActive, vlanId, networkId,
@@ -382,6 +398,8 @@ case class RouterPort(override val id: UUID,
                       routeIds: Set[UUID] = Set.empty,
                       override val inboundMirrors: JList[UUID] = NO_MIRRORS,
                       override val outboundMirrors: JList[UUID] = NO_MIRRORS,
+                      override val postInboundMirrors: JList[UUID] = NO_MIRRORS,
+                      override val preOutboundMirrors: JList[UUID] = NO_MIRRORS,
                       vni: Int = 0,
                       tunnelIp: IPv4Addr = null,
                       peeringTable: StateTable[MAC, IPv4Addr] = Port.EMPTY_PEERING_TABLE)
@@ -438,7 +456,9 @@ case class VxLanPort(override val id: UUID,
                      networkId: UUID,
                      vtepId: UUID,
                      override val inboundMirrors: JList[UUID] = NO_MIRRORS,
-                     override val outboundMirrors: JList[UUID] = NO_MIRRORS)
+                     override val outboundMirrors: JList[UUID] = NO_MIRRORS,
+                     override val postInboundMirrors: JList[UUID] = NO_MIRRORS,
+                     override val preOutboundMirrors: JList[UUID] = NO_MIRRORS)
     extends Port {
 
     override def hostId = null
