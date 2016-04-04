@@ -39,6 +39,24 @@
       "revId": "60a62fe1f2d36e3f59178f5b4d785481e53396ac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cfaac985",
+        "filename": "midonet-cluster/conf/midonet-cluster-env.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-04T09:28:25Z",
+      "side": 1,
+      "message": "Does this work in variable assignment? I get this when I try it:\n\n% TEST_PATH\u003d/c{drom,ore}\n% ls $TEST_PATH         \nls: cannot access /c{drom,ore}: No such file or directory\n\nAlthough this does work:\n\n% ls /c{drom,ore}\n/core\n\n/cdrom:",
+      "parentUuid": "baa041b7_4f1a3919",
+      "revId": "60a62fe1f2d36e3f59178f5b4d785481e53396ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
