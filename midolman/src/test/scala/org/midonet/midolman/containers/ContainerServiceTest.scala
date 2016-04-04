@@ -998,6 +998,35 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
         scenario("Quota should be incremented when container fails to stop") {
             testQuotaDecrementedOnDelete("test-error-delete")
         }
+
+        scenario("Container fails to start if limit exceeded") {
+            Given("A host with container limit and a container")
+            val host = createHost(containerLimit = 0)
+            val bridge = createBridge()
+            val group = createServiceContainerGroup()
+            val container = createServiceContainer(configurationId = Some(randomUUID),
+                                                   serviceType = Some("test-good"),
+                                                   groupId = Some(group.getId))
+            val port = createBridgePort(bridgeId = Some(bridge.getId),
+                                        hostId = Some(host.getId),
+                                        interfaceName = Some("veth"),
+                                        containerId = Some(container.getId))
+            store.multi(Seq(CreateOp(host), CreateOp(bridge), CreateOp(group),
+                            CreateOp(container), CreateOp(port)))
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
+            service.startAsync().awaitRunning()
+
+            Then("The service should not start the container")
+            service.handlerOf(port.getId) shouldBe null
+
+            And("The quota should be zero")
+            getServiceStatus(host.getId).get.getQuota shouldBe 0
+
+            service.stopAsync().awaitTerminated()
+        }
     }
 
     feature("Test service updates container status") {

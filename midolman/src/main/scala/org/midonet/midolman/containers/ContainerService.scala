@@ -60,6 +60,9 @@ object ContainerService {
 
     case class HostSelector(weight: Int, limit: Int, enforceLimit: Boolean)
 
+    case class ContainerException(containerId: UUID, message: String)
+        extends Exception
+
 }
 
 /**
@@ -326,8 +329,14 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
     private def handleContainerError(t: Throwable, cp: ContainerPort,
                                      errorStatus: Boolean, message: String): Unit = {
-        log.error(message, t)
+        log.warn(message, t)
         if (errorStatus) setContainerStatus(cp, t)
+    }
+
+    @inline
+    private def currentQuota(host: Host): Int = {
+        if (host.getContainerLimit < 0) -1
+        else Integer.max(host.getContainerLimit - handlers.size(), 0)
     }
 
     /**
@@ -336,10 +345,10 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
       */
     @throws[Throwable]
     private def setServiceStatus(): Unit = {
-        val weight = currentHost.getContainerWeight
-        val limit = currentHost.getContainerLimit
-        val quota = if (limit < 0) -1
-        else Integer.max(limit - handlers.size(), 0)
+        val host = currentHost
+        val weight = host.getContainerWeight
+        val limit = host.getContainerLimit
+        val quota = currentQuota(host)
 
         log debug s"Container service is running with weight $weight " +
                   s"limit $limit quota $quota"
@@ -397,6 +406,14 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         // add the initialization code inside a cargo in the conveyor belt such
         // that all container operations maintain the order.
         belt.handle(() => tryOp({
+            // Verify the container quota.
+            val host = currentHost
+            if (currentQuota(host) == 0) {
+                throw ContainerException(
+                    cp.portId,
+                    s"Container limit exceeded ${host.getContainerLimit}")
+            }
+
             // Create a new container handler for this container type.
             val handler = provider.getInstance(cp.serviceType, cp.portId,
                                                serviceExecutor)
