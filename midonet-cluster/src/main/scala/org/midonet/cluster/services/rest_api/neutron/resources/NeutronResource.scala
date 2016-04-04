@@ -87,6 +87,14 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def remoteMacEntriesResource: RemoteMacEntryResource =
         new RemoteMacEntryResource(uriInfo, api)
 
+    @Path("bgp_speakers")
+    def bgpSpeakerResource: BgpSpeakerResource =
+        new BgpSpeakerResource(uriInfo, api)
+
+    @Path("bgp_peers")
+    def bgpPeerResource: BgpPeerResource =
+        new BgpPeerResource(uriInfo, api)
+
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
         val neutron: Neutron = new Neutron
@@ -125,6 +133,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.gatewayDeviceTemplate = getGatewayDeviceTemplate(baseUri)
         neutron.remoteMacEntries = getRemoteMacEntries(baseUri)
         neutron.remoteMacEntryTemplate = getRemoteMacEntryTemplate(baseUri)
+        neutron.bgpSpeakers = getBgpSpeakers(baseUri)
+        neutron.bgpSpeakerTemplate = getBgpSpeakerTemplate(baseUri)
+        neutron.bgpPeers = getBgpPeers(baseUri)
+        neutron.bgpPeerTemplate = getBgpPeerTemplate(baseUri)
         neutron
     }
 }

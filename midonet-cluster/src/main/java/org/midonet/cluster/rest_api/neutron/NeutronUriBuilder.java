@@ -48,6 +48,8 @@ public class NeutronUriBuilder {
     public static final String L2_GATEWAY_CONNS= "/l2_gateway_connections";
     public static final String GATEWAY_DEVICES = "/gateway_devices";
     public static final String REMOTE_MAC_ENTRIES = "/remote_mac_entries";
+    public static final String BGP_SPEAKERS = "/bgp_speakers";
+    public static final String BGP_PEERS = "/bgp_peers";
 
 
     public static URI getRoot(URI baseUri) {
@@ -242,6 +244,35 @@ public class NeutronUriBuilder {
     public static URI getPoolHealthMonitor(URI baseUri) {
         return UriBuilder.fromUri(getLoadBalancer(baseUri))
             .path(POOL_HEALTH_MONITOR).build();
+    }
+
+    // Neutron BGP
+    public static URI getBgpSpeakers(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+            .path(BGP_SPEAKERS).build();
+    }
+
+    public static URI getBgpSpeaker(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getBgpSpeakers(baseUri)).path(
+            id.toString()).build();
+    }
+
+    public static String getBgpSpeakerTemplate(URI baseUri) {
+        return buildIdTemplateUri(getBgpSpeakers(baseUri));
+    }
+
+    public static URI getBgpPeers(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+                .path(BGP_PEERS).build();
+    }
+
+    public static URI getBgpPeer(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getBgpPeers(baseUri)).path(
+                id.toString()).build();
+    }
+
+    public static String getBgpPeerTemplate(URI baseUri) {
+        return buildIdTemplateUri(getBgpPeers(baseUri));
     }
 
     // Firewalls
