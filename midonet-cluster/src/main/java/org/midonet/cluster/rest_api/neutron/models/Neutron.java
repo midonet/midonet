@@ -108,6 +108,18 @@ public class Neutron {
     @JsonProperty("remote_mac_entry_template")
     public String remoteMacEntryTemplate;
 
+    @JsonProperty("bgp_speakers")
+    public URI bgpSpeakers;
+
+    @JsonProperty("bgp_speaker_template")
+    public String bgpSpeakerTemplate;
+
+    @JsonProperty("bgp_peers")
+    public URI bgpPeers;
+
+    @JsonProperty("bgp_peer_template")
+    public String bgpPeerTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -155,7 +167,11 @@ public class Neutron {
                && Objects.equal(gatewayDevices, other.gatewayDevices)
                && Objects.equal(gatewayDeviceTemplate, other.gatewayDeviceTemplate)
                && Objects.equal(remoteMacEntries, other.remoteMacEntries)
-               && Objects.equal(remoteMacEntryTemplate, other.remoteMacEntryTemplate);
+               && Objects.equal(remoteMacEntryTemplate, other.remoteMacEntryTemplate)
+               && Objects.equal(bgpSpeakers, other.bgpSpeakers)
+               && Objects.equal(bgpSpeakerTemplate, other.bgpSpeakerTemplate)
+               && Objects.equal(bgpPeers, other.bgpPeers)
+               && Objects.equal(bgpPeerTemplate, other.bgpPeerTemplate);
     }
 
     @Override
@@ -173,7 +189,9 @@ public class Neutron {
                                 ipsecSiteConnectionTemplate,
                                 l2GatewayConns, l2GatewayConnTemplate,
                                 gatewayDevices, gatewayDeviceTemplate,
-                                remoteMacEntries, remoteMacEntryTemplate);
+                                remoteMacEntries, remoteMacEntryTemplate,
+                                bgpSpeakers, bgpSpeakerTemplate,
+                                bgpPeers, bgpPeerTemplate);
     }
 
     @Override
@@ -208,6 +226,10 @@ public class Neutron {
             .add("l2GatewayConnTemplate", l2GatewayConnTemplate)
             .add("remoteMacEntries", remoteMacEntries)
             .add("remoteMacEntryTemplate", remoteMacEntryTemplate)
+            .add("bgpSpeakers", bgpSpeakers)
+            .add("bgpSpeakerTemplate", bgpSpeakerTemplate)
+            .add("bgpPeers", bgpPeers)
+            .add("bgpPeerTemplate", bgpPeerTemplate)
             .toString();
     }
 }
