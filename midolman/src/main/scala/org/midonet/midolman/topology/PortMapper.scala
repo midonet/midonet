@@ -156,6 +156,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
         mirrorsTracker.requestRefs(port.getInboundMirrorIdsList :_*)
         mirrorsTracker.requestRefs(port.getOutboundMirrorIdsList :_*)
+        mirrorsTracker.requestRefs(port.getPostInboundMirrorIdsList :_*)
+        mirrorsTracker.requestRefs(port.getPreOutboundMirrorIdsList :_*)
 
         requestTraceChain(port.getTraceRequestIdsList)
 
