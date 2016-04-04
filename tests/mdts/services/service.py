@@ -309,7 +309,6 @@ def get_container_by_hostname(container_hostname):
         loaded_containers = get_all_containers()
     for type, container_list in loaded_containers.items():
         for container in container_list:
-            LOG.debug("GET_CONTAINER_BY_HOSTNAME type=% real=%s expected=%s" % (type, container.get_hostname(), container_hostname))
             if container.get_hostname() == container_hostname:
                 return container
     raise RuntimeError('Container %s not found or loaded' % container_hostname)
