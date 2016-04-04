@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_af866511",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-04T09:18:33Z",
+      "side": 1,
+      "message": "Cool, will check out that change.",
+      "parentUuid": "da9b358b_5d82d701",
+      "range": {
+        "startLine": 189,
+        "startChar": 1,
+        "endLine": 192,
+        "endChar": 59
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_dd0ca844",
         "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
         "patchSetId": 5
@@ -266,6 +290,24 @@
       "side": 1,
       "message": "I\u0027d like to also test that flow keys are fetched from storage (checking the return flow). If we test the forward flow first, it will proactively send the keys to the other agent, isn\u0027t it?\n\nI\u0027ve added that check after.",
       "parentUuid": "da9b358b_3d0ef334",
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8f7cc121",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-04T09:18:33Z",
+      "side": 1,
+      "message": "sure. I\u0027ve no problem with testing the return flow first. My point was to also check that the snat ports match, to show that it\u0027s using the same state.",
+      "parentUuid": "da9b358b_f158b458",
       "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -354,6 +396,30 @@
       "side": 1,
       "message": "Done.\n\nAbout sandbox 5.0 having 5.0.0: it contains the latest stable 5.x which is 5.1.0. It\u0027s a limitation on the repository structure. There\u0027s some discussion to change it (so each minor has its own repo). This is lead by samir\u0027s team, not sure how up in their backlog it is. Anyway, sandbox images will always have the latest stable version, so we need to pin to the initial version here.",
       "parentUuid": "da9b358b_3d36f403",
+      "range": {
+        "startLine": 13,
+        "startChar": 54,
+        "endLine": 13,
+        "endChar": 55
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cf81a9fd",
+        "filename": "tests/sandbox/override_v2_compat/cluster/override.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-04T09:18:33Z",
+      "side": 1,
+      "message": "Can\u0027t we create sandbox images with version 5.0.0, push those to artifactory once and use them forever? It would solve the static ip issue above also.",
+      "parentUuid": "da9b358b_3db953ea",
       "range": {
         "startLine": 13,
         "startChar": 54,
