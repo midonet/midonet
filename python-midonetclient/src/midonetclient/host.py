@@ -72,3 +72,17 @@ class Host(resource_base.ResourceBase):
     def container_weight(self, weight):
         self.dto['containerWeight'] = weight
         return self
+
+    def get_container_limit(self):
+        return self.dto['containerLimit']
+
+    def container_limit(self, limit):
+        self.dto['containerLimit'] = limit
+        return self
+
+    def get_enforce_container_limit(self):
+        return self.dto['enforceContainerLimit']
+
+    def enforce_container_limit(self, enforce):
+        self.dto['enforceContainerLimit'] = enforce
+        return self

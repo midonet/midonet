@@ -36,6 +36,8 @@ public class DtoHost {
     private boolean alive;
     private Integer floodingProxyWeight;
     private Integer containerWeight;
+    private Integer containerLimit;
+    private Boolean enforceContainerLimit;
 
     @XmlTransient
     private URI uri;
@@ -110,6 +112,22 @@ public class DtoHost {
 
     public void setContainerWeight(Integer containerWeight) {
         this.containerWeight = containerWeight;
+    }
+
+    public Integer getContainerLimit() {
+        return containerLimit;
+    }
+
+    public void setContainerLimit(Integer containerLimit) {
+        this.containerLimit = containerLimit;
+    }
+
+    public Boolean getEnforceContainerLimit() {
+        return enforceContainerLimit;
+    }
+
+    public void setEnforceContainerLimit(Boolean enforceContainerLimit) {
+        this.enforceContainerLimit = enforceContainerLimit;
     }
 
     public URI getPorts() {
