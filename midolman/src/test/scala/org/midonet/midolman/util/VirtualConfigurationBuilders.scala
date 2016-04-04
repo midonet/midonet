@@ -276,6 +276,10 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[VxLanPort]
     }
 
+    def updatePort(port: Port[_, _]): Unit = {
+        clusterDataClient().portsUpdate(port)
+    }
+
     def deletePort(port: Port[_, _], hostId: UUID){
         clusterDataClient().hostsDelVrnPortMapping(hostId, port.getId)
     }
