@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4f9fd95f",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-04T09:11:46Z",
+      "side": 1,
+      "message": "I would call this api_version, rather than just version to avoid confusing it with schema version for the configuration itself.",
+      "revId": "8fb34a338506c65afc71d7c10becbb1db89ecce3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
