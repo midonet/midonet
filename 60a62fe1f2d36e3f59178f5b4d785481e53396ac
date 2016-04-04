@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4f1a3919",
+        "filename": "midonet-cluster/conf/midonet-cluster-env.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-04T08:54:38Z",
+      "side": 1,
+      "message": "It\u0027s ugly having to repeat the paths. Bash should expand them anyhow.\n\nJVM_SEARCH_DIRS\u003d\"/usr/{$LIB32,$LIB64}/jvm/java-1.8.0-openjdk-amd64 \\\n                 /usr/{$LIB32,$LIB64}/jvm/java-8-openjdk-amd64 \\\n                 /usr/{$LIB32,$LIB64}/jvm/java-8-oracle \\\n                 /usr/{$LIB32,$LIB64}/jvm/zulu-8-amd64 \\\n                 /usr/{$LIB32,$LIB64}/jvm/jre-1.8.0-openjdk \\\n                 /usr/{$LIB32,$LIB64}/jvm/jre-8-oracle-x64 \\\n                 /usr/{$LIB32,$LIB64}/jvm/jdk-8-oracle-x64\"",
+      "revId": "60a62fe1f2d36e3f59178f5b4d785481e53396ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

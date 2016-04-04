@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0f2c3149",
+        "filename": "midolman/src/rhel6/control/postinst",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-04T08:54:38Z",
+      "side": 0,
+      "message": "rhel6 target is no longer supported. Better to just delete it.",
+      "revId": "b2d324f7335fc9525d9ce059c05d78d7be42a6bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
