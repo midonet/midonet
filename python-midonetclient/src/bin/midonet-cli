@@ -2296,6 +2296,18 @@ class BridgePort(ObjectType):
                                  setter = 'outbound_mirrors',
                                  unsetter = 'outbound_mirrors',
                                  optional = True))
+        self.put_attr(ListAttr(name = 'post-in-mirrors',
+                                 element_type = MirrorRef(),
+                                 getter = 'get_post_inbound_mirrors',
+                                 setter = 'post_inbound_mirrors',
+                                 unsetter = 'post_inbound_mirrors',
+                                 optional = True))
+        self.put_attr(ListAttr(name = 'pre-out-mirrors',
+                                 element_type = MirrorRef(),
+                                 getter = 'get_pre_outbound_mirrors',
+                                 setter = 'pre_outbound_mirrors',
+                                 unsetter = 'pre_outbound_mirrors',
+                                 optional = True))
 
 
 class PortBinding(ObjectType):
@@ -2432,6 +2444,18 @@ class RouterPort(ObjectType):
                                  getter = 'get_outbound_mirrors',
                                  setter = 'outbound_mirrors',
                                  unsetter = 'outbound_mirrors',
+                                 optional = True))
+        self.put_attr(ListAttr(name = 'post-in-mirrors',
+                                 element_type = MirrorRef(),
+                                 getter = 'get_post_inbound_mirrors',
+                                 setter = 'post_inbound_mirrors',
+                                 unsetter = 'post_inbound_mirrors',
+                                 optional = True))
+        self.put_attr(ListAttr(name = 'pre-out-mirrors',
+                                 element_type = MirrorRef(),
+                                 getter = 'get_pre_outbound_mirrors',
+                                 setter = 'pre_outbound_mirrors',
+                                 unsetter = 'pre_outbound_mirrors',
                                  optional = True))
         self.put_attr(SingleAttr(name = 'vni',
                                  value_type = VNI(),
