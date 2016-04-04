@@ -181,7 +181,19 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                       container.getConfigurationId)
     }
 
-    private def getStatus(containerId: UUID): Option[BackendStatus] = {
+    private def getServiceStatus(hostId: UUID): Option[ContainerServiceStatus] = {
+        stateStore.getKey(classOf[Host], hostId, ContainerKey)
+                  .await() match {
+            case key: SingleValueKey =>
+                key.value.map { s =>
+                    val builder = ContainerServiceStatus.newBuilder()
+                    TextFormat.merge(s, builder)
+                    builder.build()
+                }
+        }
+    }
+
+    private def getContainerStatus(containerId: UUID): Option[BackendStatus] = {
         stateStore.getKey(classOf[ServiceContainer], containerId, StatusKey)
                   .await() match {
             case key: SingleValueKey =>
@@ -191,7 +203,6 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
                     builder.build()
                 }
         }
-
     }
 
     private def checkContainerKey(hostId: UUID, status: String): Unit = {
@@ -822,6 +833,173 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
         }
     }
 
+    feature("Test service updates handles container weight and limit") {
+        scenario("Status updates include the container weight") {
+            Given("A host with container weight")
+            val host = createHost(containerWeight = 10)
+            store.create(host)
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
+            service.startAsync().awaitRunning()
+
+            Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getWeight shouldBe 10
+
+            When("The host updates the container weight")
+            store.update(host.toBuilder.setContainerWeight(11).build())
+
+            Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getWeight shouldBe 11
+
+            service.stopAsync().awaitTerminated()
+        }
+
+        scenario("Status updates include the container quota") {
+            Given("A host with container limit")
+            val host = createHost(containerLimit = 10)
+            store.create(host)
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
+            service.startAsync().awaitRunning()
+
+            Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getQuota shouldBe 10
+
+            When("The host updates the container weight")
+            store.update(host.toBuilder.setContainerLimit(11).build())
+
+            Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getQuota shouldBe 11
+
+            service.stopAsync().awaitTerminated()
+        }
+
+        scenario("Quota is decremented when creating containers") {
+            Given("A host with container limit")
+            val host = createHost(containerLimit = 10)
+            store.create(host)
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
+            service.startAsync().awaitRunning()
+
+            Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getQuota shouldBe 10
+
+            When("Creating a container")
+            val bridge = createBridge()
+            val group = createServiceContainerGroup()
+            val container = createServiceContainer(configurationId = Some(randomUUID),
+                                                   serviceType = Some("test-good"),
+                                                   groupId = Some(group.getId))
+            val port = createBridgePort(bridgeId = Some(bridge.getId),
+                                        hostId = Some(host.getId),
+                                        interfaceName = Some("veth1"),
+                                        containerId = Some(container.getId))
+            store.multi(Seq(CreateOp(bridge), CreateOp(group),
+                            CreateOp(container), CreateOp(port)))
+
+            Then("The service should start the container")
+            val handler = service.handlerOf(port.getId)
+            val h = handler.handler.asInstanceOf[TestContainer]
+            h.created shouldBe 1
+
+            Then("The container quota should be decremented")
+            getServiceStatus(host.getId).get.getQuota shouldBe 9
+
+            service.stopAsync().awaitTerminated()
+        }
+
+        scenario("Quota is not decremented when container fails to start") {
+            Given("A host with container limit")
+            val host = createHost(containerLimit = 10)
+            store.create(host)
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
+            service.startAsync().awaitRunning()
+
+            Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getQuota shouldBe 10
+
+            When("Creating a container")
+            val bridge = createBridge()
+            val group = createServiceContainerGroup()
+            val container = createServiceContainer(configurationId = Some(randomUUID),
+                                                   serviceType = Some("test-error-create"),
+                                                   groupId = Some(group.getId))
+            val port = createBridgePort(bridgeId = Some(bridge.getId),
+                                        hostId = Some(host.getId),
+                                        interfaceName = Some("veth1"),
+                                        containerId = Some(container.getId))
+            store.multi(Seq(CreateOp(bridge), CreateOp(group),
+                            CreateOp(container), CreateOp(port)))
+
+            Then("The service should not start the container")
+            service.handlerOf(port.getId) shouldBe null
+
+            Then("The container quota should be decremented")
+            getServiceStatus(host.getId).get.getQuota shouldBe 10
+
+            service.stopAsync().awaitTerminated()
+        }
+
+        def testQuotaDecrementedOnDelete(containerName: String): Unit = {
+            Given("A host with container limit and a container")
+            val host = createHost(containerLimit = 10)
+            val bridge = createBridge()
+            val group = createServiceContainerGroup()
+            val container = createServiceContainer(configurationId = Some(randomUUID),
+                                                   serviceType = Some("test-good"),
+                                                   groupId = Some(group.getId))
+            val port = createBridgePort(bridgeId = Some(bridge.getId),
+                                        hostId = Some(host.getId),
+                                        interfaceName = Some("veth"),
+                                        containerId = Some(container.getId))
+            store.multi(Seq(CreateOp(host), CreateOp(bridge), CreateOp(group),
+                            CreateOp(container), CreateOp(port)))
+
+            And("A container service")
+            val service = new ContainerService(vt, host.getId, serviceExecutor,
+                                               executors, ioExecutor, reflections)
+            service.startAsync().awaitRunning()
+
+            Then("The service should start the container")
+            val handler = service.handlerOf(port.getId)
+            val h = handler.handler.asInstanceOf[TestContainer]
+            h.created shouldBe 1
+
+            Then("The container quota should be decremented")
+            getServiceStatus(host.getId).get.getQuota shouldBe 9
+
+            When("Deleting the port binding")
+            store.delete(classOf[Port], port.getId)
+
+            Then("The service should stop the container")
+            h.deleted shouldBe 1
+            service.handlerList shouldBe empty
+
+            And("The quota should be incremented")
+            getServiceStatus(host.getId).get.getQuota shouldBe 10
+
+            service.stopAsync().awaitTerminated()
+        }
+
+        scenario("Quota should be incremented when container stops") {
+            testQuotaDecrementedOnDelete("test-good")
+        }
+
+        scenario("Quota should be incremented when container fails to stop") {
+            testQuotaDecrementedOnDelete("test-error-delete")
+        }
+    }
+
     feature("Test service updates container status") {
         scenario("Status updated for good container") {
             Given("A port bound to a host with a container")
@@ -844,13 +1022,13 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The container status should be STARTING")
-            getStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
+            getContainerStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
 
             When("Stopping the service")
             service.stopAsync().awaitTerminated()
 
             Then("The container status should not be set")
-            getStatus(container.getId) shouldBe None
+            getContainerStatus(container.getId) shouldBe None
         }
 
         scenario("Status is cleared on completed notification") {
@@ -874,7 +1052,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The container status should be STARTING")
-            getStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
+            getContainerStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
 
             When("The container completes the status observable")
             val handler = service.handlerOf(port.getId)
@@ -882,7 +1060,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             h.stream.onCompleted()
 
             Then("The container status should not be set")
-            getStatus(container.getId) shouldBe None
+            getContainerStatus(container.getId) shouldBe None
 
             service.stopAsync().awaitTerminated()
         }
@@ -908,7 +1086,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The container status should be STARTING")
-            getStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
+            getContainerStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
 
             When("The container completes the status observable")
             val handler = service.handlerOf(port.getId)
@@ -916,7 +1094,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             h.stream onError new Exception("some message")
 
             Then("The container status should not be set")
-            val status = getStatus(container.getId).get
+            val status = getContainerStatus(container.getId).get
             status.getStatusCode shouldBe Code.ERROR
             status.getStatusMessage shouldBe "some message"
 
@@ -944,7 +1122,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The container status should be STARTING")
-            getStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
+            getContainerStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
 
             When("The container sets a health status")
             val handler = service.handlerOf(port.getId)
@@ -952,7 +1130,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             h.stream onNext ContainerHealth(Code.RUNNING, TestNamespace, "all good")
 
             Then("The container status should be RUNNING")
-            val status1 = getStatus(container.getId).get
+            val status1 = getContainerStatus(container.getId).get
             status1.getStatusCode shouldBe Code.RUNNING
             status1.getNamespaceName shouldBe TestNamespace
             status1.getStatusMessage shouldBe "all good"
@@ -961,7 +1139,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             h.stream onNext ContainerHealth(Code.ERROR, TestNamespace, "epic fail")
 
             Then("The container status should be ERROR")
-            val status2 = getStatus(container.getId).get
+            val status2 = getContainerStatus(container.getId).get
             status2.getStatusCode shouldBe Code.ERROR
             status2.getNamespaceName shouldBe TestNamespace
             status2.getStatusMessage shouldBe "epic fail"
@@ -970,7 +1148,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             h.stream onNext ContainerHealth(Code.RUNNING, TestNamespace, "all good again")
 
             Then("The container status should be RUNNING")
-            val status3 = getStatus(container.getId).get
+            val status3 = getContainerStatus(container.getId).get
             status3.getStatusCode shouldBe Code.RUNNING
             status3.getStatusMessage shouldBe "all good again"
 
@@ -1000,14 +1178,14 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(container), CreateOp(port1)))
 
             Then("The container status should be STARTING")
-            getStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
+            getContainerStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
 
             When("Unbinding the service container")
             val port2 = port1.clearHostId()
             store.update(port2)
 
             Then("The container status should be none")
-            getStatus(container.getId) shouldBe None
+            getContainerStatus(container.getId) shouldBe None
         }
 
         scenario("Status set when starting and stopping a bad create container") {
@@ -1033,14 +1211,14 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(container), CreateOp(port)))
 
             Then("The container status should be ERROR")
-            getStatus(container.getId).get.getStatusCode shouldBe Code.ERROR
+            getContainerStatus(container.getId).get.getStatusCode shouldBe Code.ERROR
 
             When("Unbinding the service container")
             val port2 = port.clearHostId()
             store.update(port2)
 
             Then("The container status should be ERROR")
-            getStatus(container.getId).get.getStatusCode shouldBe Code.ERROR
+            getContainerStatus(container.getId).get.getStatusCode shouldBe Code.ERROR
         }
 
         scenario("Status set when starting and stopping a bad delete container") {
@@ -1066,14 +1244,14 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(container), CreateOp(port)))
 
             Then("The container status should be STARTING")
-            getStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
+            getContainerStatus(container.getId).get.getStatusCode shouldBe Code.STARTING
 
             When("Unbinding the service container")
             val port2 = port.clearHostId()
             store.update(port2)
 
             Then("The container status should be STOPPING")
-            getStatus(container.getId).get.getStatusCode shouldBe Code.STOPPING
+            getContainerStatus(container.getId).get.getStatusCode shouldBe Code.STOPPING
         }
     }
 
@@ -1382,6 +1560,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             Then("The container key should be present in the state store")
             val status = ContainerServiceStatus.newBuilder()
                                                .setWeight(1)
+                                               .setQuota(-1)
                                                .build()
                                                .toString
             val hostId = host.getId.asJava

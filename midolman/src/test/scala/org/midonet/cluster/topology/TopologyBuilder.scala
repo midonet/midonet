@@ -149,12 +149,18 @@ trait TopologyBuilder {
     def createHost(id: UUID = UUID.randomUUID,
                    portIds: Set[UUID] = Set.empty,
                    tunnelZoneIds: Set[UUID] = Set.empty,
-                   floodingProxyWeight: Int = 0): Host = {
+                   floodingProxyWeight: Int = 0,
+                   containerWeight: Int = 1,
+                   containerLimit: Int = -1,
+                   enforceContainerLimit: Boolean = false): Host = {
         Host.newBuilder
             .setId(id.asProto)
             .addAllPortIds(portIds.map(_.asProto).asJava)
             .addAllTunnelZoneIds(tunnelZoneIds.map(_.asProto).asJava)
             .setFloodingProxyWeight(floodingProxyWeight)
+            .setContainerWeight(containerWeight)
+            .setContainerLimit(containerLimit)
+            .setEnforceContainerLimit(enforceContainerLimit)
             .build()
     }
 
