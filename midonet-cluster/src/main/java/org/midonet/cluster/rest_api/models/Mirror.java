@@ -66,6 +66,14 @@ public class Mirror extends UriResource {
     @ZoomField(name = "port_outbound_ids")
     public List<UUID> portOutboundIds;
 
+    @JsonIgnore
+    @ZoomField(name = "port_post_in_filter_ids")
+    public List<UUID> portPostInFilterIds;
+
+    @JsonIgnore
+    @ZoomField(name = "port_pre_out_filter_ids")
+    public List<UUID> portPreOutFilterIds;
+
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.MIRRORS(), id);
@@ -88,5 +96,7 @@ public class Mirror extends UriResource {
         routerOutboundIds = from.routerOutboundIds;
         portInboundIds = from.portInboundIds;
         portOutboundIds = from.portOutboundIds;
+        portPostInFilterIds = from.portPostInFilterIds;
+        portPreOutFilterIds = from.portPreOutFilterIds;
     }
 }
