@@ -22,15 +22,15 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.FloatingIp
-import org.midonet.cluster.models.Topology.Rule
+import org.midonet.cluster.models.Topology.{Router, Port, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil, IPSubnetUtil}
+import RouterTranslator.tenantGwPortId
 
 class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                                                               with OpMatchers {
-    import RouterTranslator.tenantGwPortId
     protected var translator: FloatingIpTranslator = _
 
     // Floating IP data setup
@@ -63,16 +63,20 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
 
     // Main tenant router setup
     protected val externalNetworkId = randomUuidProto
-    protected val tntRouterGatewayPortId = randomUuidProto
+    protected val nTntRouterGatewayPortId = randomUuidProto
+    protected val mTntRouterGatewayPortId =
+        tenantGwPortId(nTntRouterGatewayPortId)
     protected val tntRouterGatewayPortMac = "11:22:33:fe:dc:ba"
     protected val tntRouterInternalPortId = randomUuidProto
+    protected val tntRouterInternalPortSubnet =
+        IPSubnetUtil.toProto("10.10.11.0/24")
     protected val tntRouterInChainId = inChainId(tntRouterId)
     protected val tntRouterOutChainId =outChainId(tntRouterId)
 
     protected val mTntRouter = mRouterFromTxt(s"""
         id { $tntRouterId }
         port_ids { $tntRouterInternalPortId }
-        port_ids { $tntRouterGatewayPortId }
+        port_ids { $nTntRouterGatewayPortId }
         inbound_filter_id { $tntRouterInChainId }
         outbound_filter_id { $tntRouterOutChainId }
         """)
@@ -80,21 +84,34 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val nTntRouterNoGwPort = nRouterFromTxt(s"""
         id { $tntRouterId }
         """)
+    protected val mTntRouterNoGwPort = Router.newBuilder
+        .setId(tntRouterId)
+        .addPortIds(tntRouterInternalPortId)
+        .build()
 
     protected val nTntRouter = nRouterFromTxt(s"""
         id { $tntRouterId }
-        gw_port_id { $tntRouterGatewayPortId }
+        gw_port_id { $nTntRouterGatewayPortId }
         """)
 
-    protected val tntRouterGatewayPort = nPortFromTxt(s"""
-        id { $tntRouterGatewayPortId }
+    protected val nTntRouterGatewayPort = nPortFromTxt(s"""
+        id { $nTntRouterGatewayPortId }
         network_id { $externalNetworkId }
         mac_address: "$tntRouterGatewayPortMac"
         device_owner: ROUTER_GATEWAY
         """)
+    protected val mTntRouterGatwewayPort = Port.newBuilder
+        .setId(mTntRouterGatewayPortId)
+        .setPortSubnet(IPSubnetUtil.fromAddr(fipIpAddr, 24))
+        .build()
+    protected val mTntRouterInternalPort = Port.newBuilder
+        .setId(tntRouterInternalPortId)
+        .setRouterId(tntRouterId)
+        .setPortSubnet(tntRouterInternalPortSubnet)
+        .build()
+
     protected val fipArpEntryPath = arpEntryPath(
             externalNetworkId, fipIpAddr.getAddress, tntRouterGatewayPortMac)
-
 
     protected val snatRuleId = RouteManager.fipSnatRuleId(fipId)
     protected val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
@@ -121,7 +138,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 dnat: false
             }
         """)
-    protected val snat = snatRule(tntRouterGatewayPortId, fipPortId)
+    protected val snat = snatRule(nTntRouterGatewayPortId, fipPortId)
 
     protected def dnatRule(gatewayPortId: UUID, destPortId: UUID,
                            fixedIpAddr: IPAddress = fipFixedIpAddr) =
@@ -145,7 +162,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 dnat: true
             }
         """)
-    protected val dnat = dnatRule(tntRouterGatewayPortId, fipPortId)
+    protected val dnat = dnatRule(nTntRouterGatewayPortId, fipPortId)
 
     protected val inChainDummyRuleIds = """
         rule_ids { msb: 1 lsb: 2 }
@@ -190,9 +207,12 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
                                               pathBldr)
 
         bind(tntRouterId, nTntRouter)
+        bind(tntRouterId, mTntRouter)
         bind(tntRouterInChainId, tntRouterInChain)
         bind(tntRouterOutChainId, tntRouterOutChain)
-        bind(tntRouterGatewayPortId, tntRouterGatewayPort)
+        bind(nTntRouterGatewayPortId, nTntRouterGatewayPort)
+        bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
+        bindAll(Seq(tntRouterInternalPortId), Seq(mTntRouterInternalPort))
     }
 
     "Unassociated floating IP" should "not create anything" in {
@@ -214,13 +234,15 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
     "Tenant router for floating IP" should "throw an exception if it doesn't " +
     "have a gateway port assigned" in {
         bind(tntRouterId, nTntRouterNoGwPort)
+        bind(tntRouterId, mTntRouterNoGwPort)
         val te = intercept[TranslationException] {
             translator.translate(Create(boundFip))
         }
         te.getCause should not be null
         te.getCause match {
             case ise: IllegalStateException if ise.getMessage != null =>
-                ise.getMessage should startWith ("No gateway port")
+                ise.getMessage should startWith (
+                    s"Router ${UUIDUtil.fromProto(tntRouterId)} has no port")
             case e => fail("Expected an IllegalStateException.", e)
         }
     }
@@ -229,7 +251,8 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
 @RunWith(classOf[JUnitRunner])
 class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     protected val tntRouter2Id = randomUuidProto
-    protected val tntRouter2GwPortId = randomUuidProto
+    protected val nTntRouter2GwPortId = randomUuidProto
+    protected val mTntRouter2GwPortId = tenantGwPortId(nTntRouter2GwPortId)
     protected val tntRouter2InChainId = inChainId(tntRouter2Id)
     protected val tntRouter2OutChainId =outChainId(tntRouter2Id)
     protected val fipPort2Id = randomUuidProto
@@ -239,29 +262,33 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     protected val fipMovedPort2 = fip(portId = fipPort2Id, fixedIp = fixedIp2)
     protected val fipMovedRtr2Port2 =
         fip(routerId = tntRouter2Id, portId = fipPort2Id, fixedIp = fixedIp2)
-    protected val snatRtr2 = snatRule(tntRouter2GwPortId, fipPortId)
-    protected val dnatRtr2 = dnatRule(tntRouter2GwPortId, fipPortId)
+    protected val snatRtr2 = snatRule(nTntRouter2GwPortId, fipPortId)
+    protected val dnatRtr2 = dnatRule(nTntRouter2GwPortId, fipPortId)
     protected val snatPort2 =
-        snatRule(tntRouterGatewayPortId, fipPort2Id, fixedIpSubnet2)
+        snatRule(nTntRouterGatewayPortId, fipPort2Id, fixedIpSubnet2)
     protected val dnatPort2 =
-        dnatRule(tntRouterGatewayPortId, fipPort2Id, fixedIp2)
+        dnatRule(nTntRouterGatewayPortId, fipPort2Id, fixedIp2)
     protected val snatRtr2Port2 =
-        snatRule(tntRouter2GwPortId, fipPort2Id, fixedIpSubnet2)
+        snatRule(nTntRouter2GwPortId, fipPort2Id, fixedIpSubnet2)
     protected val dnatRtr2Port2 =
-        dnatRule(tntRouter2GwPortId, fipPort2Id, fixedIp2)
+        dnatRule(nTntRouter2GwPortId, fipPort2Id, fixedIp2)
 
     protected val nTntRouter2 = nRouterFromTxt(s"""
         id { $tntRouter2Id }
-        gw_port_id { $tntRouter2GwPortId }
+        gw_port_id { $nTntRouter2GwPortId }
         """)
 
     protected val tntRouter2GwPortMac = "77:88:99:ab:cc:ba"
-    protected val tntRouter2GwPort = nPortFromTxt(s"""
-        id { $tntRouter2GwPortId }
+    protected val nTntRouter2GwPort = nPortFromTxt(s"""
+        id { $nTntRouter2GwPortId }
         network_id { $externalNetworkId }
         mac_address: "$tntRouter2GwPortMac"
         device_owner: ROUTER_GATEWAY
         """)
+    protected val mTntRouter2GwPort = Port.newBuilder
+        .setId(mTntRouter2GwPortId)
+        .setPortSubnet(fipIpSubnet)
+        .build()
 
     protected val tntRouter2InChain = mChainFromTxt(s"""
         id { $tntRouter2InChainId }
@@ -292,12 +319,15 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         initMockStorage()
         bind(tntRouterInChainId, tntRouterInChain)
         bind(tntRouterOutChainId, tntRouterOutChain)
-        bind(tntRouterGatewayPortId, tntRouterGatewayPort)
+        bind(nTntRouterGatewayPortId, nTntRouterGatewayPort)
+        bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
         bind(tntRouter2InChainId, tntRouter2InChain)
         bind(tntRouter2OutChainId, tntRouter2OutChain)
-        bind(tntRouter2GwPortId, tntRouter2GwPort)
+        bind(nTntRouter2GwPortId, nTntRouter2GwPort)
+        bind(mTntRouter2GwPortId, mTntRouter2GwPort)
         bindAll(Seq(tntRouterId, tntRouter2Id), Seq(nTntRouter, nTntRouter2))
         bindAll(Seq(tntRouterId, tntRouterId), Seq(nTntRouter, nTntRouter))
+        bindAll(Seq(tntRouterInternalPortId), Seq(mTntRouterInternalPort))
 
         translator = new FloatingIpTranslator(storage, stateTableStorage,
                                               pathBldr)
@@ -327,6 +357,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "tenant router doesn't have a gateway port configured" in {
         bind(fipId, unboundFip)
         bind(tntRouterId, nTntRouterNoGwPort)
+        bind(tntRouterId, mTntRouterNoGwPort)
         val te = intercept[TranslationException] {
                 translator.translate(Update(boundFip))
         }
@@ -334,7 +365,8 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         te.getCause should not be null
         te.getCause match {
             case ise: IllegalStateException if ise.getMessage != null =>
-                ise.getMessage should startWith ("No gateway port")
+                ise.getMessage should startWith (
+                    s"Router ${UUIDUtil.fromProto(tntRouterId)} has no port")
             case e => fail("Expected an IllegalStateException.", e)
         }
     }
@@ -421,8 +453,7 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
 
     "Deleting an unassociated floating IP" should "not create anything" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(Delete(classOf[FloatingIp],
-                                                          fipId))
+        val midoOps = translator.translate(Delete(classOf[FloatingIp], fipId))
 
         midoOps shouldBe empty
     }
@@ -432,7 +463,8 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
     "outbound chains of the tenant router" in {
         bind(fipId, boundFip)
         bind(tntRouterId, nTntRouter)
-        bind(tntRouterGatewayPortId, tntRouterGatewayPort)
+        bind(nTntRouterGatewayPortId, nTntRouterGatewayPort)
+        bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
         bind(tntRouterInChainId, inChainWithDnat)
         bind(tntRouterOutChainId, outChainWithSnat)
         val midoOps = translator.translate(Delete(classOf[FloatingIp],
