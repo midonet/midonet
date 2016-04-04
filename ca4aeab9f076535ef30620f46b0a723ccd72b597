@@ -22,6 +22,30 @@
       "revId": "ca4aeab9f076535ef30620f46b0a723ccd72b597",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_efbeadd3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-04T08:59:24Z",
+      "side": 1,
+      "message": "I forgot to remove this, when i submitted on master. The v3 suffix was removed during review, in favor of having a common configuration.",
+      "parentUuid": "baa041b7_afe1c500",
+      "range": {
+        "startLine": 9,
+        "startChar": 56,
+        "endLine": 11,
+        "endChar": 12
+      },
+      "revId": "ca4aeab9f076535ef30620f46b0a723ccd72b597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
