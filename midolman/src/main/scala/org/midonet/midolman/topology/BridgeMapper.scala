@@ -772,10 +772,10 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             outFilters.add(bridge.getOutboundFilterId.asJava)
         }
 
-        val inboundMirrors = new JArrayList[UUID]()
-        inboundMirrors.addAll(bridge.getInboundMirrorIdsList.asScala.map(_.asJava).asJava)
-        val outboundMirrors = new JArrayList[UUID]()
-        outboundMirrors.addAll(bridge.getOutboundMirrorIdsList.asScala.map(_.asJava).asJava)
+        val preInFilterMirrors = new JArrayList[UUID]()
+        preInFilterMirrors.addAll(bridge.getInboundMirrorIdsList.asScala.map(_.asJava).asJava)
+        val postOutFilterMirrors = new JArrayList[UUID]()
+        postOutFilterMirrors.addAll(bridge.getOutboundMirrorIdsList.asScala.map(_.asJava).asJava)
 
         // Create the simulation bridge.
         val device = new SimulationBridge(
@@ -794,8 +794,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             vlanPortMap,
             exteriorPorts.toList,
             br.getDhcpIdsList.asScala.map(_.asJava).toList,
-            inboundMirrors,
-            outboundMirrors
+            preInFilterMirrors,
+            postOutFilterMirrors
         )
 
         log.debug("Build bridge: {}", device)

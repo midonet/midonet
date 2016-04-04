@@ -549,10 +549,10 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
     private def routerUpdated(router: TopologyRouter): Config = {
         assertThread()
 
-        val inboundMirrors = new java.util.ArrayList[UUID]()
-        inboundMirrors.addAll(router.getInboundMirrorIdsList.asScala.map(_.asJava).asJava)
-        val outboundMirrors = new java.util.ArrayList[UUID]()
-        outboundMirrors.addAll(router.getOutboundMirrorIdsList.asScala.map(_.asJava).asJava)
+        val preInFilterMirrors = new java.util.ArrayList[UUID]()
+        preInFilterMirrors.addAll(router.getInboundMirrorIdsList.asScala.map(_.asJava).asJava)
+        val postOutFilterMirrors = new java.util.ArrayList[UUID]()
+        postOutFilterMirrors.addAll(router.getOutboundMirrorIdsList.asScala.map(_.asJava).asJava)
 
         val infilters = new JArrayList[UUID](0)
         val outfilters = new JArrayList[UUID](0)
@@ -574,8 +574,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             if (router.hasAdminStateUp) router.getAdminStateUp else false,
             infilters, outfilters,
             if (router.hasLoadBalancerId) router.getLoadBalancerId else null,
-            inboundMirrors,
-            outboundMirrors)
+            preInFilterMirrors,
+            postOutFilterMirrors)
         log.debug("Router updated: {}", cfg)
 
         val portIds = router.getPortIdsList.asScala.map(_.asJava).toSet
