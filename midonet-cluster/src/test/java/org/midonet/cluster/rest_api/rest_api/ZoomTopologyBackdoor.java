@@ -145,6 +145,28 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
     }
 
     @Override
+    public Integer getContainerLimit(UUID hostId) {
+        try {
+            return Await.result(
+                backend.store().get(Host.class, toProto(hostId)), TIMEOUT)
+                    .getContainerLimit();
+        } catch (Exception e) {
+            throw new RuntimeException("Can't retrieve container limit");
+        }
+    }
+
+    @Override
+    public boolean getEnforceContainerLimit(UUID hostId) {
+        try {
+            return Await.result(
+                backend.store().get(Host.class, toProto(hostId)), TIMEOUT)
+                    .getEnforceContainerLimit();
+        } catch (Exception e) {
+            throw new RuntimeException("Can't retrieve container limit");
+        }
+    }
+
+    @Override
     public void setFloodingProxyWeight(UUID hostId, int weight) {
         try {
             Host h = Await.result(
@@ -152,7 +174,7 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
             h = h.toBuilder().setFloodingProxyWeight(weight).build();
             backend.store().update(h);
         } catch (Exception e) {
-            throw new RuntimeException("Can't retrieve flooding proxy weight");
+            throw new RuntimeException("Can't set flooding proxy weight");
         }
     }
 
@@ -164,7 +186,31 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
             h = h.toBuilder().setContainerWeight(weight).build();
             backend.store().update(h);
         } catch (Exception e) {
-            throw new RuntimeException("Can't retrieve container weight");
+            throw new RuntimeException("Can't set container weight");
+        }
+    }
+
+    @Override
+    public void setContainerLimit(UUID hostId, int limit) {
+        try {
+            Host h = Await.result(
+                backend.store().get(Host.class, toProto(hostId)), TIMEOUT);
+            h = h.toBuilder().setContainerLimit(limit).build();
+            backend.store().update(h);
+        } catch (Exception e) {
+            throw new RuntimeException("Can't set container limit");
+        }
+    }
+
+    @Override
+    public void setEnforceContainerLimit(UUID hostId, boolean enforce) {
+        try {
+            Host h = Await.result(
+                backend.store().get(Host.class, toProto(hostId)), TIMEOUT);
+            h = h.toBuilder().setEnforceContainerLimit(enforce).build();
+            backend.store().update(h);
+        } catch (Exception e) {
+            throw new RuntimeException("Can't set enforce container limit");
         }
     }
 

@@ -90,10 +90,20 @@ class HostResource @Inject()(resContext: ResourceContext)
         } else if (host.containerWeight eq null) {
             buildErrorResponse(
                 Status.BAD_REQUEST,
-                getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL))
+                getMessage(HOST_CONTAINER_WEIGHT_IS_NULL))
+        } else if (host.containerLimit eq null) {
+            buildErrorResponse(
+                Status.BAD_REQUEST,
+                getMessage(HOST_CONTAINER_LIMIT_IS_NULL))
+        } else if (host.enforceContainerLimit eq null) {
+            buildErrorResponse(
+                Status.BAD_REQUEST,
+                getMessage(HOST_ENFORCE_CONTAINER_LIMIT_IS_NULL))
         } else {
             current.floodingProxyWeight = host.floodingProxyWeight
             current.containerWeight = host.containerWeight
+            current.containerLimit = host.containerLimit
+            current.enforceContainerLimit = host.enforceContainerLimit
             tx.update(current)
             OkResponse
         }

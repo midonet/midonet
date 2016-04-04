@@ -59,9 +59,17 @@ public interface TopologyBackdoor {
 
     Integer getContainerWeight(UUID hostId);
 
+    Integer getContainerLimit(UUID hostId);
+
+    boolean getEnforceContainerLimit(UUID hostId);
+
     void setFloodingProxyWeight(UUID hostId, int weight);
 
     void setContainerWeight(UUID hostId, int weight);
+
+    void setContainerLimit(UUID hostId, int limit);
+
+    void setEnforceContainerLimit(UUID hostId, boolean enforce);
 
     void createInterface(UUID hostId, String name, MAC mac, int mtu,
                                 InetAddress[] addresses);
