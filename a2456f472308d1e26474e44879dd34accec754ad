@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_d46c9c0a",
+        "filename": "midolman/src/deb/init/prepare-java",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-04T08:12:43Z",
+      "side": 1,
+      "message": "align?",
+      "range": {
+        "startLine": 19,
+        "startChar": 17,
+        "endLine": 19,
+        "endChar": 19
+      },
+      "revId": "a2456f472308d1e26474e44879dd34accec754ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_86600737",
         "filename": "midolman/src/rhel6/control/postinst",
         "patchSetId": 2
@@ -37,6 +60,30 @@
       "side": 1,
       "message": "True, it seems that in master we already are using useradd, thanks for the tip.\n\nI user both of them because it seems that useradd is more higher level and the preferred tool in Debian/Ubuntu systems, but since we are deploying to several targets maybe it makes sense to stick to the least common functionality.\n\nAnyway, I see that --create-home is not used, so the /home/midolman directoy is not created by the command and also the CREATE_HOME seems to not be enforced to be \u0027yes\u0027.\n\nI guess somehow the directory is created, but maybe we should enforce it.",
       "parentUuid": "da9b358b_86600737",
+      "range": {
+        "startLine": 33,
+        "startChar": 8,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "a2456f472308d1e26474e44879dd34accec754ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7474b0ce",
+        "filename": "midolman/src/rhel6/control/postinst",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-04T08:12:43Z",
+      "side": 1,
+      "message": "home is /var/lib/midolman (see line 20). +1 to alex comment.",
+      "parentUuid": "baa041b7_4090ce95",
       "range": {
         "startLine": 33,
         "startChar": 8,
