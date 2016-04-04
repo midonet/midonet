@@ -29,8 +29,9 @@ trait MirroringDevice extends SimDevice {
     def inboundMirrors: JList[UUID]
     def outboundMirrors: JList[UUID]
 
-    private final def mirror(mirrors: JList[UUID], context: PacketContext,
-                             next: SimulationResult): SimulationResult = {
+    protected[this] final def mirror(mirrors: JList[UUID],
+            context: PacketContext,
+            next: SimulationResult): SimulationResult = {
         var result: SimulationResult = next
 
         var i = 0
@@ -55,6 +56,23 @@ trait MirroringDevice extends SimDevice {
     final def mirroringOutbound(
             context: PacketContext, next: SimulationResult): SimulationResult = {
         continue(context, mirror(outboundMirrors, context, next))
+    }
+}
+
+// This trait provides alternative "positions" for mirroring.
+// I.e. the different side of in/out filtering.
+trait AltMirroringDevice { _: MirroringDevice =>
+    def postInboundMirrors: JList[UUID]
+    def preOutboundMirrors: JList[UUID]
+
+    final def mirroringPostInbound(
+            context: PacketContext, next: SimulationResult): SimulationResult = {
+        continue(context, mirror(postInboundMirrors, context, next))
+    }
+
+    final def mirroringPreOutbound(
+            context: PacketContext, next: SimulationResult): SimulationResult = {
+        continue(context, mirror(preOutboundMirrors, context, next))
     }
 }
 
