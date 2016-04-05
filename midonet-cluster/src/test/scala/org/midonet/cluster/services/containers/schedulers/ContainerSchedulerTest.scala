@@ -744,7 +744,6 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             createHostStatus(host2.getId, weight = 1)
             deleteHostStatus(host1.getId)
 
-
             Then("The observer should receive an unscheduled and scheduled notification")
             obs.getOnNextEvents should have size 3
             obs.getOnNextEvents.get(1) shouldBeUnscheduleFor(container, host1.getId)
@@ -779,7 +778,307 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
 
             When("The selected host is no longer eligible")
             deleteHostStatus(host.getId)
-            //scheduler.schedulerState shouldBeScheduledFor(container, host.getId)
+
+            Then("The scheduler state should be down")
+            scheduler.schedulerState shouldBe DownState
+        }
+
+        scenario("One host with container service and zero quota") {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("A host with the container service")
+            val host = createHost()
+            createHostStatus(host.getId, weight = 1, quota = 0)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should not receive notifications")
+            obs.getOnNextEvents shouldBe empty
+            obs.getOnErrorEvents shouldBe empty
+            obs.getOnCompletedEvents shouldBe empty
+
+            And("The scheduler state should be down")
+            scheduler.schedulerState shouldBe DownState
+        }
+
+        def testOneHostWithEligibleQuota(quota: Int): Unit = {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("A host with the container service")
+            val host = createHost()
+            createHostStatus(host.getId, weight = 1, quota = quota)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnErrorEvents shouldBe empty
+            obs.getOnCompletedEvents shouldBe empty
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host.getId)
+
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host.getId)
+        }
+
+        scenario("One host with container service and negative quota") {
+            testOneHostWithEligibleQuota(-1)
+        }
+
+        scenario("One host with container service and positive quota") {
+            testOneHostWithEligibleQuota(1)
+        }
+
+        scenario("Two hosts, one with positive quota") {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("A host with the container service")
+            val host1 = createHost()
+            val host2 = createHost()
+            createHostStatus(host1.getId, weight = 1, quota = 1)
+            createHostStatus(host2.getId, weight = 1, quota = 0)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnErrorEvents shouldBe empty
+            obs.getOnCompletedEvents shouldBe empty
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host1.getId)
+
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host1.getId)
+        }
+
+        scenario("Host starts running the container service with zero quota") {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("A host with the container service")
+            val host = createHost()
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should not receive notifications")
+            obs.getOnNextEvents shouldBe empty
+
+            And("The scheduler state should be down")
+            scheduler.schedulerState shouldBe DownState
+
+            When("Host starts running the container service")
+            createHostStatus(host.getId, weight = 1, quota = 0)
+
+            Then("The observer should not receive notifications")
+            obs.getOnNextEvents shouldBe empty
+
+            And("The scheduler state should be down")
+            scheduler.schedulerState shouldBe DownState
+        }
+
+        def testHostStartsWithEligibleQuota(quota: Int): Unit = {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("A host with the container service")
+            val host = createHost()
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should not receive notifications")
+            obs.getOnNextEvents shouldBe empty
+
+            And("The scheduler state should be down")
+            scheduler.schedulerState shouldBe DownState
+
+            When("Host starts running the container service")
+            createHostStatus(host.getId, weight = 1, quota = quota)
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host.getId)
+
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host.getId)
+        }
+
+        scenario("Host starts running the container service with negative quota") {
+            testHostStartsWithEligibleQuota(-1)
+        }
+
+        scenario("Host starts running the container service with positive quota") {
+            testHostStartsWithEligibleQuota(1)
+        }
+
+        scenario("Adding a host positive quota does not change scheduling") {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("A host with the container service")
+            val host1 = createHost()
+            createHostStatus(host1.getId, weight = 1, quota = 1)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host1.getId)
+
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host1.getId)
+
+            When("Adding a second host with a large quota")
+            val host2 = createHost()
+            createHostStatus(host2.getId, weight = 1, quota = Int.MaxValue)
+
+            Then("The observer should not receive a new notification")
+            obs.getOnNextEvents should have size 1
+        }
+
+        scenario("Quota changes to not eligible do not affect scheduling") {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("A host with the container service")
+            val host = createHost()
+            createHostStatus(host.getId, weight = 1, quota = 1)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host.getId)
+
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host.getId)
+
+            When("Changing the host quota to zero")
+            createHostStatus(host.getId, weight = 1, quota = 0)
+
+            Then("The observer should not receive another notification")
+            obs.getOnNextEvents should have size 1
+        }
+
+        scenario("Quota changes to eligible should trigger scheduling") {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("A host with the container service")
+            val host = createHost()
+            createHostStatus(host.getId, weight = 1, quota = 0)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should not receive notifications")
+            obs.getOnNextEvents shouldBe empty
+
+            And("The scheduler state should be down")
+            scheduler.schedulerState shouldBe DownState
+
+            When("Changing the host quota to positive")
+            createHostStatus(host.getId, weight = 1, quota = 1)
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host.getId)
+
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host.getId)
+        }
+
+        scenario("Scheduler filters eligible hosts by quota") {
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId)
+
+            And("Several hosts, only one with an eligible quota")
+            val host1 = createHost()
+            val host2 = createHost()
+            val host3 = createHost()
+            createHostStatus(host1.getId, weight = 1, quota = 0)
+            createHostStatus(host2.getId, weight = 1, quota = 1)
+            createHostStatus(host3.getId, weight = 1, quota = 0)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host2.getId)
+
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host2.getId)
         }
     }
 
