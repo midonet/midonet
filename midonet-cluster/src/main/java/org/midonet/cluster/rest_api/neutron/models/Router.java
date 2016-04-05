@@ -115,22 +115,4 @@ public class Router extends ZoomObject {
                 .add("externalGatewayInfo", externalGatewayInfo)
                 .add("routes", ListUtil.toString(routes)).toString();
     }
-
-    @JsonIgnore
-    public String preRouteChainName() {
-        if (id == null) return null;
-        return "OS_PRE_ROUTING_" + id;
-    }
-
-    @JsonIgnore
-    public String postRouteChainName() {
-        if (id == null) return null;
-        return "OS_POST_ROUTING_" + id;
-    }
-
-    @JsonIgnore
-    public boolean snatEnabled() {
-        return externalGatewayInfo != null && externalGatewayInfo.enableSnat;
-    }
-
 }

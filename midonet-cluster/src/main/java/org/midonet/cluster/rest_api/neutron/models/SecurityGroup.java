@@ -97,24 +97,4 @@ public class SecurityGroup extends ZoomObject {
                         ListUtil.toString(securityGroupRules))
                 .toString();
     }
-
-    @JsonIgnore
-    public String egressChainName() {
-        return egressChainName(id);
-    }
-
-    @JsonIgnore
-    public String ingressChainName() {
-        return ingressChainName(id);
-    }
-
-    public static String egressChainName(UUID sgId) {
-        if (sgId == null) return null;
-        return "OS_SG_" + sgId + "_" + RuleDirection.EGRESS;
-    }
-
-    public static String ingressChainName(UUID sgId) {
-        if (sgId == null) return null;
-        return "OS_SG_" + sgId + "_" + RuleDirection.INGRESS;
-    }
 }
