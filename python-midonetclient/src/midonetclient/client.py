@@ -35,6 +35,7 @@ from midonetclient.neutron import router as rtr
 from midonetclient.neutron import routing_table as rt
 from midonetclient.neutron import securitygroup as sg
 from midonetclient.neutron import system
+from midonetclient.neutron import taas
 from midonetclient.neutron import tunnel_zone as tz
 from midonetclient.neutron import vpn
 from midonetclient.neutron import vtep
@@ -60,6 +61,7 @@ class MidonetClient(net.NetworkClientMixin,
                     rtr.RouterClientMixin,
                     rt.RoutingTableClientMixin,
                     system.SystemClientMixin,
+                    taas.TaasClientMixin,
                     tz.TunnelZoneClientMixin,
                     vtep.VtepClientMixin,
                     vpn.VPNClientMixin):

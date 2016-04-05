@@ -68,3 +68,9 @@ REMOTE_MAC_ENTRY = "application/vnd.org.midonet.neturon.RemoteMacEntry-v1+json"
 # L2 Gateway extension
 L2_GATEWAY_CONN = ("application/vnd.org.midonet.neutron"
                    ".L2GatewayConnection-v1+json")
+
+# Tap as a service extension
+TAP_FLOW = ("application/vnd.org.midonet.neutron.TapFlow-v1+json")
+TAP_FLOWS = ("application/vnd.org.midonet.neutron.TapFlows-v1+json")
+TAP_SERVICE = ("application/vnd.org.midonet.neutron.TapService-v1+json")
+TAP_SERVICES = ("application/vnd.org.midonet.neutron.TapServices-v1+json")
