@@ -38,15 +38,15 @@ public class ZkOpLock {
 
     String name;
 
-    public ZkOpLock(ZookeeperLockFactory lockFactory, int lockOpNumber,
-                    String lockName) {
+    public ZkOpLock(ZookeeperLockFactory lockFactory, String lockName) {
         lock = lockFactory.createShared(lockName);
-        opNumber = lockOpNumber;
+        opNumber = 0;
         timeHeld = new StopWatch();
         name = lockName;
     }
 
     public void acquire() {
+        opNumber++;
         StopWatch timeToAcquire = new StopWatch();
         timeToAcquire.start();
         try {
@@ -71,6 +71,7 @@ public class ZkOpLock {
         try {
             lock.release();
             timeHeld.stop();
+            timeHeld.reset();
             LOGGER.debug(name + " ZK lock operation for " + opNumber +
                          " held the lock for " + timeHeld.getTime() +
                          " milliseconds.");

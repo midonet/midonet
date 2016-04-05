@@ -147,7 +147,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         UUID.randomUUID(), ADMIN_ID, 3, 5, 30, "TCP", true, pool.id);
 
     protected DataClient dataClient;
-    protected NeutronPlugin plugin;
+    protected NeutronPluginLocked plugin;
     protected ZkManager zk;
 
     @Override
@@ -157,8 +157,8 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
             new PrivateModule() {
                 @Override
                 protected void configure() {
-                    bind(NeutronPlugin.class);
-                    expose(NeutronPlugin.class);
+                    bind(NeutronPluginLocked.class);
+                    expose(NeutronPluginLocked.class);
                 }
             }
         );
@@ -170,7 +170,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         super.setUp();
 
         dataClient = injector.getInstance(DataClient.class);
-        plugin = injector.getInstance(NeutronPlugin.class);
+        plugin = injector.getInstance(NeutronPluginLocked.class);
         zk = injector.getInstance(ZkManager.class);
 
         // Set up a basic scenario for all the tests for now

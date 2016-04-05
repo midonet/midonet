@@ -79,7 +79,7 @@ public class DataCheckPointTest {
     protected static TestingServer server;
 
     @Inject
-    NeutronPlugin plugin;
+    NeutronPluginLocked plugin;
     @Inject
     DataClient dataClient;
 
@@ -498,7 +498,7 @@ public class DataCheckPointTest {
             new AbstractModule() {
                 @Override
                 protected void configure() {
-                    bind(NeutronPlugin.class);
+                    bind(NeutronPluginLocked.class);
                 }
             }
         );
