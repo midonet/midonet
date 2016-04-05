@@ -113,6 +113,8 @@ object MidonetBackend {
              classOf[ServiceContainer],
              classOf[ServiceContainerGroup],
              classOf[SecurityGroupRule],
+             classOf[TapFlow],
+             classOf[TapService],
              classOf[TraceRequest],
              classOf[TunnelZone],
              classOf[Vip],

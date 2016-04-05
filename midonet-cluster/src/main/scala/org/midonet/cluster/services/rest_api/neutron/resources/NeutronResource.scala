@@ -125,6 +125,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.gatewayDeviceTemplate = getGatewayDeviceTemplate(baseUri)
         neutron.remoteMacEntries = getRemoteMacEntries(baseUri)
         neutron.remoteMacEntryTemplate = getRemoteMacEntryTemplate(baseUri)
+        neutron.tapFlows = getTapFlows(baseUri)
+        neutron.tapFlowTemplate = getTapFlowTemplate(baseUri)
+        neutron.tapServices = getTapServices(baseUri)
+        neutron.tapServiceTemplate = getTapServiceTemplate(baseUri)
         neutron
     }
 }

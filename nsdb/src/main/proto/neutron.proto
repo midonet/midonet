@@ -499,3 +499,29 @@ message RemoteMacEntry {
     // Ports using this remote MAC entry.
     repeated UUID port_ids = 6;
 }
+
+message TapService {
+    optional UUID id = 1;
+    optional string tenant_id = 2;  // REVISIT(yamamoto): project_id
+    optional string name = 3;
+    optional string description = 4;
+    optional UUID port_id = 5;
+    // REVISIT(yamamoto): revisit after the spec is complete
+    // optional UUID network_id = 6;
+}
+
+message TapFlow {
+    optional UUID id = 1;
+    optional string tenant_id = 2;  // REVISIT(yamamoto): project_id
+    optional string name = 3;
+    optional string description = 4;
+    optional UUID tap_service_id = 5;
+    optional UUID source_port = 6;
+    optional TapFlowDirection direction = 7;
+
+    enum TapFlowDirection {
+        IN = 0;
+        OUT = 1;
+        BOTH = 2;
+    }
+}
