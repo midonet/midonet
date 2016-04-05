@@ -40,6 +40,7 @@ class NeutronZoomApiModule extends PrivateModule {
             classOf[LoadBalancerApi],
             classOf[NetworkApi],
             classOf[SecurityGroupApi],
+            classOf[TapAsAServiceApi],
             classOf[VpnServiceApi]
         ) foreach { c =>
             bind(c).to(classOf[NeutronZoomPlugin])
