@@ -72,3 +72,9 @@ L2_GATEWAY_CONN = ("application/vnd.org.midonet.neutron"
 # Neutron BGP
 BGP_SPEAKER = "application/vnd.org.midonet.neutron.BgpSpeaker-v1+json"
 BGP_PEER = "application/vnd.org.midonet.neutron.BgpPeer-v1+json"
+
+# Tap as a service extension
+TAP_FLOW = ("application/vnd.org.midonet.neutron.TapFlow-v1+json")
+TAP_FLOWS = ("application/vnd.org.midonet.neutron.TapFlows-v1+json")
+TAP_SERVICE = ("application/vnd.org.midonet.neutron.TapService-v1+json")
+TAP_SERVICES = ("application/vnd.org.midonet.neutron.TapServices-v1+json")
