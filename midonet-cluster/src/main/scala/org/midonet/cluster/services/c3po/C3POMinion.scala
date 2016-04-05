@@ -202,6 +202,10 @@ object C3POMinion {
                 new IPSecSiteConnectionTranslator(storage),
              classOf[L2GatewayConnection] ->
                 new L2GatewayConnectionTranslator(storage, stateTableStorage, pathBldr),
+             classOf[NeutronBgpPeer] ->
+                new BgpPeerTranslator(storage, stateTableStorage),
+             classOf[NeutronBgpSpeaker] ->
+                new BgpSpeakerTranslator(storage, stateTableStorage),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronFirewall] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->

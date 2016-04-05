@@ -65,6 +65,8 @@ object NeutronResourceType extends Enumeration {
     val NoData = NeutronResourceType("NULL", classOf[Null])
     val AgentMembership = NeutronResourceType("AGENTMEMBERSHIP",
                                               classOf[AgentMembership])
+    val BgpPeer = NeutronResourceType("BGPPEER", classOf[NeutronBgpPeer])
+    val BgpSpeaker = NeutronResourceType("BGPSPEAKER", classOf[NeutronBgpSpeaker])
     val Config = NeutronResourceType("CONFIG", classOf[NeutronConfig])
     val Firewall = NeutronResourceType("FIREWALL", classOf[NeutronFirewall])
     val FloatingIp = NeutronResourceType("FLOATINGIP",
@@ -99,6 +101,8 @@ object NeutronResourceType extends Enumeration {
     private val vals = Map[String, NeutronResourceType[_ <: Message]](
         NoData.id -> NoData,
         AgentMembership.id -> AgentMembership,
+        BgpPeer.id -> BgpSpeaker,
+        BgpSpeaker.id -> BgpSpeaker,
         Config.id -> Config,
         Firewall.id -> Firewall,
         FloatingIp.id -> FloatingIp,

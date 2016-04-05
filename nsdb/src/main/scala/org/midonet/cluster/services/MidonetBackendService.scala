@@ -89,6 +89,8 @@ object MidonetBackend {
              classOf[LoadBalancer],
              classOf[Mirror],
              classOf[Network],
+             classOf[NeutronBgpPeer],
+             classOf[NeutronBgpSpeaker],
              classOf[NeutronConfig],
              classOf[NeutronFirewall],
              classOf[NeutronHealthMonitor],
