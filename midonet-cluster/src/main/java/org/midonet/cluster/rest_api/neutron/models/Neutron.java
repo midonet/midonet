@@ -120,6 +120,18 @@ public class Neutron {
     @JsonProperty("bgp_peer_template")
     public String bgpPeerTemplate;
 
+    @JsonProperty("tap_flows")
+    public URI tapFlows;
+
+    @JsonProperty("tap_flow_template")
+    public String tapFlowTemplate;
+
+    @JsonProperty("tap_services")
+    public URI tapServices;
+
+    @JsonProperty("tap_service_template")
+    public String tapServiceTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -171,7 +183,11 @@ public class Neutron {
                && Objects.equal(bgpSpeakers, other.bgpSpeakers)
                && Objects.equal(bgpSpeakerTemplate, other.bgpSpeakerTemplate)
                && Objects.equal(bgpPeers, other.bgpPeers)
-               && Objects.equal(bgpPeerTemplate, other.bgpPeerTemplate);
+               && Objects.equal(bgpPeerTemplate, other.bgpPeerTemplate)
+               && Objects.equal(tapFlows, other.tapFlows)
+               && Objects.equal(tapFlowTemplate, other.tapFlowTemplate)
+               && Objects.equal(tapServices, other.tapServices)
+               && Objects.equal(tapServiceTemplate, other.tapServiceTemplate);
     }
 
     @Override
@@ -191,7 +207,9 @@ public class Neutron {
                                 gatewayDevices, gatewayDeviceTemplate,
                                 remoteMacEntries, remoteMacEntryTemplate,
                                 bgpSpeakers, bgpSpeakerTemplate,
-                                bgpPeers, bgpPeerTemplate);
+                                bgpPeers, bgpPeerTemplate,
+                                tapFlows, tapFlowTemplate,
+                                tapServices, tapServiceTemplate);
     }
 
     @Override
@@ -230,6 +248,10 @@ public class Neutron {
             .add("bgpSpeakerTemplate", bgpSpeakerTemplate)
             .add("bgpPeers", bgpPeers)
             .add("bgpPeerTemplate", bgpPeerTemplate)
+            .add("tapFlows", tapFlows)
+            .add("tapFlowTemplate", tapFlowTemplate)
+            .add("tapServices", tapServices)
+            .add("tapServiceTemplate", tapServiceTemplate)
             .toString();
     }
 }
