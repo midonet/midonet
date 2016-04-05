@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_aa541054",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-05T02:54:40Z",
+      "side": 1,
+      "message": "All of these +1",
+      "parentUuid": "baa041b7_74c15080",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_94c4d492",
         "filename": "tools/data_migration/README.md",
         "patchSetId": 4
@@ -138,6 +156,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ca5e3476",
+        "filename": "tools/data_migration/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-05T02:54:40Z",
+      "side": 1,
+      "message": "When I tried it in my testing env, just removing the tasks and later re-adding them actually seemed to work, strangely enough.",
+      "parentUuid": "baa041b7_140564c1",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b413580d",
         "filename": "tools/data_migration/README.md",
         "patchSetId": 4
@@ -189,6 +225,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6a772803",
+        "filename": "tools/data_migration/data_migration/migration_config.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-05T02:54:40Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "baa041b7_f4ed6026",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d4f25c06",
         "filename": "tools/data_migration/data_migration/migration_defs.py",
         "patchSetId": 4
@@ -206,6 +260,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4a7464fc",
+        "filename": "tools/data_migration/data_migration/migration_defs.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-05T02:54:40Z",
+      "side": 1,
+      "message": "Ahh, okay.  +1",
+      "parentUuid": "baa041b7_d4f25c06",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b4f7d8f4",
         "filename": "tools/data_migration/data_migration/migration_defs.py",
         "patchSetId": 4
@@ -217,6 +289,24 @@
       "writtenOn": "2016-04-04T05:02:16Z",
       "side": 1,
       "message": "use the constant variable",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2a600035",
+        "filename": "tools/data_migration/data_migration/migration_defs.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-05T02:54:40Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "baa041b7_b4f7d8f4",
       "revId": "670885d7a56f56d0897048490252ddc93084ea04",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -251,6 +341,24 @@
       "writtenOn": "2016-04-04T05:02:16Z",
       "side": 1,
       "message": "uncomment?",
+      "revId": "670885d7a56f56d0897048490252ddc93084ea04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ea59f88f",
+        "filename": "tools/data_migration/setup.cfg",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-05T02:54:40Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "baa041b7_f4d44048",
       "revId": "670885d7a56f56d0897048490252ddc93084ea04",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
