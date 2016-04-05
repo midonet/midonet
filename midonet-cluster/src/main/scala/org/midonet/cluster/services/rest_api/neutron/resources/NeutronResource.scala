@@ -95,6 +95,14 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def bgpPeerResource: BgpPeerResource =
         new BgpPeerResource(uriInfo, api)
 
+    @Path("tap_flows")
+    def tapFlowsResoource: TapFlowResource =
+        new TapFlowResource(uriInfo, api)
+
+    @Path("tap_services")
+    def tapServicesResoource: TapServiceResource =
+        new TapServiceResource(uriInfo, api)
+
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
         val neutron: Neutron = new Neutron
@@ -137,6 +145,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.bgpSpeakerTemplate = getBgpSpeakerTemplate(baseUri)
         neutron.bgpPeers = getBgpPeers(baseUri)
         neutron.bgpPeerTemplate = getBgpPeerTemplate(baseUri)
+        neutron.tapFlows = getTapFlows(baseUri)
+        neutron.tapFlowTemplate = getTapFlowTemplate(baseUri)
+        neutron.tapServices = getTapServices(baseUri)
+        neutron.tapServiceTemplate = getTapServiceTemplate(baseUri)
         neutron
     }
 }
