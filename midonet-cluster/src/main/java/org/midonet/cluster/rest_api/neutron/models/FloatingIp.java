@@ -111,27 +111,4 @@ public class FloatingIp extends ZoomObject {
                 .add("portId", portId)
                 .add("fixedIpAddress", fixedIpAddress).toString();
     }
-
-    @JsonIgnore
-    public IPv4Subnet floatingIpv4Subnet() {
-        if (floatingIpAddress == null) return null;
-        return new IPv4Subnet(floatingIpAddress, 32);
-    }
-
-    @JsonIgnore
-    public IPv4Addr floatingIpv4Addr() {
-        if (floatingIpAddress == null) return null;
-        return IPv4Addr.fromString(floatingIpAddress);
-    }
-
-    @JsonIgnore
-    public IPv4Addr fixedIpv4Addr() {
-        if (fixedIpAddress == null) return null;
-        return IPv4Addr.fromString(fixedIpAddress);
-    }
-
-    @JsonIgnore
-    public boolean isAssociated() {
-        return portId != null;
-    }
 }
