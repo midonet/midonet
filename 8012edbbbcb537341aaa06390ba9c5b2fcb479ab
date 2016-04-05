@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_60774703",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 37
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-05T15:39:10Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "da9b358b_bd48c35c",
+      "range": {
+        "startLine": 230,
+        "startChar": 8,
+        "endLine": 230,
+        "endChar": 16
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_5d6e57ca",
         "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 37
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-30T16:01:45Z",
       "side": 1,
       "message": "Do you mean the cluster must be restarted? If that\u0027s the case, this is true for all configuration options, right?",
+      "range": {
+        "startLine": 232,
+        "startChar": 53,
+        "endLine": 233,
+        "endChar": 55
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e0591790",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 37
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-05T15:39:10Z",
+      "side": 1,
+      "message": "Well yeah, except the loggers levels. I\u0027ll remove it but I wonder if we say something with respect to this anywhere. I remember back then when mn-conf was introduced there was a lot of confusion about which options needs restart, which does not.",
+      "parentUuid": "da9b358b_5d6e57ca",
       "range": {
         "startLine": 232,
         "startChar": 53,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_20c7ff13",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateMessageHandler.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-05T15:39:10Z",
+      "side": 1,
+      "message": "Done. Damn, always forgot to check sorry. I need to find the option to disable collapsing the import statements in intellij.",
+      "parentUuid": "da9b358b_5d41b70a",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 64
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_fd652be1",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateMessageHandler.scala",
         "patchSetId": 37
@@ -82,6 +154,30 @@
       "writtenOn": "2016-03-30T16:01:45Z",
       "side": 1,
       "message": "Does this have some meaning?",
+      "range": {
+        "startLine": 44,
+        "startChar": 13,
+        "endLine": 44,
+        "endChar": 14
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_00ccfb33",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateMessageHandler.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-05T15:39:10Z",
+      "side": 1,
+      "message": "Done. No, it\u0027s a typo.",
+      "parentUuid": "da9b358b_fd652be1",
       "range": {
         "startLine": 44,
         "startChar": 13,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_40e203a1",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-05T15:39:10Z",
+      "side": 1,
+      "message": "The initLocalAddress is platform dependant (well, the interface names are platform dependant) so not sure how to test it here (it\u0027s somewhat tested in mdts though). Any suggestion?\n\nAdded a test for the storageProvider.",
+      "parentUuid": "da9b358b_7d3c7b93",
+      "range": {
+        "startLine": 60,
+        "startChar": 6,
+        "endLine": 60,
+        "endChar": 26
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_1dde8f6d",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/flowstate/FlowStateServiceTest.scala",
         "patchSetId": 37
@@ -128,6 +248,30 @@
       "writtenOn": "2016-03-30T16:01:45Z",
       "side": 1,
       "message": "Not used",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 67
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_20eedf8b",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-05T15:39:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9b358b_1dde8f6d",
       "range": {
         "startLine": 64,
         "startChar": 4,
