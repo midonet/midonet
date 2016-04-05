@@ -24,6 +24,7 @@ from midonetclient.neutron import l3
 from midonetclient.neutron import loadbalancer as lb
 from midonetclient.neutron import network as net
 from midonetclient.neutron import securitygroup as sg
+from midonetclient.neutron import taas
 from midonetclient.neutron import vpn
 
 LOG = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ class MidonetClient(net.NetworkClientMixin,
                     sg.SecurityGroupClientMixin,
                     lb.LoadBalancerClientMixin,
                     fw.FirewallClientMixin,
+                    taas.TaasClientMixin,
                     vpn.VPNClientMixin):
     """Main MidoNet client class
 
