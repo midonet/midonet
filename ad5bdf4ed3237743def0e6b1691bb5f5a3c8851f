@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a03f8f24",
+        "filename": "midonet-cluster/conf/midonet-cluster-env.sh",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-05T19:09:28Z",
+      "side": 1,
+      "message": "I had to put this since it seems this script is not bash",
+      "range": {
+        "startLine": 21,
+        "startChar": 19,
+        "endLine": 21,
+        "endChar": 23
+      },
+      "revId": "ad5bdf4ed3237743def0e6b1691bb5f5a3c8851f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
