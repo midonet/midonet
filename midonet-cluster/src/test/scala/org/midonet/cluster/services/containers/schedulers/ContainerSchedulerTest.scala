@@ -779,7 +779,45 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
 
             When("The selected host is no longer eligible")
             deleteHostStatus(host.getId)
-            //scheduler.schedulerState shouldBeScheduledFor(container, host.getId)
+
+            Then("The scheduler state should be down")
+            scheduler.schedulerState shouldBe DownState
+        }
+
+        scenario("One host with container service and zero quota") {
+
+        }
+
+        scenario("One host with container service and negative quota") {
+
+        }
+
+        scenario("One host with container service and positive quota") {
+
+        }
+
+        scenario("Two hosts, one with positive quota") {
+
+        }
+
+        scenario("Host starts running the container service with zero quota") {
+
+        }
+
+        scenario("Host starts running the container service with negative quota") {
+
+        }
+
+        scenario("Host starts running the container service with positive quota") {
+
+        }
+
+        scenario("Adding a host positive quota does not change scheduling") {
+
+        }
+
+        scenario("Scheduler filters eligible hosts by quota") {
+
         }
     }
 
