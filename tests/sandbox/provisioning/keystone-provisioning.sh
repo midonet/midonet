@@ -1,8 +1,9 @@
 #!/bin/bash -x
 
-INDOCKER="docker exec mnsandboxmdts_keystone_1"
-KEYSTONE_IP=$(docker exec mnsandboxmdts_keystone_1 hostname --ip-address)
-NEUTRON_IP=$(docker exec mnsandboxmdts_neutron_1 hostname --ip-address)
+SANDBOX_NAME=${SANDBOX_NAME:-mdts}
+INDOCKER="docker exec mnsandbox${SANDBOX_NAME}_keystone_1"
+KEYSTONE_IP=$(docker exec mnsandbox${SANDBOX_NAME}_keystone_1 hostname --ip-address)
+NEUTRON_IP=$(docker exec mnsandbox${SANDBOX_NAME}_neutron_1 hostname --ip-address)
 
 OS_SERVICE_TOKEN="ADMIN"
 OS_SERVICE_ENDPOINT="http://$KEYSTONE_IP:35357/v2.0"
