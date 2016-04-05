@@ -16,7 +16,10 @@
 
 package org.midonet.cluster.rest_api.neutron
 
+import java.util.UUID
+
 import org.junit.runner.RunWith
+import org.midonet.cluster.rest_api.neutron.models.BgpSpeaker
 import org.scalatest.junit.JUnitRunner
 
 
@@ -32,6 +35,12 @@ class TestBgpSpeaker extends NeutronApiTest {
     }
 
     scenario("Create, read, delete") {
-        // TODO: Add these tests after Zoom Plugin enabled
+        val bgpSpeaker = new BgpSpeaker
+        bgpSpeaker.id = UUID.randomUUID()
+        val bgpSpeakerUri = postAndVerifySuccess(bgpSpeaker)
+
+        get[BgpSpeaker](bgpSpeakerUri) shouldBe bgpSpeaker
+
+        deleteAndVerifyNoContent(bgpSpeakerUri)
     }
 }
