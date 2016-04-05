@@ -171,6 +171,24 @@
       "revId": "60a62fe1f2d36e3f59178f5b4d785481e53396ac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_80e48b0d",
+        "filename": "midonet-cluster/conf/midonet-cluster-env.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-05T13:12:06Z",
+      "side": 1,
+      "message": "Ok, I am going to use it, adding an little extra step to avoid repeating {LIB32,LIB64} pattern also, despite is not that important. Do you think is good or better leave fixed since not to be changed?\n\nLIB_PATTERNS\u003d\u0027{lib64,lib}\u0027\nJVM_SEARCH_DIRS\u003d$( eval echo \\\n                 /usr/$LIB_PATTERNS/jvm/java-1.8.0-openjdk-amd64 \\\n                 /usr/$LIB_PATTERNS/jvm/java-8-openjdk-amd64 \\\n                 /usr/$LIB_PATTERNS/jvm/java-8-oracle \\\n                 /usr/$LIB_PATTERNS/jvm/zulu-8-amd64 \\\n                 /usr/$LIB_PATTERNS/jvm/jre-1.8.0-openjdk \\\n                 /usr/$LIB_PATTERNS/jvm/jre-8-oracle-x64 \\\n                 /usr/$LIB_PATTERNS/jvm/jdk-8-oracle-x64)",
+      "parentUuid": "baa041b7_bd169853",
+      "revId": "60a62fe1f2d36e3f59178f5b4d785481e53396ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
