@@ -67,6 +67,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
             with LoadBalancerApi
             with NetworkApi
             with SecurityGroupApi
+            with TapAsAServiceApi
             with VpnServiceApi {
 
     private val log = LoggerFactory.getLogger(restApiNeutronLog)
@@ -528,4 +529,19 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     override def deleteIpSecSiteConnection(id: UUID): Unit =
         delete(id, classOf[IPSecSiteConnection])
+
+    // TapFlow
+    override def createTapFlow(flow: TapFlow): Unit = create(flow)
+    override def updateTapFlow(flow: TapFlow): Unit = update(flow)
+    override def deleteTapFlow(id: UUID): Unit = delete(id, classOf[TapFlow])
+    override def getTapFlow(id: UUID): TapFlow = get[TapFlow](id)
+    override def getTapFlows: util.List[TapFlow] = listAll(classOf[TapFlow])
+
+    // TapService
+    override def createTapService(service: TapService): Unit = create(service)
+    override def updateTapService(service: TapService): Unit = update(service)
+    override def deleteTapService(id: UUID): Unit = delete(id, classOf[TapService])
+    override def getTapService(id: UUID): TapService = get[TapService](id)
+    override def getTapServices: util.List[TapService] =
+        listAll(classOf[TapService])
 }

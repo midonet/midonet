@@ -87,6 +87,14 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def remoteMacEntriesResource: RemoteMacEntryResource =
         new RemoteMacEntryResource(uriInfo, api)
 
+    @Path("tap_flows")
+    def tapFlowsResoource: TapFlowResource =
+        new TapFlowResource(uriInfo, api)
+
+    @Path("tap_services")
+    def tapServicesResoource: TapServiceResource =
+        new TapServiceResource(uriInfo, api)
+
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
         val neutron: Neutron = new Neutron
@@ -125,6 +133,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.gatewayDeviceTemplate = getGatewayDeviceTemplate(baseUri)
         neutron.remoteMacEntries = getRemoteMacEntries(baseUri)
         neutron.remoteMacEntryTemplate = getRemoteMacEntryTemplate(baseUri)
+        neutron.tapFlows = getTapFlows(baseUri)
+        neutron.tapFlowTemplate = getTapFlowTemplate(baseUri)
+        neutron.tapServices = getTapServices(baseUri)
+        neutron.tapServiceTemplate = getTapServiceTemplate(baseUri)
         neutron
     }
 }

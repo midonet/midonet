@@ -48,6 +48,8 @@ public class NeutronUriBuilder {
     public static final String L2_GATEWAY_CONNS= "/l2_gateway_connections";
     public static final String GATEWAY_DEVICES = "/gateway_devices";
     public static final String REMOTE_MAC_ENTRIES = "/remote_mac_entries";
+    public static final String TAP_SERVICES = "/tap_services";
+    public static final String TAP_FLOWS = "/tap_flows";
 
 
     public static URI getRoot(URI baseUri) {
@@ -327,5 +329,35 @@ public class NeutronUriBuilder {
 
     public static String getRemoteMacEntryTemplate(URI baseUri) {
         return buildIdTemplateUri(getRemoteMacEntries(baseUri));
+    }
+
+    // Tap Services
+    public static URI getTapServices(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+                .path(TAP_SERVICES).build();
+    }
+
+    public static URI getTapService(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getTapServices(baseUri))
+                .path(id.toString()).build();
+    }
+
+    public static String getTapServiceTemplate(URI baseUri) {
+        return buildIdTemplateUri(getTapServices(baseUri));
+    }
+
+    // Tap Flows
+    public static URI getTapFlows(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+                .path(TAP_FLOWS).build();
+    }
+
+    public static URI getTapFlow(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getTapFlows(baseUri))
+                .path(id.toString()).build();
+    }
+
+    public static String getTapFlowTemplate(URI baseUri) {
+        return buildIdTemplateUri(getTapFlows(baseUri));
     }
 }

@@ -108,6 +108,18 @@ public class Neutron {
     @JsonProperty("remote_mac_entry_template")
     public String remoteMacEntryTemplate;
 
+    @JsonProperty("tap_flows")
+    public URI tapFlows;
+
+    @JsonProperty("tap_flow_template")
+    public String tapFlowTemplate;
+
+    @JsonProperty("tap_services")
+    public URI tapServices;
+
+    @JsonProperty("tap_service_template")
+    public String tapServiceTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -155,7 +167,11 @@ public class Neutron {
                && Objects.equal(gatewayDevices, other.gatewayDevices)
                && Objects.equal(gatewayDeviceTemplate, other.gatewayDeviceTemplate)
                && Objects.equal(remoteMacEntries, other.remoteMacEntries)
-               && Objects.equal(remoteMacEntryTemplate, other.remoteMacEntryTemplate);
+               && Objects.equal(remoteMacEntryTemplate, other.remoteMacEntryTemplate)
+               && Objects.equal(tapFlows, other.tapFlows)
+               && Objects.equal(tapFlowTemplate, other.tapFlowTemplate)
+               && Objects.equal(tapServices, other.tapServices)
+               && Objects.equal(tapServiceTemplate, other.tapServiceTemplate);
     }
 
     @Override
@@ -173,7 +189,9 @@ public class Neutron {
                                 ipsecSiteConnectionTemplate,
                                 l2GatewayConns, l2GatewayConnTemplate,
                                 gatewayDevices, gatewayDeviceTemplate,
-                                remoteMacEntries, remoteMacEntryTemplate);
+                                remoteMacEntries, remoteMacEntryTemplate,
+                                tapFlows, tapFlowTemplate,
+                                tapServices, tapServiceTemplate);
     }
 
     @Override
@@ -208,6 +226,10 @@ public class Neutron {
             .add("l2GatewayConnTemplate", l2GatewayConnTemplate)
             .add("remoteMacEntries", remoteMacEntries)
             .add("remoteMacEntryTemplate", remoteMacEntryTemplate)
+            .add("tapFlows", tapFlows)
+            .add("tapFlowTemplate", tapFlowTemplate)
+            .add("tapServices", tapServices)
+            .add("tapServiceTemplate", tapServiceTemplate)
             .toString();
     }
 }
