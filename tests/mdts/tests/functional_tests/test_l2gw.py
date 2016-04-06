@@ -145,7 +145,7 @@ def _test_resiliency_from_transient_loop(ping, midoVmIface, exHostIface):
         ping(midoVmIface, exHostIface, count=5, do_arp=True)
 
 
-@attr(version="v1.2.0")
+@attr(version="v1.2.0", gate=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_icmp_from_mn():
     """

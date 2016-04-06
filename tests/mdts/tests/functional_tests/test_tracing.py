@@ -107,7 +107,7 @@ def feed_receiver_mac(receiver):
     except:
         LOG.warn('Oops, sending ARP from the receiver VM failed.')
 
-@attr(version="v1.2.0")
+@attr(version="v1.2.0", gate=True)
 @bindings(binding_multihost)
 def test_tracing_egress_matching():
     """
@@ -148,7 +148,7 @@ def test_tracing_egress_matching():
     finally:
         tracerequest.set_enabled(False)
 
-@attr(version="v1.2.0")
+@attr(version="v1.2.0", gate=True)
 @bindings(binding_multihost)
 def test_tracing_egress_matching_over_nat():
     """
@@ -193,7 +193,7 @@ def test_tracing_egress_matching_over_nat():
         tracerequest.set_enabled(False)
         unset_filters('router-000-001')
 
-@attr(version="v1.2.0")
+@attr(version="v1.2.0", gate=True)
 @bindings(binding_multihost)
 def test_tracing_with_limit():
     """

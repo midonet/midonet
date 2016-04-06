@@ -93,7 +93,7 @@ def get_random_port_num():
     return random.randint(49152, 65535)
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0", gate=True, slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_filtering_by_network_address():
     '''
@@ -135,7 +135,7 @@ def test_filtering_by_network_address():
     wait_on_futures([f1, f2])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0", gate=True, slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_connection_tracking_by_network_addres():
     '''
@@ -177,7 +177,7 @@ def test_connection_tracking_by_network_addres():
     wait_on_futures([f1, f2])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0", gate=True, slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_filtering_by_dl():
     '''
@@ -219,7 +219,7 @@ def test_filtering_by_dl():
     wait_on_futures([f1, f2])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0", gate=True, slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_connection_tracking_with_drop_by_dl():
     '''

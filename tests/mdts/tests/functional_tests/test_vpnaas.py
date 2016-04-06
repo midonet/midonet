@@ -32,6 +32,7 @@ from mdts.tests.utils.utils import wait_on_futures
 import neutronclient.neutron.client as neutron
 
 from nose.tools import nottest
+from nose.plugins.attrib import attr
 
 import logging
 
@@ -303,6 +304,7 @@ BM = BindingManager(None, VTM)
           binding_multihost_intra_tenant,
           binding_multihost_inter_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_ping_between_three_sites():
 
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
@@ -364,6 +366,7 @@ def test_ping_between_three_sites():
 
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_ping_two_sites_two_subnets():
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
     right_router, right_peer_address, right_subnet = VTM.get_site_data('right')
@@ -448,6 +451,7 @@ def test_ping_two_sites_two_subnets():
 
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_vpn_recreation():
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
     right_router, right_peer_address, right_subnet = VTM.get_site_data('right')
@@ -497,6 +501,7 @@ def test_vpn_recreation():
 
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_admin_state_up_changes():
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
     right_router, right_peer_address, right_subnet = VTM.get_site_data('right')
@@ -574,6 +579,7 @@ def test_admin_state_up_changes():
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
 @nottest # MI-756
+@attr(gate=True)
 def test_ipsec_container_failover():
     # Set container weight on midolman1 to 0 so it's not elligible
     midonet_api = VTM._midonet_api
@@ -670,6 +676,7 @@ def test_ipsec_container_failover():
 @bindings(binding_multihost_intra_tenant,
           binding_multihost_inter_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_non_vpn_subnet():
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
     right_router, right_peer_address, right_subnet = VTM.get_site_data('right')
@@ -736,6 +743,7 @@ def test_non_vpn_subnet():
 
 @bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_security_groups():
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
     right_router, right_peer_address, right_subnet = VTM.get_site_data('right')
@@ -780,6 +788,7 @@ def test_security_groups():
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_container_migration():
     # Set container weight on midolman1 and midolman3 to 0 such that containers
     # are scheduled on midolman2
@@ -856,6 +865,7 @@ def test_container_migration():
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_container_restored_on_agent_restart():
     # Set container weight on midolman1 and midolman3 to 0 such that containers
     # are scheduled on midolman2
@@ -932,6 +942,7 @@ def test_container_restored_on_agent_restart():
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_container_maintained_on_cluster_restart():
     # Set container weight on midolman1 and midolman3 to 0 such that containers
     # are scheduled on midolman2
@@ -1028,6 +1039,7 @@ def test_container_maintained_on_cluster_restart():
 
 @bindings(binding_onehost_intra_tenant,
           binding_manager=BM)
+@attr(gate=True)
 def test_container_restored_on_agent_failure():
     # Set container weight on midolman1 and midolman3 to 0 such that containers
     # are scheduled on midolman2

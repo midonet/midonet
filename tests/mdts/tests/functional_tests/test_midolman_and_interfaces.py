@@ -41,7 +41,7 @@ def teardown():
     PTM.destroy()
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0", gate=True, slow=False)
 def test_host_status():
     """
     mdts.tests.functional_tests.test_midolman_and_interfaces.test_host_status
@@ -100,7 +100,7 @@ def get_interface(midonet_api, host_name, interface_name):
     return interface
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0", gate=True, slow=False)
 def test_new_interface_becomes_visible():
     """
     mdts.tests.functional_tests.test_midolman_and_interfaces.test_new_interface_becomes_visible
