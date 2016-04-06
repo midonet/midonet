@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import com.google.inject.Inject
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.containers.{Container, Containers}
 
-object IPSecContainerDelegate {
+object QuaggaContainerDelegate {
     final val MaxStorageAttempts = 10
 }
 
-@Container(name = Containers.IPSEC_CONTAINER, version = 1)
-class IPSecContainerDelegate @Inject()(backend: MidonetBackend)
+@Container(name = Containers.QUAGGA_CONTAINER, version = 1)
+class QuaggaContainerDelegate @Inject()(backend: MidonetBackend)
     extends DatapathBoundContainerDelegate(backend) {
-    name = "vpn"
+    name = "bgp"
 }

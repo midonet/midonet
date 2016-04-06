@@ -36,9 +36,9 @@ import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.eventloop.Reactor
 
 @RunWith(classOf[JUnitRunner])
-class IPSecContainerDelegateTest extends FeatureSpec with Matchers
-                                 with GivenWhenThen with BeforeAndAfter
-                                 with TopologyBuilder {
+class DatapathBoundContainerDelegateTest extends FeatureSpec with Matchers
+                                         with GivenWhenThen with BeforeAndAfter
+                                         with TopologyBuilder {
 
     private var storage: InMemoryStorage = _
     private var backend: MidonetBackend = _
@@ -50,7 +50,7 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
 
     @inline
     private def interfaceName(portId: UUID): String = {
-        s"vpn-${portId.toString.substring(0,8)}"
+        s"dp_bound-${portId.toString.substring(0,8)}"
     }
 
     before {
@@ -72,7 +72,7 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
         MidonetBackend.setupBindings(storage, storage)
     }
 
-    feature("IPSec container delegate handles scheduling operations") {
+    feature("container delegate handles scheduling operations") {
         scenario("A container with a port not bound") {
             Given("A host and a container with a port")
             val host = createHost()
@@ -80,8 +80,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             val container = createServiceContainer(portId = Some(port.getId))
             storage.multi(Seq(CreateOp(host), CreateOp(port), CreateOp(container)))
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             When("Scheduling the container to the host")
             delegate.onScheduled(container, host.getId)
@@ -102,8 +102,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             storage.multi(Seq(CreateOp(host1), CreateOp(host2), CreateOp(port),
                             CreateOp(container)))
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             When("Scheduling the container to the host")
             delegate.onScheduled(container, host2.getId)
@@ -120,8 +120,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             val container = createServiceContainer()
             storage.multi(Seq(CreateOp(host), CreateOp(container)))
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("An container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             Then("Scheduling the container to the host should fail")
             intercept[IllegalArgumentException] {
@@ -135,8 +135,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             val portId = UUID.randomUUID()
             val container = createServiceContainer(portId = Some(portId))
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             Then("Scheduling the container to the host should fail")
             val e = intercept[NotFoundException] {
@@ -153,8 +153,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             val container = createServiceContainer(portId = Some(port.getId))
             storage.multi(Seq(CreateOp(port), CreateOp(container)))
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             Then("Scheduling the container to the host should fail")
             val e = intercept[NotFoundException] {
@@ -165,7 +165,7 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
         }
     }
 
-    feature("IPSec container delegate handles unscheduling operations") {
+    feature("container delegate handles unscheduling operations") {
         scenario("A container with a port already bound") {
             Given("A host and a container with a port")
             val host = createHost()
@@ -174,8 +174,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             val container = createServiceContainer(portId = Some(port.getId))
             storage.multi(Seq(CreateOp(host), CreateOp(port), CreateOp(container)))
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             When("Unscheduling the container from the host")
             delegate.onUnscheduled(container, host.getId)
@@ -194,8 +194,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             val container = createServiceContainer(portId = Some(port.getId))
             storage.multi(Seq(CreateOp(host), CreateOp(port), CreateOp(container)))
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             Then("Unscheduling the container from the host should fail")
             val e = intercept[NotFoundException] {
@@ -217,7 +217,7 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             storage.multi(Seq(CreateOp(host), CreateOp(container)))
 
             And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             Then("Unscheduling the container from the host should fail")
             intercept[IllegalArgumentException] {
@@ -231,8 +231,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             val portId = UUID.randomUUID()
             val container = createServiceContainer(portId = Some(portId))
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             Then("Unscheduling the container from the host should not fail")
             delegate.onUnscheduled(container, hostId)
@@ -245,8 +245,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             val container = createServiceContainer(portId = Some(port.getId))
             storage.multi(Seq(CreateOp(port), CreateOp(container)))
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             When("Unscheduling the container from the host should fail")
             val e = intercept[NotFoundException] {
@@ -262,8 +262,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             Given("A container")
             val container = createServiceContainer()
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             Then("The delegate handles up")
             delegate.onUp(container, ContainerStatus.getDefaultInstance)
@@ -273,8 +273,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             Given("A container")
             val container = createServiceContainer()
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             Then("The delegate handles up")
             delegate.onDown(container, ContainerStatus.getDefaultInstance)
@@ -284,8 +284,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             Given("A container")
             val container = createServiceContainer()
 
-            And("An IPSec container delegate")
-            val delegate = new IPSecContainerDelegate(backend)
+            And("A container delegate")
+            val delegate = new DatapathBoundContainerDelegate(backend)
 
             Then("The delegate handles up")
             delegate.onDown(container, null)
