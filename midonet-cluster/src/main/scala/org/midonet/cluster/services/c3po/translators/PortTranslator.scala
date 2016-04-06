@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import org.midonet.cluster.models.{Commons, Neutron}
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -323,7 +325,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
      * IP address from DHCP (the mac is actually not being used here). */
     private def delDhcpServer(dhcp: Dhcp.Builder, mac: String,
                               nextHopGw: IPAddress): Unit = if (dhcp.isIpv4) {
-        dhcp.clearServerAddress()
+        if (dhcp.hasDefaultGateway) {
+            dhcp.setServerAddress(dhcp.getDefaultGateway)
+        } else {
+            dhcp.clearServerAddress()
+        }
         val route = dhcp.getOpt121RoutesOrBuilderList.asScala
                         .indexWhere(isMetaDataSvrOpt121Route(_, nextHopGw))
         if (route >= 0) dhcp.removeOpt121Routes(route)
