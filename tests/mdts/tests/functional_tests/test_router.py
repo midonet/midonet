@@ -62,8 +62,7 @@ binding_multihost = {
     }
 
 
-# FIXME: https://midobugs.atlassian.net/browse/MN-1746
-@attr(version="v1.2.0", slow=False, flaky=True)
+@attr(version="v1.2.0", slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_ping_different_subnets():
     """

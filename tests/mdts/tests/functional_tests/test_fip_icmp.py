@@ -169,7 +169,7 @@ binding_multihost = {
     ]
 }
 
-@attr(version="v1.2.0", slow=True, flaky=False)
+@attr(version="v1.2.0", slow=True)
 @bindings(binding_multihost,
           binding_manager=BM)
 def test_traceroute():

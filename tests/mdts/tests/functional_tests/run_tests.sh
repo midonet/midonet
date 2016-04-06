@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd $DIR
+
 usage()
 {
 cat << EOF
@@ -28,9 +32,11 @@ OPTIONS:
  -t TEST     Runs this test(s)
  -l LOG_DIR  Directory where to store results (defaults to ./logs)
  -r DIR      Use DIR as the Python root (to determine imported modules)
- -s          Runs only fast tests
+ -g          Do not run gate tests
+ -G          Run only gate tests
+ -s          Do not run slow tests
  -S          Runs only slow tests
- -x          Runs all tests but flaky ones
+ -x          Do not run flaky tests
  -X          Runs only flaky tests
  [...]       Additional options passed to the nose runner
 
@@ -52,7 +58,7 @@ ATTR=""
 ARGS=""  # passed directly to nosetests runner
 LOG_DIR="logs-$(date +"%y%m%d%H%M%S")"
 
-while getopts "e:ht:sSv:V:xX:r:l:" OPTION
+while getopts "e:ht:sSv:V:xXr:l:gG" OPTION
 do
     case $OPTION in
         h)
@@ -82,11 +88,22 @@ do
         l)
             LOG_DIR=$OPTARG/
             ;;
-        ?)
-            usage
-            exit 1
+        g)
+            if [ -z "$ATTR" ]
+            then
+                ATTR="not gate"
+            else
+                ATTR="$ATTR and not gate"
+            fi
             ;;
-        # FIXME: Legacy options, to be removed if not used
+        G)
+            if [ -z "$ATTR" ]
+            then
+                ATTR="gate"
+            else
+                ATTR="$ATTR and gate"
+            fi
+            ;;
         s)
             if [ -z "$ATTR" ]
             then
@@ -118,6 +135,10 @@ do
             else
                 ATTR="$ATTR and flaky"
             fi
+            ;;
+        ?)
+            usage
+            exit 1
             ;;
         *)
             echo star

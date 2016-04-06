@@ -49,7 +49,7 @@ binding_multihost = {
     }
 
 
-@attr(version="v1.2.0", slow=False, flaky=True)
+@attr(version="v1.2.0", slow=False)
 @bindings(binding_multihost)
 def test_router_service():
     """

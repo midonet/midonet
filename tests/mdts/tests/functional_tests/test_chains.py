@@ -53,7 +53,7 @@ binding_multihost = {
     }
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0", gate=True, slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_filter_ipv6():
     """
@@ -116,7 +116,7 @@ def test_filter_ipv6():
     wait_on_futures([f1, f2])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0", gate=True, slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_dst_mac_masking():
     """
@@ -173,7 +173,7 @@ def test_dst_mac_masking():
     wait_on_futures([f1, f2])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0", gate=True, slow=False)
 @bindings(binding_onehost)
 def test_src_mac_masking():
     """
