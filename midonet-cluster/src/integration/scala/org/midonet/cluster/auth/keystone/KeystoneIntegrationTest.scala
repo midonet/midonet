@@ -164,7 +164,8 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
                                        keystonePassword)
 
         Then("Validating the token succeeds")
-        auth = client.validate(auth.tokenId, tenantScope = false)
+        auth = client.validate(auth.tokenId,
+                               tenantScope = Some(auth.r2.token.tenant.id))
         auth.token should not be null
         auth.token.id should not be null
         auth.token.issuedAt should not be null
@@ -181,7 +182,8 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
                                        keystonePassword)
 
         Then("Validating the token succeeds")
-        auth = client.validate(auth.tokenId, tenantScope = false)
+        auth = client.validate(auth.tokenId,
+                               tenantScope = Some(auth.r2.token.tenant.id))
         auth.token should not be null
         auth.token.id should not be null
         auth.token.issuedAt should not be null
@@ -199,7 +201,7 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            auth = client.validate(auth.tokenId, tenantScope = false)
+            auth = client.validate(auth.tokenId, tenantScope = None)
         }
     }
 
@@ -211,7 +213,8 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
                                        keystonePassword)
 
         Then("Validating the token succeeds")
-        auth = client.validate(auth.tokenId, tenantScope = true)
+        auth = client.validate(auth.tokenId,
+                               tenantScope = Some(auth.r2.token.tenant.id))
         auth.token should not be null
         auth.token.id should not be null
         auth.token.issuedAt should not be null
@@ -228,7 +231,8 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
                                        keystonePassword)
 
         Then("Validating the token succeeds")
-        auth = client.validate(auth.tokenId, tenantScope = true)
+        auth = client.validate(auth.tokenId,
+                               tenantScope = Some(auth.r2.token.tenant.id))
         auth.token should not be null
         auth.token.id should not be null
         auth.token.issuedAt should not be null
@@ -246,7 +250,7 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            auth = client.validate(auth.tokenId, tenantScope = true)
+            auth = client.validate(auth.tokenId, tenantScope = None)
         }
     }
 
@@ -257,7 +261,7 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
 
         Then("Validating the token succeeds")
         intercept[KeystoneException] {
-            client.validate("invalid-token", tenantScope = false)
+            client.validate("invalid-token", tenantScope = None)
         }
     }
 
@@ -268,7 +272,7 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
 
         Then("Validating the token succeeds")
         intercept[KeystoneException] {
-            client.validate("invalid-token", tenantScope = false)
+            client.validate("invalid-token", tenantScope = None)
         }
     }
 
@@ -469,7 +473,7 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
                                        keystonePassword)
 
         Then("Validating the token succeeds")
-        auth = client.validate(auth.tokenId, tenantScope = false)
+        auth = client.validate(auth.tokenId, tenantScope = None)
         auth.tokenId should not be null
         auth.token should not be null
         auth.token.issuedAt should not be null
@@ -486,7 +490,7 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
 
         Then("Validating the token succeeds")
         val tokenId = auth.tokenId
-        auth = client.validate(tokenId, tenantScope = false)
+        auth = client.validate(tokenId, tenantScope = None)
         auth.tokenId shouldBe tokenId
         auth.token should not be null
         auth.token.issuedAt should not be null
@@ -503,7 +507,7 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            auth = client.validate(auth.tokenId, tenantScope = true)
+            auth = client.validate(auth.tokenId, tenantScope = None)
         }
     }
 
@@ -514,7 +518,7 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
 
         Then("Validating the token succeeds")
         intercept[KeystoneException] {
-            client.validate("invalid-token", tenantScope = false)
+            client.validate("invalid-token", tenantScope = None)
         }
     }
 
@@ -525,7 +529,7 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
 
         Then("Validating the token succeeds")
         intercept[KeystoneException] {
-            client.validate("invalid-token", tenantScope = false)
+            client.validate("invalid-token", tenantScope = None)
         }
     }
 }
