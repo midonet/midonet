@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b1a35f9e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-06T06:18:50Z",
+      "side": 1,
+      "message": "As of a day or two ago, the default implementation of translateDelete(UUID) is to try to fetch the Neutron object, then log a warning and skip translation if it doesn\u0027t exist, or pass it to translateDelete(NeutronBgpSpeaker) if it does. Unless there\u0027s some reason you don\u0027t want that, you should instead just override translateDelete(NeutronBgpSpeaker).",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 5
+      },
+      "revId": "662f46322056bd23960d3ddefd4e57b3cc2d969c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_71add787",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-06T06:18:50Z",
+      "side": 1,
+      "message": "IMO, these mock translator tests are more trouble than they\u0027re worth. They take lots of boilerplate code to set up, they\u0027re extremely sensitive to changes in intermediate products that don\u0027t affect end-to-end functional behavior (thus requiring frequent modification), and they don\u0027t really test anything that the TranslatorITs don\u0027t cover again.\n\nI guess maybe they\u0027re good for testing error code paths, but that\u0027s about it.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 1
+      },
+      "revId": "662f46322056bd23960d3ddefd4e57b3cc2d969c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
