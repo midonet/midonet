@@ -96,9 +96,7 @@ def feed_receiver_mac(receiver):
         LOG.warn('Oops, sending ARP from the receiver VM failed.')
 
 
-# FIXME: https://midobugs.atlassian.net/browse/MN-1643
-# FIXME: https://midobugs.atlassian.net/browse/MN-1760
-@attr(version="v1.2.0", slow=False, flaky=True)
+@attr(version="v1.2.0", slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_dnat():
     """
@@ -135,8 +133,7 @@ def test_dnat():
     wait_on_futures([f1, f2, f3])
 
 
-# FIXME: https://midobugs.atlassian.net/browse/MN-1760
-@attr(version="v1.2.0", slow=False, flaky=True)
+@attr(version="v1.2.0", slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_dnat_for_udp():
     """
@@ -184,8 +181,7 @@ def test_dnat_for_udp():
     wait_on_futures([f1, f2, f3])
 
 
-# FIXME: https://midobugs.atlassian.net/browse/MN-1760
-@attr(version="v1.2.0", slow=False, flaky=True)
+@attr(version="v1.2.0", slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_snat():
     """
@@ -224,8 +220,7 @@ def test_snat():
     wait_on_futures([f1, f2, f3])
 
 
-# FIXME: https://midobugs.atlassian.net/browse/MN-1760
-@attr(version="v1.2.0", slow=False, flaky=True)
+@attr(version="v1.2.0", slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_snat_for_udp():
     """
@@ -273,8 +268,7 @@ def test_snat_for_udp():
     wait_on_futures([f1, f2, f3])
 
 
-# FIXME: https://midobugs.atlassian.net/browse/MN-1760
-@attr(version="v1.2.0", slow=False, flaky=True)
+@attr(version="v1.2.0", slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_floating_ip():
     """

@@ -82,6 +82,22 @@ do
         l)
             LOG_DIR=$OPTARG/
             ;;
+        x)
+            if [ -z "$ATTR" ]
+            then
+                ATTR="not flaky"
+            else
+                ATTR="$ATTR and not flaky"
+            fi
+            ;;
+        X)
+            if [ -z "$ATTR" ]
+            then
+                ATTR="flaky"
+            else
+                ATTR="$ATTR and flaky"
+            fi
+            ;;
         ?)
             usage
             exit 1
@@ -101,22 +117,6 @@ do
                 ATTR="slow"
             else
                 ATTR="$ATTR and slow"
-            fi
-            ;;
-        x)
-            if [ -z "$ATTR" ]
-            then
-                ATTR="not flaky"
-            else
-                ATTR="$ATTR and not flaky"
-            fi
-            ;;
-        X)
-            if [ -z "$ATTR" ]
-            then
-                ATTR="flaky"
-            else
-                ATTR="$ATTR and flaky"
             fi
             ;;
         *)
