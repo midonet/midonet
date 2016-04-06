@@ -150,7 +150,7 @@ def stop_metric_capture():
            .stop_monitoring_hosts("perf_flow_state")
 
 
-@attr(version="v1.2.0", slow=True, flaky=False)
+@attr(version="v1.2.0", slow=True)
 @bindings(binding_multihost,
           binding_manager=BM)
 @with_setup(start_metric_capture, stop_metric_capture)
