@@ -355,11 +355,9 @@ def test_icmp_remove_uplink_2():
     clear_bgp_peer(p2, 5)
     ping_to_inet() # only BGP #1 is working
 
-@nottest #MI-593
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
-@nottest
 def test_icmp_failback():
     """
     Title: BGP failover/failback
@@ -395,27 +393,34 @@ def test_icmp_failback():
 
     ping_to_inet() # BGP #1 and #2 are working
 
+    import ipdb; ipdb.set_trace()
+
     failure = PktFailure('quagga1', 'bgp1', 5)
 
     failure.inject()
     try:
         ping_to_inet() # BGP #1 is lost but continues to work
+        import ipdb; ipdb.set_trace()
     finally:
         failure.eject()
 
+    import ipdb; ipdb.set_trace()
     await_internal_route_exported(64513, 64511)
     ping_to_inet() # BGP #1 is back
+    import ipdb; ipdb.set_trace()
 
     failure = PktFailure('quagga2', 'bgp1', 5)
     failure.inject()
     try:
         ping_to_inet() # BGP #2 is lost but continues to work
+        import ipdb; ipdb.set_trace()
     finally:
         failure.eject()
 
+    import ipdb; ipdb.set_trace()
     await_internal_route_exported(64513, 64512)
     ping_to_inet()  # BGP #2 is back
-
+    import ipdb; ipdb.set_trace()
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
@@ -517,7 +522,6 @@ def test_multisession_icmp_remove_session():
 
 @bindings(binding_multisession_direct, binding_multisession_indirect)
 @with_setup(None, clear_bgp)
-@nottest # MI-685
 def test_multisession_icmp_failback():
     """
     Title: BGP session failover/failback
@@ -571,7 +575,6 @@ def test_multisession_icmp_failback():
 
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
-@nottest # MI-186
 def test_multisession_icmp_with_redundancy():
     """
     Title: BGP adding double session redundancy to two uplinks
