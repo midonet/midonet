@@ -17,6 +17,7 @@
 
 import logging
 from midonetclient import httpclient
+from midonetclient.neutron import bgp
 from midonetclient.neutron import firewall as fw
 from midonetclient.neutron import gateway_device as gd
 from midonetclient.neutron import l2gw
@@ -30,6 +31,7 @@ LOG = logging.getLogger(__name__)
 
 
 class MidonetClient(net.NetworkClientMixin,
+                    bgp.BgpClientMixin,
                     gd.GatewayDeviceClientMixin,
                     l2gw.L2GwClientMixin,
                     l3.L3ClientMixin,
