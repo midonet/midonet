@@ -142,7 +142,7 @@ bindings_spread3 = {
 }
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @failures(NoFailure())
 @bindings(bindings_split, bindings_spread)
 def test_basic_l2insertion():
@@ -219,7 +219,7 @@ def test_basic_l2insertion():
     finally:
         fakesnort.kill()
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @failures(NoFailure())
 @bindings(bindings_split, bindings_spread)
 def test_multi_l2insertion():
@@ -345,7 +345,7 @@ def test_multi_l2insertion():
         fakesnort1.kill()
         fakesnort2.kill()
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @failures(NoFailure())
 @bindings(bindings_split, bindings_spread, bindings_spread2, bindings_spread3)
 def test_l2insertion_with_flowstate():
@@ -451,7 +451,7 @@ def test_l2insertion_with_flowstate():
         fakesnort1.kill()
         fakesnort2.kill()
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @failures(NoFailure())
 @bindings(bindings_split, bindings_spread)
 def test_l2insertion_both_ends_protected():
@@ -557,7 +557,7 @@ def test_l2insertion_both_ends_protected():
         fakesnort1.kill()
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @failures(NoFailure())
 @bindings(bindings_split, bindings_spread)
 def test_l2insertion_fail_open():

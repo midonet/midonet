@@ -430,7 +430,7 @@ def get_current_leader(lb_pools, timeout = 60, wait_time=5):
     raise RuntimeError('Not all haproxy instances found! '
                        'Only pools %s have an haproxy instance.' % haproxies)
 
-@attr(version="v1.3.0", slow=False)
+@attr(version="v1.3.0")
 @bindings(binding_onehost,
           binding_onehost_weighted,
           binding_onehost_same_subnet,
@@ -524,7 +524,7 @@ def test_multi_member_loadbalancing():
     stuck_pool_member.enable()
 
 
-@attr(version="v1.3.0", slow=False)
+@attr(version="v1.3.0")
 @bindings(binding_onehost, binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_disabling_topology_loadbalancing():
@@ -683,7 +683,7 @@ def test_health_monitoring_backend_failback():
     assert_that(check_num_backends_hit(non_sticky_results, 3), True)
 
 @nottest
-@attr(version="v1.3.0", slow=False)
+@attr(version="v1.3.0")
 @bindings(binding_onehost, binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_long_connection_loadbalancing():
