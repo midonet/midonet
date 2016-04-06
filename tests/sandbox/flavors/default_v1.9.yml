@@ -144,6 +144,8 @@ quagga0:
   - BGP_AS=64510
   # Advertise "inet" network
   - ADVERTISED_NETWORK=1.1.1.1/32
+  # Disable advertising of transit routes for faster convergence
+  - BGP_DISABLE_ADVERTISING=yes
 
 quagga1:
   extends:

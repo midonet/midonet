@@ -152,95 +152,138 @@ def set_filters(router_name, inbound_filter_name, outbound_filter_name):
     # Sleep here to make sure that the settings have been propagated.
     time.sleep(5)
 
+
 def unset_filters(router_name):
     """Unsets in-/out-bound filters from a router."""
     set_filters(router_name, None, None)
 
-def add_bgp(port, bgp):
-    b = port._mn_resource.add_bgp()\
-        .local_as(bgp['localAS'])\
-        .peer_as(bgp['peerAS'])\
-        .peer_addr(bgp['peerAddr'])\
+
+def add_bgp(bgp_peers, networks):
+    router = VTM.get_router('router-000-001')
+
+    localAs = 64513
+    peers = []
+    for bgp_peer in bgp_peers:
+        peer = add_bgp_peer(bgp_peer, networks)
+        peers.append(peer)
+
+    for bgp_peer in bgp_peers:
+        await_default_route(router, bgp_peer['port'], bgp_peer['peerAddr'])
+        await_internal_route_exported(localAs, bgp_peer['peerAs'])
+
+    return peers[0] if len(peers) == 1 else peers
+
+
+def add_bgp_peer(peer, networks):
+    router = VTM.get_router('router-000-001')
+    port = router.get_port(peer['port'])
+    localAs = 64513
+    peer = port._mn_resource\
+        .add_bgp()\
+        .local_as(localAs)\
+        .peer_as(peer['peerAs'])\
+        .peer_addr(peer['peerAddr'])\
         .create()
-    for route in bgp['adRoute']:
-        b.add_ad_route()\
-            .nw_prefix(route['nwPrefix'])\
-            .nw_prefix_length(route['prefixLength'])\
+    for network in networks:
+        peer.add_ad_route()\
+            .nw_prefix(network['nwPrefix'])\
+            .nw_prefix_length(network['prefixLength'])\
             .create()
 
-    try:
-        await_default_route(port._mn_resource.get_id())
-    except Exception as e:
-        clear_bgp(port)
-        raise e
-    return b
-
-def await_default_route(port_id):
-    router_id = VTM.get_router('router-000-001')._mn_resource.get_id()
-    timeout = 120
-    while timeout > 0:
-        routes = BM._api.get_router_routes(router_id)
-        for r in routes:
-            if r.get_next_hop_port() == port_id and \
-                r.get_dst_network_length() == 0 and \
-                r.get_dst_network_addr() == '0.0.0.0':
-                return
-        time.sleep(1)
-        timeout -= 1
-    raise Exception("Timed out while waiting for BGP to be set up on {0}"\
-                    .format(port_id))
+    return peer
 
 
-def clear_bgp(port, wait=0):
-    for b in port._mn_resource.get_bgps():
-        b.delete()
+def clear_bgp():
+    router = VTM.get_router('router-000-001')
+    for port in router._mn_resource.get_ports():
+        for bgp_peer in port.get_bgps():
+            clear_bgp_peer(bgp_peer)
+
+
+def clear_bgp_peer(bgp_peer, wait=0):
+    bgp_peer.delete()
     if wait > 0:
         time.sleep(wait)
 
-# There are two uplinks available in MMM, one of which is from ns008(eth1)
-# to ns000(eth0) and another of which is from ns009(eth1) to ns000(eth1).
-# The BGP #1 is establed over the first and BGP #2 over the second.
-def add_bgp_1(routes):
-    p = VTM.get_router('router-000-001').get_port(2)
-    add_bgp(p, {'localAS': 64513,
-                'peerAS': 64511,
-                'peerAddr': '10.1.0.240',
-                'adRoute': routes})
-    return p
 
-def add_bgp_2(routes):
-    p = VTM.get_router('router-000-001').get_port(3)
-    add_bgp(p, {'localAS': 64513,
-                'peerAS': 64512,
-                'peerAddr': '10.2.0.240',
-                'adRoute': routes})
-    return p
+def await_bgp_peer(bgp_peer_def, present=True):
+    # Check that the routes are removed before issuing pings
+    await_default_route(VTM.get_router('router-000-001'),
+                        bgp_peer_def['port'],
+                        bgp_peer_def['peerAddr'],
+                        present=present)
+    await_internal_route_exported(64513,
+                                  bgp_peer_def['peerAs'],
+                                  present=present)
+
+
+def await_default_route(router, port, peerAddr, present=True):
+    port_id = router.get_port(port)._mn_resource.get_id()
+    router_id = router._mn_resource.get_id()
+    timeout = 60
+    while timeout > 0:
+        routes = BM._api.get_router_routes(router_id)
+        for r in routes:
+            condition = (r.get_next_hop_port() == port_id and
+                         r.get_dst_network_length() == 0 and
+                         r.get_dst_network_addr() == '0.0.0.0' and
+                         r.get_next_hop_gateway() == peerAddr)
+            if condition == present:
+                return
+        time.sleep(1)
+        timeout -= 1
+    raise Exception("Timed out while waiting for BGP to be set up on router "
+                    "{0} port {1} to peer {2}".format(router_id, port_id, peerAddr))
+
+
+def await_internal_route_exported(localAs, peerAs, present=True):
+    quagga = service.get_container_by_hostname('quagga0')
+    timeout = 60
+    while timeout > 0:
+        output_stream, exec_id = quagga.exec_command(
+            "sh -c \"vtysh -c 'show ip bgp' | grep %s | grep %s\"" % (
+                localAs, peerAs), stream=True)
+        exit_code = quagga.check_exit_status(exec_id, output_stream)
+        if present == (exit_code == 0):
+            # The route is present (or not)
+            return
+        time.sleep(2)
+        timeout -= 2
+    raise Exception("Timed out while waiting for quagga0 to learn the internal "
+                    "network through AS %s " %(peerAs))
 
 # routes BGP advertises:
 route_direct = [{'nwPrefix': '172.16.0.0', 'prefixLength': 16}]
 route_snat = [{'nwPrefix': '100.0.0.0', 'prefixLength': 16}]
 
+# peers available:
+uplink1_session1 = {'port': 2, 'peerAddr': '10.1.0.240', 'peerAs': 64511}
+uplink2_session1 = {'port': 3, 'peerAddr': '10.2.0.240', 'peerAs': 64512}
+
+
 # 1.1.1.1 is assigned to lo in ns000 emulating a public IP address
-def ping_to_inet(count=5, interval=1, port=2, retries=3):
-     try:
-         sender = BM.get_iface_for_port('bridge-000-001', port)
-         f1 = sender.ping_ipv4_addr('1.1.1.1',
-                                    interval=interval,
-                                    count=count)
-         wait_on_futures([f1])
-         output_stream, exec_id = f1.result()
-         exit_status = sender.compute_host.check_exit_status(exec_id,
-                                                             output_stream,
-                                                             timeout=20)
-         assert_that(exit_status, equal_to(0), "Ping did not return any data")
-     except:
-         if retries == 0:
-             raise RuntimeError("Ping did not return any data and returned -1")
-         LOG.debug("BGP: failed ping to inet... (%d retries left)" % retries)
-         ping_to_inet(count, interval, port, retries-1)
+def ping_to_inet(count=5, interval=1, port=2, retries=5):
+    try:
+        sender = BM.get_iface_for_port('bridge-000-001', port)
+        f1 = sender.ping_ipv4_addr('1.1.1.1',
+                                   interval=interval,
+                                   count=count)
+        wait_on_futures([f1])
+        output_stream, exec_id = f1.result()
+        exit_status = sender.compute_host.check_exit_status(exec_id,
+                                                            output_stream,
+                                                            timeout=20)
+
+        assert_that(exit_status, equal_to(0), "Ping did not return any data")
+    except:
+        if retries == 0:
+            raise RuntimeError("Ping did not return any data and returned -1")
+        LOG.debug("BGP: failed ping to inet... (%d retries left)" % retries)
+        ping_to_inet(count, interval, port, retries-1)
 
 @attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@with_setup(None, clear_bgp)
 def test_icmp_multi_add_uplink_1():
     """
     Title: configure BGP to establish multiple uplinks
@@ -256,17 +299,15 @@ def test_icmp_multi_add_uplink_1():
     Then: ICMP echo RR should work to a psudo public IP address
 
     """
-    p1 = add_bgp_1(route_direct)
+    add_bgp([uplink1_session1], route_direct)
     ping_to_inet() # BGP #1 is working
 
-    p2 = add_bgp_2(route_direct)
-    ping_to_inet() # BGP #1 and #2 are working
-
-    clear_bgp(p1)
-    clear_bgp(p2)
+    add_bgp([uplink2_session1], route_direct)
+    ping_to_inet() # BGP #1 and #2 working
 
 @attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@with_setup(None, clear_bgp)
 def test_icmp_multi_add_uplink_2():
     """
     Title: configure BGP to establish multiple BGP links
@@ -275,17 +316,15 @@ def test_icmp_multi_add_uplink_2():
     * in reverse order
 
     """
-    p2 = add_bgp_2(route_direct)
+    add_bgp([uplink2_session1], route_direct)
     ping_to_inet() # BGP #2 is working
 
-    p1 = add_bgp_1(route_direct)
+    add_bgp([uplink1_session1], route_direct)
     ping_to_inet() # BGP #1 and #2 are working
-
-    clear_bgp(p1)
-    clear_bgp(p2)
 
 @attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@with_setup(None, clear_bgp)
 def test_icmp_remove_uplink_1():
     """
     Title: Remove one BGP from multiple BGP links
@@ -296,16 +335,18 @@ def test_icmp_remove_uplink_1():
     Then: ICMP echo RR should work to a pseudo public IP address
 
     """
-    (p1, p2) = (add_bgp_1(route_direct), add_bgp_2(route_direct))
+    (p1, p2) = (add_bgp([uplink1_session1], route_direct),
+                add_bgp([uplink2_session1], route_direct))
     ping_to_inet() # BGP #1 and #2 are working
 
-    clear_bgp(p1, 20)
-    ping_to_inet() # only BGP #2 is working
+    clear_bgp_peer(p1, 5)
+    await_bgp_peer(uplink1_session1, present=False)
 
-    clear_bgp(p2)
+    ping_to_inet() # only BGP #2 is working
 
 @attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@with_setup(None, clear_bgp)
 def test_icmp_remove_uplink_2():
     """
     Title: Remove one BGP from multiple BGP links
@@ -313,15 +354,18 @@ def test_icmp_remove_uplink_2():
     * Basically the same as above, disable the other BGP
 
     """
-    (p1, p2) = (add_bgp_1(route_direct), add_bgp_2(route_direct))
+    (p1, p2) = (add_bgp([uplink1_session1], route_direct),
+                add_bgp([uplink2_session1], route_direct))
     ping_to_inet() # BGP #1 and #2 are working
 
-    clear_bgp(p2, 20)
+    clear_bgp_peer(p2, 5)
+    await_bgp_peer(uplink2_session1, present=False)
+
     ping_to_inet() # only BGP #1 is working
-    clear_bgp(p1)
 
 @attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@with_setup(None, clear_bgp)
 def test_icmp_failback():
     """
     Title: BGP failover/failback
@@ -352,33 +396,38 @@ def test_icmp_failback():
     Then: ICMP echo RR should work to a pseudo public IP address
 
     """
-    (p1, p2) = (add_bgp_1(route_direct), add_bgp_2(route_direct))
+    add_bgp([uplink1_session1], route_direct)
+    add_bgp([uplink2_session1], route_direct)
 
     ping_to_inet() # BGP #1 and #2 are working
 
-    failure = PktFailure(NS_BGP_PEERS[0], 'eth0', 35)
+    failure = PktFailure('quagga1', 'bgp1', 5)
+
     failure.inject()
+    await_bgp_peer(uplink1_session1, present=False)
     try:
         ping_to_inet() # BGP #1 is lost but continues to work
     finally:
         failure.eject()
 
+    await_internal_route_exported(64513, 64511)
+    await_bgp_peer(uplink1_session1, present=True)
     ping_to_inet() # BGP #1 is back
 
-    failure = PktFailure(NS_BGP_PEERS[0], 'eth1', 35)
+    failure = PktFailure('quagga2', 'bgp1', 5)
     failure.inject()
+    await_bgp_peer(uplink2_session1, present=False)
     try:
         ping_to_inet() # BGP #2 is lost but continues to work
     finally:
         failure.eject()
 
+    await_bgp_peer(uplink2_session1, present=True)
     ping_to_inet()  # BGP #2 is back
-
-    clear_bgp(p1)
-    clear_bgp(p2)
 
 @attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@with_setup(None, clear_bgp)
 def test_snat():
     """
     Title: SNAT test with one uplink
@@ -389,7 +438,7 @@ def test_snat():
     Then: ICMP echo RR should work
 
     """
-    p1 = add_bgp_1(route_snat)
+    add_bgp([uplink1_session1], route_snat)
 
     set_filters('router-000-001', 'pre_filter_snat_ip', 'post_filter_snat_ip')
 
@@ -402,11 +451,11 @@ def test_snat():
             ping_to_inet()
     finally:
         unset_filters('router-000-001')
-        clear_bgp(p1)
 
 
 @attr(version="v1.2.0")
 @bindings(binding_snat_1, binding_snat_2, binding_snat_3)
+@with_setup(None, clear_bgp)
 def test_mn_1172():
     """
     Title: Simultaneous ICMP SNAT
@@ -417,7 +466,7 @@ def test_mn_1172():
     Then: ICMP echo RR should work from multiple VMs
 
     """
-    p1 = add_bgp_1(route_snat)
+    add_bgp([uplink1_session1], route_snat)
 
     set_filters('router-000-001', 'pre_filter_snat_ip', 'post_filter_snat_ip')
 
@@ -427,4 +476,4 @@ def test_mn_1172():
         ping_to_inet(port=2)
     finally:
         unset_filters('router-000-001')
-        clear_bgp(p1)
+
