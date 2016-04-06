@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_31186f84",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-06T08:04:27Z",
+      "side": 1,
+      "message": "https://review.gerrithub.io/#/c/270455/  brandon, this has not been merged.",
+      "parentUuid": "baa041b7_b1a35f9e",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 5
+      },
+      "revId": "662f46322056bd23960d3ddefd4e57b3cc2d969c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_71add787",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslatorTest.scala",
         "patchSetId": 1
