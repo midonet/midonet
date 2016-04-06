@@ -101,7 +101,7 @@ def mac_for(devname, portidx):
     return VTM.get_device_port(devname, portidx)._mn_resource.get_port_mac()
 
 
-@attr(version="v2.0.0", slow=False)
+@attr(version="v2.0.0")
 @failures(NoFailure())
 @bindings(mirroring_bindings)
 def test_mirroring_router_in():
@@ -120,7 +120,7 @@ def test_mirroring_router_in():
     send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port, mirror_port)
     send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80, mirror_port)
 
-@attr(version="v2.0.0", slow=False)
+@attr(version="v2.0.0")
 @failures(NoFailure())
 @bindings(mirroring_bindings)
 def test_mirroring_bridge_in():
@@ -139,7 +139,7 @@ def test_mirroring_bridge_in():
     send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port, mirror_port)
     send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80, mirror_port)
 
-@attr(version="v2.0.0", slow=False)
+@attr(version="v2.0.0")
 @failures(NoFailure())
 @bindings(mirroring_bindings)
 def test_mirroring_bridge_out():
@@ -158,7 +158,7 @@ def test_mirroring_bridge_out():
     send_udp(sender, receiver, mac_for('router-1', 1), 80, src_port, mirror_port)
     send_udp(receiver, sender, mac_for('router-1', 2), src_port, 80, mirror_port)
 
-@attr(version="v2.0.0", slow=False)
+@attr(version="v2.0.0")
 @failures(NoFailure())
 @bindings(mirroring_bindings)
 def test_mirroring_port():
