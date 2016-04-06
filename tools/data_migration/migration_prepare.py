@@ -16,12 +16,7 @@
 
 
 from data_migration.migration_funcs import UpgradeScriptException
-import logging
 from oslo_config import cfg
-
-
-LOG = logging.getLogger(name='data_migration')
-""":type: logging.Logger"""
 
 valid_from_versions = ['v1.9.8']
 
@@ -35,14 +30,9 @@ parser_opts = [
     cfg.BoolOpt(
         'debug', short='d', default=False, dest='debug',
         help='Turn on debug logging (off by default).'),
-    cfg.BoolOpt(
-        'changes', short='c', default=False, dest='changed_obejcts',
-        help='Set this flag to also migrate any objects changed in '
-             'the MidoNet API/CLI that were NOT changed in the '
-             'Neutron DB.  Default behavior is to only migrate objects '
-             'that are either in the Neutron DB (in which case, use the '
-             'Neutron DB version of the object), or were added as a new '
-             'object through the MidoNet CLI/API.'),
+    cfg.StrOpt(
+        'zookeeper', short='z', default=None, dest='zk_server',
+        help='Location of the '),
     cfg.StrOpt(
         'from', short='f',
         default=valid_from_versions[0], dest='from_version',
@@ -61,7 +51,6 @@ cli_conf.register_cli_opts(parser_opts)
 cli_conf()
 
 debug = cli_conf['debug']
-migrate_changed_obejcts = cli_conf['changed_obejcts']
 dry_run = cli_conf['dryrun']
 script_params = cli_conf['params']
 from_version = cli_conf['from_version']
@@ -77,12 +66,11 @@ script_module = None
 try:
     script_module = __import__(name='data_migration.' +
                                     script_package_name +
-                                    '.midonet_migration',
+                                    '.neutron_migration',
                                fromlist=['migrate'])
-except ImportError as e:
+except ImportError:
     raise UpgradeScriptException('No module found in data_migration '
-                                 'package: ' + script_package_name + ": " +
-                                 str(e))
+                                 'package: ' + script_package_name)
 
 migration_func = None
 try:
@@ -93,6 +81,5 @@ except AttributeError:
                                  '"migrate" entry point function.')
 
 migration_func(debug=debug, dry_run=dry_run,
-               migrate_changed_obejcts=migrate_changed_obejcts,
                from_version=from_version,
                **script_params)

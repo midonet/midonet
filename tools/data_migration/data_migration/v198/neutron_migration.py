@@ -24,6 +24,7 @@ from data_migration.migration_funcs import UpgradeScriptException
 import json
 import logging
 import midonet.neutron.db.task_db as task
+import mn_object_defs
 import urlparse
 
 log = logging.getLogger(name='data_migration/1.9.8')
@@ -130,7 +131,7 @@ def _get_subnet_router(context, filters=None):
     return new_list
 
 
-def _update_mn_topo(topo):
+def _inspect_mn_fixture_constructs(topo):
     topo['mn_hosts'] = {}
     topo['mn_tzs'] = []
 
@@ -240,6 +241,139 @@ def _update_mn_topo(topo):
         topo['mn_tzs'].append(tz_map)
 
 
+def _inspect_mn_objects(topo, migrate_changed_obejcts=False):
+    log.info("Inspecting all MN objects that were created " +
+             ("or changed " if migrate_changed_obejcts else "") +
+             "by the MidoNet CLI or API, bypassing the Neutron DB")
+
+    log.info("Note: Neutron DB data will be unaffected. Only new "
+             "5.0 MN data will be created (1.9 data will remain as backup).")
+    log.info("Using MidoNet API: " + cfg.mn_url)
+
+    topo.update({
+        "midonet": {}
+    })
+
+    obj_keys = [("bridges", "bridge"),
+                ("routers", "router"),
+                ("vteps", "vtep"),
+                ("ip_addr_groups", "ip-addr-group"),
+                ("port_groups", "port-group"),
+                ("pools", "pool")]
+
+    for obj_key, obj_type in obj_keys:
+        root_url = cfg.mn_url + '/' + obj_key
+        topo['midonet'][obj_key] = mn_fill_tree(
+            obj_key, root_url, obj_type, topo)
+
+    # Next do BGP.  These exist on router ports, as a property.  The port
+    # itself can be exterior or interior or neither, but searching across
+    # all ports on all routers for bgp field should find them all.
+
+    # Finally, convert the chains/chain rules
+
+
+def _check_if_should_skip(obj, obj_id, root_type, check_map):
+    if root_type == "port":
+        log.debug("Checking port: " + obj_id)
+        # Special handling for ports
+        if (obj['type'] == "InteriorBridge" or
+                obj['type'] == "ExteriorBridge"):
+            # Only include bridge ports not in neutron
+            if obj_id in check_map:
+                log.debug("Already in neutron DB, skipping")
+                return True
+        elif obj['type'] == "InteriorRouter":
+            # Only include router ports their peer bridge-port not in
+            # neutron (the router ports are mn-only and created when
+            # the bridge port is created via neutron)
+            if obj['peerId'] in check_map:
+                log.debug("Peer already in neutron DB, skipping")
+                return True
+        elif (obj['type'] == "ExteriorRouter" and
+              obj['hostInterfacePort']):
+            # Don't include bound exterior ports (already handled with
+            # provider router -> uplink code)
+            log.debug("Exterior host interface port, skipping")
+            return True
+    elif root_type == "dhcp-subnet":
+        # Special handling for DHCP subnets, since there is no "id" field
+        # to check for existence in neutron.  We have to rely on the CIDR
+        cidr = obj['subnetPrefix'] + "/" + str(obj['subnetLength'])
+        log.debug("Checking dhcp: " + cidr)
+
+        subnet_found = False
+        for _, sub in check_map:
+            if sub['cidr'] == cidr:
+                subnet_found = True
+                break
+        if subnet_found:
+            log.debug("CIDR already in neutron DB, skipping")
+            return True
+    elif root_type == "router":
+        # For routers, do not add the provider router, as there is no
+        # provider router in 5.0+
+        log.debug("Checking router: " + obj_id)
+        if (obj['name'] == 'MidoNet Provider Router' or
+                obj_id in check_map):
+            log.debug("Provider router, or already in neutron DB, "
+                      "skipping")
+            return True
+    else:
+        # In the general case, skip if the object is found in the
+        # related neutron map (if there is one, always add if there
+        # isn't one)
+        log.debug("Checking ID: " + obj_id + " against neutron map: " +
+                  str(check_map.keys()))
+        if obj_id in check_map:
+            log.debug("Already in neutron DB, skipping")
+            return True
+
+    return False
+
+
+def mn_fill_tree(root, root_url, root_type, topo):
+    object_type_def = mn_object_defs.mn_type_map[root_type]
+
+    object_flat_attr = (object_type_def['flat_attributes']
+                        if 'flat_attributes' in object_type_def
+                        else [])
+    object_recursed_attr = (object_type_def['recursive_attributes']
+                            if 'recursive_attributes' in object_type_def
+                            else {})
+    object_id_field = (object_type_def['id_field']
+                       if 'id_field' in object_type_def
+                       else None)
+    object_compare_target = (object_type_def['neutron_equivalent']
+                             if 'neutron_equivalent' in object_type_def
+                             else None)
+    neutron_compare_map = (topo[object_compare_target]
+                           if object_compare_target
+                           else {})
+
+    log.debug("[MIDONET " + root + "]")
+    obj_list = cfg.mn_get_objects(full_url=root_url)
+    new_obj_list = []
+    for obj in obj_list if obj_list else []:
+        obj_id = obj[object_id_field] if object_id_field in obj else ''
+
+        if _check_if_should_skip(obj, obj_id, root_type, neutron_compare_map):
+            continue
+
+        new_obj_map = {}
+        for key in object_flat_attr:
+            new_obj_map[key] = obj[key]
+        for k, v in object_recursed_attr.iteritems():
+            sub_obj_list = mn_fill_tree(k, obj[k], v, topo)
+            new_obj_map[k] = sub_obj_list
+
+        log.debug("[NEW MIDONET " + str(root_type) + "(" +
+                  str(obj_id) + ")] = " +
+                  str(new_obj_map))
+        new_obj_list.append(new_obj_map)
+    return new_obj_list
+
+
 def _create_uplink(topo):
     ext_networks = topo['mn_ext_networks']
     provider_router = topo['mn_provider_router']
@@ -280,19 +414,17 @@ def _create_uplink(topo):
             'destination':
                 route['dstNetworkAddr'] + "/" +
                 str(route['dstNetworkLength'])})
-
-    with open(NEUTRON_POST_COMMAND_FILE, "w") as f:
-        f.write(json.dumps({'uplink_router': uplink_router_topo}))
+    return {'uplink_router': uplink_router_topo}
 
 
 def _create_tz_and_host_bindings(topo):
-    with open(MIDONET_POST_COMMAND_FILE, 'w') as f:
-        mn_map = {
-            'tunnel_zones': topo['mn_tzs'],
-            'hosts': topo['mn_hosts']
-        }
-        f.write(json.dumps(mn_map))
+    return {
+        'tunnel_zones': topo['mn_tzs'],
+        'hosts': topo['mn_hosts']}
 
+
+def _create_mn_objects(topo):
+    return topo['midonet']
 
 # (topo map key, obj fetch func, list of Filter objects to run on fetch)
 neutron_queries = [
@@ -346,7 +478,12 @@ def _prepare():
         topology_map.update(
             get_neutron_objects(key=key, func=func, context=cfg.ctx, log=log,
                                 filter_list=filter_list))
-    _update_mn_topo(topology_map)
+    log.debug("Checking midonet fixtures (tunnel_zone, hosts, "
+              "provider router)")
+    _inspect_mn_fixture_constructs(topology_map)
+    log.debug("Checking other midonet objects that might have been "
+              "created without going through neutron")
+    _inspect_mn_objects(topology_map, migrate_changed_obejcts=False)
 
     return topology_map
 
@@ -358,9 +495,6 @@ def migrate(debug=False, dry_run=False, from_version='v1.9.8'):
                          'MidoNet version v1.9.8')
 
     log.setLevel(level=logging.DEBUG if debug else logging.INFO)
-    stdout_handler = logging.StreamHandler()
-    stdout_handler.setLevel(level=logging.DEBUG if debug else logging.INFO)
-    log.addHandler(stdout_handler)
 
     old_topo = _prepare()
 
@@ -371,8 +505,13 @@ def migrate(debug=False, dry_run=False, from_version='v1.9.8'):
         for oid, obj in old_topo[key].iteritems():
             task_transaction_list.append(func(old_topo, model, oid, obj))
 
-    _create_uplink(old_topo)
-    _create_tz_and_host_bindings(old_topo)
+    post_neutron_map = {}
+    post_midonet_map = {}
+
+    post_neutron_map.update(_create_uplink(old_topo))
+
+    post_midonet_map.update(_create_tz_and_host_bindings(old_topo))
+    post_midonet_map.update(_create_mn_objects(old_topo))
 
     log.debug('Task transaction ready')
 
@@ -404,3 +543,9 @@ def migrate(debug=False, dry_run=False, from_version='v1.9.8'):
                     "password: " + str(db_pass) + "\n"
                     "}\n"
                     "}\n")
+
+    with open(NEUTRON_POST_COMMAND_FILE, "w") as f:
+        f.write(json.dumps(post_neutron_map))
+
+    with open(MIDONET_POST_COMMAND_FILE, 'w') as f:
+        f.write(json.dumps(post_midonet_map))

@@ -22,6 +22,7 @@ from data_migration.migration_defs import NEUTRON_POST_COMMAND_FILE
 import json
 import logging
 
+import midonetclient.port_type as port_type
 import os
 from oslo_config import cfg as cmd_arg
 
@@ -113,12 +114,262 @@ def _run_midonet_post():
                 log.info("cfg.mn_api.add_host_interface_port("
                          "host_obj,"
                          "port_id=" + port + ","
-                         "interface_name=" + iface + ")")
+                                             "interface_name=" + iface + ")")
             else:
                 mc.mn_api.add_host_interface_port(
                     host_obj,
                     port_id=port,
                     interface_name=iface)
+
+    for bridge_id, bridge in (mn_map['bridge'].iteritems()
+                              if '' in mn_map else []):
+        if dry_run:
+            bridge_obj = None
+            log.info(
+                "bridge_obj = (mc.mn_api.add_bridge()"
+                ".name(" + bridge['name'] + ")"
+                ".inbound_filter_id(" + bridge['inbound_filter_id'] + ")"
+                ".outbound_filter_id(" + bridge['outbound_filter_id'] + ")"
+                ".inbound_mirrors(" + bridge['inbound_mirrors'] + ")"
+                ".outbound_mirrors(" + bridge['outbound_mirrors'] + ")"
+                ".inbound_mirrors(" + bridge['inbound_mirrors'] + ")"
+                ".inbound_mirrors(" + bridge['inbound_mirrors'] + ")"
+                ".create()")
+        else:
+            bridge_obj = (mc.mn_api.add_bridge()
+                          .name(bridge['name'])
+                          .inbound_filter_id(bridge['inbound_filter_id'])
+                          .outbound_filter_id(bridge['outbound_filter_id'])
+                          .inbound_mirrors(bridge['inbound_mirrors'])
+                          .outbound_mirrors(bridge['outbound_mirrors'])
+                          .inbound_mirrors(bridge['inbound_mirrors'])
+                          .inbound_mirrors(bridge['inbound_mirrors'])
+                          .create())
+            """ :type: midonetclient.bridge.Bridge"""
+
+        for dhcp in (bridge['dhcpSubnets'].iteritems()
+                     if '' in mn_map else []):
+            if dry_run:
+                dhcp_subnet = None
+                log.info("bridge_obj.add_dhcp_subnet()"
+                         ".default_gateway(" + dhcp['default_gateway'] + ")"
+                         " .server_addr(" + dhcp['server_addr'] + ")"
+                         ".dns_server_addrs(" + dhcp['dns_server_addrs'] + ")"
+                         ".subnet_prefix(" + dhcp['subnet_prefix'] + ")"
+                         ".subnet_length(" + dhcp['subnet_length'] + ")"
+                         ".interface_mtu(" + dhcp['interface_mtu'] + ")"
+                         ".opt121_routes(" + dhcp['opt121_routes'] + ")"
+                         ".enabled(" + dhcp['enabled'] + ")"
+                         ".create()")
+            else:
+                dhcp_subnet = (bridge_obj.add_dhcp_subnet()
+                               .default_gateway(dhcp['default_gateway'])
+                               .server_addr(dhcp['server_addr'])
+                               .dns_server_addrs(dhcp['dns_server_addrs'])
+                               .subnet_prefix(dhcp['subnet_prefix'])
+                               .subnet_length(dhcp['subnet_length'])
+                               .interface_mtu(dhcp['interface_mtu'])
+                               .opt121_routes(dhcp['opt121_routes'])
+                               .enabled(dhcp['enabled']))
+                """ :type: midonetclient.dhcp_subnet.DHCPSubnet"""
+
+            if dry_run:
+                log.info("dhcp_subnet.add_dhcp_host()"
+                         ".name(" + dhcp_host['name'] + ")"
+                         ".ip_addr(" + dhcp_host['ip_addr'] + ")"
+                         ".mac_addr(" + dhcp_host['mac_addr'] + ")"
+                         ".create()")
+            else:
+                for dhcp_host in dhcp['hosts']:
+                    (dhcp_subnet.add_dhcp_host()
+                     .name(dhcp_host['name'])
+                     .ip_addr(dhcp_host['ip_addr'])
+                     .mac_addr(dhcp_host['mac_addr'])
+                     .create())
+
+    for router_id, router in (mn_map['router'].iteritems()
+                              if '' in mn_map else []):
+        if dry_run:
+            log.info("")
+        else:
+            router_obj = (mc.mn_api.add_router()
+                          .name(router['name'])
+                          .tenant_id(router['tenant_id'])
+                          .inbound_filter_id(router['inbound_filter_id'])
+                          .outbound_filter_id(router['outbound_filter_id'])
+                          .load_balancer_id(router['load_balancer_id'])
+                          .asn(router['asn'])
+                          .inbound_mirrors(router['inbound_mirrors('])
+                          .outbound_mirrors(router['outbound_mirrors']))
+            for route in router['routes']:
+                if dry_run:
+                    log.info(
+                        "router_obj.add_route()"
+                        ".attributes(" + route['attributes'] + ")"
+                        ".learned(" + route['attributes'] + ")"
+                        ".dst_network_addr(" + route['attributes'] + ")"
+                        ".dst_network_length(" + route['attributes'] + ")"
+                        ".src_network_addr(" + route['attributes'] + ")"
+                        ".src_network_length(" + route['attributes'] + ")"
+                        ".next_hop_gateway(" + route['attributes'] + ")"
+                        ".next_hop_port(" + route['attributes'] + ")"
+                        ".type(" + route['attributes'] + ")"
+                        ".weight(" + route['attributes'] + ")")
+                else:
+                    (router_obj.add_route()
+                     .attributes(route['attributes'])
+                     .learned(route['attributes'])
+                     .dst_network_addr(route['attributes'])
+                     .dst_network_length(route['attributes'])
+                     .src_network_addr(route['attributes'])
+                     .src_network_length(route['attributes'])
+                     .next_hop_gateway(route['attributes'])
+                     .next_hop_port(route['attributes'])
+                     .type(route['attributes'])
+                     .weight(route['attributes']))
+
+            for bgpn in (router['bgpNetworks']
+                         if 'bgpNetworks' in router else []):
+                if dry_run:
+                    log.info(
+                        "router_obj.add_bgp_network()"
+                        ".subnet_address(" + bgpn['subnet_address'] + ")"
+                        ".subnet_prefix(" + bgpn['subnet_prefix'] + ")")
+                else:
+                    (router_obj.add_bgp_network()
+                     .subnet_address(bgpn['subnet_address'])
+                     .subnet_prefix(bgpn['subnet_prefix']))
+
+            for bgpp in (router['bgpPeers']
+                         if 'bgpPeers' in router else []):
+                if dry_run:
+                    log.info(
+                        "router_obj.add_bgp_peer()"
+                        ".asn(" + bgpp['asn'] + ")"
+                        ".address(" + bgpp['address'] + ")"
+                        ".keep_alive(" + bgpp['keep_alive'] + ")"
+                        ".hold_time(" + bgpp['hold_time'] + ")"
+                        ".connect_retry(" + bgpp['connect_retry'] + ")")
+                else:
+                    (router_obj.add_bgp_peer()
+                     .asn(bgpp['asn'])
+                     .address(bgpp['address'])
+                     .keep_alive(bgpp['keep_alive'])
+                     .hold_time(bgpp['hold_time'])
+                     .connect_retry(bgpp['connect_retry']))
+
+    for port_id, port in (mn_map['port'].iteritems()
+                 if '' in mn_map else []):
+        dev_id = port['device_id']
+        ptype = port['type']
+        new_port = None
+        if ptype == port_type.BRIDGE:
+            if dry_run:
+                log.info("mc.mn_api.add_bridge_port(" + dev_id + ")")
+            else:
+                host_dev = mc.mn_api.get_bridge(dev_id)
+                new_port = (mc.mn_api.add_bridge_port(host_dev))
+        elif ptype == port_type.ROUTER:
+            if dry_run:
+                log.info("mc.mn_api.add_router_port(" + dev_id + ")")
+            else:
+                host_dev = mc.mn_api.get_router(dev_id)
+                new_port = (mc.mn_api.add_router_port(host_dev))
+        elif ptype == port_type.VXLAN:
+            pass
+        if dry_run:
+            log.info("port.vif_id(" + port['vif_id'] + ")"
+                     ".vlan_id(" + port['vlan_id'] + ")"
+                     ".port_address(" + port['port_address'] + ")"
+                     ".network_address(" + port['network_address'] + ")"
+                     ".network_length(" + port['network_length'] + ")"
+                     ".port_mac(" + port['port_mac'] + ")"
+                     ".create()")
+        else:
+            (new_port
+             .service_container_id(port['service_container_id'])
+             .vif_id(port['vif_id'])
+             .vlan_id(port['vlan_id'])
+             .port_address(port['port_address'])
+             .network_address(port['network_address'])
+             .network_length(port['network_length'])
+             .port_mac(port['port_mac'])
+             .inbound_filter_id(port['inbound_filter_id'])
+             .outbound_filter_id(port['outbound_filter_id'])
+             .rtr_port_vni(port['rtr_port_vni'])
+             .off_ramp_vxlan(port['off_ramp_vxlan'])
+             .inbound_mirrors(port['inbound_mirrors'])
+             .outbound_mirrors(port['outbound_mirrors'])
+             .create())
+
+    for chain_id, chain in (mn_map['chain'].iteritems()
+                            if '' in mn_map else []):
+        pass
+
+    for cr_id, cr in (mn_map['chain_rule'].iteritems()
+                      if '' in mn_map else []):
+        pass
+
+    for bgp_id, bgp in (mn_map['bgp'].iteritems()
+                        if 'bgp' in mn_map else []):
+        pass
+
+    for vtep_id, vtep in (mn_map['vtep'].iteritems()
+                        if 'vtep' in mn_map else []):
+        vtep_obj = (mc.mn_api.add_vtep().create())
+
+    for ipg_id, ipg in (mn_map['ip_groups'].iteritems()
+                        if 'ip_groups' in mn_map else []):
+        ipg_obj = (mc.mn_api.add_ip_addr_group().create())
+
+    for lb_id, lb in (mn_map['load_balancers'].iteritems()
+                        if 'load_balancers' in mn_map else []):
+        if dry_run:
+            log.info("")
+        else:
+            lb_obj = (mc.mn_api.add_load_balancer()
+                      .router_id(lb['router_id'])
+                      .create())
+
+            for pool in lb['pools']:
+                pool_obj = (lb_obj.add_pool()
+                            .load_balancer_id(lb_id)
+                            .lb_method(lb['lb_method'])
+                            .health_monitor_id(lb['health_monitor_id'])
+                            .protocol(lb['protocol'])
+                            .create())
+
+                for member in pool['members']:
+                    (pool_obj
+                     .add_pool_member()
+                     .pool_id(member['pool_id'])
+                     .address(member['address'])
+                     .protocol_port(member['protocol_port'])
+                     .weight(member['weight'])
+                     .status(member['status'])
+                     .create())
+
+                for vip in pool['vips']:
+                    (pool_obj.add_vip()
+                     .load_balancer_id(lb_id)
+                     .pool_id(vip['pool_id'])
+                     .address(vip['address'])
+                     .protocol_port(vip['protocol_port'])
+                     .session_persistence(vip['session_persistence'])
+                     .create())
+
+
+    for pg_id, pg in (mn_map['port_groups'].iteritems()
+                      if 'port_groups' in mn_map else []):
+        pg_obj = (mc.mn_api.add_port_group()
+                  .name(pg['name'])
+                  .stateful(pg['stateful'])
+                  .tenant_id(pg['tenant_id'])
+                  .create())
+        for port_id in pg['ports']:
+            (pg_obj
+             .add_port_group_port()
+             .portId(port_id))
 
 
 def _run_neutron_post():

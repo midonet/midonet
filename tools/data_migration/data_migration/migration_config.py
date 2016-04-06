@@ -54,9 +54,6 @@ class MigrationConfig(object):
 
         self.mn_config = self.neutron_config.MIDONET
         self.mn_url = self.mn_config.midonet_uri
-        print("USING MIDONET API URL: " + self.mn_url)
-        print("USING MIDONET API USER/PASS: " +
-              self.mn_config.username + "/" + self.mn_config.password)
         self.mn_client = midonetclient.client.httpclient.HttpClient(
             self.mn_config.midonet_uri,
             self.mn_config.username,
@@ -74,6 +71,7 @@ class MigrationConfig(object):
                 "Can't specify both full URL and "
                 "relative path to mn_get_objects")
         get_path = full_url if full_url else self.mn_url + '/' + path + '/'
+        print "MN API Path: " + get_path
         data = self.mn_client.get(uri=get_path, media_type="*/*")
         return data
 
