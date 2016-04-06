@@ -1,6 +1,6 @@
 pushd tests/mdts/tests/functional_tests
 
-./run_tests.sh -r $WORKSPACE/tests -l logs \
+./run_tests.sh -x -r $WORKSPACE/tests -l logs \
     -t test_load_balancer.py:test_multi_member_loadbalancing \
     -t test_vpnaas.py \
     -t test_bgp.py:test_multisession_icmp_with_redundancy \
