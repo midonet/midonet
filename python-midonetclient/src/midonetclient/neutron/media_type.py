@@ -68,3 +68,7 @@ REMOTE_MAC_ENTRY = "application/vnd.org.midonet.neturon.RemoteMacEntry-v1+json"
 # L2 Gateway extension
 L2_GATEWAY_CONN = ("application/vnd.org.midonet.neutron"
                    ".L2GatewayConnection-v1+json")
+
+# Neutron BGP
+BGP_SPEAKER = "application/vnd.org.midonet.neutron.BgpSpeaker-v1+json"
+BGP_PEER = "application/vnd.org.midonet.neturon.BgpPeer-v1+json"
