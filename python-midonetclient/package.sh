@@ -34,7 +34,10 @@ FPM_BASE_ARGS=$(cat <<EOF
 --url 'http://midonet.org' \
 --description 'Python client library for MidoNet API' \
 -d 'python-webob' -d 'python-eventlet' -d 'python-httplib2' \
--s dir
+-s dir \
+--before-remove before-remove.sh \
+--after-install after-install.sh \
+--after-upgrade after-upgrade.sh
 EOF
 )
 
@@ -44,6 +47,9 @@ function clean() {
     rm -rf build
     rm -f python-midonetclient*.deb
     rm -f python-midonetclient*.rpm
+    rm before-remove.sh
+    rm after-install.sh
+    rm after-upgrade.sh
 }
 
 function build_protobuf_modules() {
@@ -57,6 +63,40 @@ function build_protobuf_modules() {
 function build_man_pages() {
     ronn --roff doc/*.ronn 2> /dev/null
     gzip -f doc/*.1
+}
+
+function create_hook_scripts() {
+
+    cat > before-remove.sh <<-EOF
+        if command -v pyclean >/dev/null 2>&1; then
+            pyclean -p python-neutronclient
+        else
+            dpkg -L python-neutronclient | grep \.py$ | while read file
+            do
+                rm -f "${file}"[co] >/dev/null
+            done
+        fi
+EOF
+
+    cat > after-install.sh <<-EOF
+        if command -v pycompile >/dev/null 2>&1; then
+            pycompile -p python-neutronclient
+        fi
+EOF
+
+    cat > after-upgrade.sh <<-EOF
+        if command -v pyclean >/dev/null 2>&1; then
+            pyclean -p python-neutronclient
+        else
+            dpkg -L python-neutronclient | grep \.py$ | while read file
+            do
+                rm -f "${file}"[co] >/dev/null
+            done
+        fi
+        if command -v pycompile >/dev/null 2>&1; then
+            pycompile -p python-neutronclient
+        fi
+EOF
 }
 
 function package_rpm() {
@@ -75,6 +115,7 @@ function package_rpm() {
     RPM_ARGS="$RPM_ARGS -d 'python >= 2.6' -d 'python < 2.8'"
     RPM_ARGS="$RPM_ARGS --epoch 2"
     RPM_ARGS="$RPM_ARGS --iteration $rpm_revision"
+
     eval fpm $FPM_BASE_ARGS $RPM_ARGS -t rpm .
 }
 
@@ -105,6 +146,7 @@ case "$1" in
       fi
       build_protobuf_modules
       build_man_pages
+      create_hook_scripts
       package_deb
       ;;
   rpm)
@@ -120,6 +162,7 @@ case "$1" in
       fi
       build_protobuf_modules
       build_man_pages
+      create_hook_scripts
       package_rpm
       ;;
   clean)
