@@ -173,9 +173,10 @@ class KeystoneClient(config: KeystoneConfig) {
       * performance.
       */
     @throws[KeystoneException]
-    def validate(token: String, tenantScope: Boolean = false): AuthResponse = {
+    def validate(token: String, tenantScope: Option[String] = None): AuthResponse = {
         var params = Seq.empty[(String, String)]
-        if (tenantScope) params = params :+ ("belongsTo", "")
+        if (tenantScope.nonEmpty)
+            params = params :+ ("belongsTo", tenantScope.get)
         withAdminToken { adminToken =>
             withVersion {
                 case 2 =>
