@@ -67,7 +67,8 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
             with LoadBalancerApi
             with NetworkApi
             with SecurityGroupApi
-            with VpnServiceApi {
+            with VpnServiceApi
+            with BgpApi {
 
     private val log = LoggerFactory.getLogger(restApiNeutronLog)
 
@@ -528,4 +529,34 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     override def deleteIpSecSiteConnection(id: UUID): Unit =
         delete(id, classOf[IPSecSiteConnection])
+
+    override def getBgpSpeaker(id: UUID): BgpSpeaker =
+        get[BgpSpeaker](id)
+
+    override def getBgpSpeakers: util.List[BgpSpeaker] =
+        listAll(classOf[BgpSpeaker])
+
+    override def createBgpSpeaker(bgpSpeaker: BgpSpeaker): Unit =
+        create(bgpSpeaker)
+
+    override def updateBgpSpeaker(bgpSpeaker: BgpSpeaker): Unit =
+        update(bgpSpeaker)
+
+    override def deleteBgpSpeaker(id: UUID): Unit =
+        delete(id, classOf[BgpSpeaker])
+
+    override def getBgpPeer(id: UUID): BgpPeer =
+        get[BgpPeer](id)
+
+    override def getBgpPeers: util.List[BgpPeer] =
+        listAll(classOf[BgpPeer])
+
+    override def createBgpPeer(bgpPeer: BgpPeer): Unit =
+        create(bgpPeer)
+
+    override def updateBgpPeer(bgpPeer: BgpPeer): Unit =
+        update(bgpPeer)
+
+    override def deleteBgpPeer(id: UUID): Unit =
+        delete(id, classOf[BgpPeer])
 }

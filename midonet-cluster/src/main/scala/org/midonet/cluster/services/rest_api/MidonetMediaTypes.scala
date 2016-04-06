@@ -34,6 +34,10 @@ object MidonetMediaTypes {
     final val NEUTRON_REMOTE_MAC_ENTRIES_JSON_V1 = "application/vnd.org.midonet.neturon.RemoteMacEntries-v1+json"
     final val NEUTRON_VPN_SERVICE_JSON_V1 = "application/vnd.org.midonet.neutron.VPNService-v1+json"
     final val NEUTRON_VPN_SERVICES_JSON_V1 = "application/vnd.org.midonet.neutron.VPNServices-v1+json"
+    final val NEUTRON_BGP_SPEAKER_JSON_V1 = "application/vnd.org.midonet.neutron.BgpSpeaker-v1+json"
+    final val NEUTRON_BGP_SPEAKERS_JSON_V1 = "application/vnd.org.midonet.neutron.BgpSpeakers-v1+json"
+    final val NEUTRON_BGP_PEER_JSON_V1 = "application/vnd.org.midonet.neutron.BgpPeer-v1+json"
+    final val NEUTRON_BGP_PEERS_JSON_V1 = "application/vnd.org.midonet.neutron.BgpPeers-v1+json"
 
     // MIDONET MODELS
     final val APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"

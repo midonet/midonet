@@ -499,3 +499,19 @@ message RemoteMacEntry {
     // Ports using this remote MAC entry.
     repeated UUID port_ids = 6;
 }
+
+message NeutronBgpSpeaker {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional uint32 local_as = 4;
+    optional uint32 ip_version = 5;
+}
+
+message NeutronBgpPeer {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional IPAddress peer_ip = 4;
+    optional uint32 remote_as = 5;
+}
