@@ -148,7 +148,7 @@ def _test_icmp(sender, receiver, target_ipv4, filter_resource, is_router):
     filter_resource.set_inbound_filter(None)
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_single, binding_multi_bridge)
 def test_icmp_bridge():
     let_temporary_frag_needed_flows_expire()
@@ -160,7 +160,7 @@ def test_icmp_bridge():
                is_router=False)
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_single, binding_multi_router)
 def test_icmp_router():
     let_temporary_frag_needed_flows_expire()
@@ -230,7 +230,7 @@ def _test_udp(sender, receiver, target_hw, target_ipv4,
     filter_resource.set_inbound_filter(None)
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_single, binding_multi_bridge)
 def test_udp_bridge():
     let_temporary_frag_needed_flows_expire()
@@ -243,7 +243,7 @@ def test_udp_bridge():
               is_router=False)
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_single, binding_multi_router)
 def test_udp_router():
     let_temporary_frag_needed_flows_expire()

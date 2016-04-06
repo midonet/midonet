@@ -91,7 +91,7 @@ binding_two_isolated_bridges = {
 }
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @failures(NoFailure())
 @bindings(bindings1, bindings2)
 def test_mac_learning():
@@ -146,7 +146,7 @@ def test_mac_learning():
     wait_on_futures([f1, f2])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_dhcp)
 def test_dhcp():
     """
@@ -204,7 +204,7 @@ def test_dhcp():
 
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @failures(NoFailure(),
           ServiceFailure('zookeeper1'),
           ServiceFailure('zookeeper2'),
@@ -230,7 +230,7 @@ def test_icmp():
     wait_on_futures([f1, f2])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(bindings1, bindings2)
 def test_fragmented_packets():
     """
@@ -253,7 +253,7 @@ def test_fragmented_packets():
     wait_on_futures([f1, f2])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_two_isolated_bridges)
 def test_two_isolated_bridges():
     """
@@ -276,7 +276,7 @@ def test_two_isolated_bridges():
 
 
 # Deprecate MN-662
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(bindings1, bindings2)
 def test_flow_invalidation_on_mac_update():
     """
@@ -319,7 +319,7 @@ def test_flow_invalidation_on_mac_update():
     wait_on_futures([f1, f2, f3])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(bindings1)
 def test_icmp_after_interface_recovery():
     """
@@ -364,7 +364,7 @@ def test_icmp_after_interface_recovery():
     wait_on_futures([f1, f2])
 
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(bindings1, bindings2)
 def test_rule_changes():
     """
