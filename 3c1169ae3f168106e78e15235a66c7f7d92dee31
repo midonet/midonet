@@ -214,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0c31d4a2",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-06T09:26:01Z",
+      "side": 1,
+      "message": "Already merged (reviewed by alex), https://review.gerrithub.io/#/c/271007/",
+      "parentUuid": "baa041b7_af866511",
+      "range": {
+        "startLine": 189,
+        "startChar": 1,
+        "endLine": 192,
+        "endChar": 59
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_dd0ca844",
         "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
         "patchSetId": 5
@@ -308,6 +332,24 @@
       "side": 1,
       "message": "sure. I\u0027ve no problem with testing the return flow first. My point was to also check that the snat ports match, to show that it\u0027s using the same state.",
       "parentUuid": "da9b358b_f158b458",
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ec25905c",
+        "filename": "tests/mdts/tests/compatibility_tests/test_compat_flowstate.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-06T09:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8f7cc121",
       "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -420,6 +462,30 @@
       "side": 1,
       "message": "Can\u0027t we create sandbox images with version 5.0.0, push those to artifactory once and use them forever? It would solve the static ip issue above also.",
       "parentUuid": "da9b358b_3db953ea",
+      "range": {
+        "startLine": 13,
+        "startChar": 54,
+        "endLine": 13,
+        "endChar": 55
+      },
+      "revId": "3c1169ae3f168106e78e15235a66c7f7d92dee31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ac20a84a",
+        "filename": "tests/sandbox/override_v2_compat/cluster/override.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-06T09:26:01Z",
+      "side": 1,
+      "message": "sure, I\u0027ll do it and update the test.",
+      "parentUuid": "baa041b7_cf81a9fd",
       "range": {
         "startLine": 13,
         "startChar": 54,
