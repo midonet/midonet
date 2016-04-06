@@ -151,6 +151,8 @@ quagga0:
   - BGP_AS=64510
   # Advertise "inet" network
   - ADVERTISED_NETWORK=1.1.1.1/32
+  # Disable retransmit (advertise learned routes)
+  - BGP_ONLY_ADVERTISE_LOCAL=yes
 
 quagga1:
   extends:
