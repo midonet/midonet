@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9bad158b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T07:58:39Z",
+      "side": 1,
+      "message": "Do we need to set the interface name?",
+      "range": {
+        "startLine": 627,
+        "startChar": 16,
+        "endLine": 627,
+        "endChar": 49
+      },
+      "revId": "8402bfecdd98c1ab8fef6a9ebab95258e1b71dc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
