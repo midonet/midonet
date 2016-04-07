@@ -17,11 +17,13 @@
 package org.midonet.midolman.topology.builders
 
 import java.util.UUID
-import org.midonet.cluster.client.{ArpCache, RouterBuilder}
+
 import akka.actor.ActorRef
+
+import org.midonet.cluster.client.{ArpCache, RouterBuilder}
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.topology.RouterManager.{InvalidateFlows, TriggerUpdate}
+import org.midonet.midolman.topology.RouterManager.{InvalidateFlows, TriggerDelete, TriggerUpdate}
 import org.midonet.midolman.topology.RoutingTableWrapper
 
 class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
@@ -85,6 +87,8 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
         routerManager ! TriggerUpdate(cfg, arpCache, new RoutingTableWrapper(table))
     }
 
-    override def deleted(): Unit = { }
+    override def deleted(): Unit = {
+        routerManager ! TriggerDelete
+    }
 
 }

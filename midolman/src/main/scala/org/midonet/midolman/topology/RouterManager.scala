@@ -15,28 +15,23 @@
  */
 package org.midonet.midolman.topology
 
-import collection.{Set => ROSet, mutable, Iterable}
-import collection.JavaConversions._
 import java.util.UUID
 
-import org.midonet.util.collection.IPv4InvalidationArray
-
-import scala.collection.{Set => ROSet}
-
-import com.typesafe.scalalogging.Logger
+import scala.collection.{Iterable, Set => ROSet}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ArpCache
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.{Route, RoutingTableIfc}
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.simulation.Router.{TagManager, Config => RouterConfig}
+import org.midonet.midolman.simulation.Router.{Config => RouterConfig, TagManager}
 import org.midonet.midolman.topology.RouterManager._
+import org.midonet.midolman.topology.VirtualTopologyActor.{DeleteDevice, InvalidateFlowsByTag}
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
+import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.util.collection.IPv4InvalidationArray
 import org.midonet.util.functors.Callback0
 
 class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
@@ -56,6 +51,8 @@ object RouterManager {
 
     case class TriggerUpdate(cfg: RouterConfig, arpCache: ArpCache,
                              rTable: RoutingTableWrapper[IPv4Addr])
+
+    case object TriggerDelete
 
     case class InvalidateFlows(addedRoutes: ROSet[Route],
                                deletedRoutes: ROSet[Route])
@@ -82,7 +79,6 @@ object RouterManager {
 class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceWithChains {
     import context.system
-    import context.dispatcher
 
     override def logSource = s"org.midonet.devices.router.router-$id"
 
@@ -138,6 +134,9 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             rTable = newRoutingTable
 
             prefetchTopology(loadBalancer(newCfg.loadBalancer))
+
+        case TriggerDelete =>
+            VirtualTopologyActor ! DeleteDevice(id)
 
         case InvalidateFlows(addedRoutes, deletedRoutes) =>
             for (route <- deletedRoutes) {

@@ -377,16 +377,37 @@ public class LocalClientImplTest {
         assertThat("Build is called", routerBuilder.getBuildCallsCount(),
                    equalTo(1));
 
-        // let's cause a router update
-        getRouterZkManager().update(routerId,
-                                    new RouterZkManager.RouterConfig("test1",
-                                            getRandomChainId(),
-                                            getRandomChainId(),
-                                            null));
+        // Update the router.
+        getRouterZkManager().update(
+            routerId, new RouterZkManager.RouterConfig(
+                "test1", getRandomChainId(), getRandomChainId(), null));
 
         routerBuilder.awaitBuildCalls(2, 5, TimeUnit.SECONDS);
         assertThat("Router update was notified",
                    routerBuilder.getBuildCallsCount(), equalTo(2));
+
+        // Delete the router.
+        getRouterZkManager().delete(routerId);
+
+        routerBuilder.awaitDeleteCalls(1, 5, TimeUnit.SECONDS);
+
+        // Re-create the router does not trigger further updates on this
+        // builder.
+        int buildCalls = routerBuilder.getBuildCallsCount();
+        RouterZkManager.RouterConfig routerConfig =
+            new RouterZkManager.RouterConfig("test", getRandomChainId(),
+                                             getRandomChainId(), null);
+        routerConfig.id = routerId;
+        getRouterZkManager().create(routerConfig);
+
+        assertThat("Build is called", routerBuilder.getBuildCallsCount(),
+                   equalTo(buildCalls));
+
+        // Delete the router does not trigger further updates on this builder.
+        getRouterZkManager().delete(routerId);
+
+        assertThat("Delete is called", routerBuilder.getDeletedCallsCount(),
+                   equalTo(1));
     }
 
     @Test

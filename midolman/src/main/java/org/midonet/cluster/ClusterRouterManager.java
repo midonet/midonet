@@ -69,15 +69,12 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     @Inject
     Serializer serializer;
 
-    Map<UUID, Set<Route>> mapPortIdToRoutes =
-        new HashMap<>();
+    Map<UUID, Set<Route>> mapPortIdToRoutes = new HashMap<>();
 
     Map<UUID, ReplicatedRouteSet> mapRouterIdToRoutes = new HashMap<>();
 
     Map<UUID, PortRoutesCallback> portIdCallback = new HashMap<>();
     Map<UUID, PortRoutesWatcher> portIdWatcher = new HashMap<>();
-
-    Map<UUID, Set<Route>> routeGraveyard = new HashMap<>();
 
     private static final Logger log =
          LoggerFactory.getLogger(ClusterRouterManager.class);
@@ -113,6 +110,14 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
              config = routerMgr.get(id, watchRouter(id, true));
         } catch (NoStatePathException e) {
             log.debug("Router {} has been deleted", id);
+            RouterBuilder bldr = unregisterBuilder(id);
+            if (bldr != null) {
+                bldr.deleted();
+            }
+            routeSet = mapRouterIdToRoutes.remove(id);
+            if (routeSet != null) {
+                routeSet.stop();
+            }
         } catch (StateAccessException e) {
             if (routeSet != null)
                 mapRouterIdToRoutes.remove(id);
@@ -168,8 +173,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
     public void updateRoutesBecauseLocalPortChangedStatus(UUID routerId, UUID portId,
                                                           boolean active){
-        log.debug("Port {} of router {} became active {}",
-                new Object[]{portId, routerId, active});
+        log.debug("Port {} of router {} became active {}", portId, routerId, active);
         try {
             if (active) {
                 if(mapPortIdToRoutes.containsKey(portId)){
@@ -219,18 +223,11 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             return cancelled;
         }
 
-        public void reenable() {
-            this.cancelled = true;
-        }
-
     }
 
     /**
-     * This method handles the routes <-> port relation when there is a change in a port state.
-     * @param routerId
-     * @param portId
-     * @throws StateAccessException
-     * @throws KeeperException
+     * This method handles the routes <-> port relation when there is a change
+     * in a port state.
      */
     private void handlePortRoutes(UUID routerId, UUID portId, boolean active)
             throws StateAccessException, KeeperException {
@@ -288,9 +285,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     /**
      * This method does a diff between the received routes and the old routes (the ones
      * contained in local).
-     * @param routerId
-     * @param portId
-     * @param newRoutes
      */
     private void updateRoutingTableAfterGettingRoutes(final UUID routerId,
                   final UUID portId, final Set<Route> newRoutes) {
@@ -311,9 +305,9 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         ZkManager routingTableManager = new ZkManager(dir, dir.getPath());
         RouteEncoder encoder = new RouteEncoder();
 
-        Set<Route> removedRoutes = new HashSet<Route>(oldRoutes);
+        Set<Route> removedRoutes = new HashSet<>(oldRoutes);
         removedRoutes.removeAll(newRoutes);
-        Set<Route> addedRoutes = new HashSet<Route>(newRoutes);
+        Set<Route> addedRoutes = new HashSet<>(newRoutes);
         addedRoutes.removeAll(oldRoutes);
 
         for (final Route routeToAdd : addedRoutes){
@@ -382,18 +376,10 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         public void onSuccess(Set<UUID> uuids) {
             if (!isCancelled()) {
                 log.debug("PortRoutesCallback success, received {} routes: {} " +
-                        "for port {}",
-                        new Object[]{uuids.size(), uuids, portId});
+                        "for port {}", uuids.size(), uuids, portId);
 
-                Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
-
-                if (uuids.equals(oldRoutes)){
-                    log.debug("No change in the routes, nothing to do for port {}", portId);
-                    return;
-                }
-
-                // if the routes in zk are different from the routes contained in local update them
-                // asynchronously.
+                // If the routes in zk are different from the routes contained
+                // in local update them asynchronously.
                 routeManager.asyncMultiRoutesGet(uuids,
                         new GetRoutesCallback(routerId,
                                 portId,
@@ -436,9 +422,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             return this.cancelled;
         }
 
-        public void reenable() {
-            this.cancelled = false;
-        }
     }
 
     class RouteEncoder {
@@ -570,7 +553,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                         arpTable.put(ipAddr, entry);
                     } catch (Exception e) {
                         log.error("Failed adding ARP entry. IP: {} MAC: {}",
-                                  new Object[]{ipAddr, entry, e});
+                                  ipAddr, entry, e);
                     }
                 }});
         }

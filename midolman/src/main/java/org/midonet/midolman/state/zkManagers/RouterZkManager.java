@@ -15,23 +15,26 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import com.google.common.base.Objects;
-import org.midonet.cluster.data.neutron.Router;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
 
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.data.neutron.Router;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -429,6 +432,23 @@ public class RouterZkManager
         UUID id = UUID.randomUUID();
         zk.multi(prepareRouterCreate(id, new RouterConfig()));
         return id;
+    }
+
+    /**
+     * Creates a new router in ZooKeeper.
+     *
+     * @param config The router configuration.
+     * @return The UUID of the newly created object.
+     * @throws StateAccessException
+     * @throws SerializationException
+     */
+    public UUID create(RouterConfig config)
+        throws StateAccessException, SerializationException {
+        if (config.id == null) {
+            config.id = UUID.randomUUID();
+        }
+        zk.multi(prepareRouterCreate(config.id, config));
+        return config.id;
     }
 
     /***
