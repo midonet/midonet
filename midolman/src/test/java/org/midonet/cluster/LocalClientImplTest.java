@@ -45,8 +45,10 @@ import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.PortBuilder;
+import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.VlanPortMap;
+import org.midonet.cluster.data.PortGroup;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
@@ -64,6 +66,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
+import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.topology.devices.Port;
@@ -105,6 +108,10 @@ public class LocalClientImplTest {
 
     ChainZkManager getChainZkManager() {
         return injector.getInstance(ChainZkManager.class);
+    }
+
+    PortGroupZkManager getPortGroupZkManager() {
+        return injector.getInstance(PortGroupZkManager.class);
     }
 
     private UUID getRandomChainId()
@@ -218,6 +225,94 @@ public class LocalClientImplTest {
         getPortZkManager().delete(portId);
 
         assertThat("Delete is called", portBuilder.getDeletedCallsCount(),
+                   equalTo(1));
+    }
+
+    @Test
+    public void getPortGroupTest()
+        throws StateAccessException, InterruptedException, KeeperException,
+               SerializationException {
+
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
+
+        UUID portGroupId = getPortGroupZkManager().create(
+            new PortGroupZkManager.PortGroupConfig("test1", false));
+
+        TestPortGroupBuilder portGroupBuilder = new TestPortGroupBuilder();
+        client.getPortGroup(portGroupId, portGroupBuilder);
+
+        // The port group builder calls build twice: once when loading the port
+        // group config from ZK, and a second time when loading the group
+        // members.
+        portGroupBuilder.awaitBuildCalls(2, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", portGroupBuilder.getBuildCallsCount(),
+                   equalTo(2));
+        assertThat(portGroupBuilder.portGroup.getId(), equalTo(portGroupId));
+        assertThat(portGroupBuilder.portGroup.getName(), equalTo("test1"));
+        assertThat(portGroupBuilder.portGroup.isStateful(), equalTo(false));
+        assertThat(portGroupBuilder.members.size(), equalTo(0));
+
+        // Update the port group configuration.
+        getPortGroupZkManager().update(
+            portGroupId, new PortGroupZkManager.PortGroupConfig("test2", true));
+
+        portGroupBuilder.awaitBuildCalls(4, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", portGroupBuilder.getBuildCallsCount(),
+                   equalTo(4));
+        assertThat(portGroupBuilder.portGroup.getId(), equalTo(portGroupId));
+        assertThat(portGroupBuilder.portGroup.getName(), equalTo("test2"));
+        assertThat(portGroupBuilder.portGroup.isStateful(), equalTo(true));
+        assertThat(portGroupBuilder.members.size(), equalTo(0));
+
+        // Add port to port group.
+        UUID bridgeId = getBridgeZkManager().create(
+            new BridgeZkManager.BridgeConfig("test", null, null));
+        UUID portId = getPortZkManager().create(
+            new PortDirectory.BridgePortConfig(bridgeId, true));
+
+        getPortGroupZkManager().addPortToPortGroup(portGroupId, portId);
+
+        portGroupBuilder.awaitBuildCalls(6, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", portGroupBuilder.getBuildCallsCount(),
+                   equalTo(6));
+        assertThat(portGroupBuilder.portGroup.getId(), equalTo(portGroupId));
+        assertThat(portGroupBuilder.portGroup.getName(), equalTo("test2"));
+        assertThat(portGroupBuilder.portGroup.isStateful(), equalTo(true));
+        assertThat(portGroupBuilder.members.size(), equalTo(1));
+        assertThat(portGroupBuilder.members.contains(portId), equalTo(true));
+
+        // Remove port from port group.
+        getPortGroupZkManager().removePortFromPortGroup(portGroupId, portId);
+
+        portGroupBuilder.awaitBuildCalls(8, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", portGroupBuilder.getBuildCallsCount(),
+                   equalTo(8));
+        assertThat(portGroupBuilder.portGroup.getId(), equalTo(portGroupId));
+        assertThat(portGroupBuilder.portGroup.getName(), equalTo("test2"));
+        assertThat(portGroupBuilder.portGroup.isStateful(), equalTo(true));
+        assertThat(portGroupBuilder.members.size(), equalTo(0));
+
+        // Delete the port group.
+        getPortGroupZkManager().delete(portGroupId);
+
+        portGroupBuilder.awaitDeleteCalls(1, 5, TimeUnit.SECONDS);
+
+        // Re-create the port group does not trigger further updates on this
+        // builder.
+        int buildCalls = portGroupBuilder.getBuildCallsCount();
+        PortGroupZkManager.PortGroupConfig portGroupConfig =
+            new PortGroupZkManager.PortGroupConfig("test3", false);
+        portGroupConfig.id = portGroupId;
+        getPortGroupZkManager().create(portGroupConfig);
+
+        assertThat("Build is called", portGroupBuilder.getBuildCallsCount(),
+                   equalTo(buildCalls));
+
+        // Delete the port group does not trigger further updates on this
+        // builder.
+        getPortGroupZkManager().delete(portGroupId);
+
+        assertThat("Delete is called", portGroupBuilder.getDeletedCallsCount(),
                    equalTo(1));
     }
 
@@ -430,6 +525,35 @@ public class LocalClientImplTest {
             incrementDelete();
         }
 
+    }
+
+    static class TestPortGroupBuilder extends AwaitableBuilder
+        implements PortGroupBuilder {
+
+        PortGroup portGroup = null;
+        Set<UUID> members = null;
+
+        @Override
+        public void setConfig(PortGroup portGroup) {
+            this.portGroup = portGroup;
+            incrementBuild();
+        }
+
+        @Override
+        public void setMembers(Set<UUID> members) {
+            this.members = members;
+            incrementBuild();
+        }
+
+        @Override
+        public void build() {
+            incrementBuild();
+        }
+
+        @Override
+        public void deleted() {
+            incrementDelete();
+        }
     }
 
     // hint could modify this class so we can get the map from it.

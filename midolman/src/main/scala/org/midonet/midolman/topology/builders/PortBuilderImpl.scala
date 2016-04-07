@@ -43,7 +43,7 @@ class PortBuilderImpl(val portActor: ActorRef) extends PortBuilder {
         portActor ! PortManager.TriggerDelete
     }
 
-    def build() {
+    override def build() {
         if (port != null) {
             portActor ! PortManager.TriggerUpdate(port)
         }

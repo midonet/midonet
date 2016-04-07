@@ -20,7 +20,7 @@ import java.util.UUID;
 
 import org.midonet.cluster.data.PortGroup;
 
-public interface PortGroupBuilder {
+public interface PortGroupBuilder extends Builder<PortGroupBuilder> {
     void setConfig(PortGroup portGroup);
     void setMembers(Set<UUID> members);
 }

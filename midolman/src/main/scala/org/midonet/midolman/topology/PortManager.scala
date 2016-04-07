@@ -18,9 +18,9 @@ package org.midonet.midolman.topology
 import java.util.UUID
 
 import org.midonet.cluster.Client
+import org.midonet.midolman.topology.PortManager.{TriggerDelete, TriggerUpdate}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeleteDevice, InvalidateFlowsByTag}
 import org.midonet.midolman.topology.builders.PortBuilderImpl
-import org.midonet.midolman.topology.PortManager.{TriggerDelete, TriggerUpdate}
 import org.midonet.midolman.topology.devices.Port
 
 object PortManager{

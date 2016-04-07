@@ -30,6 +30,7 @@ import rx.functions.Func1;
 import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.data.PortGroup;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PortGroupCache;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.util.eventloop.Reactor;
@@ -65,7 +66,8 @@ public class ClusterPortGroupManager extends ClusterManager<PortGroupBuilder> {
                         return config != null;
                     }
                 })
-            .subscribe(new Action1<PortGroupZkManager.PortGroupConfig>() {
+            .subscribe(
+                new Action1<PortGroupZkManager.PortGroupConfig>() {
                     @Override
                     public void call(PortGroupZkManager.PortGroupConfig config) {
                         PortGroupBuilder builder = getBuilder(id);
@@ -83,8 +85,15 @@ public class ClusterPortGroupManager extends ClusterManager<PortGroupBuilder> {
                 new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
-                        log.info("Exception thrown getting config for {}",
-                                 id, t);
+                        if (t instanceof NoStatePathException) {
+                            PortGroupBuilder builder = unregisterBuilder(id);
+                            if (builder != null) {
+                                builder.deleted();
+                            }
+                        } else {
+                            log.info("Exception thrown getting config for {}",
+                                     id, t);
+                        }
                     }
                 });
     }

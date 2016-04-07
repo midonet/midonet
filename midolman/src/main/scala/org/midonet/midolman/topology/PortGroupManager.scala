@@ -15,26 +15,29 @@
  */
 package org.midonet.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
-import collection.JavaConverters._
 import java.util.{Set => JSet, UUID}
-import scala.collection.breakOut
+
+import scala.collection.JavaConverters._
+
+import akka.actor.{Actor, ActorRef}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.PortGroupBuilder
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
+import org.midonet.cluster.data.PortGroup
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation
-import org.midonet.sdn.flows.FlowTagger
-import org.midonet.cluster.data.PortGroup
+import org.midonet.midolman.topology.PortGroupManager.{TriggerDelete, TriggerUpdate}
+import org.midonet.midolman.topology.VirtualTopologyActor.{DeleteDevice, InvalidateFlowsByTag}
 
 object PortGroupManager {
     case class TriggerUpdate(members: Set[UUID])
+    case object TriggerDelete
 }
 
 class PortGroupManager(val id: UUID, val clusterClient: Client) extends Actor
     with ActorLogWithoutPath {
     import PortGroupManager._
+
     import context.system
 
     private var config: PortGroup = null
@@ -62,29 +65,33 @@ class PortGroupManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     override def receive = {
-        case TriggerUpdate(members) => {
+        case TriggerUpdate(m) =>
             log.debug("Update triggered for members of port group ID {}", id)
-            this.members = members
+            this.members = m
             publishUpdateIfReady()
-        }
-        case config: PortGroup => {
+        case TriggerDelete =>
+            VirtualTopologyActor ! DeleteDevice(id)
+        case config: PortGroup =>
             log.debug("Update triggered for config of port group ID {}", id)
             this.config = config
             publishUpdateIfReady()
-        }
     }
 }
 
 class PortGroupBuilderImpl(val pgMgr: ActorRef)
     extends PortGroupBuilder {
-    import PortGroupManager.TriggerUpdate
 
-
-    def setConfig(pg: PortGroup) {
+    override def setConfig(pg: PortGroup) {
         pgMgr ! pg
     }
 
-    def setMembers(members: JSet[UUID]) {
+    override def setMembers(members: JSet[UUID]) {
         pgMgr ! TriggerUpdate(members.asScala.toSet)
+    }
+
+    override def build(): Unit = { }
+
+    override def deleted(): Unit = {
+        pgMgr ! TriggerDelete
     }
 }

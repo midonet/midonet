@@ -197,9 +197,24 @@ public class PortGroupZkManager
      */
     public UUID create(PortGroupConfig config) throws StateAccessException,
             SerializationException {
-        UUID id = UUID.randomUUID();
-        zk.multi(prepareCreate(id, config));
-        return id;
+        if (config.id == null) {
+            config.id = UUID.randomUUID();
+        }
+        zk.multi(prepareCreate(config.id, config));
+        return config.id;
+    }
+
+    /**
+     * Updates a port group configuration.
+     *
+     * @param id The port group identifier.
+     * @param config The port group configuration.
+     * @throws StateAccessException
+     * @throws SerializationException
+     */
+    public void update(UUID id, PortGroupConfig config)
+        throws StateAccessException, SerializationException {
+        zk.multi(prepareUpdate(id, config));
     }
 
     /***

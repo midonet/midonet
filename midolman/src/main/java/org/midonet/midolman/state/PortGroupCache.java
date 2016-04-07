@@ -59,7 +59,7 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
     Serializer serializer;
 
     private PortGroupZkManager portGroupMgr;
-    private Set<Callback1<UUID>> watchers = new HashSet<Callback1<UUID>>();
+    private Set<Callback1<UUID>> watchers = new HashSet<>();
 
     public PortGroupCache(Reactor reactor, PortGroupZkManager portGroupMgr,
             ZkConnectionAwareWatcher connWatcher, Serializer serializer) {
@@ -71,14 +71,15 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
 
     public <T extends PortGroupZkManager.PortGroupConfig>
         Observable<T> get(UUID key, final Class<T> clazz) {
-        return get(key).map(new Func1<PortGroupZkManager.PortGroupConfig, T>() {
+        return get(key).map(
+            new Func1<PortGroupZkManager.PortGroupConfig, T>() {
                 @Override
                 public T call(PortGroupZkManager.PortGroupConfig config) {
                     try {
                         return clazz.cast(config);
                     } catch (ClassCastException e) {
                         log.error("Failed to cast {} to a {}",
-                                  new Object[] {config, clazz, e});
+                                  config, clazz, e);
                         return null;
                     }
                 }
@@ -120,10 +121,13 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
         final PortGroupWatcher watcher = new PortGroupWatcher(key);
         return portGroupMgr.getWithObservable(key, watcher)
             .observeOn(Schedulers.trampoline())
-            .doOnError(new Action1<Throwable>() {
+            .doOnError(
+                new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
-                        if (t instanceof StateAccessException) {
+                        if (t instanceof NoStatePathException) {
+                            log.trace("Port group {} has been deleted", key);
+                        } else if (t instanceof StateAccessException) {
                             log.warn("Exception retrieving PortGroupConfig", t);
                             connectionWatcher.handleError(
                                     "PortWatcher:" + key.toString(), watcher,
@@ -149,7 +153,8 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
             // Update the value and re-register for ZK notifications.
             portGroupMgr.getWithObservable(id, this)
                 .observeOn(Schedulers.trampoline())
-                .subscribe(new Action1<PortGroupZkManager.PortGroupConfig>() {
+                .subscribe(
+                    new Action1<PortGroupZkManager.PortGroupConfig>() {
                         @Override
                         public void call(PortGroupZkManager.PortGroupConfig config) {
                             put(id, config);
@@ -162,6 +167,7 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
                             if (t instanceof NoStatePathException) {
                                 log.debug("PortGroup {} has been deleted", id);
                                 put(id, null);
+                                notifyWatchers(id);
                             } else if (t instanceof StateAccessException) {
                                 // If the ZK lookup fails, the cache keeps the old value.
                                 log.warn("Exception refreshing PortConfig", t);
