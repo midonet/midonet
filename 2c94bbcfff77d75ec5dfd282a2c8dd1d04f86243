@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7be251a1",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T14:36:09Z",
+      "side": 1,
+      "message": "Nit: indent (don\u0027t resubmit for this)",
+      "range": {
+        "startLine": 266,
+        "startChar": 32,
+        "endLine": 266,
+        "endChar": 54
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a6da0077",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T14:36:09Z",
+      "side": 1,
+      "message": "Maybe use hasTpStart, hasTpEnd? Yet, this should work too.",
+      "range": {
+        "startLine": 87,
+        "startChar": 43,
+        "endLine": 87,
+        "endChar": 61
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fb166154",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T14:36:09Z",
+      "side": 1,
+      "message": "So this will break compatibility when migrating from 1.x topologies that still use ForwardNat rules. We should consider having separate classes for reading 1.x topologies, rather than reusing the simulation classes from 5.x code for the same purpose.",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 2
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e645a817",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T14:36:09Z",
+      "side": 1,
+      "message": "val",
+      "range": {
+        "startLine": 337,
+        "startChar": 4,
+        "endLine": 337,
+        "endChar": 7
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c64bc42a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T14:36:09Z",
+      "side": 1,
+      "message": "val",
+      "range": {
+        "startLine": 356,
+        "startChar": 4,
+        "endLine": 356,
+        "endChar": 7
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e65c88ef",
+        "filename": "midolman/src/test/java/org/midonet/midolman/rules/TestRules.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T14:36:09Z",
+      "side": 1,
+      "message": "What about the static rules? We\u0027ll lose coverage here.",
+      "range": {
+        "startLine": 358,
+        "startChar": 12,
+        "endLine": 358,
+        "endChar": 19
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e1b472d2",
+        "filename": "python-midonetclient/src/midonetclient/condition.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T14:36:09Z",
+      "side": 1,
+      "message": "length (the drawback of using neutron in mdts)",
+      "range": {
+        "startLine": 315,
+        "startChar": 22,
+        "endLine": 315,
+        "endChar": 29
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c1ca8e4f",
+        "filename": "python-midonetclient/src/midonetclient/condition.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T14:36:09Z",
+      "side": 1,
+      "message": "length",
+      "range": {
+        "startLine": 336,
+        "startChar": 22,
+        "endLine": 336,
+        "endChar": 29
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

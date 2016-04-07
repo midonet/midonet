@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_61aaa272",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/rules/ForwardNatRuleTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T14:36:09Z",
+      "side": 0,
+      "message": "Will we lose coverage here? If yes, we can make this an issue to fix later, to keep the patch small.",
+      "range": {
+        "startLine": 28,
+        "startChar": 6,
+        "endLine": 28,
+        "endChar": 24
+      },
+      "revId": "2ff80a0eb86f767eaf113d8d9b0da291826f3f37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
