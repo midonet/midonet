@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5bc78d12",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-07T08:55:53Z",
+      "side": 1,
+      "message": "True, I need to get used to it. I\u0027ll change it.",
+      "parentUuid": "baa041b7_1b358545",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 8
+      },
+      "revId": "cf4a1a22d485ff1bb2d2929c4a4e953d05aacd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3b1729a5",
         "filename": "python-midonetclient/package.sh",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-07T08:33:15Z",
       "side": 1,
       "message": "Any reason to have them embeded instead of static files?",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 32
+      },
+      "revId": "cf4a1a22d485ff1bb2d2929c4a4e953d05aacd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bb51f964",
+        "filename": "python-midonetclient/package.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-07T08:55:53Z",
+      "side": 1,
+      "message": "The content is quite brief and I think that this way you can see the interaction of the different hooks better. Also, since the files seem to be copied into the RPM/DEB scripts instead of being kept as \"real files\", the fact of having real files from the beginning could be mislead to think they are installed as normal files of the package.\n\nOn the other side is true that \"managing hooks\" could be different that \"hooks content\" and in separate files it would scales better in case of more changes, not polluting the package.sh file.\n\nI don\u0027t have a strong opinion on this. Maybe I like here-docs too much :)",
+      "parentUuid": "baa041b7_3b1729a5",
       "range": {
         "startLine": 68,
         "startChar": 0,
