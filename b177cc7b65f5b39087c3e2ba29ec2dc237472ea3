@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_46d33439",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/GatewayDeviceTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-07T11:06:02Z",
+      "side": 1,
+      "message": "Seems unrelated, but i can just submit a separate patch immediately after this.",
+      "parentUuid": "baa041b7_1b41050c",
+      "range": {
+        "startLine": 82,
+        "startChar": 7,
+        "endLine": 82,
+        "endChar": 11
+      },
+      "revId": "b177cc7b65f5b39087c3e2ba29ec2dc237472ea3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_7b69318b",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/L2GatewayConnectionTranslator.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-07T08:22:29Z",
       "side": 1,
       "message": "Could you reverse these, for consistency with the router case?",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 20
+      },
+      "revId": "b177cc7b65f5b39087c3e2ba29ec2dc237472ea3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c620644c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/L2GatewayConnectionTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-07T11:06:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_7b69318b",
       "range": {
         "startLine": 74,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a61d6011",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/L2GatewayConnectionTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-07T11:06:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_7b5251df",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 63
+      },
+      "revId": "b177cc7b65f5b39087c3e2ba29ec2dc237472ea3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_db203d4c",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/L2GatewayConnectionTranslatorIT.scala",
         "patchSetId": 6
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_861a5c16",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/L2GatewayConnectionTranslatorIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-07T11:06:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_db203d4c",
+      "range": {
+        "startLine": 178,
+        "startChar": 0,
+        "endLine": 179,
+        "endChar": 60
+      },
+      "revId": "b177cc7b65f5b39087c3e2ba29ec2dc237472ea3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5b042d7d",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/L2GatewayConnectionTranslatorIT.scala",
         "patchSetId": 6
@@ -105,6 +201,30 @@
       "writtenOn": "2016-04-07T08:23:27Z",
       "side": 1,
       "message": "This just checks that no exceptions are thrown. It will succeed regardless of whether the result is true or false.",
+      "range": {
+        "startLine": 199,
+        "startChar": 19,
+        "endLine": 199,
+        "endChar": 66
+      },
+      "revId": "b177cc7b65f5b39087c3e2ba29ec2dc237472ea3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_661758ee",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/L2GatewayConnectionTranslatorIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-07T11:06:02Z",
+      "side": 1,
+      "message": "As per discussion I\u0027ll remove this since this test does not do what it was meant to do, and there is really no easy way to test what I want to test.",
+      "parentUuid": "baa041b7_5b042d7d",
       "range": {
         "startLine": 199,
         "startChar": 19,
