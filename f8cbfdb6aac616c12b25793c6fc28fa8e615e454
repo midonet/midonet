@@ -22,6 +22,30 @@
       "revId": "f8cbfdb6aac616c12b25793c6fc28fa8e615e454",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c6e74411",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-07T11:14:51Z",
+      "side": 1,
+      "message": "So this is not entirely clear, that\u0027s why I added it. From the requirements I understand that it is desirable to limit the number of containers, but also to have the capability of container deterrence, where new limits would apply only to new containers leaving the current ones unaffected. I can show in person the requirements and we can discuss further.",
+      "parentUuid": "baa041b7_a66fa091",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 25
+      },
+      "revId": "f8cbfdb6aac616c12b25793c6fc28fa8e615e454",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
