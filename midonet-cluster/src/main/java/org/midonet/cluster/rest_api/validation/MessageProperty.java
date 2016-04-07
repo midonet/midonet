@@ -82,6 +82,8 @@ public class MessageProperty {
             "{midokura.javarx.NetworkSubnetNotFound.message}";
     public static final String NON_NULL =
             "{midokura.javarx.NonNull.message}";
+    public static final String ONLY_ROUTER_VTEP_SUPPORTED =
+        "{midokura.javarx.OnlyRouterVtepSupported.message}";
     public static final String POOL_MEMBER_WEIGHT_NEGATIVE =
             "{midokura.javarx.PoolMemberWeightNegative.message}";
     public static final String PORT_ID_IS_INVALID =
