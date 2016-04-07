@@ -17,7 +17,9 @@ cp python-midonetclient*.deb tests/sandbox/override_v2/cluster
 # the corresponding override, in this case the v2 override.
 sudo dpkg -i python-midonetclient*.deb
 
-# Install sandbox, pulled as submodule
+# Install sandbox, directly from repo (ignoring submodule)
+sudo rm -rf midonet-sandbox
+git clone --depth=1 https://github.com/midonet/midonet-sandbox.git
 pushd midonet-sandbox
 sudo python setup.py install
 popd
