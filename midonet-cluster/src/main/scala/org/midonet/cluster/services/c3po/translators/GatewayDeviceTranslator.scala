@@ -24,20 +24,20 @@ import org.midonet.cluster.models.Neutron.GatewayDevice
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.ROUTER_VTEP
 import org.midonet.cluster.models.Neutron.L2GatewayConnection
 import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.rest_api.validation.MessageProperty.ONLY_ROUTER_VTEP_SUPPROTED
 import org.midonet.cluster.services.c3po.C3POStorageManager.Update
 import org.midonet.util.concurrent.toFutureOps
 
 class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
                               protected val stateTableStorage: StateTableStorage)
     extends Translator[GatewayDevice] {
-    import GatewayDeviceTranslator._
     import L2GatewayConnectionTranslator._
 
     override protected def translateCreate(gwDev: GatewayDevice)
     : OperationList = {
         // Only router VTEPs are supported.
         if (gwDev.getType != ROUTER_VTEP)
-            throw new IllegalArgumentException(OnlyRouterVtepSupported)
+            throw new IllegalArgumentException(ONLY_ROUTER_VTEP_SUPPROTED)
 
         // Nothing to do other than pass the Neutron data through to ZK.
         List()
@@ -76,11 +76,5 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
             .map(updatePortWithTunnelIp)
             .toList
     }
-}
-
-object GatewayDeviceTranslator {
-    // TODO: Move to ValidationMessages.properties
-    protected[translators] val OnlyRouterVtepSupported =
-        "Only router_vtep gateway devices are supported."
 }
 
