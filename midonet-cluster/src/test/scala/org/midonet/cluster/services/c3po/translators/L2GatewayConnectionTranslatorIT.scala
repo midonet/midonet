@@ -33,7 +33,8 @@ import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
+class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
+    with ChainManager {
     /* Set up legacy Data Client for testing Replicated Map. */
     override protected val useLegacyDataClient = true
     import L2GatewayConnectionTranslator._
