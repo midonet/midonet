@@ -116,6 +116,8 @@ public class MessageProperty {
             "{midokura.javarx.TunnelZoneNotVtep.message}";
     public static final String UNIQUE_TUNNEL_ZONE_NAME_TYPE =
             "{midokura.javarx.TunnelZoneNameExists.message}";
+    public static final String ONLY_ONE_GW_DEV_SUPPORTED =
+            "{midokura.javarx.OnlyOneGatewayDeviceSupported.message}";
     public static final String ONLY_ROUTER_VTEP_SUPPROTED =
             "{midokura.javarx.OnlyRouterVtepSupported.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =
