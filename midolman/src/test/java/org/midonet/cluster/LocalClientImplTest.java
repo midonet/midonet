@@ -331,16 +331,36 @@ public class LocalClientImplTest {
         assertThat("Build is called", bridgeBuilder.getBuildCallsCount(),
                    equalTo(1));
 
-        // let's cause a bridge update
-        getBridgeZkManager().update(bridgeId,
-                                    new BridgeZkManager.BridgeConfig("test1",
-                                            getRandomChainId(),
-                                            getRandomChainId()));
+        // Update the bridge.
+        getBridgeZkManager().update(
+            bridgeId, new BridgeZkManager.BridgeConfig(
+                "test1", getRandomChainId(), getRandomChainId()));
 
         bridgeBuilder.awaitBuildCalls(2, 5, TimeUnit.SECONDS);
         assertThat("Bridge update was notified",
                    bridgeBuilder.getBuildCallsCount(), equalTo(2));
 
+        // Delete the bridge.
+        getBridgeZkManager().delete(bridgeId);
+
+        bridgeBuilder.awaitDeleteCalls(1, 5, TimeUnit.SECONDS);
+
+        // Re-create the bridge does not trigger further updates on this
+        // builder.
+        int buildCalls = bridgeBuilder.getBuildCallsCount();
+        BridgeZkManager.BridgeConfig bridgeConfig =
+            new BridgeZkManager.BridgeConfig("test", null, null);
+        bridgeConfig.id = bridgeId;
+        getBridgeZkManager().create(bridgeConfig);
+
+        assertThat("Build is called", bridgeBuilder.getBuildCallsCount(),
+                   equalTo(buildCalls));
+
+        // Delete the bridge does not trigger further updates on this builder.
+        getBridgeZkManager().delete(bridgeId);
+
+        assertThat("Delete is called", bridgeBuilder.getDeletedCallsCount(),
+                   equalTo(1));
     }
 
     @Test

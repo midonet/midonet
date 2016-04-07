@@ -94,6 +94,10 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             config = bridgeMgr.get(id, watchBridge(id, true));
         } catch (NoStatePathException e) {
             log.debug("Bridge {} has been deleted", id);
+            BridgeBuilder bldr = unregisterBuilder(id);
+            if (bldr != null) {
+                bldr.deleted();
+            }
         } catch (StateAccessException e) {
             log.warn("Cannot retrieve the configuration for bridge {} - {}", id, e);
             connectionWatcher.handleError(

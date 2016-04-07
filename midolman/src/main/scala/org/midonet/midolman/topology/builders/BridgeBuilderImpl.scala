@@ -24,11 +24,13 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import akka.actor.ActorRef
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
+
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.{VlanPortMap, BridgeBuilder, IpMacMap, MacLearningTable}
+import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable, VlanPortMap}
 import org.midonet.cluster.data.Bridge
+import org.midonet.midolman.topology.BridgeManager.TriggerDelete
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.topology.{BridgeConfig, BridgeManager}
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
@@ -169,7 +171,9 @@ class BridgeBuilderImpl(val id: UUID, val bridgeMgr: ActorRef) extends BridgeBui
          sendFlowInvalidation()
     }
 
-    override def deleted(): Unit = { }
+    override def deleted(): Unit = {
+        bridgeMgr ! TriggerDelete
+    }
 
     override def setExteriorPorts(ports: JList[UUID]) {
         exteriorPorts = asScalaBuffer(ports).toList

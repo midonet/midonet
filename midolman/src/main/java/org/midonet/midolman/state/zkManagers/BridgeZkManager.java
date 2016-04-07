@@ -406,9 +406,11 @@ public class BridgeZkManager
      */
     public UUID create(BridgeConfig bridge) throws StateAccessException,
             SerializationException {
-        UUID id = UUID.randomUUID();
-        zk.multi(prepareBridgeCreate(id, bridge));
-        return id;
+        if (bridge.id == null) {
+            bridge.id = UUID.randomUUID();
+        }
+        zk.multi(prepareBridgeCreate(bridge.id, bridge));
+        return bridge.id;
     }
 
     /**
