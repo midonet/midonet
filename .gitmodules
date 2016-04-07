@@ -1,6 +1,3 @@
 [submodule "tests/pipework"]
 	path = tests/pipework
 	url = https://github.com/midonet/pipework.git
-[submodule "midonet-sandbox"]
-	path = midonet-sandbox
-	url = https://github.com/midonet/midonet-sandbox.git
