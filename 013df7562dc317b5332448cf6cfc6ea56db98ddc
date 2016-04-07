@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a6c1e082",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/DatapathBoundContainerDelegate.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-07T10:22:59Z",
+      "side": 1,
+      "message": "No need to make it final. I can\u0027t think of any obvious reason why a derived class would want to override this, but I can\u0027t think of any reason to disallow it.",
+      "range": {
+        "startLine": 42,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 9
+      },
+      "revId": "013df7562dc317b5332448cf6cfc6ea56db98ddc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
