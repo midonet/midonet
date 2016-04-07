@@ -22,6 +22,29 @@
       "revId": "8402bfecdd98c1ab8fef6a9ebab95258e1b71dc2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_46a1f4a8",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-07T11:25:13Z",
+      "side": 1,
+      "message": "If you make \"\" the default, then you don\u0027t need to check for null.",
+      "range": {
+        "startLine": 62,
+        "startChar": 36,
+        "endLine": 62,
+        "endChar": 40
+      },
+      "revId": "8402bfecdd98c1ab8fef6a9ebab95258e1b71dc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
