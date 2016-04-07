@@ -23,7 +23,7 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.ROUTER_VTEP
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection, RemoteMacEntry}
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.rest_api.validation.MessageProperty.ONLY_ROUTER_VTEP_SUPPORTED
+import org.midonet.cluster.rest_api.validation.MessageProperty.{ONLY_ONE_GW_DEV_SUPPORTED, ONLY_ROUTER_VTEP_SUPPORTED}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
@@ -39,10 +39,12 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
 
     override protected def translateCreate(cnxn: L2GatewayConnection)
     : OperationList = {
-        val l2GwDevs = cnxn.getL2Gateway.getDevicesList
-        val gwDevIds = l2GwDevs.map(_.getDeviceId)
-        val gwDevs = storage.getAll(classOf[GatewayDevice], gwDevIds).await()
-        val gwDev = gwDevs.find(_.getType == ROUTER_VTEP).getOrElse {
+        if (cnxn.getL2Gateway.getDevicesCount != 1){
+            throw new IllegalArgumentException(ONLY_ONE_GW_DEV_SUPPORTED)
+        }
+        val gwDevId = cnxn.getL2Gateway.getDevices(0).getDeviceId
+        val gwDev = storage.get(classOf[GatewayDevice], gwDevId).await()
+        if (gwDev.getType != ROUTER_VTEP) {
             throw new IllegalArgumentException(ONLY_ROUTER_VTEP_SUPPORTED)
         }
 
