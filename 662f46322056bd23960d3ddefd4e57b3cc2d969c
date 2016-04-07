@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5b88ad22",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-07T07:53:18Z",
+      "side": 1,
+      "message": "Hi Brandon, the patch you are referring to is still not merged. Can we defer the function change to a separate patch?",
+      "parentUuid": "baa041b7_31186f84",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 5
+      },
+      "revId": "662f46322056bd23960d3ddefd4e57b3cc2d969c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_71add787",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslatorTest.scala",
         "patchSetId": 1
@@ -60,6 +84,30 @@
       "writtenOn": "2016-04-06T06:18:50Z",
       "side": 1,
       "message": "IMO, these mock translator tests are more trouble than they\u0027re worth. They take lots of boilerplate code to set up, they\u0027re extremely sensitive to changes in intermediate products that don\u0027t affect end-to-end functional behavior (thus requiring frequent modification), and they don\u0027t really test anything that the TranslatorITs don\u0027t cover again.\n\nI guess maybe they\u0027re good for testing error code paths, but that\u0027s about it.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 1
+      },
+      "revId": "662f46322056bd23960d3ddefd4e57b3cc2d969c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7b9c9169",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-07T07:53:18Z",
+      "side": 1,
+      "message": "sounds reasonable to me. Ive removed these files. We can add them back if we think they will pay off.",
+      "parentUuid": "baa041b7_71add787",
       "range": {
         "startLine": 26,
         "startChar": 0,
