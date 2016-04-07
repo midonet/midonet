@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_46d0d453",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-07T10:18:24Z",
+      "side": 1,
+      "message": "Oh. I thought it had been merged. Yeah, go ahead and leave it as is.",
+      "parentUuid": "baa041b7_5b88ad22",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 5
+      },
+      "revId": "662f46322056bd23960d3ddefd4e57b3cc2d969c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_71add787",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslatorTest.scala",
         "patchSetId": 1
