@@ -79,7 +79,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                 routerId = UUID.randomUUID(),
                 portSubnet = IPv4Subnet.fromCidr("192.168.80.0/24"),
                 portAddress = IPv4Addr.fromString("192.168.80.1"),
-                portMac = MAC.random())
+                portMac = MAC.random(),
+                isContainer = false)
 
         bgpd = new MockBgpdProcess
 
@@ -104,12 +105,42 @@ class RoutingHandlerTest extends FeatureSpecLike
         as.shutdown()
     }
 
+    feature ("handles container ports") {
+        scenario ("start bgpd for a container port") {
+            val ifaceName = "TESTING"
+
+            val containerRport = RouterPort(
+                id = UUID.randomUUID(),
+                tunnelKey = 1,
+                isActive = true,
+                interfaceName = ifaceName,
+                routerId = UUID.randomUUID(),
+                portSubnet = IPv4Subnet.fromCidr("192.168.80.0/24"),
+                portAddress = IPv4Addr.fromString("192.168.80.1"),
+                portMac = MAC.random(),
+                isContainer = true)
+
+            val rhActor = new TestableRoutingHandler(containerRport,
+                    invalidations ::= _,
+                    routingStorage,
+                    config,
+                    bgpd)
+
+            val containerRoutingHandler = TestActorRef(rhActor)
+            containerRoutingHandler ! containerRport
+            containerRoutingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
+            bgpd.iface should be (ifaceName)
+            rhActor.p should be (null)
+        }
+    }
+
     feature ("manages the bgpd lifecycle") {
         scenario("starts and stops bgpd") {
             routingHandler ! BgpPort(rport, baseConfig.copy(neighbors = Map.empty), Set.empty)
             bgpd.state should be (bgpd.NOT_STARTED)
 
             routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
+            bgpd.iface should be (null)
             bgpd.state should be (bgpd.RUNNING)
         }
 
@@ -349,6 +380,7 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
     override val vty = mock[BgpConnection]
 
     var state = NOT_STARTED
+    var iface: String = null
 
     var starts = 0
     private var died = false
@@ -357,10 +389,11 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
         died = true
     }
 
-    override def prepare(): Unit = {
+    override def prepare(ifaceName: String = null): Unit = {
         if (state != NOT_STARTED)
             throw new Exception(s"Illegal state: $state")
         state = PREPARED
+        iface = ifaceName
     }
 
     override def stop(): Boolean = {
@@ -390,8 +423,10 @@ class TestableRoutingHandler(rport: RouterPort,
             extends RoutingHandler(rport, 1, flowInvalidator, routingStorage,
                                    config, new MockZkConnWatcher()) {
 
+    var p: DpPort = null
+
     override def createDpPort(port: String): Future[(DpPort, Int)]  = {
-        val p = DpPort.fakeFrom(new NetDevPort("bgpd"), 27).asInstanceOf[NetDevPort]
+        p = DpPort.fakeFrom(new NetDevPort("bgpd"), 27).asInstanceOf[NetDevPort]
         Future.successful((p, 27))
     }
 

@@ -74,12 +74,19 @@ bgpd_prepare() {
     ip netns add $namespace
 
     echo "Preparing bgpd veth pair"
-    ip link add name $netdev_port_name type veth peer name $netdev_port_mirror_name
-    ip link set $netdev_port_mirror_name netns $namespace
-    ip netns exec $namespace ip link set dev $netdev_port_mirror_name up address $router_mac
-    ip netns exec $namespace ip address add $router_ip dev $netdev_port_mirror_name
+    if [ -v iface_name ]; then
+        namespace_link=n$iface_name
+    else
+        namespace_link=$netdev_port_mirror_name
+        datapath_link=$netdev_port_name
+        ip link add name $datapath_link type veth peer name $namespace_link
+        ip link set dev $datapath_link up
+    fi
+
+    ip link set $namespace_link netns $namespace
+    ip netns exec $namespace ip link set dev $namespace_link up address $router_mac
+    ip netns exec $namespace ip address add $router_ip dev $namespace_link
     ip netns exec $namespace ip link set dev lo up
-    ip link set dev $netdev_port_name up
 
     echo "Preparing vty veth pair"
     ip link add name $vty_port_name type veth peer name $vty_port_mirror_name
@@ -180,6 +187,7 @@ case "$1" in
         remote_vty_ip=$4
         router_ip=$5
         router_mac=$6
+        iface_name=$7
 
         if [ -z "$remote_vty_ip" ] || [ -z "$local_vty_ip" ] ; then
             usage
