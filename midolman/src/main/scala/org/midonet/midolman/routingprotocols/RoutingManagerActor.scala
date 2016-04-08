@@ -53,6 +53,7 @@ object RoutingManagerActor extends Referenceable {
 
     case class ShowBgp(port : UUID, cmd : String)
     case class BgpStatus(status : Array[String])
+    case class BgpContainerReady(portId: UUID)
 
     private[routingprotocols] trait RoutingStorage {
         def setStatus(portId: UUID, status: String): Future[UUID]
@@ -131,20 +132,24 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     @Inject
     var upcallConnManager: UpcallDatapathConnectionManager = null
 
+    private def sendPortActive(portId: UUID) = {
+        log.debug("Port {} became active", portId)
+        if (!activePorts.contains(portId)) {
+            // Subscribe to BGP port updates and add the subscription to
+            // the active ports.
+            activePorts += portId ->
+                VirtualTopology.observable[BgpPort](portId)
+                    .subscribe(this)
+        }
+        portHandlers get portId match {
+            case Some(routingHandler) => routingHandler ! PortActive(true)
+            case None =>
+        }
+    }
+
     override def receive = {
-        case LocalPortActive(portId, true) =>
-            log.debug("Port {} became active", portId)
-            if (!activePorts.contains(portId)) {
-                // Subscribe to BGP port updates and add the subscription to
-                // the active ports.
-                activePorts += portId ->
-                               VirtualTopology.observable[BgpPort](portId)
-                                              .subscribe(this)
-            }
-            portHandlers get portId match {
-                case Some(routingHandler) => routingHandler ! PortActive(true)
-                case None =>
-            }
+        case BgpContainerReady(portId) => sendPortActive(portId)
+        case LocalPortActive(portId, true) => sendPortActive(portId)
 
         case LocalPortActive(portId, false) =>
             log.debug("Port {} became inactive", portId)
