@@ -226,6 +226,26 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
         eventually(validateFirewall(fwId, List(rule1Id)))
     }
 
+    it should "handle firewall rule update with router associated" in {
+        val rtrId = createRouter(2)
+        val rule1Id = UUID.randomUUID()
+        val rule1json = firewallRuleJson(rule1Id)
+        val fwId = createFirewall(3, firewallRuleList=List(rule1json),
+                                  addRouterIds = List(rtrId))
+        eventually(validateFirewall(fwId, ruleIds = List(rule1Id),
+                                    addRtrIds = List(rtrId)))
+
+        val rule2Id = UUID.randomUUID()
+        var rule2json = firewallRuleJson(rule2Id, position = 2)
+        val fwjson = firewallUpdateJson(fwId,
+                                        firewallRuleList=List(rule1json,
+                                                              rule2json),
+                                        addRouterIds = List(rtrId))
+        insertUpdateTask(4, FirewallType, fwjson, fwId)
+        eventually(validateFirewall(fwId, ruleIds = List(rule1Id, rule2Id),
+                                    addRtrIds = List(rtrId)))
+    }
+
     it should "handle firewall update without create" in {
         val rule1Id = UUID.randomUUID()
         val rule1json = firewallRuleJson(rule1Id)
@@ -264,6 +284,89 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         insertDeleteTask(4, FirewallType, fwId)
         eventually(validateFirewallNotExist(fwId, routerIds = List(rtr1Id)))
+    }
+
+    it should "delete legacy jump rules on create" in {
+
+        val rtrId = UUID.randomUUID()
+        val (inJumpRule, outJumpRule) = legacyJumpRules(rtrId)
+        eventually(validateLegacyRules(inJumpRule.getId, outJumpRule.getId,
+                                       exists=true))
+        createRouter(2, rtrId)
+
+        val ruleId = UUID.randomUUID()
+        val rulejson = firewallRuleJson(ruleId)
+
+        val fwId = UUID.randomUUID()
+        val fwjson = firewallJson(fwId, firewallRuleList=List(rulejson),
+                                  addRouterIds = List(rtrId))
+        insertCreateTask(3, FirewallType, fwjson, fwId)
+        eventually(validateFirewall(fwId, List(ruleId),
+                                    addRtrIds = List(rtrId)))
+
+        eventually(validateLegacyRules(inJumpRule.getId, outJumpRule.getId,
+                                       exists=false))
+    }
+
+    it should "delete legacy jump rules on update" in {
+
+        val rtrId = UUID.randomUUID()
+        createRouter(2, rtrId)
+
+        val ruleId = UUID.randomUUID()
+        val rulejson = firewallRuleJson(ruleId)
+
+        val fwId = UUID.randomUUID()
+        val fwjson = firewallJson(fwId, firewallRuleList=List(rulejson),
+                                  addRouterIds = List(rtrId))
+        insertCreateTask(3, FirewallType, fwjson, fwId)
+        eventually(validateFirewall(fwId, List(ruleId),
+                                    addRtrIds = List(rtrId)))
+
+        val (inJumpRule, outJumpRule) = legacyJumpRules(rtrId)
+        eventually(validateLegacyRules(inJumpRule.getId, outJumpRule.getId,
+                                       exists=true))
+
+        val fw2json = firewallUpdateJson(fwId, firewallRuleList=List(rulejson),
+                                         addRouterIds = List(rtrId))
+        insertUpdateTask(4, FirewallType, fw2json, fwId)
+        eventually(validateFirewall(fwId, List(ruleId),
+                                    addRtrIds = List(rtrId)))
+
+        eventually(validateLegacyRules(inJumpRule.getId, outJumpRule.getId,
+                                       exists=false))
+    }
+
+    private def validateLegacyRules(inRuleId: Commons.UUID,
+                                    outRuleId: Commons.UUID,
+                                    exists: Boolean): Unit = {
+        storage.exists(classOf[Rule], inRuleId).await() shouldBe exists
+        storage.exists(classOf[Rule], outRuleId).await() shouldBe exists
+    }
+
+    private def legacyJumpRules(rtrId: UUID): (Rule, Rule) = {
+
+        // Since it's difficult to set up the legacy topology, fake the chain
+        // and just create the jump rules.  These rules should be enough to
+        // test the cases where they need to be removed.
+        val fakeChainId = UUIDUtil.randomUuidProto
+        val fakeChain = Chain.newBuilder()
+                        .setId(fakeChainId).build
+        val inJumpRuleId = inChainFwJumpRuleId(UUIDUtil.toProto(rtrId))
+        val inJumpRule = Rule.newBuilder()
+                         .setId(inJumpRuleId)
+                         .setChainId(fakeChainId)
+                         .build
+        val outJumpRuleId = outChainFwJumpRuleId(UUIDUtil.toProto(rtrId))
+        val outJumpRule = Rule.newBuilder()
+                          .setId(outJumpRuleId)
+                          .setChainId(fakeChainId)
+                          .build
+        storage.create(fakeChain)
+        storage.create(inJumpRule)
+        storage.create(outJumpRule)
+
+        (inJumpRule, outJumpRule)
     }
 
     private def validateFirewallNotExist(fwId: UUID,
