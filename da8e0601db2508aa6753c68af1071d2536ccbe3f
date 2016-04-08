@@ -117,6 +117,30 @@
       "revId": "da8e0601db2508aa6753c68af1071d2536ccbe3f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bc4b2c59",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-08T08:41:39Z",
+      "side": 1,
+      "message": "Yes, I agree - removing the BGP config should be detected - but now the BGP config is per router not per port. Do you intend to change that?",
+      "parentUuid": "baa041b7_3c571c04",
+      "range": {
+        "startLine": 153,
+        "startChar": 8,
+        "endLine": 153,
+        "endChar": 64
+      },
+      "revId": "da8e0601db2508aa6753c68af1071d2536ccbe3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
