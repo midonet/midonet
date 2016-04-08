@@ -130,7 +130,11 @@ class Service(object):
             test_log += "%s - %s\n" % (self.get_service_name(), self.get_name())
             test_log += "%s\n" % logfile
             test_log += "-----------------------\n"
-            test_log += self.exec_command('cat %s' % logfile)
+            try:
+                test_log += self.exec_command('cat %s' % logfile)
+            except Exception as e:
+                test_log += e.message
+
             test_logs[logfile] = test_log
         return test_logs
 
@@ -312,12 +316,12 @@ def get_container_by_hostname(container_hostname):
     raise RuntimeError('Container %s not found or loaded' % container_hostname)
 
 # FIXME: this factory is not the best option
-def get_all_containers(container_type=None):
+def get_all_containers(container_type=None, include_failed=False):
     global loaded_containers
 
     # Load and cache all containers
     if not loaded_containers:
-        running_containers = cli.containers()
+        running_containers = cli.containers(all=include_failed)
         loaded_containers = {}
         for container in running_containers:
             if 'type' in container['Labels']:
