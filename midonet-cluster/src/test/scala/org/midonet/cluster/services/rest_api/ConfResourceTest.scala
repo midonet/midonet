@@ -50,6 +50,7 @@ class ConfResourceTest extends FeatureSpec
         s"""
            |cluster.rest_api.enabled : true
            |cluster.rest_api.http_port : $httpPort
+           |cluster.rest_api.https_port : 0
         """.stripMargin
 
     before {
