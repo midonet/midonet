@@ -1,0 +1,164 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_39128e63",
+        "filename": "tools/data_migration/README.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T08:26:18Z",
+      "side": 1,
+      "message": "midonet",
+      "range": {
+        "startLine": 29,
+        "startChar": 33,
+        "endLine": 29,
+        "endChar": 39
+      },
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d9096233",
+        "filename": "tools/data_migration/README.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T08:26:18Z",
+      "side": 1,
+      "message": "midonetclient",
+      "range": {
+        "startLine": 51,
+        "startChar": 11,
+        "endLine": 51,
+        "endChar": 21
+      },
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1c0e9834",
+        "filename": "tools/data_migration/README.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T08:26:18Z",
+      "side": 1,
+      "message": "who\u0027s responsible to change the plugin?",
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fc13f45a",
+        "filename": "tools/data_migration/setup.cfg",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T08:26:18Z",
+      "side": 1,
+      "message": "duplicated 2.7 lines",
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7c26c4bb",
+        "filename": "tools/data_migration/tox.ini",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T08:26:18Z",
+      "side": 1,
+      "message": "do you need py26?",
+      "range": {
+        "startLine": 2,
+        "startChar": 10,
+        "endLine": 2,
+        "endChar": 14
+      },
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9c1aa86d",
+        "filename": "tools/data_migration/tox.ini",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T08:26:18Z",
+      "side": 1,
+      "message": "do you need this?",
+      "range": {
+        "startLine": 10,
+        "startChar": 9,
+        "endLine": 10,
+        "endChar": 25
+      },
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bc1d6c68",
+        "filename": "tools/data_migration/tox.ini",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T08:26:18Z",
+      "side": 1,
+      "message": "who uses bash?",
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dc103051",
+        "filename": "tools/data_migration/tox.ini",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T08:26:18Z",
+      "side": 1,
+      "message": "the use of builtin _ is not recommended in openstack camp these days.",
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
