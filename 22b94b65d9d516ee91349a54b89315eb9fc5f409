@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_39416e0c",
+        "filename": "tools/data_migration/tox.ini",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T03:24:25Z",
+      "side": 1,
+      "message": "Do we need to ignore all these?\n\nWhy don\u0027t we start off the same as Neutron:\n\nignore \u003d E125,E126,E128,E129,E265,H404,H405",
+      "revId": "22b94b65d9d516ee91349a54b89315eb9fc5f409",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
