@@ -204,16 +204,6 @@ task rhel7Prepare(type: Copy, dependsOn: installShadowApp) {
     into "${pkgDestDir}"
 }
 
-task rhel6Prepare(type: Copy, dependsOn: installShadowApp) {
-    from("src/rhel6/init.d/midolman") {
-        into "etc/init.d"
-    }
-    from("src/rhel6/init/midolman.conf") {
-        into "etc/init"
-    }
-    into "${pkgDestDir}"
-}
-
 packaging {
     version = project.debVersion
     maintainer = project.maintainer
@@ -263,8 +253,7 @@ rpm.doFirst {
     project.packaging.fpmOpts.addAll([
         '-d', 'python',
         '-d', 'quagga >= 0.99.23',
-        '-d', 'iproute',
-        '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
+        '-d', 'iproute'])
     if (project.rhelTarget == "el7") {
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
