@@ -141,6 +141,30 @@
       "revId": "da8e0601db2508aa6753c68af1071d2536ccbe3f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3ca5dc03",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-08T08:52:04Z",
+      "side": 1,
+      "message": "This patch is currently assuming that a new port is created on the router just for the quagga namespace, so not an interior port.\n\nThe translators will put this BGP config on this newly created port, and that is the portId we will be sending in this new message. When the config is removed (by the translators), the routing handler should remove the namespace. When a fail over happens, the new host should then send this BgpContainerReady msg to the RoutingManagerActor on the new host.\n\nWith this approach, I am assuming that as long as the port is bound (done by the container service) and the port has a BGP config (done by the translators) the RoutingManagerActor and the RoutingHandler will handle all the rest.",
+      "parentUuid": "baa041b7_bc4b2c59",
+      "range": {
+        "startLine": 153,
+        "startChar": 8,
+        "endLine": 153,
+        "endChar": 64
+      },
+      "revId": "da8e0601db2508aa6753c68af1071d2536ccbe3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
