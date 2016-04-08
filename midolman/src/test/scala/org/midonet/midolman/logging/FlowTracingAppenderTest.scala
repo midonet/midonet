@@ -26,9 +26,9 @@ import scala.concurrent.duration._
 import org.scalatest.junit.JUnitRunner
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
+import org.scalatest.time.{Millis, Seconds, Span}
 
 import org.slf4j.LoggerFactory
-import ch.qos.logback.classic.Logger
 
 import com.datastax.driver.core.PreparedStatement
 import com.datastax.driver.core.utils.UUIDs
@@ -56,6 +56,8 @@ class FlowTracingAppenderTest extends FeatureSpec
     var countStatement: PreparedStatement = _
     var getFlowsStatement: PreparedStatement = _
     var getDataStatement: PreparedStatement = _
+    implicit val patienceConfig = PatienceConfig(Span(5, Seconds),
+                                                 Span(100, Millis))
 
     before {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
