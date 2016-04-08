@@ -89,7 +89,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             return;
         }
 
-        RouterZkManager.RouterConfig config = null;
+        RouterZkManager.RouterConfig config;
         ArpTable arpTable = null;
         ReplicatedRouteSet routeSet = null;
 
@@ -118,6 +118,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             if (routeSet != null) {
                 routeSet.stop();
             }
+            return;
         } catch (StateAccessException e) {
             if (routeSet != null)
                 mapRouterIdToRoutes.remove(id);

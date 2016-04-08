@@ -75,7 +75,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             return;
         }
 
-        BridgeZkManager.BridgeConfig config = null;
+        BridgeZkManager.BridgeConfig config;
         try {
             // we don't need to get the macPortMap again if it's an
             // update nor to create the logical port table.
@@ -98,6 +98,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             if (bldr != null) {
                 bldr.deleted();
             }
+            return;
         } catch (StateAccessException e) {
             log.warn("Cannot retrieve the configuration for bridge {} - {}", id, e);
             connectionWatcher.handleError(

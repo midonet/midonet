@@ -34,6 +34,7 @@ import org.midonet.cluster.client.LoadBalancerBuilder;
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
@@ -72,7 +73,7 @@ public class ClusterLoadBalancerManager
             return;
         }
 
-        LoadBalancerZkManager.LoadBalancerConfig lbCfg = null;
+        LoadBalancerZkManager.LoadBalancerConfig lbCfg;
 
         try {
             if (!isUpdate) {
@@ -85,6 +86,16 @@ public class ClusterLoadBalancerManager
             }
             lbCfg = loadBalancerZkMgr.get(loadBalancerId,
                     watchLoadBalancer(loadBalancerId, true));
+        } catch (NoStatePathException e) {
+            log.debug("Load balancer {} has been deleted", loadBalancerId);
+            LoadBalancerBuilder bldr = unregisterBuilder(loadBalancerId);
+            if (bldr != null) {
+                bldr.deleted();
+            }
+            loadBalancerIdToVipMap.remove(loadBalancerId);
+            loadBalancerToVipIds.remove(loadBalancerId);
+            loadBalancerToMissingVipIds.removeAll(loadBalancerId);
+            return;
         } catch (StateAccessException e) {
             log.warn("Cannot retrieve the configuration for loadBalancer {}",
                     loadBalancerId, e);
@@ -160,7 +171,7 @@ public class ClusterLoadBalancerManager
             Set<UUID> oldVipIds = vipMap.keySet();
 
             // Copy current VIPs
-            Set<UUID> vipsToRequest = new HashSet<UUID>(curVipIds);
+            Set<UUID> vipsToRequest = new HashSet<>(curVipIds);
 
             // If the new set tells us a vip disappeared,
             // remove it from the LoadBalancer's vip id -> vip info map
@@ -176,7 +187,9 @@ public class ClusterLoadBalancerManager
             // ready to call the LoadBalancerBuilder
             if (vipsToRequest.isEmpty()) {
                 LoadBalancerBuilder builder = getBuilder(loadBalancerId);
-                builder.setVips(vipMap);
+                if (builder != null) {
+                    builder.setVips(vipMap);
+                }
                 return;
             }
 
@@ -234,16 +247,20 @@ public class ClusterLoadBalancerManager
                 loadBalancerToMissingVipIds.get(vip.getLoadBalancerId());
             Set<UUID> vipIds = loadBalancerToVipIds.get(vip.getLoadBalancerId());
             // Does the LoadBalancer still care about this vip?
-            if (vipIds == null || !vipIds.contains(vipId))
+            if (vipIds == null || missingVipIds == null || !vipIds.contains(vipId))
                 return;
             missingVipIds.remove(vipId);
             Map<UUID, VIP> vipMap = loadBalancerIdToVipMap.get(vip.getLoadBalancerId());
+            if (vipMap == null)
+                return;
 
             vipMap.put(vipId, vip);
 
             if (missingVipIds.size() == 0) {
                 LoadBalancerBuilder builder = getBuilder(vip.getLoadBalancerId());
-                builder.setVips(vipMap);
+                if (builder != null) {
+                    builder.setVips(vipMap);
+                }
             }
         }
 

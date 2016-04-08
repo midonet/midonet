@@ -15,23 +15,26 @@
  */
 package org.midonet.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
-import collection.JavaConverters._
 import java.util.{Map => JMap, UUID}
+
+import scala.collection.JavaConverters._
+
+import akka.actor.{Actor, ActorRef}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.LoadBalancerBuilder
 import org.midonet.cluster.data.l4lb.VIP
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation
 import org.midonet.midolman.simulation.LoadBalancer
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig
+import org.midonet.midolman.topology.VirtualTopologyActor.{DeleteDevice, InvalidateFlowsByTag}
 import org.midonet.packets.IPv4Addr
 
 object LoadBalancerManager {
     case class TriggerUpdate(cfg: LoadBalancerConfig, vips: Set[VIP])
+    case object TriggerDelete
 
     private def toSimulationVip(dataVip: VIP): simulation.VIP =
         new simulation.VIP(
@@ -48,6 +51,7 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
     with ActorLogWithoutPath {
 
     import LoadBalancerManager._
+
     import context.system
 
     override def preStart() {
@@ -61,7 +65,7 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     override def receive = {
-        case TriggerUpdate(cfg, vips) => {
+        case TriggerUpdate(cfg, vips) =>
             // Send the VirtualTopologyActor an updated loadbalancer.
             log.debug("Update triggered for loadBalancer ID {}", id)
 
@@ -71,7 +75,9 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
 
             publishUpdate(new LoadBalancer(id, cfg.adminStateUp,
                                            cfg.routerId, simulationVips))
-        }
+
+        case TriggerDelete =>
+            VirtualTopologyActor ! DeleteDevice(id)
     }
 
     class LoadBalancerBuilderImpl(val loadBalancerMgr: ActorRef)
@@ -103,7 +109,9 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
             }
         }
 
-        override def deleted(): Unit = { }
+        override def deleted(): Unit = {
+            loadBalancerMgr ! TriggerDelete
+        }
 
     }
 

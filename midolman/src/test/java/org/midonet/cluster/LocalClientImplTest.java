@@ -45,12 +45,14 @@ import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.ChainBuilder;
 import org.midonet.cluster.client.IPAddrGroupBuilder;
 import org.midonet.cluster.client.IpMacMap;
+import org.midonet.cluster.client.LoadBalancerBuilder;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.VlanPortMap;
 import org.midonet.cluster.data.PortGroup;
+import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
@@ -66,17 +68,21 @@ import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
+import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
+import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.topology.devices.Port;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
@@ -124,6 +130,13 @@ public class LocalClientImplTest {
 
     IpAddrGroupZkManager getIpAddrGroupZkManager() {
         return injector.getInstance(IpAddrGroupZkManager.class);
+    }
+
+    LoadBalancerZkManager getLoadBalancerZkManager() {
+        return injector.getInstance(LoadBalancerZkManager.class);
+    }
+    VipZkManager getVipZkManager() {
+        return injector.getInstance(VipZkManager.class);
     }
 
     PortGroupZkManager getPortGroupZkManager() {
@@ -555,6 +568,97 @@ public class LocalClientImplTest {
     }
 
     @Test
+    public void getLoadBalancerTest()
+            throws StateAccessException, InterruptedException, KeeperException,
+                   SerializationException, InvalidStateOperationException {
+
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
+
+        UUID routerId = UUID.randomUUID();
+        UUID loadBalancerId = UUID.randomUUID();
+        LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
+            new LoadBalancerZkManager.LoadBalancerConfig(routerId, false);
+
+        getLoadBalancerZkManager().create(loadBalancerId, loadBalancerConfig);
+
+        TestLoadBalancerBuilder loadBalancerBuilder = new TestLoadBalancerBuilder();
+        client.getLoadBalancer(loadBalancerId, loadBalancerBuilder);
+
+        loadBalancerBuilder.awaitBuildCalls(4, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", loadBalancerBuilder.getBuildCallsCount(),
+                   equalTo(4));
+        assertThat(loadBalancerBuilder.adminStateUp, equalTo(false));
+        assertThat(loadBalancerBuilder.routerId, equalTo(routerId));
+        assertThat(loadBalancerBuilder.vips.size(), equalTo(0));
+
+        // Update the admin state.
+        loadBalancerConfig.adminStateUp = true;
+        getLoadBalancerZkManager().update(loadBalancerId, loadBalancerConfig);
+
+        loadBalancerBuilder.awaitBuildCalls(7, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", loadBalancerBuilder.getBuildCallsCount(),
+                   equalTo(7));
+        assertThat(loadBalancerBuilder.adminStateUp, equalTo(true));
+
+        // Add a VIP.
+        UUID vipId = UUID.randomUUID();
+        VipZkManager.VipConfig vipConfig = new VipZkManager.VipConfig(
+            loadBalancerId, null, "1.2.3.4", 1000,
+            VipSessionPersistence.SOURCE_IP, true);
+        zkDir().multi(getVipZkManager()
+                          .prepareCreate(vipId, vipConfig));
+        zkDir().multi(getLoadBalancerZkManager()
+                          .prepareAddVip(loadBalancerId, vipId));
+
+        loadBalancerBuilder.awaitBuildCalls(8, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", loadBalancerBuilder.getBuildCallsCount(),
+                   equalTo(8));
+        assertThat(loadBalancerBuilder.vips.size(), equalTo(1));
+        assertThat(loadBalancerBuilder.vips.get(vipId).getAddress(),
+                   equalTo("1.2.3.4"));
+
+        // Update a VIP.
+        vipConfig.address = "5.6.7.8";
+        zkDir().multi(getVipZkManager().prepareUpdate(vipId, vipConfig));
+
+        loadBalancerBuilder.awaitBuildCalls(9, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", loadBalancerBuilder.getBuildCallsCount(),
+                   equalTo(9));
+        assertThat(loadBalancerBuilder.vips.size(), equalTo(1));
+        assertThat(loadBalancerBuilder.vips.get(vipId).getAddress(),
+                   equalTo("5.6.7.8"));
+
+        // Remove a VIP.
+        zkDir().multi(getLoadBalancerZkManager()
+                          .prepareRemoveVip(loadBalancerId, vipId));
+
+        loadBalancerBuilder.awaitBuildCalls(10, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", loadBalancerBuilder.getBuildCallsCount(),
+                   equalTo(10));
+        assertThat(loadBalancerBuilder.vips.size(), equalTo(0));
+
+        // Delete the load balancer.
+        zkDir().multi(getLoadBalancerZkManager().prepareDelete(loadBalancerId));
+
+        loadBalancerBuilder.awaitDeleteCalls(1, 5, TimeUnit.SECONDS);
+
+        // Re-create the load balancer does not trigger further updates on this
+        // builder.
+        int buildCalls = loadBalancerBuilder.getBuildCallsCount();
+        getLoadBalancerZkManager().create(loadBalancerId, loadBalancerConfig);
+
+        assertThat("Build is called", loadBalancerBuilder.getBuildCallsCount(),
+                   equalTo(buildCalls));
+
+        // Delete the load balancer does not trigger further updates on this
+        // builder.
+        zkDir().multi(getLoadBalancerZkManager().prepareDelete(loadBalancerId));
+
+        assertThat("Delete is called", loadBalancerBuilder.getDeletedCallsCount(),
+                   equalTo(1));
+    }
+
+    @Test
     public void arpCacheTest() throws InterruptedException, KeeperException,
             StateAccessException, SerializationException {
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
@@ -799,6 +903,43 @@ public class LocalClientImplTest {
         public void deleted() {
             incrementDelete();
         }
+    }
+
+    static class TestLoadBalancerBuilder extends AwaitableBuilder
+        implements LoadBalancerBuilder {
+
+        Boolean adminStateUp;
+        UUID routerId;
+        Map<UUID, VIP> vips;
+
+        @Override
+        public void setAdminStateUp(boolean adminStateUp) {
+            this.adminStateUp = adminStateUp;
+            incrementBuild();
+        }
+
+        @Override
+        public void setRouterId(UUID routerId) {
+            this.routerId = routerId;
+            incrementBuild();
+        }
+
+        @Override
+        public void setVips(Map<UUID, VIP> vips) {
+            this.vips = vips;
+            incrementBuild();
+        }
+
+        @Override
+        public void build() {
+            incrementBuild();
+        }
+
+        @Override
+        public void deleted() {
+            incrementDelete();
+        }
+
     }
 
     // hint could modify this class so we can get the map from it.
