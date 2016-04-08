@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_99e4fa3b",
+        "filename": "tools/data_migration/data_migration/migration_funcs.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-08T03:15:41Z",
+      "side": 1,
+      "message": "From earlier review (From Ryu):\n\nMight be cleaner to do it as follows:\nimport abc\nimport six\n@six.add_metaclass(abc.ABCMeta)\nclass Commands(object):\n   # implement common methods\nclass UbuntuCommands(Commands):\n   # implement ubuntu specific ones\nclass CentosCommands(Commands):\n   # implement centos specific ones\nclass UnsupportedDistroError(Exception):\ndef get_commands():\n  distro \u003d platform.linux_distribution()[0]\n  if distro \u003d\u003d \u0027ubuntu\u0027:\n      return new UbuntuCommands()\n  elif distro \u003d\u003d \u0027centos\u0027:\n      return new CentosCommands()\n  else\n      raise UnsupportedDistroError(\"Only ubuntu and centos supported\")",
+      "range": {
+        "startLine": 170,
+        "startChar": 8,
+        "endLine": 172,
+        "endChar": 35
+      },
+      "revId": "af319101cb154de42fd0ea8ee14098d064c7834a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
