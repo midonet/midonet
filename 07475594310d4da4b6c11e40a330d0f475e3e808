@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_19b90aea",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 15
+      },
+      "lineNbr": 989,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-08T05:05:52Z",
+      "side": 1,
+      "message": "This isn\u0027t exactly what we do. Rather, we take the first gateway device of either supported type. There could be two gateway devices, with the first having an unsupported type and the second having a supported type, and we\u0027d silently ignore the first.\n\nIt probably doesn\u0027t matter in practice, though.",
+      "range": {
+        "startLine": 987,
+        "startChar": 0,
+        "endLine": 989,
+        "endChar": 24
+      },
+      "revId": "07475594310d4da4b6c11e40a330d0f475e3e808",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_59bf92d0",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 15
+      },
+      "lineNbr": 992,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-08T05:05:52Z",
+      "side": 1,
+      "message": "are",
+      "range": {
+        "startLine": 992,
+        "startChar": 6,
+        "endLine": 992,
+        "endChar": 8
+      },
+      "revId": "07475594310d4da4b6c11e40a330d0f475e3e808",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
