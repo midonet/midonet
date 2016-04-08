@@ -70,6 +70,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f968a6bc",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-08T02:48:36Z",
+      "side": 1,
+      "message": "yes.  This is the main entry point for the migration process.",
+      "parentUuid": "baa041b7_d93e02b8",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b91d7e68",
         "filename": "tools/data_migration/upgrade_from_neutron.py",
         "patchSetId": 5
@@ -132,6 +150,24 @@
       "writtenOn": "2016-04-08T02:28:23Z",
       "side": 1,
       "message": "curious - are these supposed to be in a configuration file?  Which file is that?",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_995f5a0e",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-08T02:48:36Z",
+      "side": 1,
+      "message": "As near as I can tell, this is how we set up the command line options parser.  I used neutron client, midonet-db-manage as exemplars.",
+      "parentUuid": "baa041b7_99487a5d",
       "revId": "b223b68035ba244483c1373061c467aa5c51e412",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
