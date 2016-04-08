@@ -93,6 +93,30 @@
       "revId": "da8e0601db2508aa6753c68af1071d2536ccbe3f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3c571c04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-08T08:40:19Z",
+      "side": 1,
+      "message": "The BgpPortMapper should complete when the interior router port is deleted and notify the RouterHandler, but I guess that when you disable BGP on an interior port (or migrate the container to a different host) you either delete the container/container port or you change its binding. That information will only come from the container service (unless you want to implement all that logic - watching the container port binding - into the RoutingHandler as well)\n\nOn the other hand, this won\u0027t clean the activePorts or the portHandlers maps in the RoutingManagerActor (unless you send a message back from the RoutingHandler)",
+      "parentUuid": "baa041b7_9974fafd",
+      "range": {
+        "startLine": 153,
+        "startChar": 8,
+        "endLine": 153,
+        "endChar": 64
+      },
+      "revId": "da8e0601db2508aa6753c68af1071d2536ccbe3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
