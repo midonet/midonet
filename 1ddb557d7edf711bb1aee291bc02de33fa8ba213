@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b9621ed7",
+        "filename": "tools/data_migration/package_rollback.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:41:14Z",
+      "side": 1,
+      "message": "Is this meant to be called directly?  If so, how about defining main method?",
+      "revId": "1ddb557d7edf711bb1aee291bc02de33fa8ba213",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_59a0b2f4",
+        "filename": "tools/data_migration/package_update.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:41:14Z",
+      "side": 1,
+      "message": "Should we make this configurable?  Will there be other variables that may depend on the environment in which you run this?  In the other patch, it looked like you were parsing a config file.",
+      "revId": "1ddb557d7edf711bb1aee291bc02de33fa8ba213",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_39a5ee03",
+        "filename": "tools/data_migration/package_update_compute.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:41:14Z",
+      "side": 1,
+      "message": "maybe it\u0027s cleaner to do:\n\nfrom data_migration import migration_funcs as mf\n\nmf.update_repos()\nmf.install_packages()\nmf.restart_service()",
+      "revId": "1ddb557d7edf711bb1aee291bc02de33fa8ba213",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f9af86e1",
+        "filename": "tools/data_migration/zk_rollback.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:41:14Z",
+      "side": 1,
+      "message": "I think it\u0027s better to just import migration_defs and migration_funcs",
+      "revId": "1ddb557d7edf711bb1aee291bc02de33fa8ba213",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
