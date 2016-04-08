@@ -41,10 +41,10 @@ popd
 
 # We assume all gates/nightlies put the necessary packages in $WORKSPACE
 # so we know where to find them.
-mkdir -p tests/sandbox/override_v1/packages
-cp midolman*.deb tests/sandbox/override_v1/packages
-cp midonet-api*.deb tests/sandbox/override_v1/packages
-cp python-midonetclient*.deb tests/sandbox/override_v1/packages
+mkdir -p tests/$OVERRIDE/packages
+cp midolman*.deb tests/$OVERRIDE/packages
+cp midonet-api*.deb tests/$OVERRIDE/packages
+cp python-midonetclient*.deb tests/$OVERRIDE/packages
 
 # Necessary software in the host, we assume packages are already present on
 # the corresponding override, in this case the v1 override.
