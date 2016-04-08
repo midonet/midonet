@@ -85,7 +85,9 @@ class NeutronApiTest extends FeatureSpec
         classOf[L2GatewayConnection] -> "/l2_gateway_connections",
         classOf[Network] -> "/networks",
         classOf[RemoteMacEntry] -> "/remote_mac_entries",
-        classOf[Router] -> "/routers"
+        classOf[Router] -> "/routers",
+        classOf[BgpPeer] -> "/bgp_peers",
+        classOf[BgpSpeaker] -> "/bgp_speakers"
     )
 
     protected val mediaTypes = Map[Class[_], String](
@@ -93,6 +95,8 @@ class NeutronApiTest extends FeatureSpec
         classOf[L2GatewayConnection] -> MidonetMediaTypes.NEUTRON_L2_GATEWAY_CONNECTION_JSON_V1,
         classOf[Network] -> NeutronMediaType.NETWORK_JSON_V1,
         classOf[RemoteMacEntry] -> MidonetMediaTypes.NEUTRON_REMOTE_MAC_ENTRY_JSON_V1,
-        classOf[Router] -> NeutronMediaType.ROUTER_JSON_V1
+        classOf[Router] -> NeutronMediaType.ROUTER_JSON_V1,
+        classOf[BgpPeer] -> MidonetMediaTypes.NEUTRON_BGP_PEER_JSON_V1,
+        classOf[BgpSpeaker] -> MidonetMediaTypes.NEUTRON_BGP_SPEAKER_JSON_V1
     )
 }
