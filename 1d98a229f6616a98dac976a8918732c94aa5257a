@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_59943236",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/validation/MessageProperty.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-08T06:11:40Z",
+      "side": 1,
+      "message": "Is this used anymore?",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 60
+      },
+      "revId": "1d98a229f6616a98dac976a8918732c94aa5257a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_199eaa56",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/GatewayDeviceTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-08T06:11:40Z",
+      "side": 1,
+      "message": "Not true anymore.",
+      "range": {
+        "startLine": 38,
+        "startChar": 11,
+        "endLine": 38,
+        "endChar": 43
+      },
+      "revId": "1d98a229f6616a98dac976a8918732c94aa5257a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
