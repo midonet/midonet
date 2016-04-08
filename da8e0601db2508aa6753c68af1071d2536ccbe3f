@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f9542655",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-08T07:49:43Z",
+      "side": 1,
+      "message": "removed this.",
+      "parentUuid": "baa041b7_19110aad",
+      "range": {
+        "startLine": 94,
+        "startChar": 4,
+        "endLine": 94,
+        "endChar": 32
+      },
+      "revId": "da8e0601db2508aa6753c68af1071d2536ccbe3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b920def8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-08T07:19:24Z",
       "side": 1,
       "message": "Don\u0027t you also need a method to stop the handler when the container is removed?",
+      "range": {
+        "startLine": 153,
+        "startChar": 8,
+        "endLine": 153,
+        "endChar": 64
+      },
+      "revId": "da8e0601db2508aa6753c68af1071d2536ccbe3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9974fafd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-08T07:49:43Z",
+      "side": 1,
+      "message": "My thinking is that all that needs to happen is the translators need to remove the BGP config from the port, and the RoutingHandler will be smart enough to watch for that change and take down the namespace on its own.",
+      "parentUuid": "baa041b7_b920def8",
       "range": {
         "startLine": 153,
         "startChar": 8,
