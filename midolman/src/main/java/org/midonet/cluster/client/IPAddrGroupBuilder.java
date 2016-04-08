@@ -15,10 +15,10 @@
  */
 package org.midonet.cluster.client;
 
-import org.midonet.packets.IPAddr;
-
 import java.util.Set;
 
-public interface IPAddrGroupBuilder {
-    public void setAddrs(Set<IPAddr> addrs);
+import org.midonet.packets.IPAddr;
+
+public interface IPAddrGroupBuilder extends Builder<IPAddrGroupBuilder> {
+    void setAddrs(Set<IPAddr> addrs);
 }

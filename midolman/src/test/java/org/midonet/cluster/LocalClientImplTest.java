@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.ChainBuilder;
+import org.midonet.cluster.client.IPAddrGroupBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.PortBuilder;
@@ -71,6 +72,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
+import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
@@ -118,6 +120,10 @@ public class LocalClientImplTest {
 
     RuleZkManager getRuleZkManager() {
         return injector.getInstance(RuleZkManager.class);
+    }
+
+    IpAddrGroupZkManager getIpAddrGroupZkManager() {
+        return injector.getInstance(IpAddrGroupZkManager.class);
     }
 
     PortGroupZkManager getPortGroupZkManager() {
@@ -491,6 +497,64 @@ public class LocalClientImplTest {
     }
 
     @Test
+    public void getIpAddrGroupTest()
+            throws StateAccessException, InterruptedException, KeeperException,
+                   SerializationException {
+
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
+
+        UUID ipAddrGroupId = getIpAddrGroupZkManager().create(
+            new IpAddrGroupZkManager.IpAddrGroupConfig("test"));
+
+        TestIpAddrGroupBuilder ipAddrGroupBuilder = new TestIpAddrGroupBuilder();
+        client.getIPAddrGroup(ipAddrGroupId, ipAddrGroupBuilder);
+
+        ipAddrGroupBuilder.awaitBuildCalls(1, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", ipAddrGroupBuilder.getBuildCallsCount(),
+                   equalTo(1));
+        assertThat(ipAddrGroupBuilder.addrs.size(), equalTo(0));
+
+        // Add an IP address to the group.
+        getIpAddrGroupZkManager().addAddr(ipAddrGroupId, "1.2.3.4");
+
+        ipAddrGroupBuilder.awaitBuildCalls(2, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", ipAddrGroupBuilder.getBuildCallsCount(),
+                   equalTo(2));
+        assertThat(ipAddrGroupBuilder.addrs.size(), equalTo(1));
+        assertThat(ipAddrGroupBuilder.addrs.contains(IPv4Addr.apply("1.2.3.4")),
+                   equalTo(true));
+
+        // Remove an IP address from the group.
+        getIpAddrGroupZkManager().removeAddr(ipAddrGroupId, "1.2.3.4");
+
+        ipAddrGroupBuilder.awaitBuildCalls(3, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", ipAddrGroupBuilder.getBuildCallsCount(),
+                   equalTo(3));
+        assertThat(ipAddrGroupBuilder.addrs.size(), equalTo(0));
+
+        // Delete the group.
+        getIpAddrGroupZkManager().delete(ipAddrGroupId);
+
+        ipAddrGroupBuilder.awaitDeleteCalls(1, 5, TimeUnit.SECONDS);
+
+        // Re-create the group does not trigger further updates on this builder.
+        int buildCalls = ipAddrGroupBuilder.getBuildCallsCount();
+
+        IpAddrGroupZkManager.IpAddrGroupConfig ipAddrGroupConfig =
+            new IpAddrGroupZkManager.IpAddrGroupConfig(ipAddrGroupId, "test");
+        getIpAddrGroupZkManager().create(ipAddrGroupConfig);
+
+        assertThat("Build is called", ipAddrGroupBuilder.getBuildCallsCount(),
+                   equalTo(buildCalls));
+
+        // Delete the group does not trigger further updates on this builder.
+        getIpAddrGroupZkManager().delete(ipAddrGroupId);
+
+        assertThat("Delete is called", ipAddrGroupBuilder.getDeletedCallsCount(),
+                   equalTo(1));
+    }
+
+    @Test
     public void arpCacheTest() throws InterruptedException, KeeperException,
             StateAccessException, SerializationException {
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
@@ -701,6 +765,28 @@ public class LocalClientImplTest {
         @Override
         public void setName(String name) {
             this.name = name;
+            incrementBuild();
+        }
+
+        @Override
+        public void build() {
+            incrementBuild();
+        }
+
+        @Override
+        public void deleted() {
+            incrementDelete();
+        }
+    }
+
+    static class TestIpAddrGroupBuilder extends AwaitableBuilder
+        implements IPAddrGroupBuilder {
+
+        Set<IPAddr> addrs = null;
+
+        @Override
+        public void setAddrs(Set<IPAddr> addrs) {
+            this.addrs = addrs;
             incrementBuild();
         }
 

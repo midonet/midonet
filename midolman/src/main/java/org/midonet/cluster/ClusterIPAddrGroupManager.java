@@ -15,17 +15,19 @@
  */
 package org.midonet.cluster;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.cluster.client.IPAddrGroupBuilder;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPAddr$;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 public class ClusterIPAddrGroupManager
         extends ClusterManager<IPAddrGroupBuilder> {
@@ -56,18 +58,20 @@ public class ClusterIPAddrGroupManager
 
         @Override
         public void onSuccess(Set<String> addrStrings) {
-            Set<IPAddr> ipAddrs = new HashSet<IPAddr>();
+            Set<IPAddr> ipAddrs = new HashSet<>();
             for (String strAddr : addrStrings) {
                 try {
                     ipAddrs.add(IPAddr$.MODULE$.fromString(strAddr));
                 } catch (Exception ex) {
                     log.error("Caught exception parsing IP address {} from " +
                               "IP address group {}'s Zookeeper data. ZK may " +
-                              "be corrupt.",
-                              new Object[]{strAddr, ipAddrGroupId, ex});
+                              "be corrupt.", strAddr, ipAddrGroupId, ex);
                 }
             }
-            getBuilder(ipAddrGroupId).setAddrs(ipAddrs);
+            IPAddrGroupBuilder builder = getBuilder(ipAddrGroupId);
+            if (builder != null) {
+                builder.setAddrs(ipAddrs);
+            }
         }
 
         @Override
@@ -90,6 +94,15 @@ public class ClusterIPAddrGroupManager
         @Override
         public void pathChildrenUpdated(String path) {
             ipAddrGroupManager.getAddrsAsync(ipAddrGroupId, this, this);
+        }
+
+        @Override
+        public void pathDeleted(String path) {
+            log.debug("IP address group {} has been deleted", ipAddrGroupId);
+            IPAddrGroupBuilder builder = unregisterBuilder(ipAddrGroupId);
+            if (builder != null) {
+                builder.deleted();
+            }
         }
     }
 }

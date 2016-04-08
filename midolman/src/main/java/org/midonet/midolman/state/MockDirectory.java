@@ -171,14 +171,20 @@ public class MockDirectory implements Directory {
             if (eventType == EventType.NodeCreated) {
                 watchers.addAll(existsWatchers);
                 existsWatchers.clear();
-            } else if (eventType == EventType.NodeDataChanged ||
-                       eventType == EventType.NodeDeleted) {
+            } else if (eventType == EventType.NodeDataChanged) {
                 watchers.addAll(existsWatchers);
                 watchers.addAll(dataWatchers);
                 existsWatchers.clear();
                 dataWatchers.clear();
             } else if (eventType == EventType.NodeChildrenChanged) {
                 watchers.addAll(childrenWatchers);
+                childrenWatchers.clear();
+            } else if (eventType == EventType.NodeDeleted) {
+                watchers.addAll(existsWatchers);
+                watchers.addAll(dataWatchers);
+                watchers.addAll(childrenWatchers);
+                existsWatchers.clear();
+                dataWatchers.clear();
                 childrenWatchers.clear();
             }
 

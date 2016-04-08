@@ -15,18 +15,23 @@
  */
 package org.midonet.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
 import java.util.{Set => JSet, UUID}
-import org.midonet.packets.IPAddr
+
+import scala.collection.JavaConverters.asScalaSetConverter
+
+import akka.actor.{Actor, ActorRef}
+
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.IPAddrGroupBuilder
-import org.midonet.midolman.topology.IPAddrGroupManager.IPAddrsUpdate
-import org.midonet.midolman.simulation.IPAddrGroup
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import scala.collection.JavaConverters.asScalaSetConverter
+import org.midonet.midolman.simulation.IPAddrGroup
+import org.midonet.midolman.topology.IPAddrGroupManager.{IPAddrsUpdate, TriggerDelete}
+import org.midonet.midolman.topology.VirtualTopologyActor.DeleteDevice
+import org.midonet.packets.IPAddr
 
 object IPAddrGroupManager {
     case class IPAddrsUpdate(addrs: JSet[IPAddr])
+    case object TriggerDelete
 }
 
 class IPAddrGroupManager(val id: UUID, val clusterClient: Client)
@@ -39,6 +44,7 @@ class IPAddrGroupManager(val id: UUID, val clusterClient: Client)
 
     override def receive = {
         case IPAddrsUpdate(addrs) => updateAddrs(addrs)
+        case TriggerDelete => VirtualTopologyActor ! DeleteDevice(id)
     }
 
     private def updateAddrs(addrs: JSet[IPAddr]): Unit = {
@@ -50,5 +56,11 @@ class IPAddrGroupBuilderImpl(val ipAddrGroupManager: ActorRef)
         extends IPAddrGroupBuilder {
     override def setAddrs(addrs: JSet[IPAddr]) {
         ipAddrGroupManager ! IPAddrsUpdate(addrs)
+    }
+
+    override def build(): Unit = { }
+
+    override def deleted(): Unit = {
+        ipAddrGroupManager ! TriggerDelete
     }
 }
