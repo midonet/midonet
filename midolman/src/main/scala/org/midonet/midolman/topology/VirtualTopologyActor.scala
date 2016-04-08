@@ -295,6 +295,15 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
     @Inject
     var flowInvalidator: FlowInvalidator = _
 
+    @Inject
+    var metrics: VirtualTopologyMetrics = _
+
+    override def preStart(): Unit = {
+        metrics.setPromises(() => promises.size())
+        metrics.setSenders(() => senders.size())
+        metrics.setSubscribers(() => subscribers.size())
+        metrics.setDevices(() => topology.size())
+    }
 
     private def askDevice(req: DeviceRequest, promise: Promise[Any]): Unit = {
         // Check if the device has been received since making the request, in
@@ -350,6 +359,10 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
                       sender(), req)
             senders.put(req.id, sender)
         }
+
+        log.debug(s"Virtual topology statistics: devices=${topology.size()} " +
+                  s"promises=${promises.size()} senders=${senders.size()} " +
+                  s"subscribers=${subscribers.size()}")
     }
 
     private def deviceUpdated(id: UUID, device: AnyRef) {
@@ -382,6 +395,10 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
                       subscriber, id)
             subscriber ! device
         }
+
+        log.debug(s"Virtual topology statistics: devices=${topology.size()} " +
+                  s"promises=${promises.size()} senders=${senders.size()} " +
+                  s"subscribers=${subscribers.size()}")
     }
 
     private def deviceDeleted(id: UUID): Unit = {
@@ -396,6 +413,11 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
 
         senders.removeAll(id)
         subscribers.removeAll(id)
+        devices.remove(id)
+
+        log.debug(s"Virtual topology statistics: devices=${topology.size()} " +
+                  s"promises=${promises.size()} senders=${senders.size()} " +
+                  s"subscribers=${subscribers.size()}")
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {

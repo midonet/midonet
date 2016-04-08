@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.runtime.AbstractFunction0;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ import org.midonet.cache.LoadingCache;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
+import org.midonet.midolman.topology.VirtualTopologyMetrics;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback1;
 
@@ -62,11 +65,18 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
     private Set<Callback1<UUID>> watchers = new HashSet<>();
 
     public PortGroupCache(Reactor reactor, PortGroupZkManager portGroupMgr,
-            ZkConnectionAwareWatcher connWatcher, Serializer serializer) {
+                          ZkConnectionAwareWatcher connWatcher,
+                          Serializer serializer, VirtualTopologyMetrics metrics) {
         super(reactor);
         this.portGroupMgr = portGroupMgr;
         connectionWatcher = connWatcher;
         this.serializer = serializer;
+
+        metrics.setPortGroupWatchers(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return watchers.size();
+            }
+        });
     }
 
     public <T extends PortGroupZkManager.PortGroupConfig>

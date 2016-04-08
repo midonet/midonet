@@ -15,12 +15,10 @@
  */
 package org.midonet.midolman.cluster;
 
-import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
-import com.google.inject.name.Named;
 
 import org.midonet.cluster.Client;
 import org.midonet.cluster.backend.cassandra.CassandraClient;
@@ -37,7 +35,6 @@ import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.state.NatBlockAllocator;
 import org.midonet.midolman.state.ZkNatBlockAllocator;
 import org.midonet.midolman.topology.VirtualTopology;
-import org.midonet.util.eventloop.Reactor;
 
 /**
  * Main midolman configuration module
@@ -58,9 +55,6 @@ public class MidolmanModule extends PrivateModule {
         bind(VirtualTopology.class)
             .asEagerSingleton();
         expose(VirtualTopology.class);
-
-        bind(MetricRegistry.class).toInstance(new MetricRegistry());
-        expose(MetricRegistry.class);
 
         bind(FlowRecorderFactory.class).asEagerSingleton();
         expose(FlowRecorderFactory.class);

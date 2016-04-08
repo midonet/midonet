@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.runtime.AbstractFunction0;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
@@ -38,15 +40,14 @@ import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
+import org.midonet.midolman.topology.VirtualTopologyMetrics;
 
 public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
     private static final Logger log = LoggerFactory
             .getLogger(ClusterPoolManager.class);
 
-    @Inject
     PoolZkManager poolZkMgr;
 
-    @Inject
     PoolMemberZkManager poolMemberZkMgr;
 
     private Map<UUID, Map<UUID, PoolMember>> poolIdToPoolMemberMap =
@@ -55,6 +56,29 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
             new HashMap<>();
     private Multimap<UUID, UUID> poolToMissingPoolMemberIds =
             HashMultimap.create();
+
+    @Inject
+    public ClusterPoolManager(PoolZkManager poolZkMgr,
+                              PoolMemberZkManager poolMemberZkMgr,
+                              VirtualTopologyMetrics metrics) {
+        this.poolZkMgr = poolZkMgr;
+        this.poolMemberZkMgr = poolMemberZkMgr;
+        metrics.setPoolMemberMaps(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return poolIdToPoolMemberMap.size();
+            }
+        });
+        metrics.setPoolMemberIds(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return poolToPoolMemberIds.size();
+            }
+        });
+        metrics.setPoolMissingMemberIds(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return poolToMissingPoolMemberIds.size();
+            }
+        });
+    }
 
     @Override
     protected void getConfig(UUID poolId) {

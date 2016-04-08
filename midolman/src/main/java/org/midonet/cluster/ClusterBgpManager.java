@@ -16,33 +16,36 @@
 
 package org.midonet.cluster;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.inject.Inject;
-import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
-import org.midonet.midolman.state.zkManagers.BgpZkManager;
-import org.midonet.cluster.client.*;
-import org.midonet.cluster.data.AdRoute;
-import org.midonet.cluster.data.BGP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.runtime.AbstractFunction0;
+
+import com.google.common.base.Objects;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.client.BGPListBuilder;
+import org.midonet.cluster.data.AdRoute;
+import org.midonet.cluster.data.BGP;
+import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
+import org.midonet.midolman.state.zkManagers.BgpZkManager;
+import org.midonet.midolman.topology.VirtualTopologyMetrics;
+
 public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
     private static final Logger log = LoggerFactory
             .getLogger(ClusterBgpManager.class);
 
-    @Inject
     BgpZkManager bgpMgr;
 
-    @Inject
     AdRouteZkManager adRouteMgr;
 
     private Multimap<UUID, UUID> portIdtoBgpIds = HashMultimap.create();
@@ -51,6 +54,39 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
     private Multimap<UUID, UUID> bgpIdtoAdRouteId = HashMultimap.create();
     private Map<UUID, AdRouteZkManager.AdRouteConfig> adRouteIdtoAdRouteConfig =
             new HashMap<>();
+
+    @Inject
+    public ClusterBgpManager(BgpZkManager bgpMgr,
+                             AdRouteZkManager adRouteMgr,
+                             VirtualTopologyMetrics metrics) {
+        this.bgpMgr = bgpMgr;
+        this.adRouteMgr = adRouteMgr;
+        metrics.setBgpPortToBgp(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return portIdtoBgpIds.size();
+            }
+        });
+        metrics.setBgpBgpToPort(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return bgpIdtoPortId.size();
+            }
+        });
+        metrics.setBgpRequests(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return requestedBgps.size();
+            }
+        });
+        metrics.setBgpBgpToRoute(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return bgpIdtoAdRouteId.size();
+            }
+        });
+        metrics.setBgpRouteToConfig(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return adRouteIdtoAdRouteConfig.size();
+            }
+        });
+    }
 
     @Override
     protected void getConfig(final UUID bgpPortID) {

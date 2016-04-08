@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.runtime.AbstractFunction0;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
@@ -38,22 +40,44 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
+import org.midonet.midolman.topology.VirtualTopologyMetrics;
 
 public class ClusterLoadBalancerManager
         extends ClusterManager<LoadBalancerBuilder> {
     private static final Logger log = LoggerFactory
             .getLogger(ClusterLoadBalancerManager.class);
 
-    @Inject
     LoadBalancerZkManager loadBalancerZkMgr;
 
-    @Inject
     VipZkManager vipZkMgr;
 
     private Map<UUID, Map<UUID, VIP>> loadBalancerIdToVipMap = new HashMap<>();
     private Map<UUID, Set<UUID>> loadBalancerToVipIds = new HashMap<>();
     private Multimap<UUID, UUID> loadBalancerToMissingVipIds =
             HashMultimap.create();
+
+    @Inject
+    public ClusterLoadBalancerManager(LoadBalancerZkManager loadBalancerZkMgr,
+                                      VipZkManager vipZkMgr,
+                                      VirtualTopologyMetrics metrics) {
+        this.loadBalancerZkMgr = loadBalancerZkMgr;
+        this.vipZkMgr = vipZkMgr;
+        metrics.setLoadBalancerVipMaps(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return loadBalancerIdToVipMap.size();
+            }
+        });
+        metrics.setLoadBalancerVipIds(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return loadBalancerToVipIds.size();
+            }
+        });
+        metrics.setLoadBalancerMissingVipIds(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return loadBalancerToMissingVipIds.size();
+            }
+        });
+    }
 
     @Override
     protected void getConfig(UUID id) {

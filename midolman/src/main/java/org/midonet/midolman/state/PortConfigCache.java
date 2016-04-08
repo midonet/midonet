@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.runtime.AbstractFunction0;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ import org.midonet.cache.LoadingCache;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.midolman.topology.VirtualTopologyMetrics;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback1;
 
@@ -61,12 +64,18 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
     private Set<Callback1<UUID>> watchers = new HashSet<>();
 
     public PortConfigCache(Reactor reactor, Directory zkDir,
-            String zkBasePath, ZkConnectionAwareWatcher connWatcher,
-            Serializer serializer) {
+                           String zkBasePath, ZkConnectionAwareWatcher connWatcher,
+                           Serializer serializer, VirtualTopologyMetrics metrics) {
         super(reactor);
         portMgr = new PortZkManager(zkDir, zkBasePath, serializer);
         connectionWatcher = connWatcher;
         this.serializer = serializer;
+
+        metrics.setPortWatchers(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return watchers.size();
+            }
+        });
     }
 
     public <T extends PortConfig> T getSync(UUID key, Class<T> clazz) {

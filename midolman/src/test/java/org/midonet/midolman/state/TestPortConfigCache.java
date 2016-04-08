@@ -38,6 +38,7 @@ import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.midolman.topology.VirtualTopologyMetrics;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
 
@@ -120,9 +121,10 @@ public class TestPortConfigCache {
         @Provides @Singleton
         public PortConfigCache providePortConfigCache(
                 Reactor reactor, Directory directory, PathBuilder paths,
-                ZkConnectionAwareWatcher watcher, Serializer serializer) {
+                ZkConnectionAwareWatcher watcher, Serializer serializer,
+                VirtualTopologyMetrics metrics) {
             return new PortConfigCache(reactor, directory, paths.getBasePath(),
-                    watcher, serializer);
+                    watcher, serializer, metrics);
         }
 
     }

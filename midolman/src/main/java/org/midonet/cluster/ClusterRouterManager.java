@@ -25,8 +25,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import scala.runtime.AbstractFunction0;
+
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -49,6 +51,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.midolman.topology.VirtualTopologyMetrics;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
@@ -56,17 +59,12 @@ import org.midonet.util.functors.Callback3;
 
 public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
-    @Inject
     RouterZkManager routerMgr;
 
-    @Inject
     RouteZkManager routeManager;
 
-    @Inject
-    @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
 
-    @Inject
     Serializer serializer;
 
     Map<UUID, Set<Route>> mapPortIdToRoutes = new HashMap<>();
@@ -78,6 +76,39 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
     private static final Logger log =
          LoggerFactory.getLogger(ClusterRouterManager.class);
+
+    @Inject
+    public ClusterRouterManager(RouterZkManager routerMgr,
+                                RouteZkManager routeManager,
+                                @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
+                                    Reactor reactorLoop,
+                                Serializer serializer,
+                                VirtualTopologyMetrics metrics) {
+        this.routerMgr = routerMgr;
+        this.routeManager = routeManager;
+        this.reactorLoop = reactorLoop;
+        this.serializer = serializer;
+        metrics.setRouterPortToRoutes(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return mapPortIdToRoutes.size();
+            }
+        });
+        metrics.setRouterRouterToRoutes(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return mapRouterIdToRoutes.size();
+            }
+        });
+        metrics.setRouterPortCallbacks(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return portIdCallback.size();
+            }
+        });
+        metrics.setRouterPortWatchers(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return portIdWatcher.size();
+            }
+        });
+    }
 
     public void getRouterConf(final UUID id, final boolean isUpdate) {
 

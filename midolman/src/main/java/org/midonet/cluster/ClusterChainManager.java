@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.runtime.AbstractFunction0;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
@@ -34,20 +36,42 @@ import org.midonet.cluster.client.ChainBuilder;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
+import org.midonet.midolman.topology.VirtualTopologyMetrics;
 
 public class ClusterChainManager extends ClusterManager<ChainBuilder> {
     private static final Logger log =
         LoggerFactory.getLogger(ClusterChainManager.class);
 
-    @Inject
     RuleZkManager ruleMgr;
 
-    @Inject
     ChainZkManager chainMgr;
 
     private Map<UUID, Map<UUID, Rule>> chainIdToRuleMap = new HashMap<>();
     private Map<UUID, List<UUID>> chainToRuleIds = new HashMap<>();
     private Multimap<UUID,UUID> chainToMissingRuleIds = HashMultimap.create();
+
+    @Inject
+    public ClusterChainManager(RuleZkManager ruleMgr,
+                               ChainZkManager chainMgr,
+                               VirtualTopologyMetrics metrics) {
+        this.ruleMgr = ruleMgr;
+        this.chainMgr = chainMgr;
+        metrics.setChainRuleMaps(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return chainIdToRuleMap.size();
+            }
+        });
+        metrics.setChainRuleIds(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return chainToRuleIds.size();
+            }
+        });
+        metrics.setChainMissingRuleIds(new AbstractFunction0<Object>() {
+            @Override public Object apply() {
+                return chainToMissingRuleIds.size();
+            }
+        });
+    }
 
     @Override
     protected void getConfig(UUID chainId) {

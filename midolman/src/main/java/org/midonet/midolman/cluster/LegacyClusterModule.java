@@ -19,6 +19,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
 import com.google.inject.Key;
 import com.google.inject.PrivateModule;
@@ -77,6 +78,7 @@ import org.midonet.midolman.state.zkManagers.TraceRequestZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
+import org.midonet.midolman.topology.VirtualTopologyMetrics;
 import org.midonet.util.eventloop.Reactor;
 
 import static org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider.DIRECTORY_REACTOR_TAG;
@@ -111,6 +113,12 @@ public class LegacyClusterModule extends PrivateModule {
         bind(DataClient.class).to(LocalDataClientImpl.class)
                               .asEagerSingleton();
         expose(DataClient.class);
+
+        bind(MetricRegistry.class).toInstance(new MetricRegistry());
+        expose(MetricRegistry.class);
+
+        bind(VirtualTopologyMetrics.class).asEagerSingleton();
+        expose(VirtualTopologyMetrics.class);
 
         // TODO: Move these out of LocalDataClientImpl so that they can be
         // installed in DataClusterClientModule instead.
@@ -272,10 +280,13 @@ public class LegacyClusterModule extends PrivateModule {
         @Inject
         Serializer serializer;
 
+        @Inject
+        VirtualTopologyMetrics metrics;
+
         @Override
         public PortConfigCache get() {
-            return new PortConfigCache(reactor, directory,
-                    config.rootKey(), connWatcher, serializer);
+            return new PortConfigCache(reactor, directory, config.rootKey(),
+                                       connWatcher, serializer, metrics);
         }
     }
 
@@ -295,10 +306,13 @@ public class LegacyClusterModule extends PrivateModule {
         @Inject
         PortGroupZkManager portGroupMgr;
 
+        @Inject
+        VirtualTopologyMetrics metrics;
+
         @Override
         public PortGroupCache get() {
-            return new PortGroupCache(reactor, portGroupMgr,
-                                      connWatcher, serializer);
+            return new PortGroupCache(reactor, portGroupMgr, connWatcher,
+                                      serializer, metrics);
         }
     }
 }
