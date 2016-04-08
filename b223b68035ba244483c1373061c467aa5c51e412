@@ -1,0 +1,225 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_39096e2d",
+        "filename": "tools/data_migration/README.rst",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "\"Nothing will happen yet\" sounds confusing.  How about Nothing will happen in Zookeeper yet?",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_79fff601",
+        "filename": "tools/data_migration/README.rst",
+        "patchSetId": 5
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "I think we need to say that you need to do this in a way where it does not reset the id field since the neutron importer probably won\u0027t be able to handle it when id goes back to 1 (that is, do \u0027delete\u0027 not \u0027truncate\u0027).",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f93ae6cc",
+        "filename": "tools/data_migration/data_migration/migration_funcs.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "Might be cleaner to do it as follows:\n\nimport abc\nimport six\n\n@six.add_metaclass(abc.ABCMeta)\nclass Commands(object):\n   # implement common methods\n\nclass UbuntuCommands(Commands):\n   # implement ubuntu specific ones\n\nclass CentosCommands(Commands):\n   # implement centos specific ones\n\nclass UnsupportedDistroError(Exception):\n\ndef get_commands():\n  distro \u003d platform.linux_distribution()[0]\n  if distro \u003d\u003d \u0027ubuntu\u0027:\n      return new UbuntuCommands()\n  elif distro \u003d\u003d \u0027centos\u0027:\n      return new CentosCommands()\n  else\n      raise UnsupportedDistroError(\"Only ubuntu and centos supported\")",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d93e02b8",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "Is this script meant to be executed directly?",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b91d7e68",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "from data_migration import migration_funcs as mfuncs (for example)",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_39572e04",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "Won\u0027t -1 for this, but I\u0027m not a big fan of leaving this comment here.",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_991aba6d",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "make it a constant.",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_99487a5d",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "curious - are these supposed to be in a configuration file?  Which file is that?",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f941c63a",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "Unfinished sentence",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_195c6a24",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "why is this here if 1.9.8 is the only version supported?  Perhaps better to add this when we decide to support multiple versions or this becomes dead code.\n\nAlso why do we need the from version for upgrading from neutron?",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b94b3e59",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "unnecessary",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7926d6bb",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "unnecessary",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5979d292",
+        "filename": "tools/data_migration/upgrade_from_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-08T02:28:23Z",
+      "side": 1,
+      "message": "Maybe you can combine these two:\n\ntry:\n    script_module \u003d __import__(name\u003d\u0027data_migration.\u0027 +\n                               script_package_name +\n                               \u0027.neutron_migration\u0027,\n                               fromlist\u003d[\u0027migrate\u0027])\n    migration_func \u003d getattr(script_module, \u0027migrate\u0027)\nexcept ImportError:\n    ...\nexcept AttributeError:\n    ...",
+      "revId": "b223b68035ba244483c1373061c467aa5c51e412",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
