@@ -21,7 +21,7 @@ import java.util.UUID;
 
 import org.midonet.midolman.rules.Rule;
 
-public interface ChainBuilder {
+public interface ChainBuilder extends Builder<ChainBuilder> {
     void setRules(List<Rule> rules);
     void setRules(List<UUID> ruleOrder, Map<UUID, Rule> rules);
     void setName(String name);

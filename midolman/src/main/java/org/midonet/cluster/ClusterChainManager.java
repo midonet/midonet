@@ -27,13 +27,11 @@ import java.util.UUID;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.client.ChainBuilder;
 import org.midonet.midolman.rules.Rule;
-import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
 
@@ -89,6 +87,18 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         @Override
         public void pathDataChanged(String path) {
             chainMgr.getNameAsync(chainId, this, this);
+        }
+
+        @Override
+        public void pathDeleted(String path) {
+            log.debug("Chain {} has been deleted", chainId);
+            ChainBuilder builder = unregisterBuilder(chainId);
+            if (builder != null) {
+                chainIdToRuleMap.remove(chainId);
+                chainToRuleIds.remove(chainId);
+                chainToMissingRuleIds.removeAll(chainId);
+                builder.deleted();
+            }
         }
 
         @Override

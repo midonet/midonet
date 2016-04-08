@@ -42,6 +42,7 @@ import org.junit.Test;
 
 import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.BridgeBuilder;
+import org.midonet.cluster.client.ChainBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.PortBuilder;
@@ -57,6 +58,10 @@ import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.layer3.Route;
+import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.LiteralRule;
+import org.midonet.midolman.rules.Rule;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.Directory;
@@ -69,6 +74,7 @@ import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.midolman.state.zkManagers.RuleZkManager;
 import org.midonet.midolman.topology.devices.Port;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
@@ -108,6 +114,10 @@ public class LocalClientImplTest {
 
     ChainZkManager getChainZkManager() {
         return injector.getInstance(ChainZkManager.class);
+    }
+
+    RuleZkManager getRuleZkManager() {
+        return injector.getInstance(RuleZkManager.class);
     }
 
     PortGroupZkManager getPortGroupZkManager() {
@@ -411,6 +421,76 @@ public class LocalClientImplTest {
     }
 
     @Test
+    public void getChainTest()
+            throws StateAccessException, InterruptedException, KeeperException,
+                   SerializationException,
+                   org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
+
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
+
+        UUID chainId = getChainZkManager().create(new ChainConfig("test1"));
+
+        TestChainBuilder chainBuilder = new TestChainBuilder();
+        client.getChain(chainId, chainBuilder);
+
+        // Build is called twice: once for the chain name and once for the chain
+        // rules.
+        chainBuilder.awaitBuildCalls(2, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", chainBuilder.getBuildCallsCount(),
+                   equalTo(2));
+        assertThat(chainBuilder.name, equalTo("test1"));
+        assertThat(chainBuilder.rules.size(), equalTo(0));
+
+        // Update the chain name.
+        getChainZkManager().update(chainId, new ChainConfig("test2"));
+
+        chainBuilder.awaitBuildCalls(3, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", chainBuilder.getBuildCallsCount(),
+                   equalTo(3));
+        assertThat(chainBuilder.name, equalTo("test2"));
+
+        // Add a rule to the chain.
+        Rule rule = new LiteralRule(new Condition(), RuleResult.Action.ACCEPT,
+                                    chainId, 1);
+        UUID ruleId = getRuleZkManager().create(null, rule, 1);
+
+        chainBuilder.awaitBuildCalls(4, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", chainBuilder.getBuildCallsCount(),
+                   equalTo(4));
+        assertThat(chainBuilder.rules.size(), equalTo(1));
+        assertThat(chainBuilder.rules.get(0).id, equalTo(ruleId));
+
+        // Delete a rule from the chain.
+        getRuleZkManager().delete(ruleId);
+
+        chainBuilder.awaitBuildCalls(5, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", chainBuilder.getBuildCallsCount(),
+                   equalTo(5));
+        assertThat(chainBuilder.rules.size(), equalTo(0));
+
+        // Delete the chain.
+        getChainZkManager().delete(chainId);
+
+        chainBuilder.awaitDeleteCalls(1, 5, TimeUnit.SECONDS);
+
+        // Re-create the chain does not trigger further updates on this builder.
+        int buildCalls = chainBuilder.getBuildCallsCount();
+
+        ChainConfig chainConfig = new ChainConfig("test1");
+        chainConfig.id = chainId;
+        getChainZkManager().create(chainConfig);
+
+        assertThat("Build is called", chainBuilder.getBuildCallsCount(),
+                   equalTo(buildCalls));
+
+        // Delete the chain does not trigger further updates on this builder.
+        getChainZkManager().delete(chainId);
+
+        assertThat("Delete is called", chainBuilder.getDeletedCallsCount(),
+                   equalTo(1));
+    }
+
+    @Test
     public void arpCacheTest() throws InterruptedException, KeeperException,
             StateAccessException, SerializationException {
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
@@ -583,6 +663,44 @@ public class LocalClientImplTest {
         @Override
         public void setMembers(Set<UUID> members) {
             this.members = members;
+            incrementBuild();
+        }
+
+        @Override
+        public void build() {
+            incrementBuild();
+        }
+
+        @Override
+        public void deleted() {
+            incrementDelete();
+        }
+    }
+
+    static class TestChainBuilder extends AwaitableBuilder
+        implements ChainBuilder {
+
+        List<Rule> rules = null;
+        String name = null;
+
+        @Override
+        public void setRules(List<Rule> rules) {
+            this.rules = rules;
+            incrementBuild();
+        }
+
+        @Override
+        public void setRules(List<UUID> ruleOrder, Map<UUID, Rule> rules) {
+            this.rules = new ArrayList<>();
+            for (UUID id : ruleOrder) {
+                this.rules.add(rules.get(id));
+            }
+            incrementBuild();
+        }
+
+        @Override
+        public void setName(String name) {
+            this.name = name;
             incrementBuild();
         }
 

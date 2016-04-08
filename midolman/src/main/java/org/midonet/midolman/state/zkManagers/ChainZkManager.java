@@ -288,9 +288,11 @@ public class ChainZkManager
      */
     public UUID create(ChainConfig chain) throws StateAccessException,
             SerializationException {
-        UUID id = UUID.randomUUID();
-        zk.multi(prepareCreate(id, chain));
-        return id;
+        if (chain.id == null) {
+            chain.id = UUID.randomUUID();
+        }
+        zk.multi(prepareCreate(chain.id, chain));
+        return chain.id;
     }
 
     /**

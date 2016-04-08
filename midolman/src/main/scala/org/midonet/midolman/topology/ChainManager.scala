@@ -24,7 +24,7 @@ import akka.actor.{ActorRef, Actor}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ChainBuilder
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
+import org.midonet.midolman.topology.VirtualTopologyActor.{DeleteDevice, InvalidateFlowsByTag}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.{JumpRule, Rule}
 import org.midonet.midolman.simulation.{IPAddrGroup, Chain}
@@ -34,22 +34,29 @@ import org.midonet.sdn.flows.FlowTagger
 object ChainManager {
 
     class ChainBuilderImpl(val chainMgr: ActorRef) extends ChainBuilder {
-        def setRules(rules: util.List[Rule]) {
+        override def setRules(rules: util.List[Rule]) {
             chainMgr ! RulesUpdate(rules)
         }
 
-        def setRules(ruleOrder: util.List[UUID], rules: util.Map[UUID, Rule]) {
+        override def setRules(ruleOrder: util.List[UUID], rules: util.Map[UUID, Rule]) {
             val orderedRules = ruleOrder.map(x => rules.get(x))
             setRules(orderedRules)
         }
 
-        def setName(name: String) {
+        override def setName(name: String) {
             chainMgr ! ChainName(name)
+        }
+
+        override def build(): Unit = { }
+
+        override def deleted(): Unit = {
+            chainMgr ! TriggerDeleted
         }
     }
 
     case class RulesUpdate(rules: util.List[Rule])
     case class ChainName(name: String)
+    case object TriggerDeleted
 }
 
 class ChainManager(val id: UUID, val clusterClient: Client)
@@ -356,6 +363,8 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         case chain: Chain => withInvalidation { updateJumpChain(chain) }
         case ipAddrGroup: IPAddrGroup =>
             withInvalidation { updateIpAddrGroup(ipAddrGroup) }
+        case TriggerDeleted =>
+            VirtualTopologyActor ! DeleteDevice(id)
         case unexpected =>
             log.error(s"received an unexpected message: $unexpected")
     }
