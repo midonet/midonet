@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7c880423",
+        "filename": "tools/data_migration/tox.ini",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T10:24:41Z",
+      "side": 1,
+      "message": "stale comment",
+      "revId": "d6d00b444c2f706f5642bb007d622f3cc9c78a29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
