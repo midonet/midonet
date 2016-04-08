@@ -23,9 +23,9 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.ROUTER_VTEP
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection, RemoteMacEntry}
 import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.rest_api.validation.MessageProperty.ONLY_ROUTER_VTEP_SUPPORTED
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
-import org.midonet.cluster.services.c3po.translators.GatewayDeviceTranslator.OnlyRouterVtepSupported
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
@@ -43,7 +43,7 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         val gwDevIds = l2GwDevs.map(_.getDeviceId)
         val gwDevs = storage.getAll(classOf[GatewayDevice], gwDevIds).await()
         val gwDev = gwDevs.find(_.getType == ROUTER_VTEP).getOrElse {
-            throw new IllegalArgumentException(OnlyRouterVtepSupported)
+            throw new IllegalArgumentException(ONLY_ROUTER_VTEP_SUPPORTED)
         }
 
         val nwPort = Port.newBuilder
