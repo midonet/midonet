@@ -91,12 +91,27 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
         public void onSuccess(PoolConfig conf) {
             Pool pool = Converter.fromPoolConfig(conf);
             pool.setId(poolId);
-            getBuilder(poolId).setPoolConfig(pool);
+            PoolBuilder builder = getBuilder(poolId);
+            if (builder != null) {
+                builder.setPoolConfig(pool);
+            }
         }
 
         @Override
         public void pathDataChanged(String path) {
             poolZkMgr.getAsync(poolId, this, this);
+        }
+
+        @Override
+        public void pathDeleted(String path) {
+            log.debug("Pool {} has been deleted", poolId);
+            PoolBuilder builder = unregisterBuilder(poolId);
+            if (builder != null) {
+                poolIdToPoolMemberMap.remove(poolId);
+                poolToPoolMemberIds.remove(poolId);
+                poolToMissingPoolMemberIds.removeAll(poolId);
+                builder.deleted();
+            }
         }
 
         @Override
@@ -129,6 +144,7 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
 
             // UUID to actual PoolMember for each PoolMember in Pool
             Map<UUID, PoolMember> poolMemberMap = poolIdToPoolMemberMap.get(poolId);
+            if (poolMemberMap == null) return;
 
             poolToPoolMemberIds.put(poolId, curPoolMemberIds);
 
@@ -151,7 +167,10 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
             // If we have all the PoolMembers in the new set, we're
             // ready to call the PoolBuilder
             if (poolMembersToRequest.isEmpty()) {
-                getBuilder(poolId).setPoolMembers(poolMemberMap);
+                PoolBuilder builder = getBuilder(poolId);
+                if (builder != null) {
+                    builder.setPoolMembers(poolMemberMap);
+                }
                 return;
             }
 
@@ -209,16 +228,22 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
                     poolToMissingPoolMemberIds.get(poolMember.getPoolId());
             Set<UUID> poolMemberIds = poolToPoolMemberIds.get(poolMember.getPoolId());
             // Does the Pool still care about this poolMember?
-            if (poolMemberIds == null || !poolMemberIds.contains(poolMemberId))
+            if (poolMemberIds == null || missingPoolMemberIds == null ||
+                !poolMemberIds.contains(poolMemberId))
                 return;
             missingPoolMemberIds.remove(poolMemberId);
             Map<UUID, PoolMember> poolMemberMap = poolIdToPoolMemberMap.get(
                     poolMember.getPoolId());
+            if (poolMemberMap == null)
+                return;
 
             poolMemberMap.put(poolMemberId, poolMember);
 
             if ((missingPoolMemberIds.size() == 0)) {
-                getBuilder(poolMember.getPoolId()).setPoolMembers(poolMemberMap);
+                PoolBuilder builder = getBuilder(poolMember.getPoolId());
+                if (builder != null) {
+                    builder.setPoolMembers(poolMemberMap);
+                }
             }
         }
 

@@ -81,7 +81,10 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
         @Override
         public void onSuccess(String data) {
-            getBuilder(chainId).setName(data);
+            ChainBuilder builder = getBuilder(chainId);
+            if (builder != null) {
+                builder.setName(data);
+            }
         }
 
         @Override
@@ -151,7 +154,10 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             // If we have all the rules in the new ordered list, we're
             // ready to call the chainbuilder
             if (oldRuleIds.size() == curRuleIds.size()) {
-                getBuilder(chainId).setRules(curRuleIds, ruleMap);
+                ChainBuilder builder = getBuilder(chainId);
+                if (builder != null) {
+                    builder.setRules(curRuleIds, ruleMap);
+                }
                 return;
             }
             // Otherwise, we have to fetch some rules.
@@ -208,15 +214,21 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
                     chainToMissingRuleIds.get(rule.chainId);
             List<UUID> ruleIds = chainToRuleIds.get(rule.chainId);
             // Does the chain still care about this rule?
-            if (ruleIds == null || ! ruleIds.contains(ruleId))
+            if (ruleIds == null || missingRuleIds == null ||
+                !ruleIds.contains(ruleId))
                 return;
             missingRuleIds.remove(ruleId);
             Map<UUID, Rule> ruleMap = chainIdToRuleMap.get(rule.chainId);
+            if (ruleMap == null)
+                return;
 
             ruleMap.put(ruleId, rule);
 
             if ((missingRuleIds.isEmpty())) {
-                getBuilder(rule.chainId).setRules(ruleIds, ruleMap);
+                ChainBuilder builder = getBuilder(rule.chainId);
+                if (builder != null) {
+                    builder.setRules(ruleIds, ruleMap);
+                }
             }
         }
 

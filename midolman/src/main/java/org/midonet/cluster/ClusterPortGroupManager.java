@@ -71,6 +71,8 @@ public class ClusterPortGroupManager extends ClusterManager<PortGroupBuilder> {
                     @Override
                     public void call(PortGroupZkManager.PortGroupConfig config) {
                         PortGroupBuilder builder = getBuilder(id);
+                        if (builder == null) return;
+
                         PortGroup group = new PortGroup();
 
                         group.setName(config.name);

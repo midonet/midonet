@@ -47,11 +47,14 @@ import org.midonet.cluster.client.IPAddrGroupBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.LoadBalancerBuilder;
 import org.midonet.cluster.client.MacLearningTable;
+import org.midonet.cluster.client.PoolBuilder;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.VlanPortMap;
 import org.midonet.cluster.data.PortGroup;
+import org.midonet.cluster.data.l4lb.Pool;
+import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.conf.MidoTestConfigurator;
@@ -72,12 +75,15 @@ import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
+import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
@@ -135,8 +141,17 @@ public class LocalClientImplTest {
     LoadBalancerZkManager getLoadBalancerZkManager() {
         return injector.getInstance(LoadBalancerZkManager.class);
     }
+
     VipZkManager getVipZkManager() {
         return injector.getInstance(VipZkManager.class);
+    }
+
+    PoolZkManager getPoolZkManager() {
+        return injector.getInstance(PoolZkManager.class);
+    }
+
+    PoolMemberZkManager getPoolMemberZkManager() {
+        return injector.getInstance(PoolMemberZkManager.class);
     }
 
     PortGroupZkManager getPortGroupZkManager() {
@@ -659,6 +674,91 @@ public class LocalClientImplTest {
     }
 
     @Test
+    public void getPoolTest()
+        throws StateAccessException, InterruptedException, KeeperException,
+               SerializationException, InvalidStateOperationException {
+
+        Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
+
+        UUID poolId = UUID.randomUUID();
+        PoolZkManager.PoolConfig poolConfig =
+            new PoolZkManager.PoolConfig();
+        zkDir().multi(getPoolZkManager().prepareCreate(poolId, poolConfig));
+
+        TestPoolBuilder poolBuilder = new TestPoolBuilder();
+        client.getPool(poolId, poolBuilder);
+
+        poolBuilder.awaitBuildCalls(2, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", poolBuilder.getBuildCallsCount(),
+                   equalTo(2));
+        assertThat(poolBuilder.pool.getId(), equalTo(poolId));
+        assertThat(poolBuilder.members.size(), equalTo(0));
+
+        // Update the pool.
+        poolConfig.adminStateUp = true;
+        zkDir().multi(getPoolZkManager().prepareUpdate(poolId, poolConfig));
+
+        poolBuilder.awaitBuildCalls(3, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", poolBuilder.getBuildCallsCount(),
+                   equalTo(3));
+        assertThat(poolBuilder.pool.isAdminStateUp(), equalTo(true));
+
+        // Add member to the pool.
+        UUID memberId = UUID.randomUUID();
+        PoolMemberZkManager.PoolMemberConfig memberConfig =
+            new PoolMemberZkManager.PoolMemberConfig(
+                poolId, "1.2.3.4", 80, 0, true, LBStatus.ACTIVE);
+        zkDir().multi(getPoolMemberZkManager()
+                          .prepareCreate(memberId, memberConfig));
+        zkDir().multi(getPoolZkManager().prepareAddMember(poolId, memberId));
+
+        poolBuilder.awaitBuildCalls(4, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", poolBuilder.getBuildCallsCount(),
+                   equalTo(4));
+        assertThat(poolBuilder.members.size(), equalTo(1));
+        assertThat(poolBuilder.members.get(memberId).getAddress(),
+                   equalTo("1.2.3.4"));
+
+        // Update a pool member.
+        memberConfig.address = "5.6.7.8";
+        zkDir().multi(getPoolMemberZkManager()
+                          .prepareUpdate(memberId, memberConfig));
+
+        poolBuilder.awaitBuildCalls(5, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", poolBuilder.getBuildCallsCount(),
+                   equalTo(5));
+        assertThat(poolBuilder.members.size(), equalTo(1));
+        assertThat(poolBuilder.members.get(memberId).getAddress(),
+                   equalTo("5.6.7.8"));
+
+        // Remove a member.
+        zkDir().multi(getPoolZkManager().prepareRemoveMember(poolId, memberId));
+
+        poolBuilder.awaitBuildCalls(6, 5, TimeUnit.SECONDS);
+        assertThat("Build is called", poolBuilder.getBuildCallsCount(),
+                   equalTo(6));
+        assertThat(poolBuilder.members.size(), equalTo(0));
+
+        // Delete a pool.
+        zkDir().multi(getPoolZkManager().prepareDelete(poolId));
+
+        poolBuilder.awaitDeleteCalls(1, 5, TimeUnit.SECONDS);
+
+        // Re-create the pool does not trigger further updates on this builder.
+        int buildCalls = poolBuilder.getBuildCallsCount();
+        zkDir().multi(getPoolZkManager().prepareCreate(poolId, poolConfig));
+
+        assertThat("Build is called", poolBuilder.getBuildCallsCount(),
+                   equalTo(buildCalls));
+
+        // Delete the pool does not trigger further updates on this builder.
+        zkDir().multi(getPoolZkManager().prepareDelete(poolId));
+
+        assertThat("Delete is called", poolBuilder.getDeletedCallsCount(),
+                   equalTo(1));
+    }
+
+    @Test
     public void arpCacheTest() throws InterruptedException, KeeperException,
             StateAccessException, SerializationException {
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
@@ -927,6 +1027,36 @@ public class LocalClientImplTest {
         @Override
         public void setVips(Map<UUID, VIP> vips) {
             this.vips = vips;
+            incrementBuild();
+        }
+
+        @Override
+        public void build() {
+            incrementBuild();
+        }
+
+        @Override
+        public void deleted() {
+            incrementDelete();
+        }
+
+    }
+
+    static class TestPoolBuilder extends AwaitableBuilder
+        implements PoolBuilder {
+
+        Pool pool;
+        Map<UUID, PoolMember> members;
+
+        @Override
+        public void setPoolConfig(Pool pool) {
+            this.pool = pool;
+            incrementBuild();
+        }
+
+        @Override
+        public void setPoolMembers(Map<UUID, PoolMember> members) {
+            this.members = members;
             incrementBuild();
         }
 

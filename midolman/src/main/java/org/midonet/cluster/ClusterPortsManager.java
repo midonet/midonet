@@ -115,9 +115,9 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
     private void buildFromConfig(UUID id, PortConfig config) {
         PortBuilder builder = getBuilder(id);
-        Port port = PortFactory.fromPortConfig(config);
 
         if (builder != null) {
+            Port port = PortFactory.fromPortConfig(config);
             builder.setPort(port);
             log.debug("Build port {}, id {}", port, id);
             builder.build();

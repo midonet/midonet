@@ -15,22 +15,26 @@
  */
 package org.midonet.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
-import collection.JavaConverters._
 import java.util.{Map => JMap, UUID}
+
+import scala.collection.JavaConverters._
 import scala.collection.breakOut
+
+import akka.actor.{Actor, ActorRef}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.PoolBuilder
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.cluster.data.l4lb.{Pool, PoolMember}
+import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation
+import org.midonet.midolman.topology.PoolManager.{TriggerDelete, TriggerUpdate}
+import org.midonet.midolman.topology.VirtualTopologyActor.{DeleteDevice, InvalidateFlowsByTag}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.FlowTagger
 
 object PoolManager {
     case class TriggerUpdate(poolMembers: Set[PoolMember])
+    case object TriggerDelete
 
     private def toSimulationPoolMember(pm: PoolMember): simulation.PoolMember =
         new simulation.PoolMember(
@@ -43,6 +47,7 @@ object PoolManager {
 class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
     with ActorLogWithoutPath {
     import PoolManager._
+
     import context.system // Used implicitly. Don't delete.
 
     private var poolConfig: Pool = null
@@ -88,26 +93,33 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     override def receive = {
-        case TriggerUpdate(poolMembers) => {
+        case TriggerUpdate(poolMembers) =>
             log.debug("Update triggered for pool members of pool ID {}", id)
             updatePoolMembers(poolMembers)
-        }
-        case pool: Pool => {
+
+        case TriggerDelete =>
+            VirtualTopologyActor ! DeleteDevice(id)
+
+        case pool: Pool =>
             log.debug("Update triggered for config of pool ID {}", id)
             updateConfig(pool)
-        }
     }
 }
 
-class PoolBuilderImpl(val poolMgr: ActorRef)
-    extends PoolBuilder {
-    import PoolManager.TriggerUpdate
+class PoolBuilderImpl(val poolMgr: ActorRef) extends PoolBuilder {
 
-    def setPoolConfig(pool: Pool) {
+    override def setPoolConfig(pool: Pool) {
         poolMgr ! pool
     }
 
-    def setPoolMembers(poolMemberMap: JMap[UUID, PoolMember]) {
+    override def setPoolMembers(poolMemberMap: JMap[UUID, PoolMember]) {
         poolMgr ! TriggerUpdate(poolMemberMap.values().asScala.toSet)
     }
+
+    override def build(): Unit = { }
+
+    override def deleted(): Unit = {
+        poolMgr ! TriggerDelete
+    }
+
 }

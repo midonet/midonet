@@ -21,7 +21,7 @@ import java.util.UUID;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.l4lb.PoolMember;
 
-public interface PoolBuilder {
+public interface PoolBuilder extends Builder<PoolBuilder> {
     void setPoolConfig(Pool pool);
     void setPoolMembers(Map<UUID,PoolMember> poolMembers);
 }
