@@ -83,6 +83,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_fc953440",
+        "filename": "tools/data_migration/README.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-08T10:23:22Z",
+      "side": 1,
+      "message": "it\u0027s intended for 1.9 -\u003e 5.x migration right?\nwe have separate plugins for those versions.",
+      "parentUuid": "baa041b7_7c74849b",
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fc13f45a",
         "filename": "tools/data_migration/setup.cfg",
         "patchSetId": 3
