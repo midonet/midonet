@@ -213,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4fc104e4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/flowstate/FlowStateService.scala",
+        "patchSetId": 37
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-08T15:51:01Z",
+      "side": 1,
+      "message": "The agent sends the flow state to the cluster through a vxlan tunnel (using the VxLanTunnelPort datapath). Do we want to support both types of tunnels?",
+      "parentUuid": "baa041b7_86037cb8",
+      "range": {
+        "startLine": 76,
+        "startChar": 42,
+        "endLine": 76,
+        "endChar": 61
+      },
+      "revId": "8012edbbbcb537341aaa06390ba9c5b2fcb479ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9b358b_7d3c7b93",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/flowstate/FlowStateServiceTest.scala",
         "patchSetId": 37
