@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -25,6 +26,8 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
+
+import static org.apache.commons.collections4.ListUtils.isEqualList;
 
 @ZoomClass(clazz = Neutron.NeutronBgpSpeaker.class)
 public class BgpSpeaker extends ZoomObject {
@@ -46,6 +49,18 @@ public class BgpSpeaker extends ZoomObject {
     @ZoomField(name = "ip_version")
     public Integer ipVersion;
 
+    @JsonProperty("router_id")
+    @ZoomField(name = "router_id")
+    public UUID routerId;
+
+    @JsonProperty("network_ids")
+    @ZoomField(name = "network_ids")
+    public List<UUID> networkIds;
+
+    @JsonProperty("bgp_peer_ids")
+    @ZoomField(name = "bgp_peer_ids")
+    public List<UUID> bgpPeerIds;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -61,7 +76,10 @@ public class BgpSpeaker extends ZoomObject {
                Objects.equals(tenantId, that.tenantId) &&
                Objects.equals(name, that.name) &&
                Objects.equals(localAs, that.localAs) &&
-               Objects.equals(ipVersion, that.ipVersion);
+               Objects.equals(ipVersion, that.ipVersion) &&
+               Objects.equals(routerId, that.routerId) &&
+               isEqualList(networkIds, that.networkIds) &&
+               isEqualList(bgpPeerIds, that.bgpPeerIds);
     }
 
     @Override
@@ -78,6 +96,9 @@ public class BgpSpeaker extends ZoomObject {
             .add("name", name)
             .add("localAs", localAs)
             .add("ipVersion", ipVersion)
+            .add("routerId", routerId)
+            .add("networkIds", networkIds)
+            .add("bgpPeerIds", bgpPeerIds)
             .toString();
     }
 }
