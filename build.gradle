@@ -66,7 +66,7 @@ project.ext {
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
         logback: "ch.qos.logback:logback-classic:1.1.2",
         logback_logstash: "net.logstash.logback:logstash-logback-encoder:3.5",
-        jna: ["net.java.dev.jna:jna:4.1.0", "net.java.dev.jna:jna-platform:4.1.0"],
+        jna: ["net.java.dev.jna:jna:4.2.2", "net.java.dev.jna:jna-platform:4.2.2"],
         jsch: 'com.jcraft:jsch:0.1.45',
         collections4: 'org.apache.commons:commons-collections4:4.0',
         commons_codec: "commons-codec:commons-codec:1.9",
