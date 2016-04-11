@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7fbfcfd0",
+        "filename": "tools/data_migration/migration_post.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-11T09:57:09Z",
+      "side": 1,
+      "message": "where is this module?",
+      "range": {
+        "startLine": 20,
+        "startChar": 20,
+        "endLine": 20,
+        "endChar": 34
+      },
+      "revId": "eae23cae36d7754b28a472f1db8117866e95ee9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7fa6afc2",
+        "filename": "tools/data_migration/migration_prepare.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-11T09:57:09Z",
+      "side": 1,
+      "message": "you need oslo.config in requirements.txt",
+      "revId": "eae23cae36d7754b28a472f1db8117866e95ee9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
