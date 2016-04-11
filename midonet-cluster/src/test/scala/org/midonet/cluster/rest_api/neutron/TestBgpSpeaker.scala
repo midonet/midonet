@@ -37,6 +37,8 @@ class TestBgpSpeaker extends NeutronApiTest {
     scenario("Create, read, delete") {
         val bgpSpeaker = new BgpSpeaker
         bgpSpeaker.id = UUID.randomUUID()
+        bgpSpeaker.networks = new java.util.ArrayList[UUID]()
+        bgpSpeaker.peers = new java.util.ArrayList[UUID]()
         val bgpSpeakerUri = postAndVerifySuccess(bgpSpeaker)
 
         get[BgpSpeaker](bgpSpeakerUri) shouldBe bgpSpeaker
