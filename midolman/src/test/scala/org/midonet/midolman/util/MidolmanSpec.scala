@@ -15,7 +15,10 @@
  */
 package org.midonet.midolman.util
 
+import java.util.UUID
+
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 import com.google.inject._
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
@@ -27,14 +30,19 @@ import org.midonet.cluster.data.storage.InMemoryStorage
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
-import org.midonet.midolman.MockMidolmanModule
+import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.{FlowTranslator, DatapathState, MockMidolmanModule}
 import org.midonet.midolman.cluster._
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.MidolmanService
-import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.simulation.{PacketContext, CustomMatchers}
 import org.midonet.midolman.util.mock.MockMidolmanActors
+import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
+import org.midonet.odp.{Datapath, DpPort}
+import org.midonet.odp.flows.{FlowActions, FlowActionOutput}
 import org.midonet.util.collection.IPv4InvalidationArray
 
 /**
@@ -137,4 +145,47 @@ trait MidolmanSpec extends FeatureSpecLike
             },
             new LegacyClusterModule()
         ).asJava
+
+    sealed class TestFlowTranslator(val dpState: DatapathState) extends FlowTranslator {
+        override protected val vt = injector.getInstance(classOf[VirtualTopology])
+        override protected val hostId: UUID = MidolmanSpec.this.hostId
+        override protected val config: MidolmanConfig = MidolmanSpec.this.config
+        override protected val numWorkers: Int = 1
+        override protected val workerId: Int = 0
+
+        override def translateActions(pktCtx: PacketContext): Unit =
+            super.translateActions(pktCtx)
+    }
+
+    class TestDatapathState extends DatapathState {
+        var version: Long = 0
+        var dpPortNumberForVport = mutable.Map[UUID, Integer]()
+        var peerTunnels = mutable.Map[UUID,Route]()
+        var grePort: Int = _
+        var vxlanPortNumber: Int = _
+
+        def getDpPortNumberForVport(vportId: UUID): Integer =
+            dpPortNumberForVport get vportId orNull
+
+        def overlayTunnellingOutputAction: FlowActionOutput =
+            FlowActions.output(grePort)
+        var vtepTunnellingOutputAction: FlowActionOutput = null
+
+        def peerTunnelInfo(peer: UUID) = peerTunnels get peer
+        def getVportForDpPortNumber(portNum: Integer): UUID = null
+        def dpPortForTunnelKey(tunnelKey: Long): DpPort = null
+        def getDpPortName(num: Integer): Option[String] = None
+        def isVtepTunnellingPort(portNumber: Integer): Boolean =
+            portNumber == vxlanPortNumber
+        def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+
+        def datapath: Datapath = new Datapath(0, "midonet")
+
+        val tunnelRecircVxLanPort: VxLanTunnelPort =
+            new VxLanTunnelPort("tnvxlan-overlay", 100)
+        tunnelRecircVxLanPort.setPortNo(102)
+        val hostRecircPort: NetDevPort = new NetDevPort("host-recirc", 101)
+        def tunnelRecircOutputAction: FlowActionOutput = null
+        def hostRecircOutputAction: FlowActionOutput = null
+    }
 }
