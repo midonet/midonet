@@ -26,3 +26,9 @@ def is_vxlan_enabled():
 
 def is_cluster_enabled():
     return conf.getboolean('default', 'cluster')
+
+def service_status_timeout():
+    return conf.getint('default', 'service_status_timeout')
+
+def docker_http_timeout():
+    return conf.getint('sandbox', 'docker_http_timeout')
