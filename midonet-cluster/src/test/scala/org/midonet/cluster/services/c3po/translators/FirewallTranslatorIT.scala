@@ -36,18 +36,12 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
     import FirewallTranslator._
 
     it should "handle firewall create with admin state down" in {
-        val fwId = UUID.randomUUID()
-        val fwjson = firewallJson(fwId, adminStateUp = false)
-
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, adminStateUp = false)
         eventually(validateFirewall(fwId, adminStateUp = false))
     }
 
     it should "handle firewall create with admin state up" in {
-        val fwId = UUID.randomUUID()
-        val fwjson = firewallJson(fwId, adminStateUp = true)
-
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, adminStateUp = true)
         eventually(validateFirewall(fwId, adminStateUp = true))
     }
 
@@ -60,94 +54,67 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
         val rule2json = firewallRuleJson(rule2Id, enabled = false,
                                          position = 2)
 
-        val fwId = UUID.randomUUID()
-        val fwjson = firewallJson(fwId,
-                                  firewallRuleList=List(rule1json, rule2json))
-
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, firewallRuleList=List(rule1json,
+                                                           rule2json))
         eventually(validateFirewall(fwId, List(rule1Id)))
     }
 
     it should "handle firewall create with router assoc/disassoc" in {
-        val rtr1Id = UUID.randomUUID()
-        createRouter(2, rtr1Id)
-
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId, addRouterIds = List(rtr1Id))
-
-        insertCreateTask(3, FirewallType, fwjson, fwId)
+        val rtr1Id = createRouter(2)
+        val fwId = createFirewall(3, addRouterIds = List(rtr1Id))
         eventually(validateFirewall(fwId, addRtrIds = List(rtr1Id),
                                     delRtrIds = List()))
 
-        fwjson = firewallUpdateJson(fwId, delRouterIds = List(rtr1Id))
+        val fwjson = firewallUpdateJson(fwId, delRouterIds = List(rtr1Id))
         insertUpdateTask(4, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, addRtrIds = List(),
                                     delRtrIds = List(rtr1Id)))
     }
 
     it should "handle firewall router assoc that's already associated" in {
-        val rtr1Id = UUID.randomUUID()
-        createRouter(2, rtr1Id)
-
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId, addRouterIds = List(rtr1Id))
-
-        insertCreateTask(3, FirewallType, fwjson, fwId)
+        val rtr1Id = createRouter(2)
+        val fwId = createFirewall(3, addRouterIds = List(rtr1Id))
         eventually(validateFirewall(fwId, addRtrIds = List(rtr1Id),
                                     delRtrIds = List()))
 
-        fwjson = firewallUpdateJson(fwId, addRouterIds = List(rtr1Id))
+        val fwjson = firewallUpdateJson(fwId, addRouterIds = List(rtr1Id))
         insertUpdateTask(4, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, addRtrIds = List(rtr1Id),
                                     delRtrIds = List()))
     }
 
     it should "handle firewall router disassoc that's not associated" in {
-        val rtr1Id = UUID.randomUUID()
-        createRouter(2, rtr1Id)
-
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId)
-
-        insertCreateTask(3, FirewallType, fwjson, fwId)
+        val rtr1Id = createRouter(2)
+        val fwId = createFirewall(3)
         eventually(validateFirewall(fwId, addRtrIds = List(),
                                     delRtrIds = List()))
 
-        fwjson = firewallUpdateJson(fwId, delRouterIds = List(rtr1Id))
+        val fwjson = firewallUpdateJson(fwId, delRouterIds = List(rtr1Id))
         insertUpdateTask(4, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, addRtrIds = List(),
                                     delRtrIds = List()))
     }
 
     it should "handle firewall update from admin state down to up" in {
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId, adminStateUp = false)
-
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, adminStateUp = false)
         eventually(validateFirewall(fwId, adminStateUp = false))
 
-        fwjson = firewallUpdateJson(fwId, adminStateUp = true)
+        val fwjson = firewallUpdateJson(fwId, adminStateUp = true)
         insertUpdateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, adminStateUp = true))
     }
 
     it should "handle firewall update from admin state up to down" in {
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId, adminStateUp = true)
-
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, adminStateUp = true)
         eventually(validateFirewall(fwId, adminStateUp = true))
 
-        fwjson = firewallUpdateJson(fwId, adminStateUp = false)
+        val fwjson = firewallUpdateJson(fwId, adminStateUp = false)
         insertUpdateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, adminStateUp = false))
     }
 
     it should "handle firewall update with rules added" in {
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId, firewallRuleList=List())
-
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2)
         eventually(validateFirewall(fwId))
 
         val rule1Id = UUID.randomUUID()
@@ -158,9 +125,9 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
         val rule2json = firewallRuleJson(rule2Id, enabled = false,
                                          position = 2)
 
-        fwjson = firewallUpdateJson(fwId,
-                                    firewallRuleList = List(rule1json,
-                                                            rule2json))
+        val fwjson = firewallUpdateJson(fwId,
+                                        firewallRuleList = List(rule1json,
+                                                                rule2json))
 
         insertUpdateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, List(rule1Id)))
@@ -169,14 +136,10 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
     it should "handle firewall update with rules removed" in {
         val rule1Id = UUID.randomUUID()
         val rule1json = firewallRuleJson(rule1Id)
-
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId,
-                                  firewallRuleList=List(rule1json))
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, firewallRuleList=List(rule1json))
         eventually(validateFirewall(fwId, List(rule1Id)))
 
-        fwjson = firewallUpdateJson(fwId, firewallRuleList = List())
+        val fwjson = firewallUpdateJson(fwId, firewallRuleList = List())
         insertUpdateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId))
     }
@@ -188,18 +151,16 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
         val rule2Id = UUID.randomUUID()
         var rule2json = firewallRuleJson(rule2Id, position = 2)
 
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId,
-                                  firewallRuleList=List(rule1json, rule2json))
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, firewallRuleList=List(rule1json,
+                                                           rule2json))
         eventually(validateFirewall(fwId, List(rule1Id, rule2Id)))
 
         // Update the position values and reverse the order
         rule1json = firewallRuleJson(rule1Id, position = 2)
         rule2json = firewallRuleJson(rule2Id, position = 1)
-        fwjson = firewallUpdateJson(fwId,
-                                    firewallRuleList=List(rule2json,
-                                                          rule1json))
+        val fwjson = firewallUpdateJson(fwId,
+                                        firewallRuleList=List(rule2json,
+                                                              rule1json))
         insertUpdateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, List(rule2Id, rule1Id)))
     }
@@ -210,11 +171,7 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
         // check for the rule translation exist in a different test class.
         val rule1Id = UUID.randomUUID()
         var rule1json = firewallRuleJson(rule1Id, action="deny")
-
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId,
-                                  firewallRuleList=List(rule1json))
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, firewallRuleList=List(rule1json))
         eventually {
             validateFirewall(fwId, List(rule1Id))
             val r = storage.get(classOf[Rule], rule1Id).await()
@@ -223,7 +180,7 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         rule1json = firewallRuleJson(rule1Id, action = "allow")
 
-        fwjson = firewallUpdateJson(fwId, firewallRuleList = List(rule1json))
+        val fwjson = firewallUpdateJson(fwId, firewallRuleList = List(rule1json))
         insertUpdateTask(3, FirewallType, fwjson, fwId)
         eventually {
             validateFirewall(fwId, List(rule1Id))
@@ -235,15 +192,12 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
     it should "handle firewall update with rule replaced" in {
         val rule1Id = UUID.randomUUID()
         val rule1json = firewallRuleJson(rule1Id, position = 1)
-
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId, firewallRuleList=List(rule1json))
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, firewallRuleList=List(rule1json))
         eventually(validateFirewall(fwId, List(rule1Id)))
 
         val rule2Id = UUID.randomUUID()
         val rule2json = firewallRuleJson(rule2Id, position = 1)
-        fwjson = firewallUpdateJson(fwId, firewallRuleList=List(rule2json))
+        val fwjson = firewallUpdateJson(fwId, firewallRuleList=List(rule2json))
         insertUpdateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, List(rule2Id)))
     }
@@ -251,14 +205,11 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
     it should "handle firewall update with rule disabled" in {
         val rule1Id = UUID.randomUUID()
         var rule1json = firewallRuleJson(rule1Id, enabled = true)
-
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId, firewallRuleList=List(rule1json))
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, firewallRuleList=List(rule1json))
         eventually(validateFirewall(fwId, List(rule1Id)))
 
         rule1json = firewallRuleJson(rule1Id, enabled = false)
-        fwjson = firewallUpdateJson(fwId, firewallRuleList=List(rule1json))
+        val fwjson = firewallUpdateJson(fwId, firewallRuleList=List(rule1json))
         insertUpdateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId))
     }
@@ -266,14 +217,11 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
     it should "handle firewall update with rule enabled" in {
         val rule1Id = UUID.randomUUID()
         var rule1json = firewallRuleJson(rule1Id, enabled = false)
-
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId, firewallRuleList=List(rule1json))
-        insertCreateTask(2, FirewallType, fwjson, fwId)
+        val fwId = createFirewall(2, firewallRuleList=List(rule1json))
         eventually(validateFirewall(fwId))
 
         rule1json = firewallRuleJson(rule1Id, enabled = true)
-        fwjson = firewallUpdateJson(fwId, firewallRuleList=List(rule1json))
+        val fwjson = firewallUpdateJson(fwId, firewallRuleList=List(rule1json))
         insertUpdateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, List(rule1Id)))
     }
@@ -289,35 +237,28 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
     }
 
     it should "handle firewall update with last-router=true" in {
-        val rtr1Id = UUID.randomUUID()
-        createRouter(2, rtr1Id)
+        val rtr1Id = createRouter(2)
 
         val rule1Id = UUID.randomUUID()
         val rule1json = firewallRuleJson(rule1Id)
-
-        val fwId = UUID.randomUUID()
-        var fwjson = firewallJson(fwId, firewallRuleList=List(rule1json),
+        val fwId = createFirewall(3, firewallRuleList=List(rule1json),
                                   addRouterIds = List(rtr1Id))
-        insertCreateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, List(rule1Id),
                                     addRtrIds = List(rtr1Id)))
-        fwjson = firewallUpdateJson(fwId, firewallRuleList=List(rule1json),
-                                    lastRouter=true)
+        val fwjson = firewallUpdateJson(fwId, firewallRuleList=List(rule1json),
+                                        lastRouter=true)
         insertUpdateTask(4, FirewallType, fwjson, fwId)
         eventually(validateFirewallNotExist(fwId, routerIds = List(rtr1Id)))
     }
 
     it should "handle firewall deletion" in {
-        val rtr1Id = UUID.randomUUID()
-        createRouter(2, rtr1Id)
+        val rtr1Id = createRouter(2)
 
         val rule1Id = UUID.randomUUID()
         val rule1json = firewallRuleJson(rule1Id)
 
-        val fwId = UUID.randomUUID()
-        val fwjson = firewallJson(fwId, firewallRuleList=List(rule1json),
+        val fwId = createFirewall(3, firewallRuleList = List(rule1json),
                                   addRouterIds = List(rtr1Id))
-        insertCreateTask(3, FirewallType, fwjson, fwId)
         eventually(validateFirewall(fwId, List(rule1Id),
                                     addRtrIds = List(rtr1Id)))
 
