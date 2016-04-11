@@ -284,7 +284,7 @@ neutron:
   extends:
     file: $BASE/neutron.yml
     service: neutron
-  image: sandbox/neutron:kilo
+  image: sandbox/neutron:kilo_fj
   hostname: neutron
   labels:
     interface: mdts.services.neutron.NeutronHost
