@@ -13,15 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 import importlib
 import logging
+import time
 
 from docker import Client
-import re
-import time
-from mdts.services.interface import Interface
 
-cli = Client(base_url='unix://var/run/docker.sock')
+from mdts.services.interface import Interface
+from mdts.tests.utils import conf
+
+cli = Client(base_url='unix://var/run/docker.sock',
+             timeout=conf.docker_http_timeout())
 LOG = logging.getLogger(__name__)
 
 
@@ -31,7 +34,7 @@ class Service(object):
         self.cli = cli
         self.container_id = container_id
         self.info = cli.inspect_container(container_id)
-        timeout = 60
+        timeout = conf.service_status_timeout()
         wait_time = 1
         # Check first that the container is running
         while not self.is_container_running():
@@ -153,7 +156,7 @@ class Service(object):
         return self.manage_service(operation='restart', wait=wait)
 
     def manage_service(self, operation="start",
-                       wait=False, timeout=120,
+                       wait=False, timeout=conf.service_status_timeout(),
                        wait_time=5, raise_error=True):
         status = "up" if "start" in operation else "down"
         self.exec_command('service %s %s' %
@@ -249,7 +252,8 @@ class Service(object):
         ))
         return exec_info['ExitCode']
 
-    def wait_for_status(self, status, timeout=240, wait_time=5, raise_error=True):
+    def wait_for_status(self, status, timeout=conf.service_status_timeout(),
+                        wait_time=5, raise_error=True):
         init_timeout = timeout
         while self.get_service_status() != status:
             if init_timeout == 0:
