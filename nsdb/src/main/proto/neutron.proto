@@ -506,6 +506,9 @@ message NeutronBgpSpeaker {
     optional string name = 3;
     optional uint32 local_as = 4;
     optional uint32 ip_version = 5;
+    optional UUID router_id = 6;
+    repeated UUID networks = 7;
+    repeated UUID peers = 8;
 }
 
 message NeutronBgpPeer {
