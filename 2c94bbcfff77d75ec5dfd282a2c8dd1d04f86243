@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e53470df",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-11T14:51:34Z",
+      "side": 1,
+      "message": "the fip translator explicitly sets them to 0 rather than just leaving them absent, so hasTpStart would return true even while getTpStart returns 0.",
+      "parentUuid": "baa041b7_a6da0077",
+      "range": {
+        "startLine": 87,
+        "startChar": 43,
+        "endLine": 87,
+        "endChar": 61
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fb166154",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 4
@@ -59,6 +83,30 @@
       "writtenOn": "2016-04-07T14:36:09Z",
       "side": 1,
       "message": "So this will break compatibility when migrating from 1.x topologies that still use ForwardNat rules. We should consider having separate classes for reading 1.x topologies, rather than reusing the simulation classes from 5.x code for the same purpose.",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 2
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_85524412",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-11T14:51:34Z",
+      "side": 1,
+      "message": "This should be caught by a unit test if it\u0027s a problem.",
+      "parentUuid": "baa041b7_fb166154",
       "range": {
         "startLine": 40,
         "startChar": 0,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2542583f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-11T14:51:34Z",
+      "side": 1,
+      "message": "Good catch. Done",
+      "parentUuid": "baa041b7_e645a817",
+      "range": {
+        "startLine": 337,
+        "startChar": 4,
+        "endLine": 337,
+        "endChar": 7
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c64bc42a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
         "patchSetId": 4
@@ -105,6 +177,30 @@
       "writtenOn": "2016-04-07T14:36:09Z",
       "side": 1,
       "message": "val",
+      "range": {
+        "startLine": 356,
+        "startChar": 4,
+        "endLine": 356,
+        "endChar": 7
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_053f54b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NATState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-11T14:51:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c64bc42a",
       "range": {
         "startLine": 356,
         "startChar": 4,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_256938bf",
+        "filename": "midolman/src/test/java/org/midonet/midolman/rules/TestRules.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-11T14:51:34Z",
+      "side": 1,
+      "message": "true. I\u0027ll add a few tests.",
+      "parentUuid": "baa041b7_e65c88ef",
+      "range": {
+        "startLine": 358,
+        "startChar": 12,
+        "endLine": 358,
+        "endChar": 19
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e1b472d2",
         "filename": "python-midonetclient/src/midonetclient/condition.py",
         "patchSetId": 4
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8587e460",
+        "filename": "python-midonetclient/src/midonetclient/condition.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-11T14:51:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e1b472d2",
+      "range": {
+        "startLine": 315,
+        "startChar": 22,
+        "endLine": 315,
+        "endChar": 29
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c1ca8e4f",
         "filename": "python-midonetclient/src/midonetclient/condition.py",
         "patchSetId": 4
@@ -174,6 +318,30 @@
       "writtenOn": "2016-04-07T14:36:09Z",
       "side": 1,
       "message": "length",
+      "range": {
+        "startLine": 336,
+        "startChar": 22,
+        "endLine": 336,
+        "endChar": 29
+      },
+      "revId": "2c94bbcfff77d75ec5dfd282a2c8dd1d04f86243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_657ce072",
+        "filename": "python-midonetclient/src/midonetclient/condition.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-11T14:51:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c1ca8e4f",
       "range": {
         "startLine": 336,
         "startChar": 22,
