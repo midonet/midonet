@@ -287,7 +287,7 @@ class BridgePort(override val id: UUID,
             Drop
         } else {
             if ((vlanId > 0) && context.wcmatch.isVlanTagged)
-                context.wcmatch.removeVlanId(vlanId)
+                context.removeVlanId(vlanId)
             super.egressCommon(context, next)
         }
     }

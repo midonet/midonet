@@ -300,7 +300,7 @@ class Bridge(val id: UUID,
                 Drop
             case vlanId if vlanInFrame.get == vlanId =>
                 context.log.debug("OutPort tagged with vlan {}, POP & forward", vlanId)
-                context.wcmatch.removeVlanId(vlanId)
+                context.removeVlanId(vlanId)
                 tryGet[Port](toPort).action
             case vlanId =>
                 context.log.debug("OutPort vlan {} doesn't match frame vlan {}: DROP",

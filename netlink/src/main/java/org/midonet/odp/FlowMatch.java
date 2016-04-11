@@ -851,15 +851,6 @@ public class FlowMatch {
         return vlanIds.size() == 1 && vlanIds.get(0) == 0;
     }
 
-    public boolean stripEthernetPcp() {
-        if (hasEthernetPcp()) {
-            removeVlanId((short) 0);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     // TODO(duarte): enhance as needed
     public void applyTo(Ethernet eth) {
         eth.setSourceMACAddress(ethSrc);
