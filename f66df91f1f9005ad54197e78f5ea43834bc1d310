@@ -22,6 +22,30 @@
       "revId": "f66df91f1f9005ad54197e78f5ea43834bc1d310",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_85a004f6",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-11T14:49:00Z",
+      "side": 1,
+      "message": "oops bad copy and paste.  Will fix, thanks",
+      "parentUuid": "baa041b7_a574289c",
+      "range": {
+        "startLine": 239,
+        "startChar": 8,
+        "endLine": 239,
+        "endChar": 11
+      },
+      "revId": "f66df91f1f9005ad54197e78f5ea43834bc1d310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
