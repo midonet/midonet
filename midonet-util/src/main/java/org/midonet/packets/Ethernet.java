@@ -144,17 +144,17 @@ public class Ethernet extends BasePacket {
     }
 
     /**
-     * @return the vlanID
+     * @return the vlanIDs
      */
     public List<Short> getVlanIDs() {
         return vlanIDs;
     }
 
     /**
-     * @param vlanID the vlanID to set
+     * @param vlanID the vlanID to add to the beginning of the vlanIDs list.
      */
-    public Ethernet setVlanID(short vlanID) {
-        this.vlanIDs.add(vlanID);
+    public Ethernet pushVlanId(short vlanID) {
+        this.vlanIDs.add(0, vlanID);
         return this;
     }
 
