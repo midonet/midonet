@@ -126,7 +126,7 @@ public class TestEthernet {
                            sampleHeader.length + 9000));
 
             Ethernet packetTpid = copyEthernet(packet);
-            packetTpid.setVlanID((short) 0xFF0);
+            packetTpid.appendVlanID((short) 0xFF0);
             packetTpid.setPriorityCode((byte) 0x01);
 
             // For empty payload with TPID
@@ -167,9 +167,9 @@ public class TestEthernet {
                            sampleTpidHeader.length + 9000));
 
             Ethernet packetQinQ = copyEthernet(packet);
-            packetQinQ.setVlanID((short) 0xFFF);
+            packetQinQ.appendVlanID((short) 0xFFF);
             packetQinQ.setPriorityCode((byte) 0x01);
-            packetQinQ.setVlanID((short) 0xFF0);
+            packetQinQ.appendVlanID((short) 0xFF0);
 
             // For empty payload with TPID
             byte[] emptyQinQ = Arrays.copyOf(sampleQinQHeader,

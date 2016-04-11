@@ -105,6 +105,10 @@ trait FlowTranslator {
         a match {
             case setKey: FlowActionSetKey =>
                 FlowKeyApplier.apply(setKey.getFlowKey, c.recircPayload)
+            case popVlan: FlowActionPopVLAN =>
+                VlanActionApplier.apply(popVlan, c.recircPayload)
+            case pushVlan: FlowActionPushVLAN =>
+                VlanActionApplier.apply(pushVlan, c.recircPayload)
             case _ =>
         }
     }
