@@ -101,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9e4e18c0",
+        "filename": "tools/data_migration/README.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-11T09:06:01Z",
+      "side": 1,
+      "message": "Ah, you mean the \"core_plugin\" field in neutron.conf, rather than a full new plugin package, correct?  If that needs to change, currently it\u0027s the user\u0027s responsibility, although I can add a function to also change that to the package_update.py.  I will add this info to this README",
+      "parentUuid": "baa041b7_fc953440",
+      "revId": "566b6d2676094a8c1bc1a8c24a3c6c448112f0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fc13f45a",
         "filename": "tools/data_migration/setup.cfg",
         "patchSetId": 3
