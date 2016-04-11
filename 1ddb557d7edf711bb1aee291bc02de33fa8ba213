@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ff3e3fb7",
+        "filename": "tools/data_migration/package_update.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-04-11T08:55:04Z",
+      "side": 1,
+      "message": "So, I\u0027m a little confused about to what my action items are.  Do I have to add command line parsing to this test-helper tool to make it usable from users?  (in which case, we should modify ALL of the util scripts to match) or is this something I can add in later?",
+      "parentUuid": "baa041b7_390f2ee3",
+      "revId": "1ddb557d7edf711bb1aee291bc02de33fa8ba213",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_39a5ee03",
         "filename": "tools/data_migration/package_update_compute.py",
         "patchSetId": 1
