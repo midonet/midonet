@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_deb0208e",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-11T04:28:54Z",
+      "side": 1,
+      "message": "val rtrId \u003d createRouter(2)",
+      "range": {
+        "startLine": 352,
+        "startChar": 8,
+        "endLine": 353,
+        "endChar": 30
+      },
+      "revId": "4fff79debd4dc4e5ad00fc5cd0fa21e454633855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9eaa9818",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-11T04:28:54Z",
+      "side": 1,
+      "message": "Considering how often this is repeated in this file, it might be worth making a createFirewall function patterned after createRouter or createNetwork.",
+      "range": {
+        "startLine": 358,
+        "startChar": 0,
+        "endLine": 361,
+        "endChar": 55
+      },
+      "revId": "4fff79debd4dc4e5ad00fc5cd0fa21e454633855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
