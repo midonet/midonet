@@ -109,7 +109,8 @@ trait VirtualConfigurationBuilders {
 
     def newBridgePort(bridge: UUID,
                       host: Option[UUID] = None,
-                      interface: Option[String] = None): UUID
+                      interface: Option[String] = None,
+                      vlanId: Option[Int] = None): UUID
 
     def setPortAdminStateUp(port: UUID, state: Boolean): Unit
     def deletePort(port: UUID): Unit
@@ -322,8 +323,9 @@ trait ForwardingVirtualConfigurationBuilders
 
     override def newBridgePort(bridge: UUID,
                                host: Option[UUID] = None,
-                               interface: Option[String] = None): UUID =
-        virtConfBuilderImpl.newBridgePort(bridge, host, interface)
+                               interface: Option[String] = None,
+                               vlanId: Option[Int] = None): UUID =
+        virtConfBuilderImpl.newBridgePort(bridge, host, interface, vlanId)
 
     override def setPortAdminStateUp(port: UUID, state: Boolean): Unit =
         virtConfBuilderImpl.setPortAdminStateUp(port, state)

@@ -48,7 +48,8 @@ object Simulator {
     val NOOP_HOOK: SimHook = _ => { }
 
     def simulate(context: PacketContext): Result = {
-        context.log.debug("Simulating a packet")
+        context.log.debug("Simulating a packet: " + context.packet)
+        context.log.debug("Ethertype: " + context.wcmatch.getEtherType)
         SimulationStashes.reUpStashes()
         if (context.ingressed)
             tryGet[Port](context.inputPort).ingress(context)

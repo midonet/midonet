@@ -314,12 +314,13 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def newBridgePort(bridge: UUID,
                                host: Option[UUID] = None,
-                               interface: Option[String] = None): UUID = {
+                               interface: Option[String] = None,
+                               vlanId: Option[Int] = None): UUID = {
         val id = UUID.randomUUID
         store.create(createBridgePort(id, bridgeId=Some(bridge),
                                       tunnelKey=tunnelKeys.incrementAndGet(),
                                       hostId=host, interfaceName=interface,
-                                      adminStateUp=true))
+                                      adminStateUp=true, vlanId = vlanId))
         id
     }
 

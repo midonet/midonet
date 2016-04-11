@@ -424,6 +424,22 @@ class PacketContext(val cookie: Long,
     def markUserspaceOnly(): Unit =
         wcmatch.markUserspaceOnly()
 
+    def removeVlanId(vlanId: Short): Unit = {
+        wcmatch.removeVlanId(vlanId)
+        val index = packet.getEthernet.getVlanIDs.indexOf(vlanId)
+        if (index != -1)
+            packet.getEthernet.getVlanIDs.remove(index)
+    }
+
+    def stripEthernetPcp(): Boolean = {
+        if (wcmatch.hasEthernetPcp) {
+            removeVlanId(0)
+            true
+        } else {
+            false
+        }
+    }
+
     override def toString = s"PacketContext($cookieStr tags$flowTags actions$virtualFlowActions $origMatch)"
 
     /*

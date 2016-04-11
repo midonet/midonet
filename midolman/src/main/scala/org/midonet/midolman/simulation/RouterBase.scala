@@ -88,7 +88,7 @@ abstract class RouterBase[IP <: IPAddr]()
             context.log.debug("Dropping VLAN tagged traffic")
             Drop
         } else {
-            if (context.wcmatch.stripEthernetPcp())
+            if (context.stripEthernetPcp())
                 context.log.debug("Stripping off VLAN 0 tag")
 
             if (!isValidEthertype(context.wcmatch.getEtherType)) {

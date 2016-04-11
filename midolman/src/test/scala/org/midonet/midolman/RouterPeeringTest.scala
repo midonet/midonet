@@ -32,8 +32,8 @@ import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.OpenVSwitch
-import org.midonet.odp.flows.{FlowKeyEthernet, FlowActionSetKey}
-import org.midonet.packets.{UDP, IPv4Subnet, MAC, IPv4Addr}
+import org.midonet.odp.flows.{FlowActionPopVLAN, FlowKeyEthernet, FlowActionSetKey}
+import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.VirtualActions.{Decap, Encap}
 import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
@@ -67,6 +67,7 @@ class RouterPeeringTest extends MidolmanSpec {
     var exteriorVtepPort: UUID = _
     val exteriorVtepPortIp = new IPv4Subnet("115.123.1.0", 24)
     val exteriorVtepPortMac = MAC.random()
+    val interiorVtepPortMac = MAC.random()
 
     val vtepTunnelIp = IPv4Addr.random
     val remoteVtepRouterIp = new IPv4Addr("115.123.1.35")
@@ -109,7 +110,7 @@ class RouterPeeringTest extends MidolmanSpec {
         localVtepRouter = newRouter("vtep-router")
         interiorVtepPort = newL2RouterPort(
             localVtepRouter,
-            MAC.random(),
+            interiorVtepPortMac,
             interiorVtepPortIp,
             vni,
             vtepTunnelIp)
@@ -204,7 +205,7 @@ class RouterPeeringTest extends MidolmanSpec {
             pktCtx.wcmatch.getDstPort should be (123)
         }
 
-        scenario("Packets not correctly addressed are not decapsulted") {
+        scenario("Packets not correctly addressed are not decapsulated") {
             val pkt = { eth src MAC.random() dst exteriorVtepPortMac } <<
                       { ip4 src remoteVtepRouterIp dst IPv4Addr.random } <<
                       { udp src 123 dst UDP.VXLAN.toShort } <<
@@ -221,7 +222,7 @@ class RouterPeeringTest extends MidolmanSpec {
             } isDefined) should be (false)
         }
 
-        scenario("Packets with the wrong vni are not decapsulted") {
+        scenario("Packets with the wrong vni are not decapsulated") {
             val pkt = { eth src MAC.random() dst exteriorVtepPortMac } <<
                       { ip4 src remoteVtepRouterIp dst IPv4Addr.random } <<
                       { udp src 123 dst UDP.VXLAN.toShort } <<
@@ -240,7 +241,7 @@ class RouterPeeringTest extends MidolmanSpec {
     }
 
     feature("conntrack with router peering") {
-        scenario("connection tracking should apply inner packet") {
+        scenario("connection tracking should apply to inner packet") {
             val router = newRouter("vtep-router")
             val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
                     .addShard()
@@ -259,7 +260,7 @@ class RouterPeeringTest extends MidolmanSpec {
             feedPeeringTable(rp1, rp1Mac, IPv4Addr.fromString("5.5.5.5"))
 
             val ttl = 2.toByte
-            val fromMac = MAC.random
+            val fromMac = MAC.random()
             val fromIp = "4.4.4.4"
             val toIp = "1.1.1.3"
             val pkt = { eth src fromMac dst rp1Mac} <<
@@ -286,6 +287,44 @@ class RouterPeeringTest extends MidolmanSpec {
             conntrackTx.get(outerKey) shouldBe null
         }
     }
+
+    feature("Interaction with VLAN-aware bridge") {
+        scenario("Packets traversing VAB -> VUB -> VTEP Router " +
+                 "should have VLAN tag removed.") {
+            val vab = newBridge("vlan-aware-bridge")
+            val vabExtPort = newBridgePort(vab)
+            materializePort(vabExtPort, hostId, "vab-ext-port")
+
+            val vabBridgePort = newBridgePort(vab, vlanId = Some(100))
+            val bridgeVabPort = newBridgePort(bridge)
+            linkPorts(vabBridgePort, bridgeVabPort)
+            feedMacTable(
+                fetchDevice[Bridge](vab),
+                remoteTenantRouterPortMac,
+                vabBridgePort)
+
+
+            val ttl = 10.toByte
+            val fromMac = MAC.random()
+            val pkt = { eth src fromMac dst remoteTenantRouterPortMac vlan 100 } <<
+                      { ip4 src localVmIp dst remoteVmIp ttl ttl } <<
+                      { tcp src 123 dst 80 }
+
+            val inCtx = packetContextFor(pkt, vabExtPort)
+            inCtx.origMatch.setEtherType(IPv4.ETHERTYPE)
+            inCtx.wcmatch.setEtherType(IPv4.ETHERTYPE)
+            val (simRes, outCtx) = simulate(inCtx)
+            simRes shouldBe AddVirtualWildcardFlow
+
+            val innerPkt = outCtx.packet.getEthernet.getPayload
+                .getPayload.getPayload.getPayload.asInstanceOf[Ethernet]
+            innerPkt.getVlanIDs shouldBe empty
+
+            outCtx.virtualFlowActions
+                .exists(_.isInstanceOf[FlowActionPopVLAN]) shouldBe true
+        }
+    }
+
 
     private def isEthernet(setKey: FlowActionSetKey) =
         setKey.getFlowKey.attrId() == OpenVSwitch.FlowKey.Attr.Ethernet
