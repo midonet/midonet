@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_83dd9916",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-12T14:06:26Z",
+      "side": 1,
+      "message": "doesn\u0027t python have an enumeration type? or else pass in \"up\" and \"down\" directly rather than doing string comparison.",
+      "range": {
+        "startLine": 138,
+        "startChar": 45,
+        "endLine": 138,
+        "endChar": 51
+      },
+      "revId": "0d633527436a4041042b35b920ec84632ae10019",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
