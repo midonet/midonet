@@ -14,6 +14,8 @@
 #    under the License.
 
 from data_migration import config  # noqa
+from midonetclient import api
+from midonetclient.client import httpclient
 from neutron.common import rpc
 from neutron import context as ncntxt
 from neutron.plugins.midonet import plugin
@@ -27,6 +29,19 @@ class MigrationContext(object):
 
         # Required to bypass an error when instantiating Midonet plugin.
         rpc.init(cfg.CONF)
+
+        neutron_config = cfg.CONF
+        mn_config = neutron_config.MIDONET
+        self.mn_url = mn_config.midonet_uri
+
+        self.mn_client = httpclient.HttpClient(mn_config.midonet_uri,
+                                               mn_config.username,
+                                               mn_config.password,
+                                               project_id=mn_config.project_id)
+        self.mn_api = api.MidonetApi(mn_config.midonet_uri,
+                                     mn_config.username,
+                                     mn_config.password,
+                                     project_id=mn_config.project_id)
 
         self.ctx = ncntxt.get_admin_context()
         self.client = plugin.MidonetPluginV2()

@@ -15,3 +15,4 @@
 
 MIDONET_PLUGIN_CONF_FILE = '/etc/neutron/plugins/midonet/midonet.ini'
 NEUTRON_CONF_FILE = '/etc/neutron/neutron.conf'
+PROVIDER_ROUTER_NAME = 'MidoNet Provider Router'
