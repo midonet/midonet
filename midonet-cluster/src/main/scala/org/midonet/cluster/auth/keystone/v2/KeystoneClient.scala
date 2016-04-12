@@ -17,22 +17,23 @@
 package org.midonet.cluster.auth.keystone.v2
 
 import java.net.URI
-import java.sql.Timestamp
-import java.text.{ParseException, ParsePosition}
+import java.text.ParsePosition
+import java.time.{ZoneOffset, LocalDateTime, ZonedDateTime}
+import java.time.format.{DateTimeParseException, DateTimeFormatter}
 import java.util.logging.Logger
 
+import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.UriBuilder
-import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.concurrent.duration._
+import scala.util.Try
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.util.ISO8601Utils
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider
 import com.sun.jersey.api.client.config.DefaultClientConfig
 import com.sun.jersey.api.client.filter.LoggingFilter
-import com.sun.jersey.api.client.{ClientHandlerException, UniformInterfaceException, Client}
+import com.sun.jersey.api.client.{Client, ClientHandlerException, UniformInterfaceException}
 
 import org.apache.commons.lang3.StringUtils.{isBlank, isNotBlank}
 
@@ -58,6 +59,30 @@ object KeystoneClient {
                                   clientIssueTime: Long,
                                   expirationTime: Long)
 
+
+    /**
+      * Parses the given timestamp from the two supported date formats: ISO8601
+      * and JDBC to a Unix timestamp. If any parsing fails, the method returns
+      * zero.
+      */
+    @throws[KeystoneException]
+    private[keystone] def parseTimestamp(string: String): Long = {
+        val tryZonedTime = Try {
+            ZonedDateTime.parse(string, DateTimeFormatter.ISO_DATE_TIME)
+                         .toInstant.toEpochMilli
+        }
+        val tryLocalTime = Try {
+            LocalDateTime.parse(string, DateTimeFormatter.ISO_DATE_TIME)
+                         .toInstant(ZoneOffset.of("Z")).toEpochMilli
+        }
+
+        tryZonedTime recoverWith {
+            case _ => tryLocalTime
+        } getOrElse {
+            throw new KeystoneException(
+                null, s"Unknown token timestamp format for $string", null)
+        }
+    }
 }
 
 
@@ -194,10 +219,15 @@ class KeystoneClient(config: KeystoneConfig) {
       * must be an administrator.
       */
     @throws[KeystoneException]
-    def getTenantUserRoles(tenantId: String, userId: String, token: String)
+    def getTenantUserRoles(tenantId: String, userId: String, token: String,
+                           marker: Option[String] = None,
+                           limit: Option[Int] = None)
     : KeystoneRoles = {
+        var params = Seq.empty[(String, String)]
+        if (marker.isDefined) params = params :+ ("marker", marker.get)
+        if (limit.isDefined) params = params :+ ("limit", limit.get.toString)
         get(classOf[KeystoneRoles], Some(token), "tenants", tenantId,
-            "users", userId, "roles")()
+            "users", userId, "roles")(params: _*)
     }
 
     /**
@@ -256,9 +286,6 @@ class KeystoneClient(config: KeystoneConfig) {
             f
         } catch {
             case e: UniformInterfaceException
-                if e.getResponse.getStatus == Status.BAD_REQUEST.getStatusCode =>
-                throw new KeystoneUnauthorizedException(uri.toString, e)
-            case e: UniformInterfaceException
                 if e.getResponse.getStatus == Status.UNAUTHORIZED.getStatusCode =>
                 throw new KeystoneUnauthorizedException(uri.toString, e)
             case e: UniformInterfaceException =>
@@ -299,22 +326,6 @@ class KeystoneClient(config: KeystoneConfig) {
             adminToken = currentToken
         }
         f(currentToken.id)
-    }
-
-    /**
-      * Parses the given timestamp from the two supported date formats: ISO8601
-      * and JDBC to a Unix timestamp. If any parsing fails, the method returns
-      * zero.
-      */
-    private def parseTimestamp(string: String): Long = {
-        var time =
-            try { ISO8601Utils.parse(string, ZeroPosition).getTime }
-            catch { case e: ParseException => 0L }
-        if (time == 0L) { time =
-            try { Timestamp.valueOf(string).getTime }
-            catch { case e: IllegalArgumentException => 0L }
-        }
-        time
     }
 
 }
