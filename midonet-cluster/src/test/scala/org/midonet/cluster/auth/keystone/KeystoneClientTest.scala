@@ -152,7 +152,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
         auth.token should not be null
         auth.token.expiresAt shouldBe null
 
-        auth = client.validate(auth.token.id, tenantScope = false)
+        auth = client.validate(auth.token.id, tenantScope = None)
         auth.token should not be null
         auth.user.name shouldBe keystoneUser
         tokenNeverExpires = false
@@ -205,7 +205,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
                                        keystonePassword)
 
         Then("Validating the token succeeds")
-        auth = client.validate(auth.token.id, tenantScope = false)
+        auth = client.validate(auth.token.id, tenantScope = None)
         auth.token should not be null
         auth.user.name shouldBe keystoneUser
     }
@@ -217,7 +217,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
                                        keystonePassword)
 
         Then("Validating the token succeeds")
-        auth = client.validate(auth.token.id, tenantScope = false)
+        auth = client.validate(auth.token.id, tenantScope = None)
         auth.token should not be null
         auth.user.name shouldBe keystoneUser
     }
@@ -231,7 +231,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            auth = client.validate(auth.token.id, tenantScope = false)
+            auth = client.validate(auth.token.id, tenantScope = None)
         }
     }
 
@@ -244,7 +244,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
 
         Then("Validating the token succeeds")
         auth = client.validate(auth.token.id,
-                                         tenantScope = true)
+                               tenantScope = Some(auth.r2.token.tenant.id))
         auth.token should not be null
         auth.user.name shouldBe keystoneUser
     }
@@ -257,7 +257,8 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
                                        keystonePassword)
 
         Then("Validating the token succeeds")
-        auth = client.validate(auth.token.id, tenantScope = true)
+        auth = client.validate(auth.token.id,
+                               tenantScope = Some(auth.r2.token.tenant.id))
         auth.token should not be null
         auth.user.name shouldBe keystoneUser
     }
@@ -271,7 +272,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            auth = client.validate(auth.token.id, tenantScope = true)
+            auth = client.validate(auth.token.id, tenantScope = None)
         }
     }
 
@@ -281,7 +282,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            client.validate("invalid-token", tenantScope = false)
+            client.validate("invalid-token", tenantScope = None)
         }
     }
 
@@ -291,7 +292,7 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            client.validate("invalid-token", tenantScope = false)
+            client.validate("invalid-token", tenantScope = None)
         }
     }
 
@@ -302,14 +303,15 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
                                        keystonePassword)
 
         Then("Validating the token succeeds")
-        auth = client.validate(auth.token.id, tenantScope = true)
+        auth = client.validate(auth.token.id,
+                               tenantScope = Some(auth.r2.token.tenant.id))
 
         When("The token expires")
         currentTime = currentTime + tokenLifetime
 
         Then("Validating the token fails")
         intercept[KeystoneException] {
-            client.validate(auth.token.id, tenantScope = false)
+            client.validate(auth.token.id, tenantScope = None)
         }
     }
 
