@@ -42,6 +42,7 @@ import org.midonet.cluster.auth.KeystoneTenantList;
 import org.midonet.cluster.auth.Tenant;
 import org.midonet.cluster.auth.Token;
 import org.midonet.cluster.auth.UserIdentity;
+import org.midonet.cluster.auth.keystone.v2.KeystoneConfig;
 import org.midonet.cluster.package$;
 
 /**
