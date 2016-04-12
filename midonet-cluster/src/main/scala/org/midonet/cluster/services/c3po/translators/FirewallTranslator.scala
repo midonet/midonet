@@ -52,7 +52,7 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         }
 
         // Match on return
-        // NOTE: This starts conneciton tracking
+        // NOTE: This starts connection tracking
         rules += returnFlowRule(chainId)
 
         // Copy over the enabled rules
@@ -97,7 +97,7 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
 
         // Detach the chain from the routers
         fw.getDelRouterIdsList.asScala foreach { rId =>
-            ops ++= deleteOldChains(rId)
+            ops ++= deleteOldJumpRules(rId)
 
             // Remove the FW jump rule from the router
             ops += Delete(classOf[Rule], fwdChainFwJumpRuleId(rId))
@@ -105,7 +105,9 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
 
         // Attach the chain to the routers
         fw.getAddRouterIdsList.asScala foreach { rId =>
-            ops ++= deleteOldChains(rId)
+            // Delete the jump rules to the deprecated fw chains so the new
+            // jump rule to 'fwdChain' replaces them
+            ops ++= deleteOldJumpRules(rId)
 
             val fwdRuleId = fwdChainFwJumpRuleId(rId)
 
@@ -124,10 +126,10 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         ops.toList
     }
 
-    private def deleteOldChains(rId: UUID): MidoOpList = {
+    private def deleteOldJumpRules(rId: UUID): MidoOpList = {
         // Remove old translations if any
         List(Delete(classOf[Rule], inChainFwJumpRuleId(rId)),
-            Delete(classOf[Rule], outChainFwJumpRuleId(rId)))
+             Delete(classOf[Rule], outChainFwJumpRuleId(rId)))
     }
 
     private def ensureRouterFwdChain(rId: UUID): (MidoOpList, Chain) = {
@@ -158,8 +160,8 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         // not delete them automatically.
         val fw = storage.get(classOf[NeutronFirewall], fwId).await()
         fw.getAddRouterIdsList.asScala.flatMap(
-            rId => List(Delete(classOf[Rule], inChainFwJumpRuleId(rId)),
-                        Delete(classOf[Rule], outChainFwJumpRuleId(rId)))).toList
+            rId => deleteOldJumpRules(rId) ++
+                List(Delete(classOf[Rule], fwdChainFwJumpRuleId(rId)))).toList
     }
 
     override protected def translateDelete(id: UUID) =
@@ -220,7 +222,7 @@ object FirewallTranslator {
     def fwdChainName(id: UUID) = "OS_FW_FORWARD_" + id.asJava
 
     def fwdChainFwJumpRuleId(routerId: UUID): UUID =
-        routerId.xorWith(0x1b4b62ca3eb011e5L, 0x91260242ac110002L)
+        routerId.xorWith(0x36feb6f6fd9211e5L, 0x98a00242ac110001L)
 
     def toTopologyRuleAction(action: FirewallRuleAction): Action = {
         action match {
