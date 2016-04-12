@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.auth.keystone.v2
+package org.midonet.cluster.auth.keystone
 
 import java.net.URI
-import java.time.{ZoneOffset, LocalDateTime, ZonedDateTime}
-import java.time.format.{DateTimeParseException, DateTimeFormatter}
+import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.time.{LocalDateTime, ZoneOffset, ZonedDateTime}
 import java.util.logging.Logger
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
@@ -36,7 +36,8 @@ import com.sun.jersey.api.client.{Client, ClientHandlerException, UniformInterfa
 
 import org.apache.commons.lang3.StringUtils.{isBlank, isNotBlank}
 
-import org.midonet.cluster.auth.keystone.v2.KeystoneClient._
+import org.midonet.cluster.auth.keystone.KeystoneClient.{AdminToken, TokenExpirationGuard, parseTimestamp}
+import org.midonet.cluster.auth.keystone.v2._
 
 object KeystoneClient {
 
