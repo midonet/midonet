@@ -245,14 +245,14 @@ public class LocalClientImplTest {
         getPortZkManager().delete(portId);
 
         portBuilder.awaitDeleteCalls(1, 5, TimeUnit.SECONDS);
-        // We may receive up to 3 additional calls to build because every we
+        // We may receive up to 4 additional calls to build because every we
         // change the children of the alive znode we add a new exists watcher on
         // it. However, when the watcher on the port znode triggers, we clear
         // the builder preventing additional calls to build. Because the order
         // of watchers is not deterministic in the MockDirectory (hash set) we
         // cannot predict how many calls to build we receive.
         int buildCalls = portBuilder.getBuildCallsCount();
-        assertThat("Build is called", buildCalls, lessThanOrEqualTo(8));
+        assertThat("Build is called", buildCalls, lessThanOrEqualTo(9));
         assertThat("Delete is called", portBuilder.getDeletedCallsCount(),
                    equalTo(1));
 
