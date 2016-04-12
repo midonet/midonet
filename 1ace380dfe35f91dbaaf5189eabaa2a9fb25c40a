@@ -16,6 +16,24 @@
       "revId": "1ace380dfe35f91dbaaf5189eabaa2a9fb25c40a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_51a4fa55",
+        "filename": "tests/ci-start.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-12T12:45:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d6aa4070",
+      "revId": "1ace380dfe35f91dbaaf5189eabaa2a9fb25c40a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
