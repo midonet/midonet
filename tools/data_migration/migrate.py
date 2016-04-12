@@ -15,6 +15,7 @@
 #    under the License.
 
 import argparse
+from data_migration import midonet_data as md
 from data_migration import neutron_data as nd
 import logging
 
@@ -34,12 +35,17 @@ def main():
     parser.add_argument('-d', '--debug', action='store_true', default=False,
                         help='Turn on debug logging (off by default).')
     args = parser.parse_args()
+    dry_run = args.dryrun
 
     # For now, just allow DEBUG or INFO
     LOG.setLevel(level=logging.DEBUG if args.debug else logging.INFO)
 
     # Start the migration
-    nd.migrate(dry_run=args.dryrun)
+    n_data = nd.export(dry_run=dry_run)
+
+    ext_nets, ip_set = nd.prepare_external_net_info(n_data)
+    pr_info = md.prepare_provider_router_info(ip_set)
+    nd.migrate_provider_router(pr_info, ext_nets, dry_run=dry_run)
 
 
 if __name__ == "__main__":

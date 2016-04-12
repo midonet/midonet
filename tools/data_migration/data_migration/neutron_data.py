@@ -215,8 +215,13 @@ def _dry_run_output(task):
                                  task['resource_id']])
 
 
-def migrate(dry_run=False):
-    LOG.info('Running migration process')
+def _router_has_gateway(r):
+    return ('external_gateway_info' in r and
+            'external_fixed_ips' in r['external_gateway_info'])
+
+
+def export(dry_run=False):
+    LOG.info('Exporting neutron data')
     obj_map = _create_obj_map()
     tasks = _create_task_list(obj_map)
     for t in tasks:
@@ -224,3 +229,35 @@ def migrate(dry_run=False):
             print(_dry_run_output(t))
         else:
             task.create_task(migration_context.ctx, **t)
+    return obj_map
+
+
+def prepare_external_net_info(neutron_data):
+    LOG.info('Preparing External Network info')
+
+    ip_set = set()
+
+    for fip in neutron_data['floating-ips'].itervalues():
+        ip_set.add(fip['floating_ip_address'] + '/32')
+
+    for fip in neutron_data['vips'].itervalues():
+        ip_set.add(fip['address'] + '/32')
+
+    for r in neutron_data['routers'].itervalues():
+        if _router_has_gateway(r):
+            for ip in r['external_gateway_info']['external_fixed_ips']:
+                ip_set.add(ip['ip_address'] + '/32')
+
+    networks = [net for net in neutron_data['networks'].itervalues()
+                if net['router:external']]
+    for net in networks:
+        for sub in net['subnets']:
+            sub_obj = neutron_data['subnets'][sub]
+            ip_set.add(sub_obj['cidr'])
+
+    return networks, ip_set
+
+
+def migrate_provider_router(edge_router_info, ext_net_info, dry_run=False):
+    LOG.info('Creating Edge Router and Uplink networks from Provider Router')
+    pass

@@ -13,5 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+EXT_RTR_PORT_TYPE = 'ExteriorRouter'
+METADATA_ROUTE = '169.254.169.254/32'
 MIDONET_PLUGIN_CONF_FILE = '/etc/neutron/plugins/midonet/midonet.ini'
 NEUTRON_CONF_FILE = '/etc/neutron/neutron.conf'
+PROVIDER_ROUTER_NAME = 'MidoNet Provider Router'

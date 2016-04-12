@@ -6,12 +6,18 @@ This is the MidoNet data migration tool.
 
 Currently data migration assumes that the Neutron version is kilo.
 
+Migration consists of the following steps:
+
+1. Export Neutron resources by inserting them into the ``midonet_tasks`` table
+where they will be imported into MidoNet by MidoNet Cluster (v5.X).
+2. Fetch the Provider Router information from MidoNet API (v1.9), and convert
+it into an edge router with uplink networks.
+
 
 How to Run
 ----------
 
-Run the following command to insert Neutron objects to ``midonet_tasks`` table
-(of Neutron DB) where they will be imported to midonet cluster::
+Run the following command to run the data migration::
 
      $ ./migrate.py
 
