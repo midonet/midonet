@@ -46,6 +46,10 @@ public class MessageProperty {
             "{midokura.javarx.HostFloodingProxyWeightIsNull}";
     public static final String HOST_CONTAINER_WEIGHT_IS_NULL =
             "{midokura.javarx.HostContainerWeightIsNull}";
+    public static final String HOST_CONTAINER_LIMIT_IS_NULL =
+            "{midokura.javarx.HostContainerLimitIsNull}";
+    public static final String HOST_ENFORCE_CONTAINER_LIMIT_IS_NULL =
+            "{midokura.javarx.HostEnforceContainerLimitIsNull}";
     public static final String HOST_ID_IS_INVALID =
             "{midokura.javarx.HostIdIsInvalid.message}";
     public static final String HOST_INTERFACE_IS_USED =

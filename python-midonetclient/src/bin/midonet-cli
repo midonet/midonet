@@ -962,6 +962,38 @@ class EnabledAttr(SingleAttr):
         val = EnabledAttr.get_val.get(value, None)
         super(EnabledAttr, self).set(obj, val)
 
+class LimitAttr(SingleAttr):
+    get_val = {'yes': True, 'no': False}
+
+    def __init__(self, name,
+                 getter,
+                 setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
+        super(LimitAttr, self).__init__(name, ValueType(),
+                                         getter = getter,
+                                         setter = setter,
+                                         writeable = writeable,
+                                         show = show,
+                                         optional = optional,
+                                         inv_getter = inv_getter,
+                                         inv_setter = inv_setter)
+
+    def fetch(self, obj):
+        try:
+            func = obj.reflect(self.getter)
+            limit = func()
+            return "no-limit" if limit < 0 else limit
+        except KeyError:
+            return None
+
+    def set(self, obj, value):
+        val = -1 if value == "no-limit" else value
+        super(LimitAttr, self).set(obj, val)
+
 class Collection(Attr):
     def __init__(self, name, element_type, list_method,
                  list_with_tenant = False,
@@ -2366,6 +2398,12 @@ class Host(ObjectType):
                                  value_type = ContainerWeight(),
                                  getter = 'get_container_weight',
                                  setter = 'container_weight'))
+        self.put_attr(LimitAttr(name = 'container-limit',
+                                getter = 'get_container_limit',
+                                setter = 'container_limit'))
+        self.put_attr(BooleanAttr(name = 'enforce-container-limit',
+                                  setter = 'enforce_container_limit',
+                                  getter = 'get_enforce_container_limit'))
 
 class Interface(ObjectType):
     def type_name(self):

@@ -25,7 +25,6 @@ import javax.validation.constraints.Min;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 
-import org.midonet.cluster.data.Zoom;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
@@ -66,6 +65,14 @@ public class Host extends UriResource {
     @ZoomField(name = "container_weight")
     public Integer containerWeight;
 
+    @Min(-1)
+    @Max(Integer.MAX_VALUE)
+    @ZoomField(name = "container_limit")
+    public Integer containerLimit;
+
+    @ZoomField(name = "enforce_container_limit")
+    public Boolean enforceContainerLimit;
+
     @ZoomField(name = "port_ids")
     @JsonIgnore
     public List<UUID> portIds;
@@ -94,6 +101,8 @@ public class Host extends UriResource {
             .add("alive", alive)
             .add("floodingProxyWeight", floodingProxyWeight)
             .add("containerWeight", containerWeight)
+            .add("containerLimit", containerLimit)
+            .add("enforceContainerLimit", enforceContainerLimit)
             .add("portIds", portIds)
             .toString();
     }

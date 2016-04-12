@@ -63,6 +63,14 @@ public class Host extends ResourceBase<Host, DtoHost> {
         return principalDto.getContainerWeight();
     }
 
+    public Integer getContainerLimit() {
+        return principalDto.getContainerLimit();
+    }
+
+    public Boolean getEnforceContainerLimit() {
+        return principalDto.getEnforceContainerLimit();
+    }
+
     public ResourceCollection<HostInterface> getInterfaces() {
         return getChildResources(
             principalDto.getInterfaces(), null,
