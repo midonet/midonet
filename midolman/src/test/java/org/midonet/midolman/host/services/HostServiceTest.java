@@ -16,6 +16,7 @@
 package org.midonet.midolman.host.services;
 
 import java.net.InetAddress;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -194,6 +195,27 @@ public class HostServiceTest {
         updateMetadata();
 
         startAndStopService();
+    }
+
+    @Test
+    public void removeInterfacesUponSessionChange() throws Throwable {
+        setup(false);
+
+        // Create fake interface simulating a previous crash
+        hostZkManager.createHost(hostId, new HostDirectory.Metadata());
+        HostDirectory.Interface iface = new HostDirectory.Interface();
+        iface.setName("test_interface");
+        hostZkManager.createInterface(hostId, iface);
+
+        Set<String> ifaces = hostZkManager.getInterfaces(hostId);
+        assertThat(ifaces.size(), is(1));
+        assertThat(ifaces.iterator().next(), is("test_interface"));
+
+        // When starting the service (so the zk session changes)
+        HostService host = startService();
+        // Then the interface is removed
+        assertThat(hostZkManager.getInterfaces(hostId).size(), is(0));
+        stopService(host);
     }
 
     private void assertLegacyHostState() throws Exception {

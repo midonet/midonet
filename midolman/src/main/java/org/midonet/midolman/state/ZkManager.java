@@ -520,6 +520,10 @@ public class ZkManager {
         }
     }
 
+    public long getSessionId() {
+        return this.zk.getSessionId();
+    }
+
     /**
      * Disconnects from the underlying storage.
      */

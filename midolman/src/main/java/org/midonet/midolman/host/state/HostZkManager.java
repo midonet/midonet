@@ -361,44 +361,74 @@ public class HostZkManager
         return zk.getChildren(path);
     }
 
+    /**
+     * Deletes from ZooKeeper the current set of interfaces registered under
+     * a given HostID.
+     * @param hostId
+     * @return The set of interface names deleted
+     * @throws StateAccessException
+     */
+    public Set<String> deleteInterfaces(UUID hostId) throws StateAccessException {
+        Set<String> hostInterfaces = getInterfaces(hostId);
+        List<Op> deleteInterfaceOp = new ArrayList<>();
+        for (String hostInterface : hostInterfaces) {
+            deleteInterfaceOp.add(
+                zk.getDeleteOp(paths.getHostInterfacePath(hostId,
+                                                          hostInterface)));
+        }
+        if (!deleteInterfaceOp.isEmpty()) {
+            zk.multi(deleteInterfaceOp);
+        }
+        return hostInterfaces;
+    }
+
+    private byte[] serializeInterface(HostDirectory.Interface hostInterface) {
+        try {
+            return serializer.serialize(hostInterface);
+        } catch (SerializationException ex) {
+            log.warn("Could not serialize interface data {}.",
+                     hostInterface, ex);
+            return null;
+        }
+    }
+
     public void updateHostInterfaces(UUID hostId,
-                                     List<HostDirectory.Interface>
-                                         currentInterfaces,
+                                     Set<HostDirectory.Interface> createdInterfaces,
+                                     Set<HostDirectory.Interface> updatedInterfaces,
                                      Set<String> obsoleteInterfaces)
         throws StateAccessException {
 
         List<Op> updateInterfacesOperation = new ArrayList<>();
 
+        // Append delete ops
         for (String obsoleteInterface : obsoleteInterfaces) {
             updateInterfacesOperation.add(
-                    zk.getDeleteOp(
+                zk.getDeleteOp(
                     paths.getHostInterfacePath(hostId,
-                                                     obsoleteInterface)));
+                                               obsoleteInterface)));
         }
 
-        for (HostDirectory.Interface hostInterface : currentInterfaces) {
-            try {
-
-                String hostInterfacePath =
-                    paths.getHostInterfacePath(hostId,
-                                                     hostInterface.getName());
-                byte[] serializedData = serializer.serialize(hostInterface);
-
-                Op hostInterfaceOp;
-                if (zk.exists(hostInterfacePath)) {
-                    hostInterfaceOp =
-                            zk.getSetDataOp(hostInterfacePath, serializedData);
-                } else {
-                    hostInterfaceOp =
-                            zk.getEphemeralCreateOp(hostInterfacePath,
-                                    serializedData);
-                }
-
+        // Append create ops
+        for (HostDirectory.Interface hostInterface : createdInterfaces) {
+            String hostInterfacePath =
+                paths.getHostInterfacePath(hostId, hostInterface.getName());
+            byte[] serializedData = serializeInterface(hostInterface);
+            if (serializedData != null) {
+                Op hostInterfaceOp = zk.getEphemeralCreateOp(hostInterfacePath,
+                                                             serializedData);
                 updateInterfacesOperation.add(hostInterfaceOp);
+            }
+        }
 
-            } catch (SerializationException ex) {
-                log.warn("Could not serialize interface data {}.",
-                        hostInterface, ex);
+        // Append update ops
+        for (HostDirectory.Interface hostInterface : updatedInterfaces) {
+            String hostInterfacePath =
+                paths.getHostInterfacePath(hostId, hostInterface.getName());
+            byte[] serializedData = serializeInterface(hostInterface);
+            if (serializedData != null) {
+                Op hostInterfaceOp = zk.getSetDataOp(hostInterfacePath,
+                                                     serializedData);
+                updateInterfacesOperation.add(hostInterfaceOp);
             }
         }
 

@@ -15,15 +15,22 @@
  */
 package org.midonet.midolman.host.updater;
 
+import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import com.google.inject.Inject;
-import org.midonet.midolman.host.interfaces.InterfaceDescription;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.state.StateAccessException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
-import java.util.*;
+import org.midonet.midolman.host.interfaces.InterfaceDescription;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.state.StateAccessException;
 
 import static org.midonet.midolman.host.state.HostDirectory.Interface;
 import static org.midonet.midolman.host.state.HostDirectory.Metadata;
@@ -36,70 +43,82 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
     @Inject
     HostZkManager hostZkManager;
 
-    // use a local cache
-    private Map<String, Interface> previousDescriptions = new HashMap<>();
+    private Set<String> cachedInterfaces = new HashSet<>();
+
+    private long currentSessionId = -1L;
 
     @Override
     public synchronized void updateInterfacesData(UUID hostID, Metadata host,
             Set<InterfaceDescription> descriptions) {
 
+        try {
+            if (hostZkManager.getSessionId() != currentSessionId) {
+                // Delete the current interfaces so we start over
+                hostZkManager.deleteInterfaces(hostID);
+                currentSessionId = hostZkManager.getSessionId();
+                cachedInterfaces.clear();
+            }
+        } catch (StateAccessException ex) {
+            log.warn("Cleanup of host interfaces after reconnecting to "
+                     + "ZooKeeper failed. Continuing.", hostID, descriptions, ex);
+        }
+
         log.trace("Start uploading the interface data ({} entries).",
                   descriptions.size());
 
         Map<String, Interface> newInterfacesByName = new HashMap<>();
-
         for (InterfaceDescription description : descriptions) {
             Interface hostInterface = createHostInterfaceInstance(description);
             newInterfacesByName.put(hostInterface.getName(), hostInterface);
         }
 
-        updateDataStore(hostID, previousDescriptions, newInterfacesByName);
+        updateDataStore(hostID, newInterfacesByName);
     }
 
     private void updateDataStore(UUID hostId,
-                                 Map<String, Interface> curMapByName,
                                  Map<String, Interface> newMapByName) {
         try {
-            Set<String> interfacesToRemove = new HashSet<>();
-
-            for (Interface curHostInterface : curMapByName.values()) {
-                // the interface disappeared form the new list
-                if (!newMapByName.containsKey(curHostInterface.getName())) {
-                    interfacesToRemove.add(curHostInterface.getName());
+            Set<String> obsoleteInterfaces = new HashSet<>();
+            for (String cachedInterface : cachedInterfaces) {
+                // the interface disappeared from the new list
+                if (!newMapByName.containsKey(cachedInterface)) {
+                    obsoleteInterfaces.add(cachedInterface);
                 }
             }
 
-            List<Interface> updatedInterfaces = new ArrayList<>();
-
-            for (Interface newHostInterface : newMapByName.values()) {
-
-                // first look to see if the interface is completely new
-                if (!curMapByName.containsKey(newHostInterface.getName())) {
-                    updatedInterfaces.add(newHostInterface);
-                    continue;
-                }
-
-                // and if not completely new then if it was updated
-                Interface currentHostInterface =
-                    curMapByName.get(newHostInterface.getName());
-
-                if (!currentHostInterface.equals(newHostInterface)) {
-                    updatedInterfaces.add(newHostInterface);
+            Set<Interface> updatedInterfaces = new HashSet<>();
+            Set<Interface> createdInterfaces = new HashSet<>();
+            for (Interface currentInterface : newMapByName.values()) {
+                if (cachedInterfaces.contains(currentInterface.getName())) {
+                    // The interface was already registered, update it.
+                    updatedInterfaces.add(currentInterface);
+                } else {
+                    // It's a brand new interface, create it.
+                    createdInterfaces.add(currentInterface);
                 }
             }
 
-            log.trace("Input: " + curMapByName);
+            log.debug("Input: " + newMapByName);
+            if (!createdInterfaces.isEmpty()) {
+                log.debug("Created: " + createdInterfaces);
+            }
             if (!updatedInterfaces.isEmpty()) {
                 log.debug("Updated: " + updatedInterfaces);
             }
-            if (!interfacesToRemove.isEmpty()) {
-                log.debug("Removed: " + interfacesToRemove);
+            if (!obsoleteInterfaces.isEmpty()) {
+                log.debug("Removed: " + obsoleteInterfaces);
             }
 
             hostZkManager.updateHostInterfaces(hostId,
+                                               createdInterfaces,
                                                updatedInterfaces,
-                                               interfacesToRemove);
-            previousDescriptions = newMapByName;
+                                               obsoleteInterfaces);
+            // Update cached interfaces if update operation was successful.
+            cachedInterfaces = newMapByName.keySet();
+            // We don't update the session id here just in case it changed
+            // after the last cache invalidation. If we did and the session
+            // changed, we wouldn't be invalidating the interfaces from a
+            // previous session.
         } catch (StateAccessException e) {
             log.warn("Updating of the interface data failed: ", e);
         }
