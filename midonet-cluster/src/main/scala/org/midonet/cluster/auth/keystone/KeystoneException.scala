@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.auth.keystone
 
-import com.sun.jersey.api.client.UniformInterfaceException
+import com.sun.jersey.api.client.{ClientResponse, UniformInterfaceException}
 
 import org.midonet.cluster.auth.AuthException
 
@@ -24,10 +24,10 @@ class KeystoneException(val url: String, message: String, inner: Exception)
     extends AuthException(message, inner) {
 
     def this(url: String) =
-        this(url, s"Keystone v2 request `$url` failed", null)
+        this(url, s"Keystone request `$url` failed", null)
 
     def this(url: String, inner: Exception) =
-        this(url, s"Keystone v2 request `$url` failed", inner)
+        this(url, s"Keystone request `$url` failed", inner)
 
 }
 
@@ -35,10 +35,14 @@ class KeystoneUnauthorizedException(url: String, message: String, inner: Excepti
     extends KeystoneException(url, message, inner) {
 
     def this(url: String, inner: UniformInterfaceException) =
-        this(url, "Invalid Keystone v2 credentials: " +
+        this(url, "Invalid Keystone credentials: " +
                   s"${inner.getResponse.getEntity(classOf[AnyRef])}", inner)
+
+    def this(response: ClientResponse) =
+        this(null, "Invalid Keystone credentials: " +
+                   s"${response.getEntity(classOf[AnyRef])}", null)
 
 }
 
 class KeystoneConnectionException(url: String, inner: Exception)
-    extends KeystoneException(url, s"Connection to Keystone v2 failed", inner)
+    extends KeystoneException(url, s"Connection to Keystone failed", inner)
