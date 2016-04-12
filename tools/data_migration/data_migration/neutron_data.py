@@ -215,9 +215,12 @@ def _dry_run_output(task):
                                  task['resource_id']])
 
 
-def migrate():
+def migrate(dry_run=False):
     LOG.info('Running migration process')
     obj_map = _create_obj_map()
     tasks = _create_task_list(obj_map)
     for t in tasks:
-        print(_dry_run_output(t))
+        if dry_run:
+            print(_dry_run_output(t))
+        else:
+            task.create_task(migration_context.ctx, **t)
