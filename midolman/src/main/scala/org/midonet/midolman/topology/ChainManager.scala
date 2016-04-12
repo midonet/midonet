@@ -28,7 +28,6 @@ import org.midonet.midolman.topology.VirtualTopologyActor.{DeleteDevice, Invalid
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.{JumpRule, Rule}
 import org.midonet.midolman.simulation.{IPAddrGroup, Chain}
-import org.midonet.midolman.topology.ChainManager._
 import org.midonet.sdn.flows.FlowTagger
 
 object ChainManager {
@@ -122,7 +121,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
                 idToRefCount.put(id, refCount + 1)
             case None =>
                 waitingForResources += 1
-                log.debug(s"now tracking ip address group $id, waiting "+
+                log.debug(s"Tracking $resourceType $id, waiting "+
                           s"for $waitingForResources resources.")
                 VirtualTopologyActor ! reqFactory(id)
                 idToRefCount.put(id, 1)
@@ -158,7 +157,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
 
             case Some(refCount) if refCount == 1 =>
                 // That was the last reference, so stop tracking this resource.
-                VirtualTopologyActor ! Unsubscribe(id)
+                VirtualTopologyActor ! Unsubscribe(refId)
                 idToRefCount.remove(refId)
                 idToResource.remove(refId) match {
                     // If it wasn't in the cache we must have been waiting for it.
@@ -352,6 +351,14 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         0 == waitingForResources
     }
 
+    /** Unsubscribes from all referenced devices.
+      */
+    private def unsubscribeRefs(): Unit = {
+        for (refId <- idToRefCount.keys) {
+            VirtualTopologyActor ! Unsubscribe(refId)
+        }
+    }
+
     override def receive = {
         // Each of these message types notifies us of an update to one
         // of the Chain's dependencies. In particular, note that the
@@ -364,6 +371,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         case ipAddrGroup: IPAddrGroup =>
             withInvalidation { updateIpAddrGroup(ipAddrGroup) }
         case TriggerDeleted =>
+            unsubscribeRefs()
             VirtualTopologyActor ! DeleteDevice(id)
         case unexpected =>
             log.error(s"received an unexpected message: $unexpected")

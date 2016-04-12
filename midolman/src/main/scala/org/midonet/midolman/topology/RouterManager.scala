@@ -136,6 +136,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             prefetchTopology(loadBalancer(newCfg.loadBalancer))
 
         case TriggerDelete =>
+            unsubscribePrefetcher()
             VirtualTopologyActor ! DeleteDevice(id)
 
         case InvalidateFlows(addedRoutes, deletedRoutes) =>

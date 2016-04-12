@@ -362,10 +362,14 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
 
         log.debug(s"Virtual topology statistics: devices=${topology.size()} " +
                   s"promises=${promises.size()} senders=${senders.size()} " +
-                  s"subscribers=${subscribers.size()}")
+                  s"subscribers=${subscribers.size()} managers=${devices.size()}")
     }
 
-    private def deviceUpdated(id: UUID, device: AnyRef) {
+    private def deviceUpdated(id: UUID, device: AnyRef): Unit = {
+        // Ignore the device notification if the device is no longer managed.
+        if (!devices.contains(id))
+            return
+
         // Update the topology cache.
         topology.put(id, device)
 
@@ -398,7 +402,7 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
 
         log.debug(s"Virtual topology statistics: devices=${topology.size()} " +
                   s"promises=${promises.size()} senders=${senders.size()} " +
-                  s"subscribers=${subscribers.size()}")
+                  s"subscribers=${subscribers.size()} managers=${devices.size()}")
     }
 
     private def deviceDeleted(id: UUID): Unit = {
@@ -417,7 +421,7 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
 
         log.debug(s"Virtual topology statistics: devices=${topology.size()} " +
                   s"promises=${promises.size()} senders=${senders.size()} " +
-                  s"subscribers=${subscribers.size()}")
+                  s"subscribers=${subscribers.size()} managers=${devices.size()}")
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {

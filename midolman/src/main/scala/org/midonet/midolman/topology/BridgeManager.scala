@@ -191,6 +191,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             prefetchTopology()
 
         case TriggerDelete =>
+            unsubscribePrefetcher()
             VirtualTopologyActor ! DeleteDevice(id)
 
         case invalidation: InvalidateFlowsByTag => VirtualTopologyActor ! invalidation

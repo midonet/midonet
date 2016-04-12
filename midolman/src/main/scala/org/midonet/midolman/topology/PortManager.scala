@@ -57,6 +57,7 @@ class PortManager(id: UUID, val clusterClient: Client)
             cfg = p
             prefetchTopology()
         case TriggerDelete =>
+            unsubscribePrefetcher()
             VirtualTopologyActor ! DeleteDevice(id)
     }
 }
