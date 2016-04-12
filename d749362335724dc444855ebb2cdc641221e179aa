@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8bbb75c4",
+        "filename": "python-midonetclient/src/midonetclient/client.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-12T04:39:19Z",
+      "side": 1,
+      "message": "why you changed the order?",
+      "revId": "d749362335724dc444855ebb2cdc641221e179aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
