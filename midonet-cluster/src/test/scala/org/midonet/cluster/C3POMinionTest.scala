@@ -41,7 +41,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.models.Commons
@@ -743,6 +743,19 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                               gwPortId = gwPortId, enableSnat = enableSnat)
         insertCreateTask(taskId, RouterType, json, routerId)
         routerId
+    }
+
+    protected def createFirewall(taskId: Int, fwId: UUID = UUID.randomUUID(),
+                                 adminStateUp: Boolean = true,
+                                 firewallRuleList: List[JsonNode] = List(),
+                                 addRouterIds: List[UUID] = List(),
+                                 delRouterIds: List[UUID] = List()) = {
+        val json = firewallJson(fwId, adminStateUp = adminStateUp,
+                                firewallRuleList=firewallRuleList,
+                                addRouterIds = addRouterIds,
+                                delRouterIds = delRouterIds)
+        insertCreateTask(taskId, FirewallType, json, fwId)
+        fwId
     }
 
     protected def createSubnet(taskId: Int, networkId: UUID, cidr: String,
