@@ -432,7 +432,11 @@ trait TopologyBuilder {
                                          tpDstInv: Option[Boolean] = None,
                                          traversedDevice: Option[UUID] = None,
                                          traversedDeviceInv: Option[Boolean] = None,
-                                         fragmentPolicy: Option[FragmentPolicy] = None)
+                                         fragmentPolicy: Option[FragmentPolicy] = None,
+                                         icmpDataSrcIp: Option[IPSubnet[_]] = None,
+                                         icmpDataSrcIpInv: Option[Boolean] = None,
+                                         icmpDataDstIp: Option[IPSubnet[_]] = None,
+                                         icmpDataDstIpInv: Option[Boolean] = None)
             : Condition.Builder = {
         if (matchForwardFlow.isDefined) {
             builder.setMatchForwardFlow(matchForwardFlow.get)
@@ -509,6 +513,14 @@ trait TopologyBuilder {
         if (fragmentPolicy.isDefined)
             builder.setFragmentPolicy(
                 Condition.FragmentPolicy.valueOf(fragmentPolicy.get.name))
+        if (icmpDataSrcIp.isDefined)
+            builder.setIcmpDataSrcIp(IPSubnetUtil.toProto(icmpDataSrcIp.get))
+        if (icmpDataSrcIpInv.isDefined)
+            builder.setIcmpDataSrcIpInv(icmpDataSrcIpInv.get)
+        if (icmpDataDstIp.isDefined)
+            builder.setIcmpDataDstIp(IPSubnetUtil.toProto(icmpDataDstIp.get))
+        if (icmpDataDstIpInv.isDefined)
+            builder.setIcmpDataDstIpInv(icmpDataDstIpInv.get)
         builder
     }
 

@@ -115,8 +115,8 @@ class RuleConversionTest extends FeatureSpec with Matchers
             setConditionAllFieldsDefault(builder, matchForwardFlow = Some(true))
             val rule = builder.build()
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
-            simRule.asInstanceOf[ForwardNatRule]
-                .getFloatingIpAddr shouldBe "192.168.0.1"
+            simRule.asInstanceOf[StaticForwardNatRule]
+                .getTargetIpAddr shouldBe "192.168.0.1"
             simRule shouldBeDeviceOf rule
         }
 
