@@ -48,6 +48,9 @@ API_URI=http://$SERVICE_HOST:$API_PORT/midonet-api
 # Time (in sec) to wait for the API to start
 API_TIMEOUT=${API_TIMEOUT:-120}
 
+# Authentication
+MIDONET_USE_KEYSTONE=${MIDONET_USE_KEYSTONE:-False}
+
 # DB connection string for the tasks importer
 ENABLE_TASKS_IMPORTER=${ENABLE_TASKS_IMPORTER:-False}
 MIDO_DB_USER=${MIDO_DB_USER:-root}
