@@ -151,7 +151,9 @@ public class FuncTest {
                     "zookeeper.root_key = " + ZK_ROOT_MIDOLMAN + "\n" +
                     "cluster.rest_api.root_uri = " + CONTEXT_PATH + "\n" +
                     "cluster.rest_api.nsdb_lock_timeout = 30s\n" +
-                    "cluster.auth.provider_class = \"org.midonet.cluster.auth.MockAuthService\" "
+                    "cluster.auth.provider_class = \"org.midonet.cluster.auth.MockAuthService\"\n" +
+                    "cluster.translators.nat.dynamic_port_start = 1024\n" +
+                    "cluster.translators.nat.dynamic_port_end = 65535 "
                 )
             );
 
