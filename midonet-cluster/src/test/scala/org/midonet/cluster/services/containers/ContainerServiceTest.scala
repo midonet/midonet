@@ -122,6 +122,8 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
           |cluster.containers.enabled : true
           |cluster.containers.scheduler_timeout : 10s
           |cluster.containers.scheduler_bad_host_lifetime : 300s
+          |cluster.translators.nat.dynamic_port_start : 1024
+          |cluster.translators.nat.dynamic_port_end : 65535
         """.stripMargin))
     private var backend: MidonetBackend = _
 
