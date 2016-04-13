@@ -15,7 +15,7 @@ import logging
 
 from mdts.services import service
 from mdts.tests.utils.utils import await_port_active
-from ConfigParser import SafeConfigParser
+from mdts.tests.utils import conf
 import os
 
 
@@ -73,18 +73,13 @@ def setup_package():
     Setup method at the tests module level (init)
     :return:
     """
-    # Read configuration
-    conf_file = os.getenv('MDTS_CONF_FILE', 'mdts.conf')
-    config = SafeConfigParser()
-    config.read(conf_file)
-
     # Check all services (including midolman) are online
     api_host = service.get_container_by_hostname('cluster1')
     api_host.wait_for_status('up')
     for type, hosts in service.get_all_containers().items():
         for host in hosts:
             LOG.debug("Checking liveness of %s" % host.get_hostname())
-            host.wait_for_status('up')
+            host.wait_for_status('up', timeout=conf.service_status_timeout())
 
     # Wait until bindings do not fail, at that point, mdts is ready for test
     max_attempts = 10
