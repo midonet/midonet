@@ -31,6 +31,10 @@ import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigur
 object ClusterConfig {
     val DEFAULT_MTU: Short = 1500
 
+    val MIN_DYNAMIC_NAT_PORT: Int = 1
+
+    val MAX_DYNAMIC_NAT_PORT: Int = 0xffff
+
     def forTests = new ClusterConfig(MidoTestConfigurator.forClusters())
 
     def forTests(config: Config) = new ClusterConfig(
@@ -58,6 +62,8 @@ class ClusterConfig(_conf: Config) {
     val vxgw = new VxGwConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
     val restApi = new RestApiConfig(conf)
+    val translators = new TranslatorsConfig(conf)
+
 }
 
 class AuthConfig(val conf: Config) {
@@ -67,6 +73,26 @@ class AuthConfig(val conf: Config) {
     def adminRole = conf.getString(s"$Prefix.admin_role")
     def tenantAdminRole = conf.getString(s"$Prefix.tenant_admin_role")
     def tenantUserRole = conf.getString(s"$Prefix.tenant_user_role")
+}
+
+class TranslatorsConfig(val conf: Config) {
+    import ClusterConfig._
+
+    final val prefix = "cluster.translators"
+
+    private val dynamicNatStart = conf.getInt(s"$prefix.nat.dynamic_port_start")
+    private val dynamicNatEnd = conf.getInt(s"$prefix.nat.dynamic_port_end")
+
+    private def portInRange(port: Int) =
+        MIN_DYNAMIC_NAT_PORT <= port && port <= MAX_DYNAMIC_NAT_PORT
+
+    def dynamicNatPortStart =
+        if (portInRange(dynamicNatStart)) dynamicNatStart
+        else MIN_DYNAMIC_NAT_PORT
+
+    def dynamicNatPortEnd =
+        if (portInRange(dynamicNatEnd) && (dynamicNatStart < dynamicNatEnd)) dynamicNatEnd
+        else MAX_DYNAMIC_NAT_PORT
 }
 
 class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
