@@ -13,15 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 import importlib
 import logging
+import time
 
 from docker import Client
-import re
-import time
-from mdts.services.interface import Interface
 
-cli = Client(base_url='unix://var/run/docker.sock')
+from mdts.services.interface import Interface
+from mdts.tests.utils import conf
+
+cli = Client(base_url='unix://var/run/docker.sock',
+             timeout=conf.docker_http_timeout())
 LOG = logging.getLogger(__name__)
 
 
@@ -31,7 +34,7 @@ class Service(object):
         self.cli = cli
         self.container_id = container_id
         self.info = cli.inspect_container(container_id)
-        timeout = 60
+        timeout = conf.service_status_timeout()
         wait_time = 1
         # Check first that the container is running
         while not self.is_container_running():
@@ -133,7 +136,11 @@ class Service(object):
             test_log += "%s - %s\n" % (self.get_service_name(), self.get_name())
             test_log += "%s\n" % logfile
             test_log += "-----------------------\n"
-            test_log += self.exec_command('cat %s' % logfile)
+            try:
+                test_log += self.exec_command('cat %s' % logfile)
+            except Exception as e:
+                test_log += e.message
+
             test_logs[logfile] = test_log
         return test_logs
 
@@ -149,7 +156,7 @@ class Service(object):
         return self.manage_service(operation='restart', wait=wait)
 
     def manage_service(self, operation="start",
-                       wait=False, timeout=120,
+                       wait=False, timeout=conf.service_status_timeout(),
                        wait_time=5, raise_error=True):
         status = "up" if "start" in operation else "down"
         self.exec_command('service %s %s' %
@@ -245,7 +252,8 @@ class Service(object):
         ))
         return exec_info['ExitCode']
 
-    def wait_for_status(self, status, timeout=240, wait_time=5, raise_error=True):
+    def wait_for_status(self, status, timeout=conf.service_status_timeout(),
+                        wait_time=5, raise_error=True):
         init_timeout = timeout
         while self.get_service_status() != status:
             if init_timeout == 0:
@@ -315,12 +323,12 @@ def get_container_by_hostname(container_hostname):
     raise RuntimeError('Container %s not found or loaded' % container_hostname)
 
 # FIXME: this factory is not the best option
-def get_all_containers(container_type=None):
+def get_all_containers(container_type=None, include_failed=False):
     global loaded_containers
 
     # Load and cache all containers
     if not loaded_containers:
-        running_containers = cli.containers()
+        running_containers = cli.containers(all=include_failed)
         loaded_containers = {}
         for container in running_containers:
             if 'type' in container['Labels']:

@@ -23,3 +23,9 @@ conf.read(conf_file)
 def is_vxlan_enabled():
     """Returns boolean to indicate if vxlan tunnels are enabled"""
     return conf.getboolean('default', 'vxlan')
+
+def service_status_timeout():
+    return conf.getint('default', 'service_status_timeout')
+
+def docker_http_timeout():
+    return conf.getint('sandbox', 'docker_http_timeout')
