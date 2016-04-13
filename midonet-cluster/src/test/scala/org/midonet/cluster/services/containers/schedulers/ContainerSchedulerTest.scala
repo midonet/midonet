@@ -1746,8 +1746,9 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             When("The observer subscribes to the scheduler")
             scheduler.observable subscribe obs
 
-            Then("The observer should not receive notifications")
-            obs.getOnNextEvents should have size 0
+            Then("The observer should receive an unschedule notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeUnscheduleFor(container, host.getId)
 
             And("The scheduler state should be down")
             scheduler.schedulerState shouldBe DownState
@@ -1777,11 +1778,12 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             When("The observer subscribes to the scheduler")
             scheduler.observable subscribe obs
 
-            Then("The observer should receive a scheduled notification")
-            obs.getOnNextEvents should have size 1
-            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host2.getId)
+            Then("The observer should receive two rescheduling notifications")
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(0) shouldBeUnscheduleFor(container, host1.getId)
+            obs.getOnNextEvents.get(1) shouldBeScheduleFor(container, host2.getId)
 
-            And("The scheduler state should be down")
+            And("The scheduler state should be scheduled")
             scheduler.schedulerState shouldBeScheduledFor(container, host2.getId)
         }
 
@@ -1807,8 +1809,9 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             When("The observer subscribes to the scheduler")
             scheduler.observable subscribe obs
 
-            Then("The observer should not receive notifications")
-            obs.getOnNextEvents should have size 0
+            Then("The observer should receive an unschedule notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeUnscheduleFor(container, host.getId)
 
             And("The scheduler state should be down")
             scheduler.schedulerState shouldBe DownState
@@ -1838,11 +1841,12 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             When("The observer subscribes to the scheduler")
             scheduler.observable subscribe obs
 
-            Then("The observer should receive a scheduled notification")
-            obs.getOnNextEvents should have size 1
-            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host2.getId)
+            Then("The observer should receive two rescheduling notifications")
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(0) shouldBeUnscheduleFor(container, host1.getId)
+            obs.getOnNextEvents.get(1) shouldBeScheduleFor(container, host2.getId)
 
-            And("The scheduler state should be down")
+            And("The scheduler state should be scheduled")
             scheduler.schedulerState shouldBeScheduledFor(container, host2.getId)
         }
     }
@@ -2333,6 +2337,249 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             Then("The observer should not receive the cleanup notifications")
             obs.getOnNextEvents should have size 2
             obs.getOnCompletedEvents should have size 1
+        }
+    }
+
+    feature("Scheduler supports manual scheduling") {
+        scenario("Unschedule scheduled container") {
+            Given("A host with the container service")
+            val host = createHost()
+            val port1 = createPort()
+            createHostStatus(host.getId, weight = 1)
+
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId, Some(port1.getId))
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host.getId)
+
+            When("The port is bound to the selected host")
+            val port2 = port1.toBuilder.setHostId(host.getId)
+                                       .setServiceContainerId(container.getId)
+                                       .build()
+            store.update(port2)
+
+            Then("The observer should not receive additional notifications")
+            obs.getOnNextEvents should have size 1
+
+            When("The container is unscheduled")
+            val port3 = port2.toBuilder.clearHostId().build()
+            store.update(port3)
+
+            Then("The scheduler should reschedule the container")
+            obs.getOnNextEvents should have size 3
+            obs.getOnNextEvents.get(1) shouldBeUnscheduleFor(container, host.getId)
+            obs.getOnNextEvents.get(2) shouldBeScheduleFor(container, host.getId)
+        }
+
+        scenario("Unschedule running container") {
+            Given("A host with container service")
+            val host = createHost()
+            val port1 = createPort(Some(host.getId))
+            createHostStatus(host.getId, weight = 1)
+
+            And("A container with anywhere policy already scheduled at the host")
+            val group = createGroup()
+            val container = createContainer(group.getId, Some(port1.getId))
+
+            And("The container status is running")
+            createContainerStatus(container.getId, Code.RUNNING, host.getId)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should not receive notifications")
+            obs.getOnNextEvents should have size 0
+
+            And("The scheduler state should be up")
+            scheduler.schedulerState shouldBeUpFor(container, host.getId)
+
+            When("The container is unscheduled")
+            val port2 = port1.toBuilder.setServiceContainerId(container.getId)
+                                       .clearHostId().build()
+            store.update(port2)
+
+            Then("The scheduler should reschedule the container")
+            obs.getOnNextEvents should have size 3
+            obs.getOnNextEvents.get(0) shouldBeUnscheduleFor(container, host.getId)
+            obs.getOnNextEvents.get(1) shouldBeScheduleFor(container, host.getId)
+            obs.getOnNextEvents.get(2) shouldBeUpFor(container, host.getId)
+        }
+
+        scenario("Reschedule scheduled container to non-eligible host") {
+            Given("Two hosts with the container service")
+            val host1 = createHost()
+            val host2 = createHost()
+            val port1 = createPort()
+            createHostStatus(host1.getId, weight = 1)
+
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId, Some(port1.getId))
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host1.getId)
+
+            When("The container is rescheduled to the second host")
+            val port2 = port1.toBuilder.setHostId(host2.getId)
+                                       .setServiceContainerId(container.getId)
+                                       .build()
+            store.update(port2)
+
+            Then("The scheduler should ignore the manual rescheduling")
+            obs.getOnNextEvents should have size 4
+            obs.getOnNextEvents.get(1) shouldBeNotifyFor(container, host2.getId)
+            obs.getOnNextEvents.get(2) shouldBeUnscheduleFor(container, host2.getId)
+            obs.getOnNextEvents.get(3) shouldBeScheduleFor(container, host1.getId)
+        }
+
+        scenario("Reschedule scheduled container to eligible host") {
+            Given("Two hosts with the container service")
+            val host1 = createHost()
+            val host2 = createHost()
+            val port1 = createPort()
+            createHostStatus(host1.getId, weight = 1)
+
+            Given("A container with anywhere policy")
+            val group = createGroup()
+            val container = createContainer(group.getId, Some(port1.getId))
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host1.getId)
+
+            When("The port is bound to the selected host")
+            val port2 = port1.toBuilder.setHostId(host1.getId)
+                                       .setServiceContainerId(container.getId)
+                                       .build()
+            store.update(port2)
+
+            And("Making the second host eligible")
+            createHostStatus(host2.getId, weight = 1)
+
+            And("The container is rescheduled to the second host")
+            val port3 = port2.toBuilder.setHostId(host2.getId).build()
+            store.update(port3)
+
+            Then("The scheduler should accept the manual rescheduling")
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(1) shouldBeNotifyFor(container, host2.getId)
+        }
+
+        scenario("Reschedule running container to non-eligible host") {
+            Given("A host with container service")
+            val host1 = createHost()
+            val host2 = createHost()
+            val port1 = createPort(Some(host1.getId))
+            createHostStatus(host1.getId, weight = 1)
+
+            And("A container with anywhere policy already scheduled at the host")
+            val group = createGroup()
+            val container = createContainer(group.getId, Some(port1.getId))
+
+            And("The container status is running")
+            createContainerStatus(container.getId, Code.RUNNING, host1.getId)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should not receive notifications")
+            obs.getOnNextEvents should have size 0
+
+            When("The container is rescheduled to the second host")
+            val port2 = port1.toBuilder.setHostId(host2.getId)
+                                       .setServiceContainerId(container.getId)
+                                       .build()
+            store.update(port2)
+
+            Then("The scheduler should ignore the manual rescheduling")
+            obs.getOnNextEvents should have size 4
+            obs.getOnNextEvents.get(0) shouldBeNotifyFor(container, host2.getId)
+            obs.getOnNextEvents.get(1) shouldBeUnscheduleFor(container, host2.getId)
+            obs.getOnNextEvents.get(2) shouldBeScheduleFor(container, host1.getId)
+            obs.getOnNextEvents.get(3) shouldBeUpFor(container, host1.getId)
+        }
+
+        scenario("Reschedule running container to eligible host") {
+            Given("A host with container service")
+            val host1 = createHost()
+            val host2 = createHost()
+            val port1 = createPort(Some(host1.getId))
+            createHostStatus(host1.getId, weight = 1)
+
+            And("A container with anywhere policy already scheduled at the host")
+            val group = createGroup()
+            val container = createContainer(group.getId, Some(port1.getId))
+
+            And("The container status is running")
+            createContainerStatus(container.getId, Code.RUNNING, host1.getId)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should not receive notifications")
+            obs.getOnNextEvents should have size 0
+
+            When("Making the second host eligible")
+            createHostStatus(host2.getId, weight = 1)
+
+            And("The container is rescheduled to the second host")
+            val port2 = port1.toBuilder.setHostId(host2.getId)
+                                       .setServiceContainerId(container.getId)
+                                       .build()
+            store.update(port2)
+
+            Then("The scheduler should accept the manual rescheduling")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeNotifyFor(container, host2.getId)
         }
     }
 

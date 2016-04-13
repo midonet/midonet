@@ -29,35 +29,44 @@ import org.midonet.cluster.util.UUIDUtil._
 package object schedulers {
 
     private final val ContainerIdField = "containerId"
-    private final val ContainerTypeField = "containerType"
+    private final val ContainerStatusField = "containerStatus"
+    private final val HostIdField = "hostId"
 
     trait SchedulerEvent { def container: ServiceContainer }
     case class Schedule(container: ServiceContainer,
                         hostId: UUID) extends SchedulerEvent {
         override def toString = MoreObjects.toStringHelper(this).omitNullValues()
             .add(ContainerIdField, container.getId.asJava)
-            .add(ContainerTypeField, container.getServiceType)
+            .add(HostIdField, hostId)
             .toString
     }
     case class Up(container: ServiceContainer,
                   status: ContainerStatus) extends SchedulerEvent {
         override def toString = MoreObjects.toStringHelper(this).omitNullValues()
             .add(ContainerIdField, container.getId.asJava)
-            .add(ContainerTypeField, container.getServiceType)
+            .add(ContainerStatusField, status.getStatusCode)
             .toString
     }
     case class Down(container: ServiceContainer,
                     @Nullable status: ContainerStatus) extends SchedulerEvent {
         override def toString = MoreObjects.toStringHelper(this).omitNullValues()
             .add(ContainerIdField, container.getId.asJava)
-            .add(ContainerTypeField, container.getServiceType)
+            .add(ContainerStatusField, status.getStatusCode)
             .toString
     }
     case class Unschedule(container: ServiceContainer,
-                          host: UUID) extends SchedulerEvent {
+                          hostId: UUID) extends SchedulerEvent {
         override def toString = MoreObjects.toStringHelper(this).omitNullValues()
             .add(ContainerIdField, container.getId.asJava)
-            .add(ContainerTypeField, container.getServiceType)
+            .add(HostIdField, hostId)
+            .toString
+    }
+
+    case class Notify(container: ServiceContainer,
+                      hostId: UUID) extends SchedulerEvent {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add(ContainerIdField, container.getId.asJava)
+            .add(HostIdField, hostId)
             .toString
     }
 

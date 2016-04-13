@@ -83,6 +83,15 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
                 case _ => fail()
             }
         }
+
+        def shouldBeNotifyFor(container: ServiceContainer, hostId: UUID): Unit = {
+            event match {
+                case Notify(c, h) =>
+                    c shouldBe container
+                    h shouldBe hostId
+                case _ => fail()
+            }
+        }
     }
 
     protected class StateWrapper(state: State) extends Matchers {
