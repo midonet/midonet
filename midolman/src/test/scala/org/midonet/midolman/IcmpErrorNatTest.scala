@@ -68,8 +68,10 @@ class IcmpErrorNatTest extends MidolmanSpec {
         nearRouter = newRouter("near_router")
         farRouter = newRouter("far_router")
 
-        nearLeftPort = newRouterPort(nearRouter, nearLeftPortMac, nearLeftPortAddr)
-        nearRightPort = newRouterPort(nearRouter, nearRightPortMac, nearRightPortAddr)
+        nearLeftPort = newRouterPort(nearRouter, nearLeftPortMac,
+                                     nearLeftPortAddr)
+        nearRightPort = newRouterPort(nearRouter, nearRightPortMac,
+                                      nearRightPortAddr)
         farPort = newRouterPort(farRouter, farPortMac, farPortAddr)
 
         materializePort(nearLeftPort, hostId, "uplink")
@@ -86,6 +88,15 @@ class IcmpErrorNatTest extends MidolmanSpec {
                  NextHop.PORT, nearLeftPort,
                  new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
+        feedArpTable(fetchDevice[Router](nearRouter),
+                     srcIp.toNetworkAddress, srcMac)
+
+        fetchRouters(nearRouter, farRouter)
+        fetchPorts(nearLeftPort, nearRightPort, farPort)
+
+    }
+
+    def setupDynamicNat(): Unit = {
         val rtrOutChain = newOutboundChainOnRouter("rtrOutChain", nearRouter)
         val rtrInChain = newInboundChainOnRouter("rtrInChain", nearRouter)
 
@@ -106,7 +117,8 @@ class IcmpErrorNatTest extends MidolmanSpec {
         dnatCond.inPortIds.add(nearLeftPort)
         dnatCond.nwDstIp = dstIp
 
-        val dnatTarget = new NatTarget(privateDstIp.getAddress, privateDstIp.getAddress, 20, 20)
+        val dnatTarget = new NatTarget(privateDstIp.getAddress,
+                                       privateDstIp.getAddress, 20, 20)
         newForwardNatRuleOnChain(
             rtrInChain,
             2,
@@ -118,7 +130,8 @@ class IcmpErrorNatTest extends MidolmanSpec {
         val snatCond = new Condition()
         snatCond.nwSrcIp = srcIp
 
-        val snatTarget = new NatTarget(privateSrcIp.getAddress, privateSrcIp.getAddress, 10, 10)
+        val snatTarget = new NatTarget(privateSrcIp.getAddress,
+                                       privateSrcIp.getAddress, 10, 10)
         newForwardNatRuleOnChain(
             rtrOutChain,
             1,
@@ -137,11 +150,90 @@ class IcmpErrorNatTest extends MidolmanSpec {
             RuleResult.Action.ACCEPT,
             isDnat = true)
 
-        feedArpTable(fetchDevice[Router](nearRouter),
-                     srcIp.toNetworkAddress, srcMac)
+        fetchChains(rtrInChain, rtrOutChain)
+    }
 
-        fetchRouters(nearRouter, farRouter)
-        fetchPorts(nearLeftPort, nearRightPort, farPort)
+    def setupStaticNat(): Unit = {
+        val rtrOutChain = newOutboundChainOnRouter("rtrOutChain", nearRouter)
+        val rtrInChain = newInboundChainOnRouter("rtrInChain", nearRouter)
+
+        // 1.1.1.1 -> 2.2.2.2 and vice versa
+        val dnatCond1 = new Condition()
+        dnatCond1.inPortIds = new HashSet()
+        dnatCond1.inPortIds.add(nearLeftPort)
+        dnatCond1.nwDstIp = dstIp
+
+        val dnatTarget1 = new NatTarget(privateDstIp.getAddress,
+                                        privateDstIp.getAddress, 0, 0)
+        newForwardNatRuleOnChain(
+            rtrInChain,
+            1,
+            dnatCond1,
+            RuleResult.Action.ACCEPT,
+            Set(dnatTarget1),
+            isDnat = true)
+
+        val revIcmpDnatCond1 = new Condition()
+        revIcmpDnatCond1.outPortIds = new HashSet()
+        revIcmpDnatCond1.outPortIds.add(nearLeftPort)
+        revIcmpDnatCond1.icmpDataDstIp = privateDstIp
+
+        val revIcmpDnatTarget1 = new NatTarget(dstIp.getAddress,
+                                               dstIp.getAddress, 0, 0)
+        newForwardNatRuleOnChain(
+            rtrOutChain,
+            1,
+            revIcmpDnatCond1,
+            RuleResult.Action.ACCEPT,
+            Set(revIcmpDnatTarget1),
+            isDnat = true)
+
+        val snatCond1 = new Condition()
+        snatCond1.outPortIds = new HashSet()
+        snatCond1.outPortIds.add(nearLeftPort)
+        snatCond1.nwSrcIp = privateDstIp // wont be true for icmp error
+
+        val snatTarget1 = new NatTarget(dstIp.getAddress,
+                                        dstIp.getAddress, 0, 0)
+        newForwardNatRuleOnChain(
+            rtrOutChain,
+            1,
+            snatCond1,
+            RuleResult.Action.ACCEPT,
+            Set(snatTarget1),
+            isDnat = false)
+
+        // 172.19.0.4 -> 42.159.207.7 and vice versa
+        val snatCond2 = new Condition()
+        snatCond2.inPortIds = new HashSet()
+        snatCond2.inPortIds.add(nearLeftPort)
+        snatCond2.nwSrcIp = srcIp
+
+        val snatTarget2 = new NatTarget(privateSrcIp.getAddress,
+                                        privateSrcIp.getAddress, 0, 0)
+        newForwardNatRuleOnChain(
+            rtrOutChain,
+            2,
+            snatCond2,
+            RuleResult.Action.ACCEPT,
+            Set(snatTarget2),
+            isDnat = false)
+
+        val dnatCond2 = new Condition()
+        dnatCond2.inPortIds = new HashSet()
+        dnatCond2.inPortIds.add(nearRightPort)
+        dnatCond2.nwDstIp = privateSrcIp
+
+        val dnatTarget2 = new NatTarget(srcIp.getAddress,
+                                        srcIp.getAddress, 0, 0)
+        newForwardNatRuleOnChain(
+            rtrInChain,
+            2,
+            dnatCond2,
+            RuleResult.Action.ACCEPT,
+            Set(dnatTarget2),
+            isDnat = true)
+
         fetchChains(rtrInChain, rtrOutChain)
     }
 
@@ -156,101 +248,123 @@ class IcmpErrorNatTest extends MidolmanSpec {
         { ip4 src srcIp.toNetworkAddress dst dstIp.toNetworkAddress } <<
         { icmp.echo id pingId }
 
-    feature ("ICMP errors are reverse NATed") {
+    def testTCP(): Unit = {
+        val table = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+
+        val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(tcpReq))
+        fmatch.setInputPortNumber(1)
+        val packet = new Packet(tcpReq, fmatch)
+
+        val workflow = packetWorkflow(
+            dpPortToVport = Map(1 -> nearLeftPort),
+            natTable = table)
+
+        var passed = false
+        mockDpChannel.packetsExecuteSubscribe { (icmpError, actions) =>
+            // The original icmp error
+            matchIcmp(
+                icmpError.getEthernet,
+                farPortMac,
+                nearRightPortMac,
+                farPortAddr.toNetworkAddress,
+                privateSrcIp.toNetworkAddress,
+                ICMP.TYPE_UNREACH)
+
+            val ip = ByteBuffer.wrap(
+                icmpError.getEthernet
+                    .getPayload.asInstanceOf[IPv4]
+                    .getPayload.asInstanceOf[ICMP].getData)
+            val wrapped = new IPv4()
+            wrapped.deserialize(ip)
+            wrapped.getTotalLength should be (42)
+            matchIpv4(wrapped, srcIp.toNetworkAddress, dstIp.toNetworkAddress)
+            val tcp = wrapped.getPayload.asInstanceOf[TCP]
+            tcp.getSourcePort should be (1234)
+            tcp.getDestinationPort should be (6789)
+
+            // The modifications to the original icmp error
+            actions should contain theSameElementsAs List(
+                FlowActions.setKey(FlowKeys.ethernet(nearLeftPortMac, srcMac)),
+                FlowActions.setKey(FlowKeys.ipv4(farPortAddr.getIntAddress(),
+                                                 srcIp.getIntAddress(), 1.toByte,
+                                                 0.toByte, 63.toByte, 0.toByte)),
+                FlowActions.output(1))
+            passed = true
+        }
+
+        workflow.receive(HandlePackets(Array(packet)))
+        mockDpChannel.packetsSent should have size 1
+        passed should be (true)
+    }
+
+    def testICMP(): Unit = {
+        val table = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+
+        val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(pingReq))
+        fmatch.setInputPortNumber(1)
+        val packet = new Packet(pingReq, fmatch)
+
+        val workflow = packetWorkflow(
+            dpPortToVport = Map(1 -> nearLeftPort),
+            natTable = table)
+
+        var passed = false
+        mockDpChannel.packetsExecuteSubscribe { (pingReply, actions) =>
+            // The original icmp error
+            matchIcmp(
+                pingReply.getEthernet,
+                farPortMac,
+                nearRightPortMac,
+                farPortAddr.toNetworkAddress,
+                privateSrcIp.toNetworkAddress,
+                ICMP.TYPE_UNREACH)
+
+            val ip = ByteBuffer.wrap(
+                pingReply.getEthernet
+                    .getPayload.asInstanceOf[IPv4]
+                    .getPayload.asInstanceOf[ICMP].getData)
+            val wrapped = new IPv4()
+            wrapped.deserialize(ip)
+            matchIpv4(wrapped, srcIp.toNetworkAddress, dstIp.toNetworkAddress)
+            val icmp = wrapped.getPayload.asInstanceOf[ICMP]
+            icmp.getIdentifier should be (pingId)
+
+            // The modifications to the original icmp error
+            actions should contain theSameElementsAs List(
+                FlowActions.setKey(FlowKeys.ethernet(nearLeftPortMac, srcMac)),
+                FlowActions.setKey(FlowKeys.ipv4(farPortAddr.getIntAddress(),
+                                                 srcIp.getIntAddress(), 1.toByte,
+                                                 0.toByte, 63.toByte, 0.toByte)),
+                FlowActions.output(1))
+            passed = true
+        }
+
+        workflow.receive(HandlePackets(Array(packet)))
+        mockDpChannel.packetsSent should have size 1
+        passed should be (true)
+    }
+
+    feature ("ICMP errors are reverse NATed (with dynamic NAT)") {
         scenario ("For TCP/UDP packets") {
-            val table = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
-
-            val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(tcpReq))
-            fmatch.setInputPortNumber(1)
-            val packet = new Packet(tcpReq, fmatch)
-
-            val workflow = packetWorkflow(
-                dpPortToVport = Map(1 -> nearLeftPort),
-                natTable = table)
-
-            var passed = false
-            mockDpChannel.packetsExecuteSubscribe { (icmpError, actions) =>
-                // The original icmp error
-                matchIcmp(
-                    icmpError.getEthernet,
-                    farPortMac,
-                    nearRightPortMac,
-                    farPortAddr.toNetworkAddress,
-                    privateSrcIp.toNetworkAddress,
-                    ICMP.TYPE_UNREACH)
-
-                val ip = ByteBuffer.wrap(
-                    icmpError.getEthernet
-                        .getPayload.asInstanceOf[IPv4]
-                        .getPayload.asInstanceOf[ICMP].getData)
-                val wrapped = new IPv4()
-                wrapped.deserialize(ip)
-                wrapped.getTotalLength should be (42)
-                matchIpv4(wrapped, srcIp.toNetworkAddress, dstIp.toNetworkAddress)
-                val tcp = wrapped.getPayload.asInstanceOf[TCP]
-                tcp.getSourcePort should be (1234)
-                tcp.getDestinationPort should be (6789)
-
-                // The modifications to the original icmp error
-                actions should contain theSameElementsAs List(
-                    FlowActions.setKey(FlowKeys.ethernet(nearLeftPortMac, srcMac)),
-                    FlowActions.setKey(FlowKeys.ipv4(farPortAddr.getIntAddress(),
-                                                     srcIp.getIntAddress(), 1.toByte,
-                                                     0.toByte, 63.toByte, 0.toByte)),
-                    FlowActions.output(1))
-                passed = true
-            }
-
-            workflow.receive(HandlePackets(Array(packet)))
-            mockDpChannel.packetsSent should have size 1
-            passed should be (true)
+            setupDynamicNat()
+            testTCP()
         }
 
         scenario ("For ICMP packets") {
-            val table = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+            setupDynamicNat()
+            testICMP()
+        }
+    }
 
-            val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(pingReq))
-            fmatch.setInputPortNumber(1)
-            val packet = new Packet(pingReq, fmatch)
+    feature ("ICMP errors are reverse NATed (with static NAT)") {
+        scenario ("For TCP/UDP packets") {
+            setupStaticNat()
+            testTCP()
+        }
 
-            val workflow = packetWorkflow(
-                dpPortToVport = Map(1 -> nearLeftPort),
-                natTable = table)
-
-            var passed = false
-            mockDpChannel.packetsExecuteSubscribe { (pingReply, actions) =>
-                // The original icmp error
-                matchIcmp(
-                    pingReply.getEthernet,
-                    farPortMac,
-                    nearRightPortMac,
-                    farPortAddr.toNetworkAddress,
-                    privateSrcIp.toNetworkAddress,
-                    ICMP.TYPE_UNREACH)
-
-                val ip = ByteBuffer.wrap(
-                    pingReply.getEthernet
-                        .getPayload.asInstanceOf[IPv4]
-                        .getPayload.asInstanceOf[ICMP].getData)
-                val wrapped = new IPv4()
-                wrapped.deserialize(ip)
-                matchIpv4(wrapped, srcIp.toNetworkAddress, dstIp.toNetworkAddress)
-                val icmp = wrapped.getPayload.asInstanceOf[ICMP]
-                icmp.getIdentifier should be (pingId)
-
-                // The modifications to the original icmp error
-                actions should contain theSameElementsAs List(
-                    FlowActions.setKey(FlowKeys.ethernet(nearLeftPortMac, srcMac)),
-                    FlowActions.setKey(FlowKeys.ipv4(farPortAddr.getIntAddress(),
-                                                     srcIp.getIntAddress(), 1.toByte,
-                                                     0.toByte, 63.toByte, 0.toByte)),
-                    FlowActions.output(1))
-                passed = true
-            }
-
-            workflow.receive(HandlePackets(Array(packet)))
-            mockDpChannel.packetsSent should have size 1
-            passed should be (true)
+        scenario ("For ICMP packets") {
+            setupStaticNat()
+            testICMP()
         }
     }
 

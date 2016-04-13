@@ -322,7 +322,10 @@ public class Converter {
                     .setJumpToChainName(jumpRuleConfig.jumpToChainName);
         }
 
-        if (ruleConfig instanceof org.midonet.midolman.rules.ForwardNatRule) {
+        /* disable for now, make ForwardNatRule a thing again later
+
+        if (ruleConfig instanceof org.midonet.midolman.rules.ForwardNatRule
+            ) {
             org.midonet.midolman.rules.ForwardNatRule forwardNatRuleConfig =
                     (org.midonet.midolman.rules.ForwardNatRule) ruleConfig;
 
@@ -331,7 +334,7 @@ public class Converter {
                     forwardNatRuleConfig.action,
                     forwardNatRuleConfig.getNatTargets(),
                     forwardNatRuleConfig.dnat);
-        }
+                    }*/
 
         if (ruleConfig instanceof org.midonet.midolman.rules.ReverseNatRule) {
             org.midonet.midolman.rules.ReverseNatRule reverseNatRuleConfig =
