@@ -46,6 +46,30 @@
       "revId": "0d633527436a4041042b35b920ec84632ae10019",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b23101ef",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-13T10:45:09Z",
+      "side": 1,
+      "message": "Sure. @albert will you create a new patch for this?",
+      "parentUuid": "baa041b7_86180786",
+      "range": {
+        "startLine": 138,
+        "startChar": 45,
+        "endLine": 138,
+        "endChar": 51
+      },
+      "revId": "0d633527436a4041042b35b920ec84632ae10019",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
