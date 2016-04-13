@@ -26,7 +26,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.{ClusterConfig, ZookeeperLockFactory}
 import org.midonet.cluster.data.ZoomConvert.toProto
 import org.midonet.cluster.data.storage.{ObjectExistsException, NotFoundException}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRouter, NeutronRouterInterface, NeutronSubnet, SecurityGroup => NeutronSecurityGroup}
@@ -62,6 +62,11 @@ class NeutronZoomPluginTest extends FeatureSpec
            |zookeeper.root_key : "$zkRoot"
         """.stripMargin)
         )
+        val clusterConfig = new ClusterConfig(ConfigFactory.parseString(s"""
+               |cluster.translators.nat.dynamic_port_start : 1024
+               |cluster.translators.nat.dynamic_port_end : 65535
+        """.stripMargin)
+        )
         MidonetBackend.isCluster = true
         backend = new MidonetBackendService(cfg, curator, metricRegistry = null)
         backend.startAsync().awaitRunning()
@@ -78,6 +83,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         val sequenceDispenser = new SequenceDispenser(curator, cfg)
         val c3po = C3POMinion.initDataManager(backend.store,
                                               sequenceDispenser,
+                                              clusterConfig,
                                               paths)
         plugin = new NeutronZoomPlugin(resContext, paths, c3po, lockFactory)
     }
