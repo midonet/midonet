@@ -60,6 +60,7 @@ class ClusterConfig(_conf: Config) {
     val topologyApi = new TopologyApiConfig(conf)
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)
+    val virtualTopology = new VirtualTopologyConfig(conf)
 
     def threadPoolSize = conf.getInt(s"$prefix.max_thread_pool_size")
     def threadPoolShutdownTimeoutMs =
@@ -73,6 +74,17 @@ class AuthConfig(val conf: Config) {
     def adminRole = conf.getString(s"$prefix.admin_role")
     def tenantAdminRole = conf.getString(s"$prefix.tenant_admin_role")
     def tenantUserRole = conf.getString(s"$prefix.tenant_user_role")
+}
+
+class VirtualTopologyConfig(val conf: Config) {
+    final val prefix = "cluster.virtual_topology"
+
+    private val dnat_start = conf.getInt(s"$prefix.dynamic_nat_port_start")
+    private val dnat_end = conf.getInt(s"$prefix.dynamic_nat_port_end")
+
+    def dynamicNatPortStart = dnat_start
+    def dynamicNatPortEnd = if (dnat_end <= dnat_start) 0xffff
+                            else conf.getInt(s"$prefix.dynamic_nat_port_end")
 }
 
 class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
