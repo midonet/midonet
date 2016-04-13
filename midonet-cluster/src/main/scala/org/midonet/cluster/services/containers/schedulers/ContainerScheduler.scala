@@ -274,6 +274,23 @@ class ContainerScheduler(containerId: UUID, context: Context,
         Option(selectedId)
     }
 
+    /** Determines whether a host is running to start a container: the host
+      * must be running the container service, and it must report a positive
+      * container weight.
+      */
+    @inline
+    private def isHostRunning(entry: (UUID, HostEvent)): Boolean = {
+        entry._2.running && entry._2.status.getWeight > 0
+    }
+
+    /** Determines whether a host is available to start a container: the host
+      * must report a non-zero quota.
+      */
+    @inline
+    private def isHostAvailable(entry: (UUID, HostEvent)): Boolean = {
+        entry._2.status.getQuota != 0
+    }
+
     /** Handles updates to this container. The method verifies if this is the
       * first container notification
       */
@@ -405,10 +422,8 @@ class ContainerScheduler(containerId: UUID, context: Context,
 
         log debug s"Scheduling from hosts: ${hosts.keySet}"
 
-        // Select all hosts where the container service is running and the hosts
-        // have a positive weight.
-        val runningHosts = hosts.filter(host => host._2.running &&
-                                                host._2.status.getWeight > 0)
+        // Select all hosts that are running.
+        val runningHosts = hosts.filter(isHostRunning)
         log debug s"Scheduling from running hosts: ${runningHosts.keySet}"
 
         // Clear the bad hosts set.
@@ -424,8 +439,14 @@ class ContainerScheduler(containerId: UUID, context: Context,
                 // host belongs to the eligible set, no rescheduling needed.
                 state.hostId
             } else {
-                // Select a host from the eligible set based at the total weight.
-                selectHost(eligibleHosts).orNull
+                val availableHosts = eligibleHosts.filter(isHostAvailable)
+
+                log debug "Scheduling from available hosts: " +
+                          s"${availableHosts.keySet}"
+
+                // Select a host from the available set based on the current
+                // selection policy (currently only weighted-random).
+                selectHost(availableHosts).orNull
             }
 
         namespaceSubject onNext selectedHostId.asNullableString

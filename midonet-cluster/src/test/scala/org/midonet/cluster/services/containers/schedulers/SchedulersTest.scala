@@ -144,10 +144,12 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
     }
 
     protected def createHostStatus(hostId: UUID,
-                                   weight: Int = random.nextInt())
+                                   weight: Int = random.nextInt(),
+                                   quota: Int = -1)
     : ContainerServiceStatus = {
         val status = ContainerServiceStatus.newBuilder()
             .setWeight(weight)
+            .setQuota(quota)
             .build()
         store.addValueAs(hostId.toString, classOf[Host], hostId,
                          ContainerKey, status.toString).await()
