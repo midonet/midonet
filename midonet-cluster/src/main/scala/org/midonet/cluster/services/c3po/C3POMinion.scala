@@ -70,6 +70,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
     private val dataMgr = C3POMinion.initDataManager(backend.store,
                                                      backend.stateTableStore,
                                                      seqDispenser,
+                                                     config,
                                                      pathManager)
 
     private val LEADER_LATCH_PATH = backendCfg.rootKey + "/leader-latch"
@@ -191,6 +192,7 @@ object C3POMinion {
     def initDataManager(storage: Storage,
                         stateTableStorage: StateTableStorage,
                         seqDispenser: SequenceDispenser,
+                        config: ClusterConfig,
                         pathBldr: PathBuilder): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
@@ -219,7 +221,7 @@ object C3POMinion {
              classOf[NeutronRouter] ->
                 new RouterTranslator(storage, stateTableStorage, pathBldr),
              classOf[NeutronRouterInterface] ->
-                new RouterInterfaceTranslator(storage, seqDispenser),
+                new RouterInterfaceTranslator(storage, seqDispenser, config),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
              classOf[NeutronPort] ->
                 new PortTranslator(storage, stateTableStorage, pathBldr, seqDispenser),

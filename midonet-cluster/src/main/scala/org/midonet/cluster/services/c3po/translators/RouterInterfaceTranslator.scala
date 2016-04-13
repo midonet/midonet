@@ -19,6 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
@@ -44,7 +45,8 @@ object RouterInterfaceTranslator {
 }
 
 class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
-                                sequenceDispenser: SequenceDispenser)
+                                sequenceDispenser: SequenceDispenser,
+                                config: ClusterConfig)
     extends Translator[NeutronRouterInterface]
             with ChainManager
             with PortManager
@@ -130,8 +132,11 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
                 .setNwDstIp(RouteManager.META_DATA_SRVC)
                 .setNwDstInv(true)
                 .setMatchForwardFlow(true).build()
+
         val natTarget = natRuleData(port.getPortAddress, dnat = false,
-                                    dynamic = true)
+                                    dynamic = true,
+                                    config.virtualTopology.dynamicNatPortStart,
+                                    config.virtualTopology.dynamicNatPortEnd)
         newRule(chainId)
                 .setId(sameSubnetSnatRuleId(chainId, port.getId))
                 .setType(Rule.Type.NAT_RULE)

@@ -31,6 +31,10 @@ import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigur
 object ClusterConfig {
     val DEFAULT_MTU: Short = 1500
 
+    val MIN_DYNAMIC_NAT_PORT: Int = 1
+
+    val MAX_DYNAMIC_NAT_PORT: Int = 0xffff
+
     def forTests = new ClusterConfig(MidoTestConfigurator.forClusters())
 
     def forTests(config: Config) = new ClusterConfig(
@@ -60,6 +64,7 @@ class ClusterConfig(_conf: Config) {
     val topologyApi = new TopologyApiConfig(conf)
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)
+    val virtualTopology = new VirtualTopologyConfig(conf)
 
     def threadPoolSize = conf.getInt(s"$prefix.max_thread_pool_size")
     def threadPoolShutdownTimeoutMs =
@@ -73,6 +78,26 @@ class AuthConfig(val conf: Config) {
     def adminRole = conf.getString(s"$prefix.admin_role")
     def tenantAdminRole = conf.getString(s"$prefix.tenant_admin_role")
     def tenantUserRole = conf.getString(s"$prefix.tenant_user_role")
+}
+
+class VirtualTopologyConfig(val conf: Config) {
+    import ClusterConfig._
+
+    final val prefix = "cluster.virtual_topology"
+
+    private val dnat_start = conf.getInt(s"$prefix.dynamic_nat_port_start")
+    private val dnat_end = conf.getInt(s"$prefix.dynamic_nat_port_end")
+
+    def dynamicNatPortStart =
+        if (dnat_start < MIN_DYNAMIC_NAT_PORT) MIN_DYNAMIC_NAT_PORT
+
+    def dynamicNatPortEnd =
+        if (dnat_end <= dnat_start || dnat_end > MAX_DYNAMIC_NAT_PORT) {
+            MAX_DYNAMIC_NAT_PORT
+        }
+        else {
+            conf.getInt(s"$prefix.dynamic_nat_port_end")
+        }
 }
 
 class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
