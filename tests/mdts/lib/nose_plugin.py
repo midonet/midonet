@@ -118,7 +118,7 @@ class Mdts(Plugin):
 
     def _get_all_services(self):
         flat_services = []
-        services = service.get_all_containers()
+        services = service.get_all_containers(include_failed=True)
         for service_type, service_hosts in services.items():
             for service_host in service_hosts:
                 flat_services.append(service_host)
