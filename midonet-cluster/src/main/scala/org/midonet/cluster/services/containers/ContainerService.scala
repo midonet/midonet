@@ -231,6 +231,9 @@ class ContainerService @Inject()(nodeContext: Context,
                     delegate.onDown(container, status)
                 case Unschedule(container, hostId) =>
                     delegate.onUnscheduled(container, hostId)
+                case Notify(container, hostId) =>
+                    log info s"Container ${container.getId} scheduled at " +
+                             s"host $hostId"
             }
         } catch {
             case NonFatal(e) =>
