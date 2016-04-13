@@ -36,11 +36,12 @@ class ServiceSchedulerTest extends FeatureSpec with SchedulersTest
                            with BeforeAndAfter with Matchers
                            with GivenWhenThen {
 
-    private val timeout = 5 seconds
     private val config = new ContainersConfig(ConfigFactory.parseString(
         """
           |cluster.containers.enabled : true
           |cluster.containers.scheduler_timeout : 10s
+          |cluster.containers.scheduler_retry : 15s
+          |cluster.containers.scheduler_max_retries : 3
           |cluster.containers.scheduler_bad_host_lifetime : 300s
         """.stripMargin))
 

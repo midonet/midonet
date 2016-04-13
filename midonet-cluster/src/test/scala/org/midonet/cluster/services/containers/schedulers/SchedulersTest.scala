@@ -34,7 +34,7 @@ import org.midonet.cluster.models.State.{ContainerStatus, ContainerServiceStatus
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
-import org.midonet.cluster.services.containers.schedulers.ContainerScheduler.{UpState, ScheduledState, State}
+import org.midonet.cluster.services.containers.schedulers.ContainerScheduler._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.Context
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
@@ -83,15 +83,49 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
                 case _ => fail()
             }
         }
+
+        def shouldBeNotifyFor(container: ServiceContainer, hostId: UUID): Unit = {
+            event match {
+                case Notify(c, h) =>
+                    c shouldBe container
+                    h shouldBe hostId
+                case _ => fail()
+            }
+        }
     }
 
     protected class StateWrapper(state: State) extends Matchers {
+        def shouldBeDownFor(isUnsubscribed: Boolean = false,
+                            attempts: Int = 0): Unit = {
+            state match {
+                case DownState =>
+                    isUnsubscribed shouldBe true
+                case DownState(s, att) =>
+                    s.isUnsubscribed shouldBe isUnsubscribed
+                    att shouldBe attempts
+                case _ => fail()
+            }
+        }
+
         def shouldBeScheduledFor(container: ServiceContainer, hostId: UUID,
                                  isUnsubcribed: Boolean = false): Unit = {
             state match {
                 case ScheduledState(h, c, s) =>
                     c shouldBe container
                     h shouldBe hostId
+                    s.isUnsubscribed shouldBe isUnsubcribed
+                case _ => fail()
+            }
+        }
+
+        def shouldBeRescheduledFor(container: ServiceContainer, oldHostId: UUID,
+                                   newHostId: UUID,
+                                   isUnsubcribed: Boolean = false): Unit = {
+            state match {
+                case RescheduledState(oh, nh, c, s) =>
+                    c shouldBe container
+                    oh shouldBe oldHostId
+                    nh shouldBe newHostId
                     s.isUnsubscribed shouldBe isUnsubcribed
                 case _ => fail()
             }
