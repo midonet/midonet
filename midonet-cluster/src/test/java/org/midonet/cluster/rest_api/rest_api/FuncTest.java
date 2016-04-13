@@ -137,7 +137,9 @@ public class FuncTest {
                     "zookeeper.curator_enabled = true \n" +
                     "zookeeper.root_key = " + ZK_ROOT_MIDOLMAN + "\n" +
                     "cluster.rest_api.root_uri = " + CONTEXT_PATH + "\n" +
-                    "cluster.auth.provider_class = \"org.midonet.cluster.auth.MockAuthService\" "
+                    "cluster.auth.provider_class = \"org.midonet.cluster.auth.MockAuthService\"\n" +
+                    "cluster.translators.nat.dynamic_port_start = 1024\n" +
+                    "cluster.translators.nat.dynamic_port_end = 65535 "
                 )
             );
 
