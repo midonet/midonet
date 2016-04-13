@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, UUID}
 import org.midonet.cluster.models.Topology.Rule
@@ -78,9 +79,12 @@ trait RuleManager {
         Condition.newBuilder.setFragmentPolicy(FragmentPolicy.ANY)
 
     protected def natRuleData(addr: IPAddress, dnat: Boolean,
-                              dynamic: Boolean = true): NatRuleData = {
+                              dynamic: Boolean = true,
+                              port_start: Int = ClusterConfig.MIN_DYNAMIC_NAT_PORT,
+                              port_end: Int = ClusterConfig.MAX_DYNAMIC_NAT_PORT)
+    : NatRuleData = {
         if (dynamic)
-            natRuleData(addr, dnat, 1, 0xffff)
+            natRuleData(addr, dnat, port_start, port_end)
         else
             natRuleData(addr, dnat, 0, 0)
     }
