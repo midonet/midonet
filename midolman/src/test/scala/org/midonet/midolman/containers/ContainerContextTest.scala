@@ -16,7 +16,6 @@
 
 package org.midonet.midolman.containers
 
-import java.util.UUID
 import java.util.concurrent.{CountDownLatch, Executors}
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -39,7 +38,7 @@ class ContainerContextTest extends FlatSpec with Matchers with GivenWhenThen {
         val executor = Executors.newSingleThreadExecutor()
 
         And("A container context")
-        val context = new ContainerContext(UUID.randomUUID(), executor)
+        val context = new ContainerContext(executor)
 
         When("Executing a task")
         val count = new AtomicInteger
@@ -63,7 +62,7 @@ class ContainerContextTest extends FlatSpec with Matchers with GivenWhenThen {
         val executor = Executors.newSingleThreadExecutor()
 
         And("A container context")
-        val context = new ContainerContext(UUID.randomUUID(), executor)
+        val context = new ContainerContext(executor)
 
         When("Executing a task that completes asynchronously")
         val count = new AtomicInteger
@@ -117,7 +116,7 @@ class ContainerContextTest extends FlatSpec with Matchers with GivenWhenThen {
         val executor = Executors.newSingleThreadExecutor()
 
         And("A container context")
-        val context = new ContainerContext(UUID.randomUUID(), executor)
+        val context = new ContainerContext(executor)
 
         When("Executing a task that completes asynchronously")
         val count = new AtomicInteger
@@ -151,8 +150,8 @@ class ContainerContextTest extends FlatSpec with Matchers with GivenWhenThen {
         val executor = Executors.newSingleThreadExecutor()
 
         And("Two container contexts")
-        val context1 = new ContainerContext(UUID.randomUUID(), executor)
-        val context2 = new ContainerContext(UUID.randomUUID(), executor)
+        val context1 = new ContainerContext(executor)
+        val context2 = new ContainerContext(executor)
 
         When("Executing a task that completes asynchronously in the first context")
         val count = new AtomicInteger
@@ -197,7 +196,7 @@ class ContainerContextTest extends FlatSpec with Matchers with GivenWhenThen {
         val executor = Executors.newSingleThreadExecutor()
 
         And("A container context")
-        val context = new ContainerContext(UUID.randomUUID(), executor)
+        val context = new ContainerContext(executor)
 
         When("Executing a task that completes asynchronously")
         val count = new AtomicInteger
@@ -251,7 +250,7 @@ class ContainerContextTest extends FlatSpec with Matchers with GivenWhenThen {
         val executor = Executors.newSingleThreadExecutor()
 
         And("A container context")
-        val context = new ContainerContext(UUID.randomUUID(), executor)
+        val context = new ContainerContext(executor)
 
         When("Executing a task that executes a second task")
         val count = new AtomicInteger
