@@ -22,6 +22,30 @@
       "revId": "53867180779228b8215aeda9f92a2112cf7a1ba4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_48f3280b",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-13T16:14:29Z",
+      "side": 1,
+      "message": "Make sense. Will do.",
+      "parentUuid": "baa041b7_08976091",
+      "range": {
+        "startLine": 296,
+        "startChar": 4,
+        "endLine": 296,
+        "endChar": 22
+      },
+      "revId": "53867180779228b8215aeda9f92a2112cf7a1ba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
