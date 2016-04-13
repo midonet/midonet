@@ -20,12 +20,11 @@ import java.util.UUID
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.rules.{LiteralRule, Condition, JumpRule, Rule}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.simulation.{Chain, CustomMatchers}
+import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{InvalidateFlowsByTag, ChainRequest}
 import org.midonet.midolman.util.MidolmanSpec
@@ -248,11 +247,17 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             checkIpAddrGroupRule(c.getRules.get(0), Action.DROP,
                                  ipAddrGroup.getId, Set(addr), null, null)
 
-            When("The rule is removed and the IP group is modified")
-            deleteRule(rule.getId)
+            When("The IP group is modified")
             removeIpAddrFromIpAddrGroup(ipAddrGroup.getId, addr)
+
+            Then("Triggers a chain update")
             c = expectMsgType[Chain]
-            c.getRules.size() should be (0)
+            c.getRules.size() should be (1)
+
+            When("The rule is removed")
+            deleteRule(rule.getId)
+
+            Then("Triggers a chain update")
             c = expectMsgType[Chain]
             c.getRules.size() should be (0)
 

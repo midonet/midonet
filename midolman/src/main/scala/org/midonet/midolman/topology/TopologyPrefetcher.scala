@@ -73,6 +73,13 @@ trait TopologyPrefetcher extends Actor with ActorLogWithoutPath {
         checkTopologyFetched()
     }
 
+    def unsubscribePrefetcher(): Unit = {
+        for (id <- subscriptions) {
+            topology.remove(id)
+            VirtualTopologyActor ! Unsubscribe(id)
+        }
+    }
+
     final def port(id: UUID) =
         if (id eq null) null else PortRequest(id, update = true)
 
