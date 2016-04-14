@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7ded858a",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-14T15:09:15Z",
+      "side": 1,
+      "message": "Not sure about this, is just a placeholder ... maybe better remove it, since it is going hardly to be used. Same for the rest.",
+      "range": {
+        "startLine": 295,
+        "startChar": 0,
+        "endLine": 296,
+        "endChar": 1
+      },
+      "revId": "fc20aa30625413f19b31534460f58daf64eb4ae4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
