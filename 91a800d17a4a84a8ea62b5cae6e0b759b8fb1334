@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_024738bc",
+        "filename": "tests/mdts/tests/functional_tests/test_bgp.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-14T13:30:43Z",
+      "side": 1,
+      "message": "should we remove those attr that we don\u0027t use?\n\nSame below.",
+      "range": {
+        "startLine": 359,
+        "startChar": 6,
+        "endLine": 359,
+        "endChar": 33
+      },
+      "revId": "91a800d17a4a84a8ea62b5cae6e0b759b8fb1334",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
