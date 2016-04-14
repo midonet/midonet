@@ -285,6 +285,39 @@ class RouterPeeringTest extends MidolmanSpec {
             conntrackTx.get(innerKey) shouldBe RETURN_FLOW
             conntrackTx.get(outerKey) shouldBe null
         }
+
+        scenario("Inner packets is conntracked if decapsulated") {
+            val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
+                .addShard()
+            implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
+
+            val chain = newInboundChainOnPort("router port chain", exteriorVtepPort)
+
+            val fwdCond = new Condition()
+            fwdCond.matchForwardFlow = true
+            newLiteralRuleOnChain(chain, 1, fwdCond, RuleResult.Action.ACCEPT)
+
+            val pkt = { eth src MAC.random() dst exteriorVtepPortMac } <<
+                { ip4 src remoteVtepRouterIp dst vtepTunnelIp } <<
+                { udp src 123 dst UDP.VXLAN.toShort } <<
+                { vxlan vni vni } <<
+                { eth src MAC.random() dst interiorTenantPortMac } <<
+                { ip4 src remoteVmIp dst localVmIp } <<
+                { tcp src 80 dst 123 }
+
+            val (simRes, pktCtx) = simulate(packetContextFor(pkt, exteriorVtepPort))
+            simRes should be (AddVirtualWildcardFlow)
+
+            pktCtx.recircMatch should not be null
+
+            val innerKey = EgressConnTrackKey(pktCtx.recircMatch, interiorTenantPort)
+            val outerKey = EgressConnTrackKey(pktCtx.wcmatch, interiorTenantPort)
+
+            pktCtx.trackConnection(interiorTenantPort)
+
+            conntrackTx.get(innerKey) shouldBe null
+            conntrackTx.get(outerKey) shouldBe RETURN_FLOW
+        }
     }
 
     private def isEthernet(setKey: FlowActionSetKey) =
