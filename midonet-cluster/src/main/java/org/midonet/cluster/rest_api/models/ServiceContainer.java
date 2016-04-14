@@ -89,6 +89,11 @@ public class ServiceContainer extends UriResource {
         }
     }
 
+    @JsonIgnore
+    public void update(ServiceContainer from) {
+        id = from.id;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(id, serviceType, serviceGroupId, configurationId,
