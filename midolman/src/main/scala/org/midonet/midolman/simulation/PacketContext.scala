@@ -84,11 +84,14 @@ trait FlowContext extends Clearable { this: PacketContext =>
 
     def isDrop: Boolean = flowActions.isEmpty
 
+    var isEncapped = false
+
     override def clear(): Unit = {
         if (recircMatch ne null)
             origMatch.reset(recircMatch)
         recircMatch = null
         recircPayload = null
+        isEncapped = false
         flow = null
         virtualFlowActions.clear()
         flowActions.clear()
@@ -140,6 +143,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
         origMatch.addKeys(keys)
         wcmatch.reset(origMatch)
         diffBaseMatch.reset(origMatch)
+        isEncapped = true
     }
 
     def decap(inner: Ethernet, vni: Int): Unit = {

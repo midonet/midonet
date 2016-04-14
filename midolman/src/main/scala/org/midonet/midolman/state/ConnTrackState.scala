@@ -159,7 +159,7 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
 
     def trackConnection(egressDeviceId: UUID): Unit = {
         if (isConnectionTracked && (flowDirection ne RETURN_FLOW)) {
-            val keyMatch = if (isRecirc) recircMatch else wcmatch
+            val keyMatch = if (isEncapped) recircMatch else wcmatch
             val returnKey = EgressConnTrackKey(keyMatch, egressDeviceId)
             conntrackTx.putAndRef(returnKey, RETURN_FLOW)
         }
