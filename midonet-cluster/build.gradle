@@ -187,6 +187,8 @@ debianPrepare.dependsOn preparePkg
 rpm.dependsOn rhel7Prepare
 rhel7Prepare.dependsOn preparePkg
 
+tar.dependsOn preparePkg
+
 debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
@@ -211,10 +213,20 @@ rpm.doFirst {
             '--depends', 'java-1.8.0-openjdk-headless'])
 }
 
+tar.doFirst {
+    project.packaging.version = project.debVersion
+    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+}
+
 debian.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
+
 rpm.doLast {
+    new File("${buildDir}/install/${project.name}").deleteDir()
+}
+
+tar.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
 
