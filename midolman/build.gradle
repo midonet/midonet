@@ -239,6 +239,7 @@ packaging {
 
 preparePkg.dependsOn cleanPkg
 debian.dependsOn preparePkg
+tar.dependsOn preparePkg
 
 rpm.dependsOn rhel7Prepare
 rhel7Prepare.dependsOn preparePkg
@@ -294,6 +295,7 @@ rpm.doFirst {
 debian.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
+
 rpm.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }

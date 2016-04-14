@@ -25,3 +25,7 @@ task rpm(type: Exec) {
 task debian(type: Exec) {
     commandLine './package.sh', 'deb', project.debVersion
 }
+
+task tar(type: Exec) {
+    commandLine './package.sh', 'tar'
+}
