@@ -84,6 +84,8 @@ trait FlowContext extends Clearable { this: PacketContext =>
 
     def isDrop: Boolean = flowActions.isEmpty
 
+    def isEncapped = isRecirc && (recircPayload.getParent ne null)
+
     override def clear(): Unit = {
         if (recircMatch ne null)
             origMatch.reset(recircMatch)
