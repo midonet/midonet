@@ -114,6 +114,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
 
     protected val snatRuleId = RouteManager.fipSnatRuleId(fipId)
     protected val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
+    protected val reverseIcmpDnatRuleId = RouteManager.fipReverseDnatRuleId(fipId)
 
     protected def snatRule(gatewayPortId: UUID, sourcePortId: UUID,
                            fixedIpSubnet: IPSubnet = fipFixedIpSubnet) =
@@ -163,6 +164,31 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         """)
     protected val dnat = dnatRule(nTntRouterGatewayPortId, fipPortId)
 
+    protected def icmpReverseDnatRule(gatewayPortId: UUID, destPortId: UUID,
+                                      fixedIpSubnet: IPSubnet = fipFixedIpSubnet) =
+        mRuleFromTxt(s"""
+            id { $reverseIcmpDnatRuleId }
+            type: NAT_RULE
+            action: CONTINUE
+            condition {
+                out_port_ids { ${tenantGwPortId(gatewayPortId)} }
+                fragment_policy: ANY
+                icmp_data_dst_ip { $fixedIpSubnet }
+            }
+            fip_port_id { $destPortId }
+            nat_rule_data {
+                nat_targets {
+                    nw_start { $fipIpAddr }
+                    nw_end { $fipIpAddr }
+                    tp_start: 0
+                    tp_end: 0
+                }
+                dnat: true
+            }
+        """)
+    protected val icmpReverseDnat = icmpReverseDnatRule(nTntRouterGatewayPortId,
+                                                        fipPortId)
+
     protected val inChainDummyRuleIds = """
         rule_ids { msb: 1 lsb: 2 }
         rule_ids { msb: 3 lsb: 4 }
@@ -188,8 +214,9 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         $inChainDummyRuleIds
         """)
 
-    protected val outChainWithSnat = mChainFromTxt(s"""
+    protected val outChainWithSnatAndReverseIcmpDnat = mChainFromTxt(s"""
         id { $tntRouterOutChainId }
+        rule_ids { $reverseIcmpDnatRuleId }
         rule_ids { $snatRuleId }
         $outChainDummyRuleIds
         """)
@@ -225,8 +252,9 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
         midoOps should contain inOrderOnly (midonet.CreateNode(fipArpEntryPath),
                                             midonet.Create(snat),
                                             midonet.Create(dnat),
+                                            midonet.Create(icmpReverseDnat),
                                             midonet.Update(inChainWithDnat),
-                                            midonet.Update(outChainWithSnat))
+                                            midonet.Update(outChainWithSnatAndReverseIcmpDnat))
     }
 
     "Tenant router for floating IP" should "throw an exception if it doesn't " +
@@ -261,15 +289,21 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     protected val fipMovedRtr2Port2 =
         fip(routerId = tntRouter2Id, portId = fipPort2Id, fixedIp = fixedIp2)
     protected val snatRtr2 = snatRule(nTntRouter2GwPortId, fipPortId)
+    protected val icmpReverseDNatRtr2 = icmpReverseDnatRule(nTntRouter2GwPortId, fipPortId)
     protected val dnatRtr2 = dnatRule(nTntRouter2GwPortId, fipPortId)
     protected val snatPort2 =
         snatRule(nTntRouterGatewayPortId, fipPort2Id, fixedIpSubnet2)
     protected val dnatPort2 =
         dnatRule(nTntRouterGatewayPortId, fipPort2Id, fixedIp2)
+    protected val icmpReverseDNatPort2 = icmpReverseDnatRule(
+        nTntRouterGatewayPortId, fipPort2Id, fixedIpSubnet2)
+
     protected val snatRtr2Port2 =
         snatRule(nTntRouter2GwPortId, fipPort2Id, fixedIpSubnet2)
     protected val dnatRtr2Port2 =
         dnatRule(nTntRouter2GwPortId, fipPort2Id, fixedIp2)
+    protected val icmpReverseDNatRtr2Port2 = icmpReverseDnatRule(
+        nTntRouter2GwPortId, fipPort2Id, fixedIpSubnet2)
 
     protected val nTntRouter2 = nRouterFromTxt(s"""
         id { $tntRouter2Id }
@@ -304,8 +338,9 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         $inChainDummyRuleIds
         """)
 
-    protected val tntRouter2OutChainWithSnat = mChainFromTxt(s"""
+    protected val tntRouter2OutChainWithSnatAndReverseIcmpDnat = mChainFromTxt(s"""
         id { $tntRouter2OutChainId }
+        rule_ids { $reverseIcmpDnatRuleId }
         rule_ids { $snatRuleId }
         $outChainDummyRuleIds
         """)
@@ -346,8 +381,9 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
             midonet.CreateNode(fipArpEntryPath),
             midonet.Create(snat),
             midonet.Create(dnat),
+            midonet.Create(icmpReverseDnat),
             midonet.Update(inChainWithDnat),
-            midonet.Update(outChainWithSnat))
+            midonet.Update(outChainWithSnatAndReverseIcmpDnat))
     }
 
     "Associating a floating IP to a port" should "throw an exception if the " +
@@ -377,7 +413,8 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         midoOps should contain inOrderOnly (
             midonet.DeleteNode(fipArpEntryPath),
             midonet.Delete(classOf[Rule], snatRuleId),
-            midonet.Delete(classOf[Rule], dnatRuleId))
+            midonet.Delete(classOf[Rule], dnatRuleId),
+            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId))
     }
 
     "UPDATE that keeps the floating IP on the same port/router " should
@@ -399,10 +436,12 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
             midonet.CreateNode(fipArpEntryPath2),
             midonet.Delete(classOf[Rule], snatRuleId),
             midonet.Delete(classOf[Rule], dnatRuleId),
+            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId),
             midonet.Create(snatRtr2),
             midonet.Create(dnatRtr2),
+            midonet.Create(icmpReverseDNatRtr2),
             midonet.Update(tntRouter2InChainWithDnat),
-            midonet.Update(tntRouter2OutChainWithSnat))
+            midonet.Update(tntRouter2OutChainWithSnatAndReverseIcmpDnat))
     }
 
     "UpdateOp that moves the floating IP to a different port on the same " +
@@ -414,10 +453,12 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         midoOps should contain inOrderOnly (
             midonet.Delete(classOf[Rule], snatRuleId),
             midonet.Delete(classOf[Rule], dnatRuleId),
+            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId),
             midonet.Create(snatPort2),
             midonet.Create(dnatPort2),
+            midonet.Create(icmpReverseDNatPort2),
             midonet.Update(inChainWithDnat),
-            midonet.Update(outChainWithSnat))
+            midonet.Update(outChainWithSnatAndReverseIcmpDnat))
     }
 
     "UpdateOp that moves the floating IP to a different port on a different " +
@@ -431,10 +472,12 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
             midonet.CreateNode(fipArpEntryPath2),
             midonet.Delete(classOf[Rule], snatRuleId),
             midonet.Delete(classOf[Rule], dnatRuleId),
+            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId),
             midonet.Create(snatRtr2Port2),
             midonet.Create(dnatRtr2Port2),
+            midonet.Create(icmpReverseDNatRtr2Port2),
             midonet.Update(tntRouter2InChainWithDnat),
-            midonet.Update(tntRouter2OutChainWithSnat))
+            midonet.Update(tntRouter2OutChainWithSnatAndReverseIcmpDnat))
     }
 }
 
@@ -462,14 +505,15 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
         bind(nTntRouterGatewayPortId, nTntRouterGatewayPort)
         bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
         bind(tntRouterInChainId, inChainWithDnat)
-        bind(tntRouterOutChainId, outChainWithSnat)
+        bind(tntRouterOutChainId, outChainWithSnatAndReverseIcmpDnat)
         val midoOps = translator.translate(neutron.Delete(classOf[FloatingIp],
                                                           fipId))
 
         midoOps should contain inOrderOnly (
             midonet.DeleteNode(fipArpEntryPath),
             midonet.Delete(classOf[Rule], snatRuleId),
-            midonet.Delete(classOf[Rule], dnatRuleId))
+            midonet.Delete(classOf[Rule], dnatRuleId),
+            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId))
     }
 
     "Deleting a non-existent FIP" should "not raise an error" in {

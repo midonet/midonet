@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -283,6 +283,7 @@ class PacketContext(val cookie: Int,
     val outPorts = new ArrayList[UUID]()
     var currentDevice: UUID = _
     var routeTo: Route = _
+    val preRoutingMatch = origMatch.clone()
 
     val wcmatch = origMatch.clone()
     val diffBaseMatch = origMatch.clone()
@@ -324,6 +325,7 @@ class PacketContext(val cookie: Int,
         routeTo = null
         wcmatch.reset(origMatch)
         diffBaseMatch.reset(origMatch)
+        preRoutingMatch.reset(origMatch)
     }
 
     def prepareForDrop(): Unit = {

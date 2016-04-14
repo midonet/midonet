@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,8 +81,19 @@ public abstract class NatRule extends Rule {
         implements ZoomConvert.Factory<NatRule, Topology.Rule> {
 
         public Class<? extends NatRule> getType(Topology.Rule proto) {
-            return proto.getNatRuleData().getReverse() ?
-                   ReverseNatRule.class : ForwardNatRule.class;
+            boolean dynamic = false;
+
+            for (Topology.Rule.NatTarget target : proto.getNatRuleData().getNatTargetsList()) {
+                dynamic = dynamic || target.getTpStart() != 0
+                    || target.getTpEnd() != 0;
+            }
+            if (proto.getNatRuleData().getReverse()) {
+                return ReverseNatRule.class;
+            } else if (dynamic) {
+                return DynamicForwardNatRule.class;
+            } else {
+                return StaticForwardNatRule.class;
+            }
         }
     }
 }
