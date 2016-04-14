@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e8ff95ff",
+        "filename": "tests/mdts/tests/functional_tests/test_bgp.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-14T16:09:34Z",
+      "side": 1,
+      "message": "this is a non-public URL, so best not to put it here.",
+      "revId": "2519404cd181bb7c8574c6e3ab5815b1b97468e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a8098d2e",
+        "filename": "tests/sandbox/flavors/default_v2_neutron+kilo.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-14T16:09:34Z",
+      "side": 1,
+      "message": "separate patch.",
+      "revId": "2519404cd181bb7c8574c6e3ab5815b1b97468e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
