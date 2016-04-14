@@ -22,6 +22,47 @@
       "revId": "fc20aa30625413f19b31534460f58daf64eb4ae4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dd637119",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-14T15:30:21Z",
+      "side": 1,
+      "message": "Probably not needed. Remove it, and see if there\u0027s an error.",
+      "parentUuid": "baa041b7_7ded858a",
+      "range": {
+        "startLine": 295,
+        "startChar": 0,
+        "endLine": 296,
+        "endChar": 1
+      },
+      "revId": "fc20aa30625413f19b31534460f58daf64eb4ae4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9d6de906",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-14T15:30:21Z",
+      "side": 1,
+      "message": "should probably have the same as debian and rpm",
+      "revId": "fc20aa30625413f19b31534460f58daf64eb4ae4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
