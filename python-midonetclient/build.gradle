@@ -29,3 +29,9 @@ task debian(type: Exec) {
     environment PROTOC_EXECUTABLE: "${protobuf.tools.protoc.path}"
     commandLine './package.sh', 'deb', project.debVersion
 }
+
+task tar(type: Exec) {
+    protobuf.tools.resolve()
+    environment PROTOC_EXECUTABLE: "${protobuf.tools.protoc.path}"
+    commandLine './package.sh', 'tar', project.debVersion
+}
