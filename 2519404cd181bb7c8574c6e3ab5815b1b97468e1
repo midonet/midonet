@@ -69,6 +69,42 @@
       "revId": "2519404cd181bb7c8574c6e3ab5815b1b97468e1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_68c5c58c",
+        "filename": "tests/sandbox/flavors/default_v2_neutron+kilo.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-14T16:53:16Z",
+      "side": 1,
+      "message": "Done (see reply to comment below)",
+      "parentUuid": "baa041b7_a8098d2e",
+      "revId": "2519404cd181bb7c8574c6e3ab5815b1b97468e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_48c20187",
+        "filename": "tests/sandbox/flavors/default_v2_neutron+kilo.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-14T16:53:16Z",
+      "side": 1,
+      "message": "Done: https://review.gerrithub.io/272892",
+      "parentUuid": "baa041b7_a8574d01",
+      "revId": "2519404cd181bb7c8574c6e3ab5815b1b97468e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
