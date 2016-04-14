@@ -20,6 +20,8 @@ import java.util.UUID
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
+import javax.ws.rs.core.Response.Status._
 
 import scala.collection.JavaConverters._
 
@@ -30,8 +32,10 @@ import com.google.protobuf.TextFormat
 import org.midonet.cluster.data.storage.SingleValueKey
 import org.midonet.cluster.models.State
 import org.midonet.cluster.models.State.ContainerStatus.Code
+import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{Port, ServiceContainerGroup, ServiceContainer}
+import org.midonet.cluster.rest_api.models.{Port, Schedule, ServiceContainer, ServiceContainerGroup}
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
@@ -58,6 +62,46 @@ class ServiceContainerResource @Inject()(resContext: ResourceContext)
         this.groupId = groupId
     }
 
+    @POST
+    @Path("{id}/schedule")
+    @Consumes(Array(APPLICATION_SERVICE_CONTAINER_SCHEDULE_JSON,
+                    APPLICATION_JSON))
+    def schedule(@PathParam("id") id: UUID, schedule: Schedule): Response = {
+        tryTx { tx =>
+            schedule.setBaseUri(uriInfo.getBaseUri)
+            schedule.containerId = id
+            val container = tx.get(classOf[ServiceContainer], id)
+            if (schedule.hostId eq null) {
+                return buildErrorResponse(
+                    BAD_REQUEST.getStatusCode,
+                    getMessage(HOST_ID_IS_INVALID, id))
+            }
+            if (container.portId eq null) {
+                return buildErrorResponse(
+                    NOT_ACCEPTABLE.getStatusCode,
+                    getMessage(CONTAINER_UNSCHEDULABLE, id))
+            }
+            val port = tx.get(classOf[Port], container.portId)
+            port.hostId = schedule.hostId
+            tx.update(port)
+            Response.created(schedule.getUri).build()
+        }
+    }
+
+    @DELETE
+    @Path("{id}/schedule")
+    def unschedule(@PathParam("id") id: UUID): Response = {
+        tryTx { tx =>
+            val container = tx.get(classOf[ServiceContainer], id)
+            if (container.portId ne null) {
+                val port = tx.get(classOf[Port], container.portId)
+                port.hostId = null
+                tx.update(port)
+            }
+            MidonetResource.OkNoContentResponse
+        }
+    }
+
     protected override def getFilter(sc: ServiceContainer): ServiceContainer = {
         setStatus(sc)
     }
@@ -74,37 +118,37 @@ class ServiceContainerResource @Inject()(resContext: ResourceContext)
         list.map(setStatus)
     }
 
-    protected override def createFilter(sc: ServiceContainer,
+    protected override def createFilter(container: ServiceContainer,
                                         tx: ResourceTransaction): Unit = {
         if (groupId ne null) {
-            sc.serviceGroupId = groupId
+            container.serviceGroupId = groupId
         }
-        super.createFilter(sc, tx)
+        super.createFilter(container, tx)
     }
 
-    private def setStatus(sc: ServiceContainer): ServiceContainer = {
-        if (sc.portId eq null)
-            return sc
-        val port = getResource(classOf[Port], sc.portId)
+    private def setStatus(container: ServiceContainer): ServiceContainer = {
+        if (container.portId eq null)
+            return container
+        val port = getResource(classOf[Port], container.portId)
         if (port.hostId eq null) {
-            sc.statusCode = Code.STOPPED
-            return sc
+            container.statusCode = Code.STOPPED
+            return container
         }
         getResourceState(port.hostId.toString, classOf[ServiceContainer],
-                         sc.id, MidonetBackend.StatusKey) match {
+                         container.id, MidonetBackend.StatusKey) match {
             case SingleValueKey(_, Some(value), _) =>
                 val builder = State.ContainerStatus.newBuilder()
                 TextFormat.merge(value, builder)
                 val status = builder.build()
-                sc.statusCode = status.getStatusCode
-                sc.statusMessage = status.getStatusMessage
-                sc.hostId = port.hostId
-                sc.namespaceName = status.getNamespaceName
-                sc.interfaceName = status.getInterfaceName
+                container.statusCode = status.getStatusCode
+                container.statusMessage = status.getStatusMessage
+                container.hostId = port.hostId
+                container.namespaceName = status.getNamespaceName
+                container.interfaceName = status.getInterfaceName
             case _ =>
-                sc.statusCode = Code.STOPPED
+                container.statusCode = Code.STOPPED
         }
-        sc
+        container
     }
 
 }
