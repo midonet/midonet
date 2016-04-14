@@ -15,7 +15,6 @@
 #    under the License.
 
 import argparse
-from data_migration import exceptions as exc
 from data_migration import neutron_data as nd
 import logging
 
@@ -36,14 +35,11 @@ def main():
                         help='Turn on debug logging (off by default).')
     args = parser.parse_args()
 
-    # For now just support dry-run
-    if not args.dryrun:
-        raise exc.UpgradeScriptException("Only dryrun is supported")
-
     # For now, just allow DEBUG or INFO
     LOG.setLevel(level=logging.DEBUG if args.debug else logging.INFO)
+
     # Start the migration
-    nd.migrate()
+    nd.migrate(dry_run=args.dryrun)
 
 
 if __name__ == "__main__":

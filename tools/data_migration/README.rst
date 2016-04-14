@@ -10,6 +10,11 @@ Currently data migration assumes that the Neutron version is kilo.
 How to Run
 ----------
 
+Run the following command to insert Neutron objects to ``midonet_tasks`` table
+(of Neutron DB) where they will be imported to midonet cluster::
+
+     $ ./migrate.py
+
 Run the following command to do a dry-run of the data migration::
 
      $ ./migrate.py --dryrun
