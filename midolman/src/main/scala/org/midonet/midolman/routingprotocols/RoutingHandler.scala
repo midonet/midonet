@@ -142,7 +142,6 @@ object RoutingHandler {
             import context.system
 
             private var zebra: ActorRef = null
-            private val modelTranslator = new BgpModelTranslator(rport.id, config, (r, s) => self ! Update(r, s))
 
             private final val BGP_VTY_LOCAL_IP =
                 new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 1 + 4 * bgpIdx), 30)
