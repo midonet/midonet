@@ -34,6 +34,7 @@ class PackagingPlugin implements Plugin<Project> {
         project.packaging.packageDir = new File(project.buildDir, "/packages")
         project.task('debian', group: 'Build', type: DebianTask)
         project.task('rpm', group: 'Build', type: RpmTask)
+        project.task('tar', group: 'Build', type: TarTask)
         project.task('cleanPkg', group: 'Build', type: Delete) {
             delete "${project.pkgDestDir}"
         }
@@ -85,6 +86,12 @@ class DebianTask extends PackagingTask {
 class RpmTask extends PackagingTask {
     RpmTask(){
         super('rpm')
+    }
+}
+
+class TarTask extends PackagingTask {
+    TarTask(){
+        super('tar')
     }
 }
 

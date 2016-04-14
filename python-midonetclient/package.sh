@@ -44,6 +44,7 @@ function clean() {
     rm -rf build
     rm -f python-midonetclient*.deb
     rm -f python-midonetclient*.rpm
+    rm -f python-midonetclient*.tar
 }
 
 function build_protobuf_modules() {
@@ -96,6 +97,22 @@ function package_deb() {
     eval fpm $FPM_BASE_ARGS $DEB_ARGS -t deb .
 }
 
+function package_tar() {
+    TAR_BUILD_DIR=build/tar/
+    RPM_BUILD_DIR=build/rpm/
+    mkdir -p  $RPM_BUILD_DIR/usr/lib/python2.6/site-packages/
+    mkdir -p  $RPM_BUILD_DIR/usr/lib/python2.7/site-packages/
+    mkdir -p  $RPM_BUILD_DIR/usr/bin/
+    mkdir -p  $RPM_BUILD_DIR/usr/share/man/man1
+
+    cp -r  src/midonetclient $RPM_BUILD_DIR/usr/lib/python2.6/site-packages/
+    cp -r  src/midonetclient $RPM_BUILD_DIR/usr/lib/python2.7/site-packages/
+    cp src/bin/midonet-cli $RPM_BUILD_DIR/usr/bin/
+    cp doc/*.gz $RPM_BUILD_DIR/usr/share/man/man1/
+    TAR_ARGS=""
+    eval fpm $FPM_BASE_ARGS $TAR_ARGS -t tar .
+}
+
 case "$1" in
   deb)
       version=$2
@@ -121,6 +138,11 @@ case "$1" in
       build_protobuf_modules
       build_man_pages
       package_rpm
+      ;;
+  tar)
+      build_protobuf_modules
+      build_man_pages
+      package_tar
       ;;
   clean)
       clean

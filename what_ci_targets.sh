@@ -43,9 +43,9 @@ then
     DIST=debian
 fi
 
-if [ "$DIST" != "debian" ] && [ "$DIST" != "rpm" ]
+if [ "$DIST" != "debian" ] && [ "$DIST" != "rpm" ] && [ "$DIST" != "tar" ]
 then
-    echo "$DIST is not a valid distribution (use debian or rpm)"
+    echo "$DIST is not a valid distribution (use debian, rpm or tar)"
     exit -1
 fi
 
