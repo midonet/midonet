@@ -81,6 +81,10 @@ public class ServiceContainer extends UriResource {
         return absoluteUri(ResourceUris.SERVICE_CONTAINER_GROUPS(), serviceGroupId);
     }
 
+    public URI getSchedule() {
+        return relativeUri(ResourceUris.SCHEDULE());
+    }
+
     @JsonIgnore
     @Override
     public void create() {

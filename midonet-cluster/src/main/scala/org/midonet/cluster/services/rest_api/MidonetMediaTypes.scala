@@ -86,6 +86,7 @@ object MidonetMediaTypes {
     final val APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON = "application/vnd.org.midonet.collection.ServiceContainer-v1+json"
     final val APPLICATION_SERVICE_CONTAINER_GROUP_JSON = "application/vnd.org.midonet.ServiceContainerGroup-v1+json"
     final val APPLICATION_SERVICE_CONTAINER_GROUP_COLLECTION_JSON = "application/vnd.org.midonet.collection.ServiceContainerGroup-v1+json"
+    final val APPLICATION_SERVICE_CONTAINER_SCHEDULE_JSON = "application/vnd.org.midonet.ServiceContainerSchedule-v1+json"
 
     /* DHCP configuration types. */
     final val APPLICATION_DHCP_SUBNET_JSON_V2 = "application/vnd.org.midonet.DhcpSubnet-v2+json"

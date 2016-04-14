@@ -17,16 +17,17 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
+
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.{UriBuilder, Response}
+import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.Response.Status._
 
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
-import scala.util.control.NonFatal
 import scala.util.Try
+import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -34,13 +35,13 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.storage.SingleValueKey
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.ResourceUris._
+import org.midonet.cluster.rest_api.ResponseUtils._
+import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api._
 import org.midonet.cluster.services.MidonetBackend.{ActiveKey, BgpKey}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
