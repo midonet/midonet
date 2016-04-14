@@ -105,7 +105,7 @@ the kernel's Open Datapath module.
 Most dependencies are pulled in by the gradle build scripts, however
 there are some prerequisites:
 
-* fpm (ruby gem) to build debian/rpm packages
+* fpm (ruby gem) to build debian/rpm/tar packages
 * java 8 jdk
 * rpm
 
@@ -181,7 +181,7 @@ The generated report will be available under build/ directory:
 
 ### Distro packages
 
-The build script provides targets to build debian and rpm packages. In
+The build script provides targets to build debian, rpm and tar packages. In
 all cases packages will be found in midolman/build/packages/ and
 cluster/midonet-cluster/build/packages.
 
@@ -197,12 +197,20 @@ On ubuntu this requires the rpm tools which you can install with
 
     # apt-get install rpm
 
+Tarballs:
+
+    ~/midonet$ ./gradlew tar -x test
+
+### Build all & Run tests
+
+    ~/midonet$ ./gradlew test
+
 ## Running the Cluster Daemon locally
 
 Simply execute the following command from the root directory of the clone:
 
     ./gradlew midonet-cluster:run
-    
+
 You can specify a custom configuration file by adding:
 "-Pconf=<path_to_config_file>". Note that the configuration file path is
 relative to the midonet-cluster submodule, i.e., 
