@@ -178,6 +178,8 @@ debian.dependsOn preparePkg
 rpm.dependsOn rhel7Prepare
 rhel7Prepare.dependsOn preparePkg
 
+tar.dependsOn preparePkg
+
 debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
@@ -202,11 +204,18 @@ rpm.doFirst {
             '--depends', 'java-1.8.0-openjdk-headless'])
 }
 
+rpm.doFirst {
+}
+
 debian.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
+
 rpm.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
+}
+
+rpm.doLast {
 }
 
 mainClassName = "org.midonet.cluster.ClusterNode"
