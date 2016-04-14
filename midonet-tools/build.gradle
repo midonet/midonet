@@ -61,6 +61,7 @@ packaging {
 preparePkg.dependsOn cleanPkg
 debian.dependsOn preparePkg
 rpm.dependsOn preparePkg
+tar.dependsOn preparePkg
 
 debian.doFirst {
     project.packaging.version = project.debVersion
@@ -80,6 +81,7 @@ rpm.doFirst {
 debian.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
+
 rpm.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
