@@ -15,7 +15,7 @@
 """
 Utility functions for functional tests.
 """
-
+from copy import deepcopy
 from functools import wraps
 import inspect
 import logging
@@ -45,6 +45,9 @@ def wait_on_futures(futures):
 
 
 def get_midonet_api():
+    """
+    :rtype: midonetclient.api.MidonetApi
+    """
     return service.get_container_by_hostname('cluster1').get_midonet_api()
 
 
@@ -53,6 +56,12 @@ def get_neutron_api():
     :rtype: neutronclient.v2_0.client.Client
     """
     return service.get_container_by_hostname('neutron').get_neutron_api()
+
+def get_keystone_api():
+    """
+    :rtype: keystoneclient.
+    """
+    return service.get_container_by_hostname('keystone').get_keystone_api()
 
 
 #
@@ -232,7 +241,9 @@ def bindings(*args, **kwargs):
                     f_name,
                     binding.get('description'))
                 test_wrapped.__name__ = f.__name__
-                BM.set_binding_data(binding)
+                # We need to deepcopy here to prevent ourselves from
+                # modifying it, as the binding can be shared among tests
+                BM.set_binding_data(deepcopy(binding))
                 yield f,
 
         # copied from nose.tools.make_decorator to preserve metadata
@@ -272,15 +283,15 @@ def with_mn_conf(switch_flag, switch_id, config):
     return decorated
 
 def execute_mn_conf(switch_flag, switch_id, config):
+    host = service.get_container_by_hostname("midolman1")
     conf_file = tempfile.NamedTemporaryFile()
-    for k,v in config.items():
+    for k, v in config.items():
         conf_file.write("%s=%s\n" % (k, v))
     conf_file.flush()
-    process = subprocess.Popen("mn-conf set %s %s < %s" % (switch_flag,
-                                                           switch_id,
-                                                           conf_file.name),
-                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
+    cmd = "mn-conf set %s %s < %s" % (switch_flag,
+                                      switch_id,
+                                      conf_file.name)
+    host.exec_command(cmd, stream=False)
     conf_file.close()
 
 def clear_virtual_topology_for_tenants(tenant_name_prefix):
