@@ -28,6 +28,10 @@ import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigur
 object MidolmanConfig {
     val DEFAULT_MTU: Short = 1500
 
+    val MIN_DYNAMIC_NAT_PORT: Int = 1
+
+    val MAX_DYNAMIC_NAT_PORT: Int = 0xffff
+
     def forTests = new MidolmanConfig(MidoTestConfigurator.forAgents())
 
     def forTests(config: Config) = new MidolmanConfig(MidoTestConfigurator.forAgents(config))
@@ -153,4 +157,35 @@ class FlowHistoryConfig(val conf: Config, val schema: Config) extends TypeFailur
     def enabled = getBoolean("agent.flow_history.enabled")
     def encoding = getString("agent.flow_history.encoding")
     def udpEndpoint = getString("agent.flow_history.udp_endpoint")
+}
+
+// Note: We need the Translators Config classes here because both the Cluster
+// and the Agent share the code of the zkManagers. Ideally, this should be moved
+// to ClusterConfig once the agent does not depend on zkManagers to read from
+// ZooKeeper.
+
+class TranslatorsConfig(val conf: Config) {
+    val prefix = "cluster.translators"
+
+    val nat = new NatConfig(conf)
+}
+
+class NatConfig(val conf: Config) {
+    import MidolmanConfig._
+
+    val prefix = "cluster.translators.nat"
+
+    private val dynamicNatStart = conf.getInt("cluster.translators.nat.dynamic_port_start")
+    private val dynamicNatEnd = conf.getInt("cluster.translators.nat.dynamic_port_end")
+
+    private def portInRange(port: Int) =
+        MIN_DYNAMIC_NAT_PORT <= port && port <= MAX_DYNAMIC_NAT_PORT
+
+    def dynamicNatPortStart =
+        if (portInRange(dynamicNatStart)) dynamicNatStart
+        else MIN_DYNAMIC_NAT_PORT
+
+    def dynamicNatPortEnd =
+        if (portInRange(dynamicNatEnd) && (dynamicNatStart < dynamicNatEnd)) dynamicNatEnd
+        else MAX_DYNAMIC_NAT_PORT
 }

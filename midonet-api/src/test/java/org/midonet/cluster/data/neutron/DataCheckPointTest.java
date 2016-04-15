@@ -55,6 +55,7 @@ import org.midonet.midolman.Setup;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.midolman.config.TranslatorsConfig;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.rules.RuleResult;
@@ -88,7 +89,11 @@ public class DataCheckPointTest {
 
     Config fillConfig(Config config) {
         return config.withValue("zookeeper.root_key",
-                    ConfigValueFactory.fromAnyRef(zkRoot));
+                                ConfigValueFactory.fromAnyRef(zkRoot))
+            .withValue("cluster.translators.nat.dynamic_port_start",
+                       ConfigValueFactory.fromAnyRef("1024"))
+            .withValue("cluster.translators.nat.dynamic_port_end",
+                       ConfigValueFactory.fromAnyRef("65535"));
     }
 
     HierarchicalConfiguration fillLegacyConfig() {
@@ -116,6 +121,9 @@ public class DataCheckPointTest {
             MidonetBackendConfig mbc = new MidonetBackendConfig(config);
             bind(MidonetBackendConfig.class).toInstance(mbc);
             expose(MidonetBackendConfig.class);
+            TranslatorsConfig tc = new TranslatorsConfig(config);
+            bind(TranslatorsConfig.class).toInstance(tc);
+            expose(TranslatorsConfig.class);
             ZookeeperLockFactory lockFactory = mock(ZookeeperLockFactory.class);
             InterProcessSemaphoreMutex lock = mock(
                 InterProcessSemaphoreMutex.class);

@@ -42,14 +42,6 @@ public class NatTarget {
         this(new IPv4Addr(nwStart), new IPv4Addr(nwEnd), tpStart, tpEnd);
     }
 
-    public NatTarget(IPv4Addr nwStart, IPv4Addr nwEnd) {
-        this(nwStart, nwEnd, 1, 0xffff);
-    }
-
-    public NatTarget(IPv4Addr ipAddr) {
-        this(ipAddr, ipAddr);
-    }
-
     public NatTarget(IPv4Addr ipAddr, int tpStart, int tpEnd) {
         this(ipAddr, ipAddr, tpStart, tpEnd);
     }
@@ -62,8 +54,7 @@ public class NatTarget {
             return false;
 
         NatTarget nt = (NatTarget) other;
-        return nwStart.equals(nt.nwStart) && nwEnd.equals(nt.nwEnd) &&
-               tpStart == nt.tpStart && tpEnd == nt.tpEnd;
+        return nwStart.equals(nt.nwStart) && nwEnd.equals(nt.nwEnd);
     }
 
     @Override

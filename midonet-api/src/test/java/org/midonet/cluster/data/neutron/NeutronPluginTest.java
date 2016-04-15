@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.UUID;
 
 import com.google.inject.PrivateModule;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigValueFactory;
 
 import org.apache.curator.test.TestingServer;
 import org.junit.AfterClass;
@@ -32,6 +34,8 @@ import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.ZookeeperTest;
+import org.midonet.conf.MidoNodeConfigurator;
+import org.midonet.midolman.config.TranslatorsConfig;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -44,6 +48,10 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
     // Default tenant values
     protected static final String TENANT_ID = "tenant";
     protected static final String ADMIN_ID = "admin";
+
+    // Default dynamic snat range
+    protected static final int DYN_SNAT_PORT_START = 1024;
+    protected static final int DYN_SNAT_PORT_END = 65535;
 
     // Default SG and SG rules
     private static final UUID SG_ID = UUID.randomUUID();
@@ -150,9 +158,26 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
     protected NeutronPlugin plugin;
     protected ZkManager zk;
 
+    public class TranslatorTestModule extends PrivateModule {
+
+        @Override
+        protected void configure() {
+            scala.Option<String> None = scala.Option.apply(null);
+            Config config = MidoNodeConfigurator.bootstrapConfig(None);
+            config = config.withValue("cluster.translators.nat.dynamic_port_start",
+                                      ConfigValueFactory.fromAnyRef("1024"));
+            config = config.withValue("cluster.translators.nat.dynamic_port_end",
+                                      ConfigValueFactory.fromAnyRef("65535"));
+            TranslatorsConfig translatorsConfig = new TranslatorsConfig(config);
+            bind(TranslatorsConfig.class).toInstance(translatorsConfig);
+            expose(TranslatorsConfig.class);
+        }
+    }
+
     @Override
     protected List<PrivateModule> getExtraModules() {
         return Arrays.asList(
+            new TranslatorTestModule(),
             new NeutronClusterApiModule(),
             new PrivateModule() {
                 @Override

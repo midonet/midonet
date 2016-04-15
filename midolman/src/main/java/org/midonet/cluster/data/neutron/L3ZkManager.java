@@ -596,6 +596,11 @@ public class L3ZkManager extends BaseZkManager {
                     ruleZkManager.prepareCreateSourceNatRules(ops,
                         config.inboundFilter, config.outboundFilter, portId,
                         gwPort.firstIpv4Addr());
+                } else {
+                    // Update the port range in case the config changed
+                    ruleZkManager.prepareReplaceSnatRules(ops,
+                        config.outboundFilter, portId, gwPort.firstIpv4Addr(),
+                        gwPort.firstIpv4Addr(), gwPort.firstIpv4Addr(), true);
                 }
             } else {
                 ruleZkManager.prepareDeleteSourceNatRules(ops,
@@ -825,7 +830,7 @@ public class L3ZkManager extends BaseZkManager {
                         portZkManager.findFirstRouterPortByPeer(fip.routerId, prId);
                 ruleZkManager.prepareReplaceSnatRules(ops, rCfg.outboundFilter,
                         gwPort.id, fip.fixedIpv4Addr(), oldFip.floatingIpv4Addr(),
-                        fip.floatingIpv4Addr());
+                        fip.floatingIpv4Addr(), false);
                 ruleZkManager.prepareReplaceDnatRules(ops, rCfg.inboundFilter,
                         gwPort.id, fip.floatingIpv4Addr(), oldFip.fixedIpv4Addr(),
                         fip.fixedIpv4Addr());

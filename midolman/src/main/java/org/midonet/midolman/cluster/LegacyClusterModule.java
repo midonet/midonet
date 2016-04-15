@@ -47,6 +47,7 @@ import org.midonet.cluster.LocalClientImpl;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.storage.MidonetBackendConfig;
+import org.midonet.midolman.config.TranslatorsConfig;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
@@ -218,11 +219,16 @@ public class LegacyClusterModule extends PrivateModule {
         Directory directory;
 
         @Inject
-        MidonetBackendConfig config;
+        MidonetBackendConfig backendConfig;
+
+        @Inject(optional=true)
+        TranslatorsConfig translatorsConf;
 
         @Override
         public ZkManager get() {
-            return new ZkManager(directory, config.rootKey());
+            return new ZkManager(directory,
+                                 backendConfig.rootKey(),
+                                 translatorsConf);
         }
     }
 
