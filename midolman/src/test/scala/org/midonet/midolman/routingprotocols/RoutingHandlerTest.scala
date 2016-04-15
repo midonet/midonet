@@ -104,6 +104,31 @@ class RoutingHandlerTest extends FeatureSpecLike
         as.shutdown()
     }
 
+    feature ("manages router ip addrs") {
+        scenario("adds and deletes ips") {
+            routingHandler ! RoutingHandler.RouterIps(Set.empty)
+            bgpd.currentIps.size should be (0)
+            var newSet = Set("1.1.1.1/24")
+            routingHandler ! RoutingHandler.RouterIps(newSet)
+            bgpd.currentIps should contain theSameElementsAs newSet
+            newSet = Set("1.1.1.1/24", "1.1.1.2/24")
+            routingHandler ! RoutingHandler.RouterIps(newSet)
+            bgpd.currentIps should contain theSameElementsAs newSet
+            newSet = Set("1.1.1.2/24")
+            routingHandler ! RoutingHandler.RouterIps(newSet)
+            bgpd.currentIps should contain theSameElementsAs newSet
+            newSet = Set("2.2.2.2/24")
+            routingHandler ! RoutingHandler.RouterIps(newSet)
+            bgpd.currentIps should contain theSameElementsAs newSet
+            newSet = Set("1.1.1.1/24", "1.1.1.2/24")
+            routingHandler ! RoutingHandler.RouterIps(newSet)
+            bgpd.currentIps should contain theSameElementsAs newSet
+            newSet = Set("1.1.1.2/24")
+            routingHandler ! RoutingHandler.RouterIps(newSet)
+            bgpd.currentIps should contain theSameElementsAs newSet
+        }
+    }
+
     feature ("manages the bgpd lifecycle") {
         scenario("starts and stops bgpd") {
             routingHandler ! BgpPort(rport, baseConfig.copy(neighbors = Map.empty), Set.empty)
@@ -346,6 +371,8 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
     val PREPARED = "PREPARED"
     val RUNNING = "RUNNING"
 
+    var currentIps: Set[String] = Set.empty
+
     override val vty = mock[BgpConnection]
 
     var state = NOT_STARTED
@@ -378,6 +405,14 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
         state = RUNNING
         died = false
         starts += 1
+    }
+
+    override def assignAddr(iface: String, ip: String): Unit = {
+        currentIps += ip
+    }
+
+    override def remAddr(iface: String, ip: String): Unit = {
+        currentIps -= ip
     }
 }
 

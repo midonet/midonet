@@ -117,6 +117,8 @@ object RoutingHandler {
 
     case class PortActive(active: Boolean)
 
+    case class RouterIps(ips: Set[String])
+
     case class ZookeeperConnected(connected: Boolean)
 
     case class AddPeerRoutes(destination: IPv4Subnet, paths: Set[ZebraPath])
@@ -240,6 +242,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private var bgpConfig: BgpRouter = BgpRouter(-1)
     private var bgpPeerIds: Set[UUID] = Set.empty
 
+    private var currentIps: Set[String] = Set.empty
+
     val NO_UPLINK = -1
     val NO_PORT = -1
 
@@ -284,6 +288,14 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             log.info("Port became: {}", if (status) "active" else "inactive")
             portActive = status
             startOrStopBgpd()
+
+        case RouterIps(ips) =>
+            currentIps.filter(!ips.contains(_))
+                      .foreach(bgpd.remAddr(rport.interfaceName, _))
+            ips.filter(!currentIps.contains(_))
+                      .foreach(bgpd.assignAddr(rport.interfaceName, _))
+            currentIps = ips
+            Future.successful(true)
 
         case ZookeeperConnected(status) =>
             log.info("Zookeeper session became: {}", if (status) "connected"
