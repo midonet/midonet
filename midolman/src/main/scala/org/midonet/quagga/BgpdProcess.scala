@@ -30,6 +30,8 @@ trait BgpdProcess {
     def start(): Unit
     def assignAddr(iface: String, ip: String): Unit
     def remAddr(iface: String, ip: String): Unit
+    def addArpEntry(iface: String, ip: String, mac: String): Unit
+    def remArpEntry(iface: String, ip: String): Unit
 }
 
 case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
@@ -84,6 +86,32 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
             case err =>
                 logProcOutput(result, log.info)
                 throw new Exception(s"Failed to remove address $ip from $iface bgpd-$bgpIndex")
+        }
+    }
+
+    def addArpEntry(iface: String, ip: String, mac: String): Unit = {
+        val cmd = s"$bgpdHelperScript add_arp $bgpIndex $iface $ip $mac"
+        val result = ProcessHelper.executeCommandLine(cmd, true)
+        result.returnValue match {
+            case 0 =>
+                logProcOutput(result, log.debug)
+                log.info(s"Successfully added arp entry $ip -> $mac to $iface bgpd-$bgpIndex")
+            case err =>
+                logProcOutput(result, log.info)
+                throw new Exception(s"Failed to add arp entry $ip -> $mac to $iface bgpd-$bgpIndex")
+        }
+    }
+
+    def remArpEntry(iface: String, ip: String): Unit = {
+        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip"
+        val result = ProcessHelper.executeCommandLine(cmd, true)
+        result.returnValue match {
+            case 0 =>
+                logProcOutput(result, log.debug)
+                log.info(s"Successfully removed arp entry $ip from $iface bgpd-$bgpIndex")
+            case err =>
+                logProcOutput(result, log.info)
+                throw new Exception(s"Failed to remove arp entry $ip from $iface bgpd-$bgpIndex")
         }
     }
 

@@ -73,6 +73,14 @@ remove_addr() {
     ip netns exec $namespace ip address del $router_ip dev n$iface
 }
 
+add_arp_entry() {
+    ip netns exec $namespace arp -s $router_ip $mac_addr
+}
+
+rem_arp_entry() {
+    ip netns exec $namespace arp -d $router_ip
+}
+
 bgpd_prepare() {
     mkdir -p $socketdir
 
@@ -182,6 +190,19 @@ socketdir="/var/run/quagga"
 api_socket="$socketdir/zserv${index}.api"
 
 case "$1" in
+    add_arp)
+        iface=$3
+        router_ip=$4
+        mac_addr=$5
+        add_arp_entry
+        ;;
+
+    rem_arp)
+        iface=$3
+        router_ip=$4
+        rem_arp_entry
+        ;;
+
     rem_addr)
         iface=$3
         router_ip=$4
