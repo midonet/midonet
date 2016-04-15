@@ -71,8 +71,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
     private val chainsTracker = new ObjectReferenceTracker[Chain](vt, log)
     private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt, log)
-    private val l2insertionsTracker = new StoreObjectReferenceTracker(
-        classOf[L2Insertion], vt, log)
+    private val l2insertionsTracker =
+        new StoreObjectReferenceTracker[L2Insertion](vt, log)
     private var peeringTable: StateTable[MAC, IPv4Addr] = EMPTY_PEERING_TABLE
 
     private lazy val combinator =
