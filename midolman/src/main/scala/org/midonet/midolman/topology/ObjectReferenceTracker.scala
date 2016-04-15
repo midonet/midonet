@@ -30,6 +30,7 @@ import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.util.functors
 import org.midonet.util.functors.makeAction1
 
 /**
@@ -83,7 +84,7 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
             addedRefs += state
         }
 
-        // Publish observable for added chains.cest
+        // Publish observable for added chains.
         for (state <- addedRefs) {
             refsSubject onNext state.observable
         }
@@ -170,11 +171,11 @@ class StoreObjectState[D >: Null](val clazz: Class[D],
         .takeUntil(mark)
 }
 
-class StoreObjectReferenceTracker[D >: Null](val clazz: Class[D],
-                                             val vt: VirtualTopology,
+class StoreObjectReferenceTracker[D >: Null](val vt: VirtualTopology,
                                              log: Logger)
                                             (implicit tag: ClassTag[D])
         extends ObjectReferenceTrackerBase[D, StoreObjectState[D]](log)(tag) {
 
-    override def newState(id: UUID) = new StoreObjectState[D](clazz, id, vt)
+    override def newState(id: UUID) =
+        new StoreObjectState[D](tag.runtimeClass.asInstanceOf[Class[D]], id, vt)
 }
