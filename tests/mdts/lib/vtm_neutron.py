@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 from mdts.lib.topology_manager import TopologyManager
-from mdts.tests.utils.utils import get_neutron_api
+from mdts.tests.utils.utils import get_neutron_api, get_keystone_api
 
 
 class NeutronTopologyManager(TopologyManager):
@@ -38,6 +38,7 @@ class NeutronTopologyManager(TopologyManager):
         super(NeutronTopologyManager, self).__init__()
         self.resources = {}
         self.api = get_neutron_api()
+        self.keystone = get_keystone_api()
 
     def create_resource(self, resource):
         # Get the type of the resource just created.
@@ -45,9 +46,13 @@ class NeutronTopologyManager(TopologyManager):
 
         # Keep the reference to the resource created identified by the name.
         # A dictionary mapping the json response.
-        name = resource[rtype]['name']
+        if 'name' in resource[rtype]:
+            name = resource[rtype]['name']
+            self.set_resource(name, resource)
 
-        self.set_resource(name, resource)
+        if 'id' in resource[rtype]:
+            id = resource[rtype]['id']
+            self.set_resource(id, resource)
 
         delete_method_name = "%s_%s" % (
             self.method_mappings['create'],
