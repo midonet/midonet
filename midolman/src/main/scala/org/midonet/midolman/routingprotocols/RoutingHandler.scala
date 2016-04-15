@@ -634,8 +634,13 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         try {
             startZebra()
-            bgpd.prepare()
-            createDpPort(BGP_NETDEV_PORT_NAME)
+            if (rport.isContainer) {
+                bgpd.prepare(Some(rport.interfaceName))
+                Future.successful((null, -1))
+            } else {
+                bgpd.prepare()
+                createDpPort(BGP_NETDEV_PORT_NAME)
+            }
         } catch {
             case e: Exception =>
                 log.warn("Could not prepare bgpd environment", e)
@@ -647,18 +652,21 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         bgpdPrepare().map {
             case (dpPort, pid) =>
                 log.debug("datapath port is ready, starting bgpd")
-                theDatapathPort = Some(dpPort.asInstanceOf[NetDevPort])
 
-                routingInfo.uplinkPid = pid
-                routingInfo.dpPortNo = dpPort.getPortNo
                 for (peer <- bgpConfig.neighbors.values) {
                     routingInfo.peers.add(peer.address)
                 }
 
-                RoutingWorkflow.inputPortToDatapathInfo.put(dpPort.getPortNo, routingInfo)
-                RoutingWorkflow.routerPortToDatapathInfo.put(rport.id, routingInfo)
-                invalidateFlows()
-
+                if (dpPort != null) {
+                    routingInfo.uplinkPid = pid
+                    theDatapathPort = Some(dpPort.asInstanceOf[NetDevPort])
+                    routingInfo.dpPortNo = dpPort.getPortNo
+                    RoutingWorkflow.inputPortToDatapathInfo
+                        .put(dpPort.getPortNo, routingInfo)
+                    RoutingWorkflow.routerPortToDatapathInfo
+                        .put(rport.id, routingInfo)
+                    invalidateFlows()
+                }
                 bgpd.start()
                 bootstrapBgpdConfig()
                 true
