@@ -23,13 +23,9 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.Failure
-
 import akka.actor._
-
 import com.typesafe.scalalogging.Logger
-
 import org.slf4j.{LoggerFactory, MDC}
-
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
@@ -43,7 +39,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.{Port, _}
-import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatKey, releaseBinding}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -60,6 +56,7 @@ import org.midonet.sdn.flows.FlowTagger._
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.{IPv4InvalidationArray, Reducer}
 import org.midonet.util.concurrent._
+import org.midonet.util.functors.Callback0
 
 object PacketWorkflow {
     case class HandlePackets(packet: Array[Packet])
@@ -201,6 +198,15 @@ class PacketWorkflow(
     private val waitingRoom = new WaitingRoom[PacketContext](
                                         (simulationExpireMillis millis).toNanos)
 
+    class FlowRecord(pc: PacketContext, sr: SimulationResult) {
+        val packetContext: PacketContext = pc
+        val simulationResult: SimulationResult = sr
+    }
+
+    protected val flowRecordingDelayMillis = 500L
+    private val flowRecordsWaitingRoom = new WaitingRoom[FlowRecord](
+                                      (flowRecordingDelayMillis millis).toNanos)
+
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
     protected val traceStateTx = new FlowStateTransaction(traceStateTable)
@@ -295,6 +301,7 @@ class PacketWorkflow(
         traceStateTable.expireIdleEntries()
         arpBroker.process()
         waitingRoom.doExpirations(giveUpWorkflow)
+        flowRecordsWaitingRoom.doExpirations(recordFlowRecord)
     }
 
     protected def packetContext(packet: Packet): PacketContext =
@@ -359,6 +366,18 @@ class PacketWorkflow(
         if (context.idle)
             drop(context)
 
+    private val recordFlowRecord: FlowRecord => Unit = context =>
+        flowRecorder.record(context.packetContext, context.simulationResult)
+
+    private def delayedRecord(flowRecord: FlowRecord): Unit = {
+        flowRecordsWaitingRoom enter flowRecord
+        flowRecord.packetContext.addFlowRemovedCallback(
+            new Callback0 {
+                override def call(): Unit = flowRecordsWaitingRoom leave flowRecord
+            }
+        )
+    }
+
     private def drop(context: PacketContext): Unit =
         try {
             MDC.put("cookie", context.cookieStr)
@@ -394,7 +413,7 @@ class PacketWorkflow(
         }
 
         meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
-        flowRecorder.record(pktCtx, simRes)
+        delayedRecord(new FlowRecord(pktCtx, simRes))
     }
 
     private def handoff(context: PacketContext): Unit = {
