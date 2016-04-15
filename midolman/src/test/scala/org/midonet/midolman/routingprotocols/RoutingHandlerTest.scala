@@ -384,7 +384,7 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
         died = true
     }
 
-    override def prepare(): Unit = {
+    override def prepare(iface: Option[String] = None): Unit = {
         if (state != NOT_STARTED)
             throw new Exception(s"Illegal state: $state")
         state = PREPARED
