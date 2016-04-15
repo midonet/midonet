@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_986df406",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-15T09:46:08Z",
+      "side": 1,
+      "message": "We shouldn\u0027t make any modifications to the packet which could be done with a FlowAction. You\u0027ve said that subsequent packets are fine. This indicates to me that there\u0027s a disparity between the flow and packet actions.",
+      "revId": "78608ffb1c21a2d6af7db88fa933a88e0e45f3fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
