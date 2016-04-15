@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6e402a57",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-15T17:43:43Z",
+      "side": 1,
+      "message": "I don\u0027t think we want to do anymore allocations in the fast path, including this flow record and the flow removed callback. Maybe we should agree on a solution first before implementing (the issue suggests several)?",
+      "range": {
+        "startLine": 416,
+        "startChar": 22,
+        "endLine": 416,
+        "endChar": 25
+      },
+      "revId": "676fd6394d935d5259242785f2a0784cc121925b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
