@@ -24,7 +24,7 @@ import org.midonet.util.process.ProcessHelper.ProcessResult
 
 trait BgpdProcess {
     def vty: BgpConnection
-    def prepare(): Unit
+    def prepare(iface: Option[String] = None): Unit
     def stop(): Boolean
     def isAlive: Boolean
     def start(): Unit
@@ -87,8 +87,14 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         }
     }
 
-    def prepare(): Unit = {
-        val cmd = s"$bgpdHelperScript prepare $bgpIndex $localVtyIp $remoteVtyIp $routerIp $routerMac"
+    def prepare(iface: Option[String] = None): Unit = {
+        val ifaceOpt = iface match {
+            // include a space if this option is present
+            case Some(ifaceStr) => s" $ifaceStr"
+            case None => ""
+        }
+        val cmd = s"$bgpdHelperScript prepare $bgpIndex $localVtyIp " +
+                  s"$remoteVtyIp $routerIp $routerMac" + ifaceOpt
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
