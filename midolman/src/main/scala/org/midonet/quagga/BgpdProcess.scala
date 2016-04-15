@@ -28,6 +28,8 @@ trait BgpdProcess {
     def stop(): Boolean
     def isAlive: Boolean
     def start(): Unit
+    def assignAddr(iface: String, ip: String): Unit
+    def remAddr(iface: String, ip: String): Unit
 }
 
 case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
@@ -57,6 +59,32 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         val it= res.consoleOutput.iterator()
         while (it.hasNext)
             f(it.next())
+    }
+
+    def assignAddr(iface: String, ip: String): Unit = {
+        val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip"
+        val result = ProcessHelper.executeCommandLine(cmd, true)
+        result.returnValue match {
+            case 0 =>
+                logProcOutput(result, log.debug)
+                log.info(s"Successfully added address $ip to $iface bgpd-$bgpIndex")
+            case err =>
+                logProcOutput(result, log.info)
+                throw new Exception(s"Failed to added address $ip to $iface bgpd-$bgpIndex")
+        }
+    }
+
+    def remAddr(iface: String, ip: String): Unit = {
+        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip"
+        val result = ProcessHelper.executeCommandLine(cmd, true)
+        result.returnValue match {
+            case 0 =>
+                logProcOutput(result, log.debug)
+                log.info(s"Successfully removed address $ip from $iface bgpd-$bgpIndex")
+            case err =>
+                logProcOutput(result, log.info)
+                throw new Exception(s"Failed to remove address $ip from $iface bgpd-$bgpIndex")
+        }
     }
 
     def prepare(): Unit = {
