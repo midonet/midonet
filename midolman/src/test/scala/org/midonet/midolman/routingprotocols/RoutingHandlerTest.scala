@@ -132,6 +132,36 @@ class RoutingHandlerTest extends FeatureSpecLike
                                               Set(peer1Id))
             bgpd.ifaceOpt.get should be (ifaceName)
         }
+
+        scenario ("applies and removes static arp entries") {
+            val containerRport = rport.copy(interfaceName = "TESTING",
+                                            isContainer = true)
+            val containerRoutingHandler = TestActorRef(
+                new TestableRoutingHandler(containerRport,
+                    invalidations ::= _,
+                    routingStorage,
+                    config,
+                    bgpd))
+
+            containerRoutingHandler ! containerRport
+            containerRoutingHandler ! BgpPort(containerRport, baseConfig.copy(neighbors = Map.empty), Set.empty)
+            bgpd.currentArpEntries.size should be (0)
+
+            containerRoutingHandler ! BgpPort(containerRport, baseConfig, Set(peer1Id))
+            bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString)
+
+            val update = new BgpRouter(MY_AS, rport.portAddress,
+                Map(peer1 -> Neighbor(peer1, 100),
+                    peer2 -> Neighbor(peer2, 200)))
+            containerRoutingHandler ! BgpPort(containerRport, update, Set(peer1Id, peer2Id))
+            bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString, peer2.toString)
+
+            containerRoutingHandler ! BgpPort(containerRport, baseConfig, Set(peer1Id))
+            bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString)
+
+            containerRoutingHandler ! BgpPort(containerRport, baseConfig.copy(neighbors = Map.empty), Set.empty)
+            bgpd.currentArpEntries.size should be (0)
+        }
     }
 
     feature ("manages router ip addrs") {
@@ -403,6 +433,7 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
     val RUNNING = "RUNNING"
 
     var currentIps: Set[String] = Set.empty
+    var currentArpEntries: Set[String] = Set.empty
 
     override val vty = mock[BgpConnection]
 
@@ -446,6 +477,14 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
 
     override def remAddr(iface: String, ip: String): Unit = {
         currentIps -= ip
+    }
+
+    def addArpEntry(iface: String, ip: String, mac: String): Unit = {
+        currentArpEntries += ip
+    }
+
+    def remArpEntry(iface: String, ip: String): Unit = {
+        currentArpEntries -= ip
     }
 }
 
