@@ -82,6 +82,11 @@ bgpd_prepare() {
     ip netns add $namespace
 
     echo "Preparing bgpd veth pair"
+    if [ -v iface_name ]; then
+        # If the interface name has been specified in the arguments, use that
+        netdev_port_name=$iface_name
+        netdev_port_mirror_name=n$iface_name
+    fi
     ip link add name $netdev_port_name type veth peer name $netdev_port_mirror_name
     ip link set $netdev_port_mirror_name netns $namespace
     ip netns exec $namespace ip link set dev $netdev_port_mirror_name up address $router_mac
@@ -106,12 +111,6 @@ bgpd_prepare() {
     ip netns exec $namespace ip route add default via `echo $local_vty_ip | cut -d'/' -f 1`
 }
 
-delete_iface_in_ns() {
-    iface=$1
-    ip netns exec $namespace ip link show $iface >/dev/null 2>&1 && \
-        ip netns exec $namespace ip link delete $iface
-}
-
 kill_namespace_pids() {
     ip netns pids $namespace | while read pid ; do
         echo "Killing process in namespace, with pid $pid and command line \"`ps -o cmd= $pid`\""
@@ -123,8 +122,8 @@ bgpd_down() {
     if [ -e "/var/run/netns/$namespace" ] ; then
         echo "Found namespace, cleaning up: $namespace"
         kill_namespace_pids
-        delete_iface_in_ns $netdev_port_mirror_name
-        delete_iface_in_ns $vty_port_mirror_name
+        # Deleting the namespace will also delete all interfaces in the
+        # namespace
         ip netns delete $namespace
     fi
 
