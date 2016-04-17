@@ -1902,7 +1902,9 @@ class ServiceContainer(ObjectType):
                                  value_type = ObjectRef('host'),
                                  getter = 'get_host_id',
                                  setter = 'host_id',
-                                 writeable = False))
+                                 unsetter = 'host_id',
+                                 writeable = True,
+                                 optional = True))
         self.put_attr(SingleAttr(name = 'namespace',
                                  value_type = StringType(),
                                  getter = 'get_namespace_name',
