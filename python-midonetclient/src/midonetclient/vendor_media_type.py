@@ -133,6 +133,8 @@ APPLICATION_SERVICE_CONTAINER_GROUP_JSON = \
     "application/vnd.org.midonet.ServiceContainerGroup-v1+json"
 APPLICATION_SERVICE_CONTAINER_GROUP_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.ServiceContainerGroup-v1+json"
+APPLICATION_SERVICE_CONTAINER_SCHEDULE_JSON = \
+    "application/vnd.org.midonet.ServiceContainerSchedule-v1+json"
 APPLICATION_TRACE_JSON = "application/vnd.org.midonet.Trace-v1+json"
 APPLICATION_TRACE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Trace-v1+json"

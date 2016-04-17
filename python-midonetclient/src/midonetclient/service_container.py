@@ -89,3 +89,22 @@ class ServiceContainer(resource_base.ResourceBase):
     def status_message(self, status_message):
         self.dto['statusMessage'] = status_message
         return self
+
+    def update(self, headers=None):
+        return self
+
+    def schedule(self, host_id):
+        headers = {'Content-Type':
+                   vendor_media_type.APPLICATION_SERVICE_CONTAINER_SCHEDULE_JSON}
+        self.auth.do_request(self.dto['schedule'], 'POST', {
+            'containerId': self.get_id(),
+            'hostId': host_id
+        }, headers=headers)
+
+        self.get()
+        return self
+
+    def unschedule(self):
+        self.auth.do_request(self.dto['schedule'], 'DELETE')
+        self.get()
+        return self

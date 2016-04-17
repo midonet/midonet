@@ -1901,8 +1901,10 @@ class ServiceContainer(ObjectType):
         self.put_attr(SingleAttr(name = 'host',
                                  value_type = ObjectRef('host'),
                                  getter = 'get_host_id',
-                                 setter = 'host_id',
-                                 writeable = False))
+                                 setter = 'schedule',
+                                 unsetter = 'unschedule',
+                                 writeable = True,
+                                 optional = True))
         self.put_attr(SingleAttr(name = 'namespace',
                                  value_type = StringType(),
                                  getter = 'get_namespace_name',
