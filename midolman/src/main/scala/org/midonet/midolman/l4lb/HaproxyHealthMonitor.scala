@@ -180,7 +180,9 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             try {
                 writeConf(conf)
                 if (conf.isConfigurable){
-                    startHaproxy(healthMonitorName)
+                    restartHaproxy(healthMonitorName,
+                                   config.haproxyConfFileLoc,
+                                   config.haproxyPidFileLoc)
                     HealthMonitor.zkLock(lockFactory) {
                         // The vip may have changed. If so, we need to change the
                         // routes on the router.
@@ -401,16 +403,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         dp
     }
 
-    def haproxyCommandLineWithoutPid = "haproxy -f " +
+    def haproxyCommandLine = "haproxy -f " +
         config.haproxyConfFileLoc + " -p " + config.haproxyPidFileLoc
-
-
-    def haproxyCommandLine(): String = {
-        HealthMonitor.getHaproxyPid(config.haproxyPidFileLoc) match {
-            case Some(pid) => haproxyCommandLineWithoutPid + " -st " + pid
-            case None => haproxyCommandLineWithoutPid
-        }
-    }
 
     def killHaproxyIfRunning(name: String, confFileLoc: String,
                              pidFileLoc: String) {
@@ -421,8 +415,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         }
     }
 
-    def startHaproxy(name: String) = ipCommand.execIn(name,
-                                                      haproxyCommandLine())
+    def startHaproxy(name: String) = ipCommand.execIn(name, haproxyCommandLine)
 
     /*
      * This will restart haproxy with the given config file.
