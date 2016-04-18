@@ -151,7 +151,7 @@ class Mdts(Plugin):
             ), 'w') as f:
                 p = subprocess.Popen(
                     ["docker", "logs", service_host.get_name()],
-                    stdout=subprocess.PIPE)
+                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 output, err = p.communicate()
                 f.write(output)
 
