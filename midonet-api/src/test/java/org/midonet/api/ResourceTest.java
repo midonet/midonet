@@ -18,7 +18,8 @@ package org.midonet.api;
 import org.junit.Before;
 import org.midonet.api.neutron.NeutronResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
+import org.midonet.cluster.data.neutron.NeutronPluginLocked;
+
 import org.mockito.Answers;
 import org.mockito.Mock;
 
@@ -49,7 +50,7 @@ public abstract class ResourceTest {
     protected NeutronResourceFactory factory;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    protected NeutronPlugin plugin;
+    protected NeutronPluginLocked plugin;
 
     @Before
     public void setUp() throws Exception {

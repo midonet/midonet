@@ -16,7 +16,6 @@
 package org.midonet.cluster.data.neutron;
 
 import com.google.inject.PrivateModule;
-import com.google.inject.Singleton;
 
 public class NeutronClusterApiModule extends PrivateModule {
 
@@ -29,10 +28,12 @@ public class NeutronClusterApiModule extends PrivateModule {
         install(new NeutronClusterModule());
 
         // Bind Neutron Plugin API
-        bind(NetworkApi.class).to(NeutronPlugin.class).asEagerSingleton();
-        bind(L3Api.class).to(NeutronPlugin.class).asEagerSingleton();
-        bind(SecurityGroupApi.class).to(NeutronPlugin.class).asEagerSingleton();
-        bind(LoadBalancerApi.class).to(NeutronPlugin.class).asEagerSingleton();
+        bind(NeutronPluginImpl.class);
+        bind(NetworkApi.class).to(NeutronPluginLocked.class).asEagerSingleton();
+        bind(L3Api.class).to(NeutronPluginLocked.class).asEagerSingleton();
+        bind(SecurityGroupApi.class).to(NeutronPluginLocked.class).asEagerSingleton();
+        bind(LoadBalancerApi.class).to(NeutronPluginLocked.class).asEagerSingleton();
+
 
         expose(NetworkApi.class);
         expose(L3Api.class);
