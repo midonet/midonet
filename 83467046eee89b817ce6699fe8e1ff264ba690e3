@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_fb6e33c8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-18T10:58:59Z",
+      "side": 1,
+      "message": "r",
+      "revId": "83467046eee89b817ce6699fe8e1ff264ba690e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9b64c7e5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 875,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-18T10:58:59Z",
+      "side": 1,
+      "message": "This comes from another patch, ContainerLimit and Quota refers to the same value. May be good to homogenize the anems (setContainerQuota and getQuota, or setContainerLimit and getLimit).",
+      "range": {
+        "startLine": 875,
+        "startChar": 40,
+        "endLine": 875,
+        "endChar": 57
+      },
+      "revId": "83467046eee89b817ce6699fe8e1ff264ba690e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9b3607e6",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 1
