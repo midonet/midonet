@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
-import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
@@ -38,7 +37,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.config.TranslatorsConfig;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.midonet.util.functors.TreeNode;
@@ -58,11 +57,18 @@ public class ZkManager {
 
     private final String basePath;
 
+    public final TranslatorsConfig translatorsConf;
+
     public static final int ZK_SEQ_NUM_LEN = 10;
 
     public ZkManager(Directory zk, String basePath) {
+        this(zk, basePath, null);
+    }
+
+    public ZkManager(Directory zk, String basePath, TranslatorsConfig translatorsConf) {
         this.zk = zk;
         this.basePath = basePath;
+        this.translatorsConf = translatorsConf;
     }
 
     public void asyncGet(String relativePath, DirectoryCallback<byte[]> data,

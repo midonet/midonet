@@ -25,6 +25,7 @@ import org.midonet.cluster.services.heartbeat.Heartbeat
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
 import org.midonet.cluster.storage.{CassandraConfig, MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
+import org.midonet.midolman.config.TranslatorsConfig
 
 object ClusterConfig {
     val DEFAULT_MTU: Short = 1500
@@ -58,6 +59,7 @@ class ClusterConfig(_conf: Config) {
     val snoopy = new TopologySnoopyConfig(conf)
     val confApi = new ConfApiConfig(conf)
     val flowTracing = new FlowTracingConfig(conf)
+    val translators = new TranslatorsConfig(conf)
 }
 
 class EmbeddedClusterNodeConfig(conf: Config) {

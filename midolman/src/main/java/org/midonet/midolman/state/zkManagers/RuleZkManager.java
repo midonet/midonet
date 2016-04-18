@@ -15,7 +15,13 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -23,18 +29,24 @@ import com.google.common.base.Preconditions;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.midonet.midolman.rules.*;
-import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.config.NatConfig;
+import org.midonet.midolman.rules.JumpRule;
+import org.midonet.midolman.rules.NatTarget;
+import org.midonet.midolman.rules.Rule;
+import org.midonet.midolman.rules.RuleBuilder;
+import org.midonet.midolman.rules.RuleList;
+import org.midonet.midolman.rules.RuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.DefaultDropRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.DnatRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.DropFragmentRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.ReverseSnatRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.SnatRuleMatcher;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
@@ -42,6 +54,7 @@ import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.util.functors.Functor;
 
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
@@ -55,6 +68,8 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             .getLogger(RuleZkManager.class);
 
     ChainZkManager chainZkManager;
+
+    private final NatConfig natConfig;
     /**
      * Constructor to set ZooKeeper and base path.
      *
@@ -69,6 +84,10 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
                          Serializer serializer) {
         super(zk, paths, serializer);
         chainZkManager = new ChainZkManager(zk, paths, serializer);
+        if (zk.translatorsConf != null)
+            natConfig = zk.translatorsConf.nat();
+        else
+            natConfig = null;
     }
 
     @Override
@@ -558,12 +577,19 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
 
     public UUID prepareReplaceSnatRules(List<Op> ops, UUID chainId, UUID portId,
                                         IPv4Addr matchIp, IPv4Addr oldTarget,
-                                        IPv4Addr newTarget)
+                                        IPv4Addr newTarget, boolean dynamic)
             throws SerializationException, StateAccessException {
-        Rule r = new RuleBuilder(chainId)
+        Rule r;
+        RuleBuilder rb = new RuleBuilder(chainId)
             .goingOutPort(portId)
-            .fromIp(matchIp)
-            .sourceNat(new NatTarget(newTarget, 0, 0));
+            .fromIp(matchIp);
+        if (dynamic) {
+            r = rb.sourceNat(new NatTarget(newTarget, 0, 0));
+        } else {
+            r = rb.sourceNat(new NatTarget(newTarget,
+                                           natConfig.dynamicNatPortStart(),
+                                           natConfig.dynamicNatPortEnd()));
+        }
         return prepareReplaceRules(ops, chainId,
             new SnatRuleMatcher(oldTarget), r);
     }
@@ -590,7 +616,10 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     public boolean snatRuleExists(UUID chainId, IPv4Addr addr)
             throws StateAccessException, SerializationException {
         RuleList ruleList = getRuleList(chainId);
-        NatTarget target = new NatTarget(addr);
+        NatTarget target = new NatTarget(addr,
+                                         natConfig.dynamicNatPortStart(),
+                                         natConfig.dynamicNatPortEnd());
+        log.debug("Instantiating dynamic nat target {}", target);
         SnatRuleMatcher matcher = new SnatRuleMatcher(target);
         for (UUID rId : ruleList.getRuleList()) {
             Rule r = get(rId);
@@ -726,7 +755,11 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             rb.goingOutPort(outPortId);
         }
 
-        return rb.sourceNat(new NatTarget(addr), action);
+        NatTarget target = new NatTarget(addr,
+                                        natConfig.dynamicNatPortStart(),
+                                        natConfig.dynamicNatPortEnd());
+        log.debug("Instantiating dynamic nat target {}", target);
+        return rb.sourceNat(target, action);
     }
 
     public Rule reverseSourceNatRule(UUID chainId, UUID inPortId,
@@ -799,7 +832,11 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         inboundMatchers.add(dropRuleMatcher);
         prepareDeleteRules(ops, inboundChainId, inboundMatchers);
 
-        RuleMatcher snatMatcher = new SnatRuleMatcher(new NatTarget(addr));
+        NatTarget target = new NatTarget(addr,
+                                         natConfig.dynamicNatPortStart(),
+                                         natConfig.dynamicNatPortEnd());
+        log.debug("Instantiating dynamic nat target {}", target);
+        RuleMatcher snatMatcher = new SnatRuleMatcher(target);
         RuleMatcher dropUnmatchedMatcher = new DropFragmentRuleMatcher(portId);
         List<RuleMatcher> outboundMatchers = new ArrayList<>(2);
         outboundMatchers.add(snatMatcher);

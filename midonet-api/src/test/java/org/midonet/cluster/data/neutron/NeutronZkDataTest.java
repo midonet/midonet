@@ -168,8 +168,8 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         NatTarget target = snatRule.getTargets().iterator().next();
         Assert.assertEquals(target.nwStart.toString(), ipAddr);
         Assert.assertEquals(target.nwEnd.toString(), ipAddr);
-        Assert.assertEquals(target.tpStart, 1);
-        Assert.assertEquals(target.tpEnd, 65535);
+        Assert.assertEquals(target.tpStart, DYN_SNAT_PORT_START);
+        Assert.assertEquals(target.tpEnd, DYN_SNAT_PORT_END);
 
         Assert.assertTrue(cond.inPortIds.contains(p.getPeerId()));
         Assert.assertEquals(revSnatRule.getAction(), RuleResult.Action.ACCEPT);

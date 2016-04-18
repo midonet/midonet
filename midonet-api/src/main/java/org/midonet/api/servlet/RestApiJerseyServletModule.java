@@ -60,6 +60,7 @@ import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.config.TranslatorsConfig;
 import org.midonet.midolman.state.SessionUnawareConnectionWatcher;
 import org.midonet.util.eventloop.TryCatchReactor;
 
@@ -149,8 +150,9 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         Config zkConf = zkConfToConfig(zkCfg);
         ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
             MidoNodeConfigurator.apply(zkConf).runtimeConfig(clusterNodeId)));
-
         bind(ClusterConfig.class).toInstance(clusterConf);
+        bind(TranslatorsConfig.class).toInstance(clusterConf.translators());
+
         bind(ClusterNode.Context.class).toInstance(
             new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
 
