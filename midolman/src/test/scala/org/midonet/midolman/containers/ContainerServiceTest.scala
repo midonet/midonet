@@ -857,7 +857,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.stopAsync().awaitTerminated()
         }
 
-        scenario("Status updates include the container quota") {
+        scenario("Status updates include the container count and quota") {
             Given("A host with container limit")
             val host = createHost(containerLimit = 10)
             store.create(host)
@@ -868,18 +868,20 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getCount shouldBe 0
             getServiceStatus(host.getId).get.getQuota shouldBe 10
 
             When("The host updates the container weight")
             store.update(host.toBuilder.setContainerLimit(11).build())
 
             Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getCount shouldBe 0
             getServiceStatus(host.getId).get.getQuota shouldBe 11
 
             service.stopAsync().awaitTerminated()
         }
 
-        scenario("Quota is decremented when creating containers") {
+        scenario("Count and quota are updated when creating containers") {
             Given("A host with container limit")
             val host = createHost(containerLimit = 10)
             store.create(host)
@@ -890,6 +892,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getCount shouldBe 0
             getServiceStatus(host.getId).get.getQuota shouldBe 10
 
             When("Creating a container")
@@ -910,13 +913,14 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val h = handler.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
-            Then("The container quota should be decremented")
+            Then("The container count and quota should be updated")
+            getServiceStatus(host.getId).get.getCount shouldBe 1
             getServiceStatus(host.getId).get.getQuota shouldBe 9
 
             service.stopAsync().awaitTerminated()
         }
 
-        scenario("Quota is not decremented when container fails to start") {
+        scenario("Count and qupta are not updated when container fails to start") {
             Given("A host with container limit")
             val host = createHost(containerLimit = 10)
             store.create(host)
@@ -927,6 +931,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             service.startAsync().awaitRunning()
 
             Then("The container service status should be set")
+            getServiceStatus(host.getId).get.getCount shouldBe 0
             getServiceStatus(host.getId).get.getQuota shouldBe 10
 
             When("Creating a container")
@@ -945,13 +950,14 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             Then("The service should not start the container")
             service.handlerOf(port.getId) shouldBe None
 
-            Then("The container quota should be decremented")
+            Then("The container count and quota should not be updated")
+            getServiceStatus(host.getId).get.getCount shouldBe 0
             getServiceStatus(host.getId).get.getQuota shouldBe 10
 
             service.stopAsync().awaitTerminated()
         }
 
-        def testQuotaDecrementedOnDelete(containerName: String): Unit = {
+        def testCountAndQuotaOnDelete(containerName: String): Unit = {
             Given("A host with container limit and a container")
             val host = createHost(containerLimit = 10)
             val bridge = createBridge()
@@ -976,7 +982,8 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val h = handler.handler.asInstanceOf[TestContainer]
             h.created shouldBe 1
 
-            Then("The container quota should be decremented")
+            Then("The container count and quota should be updated")
+            getServiceStatus(host.getId).get.getCount shouldBe 1
             getServiceStatus(host.getId).get.getQuota shouldBe 9
 
             When("Deleting the port binding")
@@ -986,18 +993,19 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             h.deleted shouldBe 1
             service.handlerList shouldBe empty
 
-            And("The quota should be incremented")
+            And("The count and quota should be updated")
+            getServiceStatus(host.getId).get.getCount shouldBe 0
             getServiceStatus(host.getId).get.getQuota shouldBe 10
 
             service.stopAsync().awaitTerminated()
         }
 
         scenario("Quota should be incremented when container stops") {
-            testQuotaDecrementedOnDelete("test-good")
+            testCountAndQuotaOnDelete("test-good")
         }
 
         scenario("Quota should be incremented when container fails to stop") {
-            testQuotaDecrementedOnDelete("test-error-delete")
+            testCountAndQuotaOnDelete("test-error-delete")
         }
 
         scenario("Container fails to start if limit exceeded") {
@@ -1611,6 +1619,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val status = ContainerServiceStatus.newBuilder()
                                                .setWeight(1)
                                                .setQuota(-1)
+                                               .setCount(0)
                                                .build()
                                                .toString
             checkContainerKey(host.getId, status)
@@ -1632,6 +1641,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val status = ContainerServiceStatus.newBuilder()
                                                .setWeight(1)
                                                .setQuota(-1)
+                                               .setCount(0)
                                                .build()
                                                .toString
             checkContainerKey(host.getId, status)
@@ -1660,6 +1670,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val status = ContainerServiceStatus.newBuilder()
                                                .setWeight(1)
                                                .setQuota(-1)
+                                               .setCount(0)
                                                .build()
                                                .toString
             checkContainerKey(host.getId, status)
@@ -1688,6 +1699,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val status = ContainerServiceStatus.newBuilder()
                                                .setWeight(1)
                                                .setQuota(-1)
+                                               .setCount(0)
                                                .build()
                                                .toString
             checkContainerKey(host.getId, status)
@@ -1712,6 +1724,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder
             val status = ContainerServiceStatus.newBuilder()
                                                .setWeight(1)
                                                .setQuota(-1)
+                                               .setCount(0)
                                                .build()
                                                .toString
             checkContainerKey(host.getId, status)
