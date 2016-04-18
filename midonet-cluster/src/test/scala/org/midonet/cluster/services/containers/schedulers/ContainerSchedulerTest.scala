@@ -30,7 +30,7 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.ContainersConfig
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.cluster.models.Topology.{Port, ServiceContainer}
+import org.midonet.cluster.models.Topology.{ServiceContainerPolicy, Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.containers.schedulers.ContainerScheduler.DownState
 import org.midonet.cluster.util.UUIDUtil._
@@ -3210,6 +3210,115 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
 
             And("The scheduler state should be down")
             scheduler.schedulerState shouldBeDownFor(attempts = 1)
+        }
+    }
+
+    feature("Scheduler handles scheduling policies") {
+        scenario("Several hosts with least policy") {
+            Given("A container with anywhere policy")
+            val group = createGroup(ServiceContainerPolicy.LEAST_SCHEDULER)
+            val container = createContainer(group.getId)
+
+            And("Several hosts with the container service")
+            val host1 = createHost()
+            val host2 = createHost()
+            val host3 = createHost()
+            val host4 = createHost()
+            createHostStatus(host1.getId, weight = 1, count = 0)
+            createHostStatus(host2.getId, weight = Int.MaxValue, count = 1)
+            createHostStatus(host3.getId, weight = Int.MaxValue, count = 2)
+            createHostStatus(host4.getId, weight = Int.MaxValue, count = 3)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnErrorEvents shouldBe empty
+            obs.getOnCompletedEvents shouldBe empty
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host1.getId)
+
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host1.getId)
+        }
+
+        scenario("Host count does not change scheduled containers") {
+            Given("A container with anywhere policy")
+            val group = createGroup(ServiceContainerPolicy.LEAST_SCHEDULER)
+            val container = createContainer(group.getId)
+
+            And("Two hosts with the container service")
+            val host1 = createHost()
+            val host2 = createHost()
+            createHostStatus(host1.getId, weight = 1, count = 10)
+            createHostStatus(host2.getId, weight = 1, count = 1)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnErrorEvents shouldBe empty
+            obs.getOnCompletedEvents shouldBe empty
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host2.getId)
+
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host2.getId)
+
+            When("The hosts report new container counters")
+            createHostStatus(host1.getId, weight = 1, count = 0)
+            createHostStatus(host2.getId, weight = 1, count = 10)
+
+            Then("The observer should not receive new notifications")
+            obs.getOnNextEvents should have size 1
+        }
+
+        scenario("Policy update does not affect scheduled containers") {
+            Given("A container with anywhere policy")
+            val group1 = createGroup(ServiceContainerPolicy.LEAST_SCHEDULER)
+            val container = createContainer(group1.getId)
+
+            And("Two hosts with the container service")
+            val host1 = createHost()
+            val host2 = createHost()
+            createHostStatus(host1.getId, weight = Int.MaxValue, count = 0)
+            createHostStatus(host2.getId, weight = 1, count = 1)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnErrorEvents shouldBe empty
+            obs.getOnCompletedEvents shouldBe empty
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host1.getId)
+
+            When("The policy changes")
+            val group2 = group1.toBuilder.addServiceContainerIds(container.getId)
+                                         .setPolicy(ServiceContainerPolicy.WEIGHTED_SCHEDULER)
+                                         .build()
+            store update group2
+
+            Then("The observer should not receive new notifications")
+            obs.getOnNextEvents should have size 1
         }
     }
 
