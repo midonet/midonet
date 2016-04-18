@@ -125,6 +125,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_41bbf0e5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 919,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-18T17:36:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_fbcab3a0",
+      "revId": "83467046eee89b817ce6699fe8e1ff264ba690e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fbf3d308",
         "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
         "patchSetId": 1
@@ -136,6 +154,30 @@
       "writtenOn": "2016-04-18T11:13:05Z",
       "side": 1,
       "message": "o",
+      "range": {
+        "startLine": 923,
+        "startChar": 30,
+        "endLine": 923,
+        "endChar": 31
+      },
+      "revId": "83467046eee89b817ce6699fe8e1ff264ba690e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_81f218d1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 923,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-18T17:36:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_fbf3d308",
       "range": {
         "startLine": 923,
         "startChar": 30,
