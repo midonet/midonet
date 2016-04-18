@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7877c93a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-18T08:51:01Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 75,
+        "startChar": 22,
+        "endLine": 75,
+        "endChar": 26
+      },
+      "revId": "8ae03bed0cb8a9c7b1ad70ef6e85aec7d62ffc00",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d8b375e8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 606,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-18T08:51:01Z",
+      "side": 1,
+      "message": "this method is now 250 lines long. it\u0027s very hard to follow. It needs to be refactored.\n\nall state handling for all events is all in the method. There\u0027s some state transitions, there\u0027s some generation of new events. It\u0027s hard to convert this into a state machine in my head. I\u0027d suggest making the schedule method only combine the parameters into an event. then have that passed to a \u0027transition\u0027 method on the observable, which changes state based on current state and event.",
+      "revId": "8ae03bed0cb8a9c7b1ad70ef6e85aec7d62ffc00",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
