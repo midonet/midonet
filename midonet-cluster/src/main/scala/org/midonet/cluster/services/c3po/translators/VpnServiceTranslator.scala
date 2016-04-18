@@ -107,6 +107,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         // TODO: Set port group ID (MI-300).
         val scg = ServiceContainerGroup.newBuilder
             .setId(JUUID.randomUUID)
+            .setPolicy(ServiceContainerPolicy.WEIGHTED_SCHEDULER)
             .build()
 
         val sc = ServiceContainer.newBuilder
@@ -118,7 +119,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             .build()
 
 
-        val modifiedVpnService = vpn.toBuilder()
+        val modifiedVpnService = vpn.toBuilder
             .setContainerId(sc.getId)
             .setExternalIp(externalIp)
             .build()
@@ -186,7 +187,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             // updated, to avoid overwriting ipsec_site_conn_ids, which Neutron
             // doesn't know about.
             val oldVpn = storage.get(classOf[VpnService], vpn.getId).await()
-            val newVpn = vpn.toBuilder()
+            val newVpn = vpn.toBuilder
                 .addAllIpsecSiteConnectionIds(oldVpn.getIpsecSiteConnectionIdsList)
                 .setContainerId(oldVpn.getContainerId)
                 .setExternalIp(oldVpn.getExternalIp)
