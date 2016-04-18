@@ -511,13 +511,17 @@ message ServiceContainer {
 message ServiceContainerGroup {
     optional UUID id = 1;
 
-    // Allocation policy.
-    // both unset == ANYWHERE
+    optional ServiceContainerPolicy policy = 2 [default = WEIGHTED_SCHEDULER];
     optional UUID host_group_id = 3;
     optional UUID port_group_id = 4;
 
     // Backreferences
     repeated UUID service_container_ids = 101;
+}
+
+enum ServiceContainerPolicy {
+    WEIGHTED_SCHEDULER = 0;
+    LEAST_SCHEDULER = 1;
 }
 
 message TraceRequest {
