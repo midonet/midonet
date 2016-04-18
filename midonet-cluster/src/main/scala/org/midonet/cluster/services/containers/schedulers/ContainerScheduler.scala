@@ -43,7 +43,7 @@ import rx.{Observable, Producer, Subscriber, Subscription}
 import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.cluster.models.Topology.{Port, ServiceContainer, ServiceContainerGroup}
+import org.midonet.cluster.models.Topology.{ServiceContainerPolicy, Port, ServiceContainer, ServiceContainerGroup}
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.containers.schedulers.ContainerScheduler._
 import org.midonet.cluster.util.UUIDUtil._
@@ -274,15 +274,32 @@ class ContainerScheduler(containerId: UUID, context: Context,
     protected def currentTime: Long = Platform.currentTime
 
     /** Selects the host that should launch the container from the specified
-      * list, using a weighted random selection. If there is no available host,
-      * the method returns null.
+      * list, using the specified selection policy. If there is no available
+      * host, the method returns null.
       */
-    private def selectHost(hosts: HostsEvent): Option[UUID] = {
+    private def selectHost(hosts: HostsEvent, policy: ServiceContainerPolicy)
+    : Option[UUID] = {
         if (hosts.isEmpty)
             return None
 
+        policy match {
+            case ServiceContainerPolicy.WEIGHTED_SCHEDULER =>
+                selectHostWeightedPolicy(hosts)
+            case ServiceContainerPolicy.LEAST_SCHEDULER =>
+                selectHostLeastPolicy(hosts)
+            case _ =>
+                log warn s"Unrecognized scheduling policy $policy"
+                None
+        }
+    }
+
+    /** Selects the host from the list using the weighted policy. This is a
+      * random selection, where the probability of selecting a certain host
+      * is proportional to that host's weight.
+      */
+    private def selectHostWeightedPolicy(hosts: HostsEvent): Option[UUID] = {
         val totalWeight = hosts.foldLeft(0L)((seed, host) =>
-                                                seed + host._2.status.getWeight)
+                                                 seed + host._2.status.getWeight)
         val randomWeight = Math.abs(random.nextLong()) % totalWeight
         var sumWeight = 0L
         var selectedId: UUID = null
@@ -295,6 +312,14 @@ class ContainerScheduler(containerId: UUID, context: Context,
         }
 
         Option(selectedId)
+    }
+
+    /** Selects the host from the list using the least policy. This selects the
+      * host that currently runs the minimum number of containers as reported
+      * by the host and read from NSDB.
+      */
+    private def selectHostLeastPolicy(hosts: HostsEvent): Option[UUID] = {
+        Some(hosts.minBy(_._2.status.getCount)._1)
     }
 
     /** Determines whether a host is running to start a container: the host
@@ -563,11 +588,12 @@ class ContainerScheduler(containerId: UUID, context: Context,
                 val availableHosts = eligibleHosts.filter(isHostAvailable)
 
                 log debug "Scheduling from available hosts: " +
-                          s"${availableHosts.keySet}"
+                          s"${availableHosts.keySet} using ${group.getPolicy} " +
+                          "policy"
 
                 // Select a host from the available set based on the current
                 // selection policy (currently only weighted-random).
-                selectHost(availableHosts).orNull
+                selectHost(availableHosts, group.getPolicy).orNull
             }
 
         namespaceSubject onNext selectedHostId.asNullableString
