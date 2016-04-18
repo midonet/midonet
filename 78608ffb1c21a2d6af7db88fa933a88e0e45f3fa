@@ -16,6 +16,23 @@
       "revId": "78608ffb1c21a2d6af7db88fa933a88e0e45f3fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4bfaf8be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-18T07:45:36Z",
+      "side": 1,
+      "message": "Remove this. it\u0027s already printed at other points in the debug log.",
+      "revId": "78608ffb1c21a2d6af7db88fa933a88e0e45f3fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
