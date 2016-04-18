@@ -22,6 +22,53 @@
       "revId": "2aaa21ca45b9d43e45acbee25c629751909b1176",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d8125509",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-18T07:45:36Z",
+      "side": 1,
+      "message": "probably not, but there\u0027s no harm having it here for completeness. Maybe add a comment saying you don\u0027t expect it ever to be used with current usecases, but that it\u0027s here for completeness. It\u0027s not unthinkable that there may be other recirc cases in the future.",
+      "parentUuid": "baa041b7_f8cab9a0",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 66
+      },
+      "revId": "2aaa21ca45b9d43e45acbee25c629751909b1176",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_98f5edcc",
+        "filename": "netlink/src/main/scala/org/midonet/odp/flows/VlanActionApplier.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-18T07:45:36Z",
+      "side": 1,
+      "message": "setVlanID is a bad name, as it implies overwriting, whereas it\u0027s actually adding to a list. Also, it adds a vlan to the end of the list. Push should add it to the start of the list.",
+      "range": {
+        "startLine": 29,
+        "startChar": 12,
+        "endLine": 29,
+        "endChar": 21
+      },
+      "revId": "2aaa21ca45b9d43e45acbee25c629751909b1176",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
