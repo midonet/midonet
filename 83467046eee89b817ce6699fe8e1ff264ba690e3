@@ -84,6 +84,70 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bbde6b6b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 875,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-18T11:13:05Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_9baba7d6",
+      "range": {
+        "startLine": 875,
+        "startChar": 40,
+        "endLine": 875,
+        "endChar": 57
+      },
+      "revId": "83467046eee89b817ce6699fe8e1ff264ba690e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fbcab3a0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 919,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-18T11:13:05Z",
+      "side": 1,
+      "message": "I\u0027d like to see a test here updating the limit and then the quota is updated accordingly (the same as the previous test but when count !\u003d 0).",
+      "revId": "83467046eee89b817ce6699fe8e1ff264ba690e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fbf3d308",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerServiceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 923,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-18T11:13:05Z",
+      "side": 1,
+      "message": "o",
+      "range": {
+        "startLine": 923,
+        "startChar": 30,
+        "endLine": 923,
+        "endChar": 31
+      },
+      "revId": "83467046eee89b817ce6699fe8e1ff264ba690e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9b3607e6",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 1
