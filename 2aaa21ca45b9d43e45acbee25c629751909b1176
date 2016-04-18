@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f8cab9a0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-18T07:22:05Z",
+      "side": 1,
+      "message": "Is this necessary? AFAIK, recirculation is always done via router ports, and routers drop VLAN-tagged traffic, so I\u0027m not sure it\u0027s possible to get here with a push VLAN action.",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 66
+      },
+      "revId": "2aaa21ca45b9d43e45acbee25c629751909b1176",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
