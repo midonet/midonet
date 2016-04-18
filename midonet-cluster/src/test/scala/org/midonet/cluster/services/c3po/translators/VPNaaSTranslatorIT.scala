@@ -192,7 +192,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
             .setAction(Rule.Action.DROP)
             .build()
         storage.create(rule)
-        storage.update(router.toBuilder()
+        storage.update(router.toBuilder
                            .setLocalRedirectChainId(chain.getId).build)
 
         val vpn1Json = vpnServiceJson(vpn1Id, router1Id,
