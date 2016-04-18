@@ -420,14 +420,9 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
       * without the number of active container instances.
       */
     @inline
-    private def currentQuota(host: Host): Int = {
+    private def currentQuota(host: Host, count: Int): Int = {
         if (host.getContainerLimit < 0) -1
-        else {
-            /*val runningInstances = instances.reduceValuesToInt(
-                Long.MaxValue, IsContainerInstanceActive, 0,
-                ActiveContainerCounter)*/
-            Integer.max(host.getContainerLimit - instances.size(), 0)
-        }
+        else Integer.max(host.getContainerLimit - count, 0)
     }
 
     /**
@@ -444,13 +439,15 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
         val weight = host.getContainerWeight
         val limit = host.getContainerLimit
-        val quota = currentQuota(host)
+        val count = instances.size()
+        val quota = currentQuota(host, count)
 
         log debug s"Container service is running with weight $weight " +
-                  s"limit $limit quota $quota"
+                  s"container count $count limit $limit quota $quota"
         val serviceStatus = ContainerServiceStatus.newBuilder()
             .setWeight(weight)
             .setQuota(quota)
+            .setCount(count)
             .build()
         vt.stateStore.addValue(classOf[Host], hostId, ContainerKey,
                                serviceStatus.toString)
@@ -508,7 +505,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
         // Verify the container quota.
         val host = currentHost
-        if (currentQuota(host) == 0) {
+        if (currentQuota(host, instances.size()) == 0) {
             setContainerStatus(null, cp, Code.ERROR, "LIMIT_EXCEEDED")
             return
         }
