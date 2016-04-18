@@ -8,3 +8,4 @@ cassandra-driver==2.7.2
 fixtures==1.4.0
 python-neutronclient==3.1.0
 JPype1==0.6.1
+python-keystoneclient==2.1.1
