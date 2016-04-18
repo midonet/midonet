@@ -131,7 +131,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             Then ("The config write should happen again")
             confWrites should be (2)
             And ("Haproxy should have been restarted")
-            haproxyRestarts should be (1)
+            haproxyRestarts should be (2)
             verify(mockClient, times(2)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
         }
@@ -217,6 +217,9 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
         }
         override def restartHaproxy(name: String, confFileLoc: String,
                                     pidFileLoc: String) = {
+            if (failUpdate) {
+                throw new Exception
+            }
             haproxyRestarts += 1
             manager ! MonitorActorUp
         }
