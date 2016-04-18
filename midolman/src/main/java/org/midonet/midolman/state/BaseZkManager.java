@@ -169,4 +169,13 @@ public abstract class BaseZkManager {
                         callback, CollectionFunctors.strSetToUUIDSet),
                 watcher);
     }
+
+    /**
+     * Gets the ZooKeeper session id to check for changes on the session to
+     * react accordingly.
+     * @return long The ZooKeeper session id.
+     */
+    public long getSessionId() {
+        return zk.getSessionId();
+    }
 }
