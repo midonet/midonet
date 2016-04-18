@@ -50,7 +50,7 @@ class BindingManager(fixtures.Fixture):
         for binding in self._data['bindings']:
             vport = self._vtm.get_resource(binding['vport'])
             bind_iface = binding['interface']
-            if type(bind_iface) is dict:
+            if isinstance(bind_iface, dict):
                 # We are specifying the vms inside the binding
                 iface_def = bind_iface['definition']
                 iface_type = bind_iface['type']
@@ -95,4 +95,4 @@ class BindingManager(fixtures.Fixture):
         :param vport: A neutron or midonet virtual port object
         :rtype: uuid
         """
-        return vport['port']['id'] if type(vport) is dict else vport.get_id()
+        return vport['port']['id'] if isinstance(vport, dict) else vport.get_id()
