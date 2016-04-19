@@ -98,8 +98,8 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         def shouldBeDownFor(isUnsubscribed: Boolean = false,
                             attempts: Int = 0): Unit = {
             state match {
-                case DownState =>
-                    isUnsubscribed shouldBe true
+                //case DownState =>
+                //    isUnsubscribed shouldBe true
                 case DownState(s, att) =>
                     s.isUnsubscribed shouldBe isUnsubscribed
                     att shouldBe attempts
