@@ -22,6 +22,30 @@
       "revId": "881bf1506505ff12967a28ffe2af084d2f1c19f2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1245346f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-19T10:22:38Z",
+      "side": 1,
+      "message": "What do you mean with overwriting all new values, this only overwrites the id, doesn\u0027t it?\n\na) The id should be set, setting it again is redundant\nb) Yes, this was done to follow the same convention of calling update() on the resource in order to copy the backreferences if any (the service container doesn\u0027t have any). The idea was to automate this in the future maybe using reflection before calling the filter, so resources would just implement update() as they do create().",
+      "parentUuid": "baa041b7_92ab841d",
+      "range": {
+        "startLine": 92,
+        "startChar": 11,
+        "endLine": 92,
+        "endChar": 17
+      },
+      "revId": "881bf1506505ff12967a28ffe2af084d2f1c19f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
