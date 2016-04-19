@@ -34,6 +34,24 @@
       "revId": "b1e1eba0659181d4e2522646fcd0281d8d0ed9a1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5f9624f1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IPSecContainerDelegate.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-19T15:39:01Z",
+      "side": 1,
+      "message": "I\u0027d put a comment or something, just in case someone looks at this in the future and wonders why the interface name is set in two different places.",
+      "parentUuid": "baa041b7_bf50905f",
+      "revId": "b1e1eba0659181d4e2522646fcd0281d8d0ed9a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
