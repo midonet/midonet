@@ -365,6 +365,9 @@ class Application(resource_base.ResourceBase):
     def add_mirror(self):
         return mirror.Mirror(self.dto['mirrors'], {}, self.auth)
 
+    def add_host(self):
+        return host.Host(self.dto['hosts'], {}, self.auth)
+
     def add_port_group(self):
         return port_group.PortGroup(self.dto['portGroups'], {}, self.auth)
 
