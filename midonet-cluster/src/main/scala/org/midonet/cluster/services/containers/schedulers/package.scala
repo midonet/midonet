@@ -81,6 +81,8 @@ package object schedulers {
         override val toString = MoreObjects.toStringHelper(this).omitNullValues()
             .add("running", running)
             .add("weight", status.getWeight)
+            .add("count", status.getCount)
+            .add("quota", status.getQuota)
             .toString
     }
 

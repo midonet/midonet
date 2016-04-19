@@ -50,7 +50,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
         extends ContainerScheduler(containerId, context, config, provider) {
         var time = 0L
         val timer = PublishSubject.create[java.lang.Long]
-        protected override def timoutObservable = timer
+        protected override def timeoutObservable = timer
         protected override def retryObservable = timer
         protected override def currentTime = time
     }
@@ -136,7 +136,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnCompletedEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         scenario("No running hosts") {
@@ -162,7 +162,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnCompletedEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         scenario("One host with container service and zero weight") {
@@ -189,7 +189,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnCompletedEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         scenario("One host with container service and positive weight") {
@@ -300,7 +300,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
             When("Host starts running the container service")
             createHostStatus(host.getId, weight = 0)
@@ -309,7 +309,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 2)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         scenario("Host starts running the container service with positive weight") {
@@ -333,7 +333,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
             When("Host starts running the container service")
             createHostStatus(host.getId, weight = 1)
@@ -401,7 +401,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
             When("Changing the host weight to positive")
             createHostStatus(host.getId, weight = 1)
@@ -815,7 +815,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnCompletedEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         def testOneHostWithEligibleQuota(quota: Int): Unit = {
@@ -905,7 +905,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
             When("Host starts running the container service")
             createHostStatus(host.getId, weight = 1, quota = 0)
@@ -914,7 +914,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 2)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         def testHostStartsWithEligibleQuota(quota: Int): Unit = {
@@ -938,7 +938,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
             When("Host starts running the container service")
             createHostStatus(host.getId, weight = 1, quota = quota)
@@ -1046,7 +1046,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
             When("Changing the host quota to positive")
             createHostStatus(host.getId, weight = 1, quota = 1)
@@ -1166,44 +1166,40 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             scheduler.schedulerState shouldBeUpFor(container, host.getId)
         }
 
-        scenario("Status reports container stopping or error") {
-            Seq(Code.STOPPING, Code.ERROR) foreach { code =>
-                Given("A container with anywhere policy")
-                store.clear()
-                val group = createGroup()
-                val container = createContainer(group.getId)
+        scenario("Status reports container stopping") {
+            Given("A container with anywhere policy")
+            store.clear()
+            val group = createGroup()
+            val container = createContainer(group.getId)
 
-                And("A host with the container service")
-                val host = createHost()
-                createHostStatus(host.getId, weight = 1)
+            And("A host with the container service")
+            val host = createHost()
+            createHostStatus(host.getId, weight = 1)
 
-                And("A container scheduler")
-                val scheduler = newScheduler(container.getId)
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
 
-                And("A scheduler observer")
-                val obs = new TestObserver[SchedulerEvent]
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
 
-                When("The observer subscribes to the scheduler")
-                val sub = scheduler.observable subscribe obs
+            When("The observer subscribes to the scheduler")
+            val sub = scheduler.observable subscribe obs
 
-                Then("The observer should receive a scheduled notification")
-                obs.getOnNextEvents should have size 1
-                obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host.getId)
+            Then("The observer should receive a scheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeScheduleFor(container, host.getId)
 
-                When("The container status")
-                createContainerStatus(container.getId, code, host.getId)
+            When("The container status")
+            createContainerStatus(container.getId, Code.STOPPING, host.getId)
 
-                Then("The observer should receive a down notification")
-                obs.getOnNextEvents should have size 3
-                obs.getOnNextEvents.get(1) shouldBeDownFor(container, host.getId)
-                obs.getOnNextEvents.get(2) shouldBeUnscheduleFor(container, host.getId)
+            Then("The observer should not receive another notification")
+            obs.getOnNextEvents should have size 1
 
-                And("The scheduler state should be down")
-                scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            And("The scheduler state should be down with retry")
+            scheduler.schedulerState shouldBeDownFor(attempts = config.schedulerMaxRetries)
 
-                sub.unsubscribe()
-                scheduler.complete()
-            }
+            sub.unsubscribe()
+            scheduler.complete()
         }
 
         scenario("Status reports container error") {
@@ -1237,7 +1233,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents.get(2) shouldBeUnscheduleFor(container, host.getId)
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         scenario("Cleared status on down container is ignored") {
@@ -1263,7 +1259,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
 
             Then("The observer should receive a down notification")
             obs.getOnNextEvents should have size 3
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
             When("The container status is cleared")
             deleteContainerStatus(container.getId, host.getId)
@@ -1297,7 +1293,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
 
                 Then("The observer should receive a down notification")
                 obs.getOnNextEvents should have size 3
-                scheduler.schedulerState shouldBeDownFor(attempts = 1)
+                scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
                 When("The container status is set")
                 createContainerStatus(container.getId, code, host.getId)
@@ -1404,7 +1400,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents.get(2) shouldBeDownFor(container, host.getId)
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         scenario("Error status on running container") {
@@ -1436,7 +1432,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents.get(2) shouldBeDownFor(container, host.getId)
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         scenario("Scheduler handles container status error") {
@@ -1734,7 +1730,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             scheduler.schedulerState shouldBeUpFor(container, host.getId)
         }
 
-        scenario("Container scheduled on eligible host with stopping status") {
+        scenario("Container scheduled with stopping status before and after retry") {
             Given("A host with container service")
             val host = createHost()
             val port = createPort(Some(host.getId))
@@ -1756,12 +1752,113 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             When("The observer subscribes to the scheduler")
             scheduler.observable subscribe obs
 
-            Then("The observer should receive an unschedule notification")
+            Then("The observer should not receive a notification")
+            obs.getOnNextEvents should have size 0
+
+            And("The scheduler state should be down with retry")
+            scheduler.schedulerState shouldBeDownFor(attempts = config.schedulerMaxRetries)
+
+            When("The retry timer expires")
+            scheduler.timer onNext 0L
+
+            Then("The observer should not receive an unscheduled notification")
             obs.getOnNextEvents should have size 1
             obs.getOnNextEvents.get(0) shouldBeUnscheduleFor(container, host.getId)
 
-            And("The scheduler state should be down")
-            scheduler.schedulerState shouldBe DownState
+            And("The scheduler state should be down with retry")
+            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+        }
+
+        scenario("Container scheduled with stopping status and changes to cleared") {
+            Given("A host with container service")
+            val host = createHost()
+            val port = createPort(Some(host.getId))
+            createHostStatus(host.getId, weight = 1)
+
+            And("A container with anywhere policy already scheduled at the host")
+            val group = createGroup()
+            val container = createContainer(group.getId, Some(port.getId))
+
+            And("The container status is stopping")
+            createContainerStatus(container.getId, Code.STOPPING, host.getId)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should not receive a notification")
+            obs.getOnNextEvents should have size 0
+
+            And("The scheduler state should be down with retry")
+            scheduler.schedulerState shouldBeDownFor(attempts = config.schedulerMaxRetries)
+
+            When("The container status is cleared")
+            deleteContainerStatus(container.getId, host.getId)
+
+            When("The retry timer expires")
+            scheduler.timer onNext 0L
+
+            Then("The observer should not receive an unscheduled notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeUnscheduleFor(container, host.getId)
+
+            And("The scheduler state should be down with retry")
+            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+        }
+
+        scenario("Container scheduled with stopping status and changes to running") {
+            Given("A host with container service")
+            val host = createHost()
+            val port = createPort(Some(host.getId))
+            createHostStatus(host.getId, weight = 1)
+
+            And("A container with anywhere policy already scheduled at the host")
+            val group = createGroup()
+            val container = createContainer(group.getId, Some(port.getId))
+
+            And("The container status is stopping")
+            createContainerStatus(container.getId, Code.STOPPING, host.getId)
+
+            And("A container scheduler")
+            val scheduler = newScheduler(container.getId)
+
+            And("A scheduler observer")
+            val obs = new TestObserver[SchedulerEvent]
+
+            When("The observer subscribes to the scheduler")
+            scheduler.observable subscribe obs
+
+            Then("The observer should not receive a notification")
+            obs.getOnNextEvents should have size 0
+
+            And("The scheduler state should be down with retry")
+            scheduler.schedulerState shouldBeDownFor(attempts = config.schedulerMaxRetries)
+
+            When("The container status is changes to running")
+            deleteContainerStatus(container.getId, host.getId)
+            createContainerStatus(container.getId, Code.STARTING, host.getId)
+            createContainerStatus(container.getId, Code.RUNNING, host.getId)
+
+            Then("The observer should receive an up notification")
+            obs.getOnNextEvents should have size 1
+            obs.getOnNextEvents.get(0) shouldBeUpFor(container, host.getId)
+
+            And("The scheduler state should be up")
+            scheduler.schedulerState shouldBeUpFor(container, host.getId)
+
+            When("The retry timer expires")
+            scheduler.timer onNext 0L
+
+            Then("The observer should not receive another notification")
+            obs.getOnNextEvents should have size 1
+
+            And("The scheduler state should be up")
+            scheduler.schedulerState shouldBeUpFor(container, host.getId)
         }
 
         scenario("Container scheduled on eligible host with stopping status and other host available") {
@@ -1788,14 +1885,19 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             When("The observer subscribes to the scheduler")
             scheduler.observable subscribe obs
 
+            Then("The observer should not receive another notification")
+            obs.getOnNextEvents should have size 0
+
+            When("The retry interval expires")
+            scheduler.timer onNext 0L
+
             Then("The observer should receive two rescheduling notifications")
             obs.getOnNextEvents should have size 2
             obs.getOnNextEvents.get(0) shouldBeUnscheduleFor(container, host1.getId)
             obs.getOnNextEvents.get(1) shouldBeScheduleFor(container, host2.getId)
 
-            And("The scheduler state should be rescheduled")
-            scheduler.schedulerState shouldBeRescheduledFor(
-                container, host1.getId, host2.getId)
+            And("The scheduler state should be scheduled")
+            scheduler.schedulerState shouldBeScheduledFor(container, host2.getId)
         }
 
         scenario("Container scheduled on eligible host with error status") {
@@ -2120,14 +2222,14 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
 
             And("The scheduler state should be down")
             scheduler.schedulerState shouldBeDownFor(isUnsubscribed = false,
-                                                     attempts = 1)
+                                                     attempts = 0)
 
             When("The retry expires")
             scheduler.timer onNext 0L
 
             Then("The scheduler state should be down")
             scheduler.schedulerState shouldBeDownFor(isUnsubscribed = false,
-                                                     attempts = 2)
+                                                     attempts = 1)
         }
 
         scenario("Scheduler retries up to the maximum number") {
@@ -2146,7 +2248,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
 
             And("The scheduler state should be down")
             scheduler.schedulerState shouldBeDownFor(isUnsubscribed = false,
-                attempts = 1)
+                attempts = 0)
 
             When("The retry expires several times")
             for (index <- 0L to 4L) {
@@ -3011,7 +3113,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
             When("Host starts running the container service")
             createHostStatus(host.getId, weight = 1)
@@ -3051,7 +3153,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.getOnNextEvents shouldBe empty
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
 
             When("Changing the host weight to positive")
             createHostStatus(host.getId, weight = 1)
@@ -3110,7 +3212,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.unscheduledHosts should contain only host.getId.asJava
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
 
         scenario("Host becomes non-eligible, fallback host available") {
@@ -3209,7 +3311,7 @@ class ContainerSchedulerTest extends FeatureSpec with SchedulersTest
             obs.unscheduledHosts should contain only host.getId.asJava
 
             And("The scheduler state should be down")
-            scheduler.schedulerState shouldBeDownFor(attempts = 1)
+            scheduler.schedulerState shouldBeDownFor(attempts = 0)
         }
     }
 

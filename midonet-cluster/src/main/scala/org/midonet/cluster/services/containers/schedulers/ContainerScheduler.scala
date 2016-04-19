@@ -88,6 +88,16 @@ object ContainerScheduler {
       */
     case class UpState(hostId: UUID, container: ServiceContainer) extends State
 
+    /** The feedback notification stream is used to process changes to the
+      * container status as [[StatusFeedback]], and notifications from the
+      * scheduler to itself, such as scheduling timeouts [[TimeoutFeedback]]
+      * and scheduling retries [[RetryFeedback]].
+      */
+    trait Feedback
+    case object StatusFeedback extends Feedback
+    case object TimeoutFeedback extends Feedback
+    case object RetryFeedback extends Feedback
+
     private case class ContainerSelector(portId: UUID, groupId: UUID)
 
     private case class BadHost(expires: Long)
@@ -167,7 +177,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
     // container status did not report a running container. This subject
     // provides the feedback loop necessary to adjust the scheduling based on
     // the reported container status.
-    private val feedbackSubject = BehaviorSubject.create[Boolean](false)
+    private val feedbackSubject = BehaviorSubject.create[Feedback](StatusFeedback)
     private val feedbackObservable = feedbackSubject
         .observeOn(context.scheduler)
 
@@ -196,6 +206,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
         .merge(portSubject)
         .observeOn(context.scheduler)
 
+    private var namespaceId: UUID = null
     private val namespaceSubject = PublishSubject.create[String]
     private val containerDeletedSubject = PublishSubject.create[SchedulerEvent]
 
@@ -204,7 +215,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
     private val statusSubject = PublishSubject.create[SchedulerEvent]
 
     private val schedulerObservable = Observable
-        .combineLatest[Boolean, Option[Port], HostsEvent, ServiceContainerGroup,
+        .combineLatest[Feedback, Option[Port], HostsEvent, ServiceContainerGroup,
                        ServiceContainer, Observable[SchedulerEvent]](
             feedbackObservable,
             portObservable,
@@ -232,7 +243,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
                     .onErrorResumeNext(Observable.just(null))
                     .observeOn(context.scheduler)
                     .filter(makeFunc1(containerStatusUpdated))
-                    .map[Boolean](makeFunc1(_ => false))
+                    .map[Feedback](makeFunc1(_ => StatusFeedback))
                     .subscribe(feedbackSubject)
                 schedulerObservable subscribe child
                 child add statusSubscription
@@ -254,7 +265,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
       * timeout interval.
       */
     @VisibleForTesting
-    protected def timoutObservable: Observable[java.lang.Long] = {
+    protected def timeoutObservable: Observable[java.lang.Long] = {
         Observable.timer(config.schedulerTimeoutMs, TimeUnit.MILLISECONDS,
                          context.scheduler)
     }
@@ -400,6 +411,18 @@ class ContainerScheduler(containerId: UUID, context: Context,
         }
     }
 
+    /** Changes the scheduler state to [[DownState]] and schedules a retry
+      * operation if the maximum number of retry attempts has not yet been
+      * reached.
+      */
+    def downWithRetry(attempts: Int): Unit = {
+        val subscription = retryObservable
+            .filter(makeFunc1(_ => scheduleRetry(attempts)))
+            .map[Feedback](makeFunc1(_ => RetryFeedback ))
+            .subscribe(feedbackSubject)
+        state = DownState(subscription, attempts)
+    }
+
     /** Performs the scheduling of the current container for the specified set
       * of hosts. The method examines the eligible hosts reported by the
       * current host selector. If the current host is found in the eligible set
@@ -412,7 +435,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
       * is still eligible and the container status reports the container as
       * running.
       */
-    private def schedule(timeout: Boolean, port: Option[Port], hosts: HostsEvent,
+    private def schedule(feedback: Feedback, port: Option[Port], hosts: HostsEvent,
                          group: ServiceContainerGroup, container: ServiceContainer)
     : Observable[SchedulerEvent] = {
 
@@ -425,9 +448,9 @@ class ContainerScheduler(containerId: UUID, context: Context,
           */
         def scheduleWithTimeout(hostId: UUID, oldHostId: Option[UUID] = None)
         : Unit = {
-            val subscription = timoutObservable
+            val subscription = timeoutObservable
                 .filter(makeFunc1(_ => scheduleTimeout(hostId)))
-                .map[Boolean](makeFunc1(_ => true))
+                .map[Feedback](makeFunc1(_ => TimeoutFeedback))
                 .subscribe(feedbackSubject)
             oldHostId match {
                 case None =>
@@ -438,29 +461,26 @@ class ContainerScheduler(containerId: UUID, context: Context,
             }
         }
 
-        /** Changes the scheduler state to [[DownState]] and schedules a retry
-          * operation if the maximum number of retry attempts has not yet been
-          * reached.
-          */
-        def downWithRetry(attempts: Int): Unit = {
-            if (attempts < config.schedulerMaxRetries) {
-                val subscription = retryObservable
-                    .map[Boolean](makeFunc1(_ => false))
-                    .subscribe(feedbackSubject)
-                state = DownState(subscription, attempts)
-            } else {
-                state = DownState
-            }
-        }
-
         /** Handles a change of the container scheduling by a third party, when
           * receiving a notification that the port binding has been set to a
           * different host.
           */
         def schedulingSet(hostId: UUID): Unit = {
             state match {
-                case DownState(sub, attempts) =>
-                    log info s"Container is already scheduled at host $hostId: " +
+                case DownState(sub, attempts)
+                    if feedback == RetryFeedback &&
+                       attempts == config.schedulerMaxRetries =>
+                    log warn s"Scheduled container at host $hostId failed to " +
+                             "start after a retry: marking the host as bad " +
+                             s"for ${config.schedulerBadHostLifetimeMs} " +
+                             "milliseconds and retrying scheduling"
+                    sub.unsubscribe()
+                    badHosts += hostId -> BadHost(currentTime +
+                                                  config.schedulerBadHostLifetimeMs)
+                    events add Unschedule(container, hostId)
+                    state = DownState
+                case DownState(sub, _) =>
+                    log info s"Container already scheduled at host $hostId: " +
                              "waiting for status confirmation with timeout in " +
                              s"${config.schedulerTimeoutMs} milliseconds"
                     sub.unsubscribe()
@@ -497,24 +517,22 @@ class ContainerScheduler(containerId: UUID, context: Context,
           */
         def schedulingCleared(): Unit = {
             state match {
-                case ScheduledState(id, _, sub) if timeout =>
-                    log info s"Container scheduling at host $id has timed-out"
+                case ScheduledState(id, _, sub) if feedback == TimeoutFeedback =>
+                    log info s"Container scheduling at host $id has timed out"
                     sub.unsubscribe()
                     state = DownState
                     oldHostId = Some(id)
-                    events add Unschedule(container, id)
                 case ScheduledState(id, _, sub) =>
                     log info "Scheduled container has been unscheduled " +
                              s"manually from host $id: rescheduling"
                     sub.unsubscribe()
                     state = DownState
                     oldHostId = Some(id)
-                case RescheduledState(_, id, _, sub) if timeout =>
-                    log info s"Container scheduling at host $id has timed-out"
+                case RescheduledState(_, id, _, sub) if feedback == TimeoutFeedback =>
+                    log info s"Container scheduling at host $id has timed out"
                     sub.unsubscribe()
                     state = DownState
                     oldHostId = Some(id)
-                    events add Unschedule(container, id)
                 case RescheduledState(oldId, newId, _, sub) =>
                     log debug "Container has been unscheduled while " +
                               s"rescheduling container from host $oldId to " +
@@ -596,7 +614,10 @@ class ContainerScheduler(containerId: UUID, context: Context,
                 selectHost(availableHosts, group.getPolicy).orNull
             }
 
-        namespaceSubject onNext selectedHostId.asNullableString
+        if ((selectedHostId ne null) || (namespaceId ne null)){
+            namespaceId = selectedHostId
+            namespaceSubject onNext selectedHostId.asNullableString
+        }
 
         // Take a scheduling action that depends on the current state.
         state match {
@@ -606,10 +627,19 @@ class ContainerScheduler(containerId: UUID, context: Context,
                 sub.unsubscribe()
                 scheduleWithTimeout(selectedHostId, oldHostId)
                 events add Schedule(container, selectedHostId)
-            case DownState(sub, attempts) =>
+            case DownState(sub, attempts) if attempts < config.schedulerMaxRetries =>
+                log warn "Cannot schedule container: no hosts available " +
+                         s"retrying in ${config.schedulerRetryMs} milliseconds"
+                sub.unsubscribe()
+                if (feedback == RetryFeedback) {
+                    downWithRetry(attempts + 1)
+                } else {
+                    downWithRetry(attempts = 0)
+                }
+            case DownState(sub, _) =>
                 log warn "Cannot schedule container: no hosts available"
                 sub.unsubscribe()
-                downWithRetry(attempts + 1)
+                state = DownState
             case ScheduledState(id, _, sub) if selectedHostId == id =>
                 log debug s"Container already scheduled at host $id: " +
                           "refreshing container state"
@@ -689,6 +719,17 @@ class ContainerScheduler(containerId: UUID, context: Context,
             false
     }
 
+    /** Handles the expiration of the retry interval.
+      */
+    private def scheduleRetry(attempts: Int): Boolean = state match {
+        case DownState(_, _) =>
+            log info s"Retrying container scheduling attempt ${attempts + 1} " +
+                     s"of ${config.schedulerMaxRetries}"
+            true
+        case _ => // Ignore because the scheduling state has changed.
+            false
+    }
+
     /** Handles the container status reported by the remote agent where the
       * container has been scheduled. The method returns `true` if the new
       * status should re-trigger a rescheduling, `false` otherwise.
@@ -717,8 +758,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
 
         def handleScheduledStatus(id: UUID, container: ServiceContainer,
                                   sub: Subscription): Boolean = {
-            if (status.getStatusCode == Code.STOPPING ||
-                status.getStatusCode == Code.ERROR) {
+            if (status.getStatusCode == Code.ERROR) {
                 log warn s"Failed to start container at host $id with " +
                          s"status ${status.getStatusCode}: marking the " +
                          s"host as bad for ${config.schedulerRetryMs} " +
@@ -729,6 +769,18 @@ class ContainerScheduler(containerId: UUID, context: Context,
                 statusSubject onNext Down(container, status)
                 statusSubject onNext Unschedule(container, id)
                 true
+            } else if (status.getStatusCode == Code.STOPPING) {
+                // Note: The scheduler may reach this state when rescheduling
+                // a container at the same host (since the container restarts).
+                // To avoid entering a loop, the scheduler takes no action and
+                // instead schedules a single retry for the same host. If
+                // the retry interval expires and the container has not reached
+                // the running state, then we reschedule the container.
+                log info s"Unexpected status ${status.getStatusCode} when " +
+                         "scheduling container: retrying host in " +
+                         s"${config.schedulerRetryMs} milliseconds"
+                downWithRetry(attempts = config.schedulerMaxRetries)
+                false
             } else if (status.getStatusCode == Code.RUNNING) {
                 log info s"Container running at host $id"
                 sub.unsubscribe()
@@ -744,9 +796,11 @@ class ContainerScheduler(containerId: UUID, context: Context,
         // success, or retrying the scheduling in case of failure.
         state match {
             case DownState(_, _) if status eq null => false
-            case DownState(_, _) if status.getStatusCode == Code.RUNNING =>
+            case DownState(sub, _) if status.getStatusCode == Code.RUNNING =>
                 // The container is running at the specified host, however the
                 // state is inconsistent: try to reschedule.
+                sub.unsubscribe()
+                state = DownState
                 true
             case ScheduledState(_, _, _) if status eq null =>
                 // Waiting on the host to report the container status.
