@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7f4a08ae",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/ServiceContainerGroup.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-19T15:30:21Z",
+      "side": 1,
+      "message": "Default is LEAST since a previous patch in the branch. Should be a constant somewhere. ServiceContainerPolicy.DEFAULT pointing to the actual default policy.",
+      "range": {
+        "startLine": 84,
+        "startChar": 44,
+        "endLine": 84,
+        "endChar": 52
+      },
+      "revId": "15f2d4a7ddd07217789fe57b5db72ea25bdbda68",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
