@@ -32,9 +32,9 @@ import org.scalatest.matchers.{MatchResult, Matcher}
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Neutron.NeutronPort
+import org.midonet.cluster.models.Neutron.{NeutronBgpSpeaker, NeutronPort}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create => CreateOp, Delete => DeleteOp, Operation, Update => UpdateOp}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Create => CreateOp, Delete => DeleteOp, Update => UpdateOp}
 import org.midonet.cluster.services.c3po.OpType
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.l2gwNetworkPortId
@@ -1399,6 +1399,8 @@ class RouterInterfacePortCreateTranslationTest
     "Router interface port CREATE" should "create a normal Network port" in {
         bind(networkId, nNetworkBase)
         bind(networkId, mNetworkWithIpv4Subnet)
+        when(storage.getAll(classOf[NeutronBgpSpeaker]))
+            .thenReturn(Future.successful(Seq()))
         val midoOps = translator.translate(CreateOp(routerIfPort))
         midoOps should contain only (
             CreateNode(arpEntryPath(networkId, routerIfPortIpStr,
