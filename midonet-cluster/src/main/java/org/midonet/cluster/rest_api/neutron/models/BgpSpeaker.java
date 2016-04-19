@@ -21,11 +21,14 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.IPSubnetUtil;
+import org.midonet.packets.IPSubnet;
 
 import static org.apache.commons.collections4.ListUtils.isEqualList;
 
@@ -53,11 +56,33 @@ public class BgpSpeaker extends ZoomObject {
     @ZoomField(name = "router_id")
     public UUID routerId;
 
-    @ZoomField(name = "networks")
-    public List<UUID> networks;
+    @JsonProperty("advertise_floating_ip_routes")
+    @ZoomField(name = "advertise_floating_ip_routes")
+    public Bool advertiseFloatingIpRoutes;
 
-    @ZoomField(name = "peers")
-    public List<UUID> peers;
+    @JsonProperty("advertise_tenant_networks")
+    @ZoomField(name = "advertise_tenant_networks")
+    public Bool advertiseTenantNetworks;
+
+    @JsonProperty("bgp_peer")
+    @ZoomField(name = "bgp_peer")
+    public BgpPeer bgpPeer;
+
+    @JsonProperty("del_bgp_peer_ids")
+    @ZoomField(name = "del_bgp_peer_ids")
+    public List<UUID> delBgpPeerIds;
+
+    @JsonProperty("add_networks")
+    @ZoomField(name = "add_networks", converter = IPSubnetUtil.Converter.class)
+    public List<IPSubnet<?>> addNetworks;
+
+    @JsonProperty("del_networks")
+    @ZoomField(name = "del_networks", converter = IPSubnetUtil.Converter.class)
+    public List<IPSubnet<?>> delNetworks;
+
+    @JsonProperty("last_bgp_peer")
+    @ZoomField(name = "last_bgp_peer")
+    public Bool lastBgpPeer;
 
     @Override
     public boolean equals(Object o) {
@@ -76,14 +101,23 @@ public class BgpSpeaker extends ZoomObject {
                Objects.equals(localAs, that.localAs) &&
                Objects.equals(ipVersion, that.ipVersion) &&
                Objects.equals(routerId, that.routerId) &&
-               isEqualList(networks, that.networks) &&
-               isEqualList(peers, that.peers);
+               Objects.equals(advertiseFloatingIpRoutes,
+                   that.advertiseFloatingIpRoutes) &&
+               Objects.equals(advertiseTenantNetworks,
+                   that.advertiseTenantNetworks) &&
+               Objects.equals(bgpPeer, that.bgpPeer) &&
+               Objects.equals(lastBgpPeer, that.lastBgpPeer) &&
+               isEqualList(delBgpPeerIds, that.delBgpPeerIds) &&
+               isEqualList(addNetworks, that.addNetworks) &&
+               isEqualList(delNetworks, that.delNetworks);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, tenantId, name, localAs, ipVersion, routerId,
-                            networks, peers);
+                            advertiseFloatingIpRoutes, advertiseTenantNetworks,
+                            bgpPeer, lastBgpPeer, delBgpPeerIds, addNetworks,
+                            delNetworks);
     }
 
     @Override
@@ -96,8 +130,13 @@ public class BgpSpeaker extends ZoomObject {
             .add("localAs", localAs)
             .add("ipVersion", ipVersion)
             .add("routerId", routerId)
-            .add("networkIds", networks)
-            .add("bgpPeerIds", peers)
+            .add("advertiseFloatingIpRoutes", advertiseFloatingIpRoutes)
+            .add("advertiseTenantNetworks", advertiseTenantNetworks)
+            .add("lastBgpPeer", lastBgpPeer)
+            .add("bgpPeer", bgpPeer)
+            .add("delBgpPeerIds", delBgpPeerIds)
+            .add("addNetworks", addNetworks)
+            .add("delNetworks", delNetworks)
             .toString();
     }
 }

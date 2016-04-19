@@ -388,6 +388,11 @@ For all cases:
  * Add a route to the CIDR of the subnet specified on the router, with the next
    hop port set to the created router port.
 
+ * If BGP speaker is configured on the router, BGP Network is created for the
+   network attached.  BGP speaker is configured on the router if there is a
+   Quagga container associated with the router with the ID derived from this
+   router ID.
+
 If the port is not on an uplink network:
 
  * With this router port, link the MidoNet router to the MidoNet network
@@ -756,65 +761,64 @@ Deleting a health monitor that has a pool association is prohibited.
 
 Delete the MidoNet health monitor.
 
-
-## ROUTINGINSTANCE
-
-Refer to the Dynamic Routing spec[3] for the task fields.
+## BGPSPEAKER
 
 ### CREATE
 
-No action required
+no action required
 
 ### UPDATE
 
-No action required
+Neutron sends the 'bgp_speaker' object for update when:
+
+ * BGP speaker is deleted and BGP speaker has at least one BGP peer associated.
+
+The router associated with the BGP speaker is specified in 'router_id' field.
+
+If 'del_bgp_peer_ids' is set, both the MidoNet and high level BGP peer models
+with IDs included in this field are deleted.
+
+If Quagga container does not exist yet for this router, a new one is created
+with its ID generated from the BGP speaker ID.  A redirect rule is also created
+to forward BGP traffic to the container.
 
 ### DELETE
 
-Delete the BGP instance in MidoNet.
+no action required
 
 
-## ROUTINGPEER
+## BGPPEER
 
 ### CREATE
 
-Create a MidoNet BGP instance and set the following fields from the routing
-instance:
+BGP peer high level model object is created.
 
- * id => id
- * local_as => localAS
+The router to which this BGP peer is to be configured is set in the
+'router_id' field of the BGP speaker subresource, set in the field
+'bgp_speaker'.
 
-Set the following fields of the MidoNet BGP instance from the routing peer:
+MidoNet BGP peer object is created with the same ID on the router.
 
- * port_id => portId
- * remote_as => remoteAS
- * peer_address => peerAddr
+If there is no Quagga container associated with this router, create one, with
+its ID derived from the router ID.
 
+Create a redirect rule on the router so that BGP traffic is forwarded to the
+container.
 
 ### UPDATE
 
-No action required
+BGP peer high level model object is updated.
+
+MidoNet BGP peer object is updated with the new values.
 
 ### DELETE
 
-Delete the MidoNet BGP instance matching the ID of the routing instance the
-routing peer is associated with.
+BGP peer high level model object is deleted.
 
+MidoNet BGP peer object is also deleted.
 
-## ADVERTISEROUTE
-
-### CREATE
-
-Create a new MidoNet AdRoute object, and set the following fields:
-
- * id => id
- * routing_instance_id => bgpId
- * destination => nwPrefix, prefixLength
-
-### DELETE
-
-Delete the MidoNet AdRoute with the ID matching the ID of the Neutron advertise
-route getting deleted.
+If there is no more BGP peer configured on this router, delete the Quagga
+container and the redirect rule.
 
 
 ## PORTBINDING
@@ -1041,6 +1045,3 @@ https://github.com//openstack/networking-midonet/blob/master/specs/kilo/provider
 
 [2]
 https://github.com//openstack/networking-midonet/blob/master/specs/kilo/port_binding.rst
-
-[3]
-https://github.com//openstack/networking-midonet/blob/master/specs/kilo/dynamic_routing.rst
