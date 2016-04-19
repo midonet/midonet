@@ -41,16 +41,17 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionWatcher}
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, BgpPeer => BgpPeerType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Neutron.{NeutronRouter, NeutronNetwork, NeutronRoute}
+import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronRoute, NeutronRouter}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{Commons, Topology}
+import org.midonet.cluster.rest_api.neutron.models.BgpPeer.AuthType
 import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.c3po.translators.StateTableManager
@@ -952,7 +953,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected def createRouterInterfacePort(taskId: Int, nwId: UUID,
                                             subnetId: UUID, rtrId: UUID,
-                                            ipAddr: String, macAddr: String,
+                                            ipAddr: String,
+                                            macAddr: String = MAC.random().toString,
                                             id: UUID = UUID.randomUUID(),
                                             hostId: UUID = null,
                                             ifName: String = null): UUID = {
@@ -981,6 +983,68 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         sgId
     }
 
+    protected def bgpSpeakerJson(routerId: UUID,
+                                 id: UUID = UUID.randomUUID(),
+                                 tenantId: String = "admin",
+                                 name: String = null,
+                                 localAs: Int = 12345,
+                                 ipVersion: Int = 4,
+                                 delBgpPeerIds: Seq[UUID] = Seq())
+    : JsonNode = {
+        val p = nodeFactory.objectNode
+        p.put("id", id.toString)
+        p.put("tenant_id", tenantId.toString)
+        p.put("name", name)
+        p.put("local_as", localAs)
+        p.put("ip_version", ipVersion)
+        p.put("router_id", routerId.toString)
+        val delPeersNode = p.putArray("del_bgp_peer_ids")
+        for (peerId <- delBgpPeerIds) delPeersNode.add(peerId.toString)
+        p
+    }
+
+    protected def bgpPeerJson(peerIp: String,
+                              bgpSpeaker: JsonNode,
+                              id: UUID = UUID.randomUUID(),
+                              tenantId: String = "admin",
+                              name: String = null,
+                              remoteAs: Int = 23456,
+                              authType: AuthType = AuthType.MD5,
+                              password: String = "password"): JsonNode = {
+        val p = nodeFactory.objectNode
+        p.put("id", id.toString)
+        p.put("tenant_id", tenantId.toString)
+        p.put("name", name)
+        p.put("remote_as", remoteAs)
+        p.put("peer_ip", peerIp)
+        p.put("auth_type", authType.toString)
+        p.put("password", password)
+        p.set("bgp_speaker", bgpSpeaker)
+        p
+    }
+
+    protected def createBgpPeer(taskId: Int,
+                                routerId: UUID,
+                                peerIp: String,
+                                id: UUID = UUID.randomUUID(),
+                                tenantId: String = "admin",
+                                name: String = "bgp_peer",
+                                remoteAs: Int = 12345,
+                                authType: AuthType = AuthType.MD5,
+                                password: String = "password",
+                                speakerId: UUID = UUID.randomUUID(),
+                                speakerName: String = "bgp_speaker",
+                                speakerLocalAs: Int = 23456,
+                                ipVersion: Int = 4
+                                ): UUID = {
+        val speakerJson = bgpSpeakerJson(routerId, speakerId, tenantId,
+                                         speakerName, speakerLocalAs,
+                                         ipVersion)
+        val json = bgpPeerJson(peerIp, speakerJson, id, tenantId, name,
+                               remoteAs, authType, password)
+        insertCreateTask(taskId, BgpPeerType, json, id)
+        id
+    }
 }
 
 @RunWith(classOf[JUnitRunner])
