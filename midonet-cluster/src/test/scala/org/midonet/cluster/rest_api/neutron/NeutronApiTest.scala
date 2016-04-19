@@ -17,13 +17,14 @@
 package org.midonet.cluster.rest_api.neutron
 
 import java.net.URI
+import java.util.UUID
 
 import scala.reflect.ClassTag
 
-import com.sun.jersey.api.client.ClientResponse
-import com.sun.jersey.api.client.ClientResponse.Status
+import com.sun.jersey.api.client.{ClientResponse, UniformInterfaceException}
+import com.sun.jersey.api.client.ClientResponse.Status._
 
-import org.scalatest.{BeforeAndAfter, Matchers, FeatureSpec}
+import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.rest_api.rest_api.FuncJerseyTest
@@ -50,14 +51,26 @@ class NeutronApiTest extends FeatureSpec
         tearDown()
     }
 
-    protected def postAndVerifySuccess(dto: AnyRef): URI = {
+    protected def post(dto: AnyRef): ClientResponse = {
         val clazz = dto.getClass
-        val resp = jerseyTest.resource()
+        jerseyTest.resource()
             .path("/neutron" + lastPathSteps(clazz))
             .`type`(mediaTypes(clazz))
             .post(classOf[ClientResponse], dto)
-        resp.getStatus shouldBe Status.CREATED.getStatusCode
+    }
+
+    protected def postAndVerifySuccess(dto: AnyRef): URI = {
+        val resp = post(dto)
+        resp.getStatus shouldBe CREATED.getStatusCode
         resp.getLocation
+    }
+
+    protected def put(dto: AnyRef, id: UUID): Unit = {
+        val clazz = dto.getClass
+        jerseyTest.resource()
+            .path("/neutron" + lastPathSteps(clazz) + '/' + id)
+            .`type`(mediaTypes(clazz))
+            .put(dto)
     }
 
     protected def get[T](uri: URI)(implicit tag: ClassTag[T]): T = {
@@ -73,11 +86,19 @@ class NeutronApiTest extends FeatureSpec
             .get(classOf[Neutron])
     }
 
+    protected def delete(uri: URI): ClientResponse = {
+        jerseyTest.resource().uri(uri).delete(classOf[ClientResponse])
+    }
+
     protected def deleteAndVerifyNoContent(uri: URI): Unit = {
-        val resp = jerseyTest.resource().uri(uri)
-            .delete(classOf[ClientResponse])
-        resp.getStatusInfo.getStatusCode shouldBe
-            Status.NO_CONTENT.getStatusCode
+        delete(uri).getStatusInfo.getStatusCode shouldBe
+            NO_CONTENT.getStatusCode
+    }
+
+    protected def methodGetNotAllowed[T](uri: URI)(implicit tag: ClassTag[T])
+    : Unit = {
+        val ex = intercept[UniformInterfaceException](get(uri))
+        ex.getResponse.getStatus shouldBe METHOD_NOT_ALLOWED.getStatusCode
     }
 
     private val lastPathSteps = Map[Class[_], String](

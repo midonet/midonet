@@ -207,7 +207,7 @@ object C3POMinion {
              classOf[L2GatewayConnection] ->
                 new L2GatewayConnectionTranslator(storage, stateTableStorage, pathBldr),
              classOf[NeutronBgpPeer] ->
-                new BgpPeerTranslator(storage, stateTableStorage),
+                new BgpPeerTranslator(storage, stateTableStorage, seqDispenser),
              classOf[NeutronBgpSpeaker] ->
                 new BgpSpeakerTranslator(storage, stateTableStorage),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
