@@ -18,6 +18,7 @@ package org.midonet.cluster.rest_api.neutron.models;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
@@ -25,7 +26,10 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.packets.IPv4Addr;
+
+import static org.apache.commons.collections4.ListUtils.isEqualList;
 
 @ZoomClass(clazz = Neutron.NeutronBgpPeer.class)
 public class BgpPeer extends ZoomObject {
@@ -40,12 +44,42 @@ public class BgpPeer extends ZoomObject {
     public String name;
 
     @JsonProperty("peer_ip")
-    @ZoomField(name = "peer_ip")
-    public IPv4Addr peerIp;
+    @ZoomField(name = "peer_ip", converter = IPAddressUtil.Converter.class)
+    public String peerIp;
 
     @JsonProperty("remote_as")
     @ZoomField(name = "remote_as")
     public Integer remoteAs;
+
+    @JsonProperty("bgp_speaker_ids")
+    @ZoomField(name = "bgp_speaker_ids")
+    public List<UUID> bgpSpeakerIds;
+
+    @JsonProperty("auth_type")
+    @ZoomField(name = "auth_type")
+    public AuthType authType;
+
+    @JsonProperty("password")
+    @ZoomField(name = "password")
+    public String password;
+
+    @JsonProperty("delete")
+    @ZoomField(name = "delete")
+    public Bool delete;
+
+    @ZoomEnum(clazz = Neutron.NeutronBgpPeer.BgpAuthType.class)
+    public enum AuthType {
+        @ZoomEnumValue("MD5") MD5;
+
+        @JsonCreator
+        @SuppressWarnings("unused")
+        public static AuthType forValue(String v) {
+            if (v == null) {
+                return null;
+            }
+            return valueOf(v.toUpperCase());
+        }
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -62,12 +96,15 @@ public class BgpPeer extends ZoomObject {
                Objects.equals(tenantId, that.tenantId) &&
                Objects.equals(name, that.name) &&
                Objects.equals(peerIp, that.peerIp) &&
-               Objects.equals(remoteAs, that.remoteAs);
+               Objects.equals(remoteAs, that.remoteAs) &&
+               Objects.equals(delete, that.delete) &&
+               isEqualList(bgpSpeakerIds, that.bgpSpeakerIds);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, tenantId, name, peerIp, remoteAs);
+        return Objects.hash(id, tenantId, name, peerIp, remoteAs, delete,
+                            bgpSpeakerIds);
     }
 
     @Override
@@ -79,6 +116,8 @@ public class BgpPeer extends ZoomObject {
             .add("name", name)
             .add("peerIp", peerIp)
             .add("remoteAs", remoteAs)
+            .add("delete", delete)
+            .add("bgpSpeakerIds", bgpSpeakerIds)
             .toString();
     }
 }
