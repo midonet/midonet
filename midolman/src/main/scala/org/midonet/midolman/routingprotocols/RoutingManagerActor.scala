@@ -37,6 +37,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
+import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.services.SelectLoopService.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.devices._
@@ -131,6 +132,12 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     @Inject
     var upcallConnManager: UpcallDatapathConnectionManager = null
 
+    def isPossibleBgpPort(port: RouterPort) = {
+        if (!port.isExterior) false
+        else if (port.isContainer) port.isQuaggaContainer
+        else true
+    }
+
     override def receive = {
         case LocalPortActive(portId, true) =>
             log.debug("Port {} became active", portId)
@@ -158,7 +165,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                     log.error("Port {} unknown", portId)
             }
 
-        case BgpPort(port,_,_) if port.isExterior && !port.isContainer =>
+        case BgpPort(port,_,_) if isPossibleBgpPort(port) =>
             if (activePorts.contains(port.id) &&
                 !portHandlers.contains(port.id)) {
                 bgpPortIdx += 1
