@@ -120,4 +120,12 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
         delResp.getStatus shouldBe NO_CONTENT.getStatusCode
     }
 
+    /** Assert a failed DELETE of the resource, checking that the
+      * relevant headers are set correctly.
+      */
+    def deleteAndAssertStatus(uri: URI, status: Status): Unit = {
+        val delResp = resource().uri(uri).delete(classOf[ClientResponse])
+        delResp.getStatus shouldBe status.getStatusCode
+    }
+
 }
