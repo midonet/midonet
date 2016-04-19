@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_92ab841d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-19T10:12:09Z",
+      "side": 1,
+      "message": "This looks like you\u0027re overwriting all the new values with the old values before doing anything. \na) why doesn\u0027t to have the id set?\nb) can\u0027t you just assign the id directly here?",
+      "range": {
+        "startLine": 92,
+        "startChar": 11,
+        "endLine": 92,
+        "endChar": 17
+      },
+      "revId": "881bf1506505ff12967a28ffe2af084d2f1c19f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
