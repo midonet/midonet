@@ -388,6 +388,14 @@ For all cases:
  * Add a route to the CIDR of the subnet specified on the router, with the next
    hop port set to the created router port.
 
+ * If BGP speaker is configured on the router, BGP Network is created for the
+   under the following conditions of the network attached to the router:
+
+   * It is an external network and 'advertise_floating_ip_routes' of BGP
+     speaker is False.
+   * It is not an external or uplink network and 'advertise_tenant_networks' of
+     BGP speaker is False.
+
 If the port is not on an uplink network:
 
  * With this router port, link the MidoNet router to the MidoNet network
@@ -756,65 +764,62 @@ Deleting a health monitor that has a pool association is prohibited.
 
 Delete the MidoNet health monitor.
 
-
-## ROUTINGINSTANCE
-
-Refer to the Dynamic Routing spec[3] for the task fields.
+## BGPSPEAKER
 
 ### CREATE
 
-No action required
+no action required
 
 ### UPDATE
 
-No action required
+Neutron sends the 'bgp_speaker' object for update when:
+
+ * BGP peer is associated with BGP speaker.
+ * BGP peer is updated.
+ * BGP peer is disassociated from BGP speaker.
+ * BGP peer is deleted while associated with BGP speaker.
+ * BGP speaker is associated with gateway network and BGP speaker has at least
+   one BGP peer associated.
+ * BGP speaker is disassociated from gateway network and BGP speaker has at
+   least one BGP peer associated.
+ * BGP speaker is updated and BGP speaker has at least one BGP peer associated.
+ * BGP speaker is deleted and BGP speaker has at least one BGP peer associated.
+
+If 'bgp_speaker' high level model does not exist yet a new 'bgp_speaker' high
+level model is created.  If it already exists, the high level model is updated
+with the new values.
+
+The router associated with the BGP speaker is specified in 'router_id' field.
+
+If Quagga container does not exist yet for this router, a new one is created
+with its ID generated from the BGP speaker ID.  A redirect rule is also created
+to forward BGP traffic to the container.
+
+If 'bgp_peer' is set, it could be either creation or update of a BGP peer.
+If MidoNet BGP peer already exists with the same ID, the fields are updated to
+the new values.  If it does not exist, a new MidoNet BGP peer is created.
+
+If 'del_peer_ids' is set, either BGP peer was deleted or removed from the BGP
+speaker.  The MidoNet and high level BGP peer models with IDs included in this
+field are deleted.
+
+If 'add_networks' is set, a new gateway network was added to the BGP speaker,
+or BGP peer was associated with the BGP speaker and there were these gateway If
+this field is set, MidoNet BGP networks are created for the CIDRs specified on
+the router.
+
+If 'del_networks' is set, a gateway network was removed from the BGP speaker,
+or BGP speaker was deleted.  If this field is set, corresponding MidoNet BGP
+networks are deleted from the router.
+
+If 'last_peer' is set to True, it means that there is no more BGP peer
+associated with the BGP speaker.  It is also set to True when BGP speaker is
+deleted.  If this field is set to True, delete the high level BGP speaker
+model, Quagga container, and redirect rule.
 
 ### DELETE
 
-Delete the BGP instance in MidoNet.
-
-
-## ROUTINGPEER
-
-### CREATE
-
-Create a MidoNet BGP instance and set the following fields from the routing
-instance:
-
- * id => id
- * local_as => localAS
-
-Set the following fields of the MidoNet BGP instance from the routing peer:
-
- * port_id => portId
- * remote_as => remoteAS
- * peer_address => peerAddr
-
-
-### UPDATE
-
-No action required
-
-### DELETE
-
-Delete the MidoNet BGP instance matching the ID of the routing instance the
-routing peer is associated with.
-
-
-## ADVERTISEROUTE
-
-### CREATE
-
-Create a new MidoNet AdRoute object, and set the following fields:
-
- * id => id
- * routing_instance_id => bgpId
- * destination => nwPrefix, prefixLength
-
-### DELETE
-
-Delete the MidoNet AdRoute with the ID matching the ID of the Neutron advertise
-route getting deleted.
+no action required
 
 
 ## PORTBINDING
@@ -1041,6 +1046,3 @@ https://github.com//openstack/networking-midonet/blob/master/specs/kilo/provider
 
 [2]
 https://github.com//openstack/networking-midonet/blob/master/specs/kilo/port_binding.rst
-
-[3]
-https://github.com//openstack/networking-midonet/blob/master/specs/kilo/dynamic_routing.rst
