@@ -209,7 +209,7 @@ object C3POMinion {
              classOf[NeutronBgpPeer] ->
                 new BgpPeerTranslator(storage, stateTableStorage),
              classOf[NeutronBgpSpeaker] ->
-                new BgpSpeakerTranslator(storage, stateTableStorage),
+                new BgpSpeakerTranslator(storage, stateTableStorage, seqDispenser),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronFirewall] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->
