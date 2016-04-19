@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7f732816",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IPSecContainerDelegate.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-19T15:21:16Z",
+      "side": 1,
+      "message": "Not needed now.",
+      "revId": "b1e1eba0659181d4e2522646fcd0281d8d0ed9a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
