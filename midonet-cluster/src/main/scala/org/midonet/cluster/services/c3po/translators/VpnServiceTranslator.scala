@@ -205,12 +205,14 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         val routerAddr = containers.routerPortAddress(subnet)
 
         val portId = JUUID.randomUUID
+        val interfaceName = s"vpn-${portId.toString.substring(0, 8)}"
         val builder = Port.newBuilder
             .setId(portId)
             .setRouterId(router.getId)
             .setPortSubnet(subnet)
             .setPortAddress(routerAddr)
             .setPortMac(MAC.random().toString)
+            .setInterfaceName(interfaceName)
         assignTunnelKey(builder, sequenceDispenser)
         builder.build()
     }
