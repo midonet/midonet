@@ -53,11 +53,29 @@ public class BgpSpeaker extends ZoomObject {
     @ZoomField(name = "router_id")
     public UUID routerId;
 
-    @ZoomField(name = "networks")
-    public List<UUID> networks;
+    @JsonProperty("advertise_floating_ip_routes")
+    @ZoomField(name = "advertise_floating_ip_routes")
+    public Bool advertiseFloatingIpRoutes;
 
-    @ZoomField(name = "peers")
-    public List<UUID> peers;
+    @JsonProperty("advertise_tenant_networks")
+    @ZoomField(name = "advertise_tenant_networks")
+    public Bool advertiseTenantNetworks;
+
+    @JsonProperty("add_bgp_peer")
+    @ZoomField(name = "add_bgp_peer")
+    public NeutronBgpPeer addBgpPeer;
+
+    @JsonProperty("del_bgp_peer_id")
+    @ZoomField(name = "del_bgp_peer_id")
+    public UUID delBgpPeerId;
+
+    @JsonProperty("add_network_id")
+    @ZoomField(name = "add_network_id")
+    public UUID addNetworkId;
+
+    @JsonProperty("del_network_id")
+    @ZoomField(name = "del_network_id")
+    public UUID delNetworkId;
 
     @Override
     public boolean equals(Object o) {
@@ -76,14 +94,21 @@ public class BgpSpeaker extends ZoomObject {
                Objects.equals(localAs, that.localAs) &&
                Objects.equals(ipVersion, that.ipVersion) &&
                Objects.equals(routerId, that.routerId) &&
-               isEqualList(networks, that.networks) &&
-               isEqualList(peers, that.peers);
+               Objects.equals(advertiseFloatingIpRoutes,
+                   that.advertiseFloatingIpRoutes) &&
+               Objects.equals(advertiseTenantNetworks,
+                   that.advertiseTenantNetworks) &&
+               Objects.equals(addBgpPeer, that.addBgpPeer) &&
+               Objects.equals(delBgpPeerId, that.delBgpPeerId) &&
+               Objects.equals(addNetworkId, that.addNetworkId) &&
+               Objects.equals(delNetworkId, that.delNetworkId);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, tenantId, name, localAs, ipVersion, routerId,
-                            networks, peers);
+                            advertiseFloatingIpRoutes, advertiseTenantNetworks,
+                            addBgpPeer, delBgpPeerId, addNetworkId, delNetworkId);
     }
 
     @Override
@@ -96,8 +121,12 @@ public class BgpSpeaker extends ZoomObject {
             .add("localAs", localAs)
             .add("ipVersion", ipVersion)
             .add("routerId", routerId)
-            .add("networkIds", networks)
-            .add("bgpPeerIds", peers)
+            .add("advertiseFloatingIpRoutes", advertiseFloatingIpRoutes)
+            .add("advertiseTenantNetworks", advertiseTenantNetworks)
+            .add("addBgpPeer", addBpgPeer)
+            .add("delBgpPeerId", delBgpPeerId)
+            .add("addNetworkId", addNetworkId)
+            .add("delNetworkId", delNetworkId)
             .toString();
     }
 }
