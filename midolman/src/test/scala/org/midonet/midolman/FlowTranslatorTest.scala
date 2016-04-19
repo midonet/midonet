@@ -17,9 +17,6 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort}
-
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.immutable.List
@@ -33,11 +30,11 @@ import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.simulation.{Bridge, BridgePort, PacketContext, VxLanPort}
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
+import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}
-import org.midonet.odp.{Datapath, DpPort, FlowMatch, Packet}
+import org.midonet.odp.flows.{FlowAction, FlowKeys}
+import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
@@ -95,7 +92,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                                      case None => newBridge("bridge" + id)
                                  }, host=Some(host),
                                  interface=interface)
-        setPortActive(port, host, true)
+        setPortActive(port, host, active = true)
         fetchDevice[BridgePort](port)
     }
 
@@ -104,7 +101,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         val port = newVxLanPort(bridge, vtep.mgmtIp, 4789,
                                 vtep.vni, vtep.tunIp, tzId)
-        setPortActive(port, host, true)
+        setPortActive(port, host, active = true)
 
         fetchDevice[Bridge](bridge)
         fetchDevice[VxLanPort](port)
@@ -240,7 +237,6 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx local port0 -> 2
             ctx local port1.id -> 3
 
-            val brPorts = List(port1.id)
             ctx translate List(ToPortAction(port0),
                                ToPortAction(port1.id),
                                userspace(1),
@@ -267,48 +263,6 @@ class FlowTranslatorTest extends MidolmanSpec {
                         Set(FlowTagger.tagForDpPort(3),
                             FlowTagger.tagForTunnelRoute(1, 2)))
         }
-    }
-
-    sealed class TestFlowTranslator(val dpState: DatapathState) extends FlowTranslator {
-        override protected val vt = injector.getInstance(classOf[VirtualTopology])
-        override protected val hostId: UUID = FlowTranslatorTest.this.hostId
-        override protected val config: MidolmanConfig = FlowTranslatorTest.this.config
-        override protected val numWorkers: Int = 1
-        override protected val workerId: Int = 0
-
-        override def translateActions(pktCtx: PacketContext): Unit =
-            super.translateActions(pktCtx)
-
-    }
-
-    class TestDatapathState extends DatapathState {
-        var version: Long = 0
-        var dpPortNumberForVport = mutable.Map[UUID, Integer]()
-        var peerTunnels = mutable.Map[UUID,Route]()
-        var grePort: Int = _
-        var vxlanPortNumber: Int = _
-
-        def getDpPortNumberForVport(vportId: UUID): Integer =
-            dpPortNumberForVport get vportId orNull
-
-        def overlayTunnellingOutputAction: FlowActionOutput =
-            FlowActions.output(grePort)
-        var vtepTunnellingOutputAction: FlowActionOutput = null
-
-        def peerTunnelInfo(peer: UUID) = peerTunnels get peer
-        def getVportForDpPortNumber(portNum: Integer): UUID = null
-        def dpPortForTunnelKey(tunnelKey: Long): DpPort = null
-        def getDpPortName(num: Integer): Option[String] = None
-        def isVtepTunnellingPort(portNumber: Integer): Boolean =
-            portNumber == vxlanPortNumber
-        def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
-
-        def datapath: Datapath = new Datapath(0, "midonet")
-
-        def tunnelRecircVxLanPort: VxLanTunnelPort = null
-        def hostRecircPort: NetDevPort = null
-        def tunnelRecircOutputAction: FlowActionOutput = null
-        def hostRecircOutputAction: FlowActionOutput = null
     }
 
     def translationScenario(name: String)

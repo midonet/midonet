@@ -41,12 +41,16 @@ public class VxLanTunnelPort extends DpPort {
     private short dstPort;
 
     public VxLanTunnelPort(String name) {
-        super(name);
-        dstPort = VXLAN_DEFAULT_DST_PORT;
+        this(name, VXLAN_DEFAULT_DST_PORT);
     }
 
     public VxLanTunnelPort(String name, short dstPort) {
         super(name);
+        setDestinationPort(dstPort);
+    }
+
+    public VxLanTunnelPort(String name, short dstPort, int portNo) {
+        super(name, portNo);
         setDestinationPort(dstPort);
     }
 
