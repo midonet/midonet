@@ -508,8 +508,13 @@ message NeutronBgpSpeaker {
     optional uint32 local_as = 4;
     optional uint32 ip_version = 5;
     optional UUID router_id = 6;
-    repeated UUID networks = 7;
-    repeated UUID peers = 8;
+    optional bool advertise_floating_ip_routes = 7;
+    optional bool advertise_tenant_networks = 8;
+    optional NeutronBgpPeer bgp_peer = 9;
+    repeated UUID del_bgp_peer_ids = 10;
+    repeated IPSubnet add_networks = 11;
+    repeated IPSubnet del_networks = 12;
+    optional bool last_bgp_peer = 13;
 }
 
 message NeutronBgpPeer {
@@ -518,4 +523,10 @@ message NeutronBgpPeer {
     optional string name = 3;
     optional IPAddress peer_ip = 4;
     optional uint32 remote_as = 5;
+    optional BgpAuthType auth_type = 6;
+    optional string password = 7;
+
+    enum BgpAuthType {
+        MD5 = 0;
+    }
 }
