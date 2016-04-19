@@ -19,16 +19,14 @@ import java.util.UUID
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
-
 import akka.actor._
 import com.google.inject.Inject
 import rx.Subscription
 import rx.subscriptions.CompositeSubscription
-
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.StateStorage
 import org.midonet.cluster.data.Route
-import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.models.Topology.{Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.BgpKey
 import org.midonet.cluster.state.LegacyStorage
@@ -37,6 +35,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
+import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.services.SelectLoopService.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.devices._
@@ -47,6 +46,9 @@ import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
+import org.midonet.util.concurrent.toFutureOps
+import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
+import org.midonet.containers.Containers
 
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
@@ -108,6 +110,9 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
+    var vt: VirtualTopology = null
+
+    @Inject
     var config: MidolmanConfig = null
     @Inject
     var legacyStorage: LegacyStorage = null
@@ -151,6 +156,20 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
         }
     }
 
+    def isQuaggaContainerPort(port: RouterPort) = {
+        if (port.isContainer) {
+            val containers = vt.store.getAll(classOf[ServiceContainer]).await()
+            val c = containers filter (c => c.getPortId eq toProto(port.id))
+            c.head.getServiceType eq Containers.QUAGGA_CONTAINER
+        }
+        false
+    }
+
+    def isPossibleBgpPort(port: RouterPort) = {
+        if (port.isContainer) isQuaggaContainerPort(port)
+        else port.isExterior
+    }
+
     override def receive = {
         case BgpContainerReady(portId) => sendPortActive(portId)
         case LocalPortActive(portId, true) => sendPortActive(portId)
@@ -167,7 +186,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                     log.error("Port {} unknown", portId)
             }
 
-        case BgpPort(port,_,_) if port.isExterior && !port.isContainer =>
+        case BgpPort(port,_,_) if isPossibleBgpPort(port) =>
             if (activePorts.contains(port.id) &&
                 !portHandlers.contains(port.id)) {
                 bgpPortIdx += 1
@@ -180,7 +199,8 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                                          flowInvalidator, dpState,
                                          upcallConnManager,
                                          routingStorage, config, zkConnWatcher,
-                                         zebraLoop, vt)).
+                                         zebraLoop, vt,
+                                         isQuaggaContainerPort(port))).
                         withDispatcher("actors.pinned-dispatcher"),
                     name = port.id.toString)
                 portHandlers.put(port.id, portHandler)

@@ -25,7 +25,6 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
-
 import akka.actor.ActorRef
 
 import org.apache.zookeeper.KeeperException
@@ -140,9 +139,10 @@ object RoutingHandler {
               config: MidolmanConfig,
               connWatcher: ZkConnectionAwareWatcher,
               selectLoop: SelectLoop,
-              vt: VirtualTopology) =
+              vt: VirtualTopology,
+              isQuagga: Boolean) =
         new RoutingHandler(rport, bgpIdx, flowInvalidator.tell,
-            routingStorage, config, connWatcher) {
+            routingStorage, config, connWatcher, isQuagga) {
 
             import context.system
 
@@ -258,7 +258,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                               val flowInvalidator: FlowTag => Unit,
                               val routingStorage: RoutingStorage,
                               val config: MidolmanConfig,
-                              val connWatcher: ZkConnectionAwareWatcher)
+                              val connWatcher: ZkConnectionAwareWatcher,
+                              val isQuagga: Boolean)
     extends ReactiveActor[BgpPort] with ActorLogWithoutPath
             with SingleThreadExecutionContextProvider {
 
@@ -611,7 +612,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             log.info(s"Forgetting BGP neighbor ${peer.as} at ${peer.address}")
             bgpd.vty.deletePeer(bgpConfig.as, peer.address)
             routingInfo.peers.remove(peer.address)
-            if (rport.isContainer) {
+            if (isQuagga) {
                 log.info(s"Removing Arp entry ${peer.address} -> ${rport.portMac}")
                 bgpd.remArpEntry(rport.interfaceName, peer.address.toString)
             }
@@ -620,7 +621,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         for (peer <- gained) {
             bgpd.vty.addPeer(bgpConfig.as, peer)
             routingInfo.peers.add(peer.address)
-            if (rport.isContainer) {
+            if (isQuagga) {
                 log.info(s"Adding Arp entry ${peer.address} -> ${rport.portMac}")
                 bgpd.addArpEntry(rport.interfaceName, peer.address.toString,
                     rport.portMac.toString)
@@ -649,7 +650,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         for (neigh <- bgpConfig.neighbors.values) {
             bgpd.vty.addPeer(bgpConfig.as, neigh)
             routingInfo.peers.add(neigh.address)
-            if (rport.isContainer) {
+            if (isQuagga) {
                 log.info(s"Adding Arp entry ${neigh.address} -> ${rport.portMac}")
                 bgpd.addArpEntry(rport.interfaceName, neigh.address.toString,
                     rport.portMac.toString)
@@ -687,7 +688,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         try {
             startZebra()
-            if (rport.isContainer) {
+            if (isQuagga) {
                 bgpd.prepare(Some(rport.interfaceName))
                 Future.successful((null, -1))
             } else {
