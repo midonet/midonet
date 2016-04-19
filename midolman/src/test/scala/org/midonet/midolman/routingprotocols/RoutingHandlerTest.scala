@@ -109,16 +109,9 @@ class RoutingHandlerTest extends FeatureSpecLike
         scenario ("start bgpd for a container port") {
             val ifaceName = "TESTING"
 
-            val containerRport = RouterPort(
-                id = UUID.randomUUID(),
-                tunnelKey = 1,
-                isActive = true,
-                interfaceName = ifaceName,
-                routerId = UUID.randomUUID(),
-                portSubnet = IPv4Subnet.fromCidr("192.168.80.0/24"),
-                portAddress = IPv4Addr.fromString("192.168.80.1"),
-                portMac = MAC.random(),
-                isContainer = true)
+            val containerRport = rport.copy(interfaceName = "TESTING",
+                isContainer = true,
+                isQuaggaContainer = true)
 
             val containerRoutingHandler = TestActorRef(
                 new TestableRoutingHandler(containerRport,
@@ -135,7 +128,8 @@ class RoutingHandlerTest extends FeatureSpecLike
 
         scenario ("applies and removes static arp entries") {
             val containerRport = rport.copy(interfaceName = "TESTING",
-                                            isContainer = true)
+                                            isContainer = true,
+                                            isQuaggaContainer = true)
             val containerRoutingHandler = TestActorRef(
                 new TestableRoutingHandler(containerRport,
                     invalidations ::= _,
