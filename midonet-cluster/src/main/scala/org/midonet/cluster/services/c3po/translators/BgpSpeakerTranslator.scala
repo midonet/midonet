@@ -17,25 +17,55 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronBgpSpeaker
+import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.util.concurrent.toFutureOps
 
 class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
                            protected val stateTableStorage: StateTableStorage)
-    extends Translator[NeutronBgpSpeaker] {
+    extends Translator[NeutronBgpSpeaker] with PortManager
+                                          with RuleManager {
+    import BgpPeerTranslator._
 
     override protected def translateCreate(bgpSpeaker: NeutronBgpSpeaker)
     : OperationList = {
-        List()
-    }
-
-    override protected def translateDelete(bgpSpeaker: NeutronBgpSpeaker)
-    : OperationList = {
-        List()
+        throw new UnsupportedOperationException(
+            "Create NeutronBgpSpeaker not supported.")
     }
 
     override protected def translateUpdate(bgpSpeaker: NeutronBgpSpeaker)
     : OperationList = {
-        List()
+        if (bgpSpeaker.getDelBgpPeerIdsCount == 0)
+            return List()
+
+        val router =
+            storage.get(classOf[Router], bgpSpeaker.getRouterId).await()
+
+        val ops = new OperationListBuffer
+
+        // Delete all specified peers.
+        for (bgpPeerId <- bgpSpeaker.getDelBgpPeerIdsList) {
+            ops ++= deleteBgpPeer(router, bgpPeerId)
+        }
+
+        // If that was all the router's peers, delete the Quagga container, too.
+        if (bgpSpeaker.getDelBgpPeerIdsCount == router.getBgpPeerIdsCount) {
+            ops ++= deleteBgpContainer(router)
+        }
+
+        ops.toList
     }
+
+    override protected def translateDelete(bgpSpeakerId: UUID): OperationList = {
+        throw new UnsupportedOperationException(
+            "Delete NeutronBgpSpeaker not supported.")
+    }
+
+    // We don't store the BGPSpeaker in Zookeeper.
+    override protected def retainHighLevelModel(op: Operation[NeutronBgpSpeaker])
+    : List[Operation[NeutronBgpSpeaker]] = List()
 }
 

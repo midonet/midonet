@@ -30,7 +30,7 @@ import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
-import org.midonet.cluster.data.storage.{StateTableStorage, StateStorage, Storage}
+import org.midonet.cluster.data.storage.{StateTableStorage, Storage}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
@@ -205,7 +205,7 @@ object C3POMinion {
              classOf[L2GatewayConnection] ->
                 new L2GatewayConnectionTranslator(storage, stateTableStorage, pathBldr),
              classOf[NeutronBgpPeer] ->
-                new BgpPeerTranslator(storage, stateTableStorage),
+                new BgpPeerTranslator(storage, stateTableStorage, seqDispenser),
              classOf[NeutronBgpSpeaker] ->
                 new BgpSpeakerTranslator(storage, stateTableStorage),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
