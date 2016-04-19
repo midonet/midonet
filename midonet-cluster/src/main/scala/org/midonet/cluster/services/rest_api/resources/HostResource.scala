@@ -32,7 +32,7 @@ import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.SingleValueKey
 import org.midonet.cluster.models.State
 import org.midonet.cluster.rest_api.ResponseUtils._
-import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowGet, AllowList}
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, ApiResource, AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.{TunnelZone, Host, HostState, Interface}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.MidonetBackend
@@ -42,6 +42,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 @ApiResource(version = 1, name = "hosts", template = "hostTemplate")
 @Path("hosts")
 @RequestScoped
+@AllowCreate(Array(APPLICATION_HOST_JSON_V3,
+                   APPLICATION_JSON))
 @AllowGet(Array(APPLICATION_HOST_JSON_V3,
                 APPLICATION_JSON))
 @AllowList(Array(APPLICATION_HOST_COLLECTION_JSON_V3,
