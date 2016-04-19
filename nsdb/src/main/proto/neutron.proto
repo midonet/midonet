@@ -518,4 +518,5 @@ message NeutronBgpPeer {
     optional string name = 3;
     optional IPAddress peer_ip = 4;
     optional uint32 remote_as = 5;
+    optional UUID bgp_speaker_id = 6;
 }

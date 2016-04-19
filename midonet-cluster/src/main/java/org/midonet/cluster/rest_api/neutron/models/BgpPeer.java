@@ -25,6 +25,7 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.packets.IPv4Addr;
 
 @ZoomClass(clazz = Neutron.NeutronBgpPeer.class)
@@ -40,12 +41,16 @@ public class BgpPeer extends ZoomObject {
     public String name;
 
     @JsonProperty("peer_ip")
-    @ZoomField(name = "peer_ip")
-    public IPv4Addr peerIp;
+    @ZoomField(name = "peer_ip", converter = IPAddressUtil.Converter.class)
+    public String peerIp;
 
     @JsonProperty("remote_as")
     @ZoomField(name = "remote_as")
     public Integer remoteAs;
+
+    @JsonProperty("bgp_speaker_id")
+    @ZoomField(name = "bgp_speaker_id")
+    public UUID bgpSpeakerId;
 
     @Override
     public boolean equals(Object o) {
@@ -62,12 +67,13 @@ public class BgpPeer extends ZoomObject {
                Objects.equals(tenantId, that.tenantId) &&
                Objects.equals(name, that.name) &&
                Objects.equals(peerIp, that.peerIp) &&
-               Objects.equals(remoteAs, that.remoteAs);
+               Objects.equals(remoteAs, that.remoteAs) &&
+               Objects.equals(bgpSpeakerId, that.bgpSpeakerId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, tenantId, name, peerIp, remoteAs);
+        return Objects.hash(id, tenantId, name, peerIp, remoteAs, bgpSpeakerId);
     }
 
     @Override
@@ -79,6 +85,7 @@ public class BgpPeer extends ZoomObject {
             .add("name", name)
             .add("peerIp", peerIp)
             .add("remoteAs", remoteAs)
+            .add("bgpSpeakerId", bgpSpeakerId)
             .toString();
     }
 }
