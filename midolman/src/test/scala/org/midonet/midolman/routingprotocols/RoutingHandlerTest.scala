@@ -91,7 +91,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                                                     invalidations ::= _,
                                                     routingStorage,
                                                     config,
-                                                    bgpd))
+                                                    bgpd,
+                                                    false))
         routingHandler ! rport
         bgpd.state should be (bgpd.NOT_STARTED)
         routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
@@ -109,15 +110,7 @@ class RoutingHandlerTest extends FeatureSpecLike
         scenario ("start bgpd for a container port") {
             val ifaceName = "TESTING"
 
-            val containerRport = RouterPort(
-                id = UUID.randomUUID(),
-                tunnelKey = 1,
-                isActive = true,
-                interfaceName = ifaceName,
-                routerId = UUID.randomUUID(),
-                portSubnet = IPv4Subnet.fromCidr("192.168.80.0/24"),
-                portAddress = IPv4Addr.fromString("192.168.80.1"),
-                portMac = MAC.random(),
+            val containerRport = rport.copy(interfaceName = "TESTING",
                 isContainer = true)
 
             val containerRoutingHandler = TestActorRef(
@@ -125,7 +118,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                                            invalidations ::= _,
                                            routingStorage,
                                            config,
-                                           bgpd))
+                                           bgpd,
+                                           true))
 
             containerRoutingHandler ! containerRport
             containerRoutingHandler ! BgpPort(containerRport, baseConfig,
@@ -141,7 +135,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                     invalidations ::= _,
                     routingStorage,
                     config,
-                    bgpd))
+                    bgpd,
+                    true))
 
             containerRoutingHandler ! containerRport
             containerRoutingHandler ! BgpPort(containerRport, baseConfig.copy(neighbors = Map.empty), Set.empty)
@@ -493,9 +488,10 @@ class TestableRoutingHandler(rport: RouterPort,
                              flowInvalidator: FlowTag => Unit,
                              routingStorage: RoutingStorage,
                              config: MidolmanConfig,
-                             override val bgpd: MockBgpdProcess)
+                             override val bgpd: MockBgpdProcess,
+                             isQuagga: Boolean)
             extends RoutingHandler(rport, 1, flowInvalidator, routingStorage,
-                                   config, new MockZkConnWatcher()) {
+                                   config, new MockZkConnWatcher(), isQuagga) {
 
     override def createDpPort(port: String): Future[(DpPort, Int)]  = {
         val p = DpPort.fakeFrom(new NetDevPort("bgpd"), 27).asInstanceOf[NetDevPort]
