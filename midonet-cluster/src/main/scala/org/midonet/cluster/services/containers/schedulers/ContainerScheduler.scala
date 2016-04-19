@@ -398,7 +398,8 @@ class ContainerScheduler(containerId: UUID, context: Context,
       * host selector for the new policy and triggering a new scheduling.
       */
     private def policyUpdated(group: ServiceContainerGroup): Unit = {
-        log debug s"Group scheduling policy updated: ${HostSelector.policyOf(group)}"
+        log debug "Group scheduling policy updated: " +
+                  s"${HostSelector.policyOf(group)} with ${group.getPolicy}"
 
         // If the change in policy returns a new host selector, emit the
         // selector observable on the hosts subject.

@@ -17,12 +17,9 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import javax.validation.constraints.NotNull;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
@@ -32,15 +29,23 @@ import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 import static org.midonet.cluster.rest_api.ResourceUris.SERVICE_CONTAINERS;
 
 @ZoomClass(clazz = Topology.ServiceContainerGroup.class)
 public class ServiceContainerGroup extends UriResource {
 
+    @ZoomEnum(clazz = Topology.ServiceContainerPolicy.class)
+    public enum ServiceContainerPolicy {
+        @ZoomEnumValue(value = "WEIGHTED_SCHEDULER") WEIGHTED,
+        @ZoomEnumValue(value = "LEAST_SCHEDULER") LEAST
+    }
+
     @ZoomField(name = "id")
     public UUID id;
+
+    @ZoomField(name = "policy")
+    public ServiceContainerPolicy policy;
 
     @ZoomField(name = "host_group_id")
     public UUID hostGroupId;
@@ -75,8 +80,11 @@ public class ServiceContainerGroup extends UriResource {
 
     @JsonIgnore
     public void update(ServiceContainerGroup that) {
+        if (policy == null) {
+            policy = ServiceContainerPolicy.WEIGHTED;
+        }
         if (that != null) {
-            this.serviceContainerIds = that.serviceContainerIds;
+            serviceContainerIds = that.serviceContainerIds;
         }
     }
 

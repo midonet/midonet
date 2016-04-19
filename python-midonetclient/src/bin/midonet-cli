@@ -1924,6 +1924,13 @@ class ServiceContainer(ObjectType):
 class ServiceContainerGroup(ObjectType):
     def __init__(self, obj):
         super(ServiceContainerGroup, self).__init__(obj)
+        self.put_attr(EnumAttr(name = 'policy',
+                               mappings = {'WEIGHTED': 'weighted',
+                                           'LEAST': 'least'},
+                               getter = 'get_policy',
+                               setter = 'policy',
+                               optional = True,
+                               writeable = True))
         self.put_attr(SingleAttr(name = 'port-group',
                                  value_type = ObjectRef('port-group'),
                                  getter = 'get_port_group_id',

@@ -40,6 +40,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
                 APPLICATION_JSON))
 @AllowList(Array(APPLICATION_SERVICE_CONTAINER_GROUP_COLLECTION_JSON,
                  APPLICATION_JSON))
+@AllowUpdate(Array(APPLICATION_SERVICE_CONTAINER_GROUP_JSON,
+                APPLICATION_JSON))
 @AllowDelete
 class ServiceContainerGroupResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[ServiceContainerGroup](resContext) {
@@ -48,6 +50,19 @@ class ServiceContainerGroupResource @Inject()(resContext: ResourceContext)
     def serviceContainers(@PathParam("id") id: UUID): ServiceContainerResource = {
         getResource(classOf[ServiceContainerGroup], id)
         new ServiceContainerResource(id, resContext)
+    }
+
+    protected override def createFilter(group: ServiceContainerGroup,
+                                        tx: ResourceTransaction): Unit = {
+        group.create()
+        tx.create(group)
+    }
+
+    protected override def updateFilter(to: ServiceContainerGroup,
+                                        from: ServiceContainerGroup,
+                                        tx: ResourceTransaction): Unit = {
+        to.update(from)
+        tx.update(to)
     }
 
 }

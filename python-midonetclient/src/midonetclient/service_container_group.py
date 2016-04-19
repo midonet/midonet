@@ -28,6 +28,13 @@ class ServiceContainerGroup(resource_base.ResourceBase):
     def get_id(self):
         return self.dto['id']
 
+    def get_policy(self):
+        return self.dto['policy']
+
+    def policy(self, policy):
+        self.dto['policy'] = policy
+        return self
+
     def get_port_group_id(self, query=None):
         return self.dto['portGroupId']
 
