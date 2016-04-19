@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionWatcher}
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, BgpPeer => BgpPeerType, BgpSpeaker => BgpSpeakerType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.StateTableStorage
@@ -980,7 +980,66 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         insertCreateTask(taskId, NeutronResourceType.SecurityGroup, json, sgId)
         sgId
     }
+    protected def bgpSpeakerJson(id: UUID = UUID.randomUUID(),
+                                 tenantId: String = "admin",
+                                 name: String = null,
+                                 localAs: Int,
+                                 ipVersion: Int,
+                                 routerId: UUID,
+                                 networks: List[UUID] = List(),
+                                 peers: List[UUID] = List())
+    : JsonNode = {
+        val p = nodeFactory.objectNode
+        p.put("id", id.toString)
+        p.put("tenant_id", tenantId.toString)
+        p.put("name", name)
+        p.put("local_as", localAs)
+        p.put("ip_version", localAs)
+        p.put("router_id", routerId.toString)
+        val networksNode = p.putArray("networks")
+        for (net <- networks) networksNode.add(net.toString)
+        val peersNode = p.putArray("peers")
+        for (peer <- peers) peersNode.add(peer.toString)
+        p
+    }
 
+    protected def bgpPeerJson(id: UUID = UUID.randomUUID(),
+                              tenantId: String = "admin",
+                              name: String = null,
+                              remoteAs: Int,
+                              peerIp: String)
+    : JsonNode = {
+        val p = nodeFactory.objectNode
+        p.put("id", id.toString)
+        p.put("tenant_id", tenantId.toString)
+        p.put("name", name)
+        p.put("remote_as", remoteAs)
+        p.put("peer_ip", peerIp)
+        p
+    }
+
+    protected def createBgpSpeaker(taskId: Int, id: UUID = UUID.randomUUID(),
+                                   tenantId: String = "admin",
+                                   name: String = "bgp_speaker",
+                                   localAs: Int = 12345, ipVersion: Int = 4,
+                                   routerId: UUID,
+                                   networks: List[UUID] = List(),
+                                   peers: List[UUID] = List()): UUID = {
+        val json = bgpSpeakerJson(id, tenantId, name, localAs, ipVersion,
+                                  routerId, networks, peers)
+        insertCreateTask(taskId, BgpSpeakerType, json, id)
+        id
+    }
+
+    protected def createBgpPeer(taskId: Int, id: UUID = UUID.randomUUID(),
+                                tenantId: String = "admin",
+                                name: String = "bgp_peer",
+                                remoteAs: Int = 12345,
+                                peerIp: String): UUID = {
+        val json = bgpPeerJson(id, tenantId, name, remoteAs, peerIp)
+        insertCreateTask(taskId, BgpPeerType, json, id)
+        id
+    }
 }
 
 @RunWith(classOf[JUnitRunner])
