@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a2e87711",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-19T17:11:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_df8a34bf",
+      "range": {
+        "startLine": 12,
+        "startChar": 28,
+        "endLine": 12,
+        "endChar": 30
+      },
+      "revId": "6df9f4dfb7895133e674fef15fce4aac55e15c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_bf8530ae",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-19T16:51:19Z",
       "side": 1,
       "message": "marked",
+      "range": {
+        "startLine": 16,
+        "startChar": 57,
+        "endLine": 16,
+        "endChar": 63
+      },
+      "revId": "6df9f4dfb7895133e674fef15fce4aac55e15c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_82e33333",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-19T17:11:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_bf8530ae",
       "range": {
         "startLine": 16,
         "startChar": 57,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_22f467f0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-19T17:11:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1fb77c87",
+      "range": {
+        "startLine": 100,
+        "startChar": 16,
+        "endLine": 100,
+        "endChar": 31
+      },
+      "revId": "6df9f4dfb7895133e674fef15fce4aac55e15c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_df26b4cd",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2016-04-19T16:51:19Z",
       "side": 1,
       "message": "you could match on the current feedback type too so:\n\n(state, feedback) match {\n    case (DownState(sub, attempts), RetryFeedback) if attempts \u003d\u003d ... \u003d\u003e\n        ...\n    case (Downstate(sub, _), _) \u003d\u003e \n        ....\n}\n\nThis would simplify the Feedback trait and case classes (not needing the booleans).",
+      "range": {
+        "startLine": 481,
+        "startChar": 12,
+        "endLine": 481,
+        "endChar": 17
+      },
+      "revId": "6df9f4dfb7895133e674fef15fce4aac55e15c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_02f723f6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-19T17:11:49Z",
+      "side": 1,
+      "message": "I removed those methods but used equal, because it didn\u0027t apply for all cases.",
+      "parentUuid": "baa041b7_df26b4cd",
       "range": {
         "startLine": 481,
         "startChar": 12,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e2de7f6c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-19T17:11:49Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "baa041b7_7f2b2895",
+      "range": {
+        "startLine": 530,
+        "startChar": 12,
+        "endLine": 530,
+        "endChar": 17
+      },
+      "revId": "6df9f4dfb7895133e674fef15fce4aac55e15c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5fbd0467",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/SchedulersTest.scala",
         "patchSetId": 1
@@ -128,6 +248,30 @@
       "writtenOn": "2016-04-19T16:51:19Z",
       "side": 1,
       "message": "comments on purpose?",
+      "range": {
+        "startLine": 101,
+        "startChar": 16,
+        "endLine": 101,
+        "endChar": 18
+      },
+      "revId": "6df9f4dfb7895133e674fef15fce4aac55e15c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c2d93b85",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/SchedulersTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-19T17:11:49Z",
+      "side": 1,
+      "message": "Ah, not needed because the case below already covers it.",
+      "parentUuid": "baa041b7_5fbd0467",
       "range": {
         "startLine": 101,
         "startChar": 16,
