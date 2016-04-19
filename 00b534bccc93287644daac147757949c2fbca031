@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_27091cde",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-19T05:01:19Z",
+      "side": 1,
+      "message": "val ifaceOpt \u003d iface.getOrElse(\"\")\n\nOr just make iface a String with default value \"\"",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 9
+      },
+      "revId": "00b534bccc93287644daac147757949c2fbca031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_67684488",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-19T05:01:19Z",
+      "side": 1,
+      "message": "s\"$remoteVtyIp $routerIp $routerMac $ifaceOpt\"\n\nThis will leave a trailing space if iface is None, but that\u0027s fine.",
+      "revId": "00b534bccc93287644daac147757949c2fbca031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
