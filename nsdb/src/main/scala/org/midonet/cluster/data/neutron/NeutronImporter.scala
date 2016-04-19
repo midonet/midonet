@@ -101,7 +101,7 @@ object NeutronResourceType extends Enumeration {
     private val vals = Map[String, NeutronResourceType[_ <: Message]](
         NoData.id -> NoData,
         AgentMembership.id -> AgentMembership,
-        BgpPeer.id -> BgpSpeaker,
+        BgpPeer.id -> BgpPeer,
         BgpSpeaker.id -> BgpSpeaker,
         Config.id -> Config,
         Firewall.id -> Firewall,
