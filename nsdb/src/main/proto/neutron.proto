@@ -508,8 +508,7 @@ message NeutronBgpSpeaker {
     optional uint32 local_as = 4;
     optional uint32 ip_version = 5;
     optional UUID router_id = 6;
-    repeated UUID networks = 7;
-    repeated UUID peers = 8;
+    repeated UUID del_bgp_peer_ids = 7;
 }
 
 message NeutronBgpPeer {
@@ -518,4 +517,11 @@ message NeutronBgpPeer {
     optional string name = 3;
     optional IPAddress peer_ip = 4;
     optional uint32 remote_as = 5;
+    optional BgpAuthType auth_type = 6;
+    optional string password = 7;
+    optional NeutronBgpSpeaker bgp_speaker = 8;
+
+    enum BgpAuthType {
+        MD5 = 0;
+    }
 }
