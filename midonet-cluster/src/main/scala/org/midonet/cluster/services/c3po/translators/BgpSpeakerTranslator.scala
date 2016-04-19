@@ -17,25 +17,140 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
-import org.midonet.cluster.models.Neutron.NeutronBgpSpeaker
+import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
+import org.midonet.cluster.models.Neutron.{NeutronBgpSpeaker, NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.{RangeUtil, SequenceDispenser}
+import org.midonet.containers
+import org.midonet.packets.MAC
+import org.midonet.util.concurrent.toFutureOps
+
 
 class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
-                           protected val stateTableStorage: StateTableStorage)
-    extends Translator[NeutronBgpSpeaker] {
+                           protected val stateTableStorage: StateTableStorage,
+                           sequenceDispenser: SequenceDispenser)
+    extends Translator[NeutronBgpSpeaker] with PortManager
+                                          with RuleManager {
+
+    import BgpSpeakerTranslator._
 
     override protected def translateCreate(bgpSpeaker: NeutronBgpSpeaker)
     : OperationList = {
-        List()
-    }
 
-    override protected def translateDelete(bgpSpeaker: NeutronBgpSpeaker)
-    : OperationList = {
-        List()
+        val ops = new OperationListBuffer
+
+        val routerId = bgpSpeaker.getRouterId
+        val router = storage.get(classOf[Router], routerId).await()
+
+        ops += createQuaggaRouterPort(router)
+        ops ++= scheduleService(quaggaPortId(routerId), routerId)
+        ops ++= addNetworks(router)
+
+        ops.toList
     }
 
     override protected def translateUpdate(bgpSpeaker: NeutronBgpSpeaker)
     : OperationList = {
-        List()
+        val ops = new OperationListBuffer
+
+        ops.toList
     }
+
+    override protected def translateDelete(bgpSpeakerId: UUID): OperationList = {
+        val ops = new OperationListBuffer
+
+        val speaker = storage.get(classOf[NeutronBgpSpeaker], bgpSpeakerId).await()
+        val routerId = speaker.getRouterId
+
+        ops += Delete(classOf[Port], quaggaPortId(speaker.getRouterId))
+        ops += Delete(classOf[ServiceContainer], quaggaContainerId(routerId))
+        ops += Delete(classOf[ServiceContainerGroup], quaggaContainerGroupId(routerId))
+        ops ++= removeNetworks(speaker)
+
+        ops.toList
+    }
+
+    def removeNetworks(speaker: NeutronBgpSpeaker): OperationList = {
+        val router = storage.get(classOf[Router], speaker.getRouterId).await()
+        router.getBgpNetworkIdsList.map(Delete(classOf[BgpNetwork], _))
+    }
+
+    def addNetworks(router: Router): OperationList = {
+        val ops = new OperationListBuffer
+        val rPorts = storage.getAll(classOf[Port], router.getPortIdsList).await()
+        val rPortPeerIds = rPorts.map(_.getPeerId)
+        val nPorts = storage.getAll(classOf[NeutronPort], rPortPeerIds).await()
+        val subIds = nPorts.map(_.getFixedIpsList.get(0).getSubnetId)
+
+        val subs = storage.getAll(classOf[NeutronSubnet], subIds).await()
+
+        for (sub <- subs.toList) yield
+            Create(makeBgpNetwork(router.getId, sub.getCidr, sub.getNetworkId))
+    }
+
+    def scheduleService(portId: UUID, routerId: UUID): OperationList = {
+        val scg = ServiceContainerGroup.newBuilder
+            .setId(quaggaContainerGroupId(routerId))
+            .build()
+
+        val sc = ServiceContainer.newBuilder
+            .setId(quaggaContainerId(routerId))
+            .setServiceGroupId(scg.getId)
+            .setPortId(portId)
+            .setServiceType("QUAGGA")
+            .setConfigurationId(routerId)
+            .build()
+
+        List(Create(scg), Create(sc))
+    }
+
+    def makeBgpNetwork(routerId: UUID, subnet: IPSubnet, networkId: UUID)
+        : BgpNetwork = {
+        BgpNetwork.newBuilder()
+                  .setId(bgpNetworkId(networkId))
+                  .setRouterId(routerId)
+                  .setSubnet(subnet)
+                  .build()
+    }
+
+    def createQuaggaRouterPort(router: Router): Create[Topology.Port] = {
+        val currentPorts = storage.getAll(classOf[Port], router.getPortIdsList).await()
+
+        val subnet = containers.findLocalSubnet(currentPorts)
+        val routerAddr = containers.routerPortAddress(subnet)
+
+        val pbuilder = Port.newBuilder
+            .setId(quaggaPortId(router.getId))
+            .setRouterId(router.getId)
+            .setPortSubnet(subnet)
+            .setPortAddress(routerAddr)
+            .setPortMac(MAC.random().toString)
+            .setQuaggaContainer(true)
+
+        assignTunnelKey(pbuilder, sequenceDispenser)
+        Create(pbuilder.build)
+    }
+}
+
+object BgpSpeakerTranslator {
+    def quaggaContainerId(routerId: UUID): UUID =
+        routerId.xorWith(0x645a41fb3e1641a3L, 0x90d28456127bee31L)
+
+    def quaggaContainerGroupId(routerId: UUID): UUID =
+        routerId.xorWith(0x7d263d2d55da46d2L, 0xb53951e91eba3a1fL)
+
+    def quaggaPortId(deviceId: UUID): UUID =
+        deviceId.xorWith(0xff498a4c22390ae3L, 0x3e3ec848baff217dL)
+
+    def bgpNetworkId(networkId: UUID): UUID =
+        networkId.xorWith(0x39c62a620c7049a9L, 0xbc9c1acb80e516fcL)
+
+    def redirectRuleId(peerId: UUID): UUID =
+        peerId.xorWith(0x12d34babf7d84902L, 0xaa840971afc3307fL)
+
+    val bgpPortRange = RangeUtil.toProto(127, 127)
 }
 
