@@ -58,6 +58,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         extends Translator[NeutronPort]
                 with ChainManager with PortManager with RouteManager with RuleManager
                 with StateTableManager {
+    import BgpPeerTranslator._
     import RouterInterfaceTranslator._
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
@@ -165,6 +166,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
             // Delete the peer router port.
             midoOps += Delete(classOf[Port], peerPortId)
+
+            val bgpNetId = bgpNetworkId(nPort.getId)
+            if (rtr.getBgpNetworkIdsList.contains(bgpNetId)) {
+                midoOps += Delete(classOf[BgpNetwork], bgpNetId)
+            }
         }
 
         val portContext = initPortContext
