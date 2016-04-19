@@ -46,6 +46,30 @@
       "revId": "15f2d4a7ddd07217789fe57b5db72ea25bdbda68",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1fa09c42",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/ServiceContainerGroup.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-19T15:42:34Z",
+      "side": 1,
+      "message": "Well, it confused me because we only have one type of containers right now. It make sense to have different defaults if we have different types of containers.",
+      "parentUuid": "baa041b7_9ffdcc3c",
+      "range": {
+        "startLine": 84,
+        "startChar": 44,
+        "endLine": 84,
+        "endChar": 52
+      },
+      "revId": "15f2d4a7ddd07217789fe57b5db72ea25bdbda68",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
