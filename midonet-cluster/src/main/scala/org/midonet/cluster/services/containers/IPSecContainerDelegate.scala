@@ -114,17 +114,12 @@ class IPSecContainerDelegate @Inject()(backend: MidonetBackend)
                  "unbinding port"
         tryTx { tx =>
             val port = tx.get(classOf[Port], container.getPortId)
-            if (!port.hasHostId || port.getHostId.asJava != hostId) {
-                throw new NotFoundException(classOf[Host], hostId.asProto)
+            if (port.hasHostId && port.getHostId.asJava == hostId) {
+                tx update port.toBuilder.clearHostId().build()
+            } else {
+                log info s"Port ${container.getPortId.asJava} already " +
+                         s"unbound from host $hostId"
             }
-            tx update port.toBuilder
-                          .clearHostId()
-                          .clearInterfaceName()
-                          .build()
-        } {
-            case e: NotFoundException
-                if e.clazz == classOf[Port] && e.id == container.getPortId =>
-                log debug s"Port ${container.getPortId.asJava} already deleted"
         }
     }
 
