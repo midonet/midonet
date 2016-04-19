@@ -388,6 +388,14 @@ For all cases:
  * Add a route to the CIDR of the subnet specified on the router, with the next
    hop port set to the created router port.
 
+ * If BGP speaker is configured on the router, BGP Network is created for the
+   route to the subnet attached to the router under the following conditions:
+
+   * It is an external network and 'advertise_floating_ip_routes' of BGP
+     speaker is False.
+   * It is not an external or uplink network and 'advertise_tenant_networks' of
+     BGP speaker is False.
+
 If the port is not on an uplink network:
 
  * With this router port, link the MidoNet router to the MidoNet network
@@ -757,64 +765,88 @@ Deleting a health monitor that has a pool association is prohibited.
 Delete the MidoNet health monitor.
 
 
-## ROUTINGINSTANCE
-
-Refer to the Dynamic Routing spec[3] for the task fields.
+## BGPSPEAKER
 
 ### CREATE
 
-No action required
+no action required
 
 ### UPDATE
 
-No action required
+Neutron sends the 'bgp_speaker' object for update when:
+
+ * BGP speaker is associated with gateway network and BGP speaker has at least
+   one BGP peer associated.
+ * BGP speaker is disassociated from gateway network and BGP speaker has at
+   least one BGP peer associated.
+ * BGP speaker is updated
+ * 'advertise_floating_ip_host_routes' or 'advertise_tenant_networks' is
+   changed.
+ * BGP speaker is deleted.
+
+'add_networks' field contains the CIDRs of the networks which you want BGP to
+advertise.  If this field is set, a MidoNet BGP network is created for each.
+
+'del_networks' field contains the CIDRs of the networks which you want BGP to
+stop advertising.  If this field is set, corresponding MidoNet BGP networks are
+deleted.
+
+'del_peer_ids' field contains the BGP peer IDs to remove from the router.
+MidoNet BGP peer objects matching these IDs are removed.
+
+If the router has no more MidoNet BGP peer association, delete the Quagga
+container and the redirect rule.
 
 ### DELETE
 
-Delete the BGP instance in MidoNet.
+no action required
 
 
-## ROUTINGPEER
+## BGPPEER
 
 ### CREATE
 
-Create a MidoNet BGP instance and set the following fields from the routing
-instance:
+Neutron sends the 'bgp_peer' object for creation when:
 
- * id => id
- * local_as => localAS
+ * BGP peer was associated with BGP speaker.
 
-Set the following fields of the MidoNet BGP instance from the routing peer:
+'bgp_speaker' field contains the BGP speaker object that BGP peer is associated
+with.
 
- * port_id => portId
- * remote_as => remoteAS
- * peer_address => peerAddr
+A new MidoNet BGP peer is created with the same ID on the router specified in
+'router_id' field of the BGP speaker object.
 
+If there is no Quagga container associated with this router, a new Quagga
+container is created along with a redirect rule to forward BGP traffic to the
+container.
+
+'auth_type' and 'password' on MidoNet BGP peer are set to the same values as
+the Neutron BGP peer.
+
+'add_networks' field of the BGP speaker object contains a list of network CIDRs
+that should be advertised from the router.  For each network, a corresponding
+MidoNet BGP network object is created.
 
 ### UPDATE
 
-No action required
+Neutron sends the 'bgp_peer' object for update when:
+
+ * BGP peer was updated (only 'password' can be modified).
+
+'auth_type' and 'password' on MidoNet BGP peer are set to the same values as
+the Neutron BGP peer.
 
 ### DELETE
 
-Delete the MidoNet BGP instance matching the ID of the routing instance the
-routing peer is associated with.
+Neutron sends this request when:
 
+ * BGP peer was disassociated from BGP speaker, or deleted while associated
+   with BGP speaker.
 
-## ADVERTISEROUTE
+The corresponding MidoNet BGP peer object is deleted.
 
-### CREATE
-
-Create a new MidoNet AdRoute object, and set the following fields:
-
- * id => id
- * routing_instance_id => bgpId
- * destination => nwPrefix, prefixLength
-
-### DELETE
-
-Delete the MidoNet AdRoute with the ID matching the ID of the Neutron advertise
-route getting deleted.
+If there is no more BGP peer associated with the router, the Quagga container
+and the redirect rule are deleted.
 
 
 ## PORTBINDING
@@ -1041,6 +1073,3 @@ https://github.com//openstack/networking-midonet/blob/master/specs/kilo/provider
 
 [2]
 https://github.com//openstack/networking-midonet/blob/master/specs/kilo/port_binding.rst
-
-[3]
-https://github.com//openstack/networking-midonet/blob/master/specs/kilo/dynamic_routing.rst
