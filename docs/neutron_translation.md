@@ -757,65 +757,74 @@ Deleting a health monitor that has a pool association is prohibited.
 Delete the MidoNet health monitor.
 
 
-## ROUTINGINSTANCE
-
-Refer to the Dynamic Routing spec[3] for the task fields.
+## BGPSPEAKER
 
 ### CREATE
 
-No action required
+no action required
 
 ### UPDATE
 
-No action required
+Neutron sends the 'bgp_speaker' object for update when:
+
+ * BGP speaker is associated with BGP peer ('add_bgp_peer').
+ * BGP speaker is associated with gateway network ('add_gateway_network').
+ * BGP speaker is disassociated from BGP peer ('remove_bgp_peer').
+ * BGP speaker is disassociated from gateway network
+   ('remove_gateway_network').
+
+In both cases, 'router_id' is sent to indicate which router to configure BGP
+on.  On this router, if a Quagga container is not yet created, it is created
+with a redirect rule for BGP traffic to the container.
+
+'add_bgp_peer' field contains the BGP peer object just associated.  If this
+field is set, a MidoNet BGP peer object is created.  Since in Neutron it is
+possible to have a BGP peer object shared among multiple BGP speakers, the
+ID to use for MidoNet BGP peer is generated using a combination of BGP peer ID
+and BGP speaker ID.
+
+'del_bgp_peer_id' field contains the BGP peer ID just disassociated.  If this
+field is set, the corresponding MidoNet BGP peer object is removed.
+
+'network_id' field contains the ID of the network which you want BGP to
+advertise.  If this field is not set, it means that the routes to the networks
+currently attached to the router are advertised.  For each such network, a
+MidoNet BGP network object is created unless:
+
+ * It is an uplink network
+ * It is an external network and 'advertise_floating_ip_routes' is False
+ * It is not an external or uplink network and 'advertise_tenant_networks'
+   is False
+
+In the case of an uplink network, return an error.
+
+If the router has no more MidoNet BGP peer association, delete the Quagga
+container and the redirect rule.
 
 ### DELETE
 
-Delete the BGP instance in MidoNet.
+no action required
 
 
-## ROUTINGPEER
+## BGPPEER
 
 ### CREATE
 
-Create a MidoNet BGP instance and set the following fields from the routing
-instance:
-
- * id => id
- * local_as => localAS
-
-Set the following fields of the MidoNet BGP instance from the routing peer:
-
- * port_id => portId
- * remote_as => remoteAS
- * peer_address => peerAddr
-
+no action required
 
 ### UPDATE
 
-No action required
+Neutron sends the 'bgp_peer' object for update when:
+
+ * BGP peer is deleted.
+
+'bgp_speaker_ids' field contains the list of BGP speakers that BGP peer is
+currently associated with.  For each BGP speaker, the corresponding MidoNet BGP
+peer object is deleted.
 
 ### DELETE
 
-Delete the MidoNet BGP instance matching the ID of the routing instance the
-routing peer is associated with.
-
-
-## ADVERTISEROUTE
-
-### CREATE
-
-Create a new MidoNet AdRoute object, and set the following fields:
-
- * id => id
- * routing_instance_id => bgpId
- * destination => nwPrefix, prefixLength
-
-### DELETE
-
-Delete the MidoNet AdRoute with the ID matching the ID of the Neutron advertise
-route getting deleted.
-
+no action required
 
 ## PORTBINDING
 
@@ -1041,6 +1050,3 @@ https://github.com//openstack/networking-midonet/blob/master/specs/kilo/provider
 
 [2]
 https://github.com//openstack/networking-midonet/blob/master/specs/kilo/port_binding.rst
-
-[3]
-https://github.com//openstack/networking-midonet/blob/master/specs/kilo/dynamic_routing.rst
