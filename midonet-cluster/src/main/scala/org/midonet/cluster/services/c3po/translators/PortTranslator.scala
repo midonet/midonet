@@ -58,6 +58,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         extends Translator[NeutronPort]
                 with ChainManager with PortManager with RouteManager with RuleManager
                 with StateTableManager {
+    import BgpSpeakerTranslator._
     import RouterInterfaceTranslator._
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
@@ -107,6 +108,15 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                               portContext.midoDhcps,
                               addDhcpServer)
             midoOps ++= configureMetaDataService(nPort)
+        } else if (isRouterInterfacePort(nPort)) {
+            val bgpSpeakers = storage.getAll(classOf[NeutronBgpSpeaker]).await()
+            if (bgpSpeakers.exists(_.getRouterId == toProto(nPort.getDeviceId))) {
+                val subnet = storage.get(classOf[NeutronSubnet], nPort.getFixedIps(0).getSubnetId).await()
+                midoOps += Create(BgpNetwork.newBuilder()
+                    .setId(bgpNetworkId(nPort.getNetworkId))
+                    .setRouterId(toProto(nPort.getDeviceId))
+                    .setSubnet(subnet.getCidr).build())
+            }
         }
 
         addMidoOps(portContext, midoOps)
@@ -170,6 +180,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
             // Delete the peer router port.
             midoOps += Delete(classOf[Port], peerPortId)
+
+            val bgpSpeakers = storage.getAll(classOf[NeutronBgpSpeaker]).await()
+            if (bgpSpeakers.exists(_.getRouterId == rtr.getId)) {
+                midoOps += Delete(classOf[BgpNetwork],
+                                  bgpNetworkId(nPort.getNetworkId))
+            }
         }
 
         val portContext = initPortContext

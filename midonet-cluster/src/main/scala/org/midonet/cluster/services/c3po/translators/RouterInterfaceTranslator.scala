@@ -23,12 +23,12 @@ import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.{NeutronBgpSpeaker, NeutronPort, NeutronRouterInterface, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.util.{UUIDUtil, SequenceDispenser}
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.util.concurrent.toFutureOps
 
@@ -51,6 +51,8 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
             with ChainManager
             with PortManager
             with RuleManager {
+
+    import BgpSpeakerTranslator._
     import RouterInterfaceTranslator._
 
     /* NeutronRouterInterface is a binding information and has no unique ID.
@@ -114,6 +116,14 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
                                                  rtrPort))
             midoOps += Create(sameSubnetRevSnatRule(rtr.getInboundFilterId,
                                                     rtrPort))
+        }
+
+        val bgpSpeakers = storage.getAll(classOf[NeutronBgpSpeaker]).await()
+        if (bgpSpeakers.exists(_.getRouterId == rtrPort.getRouterId)) {
+            midoOps += Create(BgpNetwork.newBuilder()
+                .setId(bgpNetworkId(nPort.getNetworkId))
+                .setRouterId(rtrPort.getRouterId)
+                .setSubnet(ns.getCidr).build())
         }
 
         // Need to do these after the update returned by bindPortOps(), since
