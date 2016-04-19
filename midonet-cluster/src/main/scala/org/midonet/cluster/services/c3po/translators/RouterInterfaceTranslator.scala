@@ -22,7 +22,7 @@ import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.{NeutronBgpSpeaker, NeutronPort, NeutronRouterInterface, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
@@ -50,6 +50,8 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
             with ChainManager
             with PortManager
             with RuleManager {
+
+    import BgpSpeakerTranslator._
     import RouterInterfaceTranslator._
 
     /* NeutronRouterInterface is a binding information and has no unique ID.
@@ -88,7 +90,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         // Convert Neutron/network port to router interface port if it isn't
         // already one.
         if (nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
-            midoOps ++= convertPortOps(nPort, isUplink, ri.getId)
+            midoOps ++= convertPortOps(nPort, isUplink, ri.getId, ns)
 
         midoOps += Create(rtrPort)
 
@@ -161,7 +163,8 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
     // Returns operations needed to convert non RIF port to RIF port.
     private def convertPortOps(nPort: NeutronPort,
                                isUplink: Boolean,
-                               routerId: UUID): OperationList = {
+                               routerId: UUID,
+                               ns: NeutronSubnet): OperationList = {
         assert(nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
 
         val midoOps = new OperationListBuffer
@@ -180,6 +183,14 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
             val dhcps = mutable.Map[UUID, Dhcp.Builder]()
             updateDhcpEntries(nPort, dhcps, delDhcpHost)
             midoOps ++= dhcps.values.map(bldr => Update(bldr.build()))
+        }
+
+        val bgpSpeakers = storage.getAll(classOf[NeutronBgpSpeaker]).await()
+        if (bgpSpeakers.exists(_.getRouterId == routerId)) {
+            midoOps += Create(BgpNetwork.newBuilder()
+                                  .setId(bgpNetworkId(nPort.getNetworkId))
+                                  .setRouterId(routerId)
+                                  .setSubnet(ns.getCidr).build())
         }
 
         midoOps.toList
