@@ -16,15 +16,23 @@
 
 package org.midonet.cluster.rest_api.neutron
 
+import java.net.URI
 import java.util.UUID
 
+import com.sun.jersey.api.client.ClientResponse.Status.METHOD_NOT_ALLOWED
+
 import org.junit.runner.RunWith
-import org.midonet.cluster.rest_api.neutron.models.BgpSpeaker
 import org.scalatest.junit.JUnitRunner
+
+import org.midonet.cluster.rest_api.neutron.models.{BgpSpeaker, Router}
 
 
 @RunWith(classOf[JUnitRunner])
 class TestBgpSpeaker extends NeutronApiTest {
+
+    private def bgpSpeakerUri(id: UUID = UUID.randomUUID()): URI = {
+        new URI(getNeutron.bgpSpeakerTemplate.replace("{id}", id.toString))
+    }
 
     scenario("Neutron has BgpSpeaker endpoint") {
         val neutron = getNeutron
@@ -34,15 +42,29 @@ class TestBgpSpeaker extends NeutronApiTest {
             .endsWith("/neutron/bgp_speakers/{id}") shouldBe true
     }
 
-    scenario("Create, read, delete") {
+    scenario("POST not allowed") {
         val bgpSpeaker = new BgpSpeaker
         bgpSpeaker.id = UUID.randomUUID()
-        bgpSpeaker.networks = new java.util.ArrayList[UUID]()
-        bgpSpeaker.peers = new java.util.ArrayList[UUID]()
-        val bgpSpeakerUri = postAndVerifySuccess(bgpSpeaker)
+        post(bgpSpeaker).getStatus shouldBe METHOD_NOT_ALLOWED.getStatusCode
+    }
 
-        get[BgpSpeaker](bgpSpeakerUri) shouldBe bgpSpeaker
+    scenario("GET not allowed") {
+        methodGetNotAllowed[BgpSpeaker](bgpSpeakerUri())
+    }
 
-        deleteAndVerifyNoContent(bgpSpeakerUri)
+    scenario("DELETE not allowed") {
+        delete(bgpSpeakerUri()).getStatus shouldBe
+            METHOD_NOT_ALLOWED.getStatusCode
+    }
+
+    scenario("PUT allowed") {
+        val router = new Router
+        router.id = UUID.randomUUID()
+        postAndVerifySuccess(router)
+
+        val bgpSpeaker = new BgpSpeaker
+        bgpSpeaker.id = UUID.randomUUID()
+        bgpSpeaker.routerId = router.id
+        put(bgpSpeaker, bgpSpeaker.id)
     }
 }

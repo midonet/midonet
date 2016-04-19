@@ -16,11 +16,13 @@
 
 package org.midonet.cluster.rest_api.neutron
 
+import java.util
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.midonet.cluster.rest_api.neutron.models.BgpPeer
 import org.scalatest.junit.JUnitRunner
+
+import org.midonet.cluster.rest_api.neutron.models.{BgpPeer, BgpSpeaker, Router}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -35,8 +37,19 @@ class TestBgpPeer extends NeutronApiTest {
     }
 
     scenario("Create, read, delete") {
+        val router = new Router
+        router.id = UUID.randomUUID()
+        postAndVerifySuccess(router)
+
+        val bgpSpeaker = new BgpSpeaker
+        bgpSpeaker.id = UUID.randomUUID()
+        bgpSpeaker.routerId = router.id
+        bgpSpeaker.delBgpPeerIds = new util.ArrayList[UUID]()
+
         val bgpPeer = new BgpPeer
         bgpPeer.id = UUID.randomUUID()
+        bgpPeer.bgpSpeaker = bgpSpeaker
+        bgpPeer.peerIp = "20.0.0.1"
         val bgpPeerUri = postAndVerifySuccess(bgpPeer)
 
         get[BgpPeer](bgpPeerUri) shouldBe bgpPeer
