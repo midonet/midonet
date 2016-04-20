@@ -111,7 +111,7 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             Then("The port should be bound to an interface at the host")
             val boundPort = storage.get(classOf[Port], port.getId).await()
             boundPort.getHostId shouldBe host2.getId
-            boundPort.getInterfaceName shouldBe interfaceName(container)
+            boundPort.getInterfaceName shouldBe "name"
         }
 
         scenario("A container without a port") {
@@ -183,7 +183,7 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             Then("The port should not be bound to the interface at the host")
             val boundPort = storage.get(classOf[Port], port.getId).await()
             boundPort.hasHostId shouldBe false
-            boundPort.hasInterfaceName shouldBe false
+            boundPort.hasInterfaceName shouldBe true
 
         }
 
@@ -197,12 +197,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             And("An IPSec container delegate")
             val delegate = new IPSecContainerDelegate(backend)
 
-            Then("Unscheduling the container from the host should fail")
-            val e = intercept[NotFoundException] {
-                delegate.onUnscheduled(container, host.getId)
-            }
-            e.clazz shouldBe classOf[Host]
-            e.id shouldBe host.getId
+            Then("Unscheduling the container from the host should ignore")
+            delegate.onUnscheduled(container, host.getId)
 
             Then("The port should not be bound to the interface at the host")
             val boundPort = storage.get(classOf[Port], port.getId).await()
@@ -248,12 +244,8 @@ class IPSecContainerDelegateTest extends FeatureSpec with Matchers
             And("An IPSec container delegate")
             val delegate = new IPSecContainerDelegate(backend)
 
-            When("Unscheduling the container from the host should fail")
-            val e = intercept[NotFoundException] {
-                delegate.onUnscheduled(container, hostId)
-            }
-            e.clazz shouldBe classOf[Host]
-            e.id shouldBe hostId.asProto
+            When("Unscheduling the container from the host should ignore")
+            delegate.onUnscheduled(container, hostId)
         }
     }
 

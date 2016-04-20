@@ -64,10 +64,14 @@ class IPSecContainerDelegate @Inject()(backend: MidonetBackend)
         log info s"Container ${container.getId.asJava} scheduled at host " +
                  s"$hostId: binding port $portId to interface $interfaceName"
         tryTx { tx =>
-            val port = tx.get(classOf[Port], portId).toBuilder
-                .setHostId(hostId.asProto)
-                .setInterfaceName(interfaceName)
-                .build()
+            val port = tx.get(classOf[Port], portId)
+            val builder = port.toBuilder.setHostId(hostId.asProto)
+
+            if (!port.hasInterfaceName) {
+                // If the interface name is not set, set it for backwards
+                // compatibility.
+                builder.setInterfaceName(interfaceName)
+            }
 
             // Check the host does not have another port bound to the same
             // interface.
@@ -78,7 +82,7 @@ class IPSecContainerDelegate @Inject()(backend: MidonetBackend)
                 log warn s"Host $hostId already has port ${hostPort.getId.asJava} " +
                          s"bound to interface $interfaceName"
             }
-            tx update port
+            tx update builder.build()
         }
     }
 
@@ -114,13 +118,12 @@ class IPSecContainerDelegate @Inject()(backend: MidonetBackend)
                  "unbinding port"
         tryTx { tx =>
             val port = tx.get(classOf[Port], container.getPortId)
-            if (!port.hasHostId || port.getHostId.asJava != hostId) {
-                throw new NotFoundException(classOf[Host], hostId.asProto)
+            if (port.hasHostId && port.getHostId.asJava == hostId) {
+                tx update port.toBuilder.clearHostId().build()
+            } else {
+                log info s"Port ${container.getPortId.asJava} already " +
+                         s"unbound from host $hostId"
             }
-            tx update port.toBuilder
-                          .clearHostId()
-                          .clearInterfaceName()
-                          .build()
         } {
             case e: NotFoundException
                 if e.clazz == classOf[Port] && e.id == container.getPortId =>

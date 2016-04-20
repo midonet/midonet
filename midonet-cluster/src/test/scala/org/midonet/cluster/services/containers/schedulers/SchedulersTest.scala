@@ -98,8 +98,6 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         def shouldBeDownFor(isUnsubscribed: Boolean = false,
                             attempts: Int = 0): Unit = {
             state match {
-                case DownState =>
-                    isUnsubscribed shouldBe true
                 case DownState(s, att) =>
                     s.isUnsubscribed shouldBe isUnsubscribed
                     att shouldBe attempts
@@ -179,11 +177,13 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
 
     protected def createHostStatus(hostId: UUID,
                                    weight: Int = random.nextInt(),
-                                   quota: Int = -1)
+                                   quota: Int = -1,
+                                   count: Int = 0)
     : ContainerServiceStatus = {
         val status = ContainerServiceStatus.newBuilder()
             .setWeight(weight)
             .setQuota(quota)
+            .setCount(count)
             .build()
         store.addValueAs(hostId.toString, classOf[Host], hostId,
                          ContainerKey, status.toString).await()
@@ -214,9 +214,12 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         portGroup
     }
 
-    protected def createGroup(): ServiceContainerGroup = {
+    protected def createGroup(policy: ServiceContainerPolicy =
+                              ServiceContainerPolicy.WEIGHTED_SCHEDULER)
+    : ServiceContainerGroup = {
         val group = ServiceContainerGroup.newBuilder()
             .setId(randomUuidProto)
+            .setPolicy(policy)
             .build()
         store.create(group)
         group
