@@ -65,11 +65,11 @@ class TopologyManager(fixtures.Fixture):
     def get_resource(self, name):
         """
         :param name: string
-        :rtype: object
+        :rtype: object or None if name was not registered previously
         """
-        return self._resources[name]
+        return self._resources.get(name)
 
-    def build(self):
+    def build(self, binding_data=None):
         """
         Builds the topology specified in this method, either physical or
         virtual. If the topology elements should be removed during teardown,
@@ -89,6 +89,9 @@ class TopologyManager(fixtures.Fixture):
         self.cleanUp()
         self._cleanups = callmany.CallMany()
         self._resources = {}
+
+    def get_default_tunnel_zone_name(self):
+        return 'tzone-%s' % str(uuid.uuid4())[:4]
 
     def add_host_to_tunnel_zone(self, hostname, tz_name, add_clean_up=True):
         """
