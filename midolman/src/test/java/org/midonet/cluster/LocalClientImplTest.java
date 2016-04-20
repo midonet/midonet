@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
@@ -186,7 +187,7 @@ public class LocalClientImplTest {
     @Test
     public void getPortTest()
             throws StateAccessException, InterruptedException, KeeperException,
-            SerializationException {
+            SerializationException, TimeoutException {
 
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
@@ -275,7 +276,7 @@ public class LocalClientImplTest {
     @Test
     public void getPortGroupTest()
         throws StateAccessException, InterruptedException, KeeperException,
-               SerializationException {
+               SerializationException, TimeoutException {
 
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
 
@@ -363,7 +364,8 @@ public class LocalClientImplTest {
     @Test
     public void getBridgeTest()
             throws StateAccessException, InterruptedException, KeeperException,
-            SerializationException, BridgeZkManager.VxLanPortIdUpdateException {
+            SerializationException, BridgeZkManager.VxLanPortIdUpdateException,
+            TimeoutException {
 
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
@@ -410,7 +412,7 @@ public class LocalClientImplTest {
     @Test
     public void getRouterTest()
             throws StateAccessException, InterruptedException, KeeperException,
-            SerializationException {
+            SerializationException, TimeoutException {
 
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID routerId = getRouterZkManager().create();
@@ -458,7 +460,8 @@ public class LocalClientImplTest {
     public void getChainTest()
             throws StateAccessException, InterruptedException, KeeperException,
                    SerializationException,
-                   org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
+                   org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException,
+                   TimeoutException {
 
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
 
@@ -527,7 +530,7 @@ public class LocalClientImplTest {
     @Test
     public void getIpAddrGroupTest()
             throws StateAccessException, InterruptedException, KeeperException,
-                   SerializationException {
+                   SerializationException, TimeoutException {
 
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
 
@@ -585,7 +588,8 @@ public class LocalClientImplTest {
     @Test
     public void getLoadBalancerTest()
             throws StateAccessException, InterruptedException, KeeperException,
-                   SerializationException, InvalidStateOperationException {
+                   SerializationException, InvalidStateOperationException,
+                   TimeoutException {
 
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
 
@@ -676,7 +680,8 @@ public class LocalClientImplTest {
     @Test
     public void getPoolTest()
         throws StateAccessException, InterruptedException, KeeperException,
-               SerializationException, InvalidStateOperationException {
+               SerializationException, InvalidStateOperationException,
+               TimeoutException {
 
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
 
@@ -760,7 +765,7 @@ public class LocalClientImplTest {
 
     @Test
     public void arpCacheTest() throws InterruptedException, KeeperException,
-            StateAccessException, SerializationException {
+            StateAccessException, SerializationException, TimeoutException {
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID routerId = getRouterZkManager().create();
         TestRouterBuilder routerBuilder = new TestRouterBuilder();
@@ -783,7 +788,8 @@ public class LocalClientImplTest {
 
     @Test
     public void macPortMapTest() throws InterruptedException,
-            KeeperException, SerializationException, StateAccessException {
+            KeeperException, SerializationException, StateAccessException,
+            TimeoutException {
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         UUID bridgeId = getBridgeZkManager().create(
             new BridgeZkManager.BridgeConfig("test", getRandomChainId(),
@@ -847,11 +853,13 @@ public class LocalClientImplTest {
             increment(deleteCallsCount);
         }
 
-        public void awaitBuildCalls(int expected, long timeout, TimeUnit unit) {
+        public void awaitBuildCalls(int expected, long timeout, TimeUnit unit)
+            throws TimeoutException {
             await(buildCallsCount, expected, timeout, unit);
         }
 
-        public void awaitDeleteCalls(int expected, long timeout, TimeUnit unit) {
+        public void awaitDeleteCalls(int expected, long timeout, TimeUnit unit)
+            throws TimeoutException {
             await(deleteCallsCount, expected, timeout, unit);
         }
 
@@ -862,7 +870,7 @@ public class LocalClientImplTest {
         }
 
         private void await(AtomicInteger counter, int expected, long timeout,
-                           TimeUnit unit) {
+                           TimeUnit unit) throws TimeoutException {
             long toWait = unit.toNanos(timeout);
             thread = Thread.currentThread();
             awaiting = expected;
@@ -870,6 +878,9 @@ public class LocalClientImplTest {
                 do {
                     if (counter.get() >= expected)
                         return;
+
+                    if (toWait < 0)
+                        throw new TimeoutException();
 
                     long start = System.nanoTime();
                     LockSupport.parkNanos(toWait);

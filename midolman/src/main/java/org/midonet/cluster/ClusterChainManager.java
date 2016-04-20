@@ -176,8 +176,8 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             }
 
             // If we have all the rules in the new ordered list, we're
-            // ready to call the chainbuilder
-            if (oldRuleIds.size() == curRuleIds.size()) {
+            // ready to call the chain builder
+            if (oldRuleIds.containsAll(curRuleIds)) {
                 ChainBuilder builder = getBuilder(chainId);
                 if (builder != null) {
                     builder.setRules(curRuleIds, ruleMap);
