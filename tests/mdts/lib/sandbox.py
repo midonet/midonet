@@ -38,9 +38,9 @@ def remove_container(container):
 
 
 def restart_sandbox(flavour, override, no_recreate=True):
-    cmd = "sandbox-manage -c sandbox.conf run default_v2_neutron+kilo+compat " \
-          "--name=mdts --override=sandbox/override_v2_compat " \
-          "--force"
+    cmd = "sandbox-manage -c sandbox.conf run %s " \
+          "--name=mdts --override=%s " \
+          "--force" % (flavour, override)
     if no_recreate:
         cmd += " --no-recreate"
     p = subprocess.Popen(

@@ -175,8 +175,13 @@ binding_multihost = {
 def install():
     # Install new package so the new version is updated immediately after reboot
     agent = service.get_container_by_hostname('midolman1')
-    agent.exec_command("apt-get install -qy --force-yes "
-                       "midolman/local midonet-tools/local")
+    output, exec_id = agent.exec_command(
+            "apt-get install -qy --force-yes "
+            "-o Dpkg::Options::=\"--force-confnew\" "
+            "midolman/local midonet-tools/local", stream=True)
+    exit_code = agent.check_exit_status(exec_id, output, timeout=60)
+    if exit_code != 0:
+        raise RuntimeError("Failed to update package.")
 
 
 def cleanup():
@@ -186,8 +191,8 @@ def cleanup():
     # Wipe out the container
     sandbox.remove_container(agent)
     # Restart sandbox, the --no-recreate flag will spawn only missing containers
-    sandbox.restart_sandbox('default_v2_neutron+kilo+compat',
-                            'sandbox/override_v2_compat')
+    sandbox.restart_sandbox('default_neutron+kilo+compat',
+                            'sandbox/override_compat')
     # Reset cached containers and reload them (await for the new agent to be up)
     service.loaded_containers = None
     agent = service.get_container_by_hostname('midolman1')
