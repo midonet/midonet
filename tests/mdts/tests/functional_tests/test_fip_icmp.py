@@ -20,7 +20,7 @@ from mdts.tests.utils.asserts import *
 from mdts.tests.utils.utils import bindings
 
 from hamcrest import *
-from nose.tools import with_setup
+from nose.tools import with_setup, nottest
 
 import logging, pdb, re, time
 
@@ -169,6 +169,7 @@ binding_multihost = {
     ]
 }
 
+@nottest # MI-858
 @attr(version="v1.2.0", slow=True, flaky=False)
 @bindings(binding_multihost,
           binding_manager=BM)
