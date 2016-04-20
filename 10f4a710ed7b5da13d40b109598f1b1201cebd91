@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f8e06efc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-04-20T04:02:35Z",
+      "side": 1,
+      "message": "is this still necessary?",
+      "revId": "10f4a710ed7b5da13d40b109598f1b1201cebd91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
