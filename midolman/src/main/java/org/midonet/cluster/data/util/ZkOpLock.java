@@ -21,13 +21,13 @@ import java.util.concurrent.TimeUnit;
 import org.midonet.cluster.ZookeeperLockFactory;
 
 import org.apache.commons.lang.time.StopWatch;
-import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
+import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 public class ZkOpLock {
-    private InterProcessSemaphoreMutex lock;
+    private InterProcessLock lock;
     private StopWatch timeHeld;
     private int opNumber;
 

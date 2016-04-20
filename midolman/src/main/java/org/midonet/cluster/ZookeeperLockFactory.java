@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,7 @@ public class ZookeeperLockFactory {
      *             object is referring to the same lock (Zookeeper path).
      * @return InterProcessSemaphoreMutex shared lock object
      */
-    public InterProcessSemaphoreMutex createShared(String name) {
+    public InterProcessLock createShared(String name) {
 
         // TODO: check if the name is a valid ZK path name
         Preconditions.checkNotNull(name);

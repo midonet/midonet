@@ -18,7 +18,9 @@ package org.midonet.midolman.l4lb
 import java.io.File
 import java.util
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.Set
@@ -28,7 +30,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.testkit.TestActorRef
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.commons.io.FileUtils
-import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
+import org.apache.curator.framework.recipes.locks.InterProcessLock
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.Mockito.{mock, spy, times, verify}
@@ -237,13 +239,21 @@ class HaproxyTest extends MidolmanSpec
         backend = injector.getInstance(classOf[MidonetBackend])
         conf = injector.getInstance(classOf[MidolmanConfig])
         lockFactory = mock(classOf[ZookeeperLockFactory])
-        val mutex = mock(classOf[InterProcessSemaphoreMutex])
+
+        val mutex = new InterProcessLock() {
+            val realLock = new ReentrantLock()
+            def acquire(): Unit = realLock.lock()
+            def acquire(time: Long, unit: TimeUnit): Boolean =
+                realLock.tryLock(time, unit)
+            def isAcquiredInThisProcess(): Boolean =
+                realLock.isHeldByCurrentThread()
+            def release(): Unit = realLock.unlock()
+        }
+
         Mockito.when(
             lockFactory.createShared(ZookeeperLockFactory.ZOOM_TOPOLOGY))
             .thenReturn(mutex)
-        Mockito.when(mutex.acquire(org.mockito.Matchers.anyLong(),
-                                   org.mockito.Matchers.anyObject()))
-               .thenReturn(true)
+
         HMSystem.ipCommand = mock(classOf[IP])
 
         val host = Host.newBuilder
@@ -256,8 +266,10 @@ class HaproxyTest extends MidolmanSpec
 
     override def afterTest(): Unit = {
         actorSystem.stop(hmSystem)
+
         val protoHostId = UUIDUtil.toProto(hostId)
-        backend.store.delete(classOf[Host], protoHostId)
+        HealthMonitor.zkLock(lockFactory)(
+            backend.store.delete(classOf[Host], protoHostId))
     }
 
     private def checkCreateNameSpace(hmName: String): Unit = {
