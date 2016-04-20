@@ -135,6 +135,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
                               { udp src srcPort.toShort dst dstPort.toShort } <<
                               { vxlan vni vni setPayload recircPayload }
         packet.setEthernet(outer)
+        recircPayload.setParent(outer)
         // Forget original flow keys, and reset the original match to
         // the encapsulation headers
         origMatch.clear()
