@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_582d1a45",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 1198,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-20T03:27:24Z",
+      "side": 1,
+      "message": "proceed",
+      "range": {
+        "startLine": 1198,
+        "startChar": 22,
+        "endLine": 1198,
+        "endChar": 29
+      },
+      "revId": "017e869ae919cb601c94553b0a8add2d842f01a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
