@@ -19,9 +19,13 @@ task clean(overwrite: true, type: Exec) {
 }
 
 task rpm(type: Exec) {
+    protobuf.tools.resolve()
+    environment PROTOC_EXECUTABLE: "${protobuf.tools.protoc.path}"
     commandLine './package.sh', 'rpm', project.rpmVersion, project.rpmRelease
 }
 
 task debian(type: Exec) {
+    protobuf.tools.resolve()
+    environment PROTOC_EXECUTABLE: "${protobuf.tools.protoc.path}"
     commandLine './package.sh', 'deb', project.debVersion
 }
