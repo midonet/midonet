@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -145,6 +146,46 @@ public class TestCondition {
         Assert.assertFalse(cond.matches(pktCtx));
         cond.outPortInv = false;
         Assert.assertTrue(cond.matches(pktCtx));
+    }
+
+    @Test
+    public void testInPortGroup() {
+        Condition cond = new Condition();
+        UUID portGroup = new UUID(rand.nextLong(), rand.nextLong());
+        Assert.assertTrue(cond.matches(pktCtx));
+        ArrayList<UUID> portGroups = new ArrayList<>();
+        portGroups.add(portGroup);
+        pktCtx.inPortGroups_$eq(portGroups);
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.inPortGroup = portGroup;
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.invInPortGroup = true;
+        Assert.assertFalse(cond.matches(pktCtx));
+        UUID portGroup2 = new UUID(rand.nextLong(), rand.nextLong());
+        cond.inPortGroup = portGroup2;
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.invInPortGroup = false;
+        Assert.assertFalse(cond.matches(pktCtx));
+    }
+
+    @Test
+    public void testOutPortGroup() {
+        Condition cond = new Condition();
+        UUID portGroup = new UUID(rand.nextLong(), rand.nextLong());
+        Assert.assertTrue(cond.matches(pktCtx));
+        ArrayList<UUID> portGroups = new ArrayList<>();
+        portGroups.add(portGroup);
+        pktCtx.outPortGroups_$eq(portGroups);
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.outPortGroup = portGroup;
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.invOutPortGroup = true;
+        Assert.assertFalse(cond.matches(pktCtx));
+        UUID portGroup2 = new UUID(rand.nextLong(), rand.nextLong());
+        cond.outPortGroup = portGroup2;
+        Assert.assertTrue(cond.matches(pktCtx));
+        cond.invOutPortGroup = false;
+        Assert.assertFalse(cond.matches(pktCtx));
     }
 
     @Test

@@ -162,7 +162,9 @@ abstract class RouterBase[IP <: IPAddr]()
             case Some(simRes) => return simRes
         }
 
-        context.outPortId = null // input port should be set already
+        // input port should be set already
+        context.outPortId = null
+        context.outPortGroups = null
 
         applyServicesInbound() match {
             case res if res.action == RuleResult.Action.CONTINUE =>
@@ -373,6 +375,7 @@ abstract class RouterBase[IP <: IPAddr]()
         }
 
         context.outPortId = outPort.id
+        context.outPortGroups = outPort.portGroups
         context.routeTo = rt
 
         applyServicesOutbound() match {

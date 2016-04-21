@@ -409,6 +409,7 @@ class Router(override val id: UUID,
                     egrPktContext.initialize(connTrackTxNoOp, natTxNoOp,
                                              NoOpNatLeaser, traceStateTxNoOp)
                     egrPktContext.outPortId = outPort.id
+                    egrPktContext.outPortGroups = outPort.portGroups
 
                     // Try to apply the outFilter
                     applyAllFilters(egrPktContext,

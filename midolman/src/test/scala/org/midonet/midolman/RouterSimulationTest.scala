@@ -528,6 +528,62 @@ class RouterSimulationTest extends MidolmanSpec {
         }
     }
 
+    scenario("Port group match") {
+        deleteRoute(upLinkRoute)
+
+        val portGroup1 = newPortGroup("test-pg1")
+        newPortGroupMember(portGroup1, port1)
+        val portGroup2 = newPortGroup("test-pg2")
+        newPortGroupMember(portGroup2, port2)
+
+        val fromMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val toMac = MAC.random
+        val toIp = addressInSegment(port2)
+
+        feedArpTable(simRouter, fromIp, fromMac)
+        feedArpTable(simRouter, toIp, toMac)
+
+        val port1dev = fetchDevice[RouterPort](port1)
+        val port2dev = fetchDevice[RouterPort](port2)
+        var pkt = { eth src fromMac dst port1dev.portMac } <<
+                  { ip4 src fromIp dst toIp } <<
+                  { icmp.echo request }
+
+        def validatePass = {
+            val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
+            simRes should be (AddVirtualWildcardFlow)
+            pktCtx.virtualFlowActions should contain (ToPortAction(port2))
+        }
+
+        def validateDrop = {
+            val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
+            simRes should be (Drop)
+        }
+
+        val postChain = newOutboundChainOnRouter("post_routing", router)
+
+        def newRule(isIn: Boolean, pg: UUID, action: RuleResult.Action) = {
+            val cond = new Condition()
+            if (isIn) {
+                cond.inPortGroup = pg
+            } else {
+                cond.outPortGroup = pg
+            }
+            newLiteralRuleOnChain(postChain, 1, cond, action)
+        }
+
+        validatePass
+        newRule(true, portGroup2, RuleResult.Action.DROP)  // should not match
+        validatePass
+        newRule(false, portGroup1, RuleResult.Action.DROP)  // should not match
+        validatePass
+        newRule(true, portGroup1, RuleResult.Action.DROP)
+        validateDrop
+        newRule(false, portGroup2, RuleResult.Action.ACCEPT)
+        validatePass
+    }
+
     private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,
                           fromIp: IPv4Addr, toIp: IPv4Addr, `type`: Byte,
                           code: Byte): Unit = {
