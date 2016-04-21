@@ -235,11 +235,13 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         if (isExterior && (portGroups ne null))
             c.portGroups = portGroups
         c.inPortId = id
+        c.inPortGroups = portGroups
         c.outPortId = null
     }
 
     override protected val preOut: SimHook = c => {
         c.outPortId = id
+        c.outPortGroups = portGroups
     }
 
     override def toString =

@@ -345,6 +345,8 @@ class PacketContext(val cookie: Long,
     def jlog = log.underlying
 
     var portGroups: ArrayList[UUID] = null
+    var inPortGroups: ArrayList[UUID] = null
+    var outPortGroups: ArrayList[UUID] = null
 
     var idle: Boolean = true
     var runs: Int = 0
