@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b0d436bd",
+        "filename": "tests/mdts/tests/functional_tests/run_tests.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-21T11:18:28Z",
+      "side": 1,
+      "message": "I think it is needed to quote the expression and not the \"-A ...\", according to the documentation examples and my manual testing: https://nose.readthedocs.org/en/latest/plugins/attrib.html#expression-evaluation",
+      "parentUuid": "baa041b7_9027f211",
+      "range": {
+        "startLine": 150,
+        "startChar": 88,
+        "endLine": 150,
+        "endChar": 93
+      },
+      "revId": "da39739ccba912260eb8e3e62307f0f3f0f91755",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f07cfeec",
         "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-21T10:50:06Z",
       "side": 1,
       "message": "I think we can leave just this one for gate:\n\ntest_vpnaas.py:test_ping_between_three_sites",
+      "range": {
+        "startLine": 307,
+        "startChar": 0,
+        "endLine": 307,
+        "endChar": 16
+      },
+      "revId": "da39739ccba912260eb8e3e62307f0f3f0f91755",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_90dc92e5",
+        "filename": "tests/mdts/tests/functional_tests/test_vpnaas.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-21T11:18:28Z",
+      "side": 1,
+      "message": "Ok, I will remove the others from gate",
+      "parentUuid": "baa041b7_f07cfeec",
       "range": {
         "startLine": 307,
         "startChar": 0,
