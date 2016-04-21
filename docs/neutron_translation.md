@@ -883,7 +883,9 @@ On the forward chain, add the following rules in the order specified:
 'add-router-ids' field contains a list of router IDs that the firewall is
 currently associated with.
 
-For each router associated, create a jump rule to the firewall chains.
+For each router associated, create a jump rule to the firewall chains
+with a condition which is true if either of input or output ports is
+a router interface.
 Currently the jump rule is the only rule which the translator can put into
 router forward chains.
 
