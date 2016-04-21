@@ -432,7 +432,8 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
         r.getAction shouldBe Action.DROP
     }
 
-    private def validateRouterJumpRule(chainId: Commons.UUID,
+    private def validateRouterJumpRule(routerId: Commons.UUID,
+                                       chainId: Commons.UUID,
                                        jumpRuleId: Commons.UUID,
                                        jumpChainId: Commons.UUID): Unit = {
         val chain = storage.get(classOf[Chain], chainId).await()
@@ -443,6 +444,13 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
         val fwJumpRule = storage.get(classOf[Rule], jumpRuleId).await()
         fwJumpRule.getAction shouldBe Action.JUMP
         fwJumpRule.getJumpRuleData.getJumpChainId shouldBe jumpChainId
+        val cond = fwJumpRule.getCondition
+        val pgId = PortManager.routerInterfacePortGroupId(routerId)
+        cond.getConjunctionInv shouldBe true
+        cond.getInPortGroupId shouldBe pgId
+        cond.getInvInPortGroup shouldBe true
+        cond.getOutPortGroupId shouldBe pgId
+        cond.getInvOutPortGroup shouldBe true
     }
 
     private def validateNoRouterJumpRule(chainId: Commons.UUID,
@@ -465,7 +473,8 @@ class FirewallTranslatorIT extends C3POMinionTestBase with ChainManager {
             r.hasOutboundFilterId shouldBe true
 
             // Check that the chains are jump rules to the firewall chains
-            validateRouterJumpRule(fwdRtrChainId, fwdChainFwJumpRuleId(r.getId),
+            validateRouterJumpRule(r.getId, fwdRtrChainId,
+                                   fwdChainFwJumpRuleId(r.getId),
                                    fwdChainId(fwIdProto))
         }
 
