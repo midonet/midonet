@@ -114,9 +114,16 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
             // make sure to check whether the association exists first.
             if (!storage.exists(classOf[Rule], fwdRuleId).await()) {
                 val (routerOps, chain) = ensureRouterFwdChain(rId)
+                val pg = PortManager.routerInterfacePortGroupId(rId)
+                val cond = anyFragCondition
+                    .setInPortGroupId(pg)
+                    .setInvInPortGroup(true)
+                    .setOutPortGroupId(pg)
+                    .setInvOutPortGroup(true)
+                    .setConjunctionInv(true).build
                 ops ++= routerOps
                 ops += Create(jumpRuleWithId(fwdRuleId, chain.getId,
-                                             fwdChainId(fw.getId)))
+                                             fwdChainId(fw.getId), cond))
                 ops += Update(chain.toBuilder.addRuleIds(fwdRuleId).build())
             }
         }
