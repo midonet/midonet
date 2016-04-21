@@ -158,7 +158,7 @@ project.ext {
 
         jcabi: "com.jcabi:jcabi-aspects:0.15.1",
         aspectj: "org.aspectj:aspectjrt:1.8.0",
-        protobuf: "com.google.protobuf:protobuf-java:2.6.1",
+        protobuf: "com.google.protobuf:protobuf-java:${versions.protobuf}",
         sbe: "uk.co.real-logic:sbe:1.0.3-RC2",
         disruptor: "com.lmax:disruptor:3.3.0",
         reflections: "org.reflections:reflections:0.9.10",
@@ -190,7 +190,7 @@ buildscript {
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
         classpath 'net.saliman:gradle-cobertura-plugin:2.2.8'
-        classpath 'com.andrewkroh.gradle:gradle-protobuf-plugin:0.3.0'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.6'
         classpath "com.github.nullstress:DependencyAnalysisPlugin:1.0.3"
     }
 }
@@ -252,6 +252,7 @@ idea.project {
 
 configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     apply plugin: 'java'
+    apply plugin: 'com.google.protobuf'
     apply plugin: 'net.saliman.cobertura'
     apply plugin: 'com.github.johnrengelman.shadow'
     apply from: "${rootProject.projectDir}/git.gradle"
@@ -439,6 +440,12 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         coverageDirs << file("midolman/build/classes/main")
         coverageDirs << file("cluster/midonet-cluster/build/classes/main")
         coverageFormats = ['html', 'xml']
+    }
+
+    protobuf {
+        protoc {
+            artifact = "com.google.protobuf:protoc:${versions.protobuf}"
+        }
     }
 }
 
