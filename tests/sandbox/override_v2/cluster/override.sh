@@ -18,6 +18,8 @@ sed -i "\$a JVM_OPTS=\"\$JVM_OPTS -Djava.rmi.server.hostname=$IPADDRESS\"" /etc/
 
 mn-conf set -t default <<EOF
 cluster.containers.scheduler_timeout="20s"
+cluster.loggers.org.midonet.cluster.root=DEBUG
+cluster.loggers.com.sun.jersey=INFO
 EOF
 
 # Run cluster
