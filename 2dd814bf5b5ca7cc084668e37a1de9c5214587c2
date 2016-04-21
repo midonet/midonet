@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f0e07ece",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterIPMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-21T10:24:21Z",
+      "side": 1,
+      "message": "Use something like:\n\norg.midonet.routing.bgp.bgp-router-$portId\"\n\nsuch that the logging can be changed with the loggers from mn-conf.",
+      "range": {
+        "startLine": 41,
+        "startChar": 37,
+        "endLine": 41,
+        "endChar": 59
+      },
+      "revId": "2dd814bf5b5ca7cc084668e37a1de9c5214587c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d0e7bae2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterIPMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-21T10:24:21Z",
+      "side": 1,
+      "message": "Nit: not needed, merge is thread safe, same below",
+      "range": {
+        "startLine": 55,
+        "startChar": 41,
+        "endLine": 55,
+        "endChar": 67
+      },
+      "revId": "2dd814bf5b5ca7cc084668e37a1de9c5214587c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b0eaf6aa",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterIPMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-21T10:24:21Z",
+      "side": 1,
+      "message": "Add @RunWith(classOf[JUnitRunner])",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 5
+      },
+      "revId": "2dd814bf5b5ca7cc084668e37a1de9c5214587c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
