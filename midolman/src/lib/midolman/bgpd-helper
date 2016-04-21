@@ -65,6 +65,14 @@ wait_for_all() {
     done
 }
 
+assign_addr() {
+    ip netns exec $namespace ip address add $router_ip dev n$iface
+}
+
+remove_addr() {
+    ip netns exec $namespace ip address del $router_ip dev n$iface
+}
+
 bgpd_prepare() {
     mkdir -p $socketdir
 
@@ -137,6 +145,8 @@ usage() {
     echo "Usage: $0 prepare INDEX LOCAL_VTY_IP REMOTE_VTY_IP ROUTER_IP ROUTER_MAC"
     echo "       $0 up INDEX VTY_PORT_NUMBER BGPD_CONFIG_FILE LOG_DIR"
     echo "       $0 down INDEX"
+    echo "       $0 add_addr INDEX INTERFACE_NAME ROUTER_IP"
+    echo "       $0 rem_addr INDEX INTERFACE_NAME ROUTER_IP"
     echo "experimental:"
     echo "       $0 quagga_up INDEX LOCAL_VTY_IP VTY_PORT_NUMBER BGPD_CONFIG_FILE ZEBRA_CONFIG_FILE LOG_DIR"
     exit 1
@@ -175,6 +185,24 @@ socketdir="/var/run/quagga"
 api_socket="$socketdir/zserv${index}.api"
 
 case "$1" in
+    rem_addr)
+        iface=$3
+        router_ip=$4
+        if [ -z "$iface" ] || [ -z "$router_ip" ] ; then
+            usage
+        fi
+        remove_addr
+        ;;
+
+    add_addr)
+        iface=$3
+        router_ip=$4
+        if [ -z "$iface" ] || [ -z "$router_ip" ] ; then
+            usage
+        fi
+        assign_addr
+        ;;
+
     prepare)
         local_vty_ip=$3
         remote_vty_ip=$4
