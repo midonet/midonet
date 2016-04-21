@@ -294,6 +294,10 @@ trait TopologyBuilder {
                            outPortInv: Option[Boolean] = None,
                            portGroup: Option[UUID] = None,
                            invPortGroup: Option[Boolean] = None,
+                           inPortGroup: Option[UUID] = None,
+                           invInPortGroup: Option[Boolean] = None,
+                           outPortGroup: Option[UUID] = None,
+                           invOutPortGroup: Option[Boolean] = None,
                            ipAddrGroupIdSrc: Option[UUID] = None,
                            invIpAddrGroupIdSrc: Option[Boolean] = None,
                            ipAddrGroupIdDst: Option[UUID] = None,
@@ -325,8 +329,11 @@ trait TopologyBuilder {
         val condBuilder = Condition.newBuilder()
         setConditionParameters(condBuilder, conjunctionInv, matchForwardFlow,
             matchReturnFlow, inPortIds, inPortInv,
-            outPortIds, outPortInv, portGroup,
-            invPortGroup, ipAddrGroupIdSrc,
+            outPortIds, outPortInv,
+            portGroup, invPortGroup,
+            inPortGroup, invInPortGroup,
+            outPortGroup, invOutPortGroup,
+            ipAddrGroupIdSrc,
             invIpAddrGroupIdSrc, ipAddrGroupIdDst,
             invIpAddrGroupIdDst, etherType,
             invDlType, ethSrc, ethSrcMask, invDlSrc,
@@ -355,6 +362,10 @@ trait TopologyBuilder {
                      outPortInv: Option[Boolean] = None,
                      portGroup: Option[UUID] = None,
                      invPortGroup: Option[Boolean] = None,
+                     inPortGroup: Option[UUID] = None,
+                     invInPortGroup: Option[Boolean] = None,
+                     outPortGroup: Option[UUID] = None,
+                     invOutPortGroup: Option[Boolean] = None,
                      ipAddrGroupIdSrc: Option[UUID] = None,
                      invIpAddrGroupIdSrc: Option[Boolean] = None,
                      ipAddrGroupIdDst: Option[UUID] = None,
@@ -387,8 +398,11 @@ trait TopologyBuilder {
 
         setConditionParameters(builder, conjunctionInv, matchForwardFlow,
                                matchReturnFlow, inPortIds, inPortInv,
-                               outPortIds, outPortInv, portGroup,
-                               invPortGroup, ipAddrGroupIdSrc,
+                               outPortIds, outPortInv,
+                               portGroup, invPortGroup,
+                               inPortGroup, invInPortGroup,
+                               outPortGroup, invOutPortGroup,
+                               ipAddrGroupIdSrc,
                                invIpAddrGroupIdSrc, ipAddrGroupIdDst,
                                invIpAddrGroupIdDst, etherType,
                                invDlType, ethSrc, ethSrcMask, invDlSrc,
@@ -412,6 +426,10 @@ trait TopologyBuilder {
                                          outPortInv: Option[Boolean] = None,
                                          portGroup: Option[UUID] = None,
                                          invPortGroup: Option[Boolean] = None,
+                                         inPortGroup: Option[UUID] = None,
+                                         invInPortGroup: Option[Boolean] = None,
+                                         outPortGroup: Option[UUID] = None,
+                                         invOutPortGroup: Option[Boolean] = None,
                                          ipAddrGroupIdSrc: Option[UUID] = None,
                                          invIpAddrGroupIdSrc: Option[Boolean] = None,
                                          ipAddrGroupIdDst: Option[UUID] = None,
@@ -464,6 +482,14 @@ trait TopologyBuilder {
             builder.setPortGroupId(portGroup.get.asProto)
         if (invPortGroup.isDefined)
             builder.setInvPortGroup(invPortGroup.get)
+        if (inPortGroup.isDefined)
+            builder.setInPortGroupId(inPortGroup.get.asProto)
+        if (invInPortGroup.isDefined)
+            builder.setInvInPortGroup(invInPortGroup.get)
+        if (outPortGroup.isDefined)
+            builder.setOutPortGroupId(outPortGroup.get.asProto)
+        if (invOutPortGroup.isDefined)
+            builder.setInvOutPortGroup(invOutPortGroup.get)
         if (ipAddrGroupIdSrc.isDefined)
             builder.setIpAddrGroupIdSrc(ipAddrGroupIdSrc.get.asProto)
         if (invIpAddrGroupIdSrc.isDefined)
