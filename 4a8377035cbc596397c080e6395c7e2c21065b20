@@ -16,6 +16,24 @@
       "revId": "4a8377035cbc596397c080e6395c7e2c21065b20",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9097f28f",
+        "filename": "tests/sandbox/override_v2/cluster/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-21T09:00:50Z",
+      "side": 1,
+      "message": "What do you mean: setting the logging level to debug?",
+      "parentUuid": "baa041b7_50ba8a24",
+      "revId": "4a8377035cbc596397c080e6395c7e2c21065b20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
