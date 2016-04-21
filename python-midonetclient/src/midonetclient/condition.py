@@ -56,6 +56,12 @@ class ConditionBase(object):
     def is_inv_port_group(self):
         return self._dto()['invPortGroup']
 
+    def is_inv_in_port_group(self):
+        return self._dto()['invInPortGroup']
+
+    def is_inv_out_port_group(self):
+        return self._dto()['invOutPortGroup']
+
     def is_inv_ip_addr_group_dst(self):
         return self._dto()['invIpAddrGroupDst']
 
@@ -125,6 +131,12 @@ class ConditionBase(object):
     def get_port_group(self):
         return self._dto()['portGroup']
 
+    def get_in_port_group(self):
+        return self._dto()['inPortGroup']
+
+    def get_out_port_group(self):
+        return self._dto()['outPortGroup']
+
     def get_ip_addr_group_dst(self):
         return self._dto()['ipAddrGroupDst']
 
@@ -142,6 +154,14 @@ class ConditionBase(object):
 
     def inv_port_group(self, inv_port_group):
         self._dto()['invPortGroup'] = inv_port_group
+        return self
+
+    def inv_in_port_group(self, inv_in_port_group):
+        self._dto()['invInPortGroup'] = inv_in_port_group
+        return self
+
+    def inv_out_port_group(self, inv_out_port_group):
+        self._dto()['invOutPortGroup'] = inv_out_port_group
         return self
 
     def inv_ip_addr_group_dst(self, inv_ip_addr_group_dst):
@@ -214,6 +234,14 @@ class ConditionBase(object):
 
     def port_group(self, port_group):
         self._dto()['portGroup'] = port_group
+        return self
+
+    def in_port_group(self, in_port_group):
+        self._dto()['inPortGroup'] = in_port_group
+        return self
+
+    def out_port_group(self, out_port_group):
+        self._dto()['outPortGroup'] = out_port_group
         return self
 
     def ip_addr_group_dst(self, ip_addr_group_dst):
