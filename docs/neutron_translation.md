@@ -305,6 +305,10 @@ For each router, create a port group.  These port groups are used to group
 ports on each edge router. The ports on the same port group on the edge router
 shares flow states required for connection tracking and dynamic NAT.
 
+For each router, create a port group for Neutron router interfaces.
+These port groups are used to group ports for Neutron router interfaces
+on each router.
+
 ### UPDATE
 
 If the router has 'gw_port_id' specified, the gateway must be (re)configured:
@@ -408,6 +412,8 @@ If the port is not on an uplink network:
    exceptional case where we do not want this SNAT rule applied even if the
    traffic ingresses into and egresses out of the same port.  Also add its
    matching reverse SNAT rule.
+ * Add the router port to the port group for Neutron router interfaces on
+   the router.
 
 
 If the port is on an uplink network, bind the router port according to the

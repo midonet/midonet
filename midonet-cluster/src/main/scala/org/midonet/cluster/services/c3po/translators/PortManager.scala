@@ -19,12 +19,13 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Delete, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Create, Delete, Update}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
@@ -35,6 +36,8 @@ import org.midonet.util.concurrent.toFutureOps
  * Contains port-related operations shared by multiple translator classes.
  */
 trait PortManager extends ChainManager with RouteManager {
+
+    protected val storage: ReadOnlyStorage
 
     protected def newTenantRouterGWPort(id: UUID,
                                         routerId: UUID,
@@ -183,6 +186,53 @@ trait PortManager extends ChainManager with RouteManager {
             Update(addrGrpBldr.build())
         }
     }
+
+    protected def newRouterInterfacePortGroup(routerId: UUID,
+                                              tenantId: String) = {
+        val pgId = PortManager.routerInterfacePortGroupId(routerId)
+        val name = PortManager.routerInterfacePortGroupName(routerId)
+        val portGroup = PortGroup.newBuilder.setId(pgId)
+                                            .setName(name)
+                                            .setTenantId(tenantId)
+                                            .setStateful(false)
+        portGroup
+    }
+
+    def ensureRouterInterfacePortGroup(routerId: UUID):
+            (OperationList, UUID) = {
+        val pgId = PortManager.routerInterfacePortGroupId(routerId)
+        try {
+            // common case
+            val pg = storage.get(classOf[PortGroup], pgId).await()
+            (List(), pgId)
+        } catch {
+            case ex: NotFoundException =>
+                // NOTE(yamamoto): A router created by an old version
+                // of translation doesn't have the port group.
+                val router = storage.get(classOf[Router], routerId).await()
+                val pg = newRouterInterfacePortGroup(routerId,
+                    router.getTenantId)
+                getRouterInterfacePorts(router).foreach(pg.addPortIds(_))
+                (List(Create(pg.build())), pgId)
+        }
+    }
+
+    private def getRouterInterfacePorts(router: Router): Seq[UUID] = {
+        val ports = router.getPortIdsList.asScala
+
+        ports.filter(isRouterInterfacePeer(_))
+    }
+
+    private def isRouterInterfacePeer(portId: UUID): Boolean = {
+        // Using routerInterfacePortPeerId in the opposite way.
+        val nPortId = PortManager.routerInterfacePortPeerId(portId)
+        val nPort = try {
+            storage.get(classOf[NeutronPort], nPortId).await()
+        } catch {
+            case ex: NotFoundException => return false
+        }
+        PortManager.isRouterInterfacePort(nPort)
+    }
 }
 
 object PortManager {
@@ -213,4 +263,11 @@ object PortManager {
       * port groups. */
     def portGroupId(deviceId: UUID): UUID =
         deviceId.xorWith(0x3fb30e769f5041f1L, 0xa50c3c4fb09a6a18L)
+
+    /** ID of port group for router interfaces of a router */
+    def routerInterfacePortGroupId(deviceId: UUID): UUID =
+        deviceId.xorWith(0x77e7c2e6ed0dbab5L, 0x245499dbae09aa26L)
+
+    def routerInterfacePortGroupName(id: UUID) =
+        "OS_PORT_GROUP_ROUTER_INTF_" + id.asJava
 }
