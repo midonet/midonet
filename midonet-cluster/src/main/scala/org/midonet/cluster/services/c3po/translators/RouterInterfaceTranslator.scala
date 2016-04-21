@@ -19,6 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.mutable
 
 import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
@@ -72,7 +73,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
 
         val ns = storage.get(classOf[NeutronSubnet], ri.getSubnetId).await()
 
-        val rtrPort = buildRouterPort(nPort, isUplink, ri, ns)
+        val (rtrPortOps, rtrPort) = buildRouterPort(nPort, isUplink, ri, ns)
 
         // Add a route to the Interface subnet.
         val routerInterfaceRouteId =
@@ -84,6 +85,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         val localRoute = newLocalRoute(rtrPort.getId, rtrPort.getPortAddress)
 
         val midoOps = new OperationListBuffer
+        midoOps ++= rtrPortOps
 
         // Convert Neutron/network port to router interface port if it isn't
         // already one.
@@ -187,12 +189,13 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
 
     private def buildRouterPort(nPort: NeutronPort, isUplink: Boolean,
                                 ri: NeutronRouterInterface,
-                                ns: NeutronSubnet): Port = {
+                                ns: NeutronSubnet): (OperationList, Port) = {
         // Router ID is given as the router interface's id.
         val routerId = ri.getId
 
         val routerPortId = routerInterfacePortPeerId(nPort.getId)
         val routerPortBldr = newRouterPortBldr(routerPortId, routerId)
+        val ops = new OperationListBuffer
 
         // Set the router port address. The port should have at most one IP
         // address. If it has none, use the subnet's default gateway.
@@ -211,6 +214,10 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
             routerPortBldr.addPortGroupIds(PortManager.portGroupId(routerId))
             assignTunnelKey(routerPortBldr, sequenceDispenser)
         } else {
+            val (pgOps, pgId) = ensureRouterInterfacePortGroup(routerId)
+            ops ++= pgOps
+            routerPortBldr.addPortGroupIds(pgId)
+
             // Connect the router port to the network port, which has the same
             // ID as nPort.
             routerPortBldr.setPeerId(nPort.getId)
@@ -226,8 +233,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
 
         routerPortBldr.setPortSubnet(ns.getCidr)
 
-
-        routerPortBldr.build()
+        (ops.toList, routerPortBldr.build())
     }
 
     private def createMetadataServiceRoute(routerPortId: UUID,
