@@ -19,6 +19,7 @@ package org.midonet.midolman.containers
 import java.util.UUID
 import java.util.concurrent._
 
+import scala.async.Async.async
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -290,11 +291,13 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
             val futures = for (instance <- instances.values().asScala) yield {
                 instance.handler match {
-                    case Some(handler) =>
+                    case Some(handler) => async {
                         deleteContainer(handler.cp).recover {
-                            case e => log.warn("Failed to delete container " +
-                                               s"${handler.cp}", e)
+                            case e =>
+                                log.warn("Failed to delete container " +
+                                         s"${handler.cp}", e)
                         }
+                    }
                     case None =>
                         // Ignore instance without a handler.
                         Future.successful(())
