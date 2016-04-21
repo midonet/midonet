@@ -58,6 +58,14 @@ public class Condition extends BaseConfig {
     public UUID portGroup;
     @ZoomField(name = "inv_port_group")
     public boolean invPortGroup;
+    @ZoomField(name = "in_port_group_id")
+    public UUID inPortGroup;
+    @ZoomField(name = "inv_in_port_group")
+    public boolean invInPortGroup;
+    @ZoomField(name = "out_port_group_id")
+    public UUID outPortGroup;
+    @ZoomField(name = "inv_out_port_group")
+    public boolean invOutPortGroup;
     @ZoomField(name = "ip_addr_group_id_src")
     public UUID ipAddrGroupIdSrc;
     @ZoomField(name = "inv_ip_addr_group_id_src")
@@ -225,6 +233,11 @@ public class Condition extends BaseConfig {
         IPAddr pmSrcIP = pktMatch.getNetworkSrcIP();
         IPAddr pmDstIP = pktMatch.getNetworkDstIP();
         if (!matchPortGroup(pktCtx.portGroups(), portGroup, invPortGroup))
+            return conjunctionInv;
+        if (!matchPortGroup(pktCtx.inPortGroups(), inPortGroup, invInPortGroup))
+            return conjunctionInv;
+        if (!matchPortGroup(pktCtx.outPortGroups(), outPortGroup,
+                            invOutPortGroup))
             return conjunctionInv;
         if (!matchPort(this.inPortIds, inPortId, this.inPortInv))
             return conjunctionInv;
@@ -412,6 +425,8 @@ public class Condition extends BaseConfig {
         }
 
         formatField(sb, invPortGroup, "port-group", portGroup);
+        formatField(sb, invInPortGroup, "in-port-group", inPortGroup);
+        formatField(sb, invOutPortGroup, "out-port-group", outPortGroup);
         formatField(sb, invIpAddrGroupIdSrc, "ip-src-group", ipAddrGroupIdSrc);
         formatField(sb, invIpAddrGroupIdDst, "ip-dst-group", ipAddrGroupIdDst);
         formatField(sb, invDlType, "ethertype", unsignShort(etherType));
@@ -447,6 +462,8 @@ public class Condition extends BaseConfig {
                 matchReturnFlow == c.matchReturnFlow &&
                 inPortInv == c.inPortInv && outPortInv == c.outPortInv &&
                 invPortGroup == c.invPortGroup &&
+                invInPortGroup == c.invInPortGroup &&
+                invOutPortGroup == c.invOutPortGroup &&
                 invIpAddrGroupIdDst == c.invIpAddrGroupIdDst &&
                 invIpAddrGroupIdSrc == c.invIpAddrGroupIdSrc &&
                 traversedDeviceInv == c.traversedDeviceInv &&
@@ -461,6 +478,8 @@ public class Condition extends BaseConfig {
                 Objects.equals(inPortIds, c.inPortIds) &&
                 Objects.equals(outPortIds, c.outPortIds) &&
                 Objects.equals(portGroup, c.portGroup) &&
+                Objects.equals(inPortGroup, c.inPortGroup) &&
+                Objects.equals(outPortGroup, c.outPortGroup) &&
                 Objects.equals(ipAddrGroupIdDst, c.ipAddrGroupIdDst) &&
                 Objects.equals(ipAddrGroupIdSrc, c.ipAddrGroupIdSrc) &&
                 Objects.equals(traversedDevice, c.traversedDevice) &&
@@ -481,11 +500,12 @@ public class Condition extends BaseConfig {
     public int hashCode() {
         return Objects.hash(
                 conjunctionInv, matchForwardFlow, matchReturnFlow,
-                inPortInv, outPortInv, invPortGroup,
+                inPortInv, outPortInv,
+                invPortGroup, invInPortGroup, invOutPortGroup,
                 invIpAddrGroupIdDst, invIpAddrGroupIdSrc,
                 invDlType, invDlSrc, invDlDst, ethSrcMask, dlDstMask,
                 nwTosInv, nwProtoInv, nwSrcInv, nwDstInv, tpSrcInv, tpDstInv,
-                inPortIds, outPortIds, portGroup,
+                inPortIds, outPortIds, portGroup, inPortGroup, outPortGroup,
                 ipAddrGroupIdDst, ipAddrGroupIdSrc, unsignShort(etherType),
                 ethSrc, ethDst, nwTos, nwProto, nwSrcIp, nwDstIp, tpSrc, tpDst,
                 traversedDevice, icmpDataSrcIp, icmpDataDstIp);
