@@ -213,4 +213,8 @@ object PortManager {
       * port groups. */
     def portGroupId(deviceId: UUID): UUID =
         deviceId.xorWith(0x3fb30e769f5041f1L, 0xa50c3c4fb09a6a18L)
+
+    /** ID of port group for router interfaces of a router */
+    def routerInterfacePortGroupId(deviceId: UUID): UUID =
+        deviceId.xorWith(0x77e7c2e6ed0dbab5L, 0x245499dbae09aa26L)
 }

@@ -212,6 +212,10 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
             routerPortBldr.addPortGroupIds(PortManager.portGroupId(routerId))
             assignTunnelKey(routerPortBldr, sequenceDispenser)
         } else {
+            // XXX create pg on demand
+            routerPortBldr.addPortGroupIds(
+                PortManager.routerInterfacePortGroupId(routerId))
+
             // Connect the router port to the network port, which has the same
             // ID as nPort.
             routerPortBldr.setPeerId(nPort.getId)

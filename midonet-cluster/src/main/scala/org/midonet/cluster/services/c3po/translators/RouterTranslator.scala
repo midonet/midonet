@@ -60,6 +60,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                                             .setTenantId(nr.getTenantId)
                                             .setStateful(true)
                                             .build()
+        val routerInterfacePortGroup = createRouterInterfacePortGroup(
+            nr.getId, nr.getTenantId)
 
         val gwPortOps = gatewayPortCreateOps(nr, r)
 
@@ -69,8 +71,20 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ops += Create(fwdChain)
         ops += Create(r)
         ops += Create(portGroup)
+        ops += Create(routerInterfacePortGroup)
         ops ++= gwPortOps
         ops.toList
+    }
+
+    def createRouterInterfacePortGroup(routerId: UUID, tenantId: String) = {
+        val pgId = PortManager.routerInterfacePortGroupId(routerId)
+        val name = routerInterfacePortGroupName(routerId)
+        val portGroup = PortGroup.newBuilder.setId(pgId)
+                                            .setName(name)
+                                            .setTenantId(tenantId)
+                                            .setStateful(false)
+                                            .build()
+        portGroup
     }
 
     override protected def translateDelete(id: UUID): OperationList = {
@@ -78,6 +92,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
              Delete(classOf[Chain], outChainId(id)),
              Delete(classOf[Chain], fwdChainId(id)),
              Delete(classOf[PortGroup], PortManager.portGroupId(id)),
+             Delete(classOf[PortGroup],
+                PortManager.routerInterfacePortGroupId(id)),
              Delete(classOf[Router], id))
     }
 
@@ -327,6 +343,9 @@ object RouterTranslator {
     def forwardChainName(id: UUID) = "OS_FORWARD_" + id.asJava
 
     def portGroupName(id: UUID) = "OS_PORT_GROUP_" + id.asJava
+
+    def routerInterfacePortGroupName(id: UUID) =
+        "OS_PORT_GROUP_ROUTER_INTF_" + id.asJava
 
     /** ID of tenant router port that connects to external network port. */
     def tenantGwPortId(providerGwPortId: UUID) =
