@@ -33,8 +33,16 @@ class Host(resource_base.ResourceBase):
     def get_id(self):
         return self.dto['id']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def get_name(self):
         return self.dto['name']
+
+    def name(self, name):
+        self.dto['name'] = name
+        return self
 
     def is_alive(self):
         return self.dto['alive']

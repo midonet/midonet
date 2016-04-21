@@ -367,6 +367,10 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_mirror()
 
+    def add_host(self):
+        self._ensure_application()
+        return self.app.add_host()
+
     def _set_op121(self, dhcp, rts):
         opt121_list = []
         for rt in rts:
