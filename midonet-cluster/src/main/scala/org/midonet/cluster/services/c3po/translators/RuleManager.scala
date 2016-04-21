@@ -60,6 +60,11 @@ trait RuleManager {
                                  toChain: UUID): Rule =
         jumpRuleBuilder(fromChain, toChain).setId(id).build()
 
+    protected def jumpRuleWithId(id: UUID, fromChain: UUID,
+                                 toChain: UUID, cond: Condition): Rule =
+        jumpRuleBuilder(fromChain, toChain).setId(id)
+            .setCondition(cond).build()
+
     protected def forwardFlowRuleBuilder(chainId: UUID): Rule.Builder =
         newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
