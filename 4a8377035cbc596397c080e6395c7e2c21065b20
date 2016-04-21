@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_50ba8a24",
+        "filename": "tests/sandbox/override_v2/cluster/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-21T08:54:43Z",
+      "side": 1,
+      "message": "Is this config necessary after the performance improvements you did?",
+      "revId": "4a8377035cbc596397c080e6395c7e2c21065b20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
