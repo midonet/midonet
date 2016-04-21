@@ -338,4 +338,4 @@ task testReport(type: TestReport, dependsOn: test) {
 
 test.finalizedBy(testReport)
 
-    preparePkg.dependsOn manpages
+preparePkg.dependsOn manpages
