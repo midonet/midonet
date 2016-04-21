@@ -60,6 +60,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                                             .setTenantId(nr.getTenantId)
                                             .setStateful(true)
                                             .build()
+        val routerInterfacePortGroup = newRouterInterfacePortGroup(
+            nr.getId, nr.getTenantId).build()
 
         val gwPortOps = gatewayPortCreateOps(nr, r)
 
@@ -69,6 +71,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ops += Create(fwdChain)
         ops += Create(r)
         ops += Create(portGroup)
+        ops += Create(routerInterfacePortGroup)
         ops ++= gwPortOps
         ops.toList
     }
@@ -78,6 +81,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
              Delete(classOf[Chain], outChainId(nr.getId)),
              Delete(classOf[Chain], fwdChainId(nr.getId)),
              Delete(classOf[PortGroup], PortManager.portGroupId(nr.getId)),
+             Delete(classOf[PortGroup],
+                PortManager.routerInterfacePortGroupId(nr.getId)),
              Delete(classOf[Router], nr.getId))
     }
 
