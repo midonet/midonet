@@ -45,6 +45,10 @@ class PoolMember(resource_base.ResourceBase,
     def get_status(self):
         return self.dto['status']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def pool_id(self, pool_id):
         self.dto['poolId'] = pool_id
         return self
