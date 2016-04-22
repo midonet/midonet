@@ -55,6 +55,10 @@ class TunnelZone(resource_base.ResourceBase):
             return vendor_media_type.\
                 APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def name(self, name):
         self.dto['name'] = name
         return self
