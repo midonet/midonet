@@ -165,16 +165,16 @@ def perf_flowstate():
     sender = BM.get_interface_on_vport('port_1')
     receiver = BM.get_interface_on_vport('port_2')
 
-    messages_per_second = 10
+    messages_per_second = 100
     delay = 1000000/messages_per_second
     try:
         sender.execute("hping3 -q -2 -i u%d --destport ++0 %s"
                        % (delay, VTM.get_fip_ip()))
         rcv_filter = 'udp and ip dst %s' % (receiver.get_ip())
         # check that we are still receiving traffic every minute for 60 minutes
-        for i in range(0, 60):
+        for i in range(0, 30):
             assert_that(receiver,
-                        receives(rcv_filter, within_sec(10)))
+                        receives(rcv_filter, within_sec(60)))
             time.sleep(60)
     finally:
         sender.execute("pkill hping3")
