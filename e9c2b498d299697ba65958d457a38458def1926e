@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_04de0411",
+        "filename": "tests/mdts/tests/functional_tests/run_tests.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-22T08:02:16Z",
+      "side": 0,
+      "message": "This \u0027:\u0027 was causing argument parsing troubles :)",
+      "range": {
+        "startLine": 55,
+        "startChar": 28,
+        "endLine": 55,
+        "endChar": 29
+      },
+      "revId": "e9c2b498d299697ba65958d457a38458def1926e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

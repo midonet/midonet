@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_44c52c3a",
+        "filename": "tests/mdts/tests/functional_tests/run_tests.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-22T08:02:16Z",
+      "side": 1,
+      "message": "This is just to be able to run the script from any directory, so it is easier to run and less error prone.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 7
+      },
+      "revId": "a3162b46840f8c63d881f92fc7180f3bbb62491b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
