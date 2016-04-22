@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_31a265af",
+        "filename": "tests/mdts/tests/functional_tests/test-attr.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-04-22T17:07:14Z",
+      "side": 1,
+      "message": "This line was added by error, since I generated the list and this test was being prepared for other issue. Removing it.",
+      "revId": "ac324da4e1389f60710fdf9905bc7a1c17589832",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
