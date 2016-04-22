@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_24d7c8ee",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "If you generate the redirect rule ID deterministically, this whole function becomes:\n\n  List(Delete(classOf[BgpPeer], bgpPeerId),\n       Delete(classOf[Rule], bgpRedirectRuleId(bgpPeer.getId)))",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c4e7fce2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "If you call chain.addRouterRedirectIds(router.getId), then Zoom will automatically update the router for you, and you don\u0027t need the router builder at all.\n\nVpnServiceTranslator has a similar block of code in the middle of translateCreate(). I think you can skip the router update there as well, including vpn_service_ids, as Zoom should handle both.\n\nNow these blocks are roughly similar, and you can replace them both with a function in ChainManager like this:\n\n  def ensureRedirectChain(router: RouterOrBuilder): (UUID, OperationList) \u003d {\n      if (router.hasLocalRedirectChainId) {\n          (router.getLocalRedirectChainId, List())\n      } else {\n          val id \u003d JUUID.randomUUID\n          val chain \u003d newChain(id, \"LOCAL_REDIRECT_\" + router.getId.asJava)\n          (id, Create(chain))\n      }\n  }",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 9
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_24a9087c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "I recommend generating this deterministically from bgpPeer.getId, to avoid having to dig for the ID when deleting.",
+      "range": {
+        "startLine": 107,
+        "startChar": 17,
+        "endLine": 107,
+        "endChar": 40
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_04b724d9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "TCP.PROTOCOL_NUMBER",
+      "range": {
+        "startLine": 112,
+        "startChar": 24,
+        "endLine": 112,
+        "endChar": 25
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_44dc0c12",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "Is this unsupported, or is it really a no-op?",
+      "range": {
+        "startLine": 120,
+        "startChar": 8,
+        "endLine": 120,
+        "endChar": 14
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_84557451",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "This can be List(), although if this operation is unsupported and we should never get here, as opposed to being a legitimate no-op, you should throw an exception indicating this.",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 18
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e4632040",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "Not needed if you use Zoom binding, in which case the whole function can be simplified to:\n\n  val router \u003d storage.get(classOf[Router], speaker.getRouterid).await()\n  router.getBgpNetworkIdsList.map(Delete(classOf[BgpNetwork], _))",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 34
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_44788cf2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "That\u0027s a lot of ports. How about:\n\n  val rPorts \u003d storage.getAll(classOf[Port], router.getPortIds).await()\n  val rPortPeerIds \u003d rPorts.map(_.getPeerId)\n  val nPorts \u003d storage.getAll(classOf[NeutronPort], rPortPeerIds).await()\n  val subIds \u003d nPorts.map(_.getFixedIpsList.get(0).getSubnetId)",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 75
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_64fef039",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "As noted above, you can automate the Router \u003c-\u003e BGPNetwork relationship with a Zoom binding, in which case this can be shortened to:\n\n  ops +\u003d Create(makeBgpNetwork(router.getId, sub.getCidr, sub.getNetworkId)\n\nOr replace the whole for loop with:\n  ops ++\u003d for (sub \u003c- subs) yield \n     Create(...)",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 33
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_04616439",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "The savings aren\u0027t quite as dramatic here, but if you generate this deterministically, you don\u0027t have to fetch the container in translateDelete().",
+      "range": {
+        "startLine": 115,
+        "startChar": 19,
+        "endLine": 115,
+        "endChar": 35
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_242b4896",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "How about:\n\n  val bgpNetworkId \u003d bgpNetworkId(nPort.getNetworkId)\n  if (rtr.getBgpNetworkIdsList.contains(bgpNetworkId))\n    midoOps +\u003d Delete(classOf[BgpNetwork], bgpNetworkId)",
+      "range": {
+        "startLine": 184,
+        "startChar": 0,
+        "endLine": 188,
+        "endChar": 13
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ffff29ff",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-04-22T09:46:05Z",
+      "side": 1,
+      "message": "Isn\u0027t this the same BgpNetwork that you create when creating the router interface port?",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 9
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
