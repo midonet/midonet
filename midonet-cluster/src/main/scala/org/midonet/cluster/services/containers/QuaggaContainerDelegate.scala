@@ -24,8 +24,8 @@ import org.midonet.cluster.services.MidonetBackend
 
 import org.midonet.containers.{Container, Containers}
 
-@Container(name = Containers.IPSEC_CONTAINER, version = 1)
-class IPSecContainerDelegate @Inject()(backend: MidonetBackend)
+@Container(name = Containers.QUAGGA_CONTAINER, version = 1)
+class QuaggaContainerDelegate @Inject()(backend: MidonetBackend)
     extends DatapathBoundContainerDelegate(backend) {
-    override def name = "vpn"
+    override def name = "bgp"
 }
