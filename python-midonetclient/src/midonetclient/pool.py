@@ -62,6 +62,10 @@ class Pool(resource_base.ResourceBase,
         vips = [vip.VIP(self.dto['vips'], v, self.auth) for v in vips]
         return vips
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def load_balancer_id(self, load_balancer_id):
         self.dto['loadBalancerId'] = load_balancer_id
         return self

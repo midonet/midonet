@@ -54,6 +54,10 @@ class HealthMonitor(resource_base.ResourceBase,
         pools = [pool.Pool(self.dto['pools'], p, self.auth) for p in pools]
         return pools
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def delay(self, delay):
         self.dto['delay'] = delay
         return self

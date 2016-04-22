@@ -63,6 +63,10 @@ class Route(resource_base.ResourceBase):
     def get_weight(self):
         return self.dto['weight']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def attributes(self, attributes):
         self.dto['attributes'] = attributes
         return self
