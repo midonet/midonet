@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_31ef0589",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/DatapathBoundContainerDelegate.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-22T18:50:47Z",
+      "side": 1,
+      "message": "make this a def here, as well as where you override it, otherwise the logger will be null, because the logger variable is initialized before the ones in the derived classes",
+      "range": {
+        "startLine": 42,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 7
+      },
+      "revId": "d932e20a90bb3bc9a0840d8e4d72314e96505bd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
