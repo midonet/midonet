@@ -28,6 +28,7 @@ import com.sun.jersey.guice.JerseyServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValueFactory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -148,10 +149,18 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         }
 
         Config zkConf = zkConfToConfig(zkCfg);
+        MidoNodeConfigurator configurator = MidoNodeConfigurator.apply(zkConf);
         ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
-            MidoNodeConfigurator.apply(zkConf).runtimeConfig(clusterNodeId)));
+            configurator.runtimeConfig(clusterNodeId)));
         bind(ClusterConfig.class).toInstance(clusterConf);
         bind(TranslatorsConfig.class).toInstance(clusterConf.translators());
+
+        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults().
+            setComments(false).
+            setOriginComments(false).
+            setFormatted(true);
+        log.info("Loaded configuration: {}",
+                 configurator.dropSchema(clusterConf.conf()).root().render(renderOpts));
 
         bind(ClusterNode.Context.class).toInstance(
             new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
