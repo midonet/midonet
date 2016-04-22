@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_d00fbadf",
+        "filename": "tests/ci-gate.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-22T08:03:12Z",
+      "side": 1,
+      "message": "I don\u0027t like this. It makes it hard to see what tests are running in the gate. Isn\u0027t it possible for nose to exclude a test if it\u0027s called directly but tagged with flakey?",
+      "range": {
+        "startLine": 3,
+        "startChar": 44,
+        "endLine": 3,
+        "endChar": 45
+      },
+      "revId": "da39739ccba912260eb8e3e62307f0f3f0f91755",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9027f211",
         "filename": "tests/mdts/tests/functional_tests/run_tests.sh",
         "patchSetId": 3
