@@ -283,6 +283,8 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
 
     "Neutron VIP Delete" should "delete a Midonet VIP." in {
         bind(vipId, midoVip())
+        bind(vipId, neutronVip())
+
         val midoOps = translator.translate(
                 Delete(classOf[NeutronVIP], vipId))
 
@@ -293,7 +295,9 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
     it should "also delete an ARP entry when VIP is associated with a " +
     "gateway port" in {
         bind(vipId, midoVip(gwPortId = gwPortId))
+        bind(vipId, neutronVip())
         bind(gwPortId, neutronRouterGwPort)
+
         val midoOps = translator.translate(
                 Delete(classOf[NeutronVIP], vipId))
 

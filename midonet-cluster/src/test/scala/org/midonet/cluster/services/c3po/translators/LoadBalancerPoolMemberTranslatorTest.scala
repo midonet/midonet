@@ -120,6 +120,7 @@ class LoadBalancerPoolMemberTranslatorTest extends TranslatorTestBase {
     }
 
     "Deletion of a Neutron Member" should "delete the MidoNet Member" in {
+        bind(memberId, nMember)
         val midoOps = translator.translate(
                 Delete(classOf[NeutronLoadBalancerPoolMember], memberId))
         midoOps should contain only Delete(classOf[PoolMember], memberId)
