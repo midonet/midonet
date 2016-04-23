@@ -277,7 +277,7 @@ def ping_to_inet(count=5, interval=1, port=2, retries=3):
         LOG.debug("BGP: failed ping to inet... (%d retries left)" % retries)
         ping_to_inet(count, interval, port, retries-1)
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
 def test_icmp_multi_add_uplink_1():
@@ -301,7 +301,7 @@ def test_icmp_multi_add_uplink_1():
     add_bgp([uplink2_session1], route_direct)
     ping_to_inet() # BGP #1 and #2 working
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
 def test_icmp_multi_add_uplink_2():
@@ -318,7 +318,7 @@ def test_icmp_multi_add_uplink_2():
     add_bgp([uplink1_session1], route_direct)
     ping_to_inet() # BGP #1 and #2 are working
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
 def test_icmp_remove_uplink_1():
@@ -338,7 +338,7 @@ def test_icmp_remove_uplink_1():
     clear_bgp_peer(p1, 5)
     ping_to_inet() # only BGP #2 is working
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
 def test_icmp_remove_uplink_2():
@@ -355,11 +355,10 @@ def test_icmp_remove_uplink_2():
     clear_bgp_peer(p2, 5)
     ping_to_inet() # only BGP #1 is working
 
-@nottest #MI-593
-@attr(version="v1.2.0", slow=True)
+# FIXME: see issue MI-593
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
-@nottest
 def test_icmp_failback():
     """
     Title: BGP failover/failback
@@ -416,7 +415,7 @@ def test_icmp_failback():
     await_internal_route_exported(64513, 64512)
     ping_to_inet()  # BGP #2 is back
 
-@attr(version="v1.2.0", slow=True)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
 def test_snat():
@@ -444,7 +443,7 @@ def test_snat():
         unset_filters('router-000-001')
 
 
-@attr(version="v1.2.0", slow=True)
+@attr(version="v1.2.0")
 @bindings(binding_snat_1, binding_snat_2, binding_snat_3)
 @with_setup(None, clear_bgp)
 def test_mn_1172():
@@ -515,9 +514,10 @@ def test_multisession_icmp_remove_session():
 
     ping_to_inet()
 
+# FIXME: see issue MI-685
+@attr(version="v1.2.0")
 @bindings(binding_multisession_direct, binding_multisession_indirect)
 @with_setup(None, clear_bgp)
-@nottest # MI-685
 def test_multisession_icmp_failback():
     """
     Title: BGP session failover/failback
@@ -569,9 +569,10 @@ def test_multisession_icmp_failback():
 
     ping_to_inet()  # BGP #2 is back
 
+# FIXME: see issue MI-186
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 @with_setup(None, clear_bgp)
-@nottest # MI-186
 def test_multisession_icmp_with_redundancy():
     """
     Title: BGP adding double session redundancy to two uplinks
