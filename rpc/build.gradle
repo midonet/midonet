@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-apply plugin: 'protobuf'
 apply plugin: 'java'
+
+dependencies {
+    compile libraries.protobuf
+}
 
 jar {
     manifest {
