@@ -82,12 +82,15 @@ object ClusterNode extends App {
 
     val configurator = if (args.length > 0) {
         val configFile = args(0)
+        val configTemplate = args(1)
         log info s"Loading configuration: $configFile"
         if (!Files.isReadable(Paths.get(configFile))) {
             System.err.println(s"Configuration file is not readable $configFile")
             System.exit(1)
         }
-        MidoNodeConfigurator(configFile)
+        val configurator = MidoNodeConfigurator(configFile)
+        configurator.assignTemplate(nodeId, configTemplate)
+        configurator
     } else {
         val config = MidoNodeConfigurator.bootstrapConfig()
         log info "Loading default configuration"

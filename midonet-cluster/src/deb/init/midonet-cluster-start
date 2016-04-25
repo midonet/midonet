@@ -16,6 +16,17 @@
 
 set -e
 
+CONF_TEMPLATE="default"
+
+while getopts ":t:" opt; do
+    case $opt in
+    t)
+        CONF_TEMPLATE=$OPTARG
+        ;;
+    esac
+done
+
+
 exec >> /var/log/midonet-cluster/upstart-stderr.log
 exec 2>&1
 
@@ -53,4 +64,4 @@ if [ "xyes" = "x$DEBUG" ] ; then
 fi
 
 exec $JAVA $JAVA_LIBRARY_PATH  \
- -cp $MIDO_ETC:$MIDO_JAR:$MIDO_ADDONS/* $JAVA_OPTS $MIDO_MAIN $MIDO_CFG/$MIDO_CFG_FILE
+ -cp $MIDO_ETC:$MIDO_JAR:$MIDO_ADDONS/* $JAVA_OPTS $MIDO_MAIN $MIDO_CFG/$MIDO_CFG_FILE $CONF_TEMPLATE

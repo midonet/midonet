@@ -7,3 +7,5 @@ POST_DIR=/var/lib/dpkg/info
 install -d /var/log/$NAME $DATADIR
 
 test -e /etc/init.d/midolman || ln -s /lib/init/upstart-job /etc/init.d/midolman
+test -e /etc/init.d/midonet-cluster && rm -rf /etc/init.d/midonet-cluster
+test -e /etc/init/midonet-cluster.conf && rm -rf /etc/init/midonet-cluster.conf

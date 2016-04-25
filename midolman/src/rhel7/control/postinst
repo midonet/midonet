@@ -45,3 +45,4 @@ usermod -G quagga $USER
 
 systemctl preset midolman.service
 systemctl enable midolman.service
+systemctl disable midonet-cluster.service
