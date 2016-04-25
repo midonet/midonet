@@ -19,6 +19,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0051490e",
+        "filename": "midolman/src/main/scala/org/midonet/containers/QuaggaContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-25T14:44:24Z",
+      "side": 1,
+      "message": "Btw, related to my previous comments: are we sure we don\u0027t need to send a BgpContainerDeleted message to the RoutingManagerActor here? How will we detect when a container is migrated *from* this host, either because of a failure or because the container is migrated manually?\n\nWell, of course you can add this later, if needed.",
+      "range": {
+        "startLine": 67,
+        "startChar": 17,
+        "endLine": 67,
+        "endChar": 23
+      },
+      "revId": "36b776a30e09b0dad8a272e48622112f65b8c25d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e5e8b77e",
         "filename": "midolman/src/main/scala/org/midonet/containers/QuaggaContainer.scala",
         "patchSetId": 3
