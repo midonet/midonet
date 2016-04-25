@@ -30,7 +30,6 @@ import com.typesafe.scalalogging.Logger
 
 import org.slf4j.{LoggerFactory, MDC}
 
-import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
@@ -178,7 +177,6 @@ class PacketWorkflow(
             val natStateTable: FlowStateTable[NatKey, NatBinding],
             val traceStateTable: FlowStateTable[TraceKey, TraceContext],
             val peerResolver: PeerResolver,
-            val storage: Future[FlowStateStorage[ConnTrackKey, NatKey]],
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val flowRecorder: FlowRecorder,
@@ -208,12 +206,11 @@ class PacketWorkflow(
             connTrackStateTable,
             natStateTable,
             traceStateTable,
-            storage,
             hostId,
             peerResolver,
             dpState,
             this,
-            config.datapath.controlPacketTos)
+            config)
 
     protected val datapathId = dpState.datapath.getIndex
 
@@ -499,7 +496,7 @@ class PacketWorkflow(
     private def applyState(context: PacketContext): Unit = {
         context.log.debug("Applying connection state")
         replicator.accumulateNewKeys(context)
-        replicator.touchState()
+        replicator.touchState(context)
         context.commitStateTransactions()
     }
 

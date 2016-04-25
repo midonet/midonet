@@ -201,13 +201,17 @@ def expect_return_dropped(dst_port_no):
 def stop_midolman_agents():
     agents = service.get_all_containers('midolman')
     for agent in agents:
-        agent.stop(wait=True)
+        agent.stop()
+    for agent in agents:
+        agent.wait_for_status("down")
 
 
 def start_midolman_agents():
     agents = service.get_all_containers('midolman')
     for agent in agents:
-        agent.start(wait=True)
+        agent.start()
+    for agent in agents:
+        agent.wait_for_status("up")
 
 
 def restart_midolman_agents():
@@ -299,7 +303,7 @@ def test_distributed_l4_port_binding():
     check_forward_flow(port_num)
     check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
 
-    reboot_agents(5)
+    reboot_agents(0)
 
     check_return_flow(left_uplink_port(), left_uplink_iface(), port_num, retries=10)
 

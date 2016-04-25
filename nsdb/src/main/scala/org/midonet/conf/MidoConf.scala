@@ -297,7 +297,8 @@ object MidoTestConfigurator {
         overrides.withFallback(
             new ResourceConf(s"org/midonet/conf/schemas/agent.conf").get).withFallback(
                 new ResourceConf(s"org/midonet/conf/schemas/nsdb.conf").get).withFallback(
-                    MidoNodeConfigurator.bootstrapConfig())
+                    new ResourceConf(s"org/midonet/conf/schemas/cluster.conf").get).withFallback(
+                        MidoNodeConfigurator.bootstrapConfig())
     }
 
     def forClusters(): Config = forClusters(ConfigFactory.empty)
