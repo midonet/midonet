@@ -22,5 +22,6 @@ package org.midonet.containers;
 public class Containers {
 
     public static final String IPSEC_CONTAINER = "IPSEC";
+    public static final String QUAGGA_CONTAINER = "QUAGGA";
 
 }
