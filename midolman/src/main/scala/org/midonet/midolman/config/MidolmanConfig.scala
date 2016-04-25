@@ -94,6 +94,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val openstack = new OpenStackConfig(conf, schema)
     val flowHistory = new FlowHistoryConfig(conf, schema)
     val containers = new ContainerConfig(conf, schema)
+    val flowState = new FlowStateConfig(conf, schema)
 }
 
 class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
@@ -216,4 +217,10 @@ class IPSecContainerConfig(val conf: Config, val schema: Config) extends TypeFai
                                      TimeUnit.MILLISECONDS) millis
     def statusUpdateInterval = getDuration(s"$prefix.status_update_interval",
                                            TimeUnit.MILLISECONDS) millis
+}
+
+class FlowStateConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    val prefix = "cluster.flowstate"
+
+    def port = getInt(s"$prefix.port")
 }
