@@ -90,9 +90,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     var counter: StatisticalCounter = null
 
     @Inject
-    var storageFactory: FlowStateStorageFactory = null
-
-    @Inject
     var clock: NanoClock = null
 
     @Inject
@@ -164,7 +161,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         val traceShard = traceStateTable.addShard(
             log = shardLogger(traceStateTable))
         val backChannelProcessor = backChannel.registerProcessor()
-        val storage = storageFactory.create
         Props(new PacketWorkflow(
             NUM_WORKERS,
             index,
@@ -181,7 +177,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             natShard,
             traceShard,
             peerResolver,
-            storage,
             natLeaser,
             metrics,
             flowRecorder,
