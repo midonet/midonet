@@ -16,17 +16,16 @@
 
 package org.midonet.midolman.state
 
+import java.net.{InetAddress, DatagramPacket, DatagramSocket}
 import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JIterator, Set => JSet, UUID}
-
-import scala.concurrent.{ExecutionContext, Future}
 
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
-import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState._
@@ -37,11 +36,10 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.packets.NatState.NatBinding
-import org.midonet.packets.{SbeEncoder, Ethernet}
+import org.midonet.packets.{FlowStateEthernet, SbeEncoder, Ethernet}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
-import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
 
 /**
@@ -94,33 +92,33 @@ class FlowStateReplicator(
         conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
         natTable: FlowStateTable[NatKey, NatBinding],
         traceTable: FlowStateTable[TraceKey, TraceContext],
-        storageFuture: Future[FlowStateStorage[ConnTrackKey, NatKey]],
         hostId: UUID,
         peerResolver: PeerResolver,
         underlay: UnderlayResolver,
         flowInvalidation: FlowTagIndexer,
-        tos: Byte) {
+        config: MidolmanConfig) {
     import FlowStateAgentPackets._
 
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     private val flowStateEncoder = new SbeEncoder
 
+    /* Used for sending flow state messages to minion */
+    private val flowStateSocket = new DatagramSocket()
+    private val flowStatePacket =
+        new DatagramPacket(Array.emptyByteArray, 0,
+                           InetAddress.getLoopbackAddress, config.flowState.port)
+
     /* Used for message building */
     private[this] var txIngressPort: UUID = _
     private[this] val txPeers: JSet[UUID] = new JHashSet[UUID]()
     private[this] val txPorts: JSet[UUID] = new JHashSet[UUID]()
-
-    private[this] var storage: FlowStateStorage[ConnTrackKey, NatKey] = _
-
-    storageFuture.onSuccess { case s => storage = s }(ExecutionContext.callingThread)
+    private[this] val tos = config.datapath.controlPacketTos
 
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
                            v: ConnTrackValue): ArrayList[Callback0] = {
-            log.debug("touch conntrack key: {}", k)
-            if (storage ne null)
-                storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
+            log.debug("touch conntrack key callback for unref: {}", k)
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = conntrackTable.unref(k)
@@ -142,9 +140,7 @@ class FlowStateReplicator(
     private val _natAdder = new Reducer[NatKey, NatBinding, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: NatKey,
                            v: NatBinding): ArrayList[Callback0] = {
-            log.debug("touch nat key: {}", k)
-            if (storage ne null)
-                storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
+            log.debug("touch nat key callback for unref: {}", k)
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = natTable.unref(k)
@@ -247,7 +243,11 @@ class FlowStateReplicator(
                           context.traceKeyForEgress, context.traceContext)
         } else {
             flowStateMessage.traceCount(0)
+            flowStateMessage.traceRequestIdsCount(0)
         }
+
+        val p = flowStateMessage.portIdsCount(1)
+        portIdsToSbe(context.inputPort, context.outPorts, p.next)
 
         context.stateMessageLength = flowStateEncoder.encodedLength
         hostsToActions(txPeers, context.stateActions)
@@ -267,9 +267,11 @@ class FlowStateReplicator(
         }
     }
 
-    def touchState(): Unit =
-        if (storage ne null)
-            storage.submit()
+    def touchState(context: PacketContext): Unit = {
+        log.debug("Sending flow state message to cluster.")
+        flowStatePacket.setData(context.stateMessage, 0, context.stateMessageLength)
+        flowStateSocket.send(flowStatePacket)
+    }
 
     private def acceptNewState(msg: FlowStateSbe) {
         val conntrackIter = msg.conntrack

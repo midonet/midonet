@@ -26,6 +26,7 @@ import org.openjdk.jmh.infra.Blackhole
 
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.state.ConnTrackState._
@@ -96,12 +97,11 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         macTable.add(rightMac, rightPortId)
         replicator = new FlowStateReplicator(conntrackTable, natTable,
                                              traceTable,
-                                             Future.successful(new MockStateStorage),
                                              hostId,
                                              peerResolver,
                                              underlayResolver,
                                              mockFlowInvalidation,
-                                             0)
+                                             MidolmanConfig.forTests)
         packetContext = packetContextFor(packet, leftPortId)
     }
 
