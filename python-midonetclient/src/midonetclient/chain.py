@@ -28,6 +28,10 @@ class Chain(resource_base.ResourceBase):
     def __init__(self, uri, dto, auth):
         super(Chain, self).__init__(uri, dto, auth)
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def name(self, name):
         self.dto['name'] = name
         return self

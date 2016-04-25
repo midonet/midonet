@@ -35,6 +35,10 @@ class LoadBalancer(resource_base.ResourceBase,
     def get_router_id(self):
         return self.dto['routerId']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def router_id(self, router_id):
         self.dto['routerId'] = router_id
         return self
