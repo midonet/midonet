@@ -22,6 +22,30 @@
       "revId": "d932e20a90bb3bc9a0840d8e4d72314e96505bd2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0a784a8e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/DatapathBoundContainerDelegate.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T03:52:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_31ef0589",
+      "range": {
+        "startLine": 42,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 7
+      },
+      "revId": "d932e20a90bb3bc9a0840d8e4d72314e96505bd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
