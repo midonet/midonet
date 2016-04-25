@@ -43,6 +43,7 @@ import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.ClusterProcess;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendModule;
@@ -226,6 +227,8 @@ public class Midolman {
         if (config.lockMemory())
             lockMemory();
 
+        ClusterProcess.start();
+
         initializationPromise.success(true);
         log.info("main finish");
 
@@ -234,6 +237,8 @@ public class Midolman {
 
     private void doServicesCleanup() {
         log.info("SHUTTING DOWN");
+
+        ClusterProcess.stop();
 
         if (injector == null)
             return;
