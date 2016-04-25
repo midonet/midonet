@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cd $(dirname $(readlink -f $0))
+cd $(dirname $0)
 
 usage()
 {
