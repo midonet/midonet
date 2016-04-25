@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6aba3625",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T08:18:45Z",
+      "side": 1,
+      "message": "nice, done.",
+      "parentUuid": "baa041b7_24d7c8ee",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c4e7fce2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-22T09:46:05Z",
       "side": 1,
       "message": "If you call chain.addRouterRedirectIds(router.getId), then Zoom will automatically update the router for you, and you don\u0027t need the router builder at all.\n\nVpnServiceTranslator has a similar block of code in the middle of translateCreate(). I think you can skip the router update there as well, including vpn_service_ids, as Zoom should handle both.\n\nNow these blocks are roughly similar, and you can replace them both with a function in ChainManager like this:\n\n  def ensureRedirectChain(router: RouterOrBuilder): (UUID, OperationList) \u003d {\n      if (router.hasLocalRedirectChainId) {\n          (router.getLocalRedirectChainId, List())\n      } else {\n          val id \u003d JUUID.randomUUID\n          val chain \u003d newChain(id, \"LOCAL_REDIRECT_\" + router.getId.asJava)\n          (id, Create(chain))\n      }\n  }",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 9
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2a066ece",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T08:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c4e7fce2",
       "range": {
         "startLine": 83,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2a830e58",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T08:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_24a9087c",
+      "range": {
+        "startLine": 107,
+        "startChar": 17,
+        "endLine": 107,
+        "endChar": 40
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_04b724d9",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4ab5322f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T08:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_04b724d9",
+      "range": {
+        "startLine": 112,
+        "startChar": 24,
+        "endLine": 112,
+        "endChar": 25
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_44dc0c12",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
         "patchSetId": 2
@@ -105,6 +201,30 @@
       "writtenOn": "2016-04-22T09:46:05Z",
       "side": 1,
       "message": "Is this unsupported, or is it really a no-op?",
+      "range": {
+        "startLine": 120,
+        "startChar": 8,
+        "endLine": 120,
+        "endChar": 14
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_aafa7ebb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T08:18:45Z",
+      "side": 1,
+      "message": "For right now, it\u0027s a no-op. We support it in theory, but nothing to do on an update right now.",
+      "parentUuid": "baa041b7_44dc0c12",
       "range": {
         "startLine": 120,
         "startChar": 8,
@@ -151,6 +271,30 @@
       "writtenOn": "2016-04-22T09:46:05Z",
       "side": 1,
       "message": "Not needed if you use Zoom binding, in which case the whole function can be simplified to:\n\n  val router \u003d storage.get(classOf[Router], speaker.getRouterid).await()\n  router.getBgpNetworkIdsList.map(Delete(classOf[BgpNetwork], _))",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 34
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_aa215e4f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T08:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e4632040",
       "range": {
         "startLine": 90,
         "startChar": 0,
@@ -232,6 +376,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4aff72aa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpSpeakerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T08:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_04616439",
+      "range": {
+        "startLine": 115,
+        "startChar": 19,
+        "endLine": 115,
+        "endChar": 35
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_242b4896",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 2
@@ -255,6 +423,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2a642e20",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T08:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_242b4896",
+      "range": {
+        "startLine": 184,
+        "startChar": 0,
+        "endLine": 188,
+        "endChar": 13
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ffff29ff",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 2
@@ -266,6 +458,30 @@
       "writtenOn": "2016-04-22T09:46:05Z",
       "side": 1,
       "message": "Isn\u0027t this the same BgpNetwork that you create when creating the router interface port?",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 9
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ea6d2605",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-25T08:18:45Z",
+      "side": 1,
+      "message": "yes, but as I understand it, this code is for the case where a port is created then later turned into a router interface, whereas the PortTranslator case is for when we create a port with the type already set to router interface.",
+      "parentUuid": "baa041b7_ffff29ff",
       "range": {
         "startLine": 121,
         "startChar": 0,
