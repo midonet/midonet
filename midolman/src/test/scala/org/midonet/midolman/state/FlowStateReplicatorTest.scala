@@ -35,6 +35,7 @@ import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.{HostRequestProxy, UnderlayResolver}
 import org.midonet.midolman.datapath.StatePacketExecutor
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
@@ -174,6 +175,8 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
     }
 
     val conntrackDevice = UUID.randomUUID()
+
+    val midolmanConfig = MidolmanConfig.forTests
 
     override def beforeTest(): Unit = {
         ingressPortNoGroup = makePort(hostId)
@@ -573,9 +576,8 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         val natTable = new MockFlowStateTable[NatKey, NatBinding]()
         val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
     } with FlowStateReplicator(conntrackTable, natTable, traceTable,
-                               Future.successful(new MockStateStorage),
                                hostId, peerResolver, underlay,
-                               mockFlowInvalidation, 0) {
+                               mockFlowInvalidation, midolmanConfig) {
 
         override def resolvePeers(ingressPort: UUID,
                                   egressPorts: ArrayList[UUID],

@@ -276,7 +276,6 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             natTable,
             traceTable,
             peerResolver,
-            Future.successful(new MockStateStorage),
             HappyGoLuckyLeaser,
             metrics,
             flowRecorder,
