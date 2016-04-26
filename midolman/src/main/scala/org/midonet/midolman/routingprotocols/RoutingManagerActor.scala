@@ -121,6 +121,8 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     @Inject
     var dpState: DatapathState = null
     var routingStorage: RoutingStorage = null
+    @Inject
+    var vt: VirtualTopology = null
 
     private var bgpPortIdx = 0
 
@@ -178,7 +180,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                                          flowInvalidator, dpState,
                                          upcallConnManager,
                                          routingStorage, config, zkConnWatcher,
-                                         zebraLoop)).
+                                         zebraLoop, vt)).
                         withDispatcher("actors.pinned-dispatcher"),
                     name = port.id.toString)
                 portHandlers.put(port.id, portHandler)
