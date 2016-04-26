@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7a131d0e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 582,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-26T16:47:22Z",
+      "side": 1,
+      "message": "Nit: ARP",
+      "range": {
+        "startLine": 582,
+        "startChar": 36,
+        "endLine": 582,
+        "endChar": 39
+      },
+      "revId": "90e8f7fe50328393f582314e4a20022143d6bdbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
