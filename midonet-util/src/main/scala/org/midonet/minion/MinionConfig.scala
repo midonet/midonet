@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services;
+package org.midonet.minion
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE })
-public @interface ClusterService {
-
-    String name();
-
+/** Base configuration mixin for a Cluster Minion. */
+trait MinionConfig[+D <: Minion] {
+    def isEnabled: Boolean
 }

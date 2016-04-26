@@ -40,7 +40,6 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
@@ -65,6 +64,7 @@ import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.minion.Context
 import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
@@ -126,15 +126,13 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
           |cluster.neutron_importer.user : ""
           |cluster.neutron_importer.password : ""
           |cluster.neutron_importer.jdbc_driver_class : "org.sqlite.JDBC"
-          |cluster.translators.nat.dynamic_port_start: 1024
-          |cluster.translators.nat.dynamic_port_end: 65535
           |zookeeper.root_key : "$rootPath"
           |zookeeper.use_new_stack : true
           |# The following is for legacy Data Client
           |zookeeper.zookeeper_hosts : "$ZK_HOST"
         """.stripMargin)
 
-    private val clusterCfg = new ClusterConfig(C3PO_CFG_OBJECT)
+    private val clusterCfg = ClusterConfig.forTests(C3PO_CFG_OBJECT)
     MidonetBackend.isCluster = true
 
     // Data sources

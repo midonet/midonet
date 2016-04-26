@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services
+package org.midonet.minion;
 
-import com.google.common.util.concurrent.AbstractService
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.midonet.cluster.ClusterNode.Context
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE })
+public @interface MinionService {
 
-/** Define a sub-service that runs as part of the Midonet Cluster. This
-  * should expose the necessary API to let the Daemon babysit its minions.
-  *
-  * @param nodeContext metadata about the node where this Minion is running
-  */
-abstract class Minion(nodeContext: Context) extends AbstractService {
+    String name();
 
-    /** Whether the service is enabled on this Cluster node. */
-    def isEnabled: Boolean
 }

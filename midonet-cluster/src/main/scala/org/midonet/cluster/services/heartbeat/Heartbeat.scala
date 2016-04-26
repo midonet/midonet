@@ -22,18 +22,18 @@ import scala.collection.JavaConversions._
 
 import com.codahale.metrics.{Counter, Metric, MetricRegistry, MetricSet}
 import com.google.inject.Inject
+
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.heartbeatLog
-import org.midonet.cluster.services.{ClusterService, ScheduledMinion}
-import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.cluster.{ClusterConfig, heartbeatLog}
+import org.midonet.minion.{MinionService, Context, ScheduledMinion}
 import org.midonet.util.functors.makeRunnable
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by
   * configuration.  Mostly provided as an example.
   */
-@ClusterService(name = "heartbeat")
-class Heartbeat @Inject()(nodeContext: ClusterNode.Context,
+@MinionService(name = "heartbeat")
+class Heartbeat @Inject()(nodeContext: Context,
                           config: ClusterConfig, metrics: MetricRegistry)
     extends ScheduledMinion(nodeContext, config.heartbeat) {
 
