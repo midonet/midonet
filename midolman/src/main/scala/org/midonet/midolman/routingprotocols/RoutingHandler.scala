@@ -25,11 +25,14 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
-import akka.actor.ActorRef
-import org.apache.zookeeper.KeeperException
-import rx.Subscription
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, StateAccessException}
+import akka.actor.ActorRef
+
+import org.apache.zookeeper.KeeperException
+
+import rx.{Observer, Subscription}
+
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.Route
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
@@ -39,7 +42,7 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.routingprotocols.RoutingWorkflow.RoutingInfo
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.devices.{BgpPort, BgpPortDeleted, BgpRouterDeleted}
-import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.topology.{RouterIPMapper, VirtualTopology}
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
@@ -174,6 +177,9 @@ object RoutingHandler {
                 }
             }
 
+            var routerIpSub: Subscription = _
+            var routerIps = Set[IPv4Addr]()
+
             override def preStart(): Unit = {
                 log.info(s"Starting, port ${rport.id}")
                 super.preStart()
@@ -182,8 +188,35 @@ object RoutingHandler {
                 bgpSubscription = VirtualTopology.observable[BgpPort](rport.id)
                                                  .subscribe(this)
 
+                val ipObs = new RouterIPMapper(rport.routerId, vt).ipObservable
+                routerIpSub = ipObs.subscribe(new RouterIpObserver)
+
                 system.scheduler.schedule(2 seconds, 5 seconds,
                                           self, FETCH_BGPD_STATUS)(context.dispatcher)
+            }
+
+            override def postStop(): Unit = {
+                super.postStop()
+                if (routerIpSub != null)
+                    routerIpSub.unsubscribe()
+                routerIps = Set()
+            }
+
+            class RouterIpObserver extends Observer[Set[IPv4Addr]] {
+                override def onCompleted(): Unit = {}
+
+                override def onError(e: Throwable): Unit = {
+                    // TODO: Error handling.
+                }
+
+                override def onNext(newRouterIps: Set[IPv4Addr]): Unit = {
+                    for (ip <- routerIps diff newRouterIps)
+                        bgpd.assignAddr(rport.interfaceName, ip.toString)
+                    for (ip <- newRouterIps diff routerIps)
+                        bgpd.remAddr(rport.interfaceName, ip.toString)
+                    routerIps = newRouterIps
+                    restartBgpd()
+                }
             }
 
             override def createDpPort(port: String): Future[(DpPort, Int)] = {
@@ -275,7 +308,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     protected def stopZebra(): Unit
     protected val bgpd: BgpdProcess
 
-    override def postStop() {
+    override def postStop(): Unit = {
         super.postStop()
         if (bgpSubscription ne null) {
             bgpSubscription.unsubscribe()
