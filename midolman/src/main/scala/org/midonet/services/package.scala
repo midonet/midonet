@@ -25,4 +25,6 @@ package object services {
 
     final val AgentServicesLog = "org.midonet.services"
 
+    final val FlowStateLog =  "org.midonet.services.flowstate"
+
 }
