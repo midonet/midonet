@@ -1,5 +1,7 @@
 /etc/midolman/midolman.conf
 /etc/midolman/midolman-env.sh
+/etc/midolman/minions-env.sh
 /etc/midolman/logback.xml
+/etc/midolman/logback-minions.xml
 /etc/midolman/midolman-env.sh.compute
 /etc/midolman/midolman-env.sh.gateway

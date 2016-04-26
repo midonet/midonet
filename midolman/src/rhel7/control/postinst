@@ -39,6 +39,7 @@ if ! getent passwd $USER >/dev/null ; then
 fi
 
 install -d -o $USER -g $GROUP /var/log/$NAME $DATADIR
+mkdir /var/log/$NAME/minions
 
 # allow group access to /var/run/quagga
 usermod -G quagga $USER

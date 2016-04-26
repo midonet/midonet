@@ -57,6 +57,7 @@ import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
 import org.midonet.util.cLibrary;
+import org.midonet.util.process.ProcessHelper;
 
 public class Midolman {
 
@@ -70,6 +71,8 @@ public class Midolman {
     private Injector injector;
 
     WatchedProcess watchedProcess = new WatchedProcess();
+
+    Process minionProcess;
 
     private Midolman() {
     }
@@ -220,6 +223,13 @@ public class Midolman {
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
 
+        minionProcess = ProcessHelper
+            .newDemonProcess("/usr/share/midolman/minions-start", log,
+                             "org.midonet.services")
+            .run();
+        log.info("Starting Agent minions on process " +
+                 ProcessHelper.getProcessPid(minionProcess));
+
         log.info("Running manual GC to tenure preallocated objects");
         System.gc();
 
@@ -234,6 +244,11 @@ public class Midolman {
 
     private void doServicesCleanup() {
         log.info("SHUTTING DOWN");
+
+        if (minionProcess != null) {
+            minionProcess.destroy();
+            log.info("Agent minion process stopped.");
+        }
 
         if (injector == null)
             return;

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2014 Midokura SARL
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<configuration>
+    <jmxConfigurator/>
+
+    <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${minions.log.dir}minions.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${minions.log.dir}minions.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!--- This appender writes to SysLog.  Refer to the following URL
+          for further info on settings:
+              http://logback.qos.ch/manual/appenders.html#SyslogAppender
+
+          Remember to uncomment the <appender-ref ref="SYSLOG"/> tag at
+          the bottom of the file
+    //-->
+    <!--
+    <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
+        <syslogHost>localhost</syslogHost>
+        <facility>USER</facility>
+        <suffixPattern>[%thread] %logger %msg</suffixPattern>
+    </appender> //-->
+
+    <!-- This appender writes to logstash over a udp socket on the configured port.
+         To use this, logstash should have an input configured with:
+
+             input {
+                 udp {
+                     port => 5000
+                     codec => json
+                 }
+             }
+    //-->
+    <!--
+    <appender name="LOG-STASH" class="net.logstash.logback.appender.LogstashSocketAppender">
+        <syslogHost>LOGSTASH_HOST</syslogHost>
+        <port>LOGSTASH_UDP_PORT</port>
+    </appender>//-->
+
+    <!--+                                   ***NOTE***
+        |
+        |  Use this file to configure log appenders, but not log levels. Log
+        |  levels are configured in mn-conf(1), in the 'agent.loggers' section.
+        |
+        |  Example, make all agents log at DEBUG level with this command:
+        |
+        |      $ mn-conf set -t default "agent.loggers.root : DEBUG"
+        +-->
+    <root level="INFO">
+        <appender-ref ref="LOG-FILE" />
+        <!-- <appender-ref ref="LOG-STASH" /> //-->
+        <!-- <appender-ref ref="SYSLOG" /> //-->
+    </root>
+
+</configuration>
