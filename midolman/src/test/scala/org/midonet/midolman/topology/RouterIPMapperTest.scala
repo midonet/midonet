@@ -46,11 +46,10 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
     feature("RouterIPMapper") {
         scenario("Publishes IP addresses for existing topology.") {
             val addrs = Seq("10.0.1.1", "10.0.2.1", "10.0.3.1")
-                .map(IPv4Addr.fromString)
             val ports = createRouterWithPorts(addrs)
             val routerId = ports.head.getRouterId.asJava
-            createBgpPeer(routerId, IPv4Addr(ports(1).getPortSubnet.getAddress))
-            createBgpPeer(routerId, IPv4Addr(ports(2).getPortSubnet.getAddress))
+            createBgpPeer(routerId, ports(1).getPortSubnet.getAddress)
+            createBgpPeer(routerId, ports(2).getPortSubnet.getAddress)
 
             val obs = createMapperAndObserver(routerId)
             obs.awaitOnNext(1, timeout)
@@ -58,8 +57,7 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
         }
 
         scenario("Publishes updates for port addition and deletion") {
-            val addrs = Seq(IPv4Addr("10.0.1.1"), IPv4Addr("10.0.2.1"),
-                            IPv4Addr("10.0.3.1"))
+            val addrs = Seq("10.0.1.1", "10.0.2.1", "10.0.3.1")
 
             // Create router with two ports and BGPs for all three addresses.
             val ports = mutable.ListBuffer[Port]()
@@ -74,7 +72,7 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
 
             // Add an additional port.
             ports += createRouterPort(routerId = Some(routerId),
-                                      portAddress = addrs(2),
+                                      portAddress = IPv4Addr(addrs(2)),
                                       portSubnet = new IPv4Subnet(addrs(2), 24))
             vt.store.create(ports(2))
             obs.awaitOnNext(2, timeout)
@@ -87,7 +85,7 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
 
             // Add the port back.
             vt.store.create(createRouterPort(
-                routerId = Some(routerId), portAddress = addrs.head,
+                routerId = Some(routerId), portAddress = IPv4Addr(addrs.head),
                 portSubnet = new IPv4Subnet(addrs.head, 24)))
             obs.awaitOnNext(4, timeout)
             obs.getOnNextEvents.get(3) shouldBe addrs.toSet
@@ -103,7 +101,6 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Completes on router deletion") {
             val addrs = Seq("10.0.1.0", "10.0.1.0", "10.0.1.0")
-                .map(IPv4Addr.fromString)
             val ports = createRouterWithPorts(addrs)
             val routerId = ports.head.getRouterId.asJava
             val obs = createMapperAndObserver(routerId)
@@ -115,29 +112,29 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
 
-    private def createRouterWithPorts(addrs: Seq[IPv4Addr]): Seq[Port] = {
+    private def createRouterWithPorts(addrs: Seq[String]): Seq[Port] = {
         val r = createRouter()
         vt.store.create(r)
         for (addr <- addrs) yield {
             val p = createRouterPort(routerId = Some(r.getId.asJava),
-                                     portAddress = addr,
+                                     portAddress = IPv4Addr(addr),
                                      portSubnet = new IPv4Subnet(addr, 24))
             vt.store.create(p)
             p
         }
     }
 
-    private def createBgpPeer(routerId: UUID, addr: IPv4Addr): BgpPeer = {
-        val peer = createBgpPeer(address = Some(addr),
+    private def createBgpPeer(routerId: UUID, addr: String): BgpPeer = {
+        val peer = createBgpPeer(address = Some(IPv4Addr(addr)),
                                  routerId = Some(routerId))
         vt.store.create(peer)
         peer
     }
 
     private def createMapperAndObserver(routerId: UUID)
-    : TestAwaitableObserver[Set[IPv4Addr]] = {
+    : TestAwaitableObserver[Set[String]] = {
         val mapper = new RouterIPMapper(routerId, vt)
-        val obs = new TestAwaitableObserver[Set[IPv4Addr]]
+        val obs = new TestAwaitableObserver[Set[String]]
         mapper.ipObservable.subscribe(obs)
         obs
     }
