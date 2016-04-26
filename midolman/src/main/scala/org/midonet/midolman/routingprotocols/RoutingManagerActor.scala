@@ -196,10 +196,9 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                 val portHandler = context.actorOf(
                     Props(RoutingHandler(port, portIndexForHandler,
                                          flowInvalidator, dpState,
-                                         upcallConnManager,
-                                         routingStorage, config, zkConnWatcher,
-                                         zebraLoop, vt,
-                                         isQuaggaContainerPort(port))).
+                                         upcallConnManager, routingStorage,
+                                         config, zkConnWatcher, zebraLoop,
+                                         vt, isQuaggaContainerPort(port))).
                         withDispatcher("actors.pinned-dispatcher"),
                     name = port.id.toString)
                 portHandlers.put(port.id, portHandler)
