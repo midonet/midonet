@@ -160,25 +160,25 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     feature ("manages router ip addrs") {
         scenario("adds and deletes ips") {
-            routingHandler ! RoutingHandler.RouterIps(Set.empty)
+            routingHandler ! RoutingHandler.RouterCidrs(Set.empty)
             bgpd.currentIps.size should be (0)
             var newSet = Set("1.1.1.1/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            routingHandler ! RoutingHandler.RouterCidrs(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
             newSet = Set("1.1.1.1/24", "1.1.1.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            routingHandler ! RoutingHandler.RouterCidrs(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
             newSet = Set("1.1.1.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            routingHandler ! RoutingHandler.RouterCidrs(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
             newSet = Set("2.2.2.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            routingHandler ! RoutingHandler.RouterCidrs(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
             newSet = Set("1.1.1.1/24", "1.1.1.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            routingHandler ! RoutingHandler.RouterCidrs(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
             newSet = Set("1.1.1.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            routingHandler ! RoutingHandler.RouterCidrs(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
         }
     }
