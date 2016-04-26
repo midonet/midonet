@@ -20,13 +20,13 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config.{ConfigFactory, Config}
 import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.services.rest_api.Vladimir
-import org.midonet.cluster.services.{ScheduledMinionConfig, MinionConfig}
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.heartbeat.Heartbeat
 import org.midonet.cluster.services.topology.TopologyApiService
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
+import org.midonet.minion.{ScheduledMinionConfig, MinionConfig, ExecutorsConfig}
 
 object ClusterConfig {
     val DEFAULT_MTU: Short = 1500
@@ -65,10 +65,7 @@ class ClusterConfig(_conf: Config) {
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)
     val translators = new TranslatorsConfig(conf)
-
-    def threadPoolSize = conf.getInt(s"$prefix.max_thread_pool_size")
-    def threadPoolShutdownTimeoutMs =
-        conf.getDuration(s"$prefix.thread_pool_shutdown_timeout", TimeUnit.MILLISECONDS)
+    val executors = new ExecutorsConfig(conf, prefix)
 }
 
 class AuthConfig(val conf: Config) {

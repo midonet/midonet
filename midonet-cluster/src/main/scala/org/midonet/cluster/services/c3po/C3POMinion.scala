@@ -30,16 +30,18 @@ import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
-import org.midonet.cluster.data.storage.{StateTableStorage, StateStorage, Storage}
+import org.midonet.cluster.data.storage.{StateTableStorage, Storage}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.cluster.services.c3po.translators._
-import org.midonet.cluster.services.{ClusterService, MidonetBackend, ScheduledMinion}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
-import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode, c3poLog}
+import org.midonet.cluster.{C3POConfig, ClusterConfig, c3poLog}
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.minion.{MinionService, Context, ScheduledMinion}
+import org.midonet.minion.ScheduledMinion.checkConfigParamDefined
 
 /** The service that translates and imports neutron models into the MidoNet
   * backend storage.
@@ -51,8 +53,8 @@ import org.midonet.midolman.state.PathBuilder
   * @param curator API for access to ZK for internal uses of the C3PO service
   * @param backendCfg the Backend configuration
   */
-@ClusterService(name = "neutron-importer")
-class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
+@MinionService(name = "neutron-importer")
+class C3POMinion @Inject()(nodeContext: Context,
                            config: ClusterConfig,
                            dataSrc: DataSource,
                            backend: MidonetBackend,
@@ -155,7 +157,6 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
 }
 
 object C3POMinion {
-    import ScheduledMinion.checkConfigParamDefined
 
     val CnxnStrCfgKey = "cluster.neutron_importer.connection_string"
     val JdbcDriverCfgKey = "cluster.neutron_importer.jdbc_driver_class"

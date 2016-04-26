@@ -35,9 +35,10 @@ import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Vtep
 import org.midonet.cluster.services.MidonetBackend.VtepVxgwManager
-import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{Snatcher, UUIDUtil, selfHealingTypeObservable}
+import org.midonet.minion.{MinionService, Context, Minion}
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -55,9 +56,9 @@ import org.midonet.util.functors._
   * of a failure, partition, etc.) a different instance will be elected and
   * take over the management.
   */
-@ClusterService(name = "vxgw")
+@MinionService(name = "vxgw")
 class VxlanGatewayService @Inject()(
-        nodeCtx: ClusterNode.Context,
+        nodeCtx: Context,
         dataClient: DataClient,
         backend: MidonetBackend,
         backendCfg: MidonetBackendConfig,
