@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5bae2286",
+        "filename": "midolman/src/main/scala/org/midonet/containers/QuaggaContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-04-26T12:52:47Z",
+      "side": 1,
+      "message": "This is how I assume it works, though I need to test this: When a failover happens because the operator requested that happen (this host does not go down), then the QuaggaContainerDelegate on the new host will bind this ContainerPort to the new host, which will force an unbinding from this Host. This should cause a LocalPortActive(false) notification to be sent to the RoutingManagerActor, which would then kill the associated RoutingHandler. Again, this all needs to be verified with an actual test, and that hasn\u0027t been done yet.",
+      "parentUuid": "baa041b7_0051490e",
+      "range": {
+        "startLine": 67,
+        "startChar": 17,
+        "endLine": 67,
+        "endChar": 23
+      },
+      "revId": "36b776a30e09b0dad8a272e48622112f65b8c25d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e5e8b77e",
         "filename": "midolman/src/main/scala/org/midonet/containers/QuaggaContainer.scala",
         "patchSetId": 3
