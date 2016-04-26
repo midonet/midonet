@@ -7,6 +7,7 @@ import com.google.inject.{Inject, Provider}
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 
 import org.midonet.cluster.ClusterConfig
+import org.midonet.minion.Minion
 
 /** A simple factory of [[org.apache.curator.framework.recipes.leader.LeaderLatch]]
   * that can be used by [[Minion]] instances, while allowing easy mocking.
