@@ -70,6 +70,7 @@ dependencies {
             libraries.jersey_client,
             libraries.jetty_server,
             libraries.jctools,
+            libraries.reflections,
             "com.fasterxml.jackson.core:jackson-databind:2.3.0"
 
     testCompile project(':midonet-cluster')
@@ -177,9 +178,6 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/deb/bin/mm-stat") {
         into "usr/bin"
     }
-    from("src/deb/bin/mn-conf") {
-        into "usr/bin"
-    }
     from("src/lib/midolman/bgpd-helper") {
         into "usr/lib/midolman"
     }
@@ -190,6 +188,9 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
         into "usr/share/midolman"
     }
     from("src/deb/init/midolman-start") {
+        into "usr/share/midolman"
+    }
+    from("src/deb/init/minions-start") {
         into "usr/share/midolman"
     }
     from("src/deb/init/prepare-java") {
