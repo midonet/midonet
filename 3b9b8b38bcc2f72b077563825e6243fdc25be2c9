@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9a838104",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-26T21:03:11Z",
+      "side": 1,
+      "message": "Yes. I can leave the previous namespace. I wanted to homogenise between cluster \u0026 agent. Thread executors were introduced in 5.1 though and not sure we have that many OSS users on it.",
+      "parentUuid": "baa041b7_77d576b7",
+      "revId": "3b9b8b38bcc2f72b077563825e6243fdc25be2c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_97d23ad1",
         "filename": "midonet-util/src/main/scala/org/midonet/cluster/services/package.scala",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5a7e191a",
+        "filename": "midonet-util/src/main/scala/org/midonet/cluster/services/package.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-26T21:03:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_97d23ad1",
+      "revId": "3b9b8b38bcc2f72b077563825e6243fdc25be2c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b7cbfe1d",
         "filename": "midonet-util/src/main/scala/org/midonet/cluster/services/package.scala",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2016-04-26T15:01:39Z",
       "side": 1,
       "message": "*cough*",
+      "revId": "3b9b8b38bcc2f72b077563825e6243fdc25be2c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1a789129",
+        "filename": "midonet-util/src/main/scala/org/midonet/cluster/services/package.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-26T21:03:11Z",
+      "side": 1,
+      "message": "lol sorry. Done.",
+      "parentUuid": "baa041b7_b7cbfe1d",
       "revId": "3b9b8b38bcc2f72b077563825e6243fdc25be2c9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
