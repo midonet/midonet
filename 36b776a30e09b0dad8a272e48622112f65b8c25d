@@ -84,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_577ef219",
+        "filename": "midolman/src/main/scala/org/midonet/containers/QuaggaContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-26T14:32:53Z",
+      "side": 1,
+      "message": "Compiling fails, doesn\u0027t it?\n\n/home/jenkins/workspace/gate_midonet.mdts.basic/midolman/src/main/scala/org/midonet/containers/QuaggaContainer.scala:67: Adaptation of argument list by inserting () has been deprecated: this is unlikely to be what you want.\n        signature: Future.successful[T](result: T): scala.concurrent.Future[T]\n  given arguments: \u003cnone\u003e\n after adaptation: Future.successful((): Unit)\n    override def delete(): Future[Unit] \u003d Future.successful()\n                                                           ^\n/home/jenkins/workspace/gate_midonet.mdts.basic/midolman/src/main/scala/org/midonet/containers/QuaggaContainer.scala:72: Adaptation of argument list by inserting () has been deprecated: this is unlikely to be what you want.\n        signature: Future.successful[T](result: T): scala.concurrent.Future[T]\n  given arguments: \u003cnone\u003e\n after adaptation: Future.successful((): Unit)\n    override def cleanup(name: String): Future[Unit] \u003d Future.successful()\n\nI think it should be:\n\n  Future.successfull(())",
+      "parentUuid": "baa041b7_14f4e883",
+      "revId": "36b776a30e09b0dad8a272e48622112f65b8c25d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e5e8b77e",
         "filename": "midolman/src/main/scala/org/midonet/containers/QuaggaContainer.scala",
         "patchSetId": 3
