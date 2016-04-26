@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.storage.{CassandraConfig,MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
+import org.midonet.minion.{MinionConfig, ExecutorsConfig}
 import org.midonet.packets.{MAC, IPv4Subnet}
 
 object MidolmanConfig {
@@ -94,6 +95,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val openstack = new OpenStackConfig(conf, schema)
     val flowHistory = new FlowHistoryConfig(conf, schema)
     val containers = new ContainerConfig(conf, schema)
+    val services = new ServicesConfig(conf, schema)
 }
 
 class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
@@ -216,4 +218,10 @@ class IPSecContainerConfig(val conf: Config, val schema: Config) extends TypeFai
                                      TimeUnit.MILLISECONDS) millis
     def statusUpdateInterval = getDuration(s"$prefix.status_update_interval",
                                            TimeUnit.MILLISECONDS) millis
+}
+
+class ServicesConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    val prefix = "agent.services"
+
+    val executors = new ExecutorsConfig(conf, prefix)
 }
