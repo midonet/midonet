@@ -28,6 +28,7 @@ import org.midonet.cluster.storage.{CassandraConfig,MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 import org.midonet.minion.{MinionConfig, ExecutorsConfig}
 import org.midonet.packets.{MAC, IPv4Subnet}
+import org.midonet.services.flowstate.FlowStateService
 
 object MidolmanConfig {
     val DEFAULT_MTU: Short = 1500
@@ -96,6 +97,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val flowHistory = new FlowHistoryConfig(conf, schema)
     val containers = new ContainerConfig(conf, schema)
     val services = new ServicesConfig(conf, schema)
+    val flowState = new FlowStateConfig(conf, schema)
 }
 
 class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
@@ -221,7 +223,15 @@ class IPSecContainerConfig(val conf: Config, val schema: Config) extends TypeFai
 }
 
 class ServicesConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
-    val prefix = "agent.services"
+    val prefix = "agent.minions"
 
     val executors = new ExecutorsConfig(conf, prefix)
+}
+
+class FlowStateConfig(val conf: Config, val schema: Config)
+    extends TypeFailureFallback with MinionConfig[FlowStateService] {
+    val prefix = "agent.minions.flow_state"
+
+    override def isEnabled: Boolean = getBoolean(s"$prefix.enabled")
+    def port: Int = getInt(s"$prefix.port")
 }
