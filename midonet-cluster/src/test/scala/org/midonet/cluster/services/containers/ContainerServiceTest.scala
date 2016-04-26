@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.subjects.{PublishSubject, Subject}
 
-import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster._
 import org.midonet.cluster.data.storage.{CreateOp, InMemoryStorage}
 import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
@@ -40,7 +39,7 @@ import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.containers.ContainerService.MaximumFailures
 import org.midonet.cluster.services.containers.ContainerServiceTest.ContainerServiceTestDelegate
 import org.midonet.cluster.services.containers.schedulers._
-import org.midonet.cluster.services.{LeaderLatchProvider, MidonetBackend, MockLeaderLatch, MockLeaderLatchProvider}
+import org.midonet.cluster.services._
 import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._

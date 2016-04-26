@@ -40,7 +40,6 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
@@ -55,7 +54,7 @@ import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.c3po.translators.StateTableManager
-import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
+import org.midonet.cluster.services.{Context, MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.{Ip4MacStateTable, MacIp4StateTable, MidonetBackendConfig}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}

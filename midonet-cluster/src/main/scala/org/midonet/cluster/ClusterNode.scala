@@ -17,7 +17,6 @@
 package org.midonet.cluster
 
 import java.nio.file.{Files, Paths}
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import javax.sql.DataSource
@@ -38,7 +37,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler
 import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkConnectionProvider, ZookeeperConnectionWatcher}
-import org.midonet.cluster.services.{ClusterService, LeaderLatchProvider, MidonetBackend, Minion}
+import org.midonet.cluster.services._
 import org.midonet.cluster.storage._
 import org.midonet.conf.{HostIdGenerator, LoggerLevelWatcher, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
@@ -57,12 +56,6 @@ class ClusterException(msg: String, cause: Throwable)
   * configuration settings to perform different distributed configuration and
   * control functions. */
 object ClusterNode extends App {
-
-    /** Encapsulates node-wide context that might be of use for minions
-      *
-      * @param nodeId the UUID of this Cluster node
-      */
-    case class Context(nodeId: UUID)
 
     private val log = Logger(LoggerFactory.getLogger(clusterLog))
 
@@ -103,17 +96,14 @@ object ClusterNode extends App {
 
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
 
-    val clusterExecutor = ExecutorsModule(clusterConf, log)
+    val clusterExecutor = ExecutorsModule(clusterConf.executors, log)
 
     log.info("Scanning classpath for Cluster Minions..")
     private val reflections = new Reflections("org.midonet")
-    private val annotated = reflections.getTypesAnnotatedWith(classOf[ClusterService])
-
-    /** Defines a Minion with a name, config, and implementing class */
-    case class MinionDef[D <: Minion](name: String, clazz: Class[D])
+    private val annotated = reflections.getTypesAnnotatedWith(classOf[MinionService])
 
     private val minions = annotated.flatMap { m =>
-        val name = m.getAnnotation(classOf[ClusterService]).name()
+        val name = m.getAnnotation(classOf[MinionService]).name()
         if (classOf[Minion].isAssignableFrom(m)) {
             log.info(s"Minion: $name provided by ${m.getName}.")
             Some(MinionDef(name, m.asInstanceOf[Class[Minion]]))
@@ -132,19 +122,17 @@ object ClusterNode extends App {
     dataSrc.setUsername(clusterConf.c3po.user)
     dataSrc.setPassword(clusterConf.c3po.password)
 
-    private val daemon = new Daemon(nodeId, clusterExecutor, minions.toList)
-
     private val clusterNodeModule = new AbstractModule {
         override def configure(): Unit = {
 
             // Common resources exposed to all Minions
             bind(classOf[MetricRegistry]).toInstance(metrics)
             bind(classOf[DataSource]).toInstance(dataSrc)
-            bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
+            bind(classOf[Context]).toInstance(nodeContext)
             bind(classOf[Reflections]).toInstance(reflections)
             bind(classOf[LeaderLatchProvider]).in(classOf[Singleton])
             install(new AuthModule(clusterConf.auth, log))
-            install(new ExecutorsModule(clusterExecutor))
+            install(new ExecutorsModule(clusterExecutor, clusterConf.executors))
 
             // Minion configurations
             bind(classOf[ClusterConfig]).toInstance(clusterConf)
@@ -152,9 +140,6 @@ object ClusterNode extends App {
             // Bind each Minion service as singleton, so Daemon can find them
             // and start
             minions foreach { m => bind(m.clazz).in(classOf[Singleton]) }
-
-            // The Daemon itself
-            bind(classOf[Daemon]).toInstance(daemon)
         }
     }
 
@@ -195,6 +180,8 @@ object ClusterNode extends App {
         dataClientDependencies
     )
 
+    private val daemon = new Daemon(nodeId, clusterExecutor, minions.toList, injector)
+
     log debug "Registering shutdown hook"
     sys addShutdownHook {
         if (daemon.isRunning) {
@@ -207,8 +194,9 @@ object ClusterNode extends App {
                     .stopAsync().awaitTerminated()
 
         clusterExecutor.shutdown()
-        if (!clusterExecutor.awaitTermination(clusterConf.threadPoolShutdownTimeoutMs,
-                                              TimeUnit.MILLISECONDS)) {
+        if (!clusterExecutor.awaitTermination(
+                clusterConf.executors.threadPoolShutdownTimeoutMs,
+                TimeUnit.MILLISECONDS)) {
             log warn "Shutting down the cluster executor timed out"
             clusterExecutor.shutdownNow()
         }

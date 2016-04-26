@@ -18,8 +18,6 @@ package org.midonet.cluster.services
 
 import com.google.common.util.concurrent.AbstractService
 
-import org.midonet.cluster.ClusterNode.Context
-
 /** Define a sub-service that runs as part of the Midonet Cluster. This
   * should expose the necessary API to let the Daemon babysit its minions.
   *
@@ -30,3 +28,7 @@ abstract class Minion(nodeContext: Context) extends AbstractService {
     /** Whether the service is enabled on this Cluster node. */
     def isEnabled: Boolean
 }
+
+/** Defines a Minion with a name, config, and implementing class */
+case class MinionDef[D <: Minion](name: String, clazz: Class[D])
+

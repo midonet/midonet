@@ -65,10 +65,7 @@ class ClusterConfig(_conf: Config) {
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)
     val translators = new TranslatorsConfig(conf)
-
-    def threadPoolSize = conf.getInt(s"$prefix.max_thread_pool_size")
-    def threadPoolShutdownTimeoutMs =
-        conf.getDuration(s"$prefix.thread_pool_shutdown_timeout", TimeUnit.MILLISECONDS)
+    val executors = new ExecutorsConfig(conf, prefix)
 }
 
 class AuthConfig(val conf: Config) {

@@ -29,9 +29,9 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.auth.MockAuthService
-import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.services.{Context, MidonetBackendService}
 import org.midonet.cluster.test.util.ZookeeperTestSuite
 import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
 
@@ -70,7 +70,7 @@ class ConfResourceTest extends FeatureSpec
         reflections = new Reflections("org.midonet.cluster.rest_api",
                                       "org.midonet.cluster.services.rest_api")
 
-        val context = ClusterNode.Context(HostIdGenerator.getHostId)
+        val context = Context(HostIdGenerator.getHostId)
         backend = new MidonetBackendService(new MidonetBackendConfig(config),
                                                 zkClient, zkClient, null)
         backend.startAsync().awaitRunning()
