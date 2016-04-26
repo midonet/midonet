@@ -124,13 +124,23 @@ def test_new_interface_becomes_visible():
 
     # Create a new interface 'interface_01'.
     iface = agent.create_vmguest(ifname=iface_name)
-    time.sleep(5)
-    new_interface = get_interface(
-        midonet_api,
-        agent.get_midonet_host_id(),
-        iface_name)
 
-    # Test that the created interface is visible.
-    assert_that(new_interface, not_none(), iface_name)
+    attempts = 10
+    while True:
+        try:
+            new_interface = get_interface(
+                midonet_api,
+                agent.get_midonet_host_id(),
+                iface_name)
 
-    agent.destroy_vmguest(iface)
+            # Test that the created interface is visible.
+            assert_that(new_interface, not_none(), iface_name)
+            agent.destroy_vmguest(iface)
+            break
+        except:
+            if attempts > 0:
+                attempts -= 1
+                time.sleep(5)
+            else:
+                agent.destroy_vmguest(iface)
+                raise
