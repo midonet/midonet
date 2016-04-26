@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1add310e",
+        "filename": "midolman/conf/minions-env.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-26T21:03:29Z",
+      "side": 1,
+      "message": "Removed. Done.",
+      "parentUuid": "baa041b7_17fe2a37",
+      "revId": "8c7834ed750aa524d4c1ed0cc651dbe0eb96bb58",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d7efa285",
         "filename": "midolman/src/deb/init/minions-start",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_da05897a",
+        "filename": "midolman/src/deb/init/minions-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-26T21:03:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d7efa285",
+      "revId": "8c7834ed750aa524d4c1ed0cc651dbe0eb96bb58",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_37ffee35",
         "filename": "midolman/src/deb/init/minions-start",
         "patchSetId": 1
@@ -47,6 +83,47 @@
       "writtenOn": "2016-04-26T15:06:26Z",
       "side": 1,
       "message": "midolman already uses 7200. should match what you have in minions-env",
+      "revId": "8c7834ed750aa524d4c1ed0cc651dbe0eb96bb58",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fad72deb",
+        "filename": "midolman/src/deb/init/minions-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-26T21:03:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_37ffee35",
+      "revId": "8c7834ed750aa524d4c1ed0cc651dbe0eb96bb58",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ba088592",
+        "filename": "midolman/src/deb/init/minions-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-26T21:03:29Z",
+      "side": 1,
+      "message": "The output of minions goes to the same midolman file. We can change it in a follow up patch if necessary.",
+      "range": {
+        "startLine": 59,
+        "startChar": 82,
+        "endLine": 59,
+        "endChar": 103
+      },
       "revId": "8c7834ed750aa524d4c1ed0cc651dbe0eb96bb58",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
