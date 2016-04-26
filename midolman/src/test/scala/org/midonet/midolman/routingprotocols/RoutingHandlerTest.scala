@@ -36,13 +36,14 @@ import org.midonet.cluster.data.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.simulation.RouterPort
+import org.midonet.midolman.topology.PortBgpInfo
 import org.midonet.midolman.topology.devices.BgpPort
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
 import org.midonet.quagga.ZebraProtocol.RIBType
-import org.midonet.quagga.{ZebraPath, BgpConnection, BgpdProcess}
+import org.midonet.quagga.{BgpConnection, BgpdProcess, ZebraPath}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @RunWith(classOf[JUnitRunner])
@@ -158,27 +159,32 @@ class RoutingHandlerTest extends FeatureSpecLike
         }
     }
 
+    private def toPortBgpInfoSeq(cidrs: String*): Seq[PortBgpInfo] = {
+        for (cidr <- cidrs.toSeq) yield
+            PortBgpInfo(null, null, cidr, null)
+    }
+
     feature ("manages router ip addrs") {
         scenario("adds and deletes ips") {
-            routingHandler ! RoutingHandler.RouterIps(Set.empty)
+            routingHandler ! RoutingHandler.PortBgpInfos(Seq())
             bgpd.currentIps.size should be (0)
-            var newSet = Set("1.1.1.1/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            var newSet = toPortBgpInfoSeq("1.1.1.1/24")
+            routingHandler ! RoutingHandler.PortBgpInfos(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
-            newSet = Set("1.1.1.1/24", "1.1.1.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            newSet = toPortBgpInfoSeq("1.1.1.1/24", "1.1.1.2/24")
+            routingHandler ! RoutingHandler.PortBgpInfos(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
-            newSet = Set("1.1.1.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            newSet = toPortBgpInfoSeq("1.1.1.2/24")
+            routingHandler ! RoutingHandler.PortBgpInfos(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
-            newSet = Set("2.2.2.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            newSet = toPortBgpInfoSeq("2.2.2.2/24")
+            routingHandler ! RoutingHandler.PortBgpInfos(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
-            newSet = Set("1.1.1.1/24", "1.1.1.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            newSet = toPortBgpInfoSeq("1.1.1.1/24", "1.1.1.2/24")
+            routingHandler ! RoutingHandler.PortBgpInfos(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
-            newSet = Set("1.1.1.2/24")
-            routingHandler ! RoutingHandler.RouterIps(newSet)
+            newSet = toPortBgpInfoSeq("1.1.1.2/24")
+            routingHandler ! RoutingHandler.PortBgpInfos(newSet)
             bgpd.currentIps should contain theSameElementsAs newSet
         }
     }

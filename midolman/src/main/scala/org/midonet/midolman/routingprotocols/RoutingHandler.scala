@@ -25,11 +25,14 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
-import akka.actor.ActorRef
-import org.apache.zookeeper.KeeperException
-import rx.Subscription
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, StateAccessException}
+import akka.actor.ActorRef
+
+import org.apache.zookeeper.KeeperException
+
+import rx.{Observer, Subscription}
+
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.Route
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
@@ -39,7 +42,7 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.routingprotocols.RoutingWorkflow.RoutingInfo
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.devices.{BgpPort, BgpPortDeleted, BgpRouterDeleted}
-import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.topology.{PortBgpInfo, RouterBgpMapper, VirtualTopology}
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
@@ -116,7 +119,7 @@ object RoutingHandler {
 
     case class PortActive(active: Boolean)
 
-    case class RouterIps(ips: Set[String])
+    case class PortBgpInfos(cidrs: Seq[PortBgpInfo])
 
     case class ZookeeperConnected(connected: Boolean)
 
@@ -174,6 +177,8 @@ object RoutingHandler {
                 }
             }
 
+            private var portBgpSub: Subscription = _
+
             override def preStart(): Unit = {
                 log.info(s"Starting, port ${rport.id}")
                 super.preStart()
@@ -182,8 +187,34 @@ object RoutingHandler {
                 bgpSubscription = VirtualTopology.observable[BgpPort](rport.id)
                                                  .subscribe(this)
 
+                if (isQuagga) {
+                    val portBgpObs = new RouterBgpMapper(rport.routerId, vt)
+                        .portBgpInfoObservable
+                    portBgpSub = portBgpObs.subscribe(new PortBgpObserver)
+                }
+
                 system.scheduler.schedule(2 seconds, 5 seconds,
                                           self, FETCH_BGPD_STATUS)(context.dispatcher)
+            }
+
+            override def postStop(): Unit = {
+                super.postStop()
+                if (portBgpSub != null)
+                    portBgpSub.unsubscribe()
+                currentPortBgps = Seq()
+                newPortBgps = Seq()
+            }
+
+            class PortBgpObserver extends Observer[Seq[PortBgpInfo]] {
+                override def onCompleted(): Unit = {}
+
+                override def onError(e: Throwable): Unit = {
+                    // TODO: Error handling.
+                }
+
+                override def onNext(newPortBgpInfos: Seq[PortBgpInfo]): Unit = {
+                    self ! PortBgpInfos(newPortBgpInfos)
+                }
             }
 
             override def createDpPort(port: String): Future[(DpPort, Int)] = {
@@ -244,7 +275,11 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private var bgpConfig: BgpRouter = BgpRouter(-1)
     private var bgpPeerIds: Set[UUID] = Set.empty
 
-    private var currentIps: Set[String] = Set.empty
+    /** IP addresses bgpd currently has configured. */
+    protected var currentPortBgps: Seq[PortBgpInfo] = Seq()
+
+    /** IP addresses to update bgpd with on startup/restart. */
+    protected var newPortBgps: Seq[PortBgpInfo] = Seq()
 
     val NO_UPLINK = -1
     val NO_PORT = -1
@@ -275,7 +310,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     protected def stopZebra(): Unit
     protected val bgpd: BgpdProcess
 
-    override def postStop() {
+    override def postStop(): Unit = {
         super.postStop()
         if (bgpSubscription ne null) {
             bgpSubscription.unsubscribe()
@@ -291,17 +326,16 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             portActive = status
             startOrStopBgpd()
 
-        case RouterIps(ips) =>
+        case PortBgpInfos(portBgpInfos) =>
             try {
-                currentIps.filterNot(ips.contains(_))
-                          .foreach(bgpd.remAddr(rport.interfaceName, _))
-                ips.filterNot(currentIps.contains(_))
-                          .foreach(bgpd.assignAddr(rport.interfaceName, _))
-                currentIps = ips
+                log.debug("Received CIDRs from observable: {}", portBgpInfos)
+                newPortBgps = portBgpInfos
+                if (bgpd.isAlive)
+                    restartBgpd()
                 Future.successful(true)
             } catch {
                 case e: Exception =>
-                log.warn("Could not update ips in quagga namespace", e)
+                log.warn("Could not update CIDRs in quagga namespace", e)
                 Future.failed(e)
             }
 
@@ -614,6 +648,13 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         if (bgpConfig.neighbors.nonEmpty)
             bgpd.vty.setMaximumPaths(bgpConfig.as, bgpConfig.neighbors.size)
+
+        log.debug("Updating local CIDRs from {} to {}", currentPortBgps, newPortBgps)
+        for (pbi <- currentPortBgps diff newPortBgps)
+            bgpd.remAddr(rport.interfaceName, pbi.cidr)
+        for (pbi <- newPortBgps diff currentPortBgps)
+            bgpd.assignAddr(rport.interfaceName, pbi.cidr)
+        currentPortBgps = newPortBgps
 
         for (neigh <- bgpConfig.neighbors.values) {
             bgpd.vty.addPeer(bgpConfig.as, neigh)
