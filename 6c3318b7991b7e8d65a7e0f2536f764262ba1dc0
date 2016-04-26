@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_fac4cd5f",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-04-26T17:09:56Z",
+      "side": 1,
+      "message": "Is this needed? The container referenced by the port already indicates whether this is the port for a Quagga container. I agree this is a nice time-saver for not having to load the container, but it just adds redundant fields in the topology (the port is already a large object).\n\nBtw, the container service already provides this information via the ContainerPort class. If you hook that into the RoutingManagerActor (as you did in a different patch), then you should already know whether a port is for a quagga container.",
+      "range": {
+        "startLine": 370,
+        "startChar": 0,
+        "endLine": 371,
+        "endChar": 41
+      },
+      "revId": "6c3318b7991b7e8d65a7e0f2536f764262ba1dc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
