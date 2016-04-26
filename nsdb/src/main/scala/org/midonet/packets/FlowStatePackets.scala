@@ -16,6 +16,7 @@
 
 package org.midonet.packets
 
+import java.util.ArrayList
 import java.util.UUID
 
 import uk.co.real_logic.sbe.codec.java.DirectBuffer
@@ -136,6 +137,27 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
         case REV_SNAT => NatKeyType.REV_SNAT
         case REV_DNAT => NatKeyType.REV_DNAT
         case REV_STICKY_DNAT => NatKeyType.REV_STICKY_DNAT
+    }
+
+    def portIdsFromSbe(portIds: FlowStateSbe.PortIds): (UUID, ArrayList[UUID]) = {
+        val ingressPortId = uuidFromSbe(portIds.ingressPortId)
+        val egressPortIds = new ArrayList[UUID]()
+        val iterEgress = portIds.egressPortIds
+        while (iterEgress.hasNext) {
+            egressPortIds.add(uuidFromSbe(iterEgress.next.egressPortId))
+        }
+        (ingressPortId, egressPortIds)
+
+    }
+
+    def portIdsToSbe(ingressPortId: UUID, egressPortIds: ArrayList[UUID],
+                     portIds: FlowStateSbe.PortIds): Unit = {
+        uuidToSbe(ingressPortId, portIds.ingressPortId)
+        val iterEgress = portIds.egressPortIdsCount(egressPortIds.size)
+        val iterEgressIds = egressPortIds.iterator
+        while (iterEgress.hasNext) {
+            uuidToSbe(iterEgressIds.next, iterEgress.next.egressPortId)
+        }
     }
 
     def connTrackKeyFromSbe(conntrack: FlowStateSbe.Conntrack,
