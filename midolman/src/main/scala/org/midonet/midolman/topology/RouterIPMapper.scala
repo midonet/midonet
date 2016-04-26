@@ -58,7 +58,7 @@ class RouterIPMapper(id: UUID, vt: VirtualTopology) extends MidolmanLogging {
                routerObservable)
         .observeOn(vt.vtScheduler)
         .filter(makeFunc1(isReady))
-        .map[Set[IPv4Addr]](makeFunc1(getIps))
+        .map[Set[String]](makeFunc1(getIps))
         .distinctUntilChanged()
 
     private def routerUpdated(r: Router): Boolean = {
@@ -89,19 +89,29 @@ class RouterIPMapper(id: UUID, vt: VirtualTopology) extends MidolmanLogging {
         portIds != null && portTracker.areRefsReady && bgpTracker.areRefsReady
     }
 
-    private def getIps(gm: GeneratedMessage): Set[IPv4Addr] = {
+    private def getIps(gm: GeneratedMessage): Set[String] = {
+        // Get IP addresses of all the router's BGP peers.
         val bgpPeerIps = bgpTracker.currentRefs.values.map {
             bgp => toIPv4Addr(bgp.getAddress)
         }
+        log.debug("BgpPeer IPs: {}", bgpPeerIps)
 
+        // Return true if the port's subnet contains any of the BGP peers' IPs.
         def hasBgpPeer(p: Port): Boolean = {
             val subnet = IPSubnetUtil.fromProto(p.getPortSubnet)
-            bgpPeerIps.exists(subnet.containsAddress)
+            val hasPeer = bgpPeerIps.exists(subnet.containsAddress)
+            log.debug("Port with subnet {} has BGP peer: {}",
+                      subnet, boolean2Boolean(hasPeer))
+            hasPeer
         }
 
-        portTracker.currentRefs.values.collect {
-            case p if hasBgpPeer(p) => toIPv4Addr(p.getPortAddress)
+        // Return a set containing the IP address of any port whose subnet
+        // contains the IP address of a BGP peer.
+        val ips: Set[String] = portTracker.currentRefs.values.collect {
+            case p if hasBgpPeer(p) => p.getPortAddress.getAddress
         }(breakOut)
+        log.debug("Publishing IPs: {}", ips)
+        ips
     }
 
 }
