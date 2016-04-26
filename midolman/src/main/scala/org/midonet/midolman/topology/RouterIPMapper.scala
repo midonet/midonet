@@ -58,7 +58,7 @@ class RouterIPMapper(id: UUID, vt: VirtualTopology) extends MidolmanLogging {
                routerObservable)
         .observeOn(vt.vtScheduler)
         .filter(makeFunc1(isReady))
-        .map[Set[IPv4Addr]](makeFunc1(getIps))
+        .map[Set[String]](makeFunc1(getIps))
         .distinctUntilChanged()
 
     private def routerUpdated(r: Router): Boolean = {
@@ -89,7 +89,7 @@ class RouterIPMapper(id: UUID, vt: VirtualTopology) extends MidolmanLogging {
         portIds != null && portTracker.areRefsReady && bgpTracker.areRefsReady
     }
 
-    private def getIps(gm: GeneratedMessage): Set[IPv4Addr] = {
+    private def getIps(gm: GeneratedMessage): Set[String] = {
         val bgpPeerIps = bgpTracker.currentRefs.values.map {
             bgp => toIPv4Addr(bgp.getAddress)
         }
@@ -100,7 +100,7 @@ class RouterIPMapper(id: UUID, vt: VirtualTopology) extends MidolmanLogging {
         }
 
         portTracker.currentRefs.values.collect {
-            case p if hasBgpPeer(p) => toIPv4Addr(p.getPortAddress)
+            case p if hasBgpPeer(p) => p.getPortAddress.getAddress
         }(breakOut)
     }
 
