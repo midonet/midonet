@@ -34,8 +34,8 @@ import org.midonet.packets.{IPv4Addr, IPv4Subnet}
 import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
-                                 with TopologyMatchers with Eventually {
+class RouterCidrMapperTest extends MidolmanSpec with TopologyBuilder
+                                   with TopologyMatchers with Eventually {
     private var vt: VirtualTopology = _
     private val timeout: Duration = 1 second
 
@@ -43,54 +43,55 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
         vt = injector.getInstance(classOf[VirtualTopology])
     }
 
-    feature("RouterIPMapper") {
-        scenario("Publishes IP addresses for existing topology.") {
-            val addrs = Seq("10.0.1.1", "10.0.2.1", "10.0.3.1")
-                .map(IPv4Addr.fromString)
-            val ports = createRouterWithPorts(addrs)
+    feature("RouterCidrMapper") {
+        scenario("Publishes CIDRs for existing topology.") {
+            val cidrs = Seq("10.0.1.1/24", "10.0.2.1/24", "10.1.0.1/16")
+            val ports = createRouterWithPorts(cidrs)
             val routerId = ports.head.getRouterId.asJava
-            createBgpPeer(routerId, IPv4Addr(ports(1).getPortSubnet.getAddress))
-            createBgpPeer(routerId, IPv4Addr(ports(2).getPortSubnet.getAddress))
+            createBgpPeer(routerId, ports(1).getPortSubnet.getAddress)
+            createBgpPeer(routerId, ports(2).getPortSubnet.getAddress)
 
             val obs = createMapperAndObserver(routerId)
             obs.awaitOnNext(1, timeout)
-            obs.getOnNextEvents.get(0) shouldBe addrs.tail.toSet
+            obs.getOnNextEvents.get(0) shouldBe cidrs.tail.toSet
         }
 
         scenario("Publishes updates for port addition and deletion") {
-            val addrs = Seq(IPv4Addr("10.0.1.1"), IPv4Addr("10.0.2.1"),
-                            IPv4Addr("10.0.3.1"))
+            val cidrs = Seq("10.0.1.1/24", "10.1.0.1/16", "11.0.0.1/8")
 
             // Create router with two ports and BGPs for all three addresses.
             val ports = mutable.ListBuffer[Port]()
-            ports ++= createRouterWithPorts(addrs.take(2))
+            ports ++= createRouterWithPorts(cidrs.take(2))
             val routerId = ports.head.getRouterId.asJava
-            for (addr <- addrs)
-                createBgpPeer(routerId, addr)
+            for (cidr <- cidrs)
+                createBgpPeer(routerId, cidr)
 
             val obs = createMapperAndObserver(routerId)
             obs.awaitOnNext(1, timeout)
-            obs.getOnNextEvents.get(0) shouldBe addrs.take(2).toSet
+            obs.getOnNextEvents.get(0) shouldBe cidrs.take(2).toSet
 
             // Add an additional port.
+            val cidr2Subnet = IPv4Subnet.fromCidr(cidrs(2))
             ports += createRouterPort(routerId = Some(routerId),
-                                      portAddress = addrs(2),
-                                      portSubnet = new IPv4Subnet(addrs(2), 24))
+                                      portAddress = cidr2Subnet.getAddress,
+                                      portSubnet = cidr2Subnet)
             vt.store.create(ports(2))
             obs.awaitOnNext(2, timeout)
-            obs.getOnNextEvents.get(1) shouldBe addrs.toSet
+            obs.getOnNextEvents.get(1) shouldBe cidrs.toSet
 
             // Delete a port.
             vt.store.delete(classOf[Port], ports.head.getId)
             obs.awaitOnNext(3, timeout)
-            obs.getOnNextEvents.get(2) shouldBe addrs.tail.toSet
+            obs.getOnNextEvents.get(2) shouldBe cidrs.tail.toSet
 
             // Add the port back.
+            val cidr0Subnet = IPv4Subnet.fromCidr(cidrs.head)
             vt.store.create(createRouterPort(
-                routerId = Some(routerId), portAddress = addrs.head,
-                portSubnet = new IPv4Subnet(addrs.head, 24)))
+                routerId = Some(routerId),
+                portAddress = cidr0Subnet.getAddress,
+                portSubnet = cidr0Subnet))
             obs.awaitOnNext(4, timeout)
-            obs.getOnNextEvents.get(3) shouldBe addrs.toSet
+            obs.getOnNextEvents.get(3) shouldBe cidrs.toSet
 
             // Create a port with no BGP peer.
             vt.store.create(createRouterPort(
@@ -102,9 +103,8 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
         }
 
         scenario("Completes on router deletion") {
-            val addrs = Seq("10.0.1.0", "10.0.1.0", "10.0.1.0")
-                .map(IPv4Addr.fromString)
-            val ports = createRouterWithPorts(addrs)
+            val cidrs = Seq("10.0.1.0/24", "10.1.0.0/16", "11.0.0.0/8")
+            val ports = createRouterWithPorts(cidrs)
             val routerId = ports.head.getRouterId.asJava
             val obs = createMapperAndObserver(routerId)
             obs.awaitOnNext(1, timeout)
@@ -115,19 +115,21 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
 
-    private def createRouterWithPorts(addrs: Seq[IPv4Addr]): Seq[Port] = {
+    private def createRouterWithPorts(cidrs: Seq[String]): Seq[Port] = {
         val r = createRouter()
         vt.store.create(r)
-        for (addr <- addrs) yield {
+        for (cidr <- cidrs) yield {
+            val subnet = IPv4Subnet.fromCidr(cidr)
             val p = createRouterPort(routerId = Some(r.getId.asJava),
-                                     portAddress = addr,
-                                     portSubnet = new IPv4Subnet(addr, 24))
+                                     portAddress = subnet.getAddress,
+                                     portSubnet = subnet)
             vt.store.create(p)
             p
         }
     }
 
-    private def createBgpPeer(routerId: UUID, addr: IPv4Addr): BgpPeer = {
+    private def createBgpPeer(routerId: UUID, cidr: String): BgpPeer = {
+        val addr = IPv4Subnet.fromCidr(cidr).getAddress
         val peer = createBgpPeer(address = Some(addr),
                                  routerId = Some(routerId))
         vt.store.create(peer)
@@ -135,9 +137,9 @@ class RouterIPMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     private def createMapperAndObserver(routerId: UUID)
-    : TestAwaitableObserver[Set[IPv4Addr]] = {
-        val mapper = new RouterIPMapper(routerId, vt)
-        val obs = new TestAwaitableObserver[Set[IPv4Addr]]
+    : TestAwaitableObserver[Set[String]] = {
+        val mapper = new RouterCidrMapper(routerId, vt)
+        val obs = new TestAwaitableObserver[Set[String]]
         mapper.ipObservable.subscribe(obs)
         obs
     }
