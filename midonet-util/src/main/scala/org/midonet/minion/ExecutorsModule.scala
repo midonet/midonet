@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster
+package org.midonet.minion
 
-import java.util.concurrent.{ScheduledExecutorService, ExecutorService, Executors}
+import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService}
 
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
@@ -39,7 +39,7 @@ object ExecutorsModule {
       * on the cluster thread pool, it is its responsibility to cancel their
       * scheduling upon stopping the service.
       */
-    def apply(config: ClusterConfig, log: Logger): ScheduledExecutorService = {
+    def apply(config: ExecutorsConfig, log: Logger): ScheduledExecutorService = {
         var poolSize = Runtime.getRuntime.availableProcessors()
         if (poolSize < config.threadPoolSize) {
             poolSize = config.threadPoolSize
@@ -47,19 +47,21 @@ object ExecutorsModule {
         log info s"Cluster thread pool started with $poolSize threads"
 
         Executors.newScheduledThreadPool(
-            poolSize, new NamedThreadFactory("cluster-pool", isDaemon = true))
+            poolSize,
+            new NamedThreadFactory(config.threadPoolName, isDaemon = true))
     }
 
 }
 
-class ExecutorsModule(executor: ScheduledExecutorService) extends AbstractModule {
+class ExecutorsModule(executor: ScheduledExecutorService, config: ExecutorsConfig)
+    extends AbstractModule {
 
     override def configure(): Unit = {
         bind(classOf[ExecutorService])
-            .annotatedWith(Names.named("cluster-pool"))
+            .annotatedWith(Names.named(config.threadPoolName))
             .toInstance(executor)
         bind(classOf[ScheduledExecutorService])
-            .annotatedWith(Names.named("cluster-pool"))
+            .annotatedWith(Names.named(config.threadPoolName))
             .toInstance(executor)
     }
 }

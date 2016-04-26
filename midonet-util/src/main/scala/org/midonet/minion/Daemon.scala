@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster
+package org.midonet.minion
 
 import java.util.UUID
 import java.util.concurrent.ExecutorService
@@ -27,20 +27,20 @@ import scala.util.{Failure, Success}
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
-import org.slf4j.LoggerFactory
+import com.google.inject.Injector
 
-import org.midonet.cluster.ClusterNode.MinionDef
-import org.midonet.cluster.services.Minion
+import org.slf4j.LoggerFactory
 
 /** Models the base class that orchestrates the various sub services inside a
   * Midonet Cluster node.
   */
-final protected class Daemon(val nodeId: UUID,
-                             val executor: ExecutorService,
-                             val minionDefs: List[MinionDef[_ <: Minion]])
+final class Daemon(val nodeId: UUID,
+                   val executor: ExecutorService,
+                   val minionDefs: List[MinionDef[_ <: Minion]],
+                   val injector: Injector)
     extends AbstractService {
 
-    private val log = LoggerFactory.getLogger(clusterLog)
+    private val log = LoggerFactory.getLogger(MinionDaemonLog)
 
     private implicit val ec = ExecutionContext.fromExecutor(executor)
 
@@ -64,7 +64,7 @@ final protected class Daemon(val nodeId: UUID,
             log.error("No minions started. Check MidoNet cluster config file " +
                       "to ensure that some services are enabled, and check " +
                       "possible failures in enabled minions.")
-            notifyFailed(new ClusterException("No minions enabled", null))
+            notifyFailed(new MinionException("No minions enabled", null))
         } else {
             if (numFailed > 0) {
                 log.info("Not all Cluster minions were started, continuing " +
@@ -81,7 +81,7 @@ final protected class Daemon(val nodeId: UUID,
     private def startMinion[D <: Minion](minionDef: MinionDef[D])
                                         (implicit ct: ClassTag[D])
     : Future[D] = async {
-        val minion = ClusterNode.injector.getInstance(minionDef.clazz)
+        val minion = injector.getInstance(minionDef.clazz)
         if (minion.isEnabled) {
             log.info(s"Starting cluster minion: ${minionDef.name}")
             minion.startAsync().awaitRunning()
@@ -96,7 +96,7 @@ final protected class Daemon(val nodeId: UUID,
     override def doStop(): Unit = {
         log info "Daemon terminates.."
         minionDefs foreach { minionDef =>
-            val minion = ClusterNode.injector.getInstance(minionDef.clazz)
+            val minion = injector.getInstance(minionDef.clazz)
             if (minion.isRunning) {
                 try {
                     log.info(s"Terminating minion: ${minionDef.name}")

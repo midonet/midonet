@@ -42,18 +42,19 @@ import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
 
-import org.midonet.cluster.{RestApiConfig, restApiLog, ClusterConfig, ClusterNode}
 import org.midonet.cluster.auth.{AuthModule, AuthService}
 import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter, LoginFilter}
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
 import org.midonet.cluster.services.c3po.{C3POMinion, C3POStorageManager}
 import org.midonet.cluster.services.rest_api.resources._
-import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.{ClusterConfig, RestApiConfig, restApiLog}
 import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.minion.{MinionService, Context, Minion}
 import org.midonet.util.concurrent.NamedThreadFactory
 
 object Vladimir {
@@ -124,8 +125,8 @@ object Vladimir {
     }
 }
 
-@ClusterService(name = "rest-api")
-class Vladimir @Inject()(nodeContext: ClusterNode.Context,
+@MinionService(name = "rest-api")
+class Vladimir @Inject()(nodeContext: Context,
                          backend: MidonetBackend,
                          curator: CuratorFramework,
                          reflections: Reflections,
