@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2308d02b",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-27T10:34:21Z",
+      "side": 1,
+      "message": "ah, if it\u0027s only 5.1, i think you can change.",
+      "parentUuid": "baa041b7_9a838104",
+      "revId": "3b9b8b38bcc2f72b077563825e6243fdc25be2c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_97d23ad1",
         "filename": "midonet-util/src/main/scala/org/midonet/cluster/services/package.scala",
         "patchSetId": 1
