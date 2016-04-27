@@ -127,6 +127,30 @@
       "revId": "8c7834ed750aa524d4c1ed0cc651dbe0eb96bb58",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ae0a871f",
+        "filename": "midolman/src/deb/init/minions-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-27T10:38:25Z",
+      "side": 1,
+      "message": "Can\u0027t this be fixed just by redefining MIDO_LOG_DIR?",
+      "parentUuid": "baa041b7_ba088592",
+      "range": {
+        "startLine": 59,
+        "startChar": 82,
+        "endLine": 59,
+        "endChar": 103
+      },
+      "revId": "8c7834ed750aa524d4c1ed0cc651dbe0eb96bb58",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
