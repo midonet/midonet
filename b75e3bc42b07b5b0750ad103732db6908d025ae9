@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_cfd14259",
+        "filename": "midolman/conf/logback-minions.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-28T16:44:04Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "baa041b7_545b852e",
+      "range": {
+        "startLine": 3,
+        "startChar": 14,
+        "endLine": 3,
+        "endChar": 18
+      },
+      "revId": "b75e3bc42b07b5b0750ad103732db6908d025ae9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b44e516d",
         "filename": "midolman/conf/logback-minions.xml",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8f421a0f",
+        "filename": "midolman/conf/logback-minions.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-28T16:44:04Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "baa041b7_b44e516d",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 20
+      },
+      "revId": "b75e3bc42b07b5b0750ad103732db6908d025ae9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_94510d11",
         "filename": "midolman/conf/logback-minions.xml",
         "patchSetId": 6
@@ -59,6 +107,30 @@
       "writtenOn": "2016-04-28T14:56:58Z",
       "side": 1,
       "message": "this doesn\u0027t take config from mn-conf, so this should be removed.",
+      "range": {
+        "startLine": 70,
+        "startChar": 40,
+        "endLine": 70,
+        "endChar": 68
+      },
+      "revId": "b75e3bc42b07b5b0750ad103732db6908d025ae9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cf3822a3",
+        "filename": "midolman/conf/logback-minions.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-28T16:44:04Z",
+      "side": 1,
+      "message": "Yes, it does (AgentServicesNode.scala:77). The log levels are configured there, just like the agent and cluster. It\u0027s scoped under the agent namespace (so changing the root level of the agent, also changes the root level of minions). Should we put the minions log levels outside the agent hierarchy?",
+      "parentUuid": "baa041b7_94510d11",
       "range": {
         "startLine": 70,
         "startChar": 40,
