@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_545b852e",
+        "filename": "midolman/conf/logback-minions.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-28T14:56:58Z",
+      "side": 1,
+      "message": "6",
+      "range": {
+        "startLine": 3,
+        "startChar": 14,
+        "endLine": 3,
+        "endChar": 18
+      },
+      "revId": "b75e3bc42b07b5b0750ad103732db6908d025ae9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b44e516d",
+        "filename": "midolman/conf/logback-minions.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-28T14:56:58Z",
+      "side": 1,
+      "message": "this can be removed.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 20
+      },
+      "revId": "b75e3bc42b07b5b0750ad103732db6908d025ae9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_94510d11",
+        "filename": "midolman/conf/logback-minions.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-28T14:56:58Z",
+      "side": 1,
+      "message": "this doesn\u0027t take config from mn-conf, so this should be removed.",
+      "range": {
+        "startLine": 70,
+        "startChar": 40,
+        "endLine": 70,
+        "endChar": 68
+      },
+      "revId": "b75e3bc42b07b5b0750ad103732db6908d025ae9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
