@@ -140,6 +140,30 @@
       "revId": "b75e3bc42b07b5b0750ad103732db6908d025ae9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ef51a6d9",
+        "filename": "midolman/conf/logback-minions.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-28T16:47:26Z",
+      "side": 1,
+      "message": "oh. I didn\u0027t know that. better. I don\u0027t think we need to move the hierarchy. it is part of the agent.",
+      "parentUuid": "baa041b7_cf3822a3",
+      "range": {
+        "startLine": 70,
+        "startChar": 40,
+        "endLine": 70,
+        "endChar": 68
+      },
+      "revId": "b75e3bc42b07b5b0750ad103732db6908d025ae9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
