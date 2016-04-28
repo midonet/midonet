@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f78f46ca",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 44
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-28T14:57:38Z",
+      "side": 1,
+      "message": "I\u0027d call it flow_state_minion.",
+      "range": {
+        "startLine": 402,
+        "startChar": 4,
+        "endLine": 402,
+        "endChar": 14
+      },
+      "revId": "ae0793d5df6ff9ee8eb1bcabf7c27decfcfda9f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3786ceb9",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 44
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-04-28T14:57:38Z",
+      "side": 1,
+      "message": "Whether",
+      "revId": "ae0793d5df6ff9ee8eb1bcabf7c27decfcfda9f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
