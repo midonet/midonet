@@ -30,12 +30,12 @@ import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.{Observer, Subscription}
 
-import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.containers.schedulers._
-import org.midonet.cluster.services.{ClusterService, LeaderLatchProvider, MidonetBackend, Minion}
+import org.midonet.cluster.services._
 import org.midonet.cluster.{ClusterConfig, containersLog}
 import org.midonet.containers
+import org.midonet.minion.{MinionService, Context, Minion}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.makeAction0
 
@@ -59,7 +59,7 @@ object ContainerService {
   * containers and the set of active agent nodes, and schedules the creation
   * or deletion of the containers via NSDB.
   */
-@ClusterService(name = "containers")
+@MinionService(name = "containers")
 class ContainerService @Inject()(nodeContext: Context,
                                  backend: MidonetBackend,
                                  reflections: Reflections,

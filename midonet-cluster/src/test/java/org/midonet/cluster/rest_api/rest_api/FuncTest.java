@@ -144,16 +144,14 @@ public class FuncTest {
             CuratorFramework curator = newClient(testZk.getConnectString(),
                                                  new RetryNTimes(10, 500));
 
-            ClusterConfig cfg = new ClusterConfig(
+            ClusterConfig cfg = ClusterConfig.forTests(
                 ConfigFactory.parseString (
                     "zookeeper.use_new_stack = true \n" +
                     "zookeeper.curator_enabled = true \n" +
                     "zookeeper.root_key = " + ZK_ROOT_MIDOLMAN + "\n" +
                     "cluster.rest_api.root_uri = " + CONTEXT_PATH + "\n" +
                     "cluster.rest_api.nsdb_lock_timeout = 30s\n" +
-                    "cluster.auth.provider_class = \"org.midonet.cluster.auth.MockAuthService\"\n" +
-                    "cluster.translators.nat.dynamic_port_start = 1024\n" +
-                    "cluster.translators.nat.dynamic_port_end = 65535 "
+                    "cluster.auth.provider_class = \"org.midonet.cluster.auth.MockAuthService\""
                 )
             );
 

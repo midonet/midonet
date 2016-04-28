@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services
+package org.midonet.minion
 
-/** Base configuration mixin for a Cluster Minion. */
-trait MinionConfig[+D <: Minion] {
-    def isEnabled: Boolean
+import java.util.concurrent.TimeUnit
+
+import com.typesafe.config.Config
+
+class ExecutorsConfig(val conf: Config, val prefix: String) {
+
+    val threadPoolName = conf.getString(s"$prefix.executors.thread_pool_name")
+
+    val threadPoolSize = conf.getInt(s"$prefix.executors.max_thread_pool_size")
+
+    val threadPoolShutdownTimeoutMs =
+            conf.getDuration(s"$prefix.executors.thread_pool_shutdown_timeout",
+                             TimeUnit.MILLISECONDS)
+
 }

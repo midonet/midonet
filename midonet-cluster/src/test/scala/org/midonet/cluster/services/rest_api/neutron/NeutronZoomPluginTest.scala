@@ -66,11 +66,7 @@ class NeutronZoomPluginTest extends FeatureSpec
             |cluster.rest_api.nsdb_lock_timeout : 30s
         """.stripMargin)
         )
-        val clusterConfig = new ClusterConfig(ConfigFactory.parseString(s"""
-               |cluster.translators.nat.dynamic_port_start : 1024
-               |cluster.translators.nat.dynamic_port_end : 65535
-        """.stripMargin)
-        )
+        val clusterConfig = ClusterConfig.forTests(ConfigFactory.empty())
         MidonetBackend.isCluster = true
         backend = new MidonetBackendService(backendConfig, curator, curator,
                                             metricRegistry = null)

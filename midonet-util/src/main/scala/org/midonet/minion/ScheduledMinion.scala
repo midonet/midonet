@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.services
+package org.midonet.minion
 
 import java.util.concurrent.Executors.newScheduledThreadPool
 import java.util.concurrent.TimeUnit
@@ -22,12 +22,11 @@ import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
 import com.lmax.disruptor.util.DaemonThreadFactory
+
 import org.slf4j.Logger
 
-import org.midonet.cluster.ClusterNode.Context
-
 abstract class ScheduledMinion(nodeContext: Context,
-                                      config: ScheduledMinionConfig[_])
+                               config: ScheduledMinionConfig[_])
     extends Minion(nodeContext) {
 
     protected def log: Logger
@@ -73,7 +72,7 @@ abstract class ScheduledMinion(nodeContext: Context,
 }
 
 @VisibleForTesting
-protected[cluster] object ScheduledMinion {
+object ScheduledMinion {
     val CfgParamUndefErrMsg = "Config parameter %s not defined."
 
     def checkConfigParamDefined(str: String, name: String): Unit = {
