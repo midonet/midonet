@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_34fa4176",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-28T16:43:03Z",
+      "side": 1,
+      "message": "I think it\u0027s easier if you send it every time to simplify the case of router interface add.  We want all the BGP resources to be created when that API is invoked.",
+      "parentUuid": "baa041b7_34d36106",
+      "range": {
+        "startLine": 774,
+        "startChar": 1,
+        "endLine": 774,
+        "endChar": 49
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5486e513",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 10
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_cf9ca2c2",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-28T16:43:03Z",
+      "side": 1,
+      "message": "Good point.\n\nThere are cases where a BGP speaker is associated with multiple routers in Neutron.  When a BGP speaker is deleted, we basically need to find these routers in MidoNet and clean up the BGP resources including the containers.\n\nCurrently in networking-midonet bgp spec, we do not keep the router-bgp speaker associations when router-less BGP speaker creation API is called.  I am thinking we should change that.  Just store the router-BGP speaker association in DB, and send the list of associated routers on BGP speaker deletion. \n\nI will update BGP Speaker as follows:\n\n* change \u0027router_id\u0027 -\u003e \u0027add_router_ids\u0027\n* add \u0027del_router_ids\u0027",
+      "parentUuid": "baa041b7_5486e513",
+      "range": {
+        "startLine": 812,
+        "startChar": 4,
+        "endLine": 812,
+        "endChar": 10
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_74b569ec",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 10
@@ -59,6 +107,30 @@
       "writtenOn": "2016-04-28T13:48:58Z",
       "side": 1,
       "message": "I\u0027m confusing because I haven\u0027t understood policy of document for translation.\nCould you please tell me whose \"UPDATE\" is this? neutron or MidoNet?\nIf the answer is MidoNet, it is OK.\n(bgp_peer_delete is issued to neutron, but operation for MidoNet is \"update\")",
+      "range": {
+        "startLine": 823,
+        "startChar": 4,
+        "endLine": 823,
+        "endChar": 10
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4fb1b246",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 823,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-28T16:43:03Z",
+      "side": 1,
+      "message": "This is based on API verb (so this is equivalent to PUT).  This is all MidoNet.  Neutron API is based on proper REST API.  (basically you\u0027ll be calling update method of python-midonetclient, that\u0027s all).",
+      "parentUuid": "baa041b7_74b569ec",
       "range": {
         "startLine": 823,
         "startChar": 4,
