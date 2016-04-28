@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_34d36106",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-04-28T13:48:58Z",
+      "side": 1,
+      "message": "Considering non-router pattern in bgp_speaker,\nthere is possibility that multiple peers are already related to a bgp_speaker before adding network.\nShould plugin request update_bgp_speaker multiple times?\nOr it should be add_bgp_peer_ids?",
+      "range": {
+        "startLine": 774,
+        "startChar": 1,
+        "endLine": 774,
+        "endChar": 49
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5486e513",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-04-28T13:48:58Z",
+      "side": 1,
+      "message": "If bgp_speaker that is related to network and peer is deleted,\nshould plugin request update_bgp_speaker with \"del_network_id\" and \"del_bgp_peer_id\"to backend?\nThen container will be elased by deleting peers on bgp_speaker. \nIn this case, bgp peer and network for deletion can be more than one. This means \"del_network_id\" and \"del_bgp_peer_id\" should be list.\nHow about just sending UUID of bgp_speaker from plugin?",
+      "range": {
+        "startLine": 812,
+        "startChar": 4,
+        "endLine": 812,
+        "endChar": 10
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_74b569ec",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 823,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-04-28T13:48:58Z",
+      "side": 1,
+      "message": "I\u0027m confusing because I haven\u0027t understood policy of document for translation.\nCould you please tell me whose \"UPDATE\" is this? neutron or MidoNet?\nIf the answer is MidoNet, it is OK.\n(bgp_peer_delete is issued to neutron, but operation for MidoNet is \"update\")",
+      "range": {
+        "startLine": 823,
+        "startChar": 4,
+        "endLine": 823,
+        "endChar": 10
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
