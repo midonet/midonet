@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7427a964",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-28T12:55:30Z",
+      "side": 1,
+      "message": "Why is this necessary?  Wouldn\u0027t this be handled in RouterInterfaceTranslator\u0027s create translation?",
+      "revId": "81c9e766a5627b1666d1357eead82df0e25582f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
