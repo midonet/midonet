@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2f930ea5",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 44
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-04-28T16:25:40Z",
+      "side": 1,
+      "message": "Right. In fact, I\u0027d prefer to scope it inside the agent.services namespace, or rename agent.services to agent.minions namespace, we\u0027re still on time as the previous patch is not merged yet. We\u0027ll avoid foo_minion, bar_minion.",
+      "parentUuid": "baa041b7_f78f46ca",
+      "range": {
+        "startLine": 402,
+        "startChar": 4,
+        "endLine": 402,
+        "endChar": 14
+      },
+      "revId": "ae0793d5df6ff9ee8eb1bcabf7c27decfcfda9f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3786ceb9",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 44
