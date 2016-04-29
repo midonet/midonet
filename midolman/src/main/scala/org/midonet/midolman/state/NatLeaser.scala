@@ -94,6 +94,7 @@ object NatLeaser {
      */
     type DeviceLeases = ConcurrentHashMap[UUID, IpLeases]
 
+    type OutstandingRequests = ConcurrentHashMap[NatRange, Future[NatBlock]]
     object NoNatBindingException extends Exception {
         override def fillInStackTrace(): Throwable = this
     }
@@ -111,6 +112,8 @@ trait NatLeaser {
     val allocator: NatBlockAllocator
     val clock: NanoClock
     private val deviceLeases = new DeviceLeases
+    private val outstandingBlockRequests = new OutstandingRequests
+
     private var lastObliterated = 0L
 
     /**
@@ -249,21 +252,40 @@ trait NatLeaser {
                                 targetIp: IPv4Addr, targetIndex: Int): Future[NatBlock] = {
         val target = targets(targetIndex)
         val range = new NatRange(deviceId, targetIp, target.tpStart, target.tpEnd)
+
         implicit val ec = ExecutionContext.callingThread
-        allocator.allocateBlockInRange(range) andThen {
-            case Success(data) => registerNewBlock(data)
-        } recoverWith {
-            case NoFreeNatBlocksException =>
-                val nextIp = targetIp.next
-                if (nextIp <= targets(targetIndex).nwEnd) {
-                    fetchNatBlock(deviceId, targets, nextIp, targetIndex)
-                } else if (targetIndex + 1 < targets.length) {
-                    fetchNatBlock(deviceId, targets,
-                                    targets(targetIndex + 1).nwStart,
-                                    targetIndex + 1)
-                } else {
-                    Future.failed(NoNatBindingException)
-                }
+
+        val preexistingRequest = outstandingBlockRequests.get(range)
+        if (preexistingRequest != null) {
+            preexistingRequest
+        } else {
+            val newRequest = allocator.allocateBlockInRange(range) andThen {
+                case Success(data) => registerNewBlock(data)
+            } recoverWith {
+                case NoFreeNatBlocksException =>
+                    val nextIp = targetIp.next
+                    if (nextIp <= targets(targetIndex).nwEnd) {
+                        fetchNatBlock(deviceId, targets, nextIp, targetIndex)
+                    } else if (targetIndex + 1 < targets.length) {
+                        fetchNatBlock(deviceId, targets,
+                                      targets(targetIndex + 1).nwStart,
+                                      targetIndex + 1)
+                    } else {
+                        Future.failed(NoNatBindingException)
+                    }
+            }
+            val oldRequest = outstandingBlockRequests.putIfAbsent(range,
+                                                                  newRequest)
+            // must set callback after adding in case
+            // the future completes instantly
+            newRequest.onComplete {
+                case _ => outstandingBlockRequests.remove(range, newRequest)
+            }
+
+            if (oldRequest != null)
+                oldRequest
+            else
+                newRequest
         }
     }
 
