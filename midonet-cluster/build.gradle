@@ -172,7 +172,7 @@ debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
-            '-d', 'java8-runtime-headless | java8-runtime',
+            '-d', 'openjdk-8-jdk-headless | java8-runtime-headless | java8-runtime',
             '--deb-recommends', 'java8-runtime-headless | java8-runtime',
             '--after-install', "${project.projectDir}/src/deb/control/postinst",
             '--before-install', "${project.projectDir}/src/deb/control/preinst",
