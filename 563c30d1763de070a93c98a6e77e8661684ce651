@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8a456871",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-04-29T03:17:19Z",
+      "side": 1,
+      "message": "My comment is when the operation is as follows.\n1. neutron bgp_speaker_create without router_id.\n2. neutron bgp-peer-create peer1\n3. neutron bgp-peer-create peer2\n4. neutron bgp-speaker-peer-add peer1\n5. neutron bgp-speaker-peer-add peer2\n6. neutron bgp-speaker-network-add ext-net\n\nIn this case, I assume that router is located in procedure 6.\nMultiple peers are already related to a bgp_speaker at this time.\nIf we accomplish informing to backend only once, plugin should send multiple peers to backend.\nI wonder it should be \"add_bgp_peers\", not \"add_bgp_peer\".\n\nBy the way, let me confirm.\nDid you suggest that plugin should send \"bgp_speaker_update\" with \"add_network_id\" when interface is attached to router?",
+      "parentUuid": "baa041b7_34fa4176",
+      "range": {
+        "startLine": 774,
+        "startChar": 1,
+        "endLine": 774,
+        "endChar": 49
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5486e513",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 10
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2a5bfc55",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-04-29T03:17:19Z",
+      "side": 1,
+      "message": "Yes, your suggestion is reasonable considering future.\nProbably we support more than one routers per \"bgp_speaker\".\nBut my suggestion is WHEN bgp_speaker is deleted even though the \"bgp_speaker\" has peers and networks.\nIn this case, how should plugin send information to backend?\nIf we accomplish informing to backend only once, I assume that plugin should send multiple peers and networks for deletion.",
+      "parentUuid": "baa041b7_cf9ca2c2",
+      "range": {
+        "startLine": 812,
+        "startChar": 4,
+        "endLine": 812,
+        "endChar": 10
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_74b569ec",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 10
@@ -131,6 +179,30 @@
       "side": 1,
       "message": "This is based on API verb (so this is equivalent to PUT).  This is all MidoNet.  Neutron API is based on proper REST API.  (basically you\u0027ll be calling update method of python-midonetclient, that\u0027s all).",
       "parentUuid": "baa041b7_74b569ec",
+      "range": {
+        "startLine": 823,
+        "startChar": 4,
+        "endLine": 823,
+        "endChar": 10
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4a608001",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 823,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-04-29T03:17:19Z",
+      "side": 1,
+      "message": "understood. thanks!",
+      "parentUuid": "baa041b7_4fb1b246",
       "range": {
         "startLine": 823,
         "startChar": 4,
