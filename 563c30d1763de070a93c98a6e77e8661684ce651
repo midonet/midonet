@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ecabed1b",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-30T14:41:47Z",
+      "side": 1,
+      "message": "I think the input should look like this:\n\n{\"id\": \u003cbgp_speaker_id\u003e,\n \"routers\": [{\"id\": \u003crouter_id\u003e,\n              \"peers\": [{\"id\": \u003cpeer_id\u003e, ...}, ...],\n              \"networks\": [{\"id\": \u003cnetwork_id\u003e, ...}, ...],\n            ], ...}",
+      "parentUuid": "baa041b7_2c8b15c5",
+      "range": {
+        "startLine": 774,
+        "startChar": 1,
+        "endLine": 774,
+        "endChar": 49
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5486e513",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 10
