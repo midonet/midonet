@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2c8b15c5",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-30T13:51:08Z",
+      "side": 1,
+      "message": "It\u0027s true, we need to send a list of BGP peers.  I will change it to add_bgp_peers.\n\nAs for router interface, I don\u0027t think it is necessary for the plugin to do anything extra.  MidoNet should be able to add a new route based on what\u0027s already stored in Zookeeper.",
+      "parentUuid": "baa041b7_8a456871",
+      "range": {
+        "startLine": 774,
+        "startChar": 1,
+        "endLine": 774,
+        "endChar": 49
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5486e513",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 10
@@ -132,6 +156,54 @@
       "side": 1,
       "message": "Yes, your suggestion is reasonable considering future.\nProbably we support more than one routers per \"bgp_speaker\".\nBut my suggestion is WHEN bgp_speaker is deleted even though the \"bgp_speaker\" has peers and networks.\nIn this case, how should plugin send information to backend?\nIf we accomplish informing to backend only once, I assume that plugin should send multiple peers and networks for deletion.",
       "parentUuid": "baa041b7_cf9ca2c2",
+      "range": {
+        "startLine": 812,
+        "startChar": 4,
+        "endLine": 812,
+        "endChar": 10
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0c8611b9",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-30T13:51:08Z",
+      "side": 1,
+      "message": "I was thinking that if we have a list of router IDs, we can simply clean up all the BGP resources in MidoNet.  \n\nI guess the question is, if a user configures BGP using Neutron on a router, and then adds BGP midonet resource outside of Neutron on the same router, when you do BGP speaker deletion, do we need to keep the midonet-only BGP data?   If so, then I think we need something like:\n\n{\"routers\": {\"id\": \u003crouter_id\u003e,\n             \"peer_ids\": [\u003cpeer_id\u003e, ...],\n             \"network_ids\": [\u003cnetwork_id\u003e, ...]}\n\nThoughts?",
+      "parentUuid": "baa041b7_2a5bfc55",
+      "range": {
+        "startLine": 812,
+        "startChar": 4,
+        "endLine": 812,
+        "endChar": 10
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0005b7ba",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-04-30T13:51:08Z",
+      "side": 1,
+      "message": "Does neutron allow bgp speaker deletion when it has associations?  Well, either way, I think it might be a good idea to implement this so that it gives us a way to \u0027clean up\u0027. \n\nOne limitation of C3PO is that deletion does not let us get the request body.  But it makes sense as that is typically the common case for REST API as well.  We could probably change this though, to facilitate cases like this.\n\nWhile we can locate the container, router and the BGP resources from BGP speaker ID, the problem is the case where a BGP speaker is associated with multiple Quagga containers (this is possible when doing the non-router association case).\n\nIn that case, we need a list o router IDs that BGP speaker is associated with which we currently don\u0027t store in the plugin side (but we could).\n\nAlternatively, if we generate the container ID using xor of bgp speaker ID and router ID, we can also search for the routers or containers from which we want to delete bgp resources from.  Less efficient but simple to do.",
+      "parentUuid": "baa041b7_5486e513",
       "range": {
         "startLine": 812,
         "startChar": 4,
