@@ -36,8 +36,7 @@ import org.scalatest.mock.MockitoSugar
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.topology.LocalPortActive
-
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 
 @RunWith(classOf[JUnitRunner])
 class MetadataServiceManagerActorTest extends FeatureSpecLike

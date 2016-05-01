@@ -114,7 +114,6 @@ public class MidolmanActorsModule extends PrivateModule {
          * would happen (the behaviour is not defined but akka v2.0.3 will
          * start the actor with a null context). */
         bind(SupervisorActor.class);
-        bind(VirtualToPhysicalMapper.class);
         bind(DatapathController.class);
         bind(PacketsEntryPoint.class);
         bind(NetlinkCallbackDispatcher.class);

@@ -48,6 +48,7 @@ import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.state.NatBlockAllocator;
 import org.midonet.midolman.state.PeerResolver;
 import org.midonet.midolman.state.ZkNatBlockAllocator;
+import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopology;
 import org.midonet.midolman.topology.VirtualTopology$;
 import org.midonet.util.functors.Predicate;
@@ -75,6 +76,7 @@ public class MidolmanModule extends PrivateModule {
         bindAllocator();
 
         bindVirtualTopology();
+        bindVirtualToPhysicalMapper();
 
         bind(FlowTracingAppender.class)
             .toProvider(FlowTracingAppenderProvider.class)
@@ -177,6 +179,11 @@ public class MidolmanModule extends PrivateModule {
         bind(VirtualTopology.class)
             .asEagerSingleton();
         expose(VirtualTopology.class);
+    }
+
+    protected void bindVirtualToPhysicalMapper() {
+        bind(VirtualToPhysicalMapper.class).asEagerSingleton();
+        expose(VirtualToPhysicalMapper.class);
     }
 
     private static class FlowTracingAppenderProvider
