@@ -203,6 +203,13 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     }
 }
 
+task debianPrepare(type: Copy, dependsOn: installShadowApp) {
+    from("src/rhel7/systemd/midolman.service") {
+        into "lib/systemd/system"
+    }
+    into "${pkgDestDir}"
+}
+
 task rhel7Prepare(type: Copy, dependsOn: installShadowApp) {
     from("src/rhel7/systemd/midolman.service") {
         into "usr/lib/systemd/system"
@@ -241,11 +248,14 @@ packaging {
 }
 
 preparePkg.dependsOn cleanPkg
-debian.dependsOn preparePkg
-tar.dependsOn preparePkg
+
+debian.dependsOn debianPrepare
+debianPrepare.dependsOn preparePkg
 
 rpm.dependsOn rhel7Prepare
 rhel7Prepare.dependsOn preparePkg
+
+tar.dependsOn preparePkg
 
 debian.doFirst {
     project.packaging.version = project.debVersion
