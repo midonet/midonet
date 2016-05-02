@@ -22,6 +22,30 @@
       "revId": "64845d119001f3b035da9e565be603c044d0c155",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c0b58831",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-02T16:34:33Z",
+      "side": 1,
+      "message": "Yes, so virtual packages just specify what you are compatible with.\nOpenjdk-9 is one of the packages that \u0027provides\u0027 this virtual package because it should run java8 code (as well as openjdk-8). I assume apt just installs the higher numbered version when several packages provides the same virtual package.\n\nThis patch is not completely necessary but field complained that we were saying that we are compatible with java8 but java9 was installed.",
+      "parentUuid": "baa041b7_a09cc4c0",
+      "range": {
+        "startLine": 9,
+        "startChar": 13,
+        "endLine": 9,
+        "endChar": 18
+      },
+      "revId": "64845d119001f3b035da9e565be603c044d0c155",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
