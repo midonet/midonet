@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b57d24b3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/LegacyStateTableStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-02T15:29:35Z",
+      "side": 1,
+      "message": "I remember other tables weren\u0027t migrated when we looked. arp_tables in routers and the mac_ports table also in networks? \n\nI may be misunderstanding this.",
+      "range": {
+        "startLine": 30,
+        "startChar": 16,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "e9aaab8fe68c32aeb3af5ff16f9c9fc68170e1b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
