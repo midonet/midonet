@@ -16,6 +16,24 @@
       "revId": "3dbf73e67a6e905e1bc863fceae0bcbc8e032ad3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b5e1a49c",
+        "filename": "tests/mdts/services/midonet_agent.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-02T15:01:16Z",
+      "side": 1,
+      "message": "I\u0027m merging all gc logs into a single file here. That tail trick is to put a header with the actual name of the gc log file before the contents (just to separate the output of different files).",
+      "parentUuid": "baa041b7_7508bc91",
+      "revId": "3dbf73e67a6e905e1bc863fceae0bcbc8e032ad3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
