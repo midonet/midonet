@@ -23,5 +23,5 @@ import org.midonet.midolman.state.NatState.NatKey
 
 trait FlowStateStorageFactory {
 
-    def create: Future[FlowStateStorage[ConnTrackKey, NatKey]]
+    def create(): Future[FlowStateStorage[ConnTrackKey, NatKey]]
 }

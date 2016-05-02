@@ -16,13 +16,12 @@
 
 package org.midonet.midolman.state
 
-import org.midonet.cluster.flowstate.proto.FlowState.{Conntrack, Nat, Trace}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.TraceKey
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{IPv4Addr, FlowStatePackets}
+import org.midonet.packets.FlowStatePackets
 import org.midonet.sdn.flows.FlowTagger.FlowStateTag
 import org.midonet.util.Clearable
 
