@@ -46,6 +46,30 @@
       "revId": "e9aaab8fe68c32aeb3af5ff16f9c9fc68170e1b7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e04c0c72",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/LegacyStateTableStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-02T16:18:43Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_d507881a",
+      "range": {
+        "startLine": 30,
+        "startChar": 16,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "e9aaab8fe68c32aeb3af5ff16f9c9fc68170e1b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
