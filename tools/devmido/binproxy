@@ -16,6 +16,8 @@
 
 export MIDO_HOME=%MIDO_HOME%
 export MIDO_JAR=%MIDO_JAR%
+export MIDO_CFG=%MIDO_CFG%
+export MIDO_LOG_DIR=%MIDO_LOG_DIR%
 
 SCRIPT_NAME=`basename $0`
 exec %SCRIPT_DIR%/$SCRIPT_NAME "$@"
