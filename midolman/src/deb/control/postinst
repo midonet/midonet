@@ -10,3 +10,6 @@ install -d $LOGDIR $DATADIR
 mkdir /var/log/$NAME/minions
 
 test -e /etc/init.d/midolman || ln -s /lib/init/upstart-job /etc/init.d/midolman
+
+systemctl preset midolman.service 2>1 > /dev/null || echo "systemd not installed"
+systemctl enable midolman.service 2>1 > /dev/null || echo "systemd not installed"
