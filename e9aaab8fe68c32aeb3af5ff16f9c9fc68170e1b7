@@ -22,6 +22,30 @@
       "revId": "e9aaab8fe68c32aeb3af5ff16f9c9fc68170e1b7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d507881a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/LegacyStateTableStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-02T15:54:43Z",
+      "side": 1,
+      "message": "the other tables are not using the new paths yet, I will do that in separate patches if we agree to transition all paths from the dataclient. Right now the only affected is the ipv4-mac table, isn\u0027t it?",
+      "parentUuid": "baa041b7_b57d24b3",
+      "range": {
+        "startLine": 30,
+        "startChar": 16,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "e9aaab8fe68c32aeb3af5ff16f9c9fc68170e1b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
