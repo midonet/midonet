@@ -16,16 +16,27 @@
 
 set -e
 
-exec >> /var/log/midolman/minions/upstart-stderr.log
-exec 2>&1
-
 # Default values for backwards compatibility
-MIDO_HOME=/usr/share/midolman
-MIDO_CFG=/etc/midolman
-MIDO_LOG_DIR=/var/log/midolman/minions
-MIDO_DEBUG_PORT=8002
-JMX_PORT="7201"
+if [ -z "$MIDO_HOME" ]; then
+    MIDO_HOME=/usr/share/midolman
+fi
+
+if [ -z "$MIDO_CFG" ]; then
+    MIDO_CFG=/etc/midolman
+fi
+
+if [ -z "$MIDO_LOG_DIR" ]; then
+    MIDO_LOG_DIR=/var/log/midolman/minions
+fi
+
+if [ -z "$MIDO_JMX_PORT" ]; then
+    JMX_PORT="7202"
+fi
+
 MIDO_CFG_FILE=midolman.conf
+
+exec >> $MIDO_LOG_DIR/upstart-stderr.log
+exec 2>&1
 
 if [ -f $MIDO_HOME/prepare-java ]; then
     . $MIDO_HOME/prepare-java
@@ -34,17 +45,18 @@ else
     exit 1
 fi
 
-if [ -f /etc/midolman/minions-env.sh ]; then
-    . /etc/midolman/minions-env.sh
+if [ -f $MIDO_CFG/minions-env.sh ]; then
+    . $MIDO_CFG/minions-env.sh
 else
-    echo "/etc/midolman/minions-env.sh: file not found"
+    echo "$MIDO_CFG/minions-env.sh: file not found"
     exit 1
 fi
 
-MIDO_JAR=`ls $MIDO_HOME/midolman.jar`
+if [ -z "$MIDO_JAR" ]; then
+    MIDO_JAR=`ls $MIDO_HOME/midolman.jar`
+    test -r $MIDO_JAR || exit 1
+fi
 MIDO_MAIN=org.midonet.services.AgentServicesNode
-
-test -r $MIDO_JAR || exit 1
 
 # OpenJDK uses the systemjnidispatcher as default, since /usr/lib/jni is in
 # the java library path. We specify our jna.jar in the classpath, this leads

@@ -14,12 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MIDO_HOME=/usr/share/midolman
-MIDO_CFG=/etc/midolman
-MIDO_LOG_DIR=/var/log/midolman/
 MIDO_DEBUG_PORT=8002
-JMX_PORT="7201"
-MIDO_CFG_FILE=midolman.conf
 QUAGGA_DIR=/var/run/quagga
 
 # Amount of memory to allocate for the JVM heap.
