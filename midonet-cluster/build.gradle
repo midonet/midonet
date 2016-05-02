@@ -149,8 +149,15 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     }
 }
 
+task debianPrepare(type: Copy, dependsOn: installShadowApp) {
+    from("src/systemd/midonet-cluster.service") {
+        into "lib/systemd/system"
+    }
+    into "${pkgDestDir}"
+}
+
 task rhel7Prepare(type: Copy, dependsOn: installShadowApp) {
-    from("src/rhel7/systemd/midonet-cluster.service") {
+    from("src/systemd/midonet-cluster.service") {
         into "usr/lib/systemd/system"
     }
     into "${pkgDestDir}"
@@ -173,7 +180,9 @@ packaging {
 }
 
 preparePkg.dependsOn cleanPkg
-debian.dependsOn preparePkg
+
+debian.dependsOn debianPrepare
+debianPrepare.dependsOn preparePkg
 
 rpm.dependsOn rhel7Prepare
 rhel7Prepare.dependsOn preparePkg
