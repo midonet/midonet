@@ -34,6 +34,24 @@
       "revId": "3dbf73e67a6e905e1bc863fceae0bcbc8e032ad3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b5f8844a",
+        "filename": "tests/mdts/services/midonet_agent.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-02T15:04:25Z",
+      "side": 1,
+      "message": "Like the log file would look like:\n\n\u003d\u003d\u003e gc-20160502_114514.log.0.current \u003c\u003d\u003d\n[contents]\n\u003d\u003d\u003e gc-20160502_124337.log.0.current \u003c\u003d\u003d\n[contents]\n\netc.",
+      "parentUuid": "baa041b7_b5e1a49c",
+      "revId": "3dbf73e67a6e905e1bc863fceae0bcbc8e032ad3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
