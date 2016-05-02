@@ -240,6 +240,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_da1e9762",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 10
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1007112
+      },
+      "writtenOn": "2016-05-02T02:54:23Z",
+      "side": 1,
+      "message": "\u003eDoes neutron allow bgp speaker deletion when it has associations?\nYes.\n\nDo you assume that we locate multiple routers when router_id is not specified in bgp_speaker_create?\nIn this case, considering update router_id parameter in bgp_speaker,\nplugin should store association between router and bgp_speaker. \nI want to know how to locate routers when bgp_speaker is created without router_id.\nOne idea is seeking router by device_owner if ports that belong to specified network by \"bgp_speaker_network_add\".\n\nAnd I think that data should be sent between plugin and backend as follows.\n(I think this is similiar to what you said.)\n-bgp_speaker_update\nThis API called when following neutron action is called.\n* bgp_speaker_create\n* bgp_speaker_update\n* bgp_speaker_peer-add\n* bgp-speaker-peer-remove\n* bgp-speaker-network-add\n* bgp-speaker-network-remove\n* bgp-peer-delete\n  \u003d\u003e only when specified peer is associated bgp speaker.\n\n{\"id\": \u003cbgp_speaker_id\u003e,\n \"advertise-floating-ip-host-routes\": True/False,\n \"advertise-tenant-networks\": True_False,\n \"add_router_ids\": [\u003crouter_id\u003e,...],\n \"delete_router_ids\": [\u003crouter_id\u003e,...],\n \"add_bgp_peers\": [{\"id\": \u003cpeer_id\u003e, ...}, ...],\n \"delete_bgp_peer_ids\": [\"\u003cpeer_id\u003e\",...],\n \"add_network_ids\": [\u003cnetwork_id\u003e,...],\n \"delete_network_ids\": [\u003cnetwork_id\u003e,...],\n }\n\n* I assume that information of networks and routers are unnecessary for backend.\n  Please tell me if the information is needed.\n* peers and networks are associated with bgp_speaker,\n  so I think that it is better to make flatten.\n-bgp-speaker-delete\n only ID of speaker is sent to backend.\n Then, backend will seek routers that associated with the \"bgp_speaker\".\n\n-bgp_peer_update\nThis API is called when password of bgp_peer is updated.\nWhen \"bgp_speaker_add_peer\" and \"bgp_speaker_removw_peer\" is called,\nplugin request \"bgp_speaker_update\" to backend.",
+      "parentUuid": "baa041b7_0c8611b9",
+      "range": {
+        "startLine": 812,
+        "startChar": 4,
+        "endLine": 812,
+        "endChar": 10
+      },
+      "revId": "563c30d1763de070a93c98a6e77e8661684ce651",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_74b569ec",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 10
