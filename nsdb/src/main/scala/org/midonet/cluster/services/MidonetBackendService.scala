@@ -324,8 +324,8 @@ class MidonetBackendService(config: MidonetBackendConfig,
         ConnectionObservable.create(failFastCurator)
 
     private val zoom =
-        new ZookeeperObjectMapper(s"${config.rootKey}/zoom", namespaceId.toString,
-                                  curator, failFastCurator, reactor, connection,
+        new ZookeeperObjectMapper(config.rootKey, namespaceId.toString, curator,
+                                  failFastCurator, reactor, connection,
                                   connectionWatcher, metricRegistry)
 
     override def store: Storage = zoom

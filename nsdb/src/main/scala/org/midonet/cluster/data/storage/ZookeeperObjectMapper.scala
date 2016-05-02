@@ -117,8 +117,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     import ZookeeperObjectMapper._
 
     protected[storage] override val version = new AtomicLong(0)
+    protected[storage] override val zoomPath = s"$rootPath/zoom"
 
-    private[storage] val basePath = s"$rootPath/" + version.get
+    private[storage] val basePath = s"$zoomPath/" + version.get
     private[storage] val locksPath = basePath + s"/zoomlocks/lock"
     private[storage] val modelPath = basePath + s"/models"
 
