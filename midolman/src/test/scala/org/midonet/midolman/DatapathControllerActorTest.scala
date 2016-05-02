@@ -19,7 +19,9 @@ package org.midonet.midolman
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor._
+
 import com.typesafe.config.{Config, ConfigValueFactory}
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -27,8 +29,6 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
 import org.midonet.midolman.services.HostIdProvider
-import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.{FlowStateStorageFactory, MockStateStorage}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUpdate
 import org.midonet.midolman.topology.rcu.ResolvedHost
@@ -88,7 +88,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
             simBackChannel,
             clock,
             new FlowStateStorageFactory() {
-                override def create = Future.successful(new MockStateStorage())
+                override def create() = Future.successful(new MockStateStorage())
             },
         new MockNetlinkChannelFactory) {
     }
