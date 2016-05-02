@@ -25,6 +25,12 @@ DEVMIDO_DIR=$(cd $(dirname $0) && pwd)
 # Keep track of the midonet root directory
 TOP_DIR=$(cd $DEVMIDO_DIR/../../ && pwd)
 
+# Midonet config and script locations
+MM_BIN_DIR="/usr/share/midolman"
+MM_CFG_DIR="/etc/midolman"
+mkdir -p $MM_BIN_DIR
+mkdir -p $MM_CFG_DIR
+
 # Place our executables in /usr/local/bin
 MM_CTL="/usr/local/bin/mm-ctl"
 MM_DPCTL="/usr/local/bin/mm-dpctl"
@@ -55,5 +61,11 @@ sed -e "s@%MIDO_HOME%@$TOOLS_HOME@" \
     -e "s@%SCRIPT_DIR%@$TOOLS_SCRIPT_DIR@" \
     $DEVMIDO_DIR/binproxy | tee $MN_CONF $MM_METER
 chmod +x $MN_CONF $MM_METER
+
+# Install agent minions start up scripts
+cp "$MM_HOME/minions-start" $MM_BIN_DIR
+cp "$MM_HOME/prepare-java" $MM_BIN_DIR
+cp "$TOP_DIR/midolman/conf/minions-env.sh" $MM_CFG_DIR
+chmod +x $MM_HOME/minions-start $MM_HOME/prepare_java
 
 echo "install_mn_scripts.sh has successfully completed."
