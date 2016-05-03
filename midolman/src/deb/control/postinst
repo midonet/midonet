@@ -7,6 +7,13 @@ POST_DIR=/var/lib/dpkg/info
 
 install -d $LOGDIR $DATADIR
 
-mkdir /var/log/$NAME/minions
+mkdir -p /var/log/$NAME/minions
 
-test -e /etc/init.d/midolman || ln -s /lib/init/upstart-job /etc/init.d/midolman
+test -e /etc/init/upstart-job \
+    && ln -sf /lib/init/upstart-job /etc/init.d/midolman \
+    || echo "upstart not installed"
+
+systemctl preset midolman.service 2>1 > /dev/null \
+    || echo "systemd not installed"
+systemctl enable midolman.service 2>1 > /dev/null \
+    || echo "systemd not installed"
