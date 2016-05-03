@@ -35,13 +35,6 @@ trait LegacyStorage {
     def bridgeMacTable(@Nonnull bridgeId: UUID,
                        vlanId: Short, ephemeral: Boolean): MacPortMap
 
-
-    /**
-     * Gets the IP-MAC table for the specified bridge.
-     */
-    @throws[StateAccessException]
-    def bridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap
-
     /**
      * Gets the ARP table for the specified router.
      */
