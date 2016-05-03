@@ -22,6 +22,30 @@
       "revId": "802b5663d5ffd875a840b1caf0cd821d360d4e08",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dbab391c",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-03T10:17:48Z",
+      "side": 1,
+      "message": "Done. Most scripts in deb are also shared in rhel, sles. Probably for a later patch.",
+      "parentUuid": "baa041b7_9b96d1ee",
+      "range": {
+        "startLine": 207,
+        "startChar": 10,
+        "endLine": 207,
+        "endChar": 43
+      },
+      "revId": "802b5663d5ffd875a840b1caf0cd821d360d4e08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
