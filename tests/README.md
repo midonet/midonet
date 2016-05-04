@@ -29,7 +29,7 @@ They can be installed automatically using the following script (only need
 to run once).
 Most run-time dependencies are now handled inside the docker containers so the
 software requirements for the host are basically related to compile-time
-dependencies (e.g. protobufs).
+dependencies.
 
 ```
 midonet/tests$ ./setup_test_server
@@ -61,9 +61,17 @@ find . -name "*.deb"
 ./midonet-tools/build/packages/midonet-tools_5.0~201509181011.8599820_all.deb
 ```
 
-Install the python-midonetclient on the host:
+It is recommended (almost mandatory if you don't want to suffer a python dependency
+hell with the python libraries installed system wide) to install both MDTS and Sandbox
+in a virtual environment. For that, just create a virtual environment and install
+everything on it:
+
 ```
-sudo dpkg -i ./python-midonetclient/python-midonetclient_5.0~201509181011.8599820_all.deb
+virtualenv venv
+source venv/bin/activate
+pushd tests && pip install -r mdts.dependencies && popd
+pushd midonet-sandbox && python setup.py install && popd
+pushd python-midonetclient && python setup.py install && popd
 ```
 
 Midonet Sandbox already use a predefined set of docker images to ease the task
@@ -71,10 +79,8 @@ of spawning different Midonet components. To start using sandbox and build the
 initial set of images, you need to:
 
 ```
-pushd midonet-sandbox
-sudo python setup.py install && popd
 pushd tests
-sudo sandbox-manage -c sandbox.conf build-all default_v2 && popd
+sandbox-manage -c sandbox.conf build-all default_v2 && popd
 ```
 
 Wait until all images have been generated. The default_v2 is a basic MDTS
@@ -86,28 +92,24 @@ or execute `sandbox-manage --help`.
 Copy all packages inside the corresponding override so Sandbox knows which
 packages to install:
 ```
-cp midolman/build/packages/midolman*deb tests/sandbox/override_v2/midolman
-cp midonet-tools/build/packages/midonet-tools*deb tests/sandbox/override_v2/midolman
-cp python-midonetclient/python-midonetclient*deb tests/sandbox/override_v2/cluster
-cp midonet-cluster/build/packages/midonet-cluster*deb tests/sandbox/override_v2/cluster
-cp midonet-tools/build/packages/midonet-tools*deb tests/sandbox/override_v2/cluster
+tests/copy_to_override.sh override_v2
 ```
 
 And start sandbox with a specific flavor, override and provisioning scripts:
 ```
 pushd tests
-sudo sandbox-manage -c sandbox.conf run default_v2 --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/bgp-l2gw-provisioning.sh
+sandbox-manage -c sandbox.conf run default_v2 --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/all-provisioning.sh
 ```
 
 To completely remove all containers to restart sandbox:
 ```
-sudo sandbox-manage -c sandbox.conf stop-all --remove
+sandbox-manage -c sandbox.conf kill-all --remove
 ```
 
 Running functional tests
 ------------------------
 
-You're now set to run MDTS tests:
+You're now set to run MDTS tests (remember to have the virtual environment activated):
 
 ```
 pushd tests/mdts/tests/functional_tests
