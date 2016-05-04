@@ -22,6 +22,30 @@
       "revId": "e455c6cd02d5c07f413e73ee54eb03df8532784e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_57edb523",
+        "filename": "midonet-util/src/main/java/org/midonet/minion/MinionService.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2016-05-04T15:42:51Z",
+      "side": 1,
+      "message": "What about \u0027Villain\u0027? (\u0027SuperVillain\u0027 could also be accepted :-p)",
+      "parentUuid": "baa041b7_975e9d10",
+      "range": {
+        "startLine": 28,
+        "startChar": 9,
+        "endLine": 28,
+        "endChar": 22
+      },
+      "revId": "e455c6cd02d5c07f413e73ee54eb03df8532784e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
