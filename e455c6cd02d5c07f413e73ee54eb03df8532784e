@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5216e3a7",
+        "filename": "midolman/src/main/scala/org/midonet/services/AgentServicesNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-04T22:40:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_77a2f9af",
+      "range": {
+        "startLine": 98,
+        "startChar": 57,
+        "endLine": 99,
+        "endChar": 37
+      },
+      "revId": "e455c6cd02d5c07f413e73ee54eb03df8532784e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f796094b",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-05-04T16:09:25Z",
       "side": 1,
       "message": "Note: It may take a long time to scan all the classes",
+      "range": {
+        "startLine": 104,
+        "startChar": 30,
+        "endLine": 104,
+        "endChar": 47
+      },
+      "revId": "e455c6cd02d5c07f413e73ee54eb03df8532784e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_721327b9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-04T22:40:16Z",
+      "side": 1,
+      "message": "Reverted to the previous org.midonet to scope the scanning.",
+      "parentUuid": "baa041b7_f796094b",
       "range": {
         "startLine": 104,
         "startChar": 30,
@@ -131,6 +179,30 @@
       "side": 1,
       "message": "or, call the executionNode \"runsOn\" and ExecutionNode class \"Target\"",
       "parentUuid": "baa041b7_775f99e5",
+      "range": {
+        "startLine": 28,
+        "startChar": 9,
+        "endLine": 28,
+        "endChar": 22
+      },
+      "revId": "e455c6cd02d5c07f413e73ee54eb03df8532784e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_17b4cdce",
+        "filename": "midonet-util/src/main/java/org/midonet/minion/MinionService.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-04T22:40:16Z",
+      "side": 1,
+      "message": "Done for runsOn. Instead of Target I used TargetNode to avoid conflict with the Target annotation.",
+      "parentUuid": "baa041b7_f7fa89bc",
       "range": {
         "startLine": 28,
         "startChar": 9,
