@@ -20,30 +20,13 @@ sudo apt-get install --no-install-recommends -y bridge-utils vlan
 sudo apt-get install --no-install-recommends -qy debhelper autotools-dev python-unittest2 python-all-dev ruby-ronn
 sudo apt-get install -qy ruby1.9.1-dev ruby1.9.1-full rpm && sudo gem install fpm
 
-# protobufs
-if protoc --version | grep 2.6.1 > /dev/null
-then
-    echo "Protobufs 2.6.1 already installed"
-else
-    pushd ../
-    rm -rf build-protoc
-    mkdir -p build-protoc
-    cd build-protoc
-    wget https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
-    tar xvfz protobuf-2.6.1.tar.gz
-    cd protobuf-2.6.1
-    ./configure && make
-    sudo make install
-    popd
-fi
-
-# Install dependencies for MDTS
-sudo apt-get install -qy python-pip python-setuptools
-sudo pip install -r mdts.dependencies
+# Install python dependencies
+sudo apt-get install -qy python-pip python-setuptools python-virtualenv python-neutronclient
 
 # Update Docker to the latest version
 wget -qO- https://get.docker.com/gpg | sudo apt-key add -
 wget -qO- https://get.docker.com/ | sh
+sudo usermod -aG docker $(whoami)
 
 # For sandbox and mdts to work, you need to load some kernel modules
 # They can be placed in /etc/modules to make sure they're loaded at boot time

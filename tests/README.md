@@ -29,7 +29,7 @@ They can be installed automatically using the following script (only need
 to run once).
 Most run-time dependencies are now handled inside the docker containers so the
 software requirements for the host are basically related to compile-time
-dependencies (e.g. protobufs).
+dependencies.
 
 ```
 midonet/tests$ ./setup_test_server
@@ -47,11 +47,10 @@ Running Sandbox
 ---------------
 
 To run MDTS, first start the Midonet Sandbox subsystem. Midonet Sandbox depends
-on the MidoNet packages. If they're needed to be installed manually,
+on the MidoNet packages. If you need to be build them manually,
 please build them as follows from the midonet root tree:
 
 ```
-git submodule update --init --recursive
 ./gradlew clean
 ./gradlew -x test debian
 find . -name "*.deb"
@@ -60,9 +59,18 @@ find . -name "*.deb"
 ./python-midonetclient/python-midonetclient_1.9.8~rc0-1_all.deb
 ```
 
-Install the python-midonetclient on the host:
+It is recommended (almost mandatory if you don't want to suffer a python dependency
+hell with the python libraries installed system wide) to install both MDTS and Sandbox
+in a virtual environment. For that, just create a virtual environment and install
+everything on it:
+
 ```
-sudo dpkg -i ./python-midonetclient/python-midonetclient_1.9.8~rc0-1_all.deb
+virtualenv venv
+source venv/bin/activate
+pushd tests && pip install -r mdts.dependencies && popd
+git clone https://github.com/midonet/midonet-sandbox.git
+pushd midonet-sandbox && python setup.py install && popd
+pushd python-midonetclient && python setup.py install && popd
 ```
 
 Midonet Sandbox already use a predefined set of docker images to ease the task
@@ -70,8 +78,8 @@ of spawning different Midonet components. To start using sandbox and build the
 initial set of images, you need to:
 
 ```
-sudo pip install git+https://github.com/midonet/midonet-sandbox.git
-sudo sandbox-manage -c sandbox.conf build-all default_v1.9 && popd
+pushd tests
+sandbox-manage -c sandbox.conf build-all default_v1.9 && popd
 ```
 
 Wait until all images have been generated. The default_v1.9 is a basic MDTS
@@ -83,26 +91,24 @@ or execute `sandbox-manage --help`.
 Copy all packages inside the corresponding override so Sandbox knows which
 packages to install:
 ```
-cp midolman/build/packages/midolman*deb tests/sandbox/override_v1/midolman
-cp python-midonetclient/python-midonetclient*deb tests/sandbox/override_v1/midonet-api
-cp midonet-api/build/packages/midonet-cluster*deb tests/sandbox/override_v1/midonet-api
+tests/copy_to_override.sh override_v1
 ```
 
 And start sandbox with a specific flavor, override and provisioning scripts:
 ```
 pushd tests
-sudo sandbox-manage -c sandbox.conf run default_v1.9 --name=mdts --override=sandbox/override_v1 --provision=sandbox/provisioning/all-provisioning.sh
+sandbox-manage -c sandbox.conf run default_v1.9 --name=mdts --override=sandbox/override_v1 --provision=sandbox/provisioning/all-provisioning.sh
 ```
 
 To completely remove all containers to restart sandbox:
 ```
-sudo sandbox-manage -c sandbox.conf stop-all --remove
+sandbox-manage -c sandbox.conf kill-all --remove
 ```
 
 Running functional tests
 ------------------------
 
-You're now set to run MDTS tests:
+You're now set to run MDTS tests (remember to have the virtual environment activated):
 
 ```
 pushd tests/mdts/tests/functional_tests
