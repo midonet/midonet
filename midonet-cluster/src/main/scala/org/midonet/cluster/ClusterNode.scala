@@ -44,6 +44,7 @@ import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.DirectoryProvider
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
+import org.midonet.minion.MinionService.ExecutionNode
 import org.midonet.minion._
 import org.midonet.southbound.vtep.OvsdbVtepConnectionProvider
 import org.midonet.util.eventloop.Reactor
@@ -100,17 +101,20 @@ object ClusterNode extends App {
     val clusterExecutor = ExecutorsModule(clusterConf.executors, log)
 
     log.info("Scanning classpath for Cluster Minions..")
-    private val reflections = new Reflections("org.midonet.cluster.services")
+    private val reflections = new Reflections()
     private val annotated = reflections.getTypesAnnotatedWith(classOf[MinionService])
 
     private val minions = annotated.flatMap { m =>
-        val name = m.getAnnotation(classOf[MinionService]).name()
-        if (classOf[Minion].isAssignableFrom(m)) {
+        val annotation = m.getAnnotation(classOf[MinionService])
+        val name = annotation.name()
+        val node = annotation.executionNode()
+        if (classOf[Minion].isAssignableFrom(m) && node == ExecutionNode.CLUSTER) {
             log.info(s"Minion: $name provided by ${m.getName}.")
             Some(MinionDef(name, m.asInstanceOf[Class[Minion]]))
         } else {
             log.warn(s"Ignored service $name because provider class " +
-                     s"${m.getName}: doesn't extend Minion.")
+                     s"${m.getName} doesn't extend Minion or it's not a" +
+                     s"Cluster Minion.")
             None
         }
     }

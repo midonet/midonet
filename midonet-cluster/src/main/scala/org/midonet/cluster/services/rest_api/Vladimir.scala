@@ -54,6 +54,7 @@ import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.{ClusterConfig, RestApiConfig, restApiLog}
 import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.minion.MinionService.ExecutionNode
 import org.midonet.minion.{MinionService, Context, Minion}
 import org.midonet.util.concurrent.NamedThreadFactory
 
@@ -125,7 +126,7 @@ object Vladimir {
     }
 }
 
-@MinionService(name = "rest-api")
+@MinionService(name = "rest-api", executionNode = ExecutionNode.CLUSTER)
 class Vladimir @Inject()(nodeContext: Context,
                          backend: MidonetBackend,
                          curator: CuratorFramework,

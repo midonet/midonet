@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.minion.MinionService.ExecutionNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.services.FlowStateLog
 import org.midonet.services.flowstate.FlowStateService._
@@ -54,7 +55,7 @@ object FlowStateService {
   * persistent across cluster reboots and right now just forwards agent request
   * to a Cassandra cluster.
   */
-@MinionService(name = "flow-state")
+@MinionService(name = "flow-state", executionNode=ExecutionNode.AGENT)
 class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework,
                                  @Named("agent-services-pool") executor: ExecutorService,
                                  config: MidolmanConfig)

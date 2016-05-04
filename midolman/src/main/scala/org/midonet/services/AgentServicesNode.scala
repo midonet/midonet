@@ -33,6 +33,7 @@ import org.midonet.cluster.services._
 import org.midonet.cluster.storage._
 import org.midonet.conf.{HostIdGenerator, LoggerLevelWatcher, MidoNodeConfigurator}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.minion.MinionService.ExecutionNode
 import org.midonet.minion._
 
 /** Base exception for all MidoNet Agent Minion errors. */
@@ -82,17 +83,20 @@ object AgentServicesNode extends App {
     val servicesExecutor = ExecutorsModule(midolmanConf.services.executors, log)
 
     log info "Scanning classpath for Agent Minions..."
-    private val reflections = new Reflections("org.midonet.services")
+    private val reflections = new Reflections()
     private val annotated = reflections.getTypesAnnotatedWith(classOf[MinionService])
 
     private val minions = annotated.flatMap { m =>
-        val name = m.getAnnotation(classOf[MinionService]).name()
-        if (classOf[Minion].isAssignableFrom(m)) {
+        val annotated = m.getAnnotation(classOf[MinionService])
+        val name = annotated.name()
+        val node = annotated.executionNode()
+        if (classOf[Minion].isAssignableFrom(m) && node == ExecutionNode.AGENT) {
             log info s"Minion: $name provided by ${m.getName}."
             Some(MinionDef(name, m.asInstanceOf[Class[Minion]]))
         } else {
             log warn s"Ignored service $name because provider class " +
-                     s"${m.getName}: doesn't extend Minion."
+                     s"${m.getName} doesn't extend Minion or it's not an " +
+                     s"Agent Minion."
             None
         }
     }

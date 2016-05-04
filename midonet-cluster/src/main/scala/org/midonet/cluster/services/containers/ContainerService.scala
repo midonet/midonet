@@ -35,6 +35,7 @@ import org.midonet.cluster.services.containers.schedulers._
 import org.midonet.cluster.services._
 import org.midonet.cluster.{ClusterConfig, containersLog}
 import org.midonet.containers
+import org.midonet.minion.MinionService.ExecutionNode
 import org.midonet.minion.{MinionService, Context, Minion}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.makeAction0
@@ -59,7 +60,7 @@ object ContainerService {
   * containers and the set of active agent nodes, and schedules the creation
   * or deletion of the containers via NSDB.
   */
-@MinionService(name = "containers")
+@MinionService(name = "containers", executionNode = ExecutionNode.CLUSTER)
 class ContainerService @Inject()(nodeContext: Context,
                                  backend: MidonetBackend,
                                  reflections: Reflections,
