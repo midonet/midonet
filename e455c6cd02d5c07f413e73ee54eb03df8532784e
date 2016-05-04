@@ -70,6 +70,30 @@
       "revId": "e455c6cd02d5c07f413e73ee54eb03df8532784e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f7fa89bc",
+        "filename": "midonet-util/src/main/java/org/midonet/minion/MinionService.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-04T15:51:38Z",
+      "side": 1,
+      "message": "or, call the executionNode \"runsOn\" and ExecutionNode class \"Target\"",
+      "parentUuid": "baa041b7_775f99e5",
+      "range": {
+        "startLine": 28,
+        "startChar": 9,
+        "endLine": 28,
+        "endChar": 22
+      },
+      "revId": "e455c6cd02d5c07f413e73ee54eb03df8532784e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
