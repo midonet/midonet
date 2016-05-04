@@ -61,7 +61,7 @@ cassandra1:
   extends:
     file: $BASE/cassandra.yml
     service: cassandra
-  image: sandbox/cassandra:2.0
+  image: sandbox/cassandra:2.2
   hostname: cassandra1
   labels:
       interface: mdts.services.cassandra.CassandraHost
