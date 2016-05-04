@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f74cc943",
+        "filename": "tests/setup_test_server",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-04T15:48:34Z",
+      "side": 1,
+      "message": "there a problem with the virtualenv in apt?",
+      "revId": "8fa2374b51eec6f5f8962aca8bcc7f6422b3c217",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1745ed15",
+        "filename": "tests/setup_test_server",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-04T15:48:34Z",
+      "side": 1,
+      "message": "can\u0027t we add user to the docker group after this?",
+      "range": {
+        "startLine": 30,
+        "startChar": 9,
+        "endLine": 30,
+        "endChar": 10
+      },
+      "revId": "8fa2374b51eec6f5f8962aca8bcc7f6422b3c217",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
