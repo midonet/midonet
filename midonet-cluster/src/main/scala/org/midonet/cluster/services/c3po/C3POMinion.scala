@@ -40,6 +40,7 @@ import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
 import org.midonet.cluster.{C3POConfig, ClusterConfig, c3poLog}
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.minion.MinionService.ExecutionNode
 import org.midonet.minion.{MinionService, Context, ScheduledMinion}
 import org.midonet.minion.ScheduledMinion.checkConfigParamDefined
 
@@ -53,7 +54,7 @@ import org.midonet.minion.ScheduledMinion.checkConfigParamDefined
   * @param curator API for access to ZK for internal uses of the C3PO service
   * @param backendCfg the Backend configuration
   */
-@MinionService(name = "neutron-importer")
+@MinionService(name = "neutron-importer", executionNode = ExecutionNode.CLUSTER)
 class C3POMinion @Inject()(nodeContext: Context,
                            config: ClusterConfig,
                            dataSrc: DataSource,

@@ -25,6 +25,13 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE })
 public @interface MinionService {
 
+    enum ExecutionNode {
+        AGENT,
+        CLUSTER
+    }
+
     String name();
+
+    ExecutionNode executionNode();
 
 }
