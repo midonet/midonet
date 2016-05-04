@@ -19,7 +19,7 @@ cd $(dirname $0)
 usage()
 {
 cat << EOF
-usage: $0 [OPTION] [...]
+usage: $0 [OPTIONS] -- [...]
 
 This script runs the QA tests on this machine. If no test is specified all
 tests are run.
@@ -46,7 +46,18 @@ EXAMPLES:
 $0 -t test_bridge.py
 $0 -t test_bridge.py:test_icmp
 $0 -t test_bridge.py:test_icmp -t test_router.py -t test_l2gw.py:test_icmp_from_mn
-$0 -l logs -t test_bridge.py --pdb
+
+DEBUGGING:
+If you want the test to stop upon an exception and open an interactive session with 
+the debugger, just add --pdb (or --ipdb for the interactive version of pdb) on the
+additional parameters list.
+
+$0 -l logs -t test_bridge.py -- --pdb
+
+If you want to add a breakpoint on your test, just add a line like this on the python
+src code you want the test runner to stop:
+
+import ipdb; ipdb.set_trace()
 
 EOF
 }
@@ -149,5 +160,5 @@ shift $(( OPTIND - 1 ))
 # Avoid masking the exit status of nose with the exit 0 of tee
 set -o pipefail
 
-echo "sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+\"-A $ATTR\"} $TESTS $ARGS "
-sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+"-A $ATTR"} $TESTS $ARGS
+echo "PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+\"-A $ATTR\"} $TESTS $ARGS "
+PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+"-A $ATTR"} $TESTS $ARGS
