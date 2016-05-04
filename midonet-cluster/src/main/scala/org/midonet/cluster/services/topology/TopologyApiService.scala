@@ -25,13 +25,14 @@ import org.midonet.cluster.services.topology.common.{ApiServerHandler, Connectio
 import org.midonet.cluster.services.topology.server.{RequestHandler, _}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.{ClusterConfig, TopologyApiConfig, topologyApiLog}
+import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{MinionService, Context, Minion}
 import org.midonet.util.netty.{ProtoBufSocketAdapter, ProtoBufWebSocketServerAdapter, ServerFrontEnd}
 
 /**
  * Topology api service minion
  */
-@MinionService(name = "topology-api")
+@MinionService(name = "topology-api", runsOn = TargetNode.CLUSTER)
 class TopologyApiService @Inject()(val nodeContext: Context,
                                    val backend: MidonetBackend,
                                    val cfg: ClusterConfig)
