@@ -29,7 +29,9 @@ done
 sudo modprobe openvswitch
 sudo modprobe 8021q
 # install python dependencies (may have changed since image build)
-sudo pip install -r tests/mdts.dependencies
+virtualenv venv
+source venv/bin/activate
+pip install -r tests/mdts.dependencies
 
 # We assume all gates/nightlies put the necessary packages in $WORKSPACE
 # so we know where to find them.
@@ -39,26 +41,26 @@ cp midonet-tools*.deb tests/$OVERRIDE/packages
 cp midonet-cluster*.deb tests/$OVERRIDE/packages
 cp python-midonetclient*.deb tests/$OVERRIDE/packages
 
-# Necessary software in the host, we assume packages are already present on
-# the corresponding override, in this case the v2 override.
-sudo dpkg -i python-midonetclient*.deb
+# Necessary software in the host, midonet-cli installed from sources
+pushd python-midonetclient
+python setup.py install
+popd
 
 # Install sandbox, directly from repo (ignoring submodule)
-sudo rm -rf midonet-sandbox
+rm -rf midonet-sandbox
 git clone --depth=1 https://github.com/midonet/midonet-sandbox.git
 pushd midonet-sandbox
-sudo python setup.py install
+python setup.py install
 popd
 
 # Start sandbox
 pushd tests/
 echo "docker_registry=artifactory.bcn.midokura.com" >> sandbox.conf
 echo "docker_insecure_registry=True" >> sandbox.conf
-sudo sandbox-manage -c sandbox.conf pull-all $SANDBOX_FLAVOUR
-sudo sandbox-manage -c sandbox.conf \
+sandbox-manage -c sandbox.conf pull-all $SANDBOX_FLAVOUR
+sandbox-manage -c sandbox.conf \
                     run $SANDBOX_FLAVOUR \
                     --name=mdts \
                     --override=$OVERRIDE \
                     --provision=$PROVISIONING
-
 popd
