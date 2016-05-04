@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_975e9d10",
+        "filename": "midonet-util/src/main/java/org/midonet/minion/MinionService.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-04T15:29:08Z",
+      "side": 1,
+      "message": "suggestions for a better name welcome (I wanted to avoid ExecutionContext, Context, Node) as they were too generic and prone to conflict.",
+      "range": {
+        "startLine": 28,
+        "startChar": 9,
+        "endLine": 28,
+        "endChar": 22
+      },
+      "revId": "e455c6cd02d5c07f413e73ee54eb03df8532784e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
