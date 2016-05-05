@@ -46,6 +46,30 @@
       "revId": "b3e7e959a258b592105b21fd16e820d46662fb60",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d3cd5686",
+        "filename": "tests/sandbox/override_v2_jfr/midolman/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-05T14:27:47Z",
+      "side": 1,
+      "message": "you could also run a command on the container to copy it to the override directory which is mounted as a volume.",
+      "parentUuid": "baa041b7_90a8e478",
+      "range": {
+        "startLine": 34,
+        "startChar": 130,
+        "endLine": 34,
+        "endChar": 142
+      },
+      "revId": "b3e7e959a258b592105b21fd16e820d46662fb60",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
