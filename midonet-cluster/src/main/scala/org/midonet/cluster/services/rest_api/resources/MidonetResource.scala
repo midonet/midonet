@@ -244,7 +244,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     def get(@PathParam("id") id: String,
             @HeaderParam("Accept") accept: String): T = {
         validateMediaType(accept, getAnnotation(classOf[AllowGet]).value())
-        getFilter(getResource(tag.runtimeClass.asInstanceOf[Class[T]], id))
+        getFilter(getResource(tag.runtimeClass.asInstanceOf[Class[T]], id, accept))
     }
 
     @GET
@@ -252,9 +252,11 @@ abstract class MidonetResource[T >: Null <: UriResource]
         validateMediaType(accept, getAnnotation(classOf[AllowList]).value())
         val ids = listIds
         val list = if (ids eq null) {
-            listFilter(listResources(tag.runtimeClass.asInstanceOf[Class[T]]))
+            listFilter(listResources(tag.runtimeClass.asInstanceOf[Class[T]],
+                                     accept))
         } else {
-            listFilter(listResources(tag.runtimeClass.asInstanceOf[Class[T]], ids))
+            listFilter(listResources(tag.runtimeClass.asInstanceOf[Class[T]],
+                                     ids, accept))
         }
         list.asJava
     }
@@ -357,32 +359,37 @@ abstract class MidonetResource[T >: Null <: UriResource]
         new ResourceTransaction(store.transaction())
     }
 
-    protected def listResources[U >: Null <: UriResource](clazz: Class[U])
+    protected def listResources[U >: Null <: UriResource](clazz: Class[U],
+                                                          mediaType: String)
     : Seq[U] = {
         store.getAll(UriResource.getZoomClass(clazz))
-             .map(_.map(fromProto(_, clazz)))
+             .map(_.map(fromProto(_, clazz, mediaType)))
              .getOrThrow
     }
 
     protected def listResources[U >: Null <: UriResource](clazz: Class[U],
-                                                          ids: Seq[Any])
+                                                          ids: Seq[Any],
+                                                          mediaType: String = null)
     : Seq[U] = {
         store.getAll(UriResource.getZoomClass(clazz), ids)
-             .map(_.map(fromProto(_, clazz)))
+             .map(_.map(fromProto(_, clazz, mediaType)))
              .getOrThrow
     }
 
-    protected def getResource[U >: Null <: UriResource](clazz: Class[U], id: Any)
+    protected def getResource[U >: Null <: UriResource](clazz: Class[U], id: Any,
+                                                        mediaType: String = null)
     : U = {
         store.get(UriResource.getZoomClass(clazz), id)
-             .map(fromProto(_, clazz))
+             .map(fromProto(_, clazz, mediaType))
              .getOrThrow
     }
 
-    protected def getResources[U >: Null <: UriResource](clazz: Class[U], ids: Seq[Any])
+    protected def getResources[U >: Null <: UriResource](clazz: Class[U],
+                                                         ids: Seq[Any],
+                                                         mediaType: String = null)
     : Seq[U] = {
         store.getAll(UriResource.getZoomClass(clazz), ids)
-             .map { r => r.map(fromProto(_, clazz)) }
+             .map { r => r.map(fromProto(_, clazz, mediaType)) }
              .getOrThrow
     }
 
@@ -396,7 +403,9 @@ abstract class MidonetResource[T >: Null <: UriResource]
     }
 
     private def fromProto[U >: Null <: UriResource](message: Message,
-                                                    clazz: Class[U]): U = {
+                                                    clazz: Class[U],
+                                                    mediaType: String = null)
+    : U = {
         val resource = try {
             ZoomConvert.fromProto(message, clazz)
         } catch {
@@ -405,7 +414,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
                           clazz, e)
                 throw new WebApplicationException(INTERNAL_SERVER_ERROR)
         }
-        resource.setBaseUri(uriInfo.getBaseUri)
+        if (mediaType ne null) resource.setBaseUri(uriInfo.getBaseUri, mediaType)
+        else resource.setBaseUri(uriInfo.getBaseUri)
         resource
     }
 

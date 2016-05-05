@@ -29,10 +29,12 @@ import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public abstract class UriResource extends ZoomObject {
 
     private URI baseUri = null;
+    private boolean isRelative = false;
 
     /** Retrieve the URI of this resource. */
     public abstract URI getUri();
@@ -46,15 +48,22 @@ public abstract class UriResource extends ZoomObject {
       * URI of the current object. */
     final protected URI absoluteUri(String path, Object id) {
         if (id == null) return null;
-        return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
+        if (isRelative)
+            return UriBuilder.fromPath(path).segment(id.toString()).build();
+        else
+            return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
     }
 
     /** Gets an URI for the specified path and identifier, relative to the base
      * URI of the current object. */
     final protected URI absoluteUri(String path1, Object id, String path2) {
         if (id == null) return null;
-        return UriBuilder.fromUri(baseUri).segment(path1, id.toString(), path2)
-            .build();
+        if (isRelative)
+            return UriBuilder.fromPath(path1).segment(id.toString(), path2)
+                .build();
+        else
+            return UriBuilder.fromUri(baseUri).segment(path1, id.toString(), path2)
+                .build();
     }
 
     /** Gets an URI for the specified path and identifier, relative to the base
@@ -62,9 +71,14 @@ public abstract class UriResource extends ZoomObject {
     final protected URI absoluteUri(String path1, Object id1, String path2,
                                     Object id2) {
         if (id1 == null || id2 == null) return null;
-        return UriBuilder.fromUri(baseUri)
-            .segment(path1, id1.toString(), path2, id2.toString())
-            .build();
+        if (isRelative)
+            return UriBuilder.fromPath(path1)
+                .segment(id1.toString(), path2, id2.toString())
+                .build();
+        else
+            return UriBuilder.fromUri(baseUri)
+                .segment(path1, id1.toString(), path2, id2.toString())
+                .build();
     }
 
     /** Gets an URI for the specified path and identifier, relative to the base
@@ -72,8 +86,12 @@ public abstract class UriResource extends ZoomObject {
     final protected URI absoluteUri(String path1, Object id1,
                                     String... segments) {
         if (id1 == null ) return null;
-        return UriBuilder.fromUri(baseUri)
-            .segment(path1, id1.toString()).segment(segments).build();
+        if (isRelative)
+            return UriBuilder.fromPath(path1)
+                .segment(id1.toString()).segment(segments).build();
+        else
+            return UriBuilder.fromUri(baseUri)
+                .segment(path1, id1.toString()).segment(segments).build();
     }
 
     final protected List<URI> absoluteUris(String path, List<?> ids) {
@@ -94,6 +112,12 @@ public abstract class UriResource extends ZoomObject {
     @JsonIgnore
     final public void setBaseUri(URI baseUri) {
         this.baseUri = baseUri;
+    }
+
+    @JsonIgnore
+    final public void setBaseUri(URI baseUri, String mediaType) {
+        this.baseUri = baseUri;
+        this.isRelative = MidonetMediaTypes.isRelative(mediaType);
     }
 
     @JsonIgnore

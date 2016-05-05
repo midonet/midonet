@@ -61,7 +61,7 @@ class VipResource @Inject()(resContext: ResourceContext)
     @Produces(Array(APPLICATION_VIP_COLLECTION_JSON,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String): JList[Vip] = {
-        val vips = listResources(classOf[Vip])
+        val vips = listResources(classOf[Vip], accept)
         for (vip <- vips) {
             vip.loadBalancerId =
                 getResource(classOf[Pool], vip.poolId).loadBalancerId

@@ -96,7 +96,7 @@ class VtepResource @Inject()(resContext: ResourceContext,
             val msg = getMessage(TUNNEL_ZONE_NOT_VTEP)
             throw new BadRequestHttpException(msg)
         }
-        val vteps = listResources(classOf[Vtep])
+        val vteps = listResources(classOf[Vtep], mediaType = null)
         // Validate there is no conflict with existing VTEPs.
         for (v <- vteps if v.managementIp == vtep.managementIp) {
             val msg = getMessage(VTEP_EXISTS, vtep.managementIp)
