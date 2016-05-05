@@ -56,4 +56,19 @@ sed -e "s@%MIDO_HOME%@$TOOLS_HOME@" \
     $DEVMIDO_DIR/binproxy | tee $MN_CONF $MM_METER
 chmod +x $MN_CONF $MM_METER
 
+# Do the same for minions-start
+MM_BIN_DIR="/usr/share/midolman"
+MM_MINIONS="$MM_BIN_DIR/minions-start"
+MM_CFG=$TOP_DIR/midolman/conf
+MM_LOG=/var/log/midolman/minions/
+mkdir -p $MM_BIN_DIR $MM_LOG
+
+sed -e "s@%MIDO_HOME%@$MM_HOME@" \
+    -e "s@%MIDO_JAR%@$MM_JAR@" \
+    -e "s@%SCRIPT_DIR%@$MM_HOME@" \
+    -e "s@%MIDO_CFG%@$MM_CFG@" \
+    -e "s@%MIDO_LOG_DIR%@$MM_LOG@" \
+    $DEVMIDO_DIR/binproxy | tee $MM_MINIONS
+chmod +x $MM_MINIONS
+
 echo "install_mn_scripts.sh has successfully completed."
