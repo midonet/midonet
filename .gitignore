@@ -2,6 +2,7 @@
 # Try to keep these to a minimum, and use a minimum of wildcards,
 # since they can obscure bugs in the build system.
 #
+**/nosetest*
 *.log
 *.swp
 *.iml
@@ -42,12 +43,16 @@ host_uuid.properties
 /**/target/
 /midodeps/
 /midonet-client/dependency-reduced-pom.xml
-
+packages
 # vagrant files
 /vagrant/.vagrant
 
 # python files (might be generated if running mmm)
 *.pyc
+
+# binary packages
+**/*.deb
+**/*.rpm
 
 python-midonetclient/doc/*.gz
 python-midonetclient/*.deb

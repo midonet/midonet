@@ -1,0 +1,55 @@
+{
+   "role_name": "midolman",
+    "display_name": "Networking",
+    "description": "Compute Host assigned to run MidoNet Agent",
+    "customizable_settings": {
+        "zookeeper_hosts": {
+            "path": "config/midolman/zookeeper",
+            "default": "127.0.0.1:2181"
+        }
+    },
+    "rabbit_permissions": {
+        "config": "",
+        "write": "",
+        "read": ""
+    },
+    "role_version": "5.0.2",
+    "config": {
+        "midolman": {
+            "version": "2:5.0.2-1.0.el7.pf9",
+            "rank": "30.5",
+            "service_states": {
+                "midolman": true
+            },
+            "pkginfo": {
+                "baseurl": "%(download_protocol)s://%(host_relative_amqp_fqdn)s:%(download_port)s/private/",
+                "filenames_by_os": {
+                    "el7": "midolman-5.0.2-1.0.el7.pf9.noarch.rpm",
+                    "trusty": "midolman_5.0.2-0-pf9_all.deb"
+                }
+            },
+            "config": {
+                "midolman": {
+                    "zookeeper": {
+                        "zookeeper_hosts": ""
+                    }
+                }
+            }
+        },
+        "mem_repo": {
+            "version": "2:5.0.2-1.0.el7.pf9",
+            "rank": "30.0",
+            "service_states": {
+            },
+            "pkginfo": {
+                "baseurl": "%(download_protocol)s://%(host_relative_amqp_fqdn)s:%(download_port)s/private/",
+                "filenames_by_os": {
+                    "el7": "mem_repo-5.0.2-1.0.el7.pf9.x86_64.rpm",
+                    "trusty": "mem-repo_5.0.2-0-pf9_amd64.deb"
+                }
+            },
+            "config": {
+            }
+        }
+    }
+}

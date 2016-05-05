@@ -165,6 +165,7 @@ project.ext {
     debVersion = midonetVersion.replaceAll(/SNAPSHOT$/, "${timestamp}.${gitrev}").
                                 replaceAll(/-rc/, "~rc").
                                 replaceAll(/-hf/, "+hf")
+    debRelease = '0'
     rpmVersion = midonetVersion.replaceAll(/-.*$/, "")
     rpmRelease = midonetVersion.replaceAll(/^[^-]+$/, "1.0").
                                 replaceAll(/^.*(hf\d*)$/, "1.0.\$1").

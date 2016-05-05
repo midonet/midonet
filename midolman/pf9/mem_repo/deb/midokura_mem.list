@@ -1,0 +1,5 @@
+# MEM
+deb http://platform9:gogomid0!321@repo.midokura.com/mem-5 stable main
+
+# MEM 3rd Party Tools and Libraries
+deb http://platform9:gogomid0!321@repo.midokura.com/misc stable main

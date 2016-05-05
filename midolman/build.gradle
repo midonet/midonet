@@ -134,6 +134,52 @@ artifacts {
     tests jarTest
 }
 
+/*["debian", "rpm", "pf9_repo_rpm", "pf9_repo_deb", "pf9"].each { pkgName ->
+    task "cleanPkg_$pkgName"(type: Delete) {
+        delete "${project.ext.pkgDestDir}"
+    }
+}*/
+
+task pf9Prepare(type: Copy, dependsOn: installShadowApp) {
+    from("src/pf9/config") {
+        into "opt/pf9/midolman"
+    }
+    into "${pkgDestDir}"
+}
+
+task pf9RepoDebPrepare(type: Copy) {
+    from("pf9/mem_repo/config") {
+        into "opt/pf9/mem_repo/"
+    }
+    from("pf9/mem_repo/deb/midokura_mem.list") {
+        into "etc/sources.list.d/"
+    }
+    into "${pf9RepoDebDestDir}"
+}
+
+task pf9RepoRpmPrepare(type: Copy) {
+    from("pf9/mem_repo/config") {
+        into "opt/pf9/mem_repo/"
+    }
+    from("pf9/mem_repo/rpm/midokura_mem.repo") {
+        into "etc/yum.repos.d/"
+    }
+    into "${pf9RepoRpmDestDir}"
+}
+
+task pf9wrapper(type:Copy) {
+    from("pf9/midolman_wrapper/midolman-role.json") {
+        into "etc/pf9/resmgr_roles/midolman/${project.version}/"
+    }
+    from("pf9/midolman_wrapper/midokura_mem.repo") {
+        into "etc/yum.repos.d/"
+    }
+    from("${project.buildDir}/packages/") {
+        into "opt/pf9/www/private/"
+    }
+    into "${pf9DestDir}"
+}
+
 task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
         into "usr/share/midolman"
@@ -205,7 +251,6 @@ task rhel7Prepare(type: Copy, dependsOn: installShadowApp) {
 }
 
 packaging {
-    version = project.debVersion
     maintainer = project.maintainer
     vendor = project.vendor
     url = project.url
@@ -222,16 +267,64 @@ packaging {
                '--epoch', '2']
 }
 
+pf9Prepare.dependsOn cleanPkg
+pf9.dependsOn pf9Prepare
+pf9.dependsOn pf9wrapper
+pf9wrapper.dependsOn rpm
+pf9wrapper.dependsOn debian
+pf9wrapper.dependsOn pf9_repo_rpm
+pf9wrapper.dependsOn pf9_repo_deb
+pf9_repo_rpm.dependsOn pf9RepoRpmPrepare
+pf9_repo_deb.dependsOn pf9RepoDebPrepare
+
+rpm.mustRunAfter pf9Prepare
+debian.mustRunAfter pf9Prepare
+
 preparePkg.dependsOn cleanPkg
 debian.dependsOn preparePkg
 
 rpm.dependsOn rhel7Prepare
 rhel7Prepare.dependsOn preparePkg
 
+pf9.doFirst {
+    project.pf9Packaging.name = "pf9-${project.name}-wrapper"
+    project.pf9Packaging.tmpDir = "/TMP_PF9INST"
+    project.pf9Packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.pf9Packaging.fpmOpts.addAll(['--rpm-user', 'pf9',
+                                         '--rpm-group', 'pf9group'])
+}
+
+
+pf9_repo_deb.doFirst {
+    project.pf9RepoDebPackaging.name = "mem_repo"
+    project.pf9RepoDebPackaging.version = project.debVersion
+    project.pf9RepoDebPackaging.iteration = project.debRelease
+    project.pf9RepoDebPackaging.tmpDir = "/TMP_PF9REPO_DEB"
+    project.pf9RepoDebPackaging.pf9 = true
+    project.pf9RepoRpmPackaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.pf9RepoRpmPackaging.fpmOpts.addAll(['--deb-user', 'pf9',
+                                                '--deb-group', 'pf9group'])
+}
+
+pf9_repo_rpm.doFirst {
+    project.pf9RepoRpmPackaging.name = "mem_repo"
+    project.pf9RepoRpmPackaging.version = project.rpmVersion
+    project.pf9RepoRpmPackaging.iteration = project.rpmRelease
+    project.pf9RepoRpmPackaging.tmpDir = "/TMP_PF9REPO_RPM"
+    project.pf9RepoRpmPackaging.pf9 = true
+    project.pf9RepoRpmPackaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.pf9RepoRpmPackaging.fpmOpts.addAll(['--rpm-user', 'pf9',
+                                                '--rpm-group', 'pf9group'])
+}
+
 debian.doFirst {
-    project.packaging.version = project.debVersion
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
-    project.packaging.fpmOpts.addAll([
+    project.debPackaging.pf9 = true
+    project.debPackaging.name = project.name
+    project.debPackaging.version = project.debVersion
+    project.debPackaging.iteration = project.debRelease
+    project.debPackaging.tmpDir = "/TMP_PKGINST"
+    project.debPackaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.debPackaging.fpmOpts.addAll([
         '-d', 'python',
         '-d', 'python-setproctitle',
         '-d', 'quagga (>= 0.99.23)',
@@ -243,19 +336,25 @@ debian.doFirst {
         '--after-install', "${project.projectDir}/src/deb/control/postinst",
         '--before-install', "${project.projectDir}/src/deb/control/preinst",
         '--after-remove', "${project.projectDir}/src/deb/control/postrm",
-        '--before-remove', "${project.projectDir}/src/deb/control/prerm" ])
+        '--before-remove', "${project.projectDir}/src/deb/control/prerm",
+        '--deb-user', 'pf9', '--deb-group', 'pf9group'])
 }
 
 rpm.doFirst {
-    project.packaging.version = project.rpmVersion
-    project.packaging.iteration = project.rpmRelease
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
-    project.packaging.fpmOpts.addAll([
+    project.rpmPackaging.pf9 = true
+    project.rpmPackaging.name = project.name
+    project.rpmPackaging.version = project.rpmVersion
+    project.rpmPackaging.iteration = project.rpmRelease
+    project.rpmPackaging.tmpDir = "/TMP_PKGINST"
+    project.rpmPackaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.rpmPackaging.fpmOpts.addAll([
         '-d', 'python',
         '-d', 'quagga >= 0.99.23',
-        '-d', 'iproute'])
+        '-d', 'iproute',
+        '--rpm-user', 'pf9',
+        '--rpm-group', 'pf9group'])
     if (project.rhelTarget == "el7") {
-        project.packaging.fpmOpts.addAll([
+        project.rpmPackaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
@@ -263,7 +362,7 @@ rpm.doFirst {
             '--depends', 'python-setproctitle',
             '--depends', 'java-1.8.0-openjdk-headless'])
     } else { // (project.rhelTarget == "sles12")
-        project.packaging.fpmOpts.addAll([
+        project.rpmPackaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",

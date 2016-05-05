@@ -29,19 +29,34 @@ class PackagingPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.ext.pkgDestDir = "${project.buildDir}/TMPINST"
+        project.ext.pkgDestDir = "${project.buildDir}/TMP_PKGINST"
+        project.ext.pf9DestDir = "${project.buildDir}/TMP_PF9INST"
+        project.ext.pf9RepoRpmDestDir = "${project.buildDir}/TMP_PF9REPO_RPM"
+        project.ext.pf9RepoDebDestDir = "${project.buildDir}/TMP_PF9REPO_DEB"
         project.extensions.create('packaging', PackagingPluginExtension)
+        project.extensions.create('debPackaging', PackagingPluginExtension)
+        project.extensions.create('rpmPackaging', PackagingPluginExtension)
+        project.extensions.create('pf9Packaging', PackagingPluginExtension)
+        project.extensions.create('pf9RepoDebPackaging', PackagingPluginExtension)
+        project.extensions.create('pf9RepoRpmPackaging', PackagingPluginExtension)
         project.packaging.packageDir = new File(project.buildDir, "/packages")
         project.task('debian', group: 'Build', type: DebianTask)
         project.task('rpm', group: 'Build', type: RpmTask)
+        project.task('pf9', group: 'Build', type: Pf9Task)
+        project.task('pf9_repo_rpm', group: 'Build', type: RpmRepoTask)
+        project.task('pf9_repo_deb', group: 'Build', type: DebianRepoTask)
         project.task('cleanPkg', group: 'Build', type: Delete) {
-            delete "${project.pkgDestDir}"
+            delete "${project.ext.pkgDestDir}"
+            delete "${project.ext.pf9DestDir}"
         }
     }
 
 }
 
 class PackagingPluginExtension {
+    @Input
+    def name
+
     @Input
     def version
 
@@ -69,28 +84,77 @@ class PackagingPluginExtension {
     @OutputDirectory
     def packageDir
 
+    @OutputDirectory
+    def tmpDir
+
     @Input
     def fpmOpts = []
 
     @Input
     def confFiles = []
+
+    @Input
+    def pf9 = false
 }
 
 class DebianTask extends PackagingTask {
     DebianTask(){
         super('deb')
+        packageConf = project.debPackaging
+    }
+
+    def iteration() {
+        if (packageConf.pf9 == true) {
+            return "${packageConf.iteration}-pf9"
+        } else {
+            return "${packageConf.iteration}"
+        }
+    }
+}
+
+class DebianRepoTask extends DebianTask {
+    DebianRepoTask() {
+        super()
+        packageConf = project.pf9RepoDebPackaging
     }
 }
 
 class RpmTask extends PackagingTask {
     RpmTask(){
         super('rpm')
+        packageConf = project.rpmPackaging
+    }
+
+    def iteration() {
+        if (packageConf.pf9 == true) {
+            return "${packageConf.iteration}.pf9"
+        } else {
+            return "${packageConf.iteration}"
+        }
     }
 }
 
-class PackagingTask extends DefaultTask {
-    def conf
+class RpmRepoTask extends RpmTask {
+    RpmRepoTask() {
+        super()
+        packageConf = project.pf9RepoRpmPackaging
+    }
+}
+
+class Pf9Task extends PackagingTask {
+    Pf9Task(){
+        super('rpm')
+        packageConf = project.pf9Packaging
+    }
+
+    def iteration() { '' }
+}
+
+abstract class PackagingTask extends DefaultTask {
     def type
+    def projectConf
+    def packageConf
+    def pkgDestDir
 
     PackagingTask(String type_){
         type = type_
@@ -98,11 +162,16 @@ class PackagingTask extends DefaultTask {
 
     @TaskAction
     pkg() {
-        conf = project.packaging
+        projectConf = project.packaging
+        pkgDestDir = "${project.buildDir}/${packageConf.tmpDir}"
 
-        def outDir = conf.packageDir
+        def outDir = projectConf.packageDir
         if (!outDir.exists())
             outDir.mkdirs()
+
+        def tmpDir = new File(project.buildDir, packageConf.tmpDir)
+        if (!tmpDir.exists())
+            tmpDir.mkdirs()
 
 
         def fpmArgs = getArgs()
@@ -115,36 +184,50 @@ class PackagingTask extends DefaultTask {
         }
     }
 
+    abstract def iteration();
+
     def getArgs() {
         def version = project.version
-        if (conf.version)
-            version = conf.version
+        if (packageConf.version)
+            version = packageConf.version
 
-        def fpmArgs = ["-t", this.type, "-s", "dir", "-n", "${project.name}",
-                       "-v", version, "-C", project.ext.pkgDestDir]
+        def name = project.name
+        if (packageConf.name)
+            name = packageConf.name
 
-        if (conf.prefix)
-            fpmArgs.addAll(["--prefix", prefix])
-        if (conf.description)
-            fpmArgs.addAll(["--description", conf.description])
-        if (conf.vendor)
-            fpmArgs.addAll(["--vendor", conf.vendor])
-        if (conf.iteration)
-            fpmArgs.addAll(["--iteration", conf.iteration])
-        if (conf.maintainer)
-            fpmArgs.addAll(["--maintainer", conf.maintainer])
-        if (conf.url)
-            fpmArgs.addAll(["--url", conf.url])
-        conf.dependencies.each() {
+        def fpmArgs = []
+        // Basic build parameters
+        fpmArgs.addAll(["-t", this.type, "-s", "dir", "-n", name,
+                       "-v", version, "-C", pkgDestDir])
+
+        // Project generic configuration
+        if (projectConf.prefix)
+            fpmArgs.addAll(["--prefix", projectConf.prefix])
+        if (projectConf.description)
+            fpmArgs.addAll(["--description", projectConf.description])
+        if (projectConf.vendor)
+            fpmArgs.addAll(["--vendor", projectConf.vendor])
+        if (projectConf.maintainer)
+            fpmArgs.addAll(["--maintainer", projectConf.maintainer])
+        if (projectConf.url)
+            fpmArgs.addAll(["--url", projectConf.url])
+        if (packageConf.pf9)
+            fpmArgs.addAll(['-d', 'pf9-bbslave', '--provides', 'pf9app'])
+
+        // Package specific configuration
+        if (packageConf.iteration) {
+            fpmArgs.addAll(["--iteration", iteration()])
+        }
+        packageConf.dependencies.each() {
             fpmArgs << "-d"
             fpmArgs << it
         }
-        conf.confFiles.each() {
+        packageConf.confFiles.each() {
             fpmArgs << "--config-files"
             fpmArgs << it
         }
-        if (conf.fpmOpts)
-            fpmArgs.addAll(conf.fpmOpts)
+        if (packageConf.fpmOpts)
+            fpmArgs.addAll(packageConf.fpmOpts)
         fpmArgs << "."
 
         fpmArgs
