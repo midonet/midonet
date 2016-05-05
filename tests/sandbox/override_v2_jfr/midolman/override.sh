@@ -31,6 +31,6 @@ apt-get install -qy --force-yes midolman/local \
 HOST_NAME=`hostname`
 RESOLVED_HOST_NAME=`getent hosts $HOST_NAME`
 IPADDRESS=${RESOLVED_HOST_NAME%% *}
-sed -i "\$a JVM_OPTS=\"\$JVM_OPTS -Djava.rmi.server.hostname=$IPADDRESS\"" /etc/midolman/midolman-env.sh
+sed -i "\$a JVM_OPTS=\"\$JVM_OPTS -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -Djava.rmi.server.hostname=$IPADDRESS\"" /etc/midolman/midolman-env.sh
 
 exec /run-midolman.sh

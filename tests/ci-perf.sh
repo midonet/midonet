@@ -1,3 +1,5 @@
+#!/bin/bash
+
 source venv/bin/activate
 pushd tests/mdts/tests/performance_tests/
 
@@ -5,3 +7,8 @@ pushd tests/mdts/tests/performance_tests/
 
 popd
 
+pushd /tmp/jfr
+
+tar -cvzf $WORKSPACE/perf_jfr.tar.gz *
+
+popd
