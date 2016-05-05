@@ -52,12 +52,16 @@ import org.midonet.packets.{IPv4Addr, MAC}
 @Path("bridges")
 @RequestScoped
 @AllowGet(Array(APPLICATION_BRIDGE_JSON_V4,
+                APPLICATION_BRIDGE_JSON_V5,
                 APPLICATION_JSON))
 @AllowList(Array(APPLICATION_BRIDGE_COLLECTION_JSON_V4,
+                 APPLICATION_BRIDGE_COLLECTION_JSON_V5,
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_BRIDGE_JSON_V4,
+                   APPLICATION_BRIDGE_JSON_V5,
                    APPLICATION_JSON))
 @AllowUpdate(Array(APPLICATION_BRIDGE_JSON_V4,
+                   APPLICATION_BRIDGE_JSON_V5,
                    APPLICATION_JSON))
 @AllowDelete
 class BridgeResource @Inject()(resContext: ResourceContext,
