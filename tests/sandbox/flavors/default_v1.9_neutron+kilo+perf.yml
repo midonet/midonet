@@ -75,6 +75,7 @@ midolman1:
   hostname: midolman1
   volumes:
   - /lib/modules:/lib/modules
+  - /tmp/jfr:/tmp/jfr
   labels:
       interface: mdts.services.midonet_agent.MidonetAgentHost
       type: midolman
@@ -92,6 +93,7 @@ midolman2:
   hostname: midolman2
   volumes:
   - /lib/modules:/lib/modules
+  - /tmp/jfr:/tmp/jfr
   labels:
       interface: mdts.services.midonet_agent.MidonetAgentHost
       type: midolman
