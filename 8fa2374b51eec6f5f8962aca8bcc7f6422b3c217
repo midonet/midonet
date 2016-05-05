@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_908b4468",
+        "filename": "tests/setup_test_server",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-05T07:51:35Z",
+      "side": 1,
+      "message": "not really, with pip you just get the latest. I\u0027ll change.",
+      "parentUuid": "baa041b7_f74cc943",
+      "revId": "8fa2374b51eec6f5f8962aca8bcc7f6422b3c217",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1745ed15",
         "filename": "tests/setup_test_server",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2016-05-04T15:48:34Z",
       "side": 1,
       "message": "can\u0027t we add user to the docker group after this?",
+      "range": {
+        "startLine": 30,
+        "startChar": 9,
+        "endLine": 30,
+        "endChar": 10
+      },
+      "revId": "8fa2374b51eec6f5f8962aca8bcc7f6422b3c217",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_10f614f9",
+        "filename": "tests/setup_test_server",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-05T07:51:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1745ed15",
       "range": {
         "startLine": 30,
         "startChar": 9,
