@@ -91,8 +91,17 @@ class MidonetAgentHost(Service):
             debug_logs += '\n'
 
         # Dump the whole upstart
+        debug_logs += "-----------------------------------\n"
+        debug_logs += "upstart-stderr.log\n"
+        debug_logs += "-----------------------------------\n"
         debug_logs += self.exec_command(
             'cat /var/log/midolman/upstart-stderr.log')
+        debug_logs += "\n"
+        debug_logs += "-----------------------------------\n"
+        debug_logs += "gc logs\n"
+        debug_logs += "-----------------------------------\n"
+        debug_logs += self.exec_command(
+            'tail -n +1 /var/log/midolman/gc-*.log*')
         return debug_logs
 
     def is_haproxy_running(self, pool_id):
