@@ -6,4 +6,12 @@ POST_DIR=/var/lib/dpkg/info
 
 install -d /var/log/$NAME $DATADIR
 
-test -e /etc/init.d/midonet-cluster || ln -s /lib/init/upstart-job /etc/init.d/midonet-cluster
+
+test -e /etc/init/upstart-job \
+    && ln -sf /lib/init/upstart-job /etc/init.d/midonet-cluster \
+    || echo "upstart not installed"
+
+systemctl preset midonet-cluster.service 2>1 > /dev/null \
+    || echo "systemd not installed"
+systemctl enable midonet-cluster.service 2>1 > /dev/null \
+    || echo "systemd not installed"

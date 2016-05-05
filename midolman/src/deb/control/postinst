@@ -1,9 +1,17 @@
 #!/bin/sh
 
 NAME="midolman"
-DATADIR=/var/lib/midolman
+LOGDIR=/var/log/$NAME
+DATADIR=/var/lib/$NAME
 POST_DIR=/var/lib/dpkg/info
 
-install -d /var/log/$NAME $DATADIR
+install -d $LOGDIR $DATADIR
 
-test -e /etc/init.d/midolman || ln -s /lib/init/upstart-job /etc/init.d/midolman
+test -e /etc/init/upstart-job \
+    && ln -sf /lib/init/upstart-job /etc/init.d/midolman \
+    || echo "upstart not installed"
+
+systemctl preset midolman.service 2>1 > /dev/null \
+    || echo "systemd not installed"
+systemctl enable midolman.service 2>1 > /dev/null \
+    || echo "systemd not installed"

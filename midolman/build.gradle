@@ -197,8 +197,15 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     }
 }
 
+task debianPrepare(type: Copy, dependsOn: installShadowApp) {
+    from("src/systemd/midolman.service") {
+        into "lib/systemd/system"
+    }
+    into "${pkgDestDir}"
+}
+
 task rhel7Prepare(type: Copy, dependsOn: installShadowApp) {
-    from("src/rhel7/systemd/midolman.service") {
+    from("src/systemd/midolman.service") {
         into "usr/lib/systemd/system"
     }
     into "${pkgDestDir}"
@@ -223,7 +230,9 @@ packaging {
 }
 
 preparePkg.dependsOn cleanPkg
-debian.dependsOn preparePkg
+
+debian.dependsOn debianPrepare
+debianPrepare.dependsOn preparePkg
 
 rpm.dependsOn rhel7Prepare
 rhel7Prepare.dependsOn preparePkg
@@ -235,7 +244,7 @@ debian.doFirst {
         '-d', 'python',
         '-d', 'python-setproctitle',
         '-d', 'quagga (>= 0.99.23)',
-        '-d', 'java8-runtime-headless | java8-runtime',
+        '-d', 'openjdk-8-jdk-headless | java8-runtime-headless | java8-runtime',
         '-d', 'iproute (>= 20111117-1ubuntu2.1)',
         '-d', 'openvswitch-datapath-dkms (>= 1.10) | linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0) | linux-image-generic-lts-trusty (>= 3.13.0) | linux-image-virtual-lts-trusty (>= 3.13.0)',
         '--conflicts', 'openvswitch-switch',
