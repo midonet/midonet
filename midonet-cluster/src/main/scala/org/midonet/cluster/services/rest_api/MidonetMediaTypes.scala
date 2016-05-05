@@ -16,9 +16,16 @@
 
 package org.midonet.cluster.services.rest_api
 
+import scala.annotation.meta.getter
+import scala.collection.mutable
+
+import org.midonet.cluster.rest_api.annotation.Relative
+
 /** All the MediaTypes offered by MidoNet, plus some utility lookups into maps
   * between domains. */
 object MidonetMediaTypes {
+
+    case class Property(isRelative: Boolean)
 
     // NEUTRON MODELS
     // ongoing, we're moving them here from NeutronMediaTypes (java) as they
@@ -144,5 +151,29 @@ object MidonetMediaTypes {
 
     final val APPLICATION_TRACE_REQUEST_JSON = "application/vnd.org.midonet.TraceRequest-v1+json"
     final val APPLICATION_TRACE_REQUEST_COLLECTION_JSON = "application/vnd.org.midonet.collection.TraceRequest-v1+json"
+
+    final val mediaTypeProperties: Map[String, Property] = properties
+
+    /**
+      * @return True if the specified media type returns relative paths.
+      */
+    def isRelative(mediaType: String): Boolean = {
+        mediaTypeProperties.get(mediaType).exists(_.isRelative)
+    }
+
+    /**
+      * @return The properties map for the media types.
+      */
+    private def properties: Map[String, Property] = {
+        val map = new mutable.HashMap[String, Property]
+        for (field <- getClass.getDeclaredFields
+             if field.getType == classOf[String]) {
+            val mediaType = getClass.getDeclaredMethod(field.getName)
+                                    .invoke(this).asInstanceOf[String]
+            map += mediaType ->
+                   Property(field.isAnnotationPresent(classOf[Relative]))
+        }
+        map.toMap
+    }
 
 }
