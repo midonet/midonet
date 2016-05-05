@@ -724,6 +724,7 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
             statusSubject onNext checkStatus()
         } catch {
             case NonFatal(e) =>
+                log.warn("Error handling vpn service update", e)
                 try { cleanup(config) }
                 catch {
                     case NonFatal(t) =>
