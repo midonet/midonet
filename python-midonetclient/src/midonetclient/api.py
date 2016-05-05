@@ -38,7 +38,7 @@ class MidonetApi(object):
         self.auth = auth_lib.Auth(self.base_uri, 'login', username, password,
                                   project_id)
 
-    def get_tenants(self, query={}):
+    def get_tenants(self, query=None):
         self._ensure_application()
         return self.app.get_tenants(query)
 
@@ -46,7 +46,7 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.delete_router(id_)
 
-    def get_routers(self, query):
+    def get_routers(self, query=None):
         self._ensure_application()
         return self.app.get_routers(query)
 
@@ -54,11 +54,11 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.delete_bridge(id_)
 
-    def get_bridges(self, query):
+    def get_bridges(self, query=None):
         self._ensure_application()
         return self.app.get_bridges(query)
 
-    def get_ports(self, query):
+    def get_ports(self, query=None):
         self._ensure_application()
         return self.app.get_ports(query)
 
@@ -70,17 +70,15 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.delete_ip_addr_group(id_)
 
-    def get_port_groups(self, query):
+    def get_port_groups(self, query=None):
         self._ensure_application()
         return self.app.get_port_groups(query)
 
     def get_ip_addr_groups(self, query=None):
-        if query is None:
-            query = {}
         self._ensure_application()
         return self.app.get_ip_addr_groups(query)
 
-    def get_chains(self, query):
+    def get_chains(self, query=None):
         self._ensure_application()
         return self.app.get_chains(query)
 
@@ -93,8 +91,6 @@ class MidonetApi(object):
         return self.app.get_chain(id_)
 
     def get_tunnel_zones(self, query=None):
-        if query is None:
-            query = {}
         self._ensure_application()
         return self.app.get_tunnel_zones(query)
 
@@ -103,45 +99,31 @@ class MidonetApi(object):
         return self.app.get_tunnel_zone(id_)
 
     def get_hosts(self, query=None):
-        if query is None:
-            query = {}
         self._ensure_application()
         return self.app.get_hosts(query)
 
     # L4LB resources
     def get_load_balancers(self, query=None):
-        if query is None:
-            query = {}
         self._ensure_application()
         return self.app.get_load_balancers(query)
 
     def get_vips(self, query=None):
-        if query is None:
-            query = {}
         self._ensure_application()
         return self.app.get_vips(query)
 
     def get_pools(self, query=None):
-        if query is None:
-            query = {}
         self._ensure_application()
         return self.app.get_pools(query)
 
     def get_pool_members(self, query=None):
-        if query is None:
-            query = {}
         self._ensure_application()
         return self.app.get_pool_members(query)
 
     def get_health_monitors(self, query=None):
-        if query is None:
-            query = {}
         self._ensure_application()
         return self.app.get_health_monitors(query)
 
     def get_pool_statistics(self, query=None):
-        if query is None:
-            query = {}
         self._ensure_application()
         return self.app.get_pool_statistics(query)
 
