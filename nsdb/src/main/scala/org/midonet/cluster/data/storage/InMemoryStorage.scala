@@ -53,6 +53,7 @@ import org.midonet.util.functors._
 class InMemoryStorage extends Storage with StateStorage with StateTableStorage with StateTablePaths {
     override protected val version = new AtomicLong(1)
     override protected val rootPath = "/inMemoryStorage"
+    override protected val zoomPath = "/inMemoryStorage"
 
     private val executor = new SameThreadButAfterExecutorService()
 
@@ -791,11 +792,11 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
 
     override def getTable[K, V](clazz: Class[_], id: ObjId, name: String, args: Any*)
                       (implicit key: ClassTag[K], value: ClassTag[V]): StateTable[K, V] = {
-        val path = "/" + ((if (args.nonEmpty) {
+        val path = "/" + (if (args.nonEmpty) {
             tablePath(clazz, id, name, version.longValue(), args: _*)
         } else {
             tableRootPath(clazz, id, name)
-        }).replace('/', '_'))
+        }).replace('/', '_')
 
         val provider = getProvider(clazz, key.runtimeClass, value.runtimeClass, name)
         tablesDirectory.ensureHas(path, "".getBytes)
@@ -827,6 +828,8 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         }
         provider
     }
+
+    protected override def pathExists(path: String): Boolean = false
 }
 
 object InMemoryStorage {
