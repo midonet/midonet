@@ -188,6 +188,9 @@ public class Midolman {
         if (configurator.deployBundledConfig())
             log.info("Deployed new configuration schema into NSDB");
 
+        configurator.observableRuntimeConfig(HostIdGenerator.getHostId()).
+            subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
+
         MidolmanConfig config = createConfig(configurator);
         MetricRegistry metricRegistry = new MetricRegistry();
 
@@ -216,9 +219,6 @@ public class Midolman {
         Config conf = injector.getInstance(MidolmanConfig.class).conf();
         log.info("Loaded configuration: {}",
                  configurator.dropSchema(conf).root().render(renderOpts));
-
-        configurator.observableRuntimeConfig(HostIdGenerator.getHostId()).
-                subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
 
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
