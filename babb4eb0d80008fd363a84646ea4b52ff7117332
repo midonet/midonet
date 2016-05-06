@@ -491,6 +491,30 @@
       "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_45ee43b5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-06T04:18:47Z",
+      "side": 1,
+      "message": "Then you would want to put it in createPortOps. If it\u0027s here, it gets created regardless of whether or not the port was originally created as a ROUTER_INTERFACE port, which means it will get created twice in the case where it was.",
+      "parentUuid": "baa041b7_ea6d2605",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 9
+      },
+      "revId": "babb4eb0d80008fd363a84646ea4b52ff7117332",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
