@@ -16,7 +16,8 @@
 
 package org.midonet.util.concurrent
 
-import java.util.concurrent.{TimeUnit, Executors, TimeoutException}
+import java.util
+import java.util.concurrent.{TimeUnit, TimeoutException}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -34,7 +35,7 @@ class BlockingSpscRwdRingBufferTest extends FeatureSpec
     type RingBuffer[T] = BlockingSpscRwdRingBuffer[T]
     private val CAPACITY = 8 // should be a power of 2 for testing
     private var ring: RingBuffer[String] = null
-    private val executor = Executors.newCachedThreadPool()
+    private val executor = util.concurrent.Executors.newCachedThreadPool()
     private implicit val ec: ExecutionContext =
         ExecutionContext.fromExecutor(executor)
 
