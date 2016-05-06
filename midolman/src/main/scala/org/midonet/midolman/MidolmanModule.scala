@@ -18,19 +18,21 @@ package org.midonet.midolman
 
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
-import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy
 import java.util.concurrent.atomic.AtomicLong
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
-import akka.actor.{OneForOneStrategy, SupervisorStrategy, ActorSystem}
+import akka.actor.{ActorSystem, OneForOneStrategy, SupervisorStrategy}
+
 import com.codahale.metrics.MetricRegistry
-import com.google.inject.{Key, Injector, AbstractModule}
+import com.google.inject.{AbstractModule, Injector, Key}
 import com.google.inject.name.Names
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
+
 import org.reflections.Reflections
-import org.slf4j.{LoggerFactory, Logger}
+import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
@@ -44,7 +46,7 @@ import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolde
 import org.midonet.midolman.host.scanner.{DefaultInterfaceScanner, InterfaceScanner}
 import org.midonet.midolman.host.services.HostService
 import org.midonet.midolman.io._
-import org.midonet.midolman.logging.{FlowTracingSchema, FlowTracingAppender}
+import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
 import org.midonet.midolman.monitoring._
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
@@ -53,11 +55,11 @@ import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
-import org.midonet.netlink.{NetlinkUtil, NetlinkProtocol, NetlinkChannelFactory}
+import org.midonet.netlink.{NetlinkChannelFactory, NetlinkProtocol, NetlinkUtil}
 import org.midonet.odp.OvsNetlinkFamilies
 import org.midonet.Util
 import org.midonet.util.concurrent._
-import org.midonet.util.eventloop.{Reactor, SimpleSelectLoop, SelectLoop}
+import org.midonet.util.eventloop.{Reactor, SelectLoop, SimpleSelectLoop}
 import org.midonet.util._
 
 class MidolmanModule(injector: Injector,
@@ -374,10 +376,10 @@ class MidolmanModule(injector: Injector,
 
     protected def virtualTopology(simBackChannel: SimulationBackChannel) = {
         val vtThread = new AtomicLong(-1)
-        val vtExecutor = Executors.newSingleThreadScheduledExecutor(
-            new NamedThreadFactory("devices-service-", isDaemon = true))
-        val ioExecutor = Executors.newCachedThreadPool(
-            new NamedThreadFactory("devices-io-", isDaemon = true))
+        val vtExecutor = Executors.singleThreadScheduledExecutor(
+            "devices-service", isDeamon = true, Executors.CallerRunsPolicy)
+        val ioExecutor = Executors.cachedPoolExecutor(
+            "devices-io", isDeamon = true, Executors.CallerRunsPolicy)
         val vtExecutorCheck = () => {
             if (vtThread.get < 0) {
                 vtThread.compareAndSet(-1, Thread.currentThread().getId)
