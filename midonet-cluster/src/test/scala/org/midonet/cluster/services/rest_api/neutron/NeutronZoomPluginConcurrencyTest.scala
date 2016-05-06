@@ -17,7 +17,7 @@
 package org.midonet.cluster.services.rest_api.neutron
 
 import java.util.UUID
-import java.util.concurrent.Executors
+import java.util.concurrent
 import java.util.concurrent.locks.ReentrantLock
 
 import scala.async.Async.async
@@ -117,7 +117,7 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
     feature("Neutron calls are serialized") {
         scenario("Lots of concurrent calls to the backend are serialized") {
             implicit val ec = ExecutionContext.fromExecutor(
-                Executors.newFixedThreadPool(10)
+                concurrent.Executors.newFixedThreadPool(10)
             )
             val f = Future.sequence(0 until 1000 map { i =>
                 async { plugin.createPort(makePort) }

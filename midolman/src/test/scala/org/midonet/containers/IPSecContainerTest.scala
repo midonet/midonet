@@ -18,7 +18,8 @@ package org.midonet.containers
 
 import java.io.File
 import java.util.UUID
-import java.util.concurrent._
+import java.util.concurrent
+import java.util.concurrent.ExecutorService
 
 import scala.util.Random
 
@@ -73,7 +74,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
     private val random = new Random
     private var vt: VirtualTopology = _
     private val containerExecutor = new SameThreadButAfterExecutorService
-    private val ioExecutor = Executors.newSingleThreadScheduledExecutor()
+    private val ioExecutor = concurrent.Executors.newSingleThreadScheduledExecutor()
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
