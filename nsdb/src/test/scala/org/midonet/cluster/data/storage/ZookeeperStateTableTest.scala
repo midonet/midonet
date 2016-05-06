@@ -31,6 +31,7 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.data.storage.StorageTestClasses.{PojoRouter, PojoBridge}
+import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.MidonetEventually
 
@@ -157,6 +158,34 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
     }
 
     feature("Test state table paths") {
+        scenario("Paths are correct") {
+            Given("State table storage")
+            val storage = setupStorage()
+
+            Then("The paths are correct")
+            val version = storage.version.get
+            val id = UUID.randomUUID()
+            storage.tablesPath() shouldBe s"$zkRoot/zoom/$version/tables"
+            storage.tablesClassPath(classOf[PojoBridge]) shouldBe
+                s"$zkRoot/zoom/$version/tables/PojoBridge"
+            storage.tablesObjectPath(classOf[PojoBridge], id) shouldBe
+                s"$zkRoot/zoom/$version/tables/PojoBridge/$id"
+            storage.tableRootPath(classOf[PojoBridge], id, "name") shouldBe
+                s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name"
+            storage.tablePath(classOf[PojoBridge], id, "name") shouldBe
+                s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name"
+            storage.tablePath(classOf[PojoBridge], id, "name", version, 0) shouldBe
+                s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0"
+            storage.tablePath(classOf[PojoBridge], id, "name", version, 0, 1) shouldBe
+                s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0/1"
+
+            And("The legacy paths are correct for a network")
+            storage.legacyTableRootPath(classOf[Network], id, "ip4_mac_table") shouldBe
+                Some(s"$zkRoot/bridges/$id/ip4_mac_map")
+            storage.legacyTablePath(classOf[Network], id, "ip4_mac_table") shouldBe
+                Some(s"$zkRoot/bridges/$id/ip4_mac_map")
+        }
+
         scenario("Class path exists") {
             Given("The path for a registered class")
             val storage = setupStorage()

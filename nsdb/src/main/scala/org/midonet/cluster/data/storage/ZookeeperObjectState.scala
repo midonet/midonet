@@ -99,7 +99,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
     protected def objectPath(clazz: Class[_], id: ObjId, version: Long): String
 
-    protected def rootPath: String
+    protected def zoomPath: String
 
     protected def curator: CuratorFramework
 
@@ -334,7 +334,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     @inline
     private[storage] def statePath(namespace: String, version: Long)
     : String = {
-        s"$rootPath/$version/state/$namespace"
+        s"$zoomPath/$version/state/$namespace"
     }
 
     @inline

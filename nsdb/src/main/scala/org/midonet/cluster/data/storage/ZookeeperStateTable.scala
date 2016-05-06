@@ -19,7 +19,6 @@ package org.midonet.cluster.data.storage
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
-import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
@@ -39,18 +38,24 @@ import org.midonet.util.collection.PathMap
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
 
-trait StateTablePaths extends StateTableStorage {
+trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
+
     protected def version: AtomicLong
     protected def rootPath: String
+    protected def zoomPath: String
+    protected def pathExists(path: String): Boolean
 
     override def tablePath(clazz: Class[_], id: ObjId, name: String,
                            args: Any*): String = {
-        tablePath(clazz, id, name, version.longValue(), args:_*)
+        legacyTableRootPath(clazz, id, name, args) match {
+            case Some(path) if pathExists(path) => path
+            case _ => tablePath(clazz, id, name, version.longValue(), args:_*)
+        }
     }
 
     @inline
     private[storage] def tablesPath(version: Long = version.longValue()): String = {
-        s"$rootPath/$version/tables"
+        s"$zoomPath/$version/tables"
     }
 
     @inline
@@ -75,9 +80,13 @@ trait StateTablePaths extends StateTableStorage {
     private[storage] def tablePath(clazz: Class[_], id: ObjId, name: String,
                                    version: Long, args: Any*): String = {
         val rootPath = tableRootPath(clazz, id, name, version)
-        args.foldLeft(new StringBuilder(rootPath)) {
-            (sb, s) => sb.append('/').append(s)
-        }.toString()
+        if (args.isEmpty) {
+            rootPath
+        } else {
+            args.foldLeft(new StringBuilder(rootPath)) {
+                (sb, s) => sb.append('/').append(s)
+            }.toString()
+        }
     }
 }
 
@@ -117,8 +126,10 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
                     }
 
                     for ((name, provider) <- tableInfo(clazz).tables) {
+                        val hasLegacyPath =
+                            legacyTablePath(clazz, id, name).exists(nodeExists)
                         val tablePath = tableRootPath(clazz, id, name, version)
-                        if (!nodeExists(tablePath)) {
+                        if (!hasLegacyPath && !nodeExists(tablePath)) {
                             list += Key(null, tablePath) -> TxCreateNode()
                         }
                     }
@@ -154,9 +165,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
 
     }
 
-    private val providers = new TrieMap[Key, Class[_ <: StateTable[_,_]]]
-
-    protected def rootPath: String
+    protected def zoomPath: String
 
     protected def curator: CuratorFramework
 
@@ -180,12 +189,9 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
                       (implicit key: ClassTag[K], value: ClassTag[V])
     : StateTable[K, V] = {
         assertBuilt()
-        val path = if (args.nonEmpty) {
-            val p = tablePath(clazz, id, name, version.longValue(), args: _*)
-            ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, p, true)
-            p
-        } else {
-            tableRootPath(clazz, id, name)
+        val path = tablePath(clazz, id, name, args: _*)
+        if (args.nonEmpty) {
+            ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, path, true)
         }
 
         // Get the provider for the state table name.
@@ -223,6 +229,12 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
                 s"value class ${provider.value.getSimpleName}")
         }
         provider
+    }
+
+    /** Returns `true` if the specified path exists.
+      */
+    protected override def pathExists(path: String): Boolean = {
+        curator.checkExists().forPath(path) ne null
     }
 
 }
