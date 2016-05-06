@@ -280,8 +280,7 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
     private val promises = HashMultimap.create[UUID, Promise[Any]]()
     private val senders = HashMultimap.create[UUID, ActorRef]()
     private val subscribers = HashMultimap.create[UUID, ActorRef]()
-
-    private val devices = new util.HashSet[UUID]()
+    private val managers = new util.HashMap[UUID, ActorRef]()
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
@@ -304,6 +303,14 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
         metrics.setSubscribers(() => subscribers.size())
         metrics.setDevices(() => topology.size())
     }
+
+    private[topology] def promiseCount = promises.size()
+
+    private[topology] def senderCount = senders.size()
+
+    private[topology] def subscriberCount = senders.size()
+
+    private[topology] def managersCount = managers.size()
 
     private def askDevice(req: DeviceRequest, promise: Promise[Any]): Unit = {
         // Check if the device has been received since making the request, in
@@ -331,12 +338,13 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
       * unanswered clients and subscribers, if needed.
       */
     private def manageDevice(req: DeviceRequest) : Unit = {
-        if (devices.add(req.id)) {
+        if (!managers.containsKey(req.id)) {
             log.info("Manage device {}", req.id)
-            val mgrFactory = req.managerFactory(clusterClient, config)
-            val props = Props { mgrFactory() }
-                .withDispatcher(context.props.dispatcher)
-            context.actorOf(props, req.managerName)
+            val managerFactory = req.managerFactory(clusterClient, config)
+            val props = Props {
+                managerFactory()
+            }.withDispatcher(context.props.dispatcher)
+            managers.put(req.id, context.actorOf(props, req.managerName))
         }
     }
 
@@ -362,12 +370,12 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
 
         log.debug(s"Virtual topology statistics: devices=${topology.size()} " +
                   s"promises=${promises.size()} senders=${senders.size()} " +
-                  s"subscribers=${subscribers.size()} managers=${devices.size()}")
+                  s"subscribers=${subscribers.size()} managers=${managers.size()}")
     }
 
     private def deviceUpdated(id: UUID, device: AnyRef): Unit = {
         // Ignore the device notification if the device is no longer managed.
-        if (!devices.contains(id))
+        if (!managers.containsKey(id))
             return
 
         // Update the topology cache.
@@ -402,7 +410,7 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
 
         log.debug(s"Virtual topology statistics: devices=${topology.size()} " +
                   s"promises=${promises.size()} senders=${senders.size()} " +
-                  s"subscribers=${subscribers.size()} managers=${devices.size()}")
+                  s"subscribers=${subscribers.size()} managers=${managers.size()}")
     }
 
     private def deviceDeleted(id: UUID): Unit = {
@@ -417,11 +425,14 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
 
         senders.removeAll(id)
         subscribers.removeAll(id)
-        devices.remove(id)
+        val manager = managers.remove(id)
+        if (manager ne null) {
+            context.stop(manager)
+        }
 
         log.debug(s"Virtual topology statistics: devices=${topology.size()} " +
                   s"promises=${promises.size()} senders=${senders.size()} " +
-                  s"subscribers=${subscribers.size()} managers=${devices.size()}")
+                  s"subscribers=${subscribers.size()} managers=${managers.size()}")
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {

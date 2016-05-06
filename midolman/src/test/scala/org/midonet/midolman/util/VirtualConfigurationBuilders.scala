@@ -280,6 +280,10 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsUpdate(port)
     }
 
+    def deletePort(portId: UUID): Unit = {
+        clusterDataClient().portsDelete(portId)
+    }
+
     def deletePort(port: Port[_, _], hostId: UUID){
         clusterDataClient().hostsDelVrnPortMapping(hostId, port.getId)
     }

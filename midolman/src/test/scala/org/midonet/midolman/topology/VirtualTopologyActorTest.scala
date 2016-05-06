@@ -40,6 +40,7 @@ import org.midonet.sdn.flows.FlowTagger
 class VirtualTopologyActorTest extends MidolmanSpec {
 
     private val timeout = 1 second
+    private var vta: VirtualTopologyActor = _
 
     private class SenderActor extends Actor {
         var messages = List[Any]()
@@ -50,6 +51,12 @@ class VirtualTopologyActorTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
                                                       with MessageAccumulator))
+
+    protected override def beforeTest(): Unit = {
+        vta = VirtualTopologyActor.getRef()
+            .asInstanceOf[TestActorRef[VirtualTopologyActor]]
+            .underlyingActor
+    }
 
     feature("The VTA returns port with tryAsk") {
         scenario("The port does not exist") {
@@ -133,14 +140,14 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             msg(3) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
         }
 
-        scenario("The VTA handles port updates") {
+        scenario("The VTA handles port update, deletion and re-creation") {
             Given("A bridge port")
             val bridge = newBridge("br0")
-            val port = newBridgePort(bridge, vlanId = Some(1.toShort))
+            var port = newBridgePort(bridge, vlanId = Some(1.toShort))
 
             When("Requesting the port")
             // Try get the port, and wait for the port to be cached.
-            val future = intercept[NotYetException] {
+            var future = intercept[NotYetException] {
                 VirtualTopologyActor.tryAsk[Port](port.getId)
             }.waitFor.asInstanceOf[Future[Port]]
             ready(future, timeout)
@@ -159,7 +166,13 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             msg(2).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(3) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
 
-            And("The port is updated")
+            And("The VTA should manage the port")
+            vta.promiseCount shouldBe 0
+            vta.senderCount shouldBe 0
+            vta.subscriberCount shouldBe 0
+            vta.managersCount shouldBe 1
+
+            When("The port is updated")
             // Note: only some fields are allowed to be updated: see the
             // port ZK manager.
             updatePort(port.setAdminStateUp(false))
@@ -177,6 +190,81 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             msg should have size 2
             msg(0).asInstanceOf[BridgePort].id shouldBe port.getId
             msg(1) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
+
+            And("The VTA should manage the port")
+            vta.promiseCount shouldBe 0
+            vta.senderCount shouldBe 0
+            vta.subscriberCount shouldBe 0
+            vta.managersCount shouldBe 1
+
+            When("The port is deleted")
+            deletePort(port.getId)
+
+            Then("The VTA should have received device deleted")
+            msg = VirtualTopologyActor.getAndClear()
+            msg.last shouldBe DeleteDevice(port.getId)
+
+            And("The VTA should not manage the port")
+            vta.promiseCount shouldBe 0
+            vta.senderCount shouldBe 0
+            vta.subscriberCount shouldBe 0
+            vta.managersCount shouldBe 0
+
+            When("Requesting the port")
+            val e1 = intercept[NotYetException] {
+                VirtualTopologyActor.tryAsk[Port](port.getId)
+            }
+
+            Then("The request throws a NotYetException with a future")
+            future = e1.waitFor.asInstanceOf[Future[Port]]
+
+            And("The future should throw an exception")
+            val e = intercept[DeviceDeletedException] {
+                result(future, timeout)
+            }
+            e.deviceId shouldBe port.getId
+
+            And("The VTA should have received 2 messages")
+            msg = VirtualTopologyActor.getAndClear()
+            msg should have size 2
+            msg(0).asInstanceOf[Ask].request shouldBe PortRequest(port.getId, update = false)
+            msg(1) shouldBe DeleteDevice(port.getId)
+
+            And("The VTA should not manage the port")
+            vta.promiseCount shouldBe 0
+            vta.senderCount shouldBe 0
+            vta.subscriberCount shouldBe 0
+            vta.managersCount shouldBe 0
+
+            When("The port is re-created")
+            port = newBridgePort(bridge, port)
+
+            When("Requesting the port")
+            // Try get the port, and wait for the port to be cached.
+            future = intercept[NotYetException] {
+                VirtualTopologyActor.tryAsk[Port](port.getId)
+            }.waitFor.asInstanceOf[Future[Port]]
+            ready(future, timeout)
+
+            Then("The thrown future completes successfully with the port")
+            future.isCompleted shouldBe true
+            future.value should not be null
+            future.value.get.get.id shouldBe port.getId
+            future.value.get.get.adminStateUp shouldBe false
+
+            And("The VTA should have received 4 messages")
+            msg = VirtualTopologyActor.getAndClear()
+            msg should have size 4
+            msg(0).asInstanceOf[Ask].request shouldBe PortRequest(port.getId, update = false)
+            msg(1).asInstanceOf[BridgePort].id shouldBe port.getId
+            msg(2).asInstanceOf[BridgePort].id shouldBe port.getId
+            msg(3) shouldBe InvalidateFlowsByTag(FlowTagger.tagForPort(port.getId))
+
+            And("The VTA should manage the port")
+            vta.promiseCount shouldBe 0
+            vta.senderCount shouldBe 0
+            vta.subscriberCount shouldBe 0
+            vta.managersCount shouldBe 1
         }
     }
 
