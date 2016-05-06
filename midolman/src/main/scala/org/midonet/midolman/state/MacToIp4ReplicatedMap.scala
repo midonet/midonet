@@ -63,7 +63,8 @@ object MacToIp4ReplicatedMap {
     def hasPersistentEntry(dir: Directory, key: MAC, value: IPv4Addr): Boolean =
         ZKExceptions.adapt(
             getAsMapWithVersion(dir).get(key) match {
-                case (m, Int.MaxValue) if m.equals(value) => true
+                case (m,  ReplicatedMap.PERSISTENT_VERSION)
+                        if m.equals(value) => true
                 case _ => false
             }
         )
@@ -145,10 +146,11 @@ object MacToIp4ReplicatedMap {
     }
 
     def encodePersistentPath(k: MAC, v: IPv4Addr) =
-        encodePath(k, v, Int.MaxValue)
+        encodePath(k, v, ReplicatedMap.PERSISTENT_VERSION)
 
     def encodePersistentPath(mac: String, ipAddr: String): String =
-        ReplicatedMap.encodeFullPath(mac, ipAddr, Int.MaxValue)
+        ReplicatedMap.encodeFullPath(mac, ipAddr,
+                                     ReplicatedMap.PERSISTENT_VERSION)
 
     /*
      * We use version 0 for learned entries. This is done so to remain

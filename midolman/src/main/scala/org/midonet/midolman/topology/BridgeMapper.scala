@@ -234,6 +234,12 @@ object BridgeMapper {
 
         /** Thread-safe query that gets the IPv4-MAC mapping*/
         override def get(ip: IPv4Addr): MAC = map.getLocal(ip)
+
+        override def put(ip: IPv4Addr, mac: MAC): Unit = {
+            map.remove(ip)
+            map.add(ip, mac)
+        }
+
         /** Stops the underlying [[ReplicatedMap]]*/
         def complete(): Unit = map.stop()
     }
