@@ -16,26 +16,27 @@
 
 package org.midonet.midolman.openstack.metadata
 
-import akka.actor.ActorSystem
 import scala.Option.option2Iterable
 import scala.collection.JavaConversions.asJavaIterable
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.sys.process.Process
 
-import rx.Observable
-import rx.subjects.ReplaySubject
+import akka.actor.ActorSystem
+
 import org.slf4j.Logger
+
+import rx.Observable
+import rx.subjects.BehaviorSubject
 
 import org.midonet.midolman.DatapathState
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.io.UpcallDatapathConnectionManager
-import org.midonet.midolman.io.VirtualMachine
+import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VirtualMachine}
 import org.midonet.odp.ports.InternalPort
 import org.midonet.packets.MAC
-import org.midonet.util.functors.makeFunc1
 import org.midonet.util.concurrent.CallingThreadExecutionContext
+import org.midonet.util.functors.makeFunc1
 
 class DatapathInterface(private val scanner: InterfaceScanner,
                         private val dpState: DatapathState,
@@ -57,7 +58,7 @@ class DatapathInterface(private val scanner: InterfaceScanner,
          */
         implicit val ec = CallingThreadExecutionContext
         val ifName = "metadata"
-        val obs = ReplaySubject.create[Set[InterfaceDescription]]
+        val obs = BehaviorSubject.create[Set[InterfaceDescription]]
         val subscription = scanner.subscribe(obs)
         val create = dpConnManager.createAndHookDpPort(dpState.datapath,
                                                        new InternalPort(ifName),
