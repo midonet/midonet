@@ -18,16 +18,15 @@ package org.midonet.midolman.host.scanner
 
 import java.net.InetAddress
 import java.nio.ByteBuffer
-import java.nio.channels.{ClosedChannelException, AsynchronousCloseException, ClosedByInterruptException}
+import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException, ClosedChannelException}
 import java.util
 
 import org.midonet.packets.MAC
-
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import rx.observables.ConnectableObservable
-import rx.subjects.{PublishSubject, ReplaySubject}
+import rx.subjects.{BehaviorSubject, PublishSubject}
 import rx.{Observable, Observer, Subscription}
 
 import org.midonet.Util
@@ -79,7 +78,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
         channelFactory.create(blocking = true, NetlinkProtocol.NETLINK_ROUTE,
             notificationGroups = NetlinkUtil.DEFAULT_RTNETLINK_GROUPS)
     private val notificationReader = new NetlinkReader(notificationChannel)
-    private val notificationSubject = ReplaySubject.create[ByteBuffer]()
+    private val notificationSubject = BehaviorSubject.create[ByteBuffer]()
 
     private class ErrorReporter[T] extends Observer[T] {
         override def onCompleted(): Unit = {}
@@ -325,7 +324,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
         }
     }
 
-    private val initialScan = ReplaySubject.create[Set[InterfaceDescription]]
+    private val initialScan = BehaviorSubject.create[Set[InterfaceDescription]]
 
     private
     val notifications: ConnectableObservable[Set[InterfaceDescription]] =
