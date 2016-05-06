@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_794c2b9e",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-06T04:47:50Z",
+      "side": 1,
+      "message": "Because we need more than \u0027id\u0027 to handle deletion.",
+      "parentUuid": "baa041b7_79654b1c",
+      "range": {
+        "startLine": 774,
+        "startChar": 3,
+        "endLine": 774,
+        "endChar": 79
+      },
+      "revId": "c95b1793a43982a96922f07734cb2af5b84e4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_596a87ef",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 16
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_39422369",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-06T04:47:50Z",
+      "side": 1,
+      "message": "This is not a flag but a list of peer IDs to delete.",
+      "parentUuid": "baa041b7_596a87ef",
+      "range": {
+        "startLine": 778,
+        "startChar": 0,
+        "endLine": 778,
+        "endChar": 28
+      },
+      "revId": "c95b1793a43982a96922f07734cb2af5b84e4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_396b43f3",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 16
@@ -59,6 +107,30 @@
       "writtenOn": "2016-05-06T04:18:47Z",
       "side": 1,
       "message": "The section on BGPPeer creation also says to do this.",
+      "range": {
+        "startLine": 781,
+        "startChar": 0,
+        "endLine": 783,
+        "endChar": 40
+      },
+      "revId": "c95b1793a43982a96922f07734cb2af5b84e4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_59516735",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-06T04:47:50Z",
+      "side": 1,
+      "message": "Thanks removing.",
+      "parentUuid": "baa041b7_396b43f3",
       "range": {
         "startLine": 781,
         "startChar": 0,
