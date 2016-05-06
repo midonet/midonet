@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_79654b1c",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 774,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-06T04:18:47Z",
+      "side": 1,
+      "message": "Why would we call update in this case? Why not just use delete?",
+      "range": {
+        "startLine": 774,
+        "startChar": 3,
+        "endLine": 774,
+        "endChar": 79
+      },
+      "revId": "c95b1793a43982a96922f07734cb2af5b84e4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_596a87ef",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-06T04:18:47Z",
+      "side": 1,
+      "message": "The single-item bullet list above suggests that this is the only thing we use update for. So why is there a special flag for it?",
+      "range": {
+        "startLine": 778,
+        "startChar": 0,
+        "endLine": 778,
+        "endChar": 28
+      },
+      "revId": "c95b1793a43982a96922f07734cb2af5b84e4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_396b43f3",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-06T04:18:47Z",
+      "side": 1,
+      "message": "The section on BGPPeer creation also says to do this.",
+      "range": {
+        "startLine": 781,
+        "startChar": 0,
+        "endLine": 783,
+        "endChar": 40
+      },
+      "revId": "c95b1793a43982a96922f07734cb2af5b84e4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_19707fdb",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-06T04:18:47Z",
+      "side": 1,
+      "message": "What values can change? I assume bgp_speaker_id won\u0027t change.",
+      "range": {
+        "startLine": 812,
+        "startChar": 0,
+        "endLine": 812,
+        "endChar": 55
+      },
+      "revId": "c95b1793a43982a96922f07734cb2af5b84e4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f9795bc9",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 16
+      },
+      "lineNbr": 522,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-06T04:18:47Z",
+      "side": 1,
+      "message": "Not just the UUID? The whole object?",
+      "range": {
+        "startLine": 522,
+        "startChar": 13,
+        "endLine": 522,
+        "endChar": 30
+      },
+      "revId": "c95b1793a43982a96922f07734cb2af5b84e4e89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
