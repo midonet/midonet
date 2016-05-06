@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SANDBOX_FLAVOUR="default_v1.9"
+SANDBOX_FLAVOUR="default_v1.9_neutron+kilo"
 OVERRIDE="sandbox/override_v1"
 PROVISIONING="sandbox/provisioning/all-provisioning.sh"
 
