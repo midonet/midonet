@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_57800bf7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-05-07T00:34:12Z",
+      "side": 1,
+      "message": "is there a guideline for import order?\nanyway it\u0027s better to separate unrelated changes.",
+      "revId": "1758201d1186015a127d919b57010c2e483262e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
