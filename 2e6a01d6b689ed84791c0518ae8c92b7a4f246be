@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_10984977",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapServiceTranslator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2016-05-09T09:18:48Z",
+      "side": 1,
+      "message": "I\u0027m surprised to find the condition attached to the TapService instead of the TapFlow.\n\nIs that the awkwardness you were referring to in MI-904 (Port mirroring is not rule-based)?",
+      "revId": "2e6a01d6b689ed84791c0518ae8c92b7a4f246be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
