@@ -4,6 +4,11 @@ MidoNet implementation of LBaaS v1 has some user-visible differences
 from neutron-lbaas' reference implementation (haproxy):
 
 - MidoNet only supports a limited set of topologies, as described below.
+  This also implies some resource order constraints; the topology including
+  the Neutron router and Neutron network needs to be set up before Neutron
+  LB resources.
+
+- MidoNet only supports L3/L4 loadbalancing.  I.e. no https/http support
 
 - In MidoNet, members will see the real source IP address of clients,
   rather than VIP.  (There's an exception; see "same subnet" case below)
