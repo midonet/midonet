@@ -636,6 +636,11 @@ def test_health_monitoring_backend_failback():
     sender_bridge, sender_port = BM.get_binding_data()['sender']
     sender = BM.get_iface_for_port(sender_bridge, sender_port)
 
+    # Check that the three backends are active before starting the test
+    await_member_status(1, status='ACTIVE')
+    await_member_status(2, status='ACTIVE')
+    await_member_status(3, status='ACTIVE')
+
     non_sticky_results = make_n_requests_to(sender,
                                             100,
                                             vips['non_sticky_vip'])
@@ -653,7 +658,7 @@ def test_health_monitoring_backend_failback():
                                             vips['non_sticky_vip'])
     LOG.debug("L4LB: non_sticky results %s (one backend failed)" %
               non_sticky_results)
-    # Check that the three backends are alive
+    # Check that two of the three backends are alive
     assert_that(check_num_backends_hit(non_sticky_results, 2), True)
 
     # Fail second backend
@@ -665,7 +670,7 @@ def test_health_monitoring_backend_failback():
                                             vips['non_sticky_vip'])
     LOG.debug("L4LB: non_sticky results %s (two backends failed)" %
               non_sticky_results)
-    # Check that the three backends are alive
+    # Check that one of the three backends is alive
     assert_that(check_num_backends_hit(non_sticky_results, 1), True)
 
     # Recover failed backends
