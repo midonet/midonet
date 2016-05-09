@@ -135,69 +135,71 @@ artifacts {
     tests jarTest
 }
 
-task preparePkg(type: Copy, dependsOn: installShadowApp) {
-    from("${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
-        into "usr/share/midolman"
-    }
-    from("${buildDir}/man/") {
-        include "*.*"
-        into "usr/share/man/man1"
-    }
-    from("CHANGE-LOG.txt") {
-        into "usr/share/doc/midolman/"
-    }
-    from("src/deb/init/midolman.conf") {
-        into "etc/init"
-    }
-    from("conf") {
-        into "etc/midolman"
-    }
-    from("src/deb/quagga/bgpd.conf") {
-        into "etc/midolman/quagga"
-    }
-    from("src/deb/bin/wdog") {
-        into "usr/bin"
-    }
-    from("src/deb/bin/mm-dpctl") {
-        into "usr/bin"
-    }
-    from("src/deb/bin/mm-trace") {
-        into "usr/bin"
-    }
-    from("src/deb/bin/mm-meter") {
-        into "usr/bin"
-    }
-    from("src/deb/bin/mm-ctl") {
-        into "usr/bin"
-    }
-    from("src/deb/bin/mm-tests") {
-        into "usr/bin"
-    }
-    from("src/deb/bin/mm-stat") {
-        into "usr/bin"
-    }
-    from("src/deb/bin/mn-conf") {
-        into "usr/bin"
-    }
-    from("src/lib/midolman/bgpd-helper") {
-        into "usr/lib/midolman"
-    }
-    from("src/lib/midolman/service_containers/vpn/vpn-helper") {
-        into "usr/lib/midolman"
-    }
-    from("src/deb/init/midolman-prepare") {
-        into "usr/share/midolman"
-    }
-    from("src/deb/init/midolman-start") {
-        into "usr/share/midolman"
-    }
-    from("src/deb/init/prepare-java") {
-        into "usr/share/midolman"
-    }
-    into "${pkgDestDir}"
-    doLast {
-        new File("${pkgDestDir}/usr/share/midolman/${project.name}-${midonetVersion}-all.jar").
-                renameTo("${pkgDestDir}/usr/share/midolman/${project.name}.jar")
+packageTypes.each { pkgName ->
+    task "preparePkg_$pkgName"(type: Copy, dependsOn: installShadowApp) {
+        from(
+                "${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
+            into "usr/share/midolman"
+        }
+        from("${buildDir}/man/") {
+            include "*.*"
+            into "usr/share/man/man1"
+        }
+        from("CHANGE-LOG.txt") {
+            into "usr/share/doc/midolman/"
+        }
+        from("src/deb/init/midolman.conf") {
+            into "etc/init"
+        }
+        from("conf") {
+            into "etc/midolman"
+        }
+        from("src/deb/quagga/bgpd.conf") {
+            into "etc/midolman/quagga"
+        }
+        from("src/deb/bin/wdog") {
+            into "usr/bin"
+        }
+        from("src/deb/bin/mm-dpctl") {
+            into "usr/bin"
+        }
+        from("src/deb/bin/mm-trace") {
+            into "usr/bin"
+        }
+        from("src/deb/bin/mm-meter") {
+            into "usr/bin"
+        }
+        from("src/deb/bin/mm-ctl") {
+            into "usr/bin"
+        }
+        from("src/deb/bin/mm-tests") {
+            into "usr/bin"
+        }
+        from("src/deb/bin/mm-stat") {
+            into "usr/bin"
+        }
+        from("src/deb/bin/mn-conf") {
+            into "usr/bin"
+        }
+        from("src/lib/midolman/bgpd-helper") {
+            into "usr/lib/midolman"
+        }
+        from("src/deb/init/midolman-prepare") {
+            into "usr/share/midolman"
+        }
+        from("src/deb/init/midolman-start") {
+            into "usr/share/midolman"
+        }
+        from("src/deb/init/prepare-java") {
+            into "usr/share/midolman"
+        }
+        into "${pkgDestDir}"
+        doLast {
+            new File(
+                    "${pkgDestDir}/usr/share/midolman/${project.name}-${midonetVersion}-all.jar").
+                    renameTo(
+                            "${pkgDestDir}/usr/share/midolman/${project.name}.jar")
+        }
     }
 }
 
@@ -237,25 +239,29 @@ packaging {
                  '/etc/midolman/midolman-env.sh.gateway.large',
                  '/etc/midolman/midolman.conf',
                  '/etc/midolman/logback.xml' ]
-    fpmOpts = ['-a', 'all',
-               '--category', 'network',
-               '--url', 'http://midokura.com',
-               '--epoch', '2']
+    fpmOpts_common = ['-a', 'all',
+                      '--category', 'network',
+                      '--url', 'http://midokura.com',
+                      '--epoch', '2']
 }
 
-preparePkg.dependsOn cleanPkg
+// Task dependencies
+preparePkg_debian.dependsOn manpages
 
-debian.dependsOn debianPrepare
-debianPrepare.dependsOn preparePkg
+preparePkg_debian.dependsOn cleanPkg_debian
+debian.dependsOn preparePkg_debian
 
+preparePkg_rpm.dependsOn cleanPkg_rpm
+rhel7Prepare.dependsOn preparePkg_rpm
 rpm.dependsOn rhel7Prepare
-rhel7Prepare.dependsOn preparePkg
+rhel7Prepare.dependsOn preparePkg_rpm
 
-tar.dependsOn preparePkg
+preparePkg_tar.dependsOn cleanPkg_tar
+tar.dependsOn preparePkg_tar
 
 debian.doFirst {
     project.packaging.version = project.debVersion
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
     project.packaging.fpmOpts.addAll([
         '-d', 'python',
         '-d', 'python-setproctitle',
@@ -275,7 +281,7 @@ debian.doFirst {
 rpm.doFirst {
     project.packaging.version = project.rpmVersion
     project.packaging.iteration = project.rpmRelease
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
     project.packaging.fpmOpts.addAll([
         '-d', 'python',
         '-d', 'quagga >= 0.99.23',
@@ -303,7 +309,7 @@ rpm.doFirst {
 
 tar.doFirst {
     project.packaging.version = project.debVersion
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
 }
 
 debian.doLast {
@@ -355,5 +361,3 @@ task testReport(type: TestReport, dependsOn: test) {
 }
 
 test.finalizedBy(testReport)
-
-preparePkg.dependsOn manpages
