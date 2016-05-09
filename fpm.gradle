@@ -32,12 +32,15 @@ class PackagingPlugin implements Plugin<Project> {
         project.ext.pkgDestDir = "${project.buildDir}/TMPINST"
         project.extensions.create('packaging', PackagingPluginExtension)
         project.packaging.packageDir = new File(project.buildDir, "/packages")
+        project.ext.packageTypes = ["debian", "rpm", "tar"]
+        project.ext.packageTypes.each { pkgName ->
+            project.task("cleanPkg_$pkgName", group: 'Build', type: Delete) {
+                delete "${project.ext.pkgDestDir}"
+            }
+        }
         project.task('debian', group: 'Build', type: DebianTask)
         project.task('rpm', group: 'Build', type: RpmTask)
         project.task('tar', group: 'Build', type: TarTask)
-        project.task('cleanPkg', group: 'Build', type: Delete) {
-            delete "${project.pkgDestDir}"
-        }
     }
 
 }
@@ -72,6 +75,9 @@ class PackagingPluginExtension {
 
     @Input
     def fpmOpts = []
+
+    @Input
+    def fpmOpts_common = []
 
     @Input
     def confFiles = []

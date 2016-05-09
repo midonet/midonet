@@ -25,24 +25,29 @@ dependencies {
     compile project(':nsdb')
 }
 
-task preparePkg(type: Copy, dependsOn: installShadowApp) {
-    from("${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
-        into "usr/share/midonet-tools"
-    }
-    from("${buildDir}/man/") {
-        include "*.*"
-        into "usr/share/man/man1"
-    }
-    from("src/bin/") {
-        into "usr/bin"
-    }
-    from("src/share/prepare-java") {
-        into "usr/share/midonet-tools"
-    }
-    into "${pkgDestDir}"
-    doLast {
-        new File("${pkgDestDir}/usr/share/midonet-tools/${project.name}-${midonetVersion}-all.jar").
-                renameTo("${pkgDestDir}/usr/share/midonet-tools/${project.name}.jar")
+packageTypes.each { pkgName ->
+    task "preparePkg_$pkgName"(type: Copy, dependsOn: installShadowApp) {
+        from(
+                "${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
+            into "usr/share/midonet-tools"
+        }
+        from("${buildDir}/man/") {
+            include "*.*"
+            into "usr/share/man/man1"
+        }
+        from("src/bin/") {
+            into "usr/bin"
+        }
+        from("src/share/prepare-java") {
+            into "usr/share/midonet-tools"
+        }
+        into "${pkgDestDir}"
+        doLast {
+            new File(
+                    "${pkgDestDir}/usr/share/midonet-tools/${project.name}-${midonetVersion}-all.jar").
+                    renameTo(
+                            "${pkgDestDir}/usr/share/midonet-tools/${project.name}.jar")
+        }
     }
 }
 
@@ -52,20 +57,26 @@ packaging {
     vendor = project.vendor
     url = project.url
     description = 'Command line tools for MidoNet, a virtual network controller'
-    fpmOpts = ['-a', 'all',
-               '--category', 'network',
-               '--url', 'http://midokura.com',
-               '--epoch', '2']
+    fpmOpts_common = ['-a', 'all',
+                      '--category', 'network',
+                      '--url', 'http://midokura.com',
+                      '--epoch', '2']
 }
 
-preparePkg.dependsOn cleanPkg
-debian.dependsOn preparePkg
-rpm.dependsOn preparePkg
-tar.dependsOn preparePkg
+preparePkg_debian.dependsOn manpages
+
+preparePkg_debian.dependsOn cleanPkg_debian
+debian.dependsOn preparePkg_debian
+
+preparePkg_rpm.dependsOn cleanPkg_rpm
+rpm.dependsOn preparePkg_rpm
+
+preparePkg_tar.dependsOn cleanPkg_tar
+tar.dependsOn preparePkg_tar
 
 debian.doFirst {
     project.packaging.version = project.debVersion
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
     project.packaging.fpmOpts.addAll([
         '-d', 'openjdk-8-jdk-headless | java8-runtime-headless | java8-runtime'])
 }
@@ -73,14 +84,14 @@ debian.doFirst {
 rpm.doFirst {
     project.packaging.version = project.rpmVersion
     project.packaging.iteration = project.rpmRelease
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
     project.packaging.fpmOpts.addAll([
         '--depends', 'java-1.8.0-openjdk-headless'])
 }
 
 tar.doFirst {
     project.packaging.version = project.debVersion
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
 }
 
 debian.doLast {
@@ -94,5 +105,3 @@ rpm.doLast {
 tar.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
-
-preparePkg.dependsOn manpages
