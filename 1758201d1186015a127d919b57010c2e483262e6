@@ -16,6 +16,24 @@
       "revId": "1758201d1186015a127d919b57010c2e483262e6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_10c72997",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-09T08:12:16Z",
+      "side": 1,
+      "message": "There is the https://github.com/midonet/midonet/blob/master/java-code-style.xml in the tree. Intellij does the ordering when you add you imports.",
+      "parentUuid": "baa041b7_57800bf7",
+      "revId": "1758201d1186015a127d919b57010c2e483262e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
