@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7019d5d6",
+        "filename": "tests/mdts/tests/functional_tests/test_garp.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-09T10:26:10Z",
+      "side": 1,
+      "message": "left over?",
+      "range": {
+        "startLine": 79,
+        "startChar": 45,
+        "endLine": 79,
+        "endChar": 61
+      },
+      "revId": "56284c300d36191f580abe764961fc33a9694b76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_500a517a",
+        "filename": "tests/mdts/tests/functional_tests/test_garp.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-09T10:26:10Z",
+      "side": 1,
+      "message": "in the description you say 1 internal net, 1 external net. But it seems all of them are external. I assume it doesn\u0027t have an impact on the test itself.",
+      "range": {
+        "startLine": 83,
+        "startChar": 49,
+        "endLine": 83,
+        "endChar": 73
+      },
+      "revId": "56284c300d36191f580abe764961fc33a9694b76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d01e61ba",
+        "filename": "tests/mdts/tests/functional_tests/test_garp.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-09T10:26:10Z",
+      "side": 1,
+      "message": "remove the comment or change to multinode.",
+      "range": {
+        "startLine": 112,
+        "startChar": 21,
+        "endLine": 112,
+        "endChar": 25
+      },
+      "revId": "56284c300d36191f580abe764961fc33a9694b76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
