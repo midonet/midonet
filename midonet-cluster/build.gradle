@@ -106,36 +106,40 @@ cobertura {
 /////////////////////
 // PACKAGING TASKS //
 /////////////////////
-
-task preparePkg(type: Copy, dependsOn: installShadowApp) {
-    from("${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
-        into "/usr/share/midonet-cluster"
-    }
-    from("conf/logback.xml") {
-        into "etc/midonet-cluster"
-    }
-    from("conf/midonet-cluster-env.sh") {
-        into "etc/midonet-cluster"
-    }
-    from("../nsdb/conf/midonet.conf") {
-        into "etc/midonet"
-    }
-    from("src/deb/init/midonet-cluster.conf") {
-        into "etc/init"
-    }
-    from("src/deb/init/midonet-cluster-start") {
-        into "usr/share/midonet-cluster"
-    }
-    from("src/deb/init/midonet-cluster-env.sh") {
-        into "usr/share/midonet-cluster"
-    }
-    from("src/deb/bin/mn-migrate") {
-        into "usr/bin"
-    }
-    into "${pkgDestDir}"
-    doLast {
-        new File("${pkgDestDir}/usr/share/midonet-cluster/${project.name}-${midonetVersion}-all.jar")
-            .renameTo("${pkgDestDir}/usr/share/midonet-cluster/${project.name}.jar")
+packageTypes.each { pkgName ->
+    task "preparePkg_$pkgName"(type: Copy, dependsOn: installShadowApp) {
+        from(
+                "${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
+            into "/usr/share/midonet-cluster"
+        }
+        from("conf/logback.xml") {
+            into "etc/midonet-cluster"
+        }
+        from("conf/midonet-cluster-env.sh") {
+            into "etc/midonet-cluster"
+        }
+        from("../nsdb/conf/midonet.conf") {
+            into "etc/midonet"
+        }
+        from("src/deb/init/midonet-cluster.conf") {
+            into "etc/init"
+        }
+        from("src/deb/init/midonet-cluster-start") {
+            into "usr/share/midonet-cluster"
+        }
+        from("src/deb/init/midonet-cluster-env.sh") {
+            into "usr/share/midonet-cluster"
+        }
+        from("src/deb/bin/mn-migrate") {
+            into "usr/bin"
+        }
+        into "${pkgDestDir}"
+        doLast {
+            new File(
+                    "${pkgDestDir}/usr/share/midonet-cluster/${project.name}-${midonetVersion}-all.jar")
+                    .renameTo(
+                    "${pkgDestDir}/usr/share/midonet-cluster/${project.name}.jar")
+        }
     }
 }
 
@@ -163,25 +167,25 @@ packaging {
     confFiles = ['/etc/midonet-cluster/logback.xml',
                  '/etc/midonet/midonet.conf',
                  '/etc/midonet-cluster/midonet-cluster-env.sh']
-    fpmOpts = ['-a', 'all',
-               '--category', 'network',
-               '--url', 'http://www.midonet.org',
-               '--epoch', '2']
+    fpmOpts_common = ['-a', 'all',
+                      '--category', 'network',
+                      '--url', 'http://www.midonet.org',
+                      '--epoch', '2']
 }
 
-preparePkg.dependsOn cleanPkg
+preparePkg_debian.dependsOn cleanPkg_debian
+debian.dependsOn preparePkg_debian
 
-debian.dependsOn debianPrepare
-debianPrepare.dependsOn preparePkg
-
+preparePkg_rpm.dependsOn cleanPkg_rpm
+rhel7Prepare.dependsOn preparePkg_rpm
 rpm.dependsOn rhel7Prepare
-rhel7Prepare.dependsOn preparePkg
 
-tar.dependsOn preparePkg
+preparePkg_tar.dependsOn cleanPkg_tar
+tar.dependsOn preparePkg_tar
 
 debian.doFirst {
     project.packaging.version = project.debVersion
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
     project.packaging.fpmOpts.addAll([
             '-d', 'openjdk-8-jdk-headless | java8-runtime-headless | java8-runtime',
             '--deb-recommends', 'java8-runtime-headless | java8-runtime',
@@ -194,7 +198,7 @@ debian.doFirst {
 rpm.doFirst {
     project.packaging.version = project.rpmVersion
     project.packaging.iteration = project.rpmRelease
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
     project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
@@ -205,7 +209,7 @@ rpm.doFirst {
 
 tar.doFirst {
     project.packaging.version = project.debVersion
-    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
 }
 
 debian.doLast {
