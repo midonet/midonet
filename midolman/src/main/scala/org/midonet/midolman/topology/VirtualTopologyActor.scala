@@ -19,12 +19,13 @@ import java.util
 import java.util.UUID
 
 import scala.concurrent.duration._
-import scala.concurrent.{Promise, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.reflect._
 
 import akka.actor._
 import akka.pattern.AskTimeoutException
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashMultimap
 import com.google.inject.Inject
 
@@ -173,9 +174,19 @@ object VirtualTopologyActor extends Referenceable {
 
     private val topology = Topology()
 
-    // useful for testing, not much else.
-    def clearTopology(): Unit = {
+    @VisibleForTesting
+    private[midolman] def clearTopology(): Unit = {
         topology.clear()
+    }
+
+    @VisibleForTesting
+    private[midolman] def add(id: UUID, device: AnyRef): Unit = {
+        topology.put(id, device)
+    }
+
+    @VisibleForTesting
+    private[midolman] def remove(id: UUID): Unit = {
+        topology.remove(id)
     }
 
     // WARNING!! This code is meant to be called from outside the actor.
@@ -488,7 +499,7 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
             log.debug("Invalidating flows for tag {}", tag)
             flowInvalidator.scheduleInvalidationFor(tag)
         case DeleteDevice(id) =>
-            log.debug("Device {} deleted", id)
+            log.info("Device {} deleted", id)
             deviceDeleted(id)
         case unexpected: AnyRef =>
             log.error("Received unexpected message: {}", unexpected)
