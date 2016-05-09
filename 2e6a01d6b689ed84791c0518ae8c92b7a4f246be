@@ -16,6 +16,24 @@
       "revId": "2e6a01d6b689ed84791c0518ae8c92b7a4f246be",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d0a8a122",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapServiceTranslator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-05-09T11:30:48Z",
+      "side": 1,
+      "message": "yes, it\u0027s related.\n\nin this patch, we map tap-service to midonet mirror,\nand tap-flow to an entry in a mirror set.\n\nalternatively, we can map tap-service to nothing\nand tap-flow to a mirror + an entry in a mirror set.\nin that way we will have more mirrors (as it can\u0027t be\nshared among tap-flows) but it might or might not be\neasier for future classifier work.",
+      "parentUuid": "baa041b7_10984977",
+      "revId": "2e6a01d6b689ed84791c0518ae8c92b7a4f246be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
