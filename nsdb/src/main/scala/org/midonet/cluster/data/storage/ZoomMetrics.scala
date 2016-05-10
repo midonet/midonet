@@ -156,9 +156,9 @@ class JmxZoomMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
         registry.register(metricPrefix + "ZkConnectionState",
                           gauge { zoom.zkConnectionState _ })
         registry.register(metricPrefix + "TypeObservableCount",
-                          gauge { zoom.classObservableCount _ })
+                          gauge { zoom.startedClassObservableCount _ })
         registry.register(metricPrefix + "ObjectObservableCount",
-                          gauge { zoom.objectObservableCount _ })
+                          gauge { zoom.startedObjectObservableCount _ })
         registry.register(metricPrefix + "ObjectObservableCountPerType",
                           gauge { () =>
                               val res = new StringBuilder()
