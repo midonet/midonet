@@ -1,0 +1,76 @@
+#!/usr/bin/python
+
+import optparse
+import subprocess
+import sys
+
+
+def get_config(option, opt_str, value, parser):
+    """
+    Callback method invoked when get-config is called. Returns the configuration
+    that needs to be managed for this app. Writes a JSON string to stdout
+    :param option: Option object
+    :param str opt_str: Name of the option
+    :param str value: Value of the option
+    :param Parser parser: The optparse parser object
+    """
+    sys.stdout.write("{}")
+
+
+def set_config(option, opt_str, value, parser):
+    """
+    Callback method invoked when set-config is called. Sets the configuration
+    that needs to be managed for this app. JSON configuration is passed as an
+    argument to the script
+    :param option: Option object
+    :param str opt_str: Name of the option
+    :param str value: Value of the option
+    :param Parser parser: The optparse parser object
+
+    """
+    pass
+
+
+def get_services(option, opt_str, value, parser):
+    """
+    Callback method invoked when get-services is called. Returns
+    the names of the services this app can manage.
+    :param option: Option object
+    :param str opt_str: Name of the option
+    :param str value: Value of the option
+    :param Parser parser: The optparse parser object
+    """
+    sys.stdout.write("")
+    sys.exit(0)
+
+
+def parse_args():
+    """
+    Build a parser with callbacks for the different options. The callback
+    function is called based on the option passed in.
+    """
+    parser = optparse.OptionParser()
+    parser.add_option("--get-config",
+                      action="callback",
+                      callback=get_config,
+                      help="Get the configuration of the mem_repo application"
+                      )
+
+    parser.add_option("--set-config",
+                      type='string',
+                      action="callback",
+                      callback=set_config,
+                      help="Set the configuration of the mem_repo application"
+                      )
+    parser.add_option("--get-services",
+                      action="callback",
+                      callback=get_services,
+                      help="Get a list of service names for the mem_repo app")
+
+    parser.parse_args()
+
+def main():
+    options = parse_args()
+
+if __name__ == "__main__":
+    main()
