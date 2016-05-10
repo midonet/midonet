@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_65e0f2fa",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-10T15:26:01Z",
+      "side": 1,
+      "message": "I\u0027d change the implementations (Ip4ToMac, MacToIp4, MacPort) to use this constant instead of directly setting Int.MaxValue. It\u0027s easier then to follow the code and see the convention explicitly.",
+      "range": {
+        "startLine": 45,
+        "startChar": 28,
+        "endLine": 45,
+        "endChar": 46
+      },
+      "revId": "68aa95380522fd87fe0015c2e804f1ce5b91d4fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
