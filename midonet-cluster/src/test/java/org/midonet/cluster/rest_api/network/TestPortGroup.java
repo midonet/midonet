@@ -21,13 +21,13 @@ import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
@@ -49,7 +49,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_RULE_JSON_V2;
 
-public class TestPortGroup extends JerseyTest {
+public class TestPortGroup extends RestApiTestBase {
 
     private DtoWebResource dtoResource;
     private Topology topology;
