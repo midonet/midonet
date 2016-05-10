@@ -86,7 +86,7 @@ object ZookeeperObjectState {
  */
 trait ZookeeperObjectState extends StateStorage with Storage {
 
-    implicit private[storage] val metrics: ZoomMetrics
+    implicit protected def metrics: ZoomMetrics
 
     private val objectObservables =
         new TrieMap[Key, NodeObservable]
