@@ -1,0 +1,3 @@
+pf9	ALL = NOPASSWD: /sbin/service midolman *, \
+          NOPASSWD: /opt/pf9/hostagent/bin/pf9-apt-get remove midolman
+
