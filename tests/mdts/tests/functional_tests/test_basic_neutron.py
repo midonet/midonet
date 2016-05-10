@@ -387,6 +387,7 @@ binding_multihost_inbinding = {
 
 BM2 = BindingManager(None, VTM2)
 
+@nottest
 @bindings(binding_singlehost_inbinding,
           binding_multihost_inbinding,
           binding_manager=BM2)
