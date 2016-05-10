@@ -295,8 +295,8 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
             curator.getConnectionStateListenable.removeListener(connectionListener)
             curator.clearWatcherReferences(nodeWatcher)
 
-            if (e eq null) subject.onCompleted() else subject.onError(e)
             onClose
+            if (e eq null) subject.onCompleted() else subject.onError(e)
 
             connectionListener = null
             nodeWatcher = null
