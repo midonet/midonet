@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4228449a",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-10T13:58:47Z",
+      "side": 1,
+      "message": "Missing $ before {buildDir}",
+      "revId": "298a944cd5b16439a3a1a8a28a7f39d465931ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
