@@ -37,21 +37,6 @@ VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_bridge.yaml')
 BM = BindingManager(PTM, VTM)
 
 bindings1 = {
-    'description': 'on single MM',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 1, 'interface_id': 3}}
-    ]
-}
-
-bindings2 = {
     'description': 'spanning across two MM',
     'bindings': [
         {'binding':
@@ -93,7 +78,7 @@ binding_two_isolated_bridges = {
 
 @attr(version="v1.2.0")
 @failures(NoFailure())
-@bindings(bindings1, bindings2)
+@bindings(bindings1)
 def test_mac_learning():
     """
     Title: Bridge mac learning
@@ -209,7 +194,7 @@ def test_dhcp():
           ServiceFailure('zookeeper1'),
           ServiceFailure('zookeeper2'),
           ServiceFailure('zookeeper3'))
-@bindings(bindings1, bindings2)
+@bindings(bindings1)
 def test_icmp():
     """
     Title: ICMP reachability over bridge
@@ -231,7 +216,7 @@ def test_icmp():
 
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2)
+@bindings(bindings1)
 def test_fragmented_packets():
     """
     Title: Fragmented IP packets through a bridge
@@ -277,7 +262,7 @@ def test_two_isolated_bridges():
 
 # Deprecate MN-662
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2)
+@bindings(bindings1)
 def test_flow_invalidation_on_mac_update():
     """
     Title: Flow invalidation, learning MACs
@@ -365,7 +350,7 @@ def test_icmp_after_interface_recovery():
 
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2)
+@bindings(bindings1)
 def test_rule_changes():
     """
     Title: ICMP reachability over bridge before and after adding rule

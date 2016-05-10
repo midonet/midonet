@@ -37,18 +37,6 @@ VTM = VirtualTopologyManager(
 BM = BindingManager(PTM, VTM)
 
 
-binding_onehost = {
-    'description': 'on single MM',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 1, 'interface_id': 2}},
-        ]
-    }
-
 binding_multihost = {
     'description': 'spanning across multiple MMs',
     'bindings': [
@@ -94,7 +82,7 @@ def get_random_port_num():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_filtering_by_network_address():
     '''
     Title: Tests packets filtering based on network address
@@ -136,7 +124,7 @@ def test_filtering_by_network_address():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_connection_tracking_by_network_addres():
     '''
     Title: Tests NW address based connection tracking.
@@ -178,7 +166,7 @@ def test_connection_tracking_by_network_addres():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_filtering_by_dl():
     '''
     Title: Tests dl-based packet filtering.
@@ -220,7 +208,7 @@ def test_filtering_by_dl():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_connection_tracking_with_drop_by_dl():
     '''
     Title: Tests dl-based connection tracking.
