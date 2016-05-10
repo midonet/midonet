@@ -29,12 +29,16 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null)
     extends DatapathChannel with StatePacketExecutor {
     val log = Logger(NOPLogger.NOP_LOGGER)
     var packetExecCb: (Packet, JList[FlowAction]) => Unit = _
+    var statePacketExecCb: (Packet, JList[FlowAction]) => Unit = _
     var flowCreateCb: Flow => Unit = _
 
     val packetsSent = new ArrayList[Packet]()
 
     def packetsExecuteSubscribe(cb: (Packet, JList[FlowAction]) => Unit): Unit =
         packetExecCb = cb
+
+    def statePacketsExecuteSubscribe(cb: (Packet, JList[FlowAction]) => Unit): Unit =
+        statePacketExecCb = cb
 
     def flowCreateSubscribe(cb: Flow => Unit): Unit =
         flowCreateCb = cb
@@ -45,8 +49,8 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null)
             if (context.stateMessageLength > 0) {
                 val statePacket = prepareStatePacket(context.stateMessage,
                                                      context.stateMessageLength)
-                if (packetExecCb ne null) {
-                    packetExecCb(statePacket, context.stateActions)
+                if (statePacketExecCb ne null) {
+                    statePacketExecCb(statePacket, context.stateActions)
                 }
             }
             if (packetExecCb ne null) {
