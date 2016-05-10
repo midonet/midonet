@@ -1,0 +1,5 @@
+pf9	ALL = NOPASSWD: /sbin/service midolman *, \
+          NOPASSWD: /opt/pf9/hostagent/bin/pf9-yum update /var/cache/pf9apps/*.rpm, \
+          NOPASSWD: /opt/pf9/hostagent/bin/pf9-yum erase midolman, \
+          NOPASSWD: /opt/pf9/hostagent/bin/pf9-yum install /var/cache/pf9apps/*.rpm
+

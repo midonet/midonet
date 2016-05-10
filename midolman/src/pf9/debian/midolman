@@ -1,0 +1,5 @@
+pf9	ALL = NOPASSWD: /sbin/service midolman *, \
+          NOPASSWD: /opt/pf9/hostagent/bin/pf9-apt-get update, \
+          NOPASSWD: /opt/pf9/hostagent/bin/pf9-apt-get remove midolman, \
+          NOPASSWD: /opt/pf9/hostagent/bin/pf9-apt-get install /var/cache/pf9apps/*.deb
+
