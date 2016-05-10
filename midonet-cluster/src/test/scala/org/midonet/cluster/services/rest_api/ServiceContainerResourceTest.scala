@@ -23,31 +23,28 @@ import javax.ws.rs.core.Response.Status._
 import scala.collection.JavaConversions._
 
 import com.sun.jersey.api.client.WebResource
-import com.sun.jersey.test.framework.JerseyTest
 
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, Suite}
 
-import org.midonet.client.dto.{DtoApplication, DtoError, DtoRouterPort}
+import org.midonet.client.dto.{DtoError, DtoRouterPort}
 import org.midonet.cluster.HttpRequestChecks
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.rest_api.ResourceUris._
 import org.midonet.cluster.rest_api.models._
-import org.midonet.cluster.rest_api.rest_api.{TopologyBackdoor, DtoWebResource, FuncTest, Topology}
+import org.midonet.cluster.rest_api.rest_api._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class ServiceContainerResourceTest extends JerseyTest(FuncTest.getBuilder.build())
+class ServiceContainerResourceTest extends FuncJerseyTest
                                            with Suite
                                            with BeforeAndAfter
                                            with HttpRequestChecks {
 
-    private var topology: Topology = _
     private val backdoor = FuncTest._injector.getInstance(classOf[TopologyBackdoor])
-    private var app: DtoApplication = _
     private var containerBase: WebResource = _
     private var groupBase: WebResource = _
 

@@ -23,7 +23,6 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
@@ -40,6 +39,7 @@ import org.midonet.cluster.rest_api.models.Condition;
 import org.midonet.cluster.rest_api.models.TraceRequest;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.rest_api.Topology;
 
 import static java.lang.System.currentTimeMillis;
@@ -50,7 +50,7 @@ import static org.midonet.cluster.rest_api.conversion.TraceRequestDataConverter.
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TRACE_REQUEST_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TRACE_REQUEST_JSON;
 
-public class TestTraceRequest extends JerseyTest {
+public class TestTraceRequest extends RestApiTestBase {
 
     private static final String ADMIN0 = "admin0";
     private static final String TENANT0 = "no_auth_tenant_id";

@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,6 +34,7 @@ import org.midonet.client.dto.DtoDhcpSubnet;
 import org.midonet.client.dto.DtoExtraDhcpOpt;
 import org.midonet.cluster.rest_api.models.ErrorEntity;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
@@ -48,7 +48,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_DHCP_SUBNET_JSON_V2;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
 
-public class TestDHCP extends JerseyTest {
+public class TestDHCP extends RestApiTestBase {
 
     private DtoBridge bridge;
 

@@ -15,8 +15,6 @@
  */
 package org.midonet.cluster.rest_api.rest_api
 
-import com.sun.jersey.test.framework.JerseyTest
-
-class FuncJerseyTest extends JerseyTest(FuncTest.getBuilder.build()) {
+class FuncJerseyTest extends RestApiTestBase(FuncTest.getBuilder.build()) {
     override def getBaseURI = super.getBaseURI
 }

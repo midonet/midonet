@@ -26,7 +26,6 @@ import javax.ws.rs.core.Response;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
@@ -59,7 +59,7 @@ public class TestRoute {
 
     private final static Logger log = LoggerFactory.getLogger(TestRoute.class);
 
-    public static class TestRouteCrud extends JerseyTest {
+    public static class TestRouteCrud extends RestApiTestBase {
 
         private final String testRouterName = "TEST-ROUTER";
 
@@ -223,7 +223,7 @@ public class TestRoute {
     }
 
     @RunWith(Parameterized.class)
-    public static class TestRouteCreateBadRequest extends JerseyTest {
+    public static class TestRouteCreateBadRequest extends RestApiTestBase {
 
         private final DtoRoute route;
         private DtoWebResource dtoResource;
@@ -308,7 +308,7 @@ public class TestRoute {
         }
     }
 
-    public static class TestPortLinkAddRouteUnlinkSuccess extends JerseyTest {
+    public static class TestPortLinkAddRouteUnlinkSuccess extends RestApiTestBase {
         private DtoWebResource dtoResource;
         private Topology topology;
 
