@@ -26,7 +26,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
@@ -50,6 +49,7 @@ import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.rest_api.host.rest_api.HostTopology;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.packets.MAC;
@@ -63,7 +63,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 @RunWith(Enclosed.class)
 public class TestTunnelZoneHost {
 
-    public static class TestCrud extends JerseyTest {
+    public static class TestCrud extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private HostTopology topologyGre;
@@ -223,7 +223,7 @@ public class TestTunnelZoneHost {
     }
 
     @RunWith(Parameterized.class)
-    public static class TestBadRequestTunnelHostCreate extends JerseyTest {
+    public static class TestBadRequestTunnelHostCreate extends RestApiTestBase {
 
         private HostTopology topology;
         private DtoWebResource dtoResource;
@@ -274,7 +274,7 @@ public class TestTunnelZoneHost {
         }
     }
 
-    public static class TestBaseUriOverride extends JerseyTest {
+    public static class TestBaseUriOverride extends RestApiTestBase {
 
         private UUID hostId = UUID.randomUUID();
 

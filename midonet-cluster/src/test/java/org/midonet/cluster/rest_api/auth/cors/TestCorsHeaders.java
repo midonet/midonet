@@ -21,18 +21,18 @@ import java.util.Map;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class TestCorsHeaders extends JerseyTest {
+public class TestCorsHeaders extends RestApiTestBase {
 
     private final static Logger log =
         LoggerFactory.getLogger(TestCorsHeaders.class);

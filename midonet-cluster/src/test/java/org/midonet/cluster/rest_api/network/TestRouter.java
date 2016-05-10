@@ -25,7 +25,6 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
@@ -72,7 +71,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 @RunWith(Enclosed.class)
 public class TestRouter {
 
-    public static class TestRouterList extends JerseyTest {
+    public static class TestRouterList extends RestApiTestBase {
 
         private Topology topology;
         private DtoWebResource dtoResource;
