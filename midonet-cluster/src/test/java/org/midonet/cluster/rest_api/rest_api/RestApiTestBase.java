@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.rest_api.rest_api;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -64,6 +66,27 @@ public abstract class RestApiTestBase extends JerseyTest {
 
         topology = builder.build();
         app = topology.getApplication();
+    }
+
+    @Override
+    protected int getPort(int defaultPort) {
+        // Binding a socket to port 0 makes the OS returns us a free ephemeral
+        // port. Return this port so jetty binds to it.
+        while (true) {
+            ServerSocket ss = null;
+            try {
+                ss = new ServerSocket(0);
+                ss.setReuseAddress(true);
+                return ss.getLocalPort();
+            } catch (IOException e) {
+            } finally {
+                if (ss != null) {
+                    try {
+                        ss.close();
+                    } catch (IOException ioe) {}
+                }
+            }
+        }
     }
 
     /**

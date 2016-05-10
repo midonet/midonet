@@ -22,7 +22,6 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
@@ -44,6 +43,7 @@ import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.cluster.rest_api.ResourceUriBuilder;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.rest_api.Topology;
 import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.packets.MAC;
@@ -74,7 +74,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
 import static org.midonet.cluster.util.UUIDUtil.fromProto;
 
-public class TestHost extends JerseyTest {
+public class TestHost extends RestApiTestBase {
 
     public static final int DEFAULT_FLOODING_PROXY_WEIGHT = 1;
     public static final int FLOODING_PROXY_WEIGHT = 42;
