@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.state
 
-import java.net.{InetAddress, DatagramPacket, DatagramSocket}
+import java.net.{DatagramPacket, DatagramSocket, InetAddress}
 import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JIterator, Set => JSet, UUID}
 
 import com.typesafe.scalalogging.Logger
@@ -36,7 +36,7 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.packets.NatState.NatBinding
-import org.midonet.packets.{FlowStateEthernet, SbeEncoder, Ethernet}
+import org.midonet.packets.{Ethernet, SbeEncoder}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
@@ -222,12 +222,13 @@ class FlowStateReplicator(
         context.conntrackTx.fold(callbacks, _conntrackAdder)
         context.natTx.fold(callbacks, _natAdder)
 
+        buildFlowState(context)
         if (!txPeers.isEmpty) {
-            replicateFlowState(context)
+            hostsToActions(txPeers, context.stateActions)
         }
     }
 
-    def replicateFlowState(context: PacketContext): Unit = {
+    def buildFlowState(context: PacketContext): Unit = {
         val flowStateMessage = flowStateEncoder.encodeTo(
             context.stateMessage)
         uuidToSbe(hostId, flowStateMessage.sender)
@@ -250,7 +251,6 @@ class FlowStateReplicator(
         portIdsToSbe(context.inputPort, context.outPorts, p.next)
 
         context.stateMessageLength = flowStateEncoder.encodedLength
-        hostsToActions(txPeers, context.stateActions)
     }
 
     private def hostsToActions(hosts: JSet[UUID],

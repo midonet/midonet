@@ -36,6 +36,7 @@ import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.{HostRequestProxy, UnderlayResolver}
 import org.midonet.midolman.datapath.StatePacketExecutor
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
@@ -227,7 +228,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
 
     private def sendState(ingressPort: UUID, egressPort: UUID,
                           callbacks: ArrayList[Callback0] = new ArrayList[Callback0])
-    : (Packet, List[FlowAction]) = {
+    : (Packet, PacketContext) = {
         val context = packetContextFor(ethernet, ingressPort)
         context.flowActions.add(FlowActions.output(1))
         context.outPorts.add(egressPort)
@@ -243,13 +244,13 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             statePacketExecutor.prepareStatePacket(context.stateMessage,
                                                    context.stateMessageLength)
         } else null
-        (packet, context.stateActions.toList)
+        (packet, context)
     }
 
     private def sendAndAcceptTransactions(): (Packet, List[FlowAction]) = {
-        val (packet, actions) = sendState(ingressPort.getId, egressPort1.getId)
+        val (packet, context) = sendState(ingressPort.getId, egressPort1.getId)
         acceptPushedState(packet)
-        (packet, actions)
+        (packet, context.stateActions.toList)
     }
 
     feature("State packets serialization") {
@@ -343,15 +344,34 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             }
 
             When("The transaction is added to the replicator")
-            val (packet, _) = sendState(ingressPortNoGroup.getId, egressPortNoGroup.getId)
+            val (packet, context) = sendState(ingressPortNoGroup.getId, egressPortNoGroup.getId)
 
-            Then("No packets should have been sent")
-            packet should be (null)
+            Then("No state packets should have been sent")
+            context.stateActions should have size 0
 
             Then("The keys are kept in the replicator")
             for ((k, v) <- natMappings) {
                 sender.natTable.get(k) should equal (v)
             }
+        }
+
+        scenario("Keys are always added to context for flow state minion") {
+            Given("A set of conntrack and nat keys")
+            connTrackTx.putAndRef(
+                connTrackKeys.head, ConnTrackState.RETURN_FLOW)
+            for ((k,v) <- natMappings) {
+                natTx.putAndRef(k, v)
+            }
+
+            When("The transaction is added to the replicator")
+            val (packet, context) = sendState(ingressPortNoGroup.getId, egressPortNoGroup.getId)
+
+            Then("No state packets should have been sent")
+            context.stateActions should have size 0
+
+            And("Context has the message serialized ready for the agent minion")
+            context.containsFlowState shouldBe true
+            context.stateMessageLength should be > 0
         }
     }
 

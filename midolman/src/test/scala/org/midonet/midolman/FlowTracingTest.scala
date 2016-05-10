@@ -15,9 +15,8 @@
  */
 package org.midonet.midolman
 
-import java.util.{List => JList, LinkedList, UUID}
+import java.util.{LinkedList, List => JList, UUID}
 
-import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{Future, Promise}
 
@@ -25,22 +24,17 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.flowstate.proto.FlowState
-import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.UnderlayResolver.Route
-import org.midonet.midolman.rules.{NatTarget, RuleResult}
-import org.midonet.midolman.simulation.{Bridge, Simulator, PacketContext}
+import org.midonet.midolman.simulation.{Bridge, PacketContext, Simulator}
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets, HappyGoLuckyLeaser, TraceState}
-import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.odp.{FlowMatches, Packet}
-import org.midonet.packets.{SbeEncoder, Ethernet, IPv4Addr}
-import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.state.ShardedFlowStateTable
-import org.midonet.sdn.state.FlowStateTransaction
+import org.midonet.packets.{Ethernet, IPv4Addr, SbeEncoder}
+import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingTest extends MidolmanSpec {
@@ -360,6 +354,7 @@ class FlowTracingTest extends MidolmanSpec {
             val requestId = UUID.randomUUID
             val pktCtxs = new LinkedList[PacketContext]()
             val packetsSent = new LinkedList[Ethernet]()
+            val statePacketsSent = new LinkedList[Ethernet]()
 
             newTraceRuleOnChain(chain, 1,
                                 newCondition(tpDst = Some(500)), requestId)
@@ -374,6 +369,10 @@ class FlowTracingTest extends MidolmanSpec {
                 (p: Packet, actions: JList[FlowAction]) => {
                     packetsSent.add(p.getEthernet.clone)
                 })
+            mockDpChannel.statePacketsExecuteSubscribe(
+                (p: Packet, actions: JList[FlowAction]) => {
+                    statePacketsSent.add(p.getEthernet.clone)
+                })
 
             wkfl ! PacketWorkflow.HandlePackets(Array(frame, frame))
 
@@ -381,14 +380,14 @@ class FlowTracingTest extends MidolmanSpec {
             val flowTrace1 = pktCtxs.get(0).traceContext.flowTraceId
             val flowTrace2 = pktCtxs.get(2).traceContext.flowTraceId
             flowTrace1.equals(flowTrace2) shouldBe false
-            packetsSent.size shouldBe 4
+            packetsSent.size shouldBe 2
 
             val encoder = new SbeEncoder
             def parse(p: Ethernet): FlowState = {
                 encoder.decodeFrom(FlowStatePackets.parseDatagram(p).getData)
             }
 
-            val packet0 = parse(packetsSent.get(0))
+            val packet0 = parse(statePacketsSent.get(0))
             packet0.conntrack.iterator().hasNext() shouldBe false
             packet0.nat.iterator().hasNext() shouldBe false
             val iter0 = packet0.trace.iterator()
@@ -396,17 +395,17 @@ class FlowTracingTest extends MidolmanSpec {
             FlowStatePackets.uuidFromSbe(
                 iter0.next().flowTraceId) shouldBe flowTrace1
 
-            val packet1 = packetsSent.get(1)
+            val packet1 = packetsSent.get(0)
             packet1.equals(frame) shouldBe true
 
-            val packet2 = parse(packetsSent.get(2))
+            val packet2 = parse(statePacketsSent.get(1))
             packet2.conntrack.iterator().hasNext() shouldBe false
             packet2.nat.iterator().hasNext() shouldBe false
             val iter2 = packet2.trace.iterator()
             iter2.hasNext() shouldBe true
             FlowStatePackets.uuidFromSbe(
                 iter2.next().flowTraceId) shouldBe flowTrace2
-            val packet3 = packetsSent.get(3)
+            val packet3 = packetsSent.get(1)
             packet3.equals(frame) shouldBe true
 
             // shouldn't have put anything in the trace table
@@ -430,7 +429,7 @@ class FlowTracingTest extends MidolmanSpec {
                 new Packet(eth, fmatch)
             }
 
-            val statePacket1 = tunnelPacket(packetsSent.get(0),
+            val statePacket1 = tunnelPacket(statePacketsSent.get(0),
                                            FlowStatePackets.TUNNEL_KEY)
             wkflEgress ! PacketWorkflow.HandlePackets(Array(statePacket1))
             egressTable.get(traceKey) should not be (null)
@@ -441,7 +440,7 @@ class FlowTracingTest extends MidolmanSpec {
                                    tunnelPort | TraceState.TraceTunnelKeyMask)))
             pktCtxs.get(0).traceContext.flowTraceId shouldBe flowTrace1
 
-            val statePacket2 = tunnelPacket(packetsSent.get(2),
+            val statePacket2 = tunnelPacket(statePacketsSent.get(1),
                                            FlowStatePackets.TUNNEL_KEY)
             wkflEgress ! PacketWorkflow.HandlePackets(Array(statePacket2))
 
