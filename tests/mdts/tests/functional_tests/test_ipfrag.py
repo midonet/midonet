@@ -30,21 +30,6 @@ PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_ipfrag.yaml')
 VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_ipfrag.yaml')
 BM = BindingManager(PTM, VTM)
 
-binding_single = {
-    'description': 'on single MM',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 1, 'interface_id': 2}},
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 1, 'interface_id': 3}},
-        ]
-    }
-
 binding_multi_bridge = {
     'description': 'on multiple MM with bridge through tunneling',
     'bindings': [
@@ -149,7 +134,7 @@ def _test_icmp(sender, receiver, target_ipv4, filter_resource, is_router):
 
 
 @attr(version="v1.2.0")
-@bindings(binding_single, binding_multi_bridge)
+@bindings(binding_multi_bridge)
 def test_icmp_bridge():
     let_temporary_frag_needed_flows_expire()
 
@@ -161,7 +146,7 @@ def test_icmp_bridge():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_single, binding_multi_router)
+@bindings(binding_multi_router)
 def test_icmp_router():
     let_temporary_frag_needed_flows_expire()
 
@@ -231,7 +216,7 @@ def _test_udp(sender, receiver, target_hw, target_ipv4,
 
 
 @attr(version="v1.2.0")
-@bindings(binding_single, binding_multi_bridge)
+@bindings(binding_multi_bridge)
 def test_udp_bridge():
     let_temporary_frag_needed_flows_expire()
 
@@ -244,7 +229,7 @@ def test_udp_bridge():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_single, binding_multi_router)
+@bindings(binding_multi_router)
 def test_udp_router():
     let_temporary_frag_needed_flows_expire()
 

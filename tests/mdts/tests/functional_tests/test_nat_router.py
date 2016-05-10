@@ -35,18 +35,6 @@ VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_nat_router.yaml')
 BM = BindingManager(PTM, VTM)
 
 
-binding_onehost = {
-    'description': 'on single MM',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        ]
-    }
-
 binding_multihost = {
     'description': 'spanning across multiple MMs',
     'bindings': [
@@ -97,7 +85,7 @@ def feed_receiver_mac(receiver):
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_dnat():
     """
     Title: Tests DNAT on ping messages.
@@ -134,7 +122,7 @@ def test_dnat():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_dnat_for_udp():
     """
     Title: Tests DNAT on UDP packets.
@@ -182,7 +170,7 @@ def test_dnat_for_udp():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_snat():
     """
     Title: Tests SNAT on ping messages.
@@ -221,7 +209,7 @@ def test_snat():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_snat_for_udp():
     """
     Title: Tests SNAT on UDP packets.
@@ -269,7 +257,7 @@ def test_snat_for_udp():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_floating_ip():
     """
     Title: Tests a floating IP.

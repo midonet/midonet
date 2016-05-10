@@ -347,7 +347,7 @@ def test_multi_l2insertion():
 
 @attr(version="v1.2.0")
 @failures(NoFailure())
-@bindings(bindings_split, bindings_spread, bindings_spread2, bindings_spread3)
+@bindings(bindings_split, bindings_spread3)
 def test_l2insertion_with_flowstate():
     """
     Title: Test insertions with flow state

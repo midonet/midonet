@@ -54,7 +54,7 @@ binding_multihost = {
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_filter_ipv6():
     """
     Title: Filter IPv6 packets out on Bridge
@@ -117,7 +117,7 @@ def test_filter_ipv6():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_dst_mac_masking():
     """
     Title: Test destination MAC masking in chain rules
@@ -184,6 +184,8 @@ def test_src_mac_masking():
     Then: Traffic from if2 to if1 is blocked because if2's MAC ends with 2
     And:  Traffic from if1 to if2 goes through because if1's MAC ends with 1
 
+    FIXME: moving to the new bindings mechanisms should allow removing
+    this restriction.
     Only running this with the one-host binding, because:
     1. The multi-host binding breaks the assumptions that if1 will have
        an odd MAC address and if2 an even one.
