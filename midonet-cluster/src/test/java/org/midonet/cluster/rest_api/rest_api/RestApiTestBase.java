@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.rest_api.rest_api;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -64,6 +67,24 @@ public abstract class RestApiTestBase extends JerseyTest {
 
         topology = builder.build();
         app = topology.getApplication();
+    }
+
+    protected int getPort(int defaultPort) {
+        while (true) {
+            ServerSocket ss = null;
+            try {
+                ss = new ServerSocket(0);
+                ss.setReuseAddress(true);
+                return ss.getLocalPort();
+            } catch (IOException e) {
+            } finally {
+                if (ss != null) {
+                    try {
+                        ss.close();
+                    } catch (IOException ioe) {}
+                }
+            }
+        }
     }
 
     /**
