@@ -1,0 +1,13 @@
+[mem]
+name=MEM
+baseurl=http://@username@:@password@@repo.midokura.com/mem-5/stable/el7/
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.midokura.com/midorepo.key
+
+[mem-misc]
+name=MEM 3rd Party Tools and Libraries
+baseurl=http://@username@:@password@@repo.midokura.com/misc/stable/el7/
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.midokura.com/midorepo.key

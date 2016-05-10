@@ -32,20 +32,32 @@ class PackagingPlugin implements Plugin<Project> {
         project.ext.pkgDestDir = "${project.buildDir}/TMPINST"
         project.extensions.create('packaging', PackagingPluginExtension)
         project.packaging.packageDir = new File(project.buildDir, "/packages")
+
         project.ext.packageTypes = ["debian", "rpm", "tar"]
-        project.ext.packageTypes.each { pkgName ->
+        project.task('debian', group: 'Build', type: DebianTask)
+        project.task('rpm', group: 'Build', type: RpmTask)
+        project.task('tar', group: 'Build', type: TarTask)
+
+        project.ext.pf9PackageTypes = ["mem_repo_debian", "mem_repo_rpm", "pf9wrapper"]
+        project.task('mem_repo_debian', group: 'Build', type: DebianTask)
+        project.task('mem_repo_rpm', group: 'Build', type: RpmTask)
+        project.task('pf9wrapper', group: 'Build', type: RpmTask)
+
+        project.ext.allPackageTypes = project.ext.packageTypes.clone()
+        project.ext.allPackageTypes.addAll(project.ext.pf9PackageTypes)
+        project.ext.allPackageTypes.each { pkgName ->
             project.task("cleanPkg_$pkgName", group: 'Build', type: Delete) {
                 delete "${project.ext.pkgDestDir}"
             }
         }
-        project.task('debian', group: 'Build', type: DebianTask)
-        project.task('rpm', group: 'Build', type: RpmTask)
-        project.task('tar', group: 'Build', type: TarTask)
     }
 
 }
 
 class PackagingPluginExtension {
+    @Input
+    def name
+
     @Input
     def version
 
@@ -143,7 +155,7 @@ class PackagingTask extends DefaultTask {
         if (conf.version)
             version = conf.version
 
-        def fpmArgs = ["-t", this.type, "-s", "dir", "-n", "${project.name}",
+        def fpmArgs = ["-t", this.type, "-s", "dir", "-n", conf.name,
                        "-v", version, "-C", project.ext.pkgDestDir]
 
         if (conf.prefix)
