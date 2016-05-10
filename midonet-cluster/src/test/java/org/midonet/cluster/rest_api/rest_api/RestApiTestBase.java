@@ -66,6 +66,11 @@ public abstract class RestApiTestBase extends JerseyTest {
         app = topology.getApplication();
     }
 
+    protected int getPort(int defaultPort) {
+        // Randomize GrizzlyWebTestContainer's port for parallelism
+        return (int)(Math.random() * 4000) + 60000;
+    }
+
     /**
      * Can be overridden to add objects to the topology before building it.
      */
