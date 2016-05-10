@@ -1,0 +1,1 @@
+pf9 ALL = NOPASSWD: /sbin/service midolman *

@@ -75,6 +75,7 @@ preparePkg_tar.dependsOn cleanPkg_tar
 tar.dependsOn preparePkg_tar
 
 debian.doFirst {
+    project.packaging.name = project.name
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
     project.packaging.fpmOpts.addAll([
@@ -82,6 +83,7 @@ debian.doFirst {
 }
 
 rpm.doFirst {
+    project.packaging.name = project.name
     project.packaging.version = project.rpmVersion
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
@@ -90,6 +92,7 @@ rpm.doFirst {
 }
 
 tar.doFirst {
+    project.packaging.name = project.name
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
 }
