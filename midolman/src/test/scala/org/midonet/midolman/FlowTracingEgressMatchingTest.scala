@@ -15,25 +15,25 @@
  */
 package org.midonet.midolman
 
-import java.util.{ArrayList, LinkedList,UUID}
+import java.util.{LinkedList, UUID}
 import java.{util => ju}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 import akka.testkit.TestActorRef
+
 import com.google.common.collect.{BiMap, HashBiMap}
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.layer3.{Route => L3Route}
-import org.midonet.midolman.simulation.{Bridge => SimBridge, PacketContext, Router => SimRouter}
-import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets, TraceState}
+import org.midonet.midolman.simulation.{Bridge => SimBridge, PacketContext, Port, Router => SimRouter}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.simulation.Port
-import org.midonet.midolman.topology._
+import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets, TraceState}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.flows._
@@ -84,6 +84,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     private val mockDpIngress = new MockDatapathChannel
     private var pktWkflIngress: TestActorRef[PacketWorkflow] = null
     private val packetOutQueueIngress = new LinkedList[(Packet, ju.List[FlowAction])]
+    private val statePacketOutQueueIngress = new LinkedList[(Packet, ju.List[FlowAction])]
     private val flowQueueIngress = new LinkedList[Flow]
     private val packetCtxTrapIngress = new LinkedList[PacketContext]
 
@@ -92,6 +93,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     private val mockDpEgress = new MockDatapathChannel
     private var pktWkflEgress: TestActorRef[PacketWorkflow] = null
     private val packetOutQueueEgress = new LinkedList[(Packet, ju.List[FlowAction])]
+    private val statePacketOutQueueEgress = new LinkedList[(Packet, ju.List[FlowAction])]
     private val flowQueueEgress = new LinkedList[Flow]
     private val packetCtxTrapEgress = new LinkedList[PacketContext]
 
@@ -171,6 +173,8 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         mockDpIngress.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueueIngress.add((packet,actions)) )
+        mockDpIngress.statePacketsExecuteSubscribe(
+            (packet, actions) => statePacketOutQueueIngress.add((packet,actions)) )
         mockDpIngress.flowCreateSubscribe(flow => flowQueueIngress.add(flow))
 
         pktWkflEgress = packetWorkflow(
@@ -183,6 +187,8 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         )(egressHost)
         mockDpEgress.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueueEgress.add((packet,actions)) )
+        mockDpEgress.statePacketsExecuteSubscribe(
+            (packet, actions) => statePacketOutQueueEgress.add((packet,actions)) )
         mockDpEgress.flowCreateSubscribe(flow => flowQueueEgress.add(flow))
     }
 
@@ -223,8 +229,9 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         pktWkflIngress ! PacketWorkflow.HandlePackets(packets.toArray)
 
         // should be sending a trace state to other host
-        packetOutQueueIngress.size should be (2)
-        val (_, stateActions) = packetOutQueueIngress.remove()
+        packetOutQueueIngress.size should be (1)
+        statePacketOutQueueIngress.size should be (1)
+        val (_, stateActions) = statePacketOutQueueIngress.remove()
         getTunnelId(stateActions) should be (FlowStatePackets.TUNNEL_KEY)
 
         // should have executed flow with tunnel mask set
