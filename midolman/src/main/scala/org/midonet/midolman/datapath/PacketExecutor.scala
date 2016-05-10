@@ -17,10 +17,12 @@
 package org.midonet.midolman.datapath
 
 import java.nio.BufferOverflowException
+import java.nio.channels.AsynchronousCloseException
 import java.util.{ArrayList => JArrayList}
 
 import com.lmax.disruptor.{EventHandler, LifecycleAware}
 import com.typesafe.scalalogging.Logger
+
 import org.midonet.midolman.DatapathState
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -31,8 +33,8 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.packets._
 import org.midonet.util.concurrent.NanoClock
 import org.slf4j.LoggerFactory
-
 import scala.annotation.tailrec
+import scala.util.control.NonFatal
 
 trait StatePacketExecutor {
     val log: Logger
@@ -220,8 +222,11 @@ sealed class PacketExecutor(dpState: DatapathState,
                readBuf.clear()
                log.warn("Unexpected answer to packet execution")
            }
-        } catch { case t: Throwable =>
-            log.error("Unexpected error while executing packets", t)
+        } catch {
+            case e: AsynchronousCloseException =>
+                log.info("Netlink channel closed while reading packet")
+            case NonFatal(t) =>
+                log.error("Unexpected error while executing packets", t)
         }
 
     val errorHandler = new Thread(s"packet-executor-error-handler-$index") {
