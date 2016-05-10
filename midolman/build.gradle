@@ -216,6 +216,24 @@ task rhel7Prepare(type: Copy, dependsOn: installShadowApp) {
     into "${pkgDestDir}"
 }
 
+packageTypes.each { pkgName ->
+    task "pf9PreparePkg_$pkgName"(type: Copy, dependsOn: installShadowApp) {
+        from("pf9/midolman/config") {
+            into "opt/pf9/midolman"
+        }
+        from("pf9/midolman/$pkgName/midolman") {
+            into "etc/sudoers.d"
+        }
+        into "${pkgDestDir}"
+    }
+
+    // Disable the pf9prepare if not a pf9 build
+    if (pf9build)
+        tasks["pf9PreparePkg_${pkgName}"].enabled = true
+    else
+        tasks["pf9PreparePkg_${pkgName}"].enabled = false
+}
+
 packaging {
     version = project.debVersion
     maintainer = project.maintainer
@@ -237,18 +255,20 @@ packaging {
 // Task dependencies
 preparePkg_debian.dependsOn manpages
 
-preparePkg_debian.dependsOn cleanPkg_debian
+pf9PreparePkg_debian.dependsOn cleanPkg_debian
+preparePkg_debian.dependsOn pf9PreparePkg_debian
 debian.dependsOn preparePkg_debian
 
-preparePkg_rpm.dependsOn cleanPkg_rpm
+pf9PreparePkg_rpm.dependsOn cleanPkg_rpm
+preparePkg_rpm.dependsOn pf9PreparePkg_rpm
 rhel7Prepare.dependsOn preparePkg_rpm
 rpm.dependsOn rhel7Prepare
-rhel7Prepare.dependsOn preparePkg_rpm
 
 preparePkg_tar.dependsOn cleanPkg_tar
 tar.dependsOn preparePkg_tar
 
 debian.doFirst {
+    project.packaging.name = project.name
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
     project.packaging.fpmOpts.addAll([
@@ -260,13 +280,26 @@ debian.doFirst {
         '-d', 'openvswitch-datapath-dkms (>= 1.10) | linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0) | linux-image-generic-lts-trusty (>= 3.13.0) | linux-image-virtual-lts-trusty (>= 3.13.0)',
         '--conflicts', 'openvswitch-switch',
         '--deb-recommends', 'java8-runtime-headless | java8-runtime',
-        '--after-install', "${project.projectDir}/src/deb/control/postinst",
         '--before-install', "${project.projectDir}/src/deb/control/preinst",
         '--after-remove', "${project.projectDir}/src/deb/control/postrm",
         '--before-remove', "${project.projectDir}/src/deb/control/prerm" ])
+
+    if (pf9build) {
+        project.packaging.fpmOpts.addAll([
+                '--after-install', "${project.projectDir}/src/deb/control/pf9postinst",
+                '-d', 'pf9-bbslave',
+                '--provides', 'pf9app',
+                '--deb-user', 'pf9',
+                '--deb-group', 'pf9group'])
+        project.packaging.iteration = "pf9"
+    } else {
+        project.packaging.fpmOpts.addAll([
+                '--after-install', "${project.projectDir}/src/deb/control/postinst"])
+    }
 }
 
 rpm.doFirst {
+    project.packaging.name = project.name
     project.packaging.version = project.rpmVersion
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
@@ -276,7 +309,6 @@ rpm.doFirst {
         '-d', 'iproute'])
     if (project.rhelTarget == "el7") {
         project.packaging.fpmOpts.addAll([
-            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
@@ -284,12 +316,25 @@ rpm.doFirst {
             '--depends', 'java-1.8.0-openjdk-headless'])
     } else { // (project.rhelTarget == "sles12")
         project.packaging.fpmOpts.addAll([
-            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
             '--depends', 'iproute2',
             '--depends', 'java >= 1.8.0'])
+    }
+
+    if (pf9build) {
+        project.packaging.fpmOpts.addAll([
+                '--after-install', "${project.projectDir}/src/rhel7/control/pf9postinst",
+                '-d', 'pf9-bbslave',
+                '--provides', 'pf9app',
+                '--rpm-user', 'pf9',
+                '--rpm-group', 'pf9group'])
+        project.packaging.iteration = "${project.rpmRelease}.pf9"
+    } else {
+        project.packaging.fpmOpts.addAll([
+                '--after-install', "${project.projectDir}/src/rhel7/control/postinst"])
+
     }
 }
 
@@ -310,6 +355,132 @@ tar.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
 
+// PF9 SPECIFICS
+import org.apache.tools.ant.filters.ReplaceTokens
+
+if (pf9build) {
+    task pf9RepoDebPrepare(type: Copy) {
+        from("pf9/mem_repo/config") {
+            into "opt/pf9/mem_repo"
+        }
+        from("pf9/mem_repo/deb/mem_repo") {
+            into "etc/sudoers.d"
+        }
+        from("pf9/mem_repo/deb/midokura_mem.list") {
+            into "etc/sources.list.d/"
+            filter(ReplaceTokens, tokens: ["username": project.pf9username,
+                                           "password": project.pf9password])
+        }
+        into "${pkgDestDir}"
+    }
+
+    task pf9RepoRpmPrepare(type: Copy) {
+        from("pf9/mem_repo/config") {
+            into "opt/pf9/mem_repo"
+        }
+        from("pf9/mem_repo/rpm/mem_repo") {
+            into "etc/sudoers.d"
+        }
+        from("pf9/mem_repo/rpm/midokura_mem.repo") {
+            filter(ReplaceTokens, tokens: ["username": project.pf9username,
+                                           "password": project.pf9password])
+            into "etc/yum.repos.d/"
+        }
+        into "${pkgDestDir}"
+    }
+
+    task pf9wrapperPrepare(type: Copy) {
+        from("pf9/midolman_wrapper/midolman-role.json") {
+            filter(ReplaceTokens,
+                   tokens: ["rpmVersion": project.rpmVersion.toString(),
+                            "rpmRelease": project.rpmRelease.toString(),
+                            "debVersion": project.debVersion.toString()])
+            into "etc/pf9/resmgr_roles/midolman/${project.version}/"
+        }
+        from("${project.buildDir}/packages/") {
+            into "opt/pf9/www/private/"
+        }
+        into "${pkgDestDir}"
+    }
+
+    pf9wrapper.dependsOn pf9wrapperPrepare
+    pf9wrapper.dependsOn rpm
+    pf9wrapper.dependsOn debian
+    pf9wrapper.dependsOn mem_repo_debian
+    pf9wrapper.dependsOn mem_repo_rpm
+
+    pf9wrapperPrepare.mustRunAfter rpm
+    pf9wrapperPrepare.mustRunAfter debian
+    pf9wrapperPrepare.mustRunAfter mem_repo_debian
+    pf9wrapperPrepare.mustRunAfter mem_repo_rpm
+    pf9wrapperPrepare.dependsOn cleanPkg_pf9wrapper
+
+    mem_repo_debian.dependsOn pf9RepoDebPrepare
+    pf9RepoDebPrepare.dependsOn cleanPkg_mem_repo_debian
+
+    mem_repo_rpm.dependsOn pf9RepoRpmPrepare
+    pf9RepoRpmPrepare.dependsOn cleanPkg_mem_repo_rpm
+
+    mem_repo_debian.doFirst {
+        project.packaging.name = "mem_repo"
+        project.packaging.version = project.debVersion
+        project.packaging.iteration = "pf9"
+        project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
+        project.packaging.fpmOpts.addAll([
+                '--after-install', "${project.projectDir}/pf9/mem_repo/postinst",
+                '-d', 'pf9-bbslave',
+                '--provides', 'pf9app',
+                '--deb-user', 'pf9',
+                '--deb-group', 'pf9group'])
+        project.packaging.description =
+                'MEM repository for Platform9 integration'
+        project.packaging.dependencies = []
+        project.packaging.confFiles = []
+    }
+
+    mem_repo_rpm.doFirst {
+        project.packaging.name = "mem_repo"
+        project.packaging.version = project.rpmVersion
+        project.packaging.iteration = "${project.rpmRelease}.pf9"
+        project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
+        project.packaging.fpmOpts.addAll([
+                '--after-install', "${project.projectDir}/pf9/mem_repo/postinst",
+                '-d', 'pf9-bbslave',
+                '--provides', 'pf9app',
+                '--rpm-user', 'pf9',
+                '--rpm-group', 'pf9group'])
+        project.packaging.description =
+                'MEM repository for Platform9 integration'
+        project.packaging.dependencies = []
+        project.packaging.confFiles = []
+    }
+
+    pf9wrapper.doFirst {
+        project.packaging.name = "pf9-${project.name}-wrapper"
+        project.packaging.fpmOpts = project.packaging.fpmOpts_common.clone()
+        project.packaging.fpmOpts.addAll([
+                '--rpm-user', 'pf9',
+                '--rpm-group', 'pf9group'])
+        project.packaging.description =
+                'Midolman wrapper for Platform9 integration'
+        project.packaging.dependencies = []
+        project.packaging.confFiles = []
+    }
+
+    mem_repo_debian.doLast {
+        new File("${buildDir}/install/${project.name}").deleteDir()
+    }
+
+    mem_repo_rpm.doLast {
+        new File("${buildDir}/install/${project.name}").deleteDir()
+    }
+
+    pf9wrapper.doLast {
+        new File("${buildDir}/install/${project.name}").deleteDir()
+    }
+}
+
+// RUNNING AND TESTING ASKS
 mainClassName = "org.midonet.midolman.Midolman"
 
 task runWithSudo(type:Exec, dependsOn: installApp) {

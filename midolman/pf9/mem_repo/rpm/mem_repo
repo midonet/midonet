@@ -1,0 +1,2 @@
+pf9	ALL = NOPASSWD: /opt/pf9/hostagent/bin/pf9-yum erase mem_repo
+
