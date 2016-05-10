@@ -37,18 +37,6 @@ VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_router.yaml')
 BM = BindingManager(PTM, VTM)
 
 
-binding_onehost = {
-    'description': 'on single MM',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        ]
-    }
-
 binding_multihost = {
     'description': 'spanning across multiple MMs',
     'bindings': [
@@ -63,7 +51,7 @@ binding_multihost = {
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_ping_different_subnets():
     """
     Title: L3 connectivity over bridge and router
@@ -95,7 +83,7 @@ def test_ping_different_subnets():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_fragmented_packets():
     """
     Title: L3 connectivity over bridge and router
@@ -126,7 +114,7 @@ def test_fragmented_packets():
     wait_on_futures([f1, f2])
 
 
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_spoofed_arp_reply():
     """
     Title: Test spoofed ARP reply
@@ -193,7 +181,7 @@ def test_spoofed_arp_reply():
 
 
 @nottest
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_routing_weight():
     """
     NOTE: THIS TEST IS DISABLED DUE TO MN-268
@@ -216,7 +204,7 @@ def test_routing_weight():
 
 
 @nottest
-@bindings(binding_onehost)
+@bindings(binding_multihost)
 def test_routing_prefixlen():
     """
     NOTE: THIS TEST IS DISABLED DUE TO MN-268
@@ -239,7 +227,7 @@ def test_routing_prefixlen():
 
 
 @nottest
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_routing_prefixlen_weight():
     """
     NOTE: THIS TEST IS DISABLED DUE TO MN-268
@@ -260,7 +248,7 @@ def test_routing_prefixlen_weight():
     pass
 
 @nottest
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_routing_balancing():
     """
     NOTE: THIS TEST IS DISABLED DUE TO MN-268

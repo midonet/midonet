@@ -43,37 +43,7 @@ VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_bgp.yaml')
 BM = BindingManager(PTM, VTM)
 
 
-binding_uplink_1 = {
-    'description': 'vm connected to uplink #1',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        {'binding':
-             {'device_name': 'router-000-001', 'port_id': 3,
-              'host_id': 2, 'interface_id': 2}},
-        ]
-    }
-
-binding_uplink_2 = {
-    'description': 'vm connected to uplink #2',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        {'binding':
-             {'device_name': 'router-000-001', 'port_id': 3,
-              'host_id': 2, 'interface_id': 2}},
-    ]
-}
-
-binding_indirect = {
+binding_unisession = {
     'description': 'vm not connected to uplink',
     'bindings': [
         {'binding':
@@ -88,7 +58,7 @@ binding_indirect = {
     ]
 }
 
-binding_snat_1 = {
+binding_snat = {
     'description': 'one connected to uplink #1 and another not connected',
     'bindings': [
         {'binding':
@@ -102,37 +72,6 @@ binding_snat_1 = {
               'host_id': 1, 'interface_id': 2}},
         ]
     }
-
-binding_snat_2 = {
-    'description': 'one not connected and another connected to uplink #1',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 1, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        ]
-    }
-
-binding_snat_3 = {
-    'description': 'two not connected to uplink',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 2, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 3, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'router-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        ]
-    }
-
 
 # Even though quickly copied from test_nat_router for now, utilities below
 # should probably be moved to somewhere shared among tests
@@ -282,7 +221,7 @@ def ping_to_inet(count=5, interval=1, port=2, retries=5):
         ping_to_inet(count, interval, port, retries-1)
 
 @attr(version="v1.2.0")
-@bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@bindings(binding_unisession)
 @with_setup(None, clear_bgp)
 def test_icmp_multi_add_uplink_1():
     """
@@ -305,25 +244,9 @@ def test_icmp_multi_add_uplink_1():
     add_bgp([uplink2_session1], route_direct)
     ping_to_inet() # BGP #1 and #2 working
 
-@attr(version="v1.2.0")
-@bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
-@with_setup(None, clear_bgp)
-def test_icmp_multi_add_uplink_2():
-    """
-    Title: configure BGP to establish multiple BGP links
-
-    * Basically the same as above, enables multiple BGP
-    * in reverse order
-
-    """
-    add_bgp([uplink2_session1], route_direct)
-    ping_to_inet() # BGP #2 is working
-
-    add_bgp([uplink1_session1], route_direct)
-    ping_to_inet() # BGP #1 and #2 are working
 
 @attr(version="v1.2.0")
-@bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@bindings(binding_unisession)
 @with_setup(None, clear_bgp)
 def test_icmp_remove_uplink_1():
     """
@@ -345,26 +268,7 @@ def test_icmp_remove_uplink_1():
     ping_to_inet() # only BGP #2 is working
 
 @attr(version="v1.2.0")
-@bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
-@with_setup(None, clear_bgp)
-def test_icmp_remove_uplink_2():
-    """
-    Title: Remove one BGP from multiple BGP links
-
-    * Basically the same as above, disable the other BGP
-
-    """
-    (p1, p2) = (add_bgp([uplink1_session1], route_direct),
-                add_bgp([uplink2_session1], route_direct))
-    ping_to_inet() # BGP #1 and #2 are working
-
-    clear_bgp_peer(p2, 5)
-    await_bgp_peer(uplink2_session1, present=False)
-
-    ping_to_inet() # only BGP #1 is working
-
-@attr(version="v1.2.0")
-@bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@bindings(binding_unisession)
 @with_setup(None, clear_bgp)
 def test_icmp_failback():
     """
@@ -426,7 +330,7 @@ def test_icmp_failback():
     ping_to_inet()  # BGP #2 is back
 
 @attr(version="v1.2.0")
-@bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
+@bindings(binding_unisession)
 @with_setup(None, clear_bgp)
 def test_snat():
     """
@@ -454,7 +358,7 @@ def test_snat():
 
 
 @attr(version="v1.2.0")
-@bindings(binding_snat_1, binding_snat_2, binding_snat_3)
+@bindings(binding_snat)
 @with_setup(None, clear_bgp)
 def test_mn_1172():
     """
@@ -476,4 +380,3 @@ def test_mn_1172():
         ping_to_inet(port=2)
     finally:
         unset_filters('router-000-001')
-

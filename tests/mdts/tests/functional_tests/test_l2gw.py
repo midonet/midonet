@@ -45,27 +45,7 @@ BM = BindingManager(PTM, VTM)
 #     each MM with one forwarding trunk to each bridge
 #     ping from external1 to external2 on the same vlan going through midonet
 
-bindings1 = {
-    'description': 'VM connected to MM with forwarding trunk',
-    'bindings': [
-        {'binding':{'device_name': 'bridge-000-001-0001', 'port_id': 1,
-                    'host_id': 1, 'interface_id': 1}},
-        {'binding':{'device_name': 'bridge-000-001', 'port_id': 3,
-                    'host_id': 1, 'interface_id': 2}},
-        {'binding':{'device_name': 'bridge-000-001', 'port_id': 4,
-                    'host_id': 2, 'interface_id': 2}}]}
-
-bindings2 = {
-    'description': 'VM connected to MM with blocking trunk',
-    'bindings': [
-        {'binding':{'device_name': 'bridge-000-001-0001', 'port_id': 1,
-                    'host_id': 2, 'interface_id': 1}},
-        {'binding':{'device_name': 'bridge-000-001', 'port_id': 3,
-                    'host_id': 1, 'interface_id': 2}},
-        {'binding':{'device_name': 'bridge-000-001', 'port_id': 4,
-                    'host_id': 2, 'interface_id': 2}}]}
-
-bindings3 = {
+binding1 = {
     'description': 'VM connected to MM without trunk',
     'bindings': [
         {'binding':{'device_name': 'bridge-000-001-0001', 'port_id': 1,
@@ -146,7 +126,7 @@ def _test_resiliency_from_transient_loop(ping, midoVmIface, exHostIface):
 
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2, bindings3)
+@bindings(binding1)
 def test_icmp_from_mn():
     """
     Title: ICMP reachability from MidoNet VLAN
@@ -167,7 +147,7 @@ def test_icmp_from_mn():
     _test_resiliency_from_transient_loop(_ping_from_mn, midoVmIface, exHostIface)
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2, bindings3)
+@bindings(binding1)
 def test_icmp_to_mn():
     """
     Title: ICMP reachability to MidoNet VLAN
@@ -231,7 +211,7 @@ def _test_failover_on_ifdown_with_icmp_from_mn():
     _test_failover(_ping_from_mn, failover, restore)
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2, bindings3)
+@bindings(binding1)
 def test_failover_on_ifdown_with_icmp_from_mn():
     """
     Title: Failover on Network Interface Down
@@ -257,7 +237,7 @@ def _test_failover_on_ifdown_with_icmp_to_mn():
     _test_failover(_ping_to_mn, failover, restore)
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2, bindings3)
+@bindings(binding1)
 def test_failover_on_ifdown_with_icmp_to_mn():
     """
     Title: Failover on Network Interface Down
@@ -282,7 +262,7 @@ def _test_failover_on_generic_failure_with_icmp_from_mn():
     _test_failover(_ping_from_mn, failover, restore)
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2, bindings3)
+@bindings(binding1)
 def test_failover_on_generic_failure_with_icmp_from_mn():
     """
     Title: Failover on Generic Network Failure
@@ -306,8 +286,8 @@ def _test_failover_on_generic_failure_with_icmp_to_mn():
 
     _test_failover(_ping_to_mn, failover, restore)
 
-@attr(version="v1.2.0", slow=True)
-@bindings(bindings1, bindings2, bindings3)
+@attr(version="v1.2.0")
+@bindings(binding1)
 def test_failover_on_generic_failure_with_icmp_to_mn():
     """
     Title: Failover on Generic Network Failure
@@ -341,7 +321,7 @@ def _test_failback(test_failover, ping, migrate=None):
     ping(midoVmIface, exHostIface)
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2, bindings3)
+@bindings(binding1)
 def test_failback_on_ifdown_with_icmp_from_mn():
     """
     Title: Failover on Network Interface Down / Failback
@@ -352,7 +332,7 @@ def test_failback_on_ifdown_with_icmp_from_mn():
                    _ping_from_mn, _send_random_udp_to_mn)
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2, bindings3)
+@bindings(binding1)
 def test_failback_on_ifdown_with_icmp_to_mn():
     """
     Title: Failover on Network Interface Down / Failback
@@ -363,7 +343,7 @@ def test_failback_on_ifdown_with_icmp_to_mn():
                    _ping_to_mn, _send_random_udp_to_mn)
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2, bindings3)
+@bindings(binding1)
 def test_failback_on_generic_failure_with_icmp_from_mn():
     """
     Title: Failover on Generic Network Failure / Failback
@@ -374,7 +354,7 @@ def test_failback_on_generic_failure_with_icmp_from_mn():
                    _ping_from_mn, _send_random_udp_to_mn)
 
 @attr(version="v1.2.0")
-@bindings(bindings1, bindings2, bindings3)
+@bindings(binding1)
 def test_failback_on_generic_failure_with_icmp_to_mn():
     """
     Title: Failover on Generic Network Failure / Failback
