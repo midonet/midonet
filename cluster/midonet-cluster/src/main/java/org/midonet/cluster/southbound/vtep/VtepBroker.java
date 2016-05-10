@@ -57,6 +57,8 @@ import static org.opendaylight.ovsdb.lib.message.TableUpdate.Row;
  */
 public class VtepBroker implements VxLanPeer {
 
+    public final static int MAC_UPDATE_RETRIES = 10;
+
     private final static Logger log = LoggerFactory.getLogger(VtepBroker.class);
 
     private final VtepDataClient vtepDataClient;
@@ -205,37 +207,47 @@ public class VtepBroker implements VxLanPeer {
      * @param ml The location of the MAC.
      */
     private void applyUcastAddition(MacLocation ml) {
-        log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
-        List<UcastMac> ucasts = null;
-        try {
-            ucasts = vtepDataClient.listUcastMacsRemote();
-        } catch (VtepNotConnectedException e) {
-            log.error("VTEP is not connected", e);
-            return;
-        }
-
-        for (UcastMac uc : ucasts) {
-            if (ml.mac().toString().equalsIgnoreCase(uc.mac)) { // NPE safe
-                String mlIp = ml.ipAddr() == null ? "" : ml.ipAddr().toString();
-                String ucIp = Strings.nullToEmpty(uc.ipAddr);
-                if (ucIp.equals(mlIp)) { // horrid, thanks ovsdb
-                    log.debug("UCAST remote MAC already in vtep");
-                    return;
+        Func1<MacLocation, Status> addition = new Func1<MacLocation, Status>() {
+            @Override
+            public Status call(MacLocation ml) {
+                log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
+                List<UcastMac> ucasts = null;
+                try {
+                    ucasts = vtepDataClient.listUcastMacsRemote();
+                } catch (VtepNotConnectedException e) {
+                    log.error("VTEP is not connected", e);
+                    return new Status(StatusCode.NOSERVICE);
                 }
+
+                for (UcastMac uc : ucasts) {
+                    // NPE safe
+                    if (ml.mac().toString().equalsIgnoreCase(uc.mac)) {
+                        String mlIp = ml.ipAddr() == null ?
+                                "" : ml.ipAddr().toString();
+                        String ucIp = Strings.nullToEmpty(uc.ipAddr);
+                        if (ucIp.equals(mlIp)) { // horrid, thanks ovsdb
+                            log.debug("UCAST remote MAC already in vtep");
+                            return new Status(StatusCode.CONFLICT);
+                        }
+                    }
+                }
+
+                Status st = vtepDataClient.addUcastMacRemote(
+                        ml.logicalSwitchName(), ml.mac().IEEE802(), ml.ipAddr(),
+                        ml.vxlanTunnelEndpoint());
+
+                if (st.getCode().equals(StatusCode.CONFLICT)) {
+                    log.info("Conflict writing {}, not expected", ml);
+                } else if (!st.isSuccess()) {
+                    throw new VxLanPeerSyncException("OVSDB error: " + st, ml,
+                                                     st.getCode());
+                }
+
+                return st;
             }
-        }
+        };
 
-        Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName(),
-                                                     ml.mac().IEEE802(),
-                                                     ml.ipAddr(),
-                                                     ml.vxlanTunnelEndpoint());
-
-        if (st.getCode().equals(StatusCode.CONFLICT)) {
-            log.info("Conflict writing {}, not expected", ml);
-        } else if (!st.isSuccess()) {
-            throw new VxLanPeerSyncException("OVSDB error: " + st, ml,
-                                             st.getCode());
-        }
+        retryMacUpdate(addition, ml);
     }
 
     /**
@@ -243,25 +255,35 @@ public class VtepBroker implements VxLanPeer {
      * @param ml The location of the MAC.
      */
     private void applyUcastDelete(MacLocation ml) {
-        log.debug("Removing UCAST remote MAC from the VTEP: " + ml);
-        Status st;
-        if (ml.ipAddr() == null) {
-            // removal, no IP: remove all mappings for that mac
-            st = vtepDataClient.deleteAllUcastMacRemote(ml.logicalSwitchName(),
-                                                        ml.mac().IEEE802());
+        Func1<MacLocation, Status> deletion = new Func1<MacLocation, Status>() {
+            @Override
+            public Status call(MacLocation ml) {
+                log.debug("Removing UCAST remote MAC from the VTEP: " + ml);
+                Status st;
+                if (ml.ipAddr() == null) {
+                    // removal, no IP: remove all mappings for that mac
+                    st = vtepDataClient.deleteAllUcastMacRemote(
+                            ml.logicalSwitchName(),
+                            ml.mac().IEEE802());
 
-        } else {
-            // removal, one IP: remove only the IP from the row
-            st = vtepDataClient.deleteUcastMacRemote(ml.logicalSwitchName(),
-                                                     ml.mac().IEEE802(),
-                                                     ml.ipAddr());
-        }
-        if (st.getCode().equals(StatusCode.NOTFOUND)) {
-            log.debug("Trying to delete entry but not present {}", ml);
-        } else if (!st.isSuccess()) {
-            throw new VxLanPeerSyncException("OVSDB error: " + st, ml,
-                                             st.getCode());
-        }
+                } else {
+                    // removal, one IP: remove only the IP from the row
+                    st = vtepDataClient.deleteUcastMacRemote(
+                            ml.logicalSwitchName(),
+                            ml.mac().IEEE802(),
+                            ml.ipAddr());
+                }
+                if (st.getCode().equals(StatusCode.NOTFOUND)) {
+                    log.debug("Trying to delete entry but not present {}", ml);
+                } else if (!st.isSuccess()) {
+                    throw new VxLanPeerSyncException("OVSDB error: " + st, ml,
+                                                     st.getCode());
+                }
+                return st;
+            }
+        };
+
+        retryMacUpdate(deletion, ml);
     }
 
     /**
@@ -272,36 +294,70 @@ public class VtepBroker implements VxLanPeer {
      * Neutron network, MidoNet will forward traffic among the VTEPs.
      */
     private void applyMcastAddition(MacLocation ml) {
-        log.debug("Adding MCAST remote MAC to the VTEP: " + ml);
-        Status st;
-        vtepDataClient.deleteAllMcastMacRemote(ml.logicalSwitchName(),
-                                               ml.mac());
-        st = vtepDataClient.addMcastMacRemote(ml.logicalSwitchName(),
-                                              ml.mac(),
-                                              ml.vxlanTunnelEndpoint());
-        if (!st.isSuccess() ) {
-            if (st.getCode().equals(StatusCode.CONFLICT)) {
-                log.info("Conflict writing {}, not expected", ml);
-            } else {
-                throw new VxLanPeerSyncException("OVSDB error: " + st.getCode()
-                                                 + ", " + st.getDescription(),
-                                                 ml, st.getCode());
+        Func1<MacLocation, Status> addition = new Func1<MacLocation, Status>() {
+            @Override
+            public Status call(MacLocation ml) {
+                log.debug("Adding MCAST remote MAC to the VTEP: " + ml);
+                Status st;
+                vtepDataClient.deleteAllMcastMacRemote(ml.logicalSwitchName(),
+                        ml.mac());
+                st=vtepDataClient.addMcastMacRemote(ml.logicalSwitchName(),
+                        ml.mac(),
+                        ml.vxlanTunnelEndpoint());
+                if(!st.isSuccess()) {
+                    if (st.getCode().equals(StatusCode.CONFLICT)) {
+                        log.info("Conflict writing {}, not expected", ml);
+                    } else {
+                        throw new VxLanPeerSyncException("OVSDB error: " +
+                                st.getCode() + ", " + st.getDescription(),
+                                ml, st.getCode());
+                    }
+                }
+                return st;
             }
-        }
+        };
+
+        retryMacUpdate(addition, ml);
     }
 
     /**
      * Applies the deletion of a multicast MAC location.
      */
     private void applyMcastDelete(MacLocation ml) {
-        log.debug("Removing MCAST remote MAC from the VTEP: " + ml);
-        Status st = vtepDataClient.deleteAllMcastMacRemote(
-            ml.logicalSwitchName(), ml.mac());
-        if (!st.isSuccess() && !st.getCode().equals(StatusCode.NOTFOUND)) {
-            throw new VxLanPeerSyncException("OVSDB error " + st.getCode() +
-                                             ", " + st.getDescription(), ml,
-                                             st.getCode());
+        Func1<MacLocation, Status> deletion = new Func1<MacLocation, Status>() {
+            @Override
+            public Status call(MacLocation ml) {
+                log.debug("Removing MCAST remote MAC from the VTEP: " + ml);
+                Status st = vtepDataClient.deleteAllMcastMacRemote(
+                        ml.logicalSwitchName(),
+                        ml.mac());
+                if(!st.isSuccess() &&
+                        !st.getCode().equals(StatusCode.NOTFOUND)) {
+                    throw new VxLanPeerSyncException("OVSDB error " +
+                            st.getCode() + ", " + st.getDescription(),
+                            ml, st.getCode());
+                }
+                return st;
+            }
+        };
+
+        retryMacUpdate(deletion, ml);
+    }
+
+    /**
+     * Helper method to retry MAC Location updates on the VTEP.
+     * Performs MAC_UPDATE_RETRIES retries of functions that operate on a
+     * MacLocation and return a Status object.
+     */
+    private static Status retryMacUpdate(Func1<MacLocation, Status> update,
+                                              MacLocation ml) {
+        Status st = update.call(ml);
+        for (int retries = 1; !st.isSuccess() && retries < MAC_UPDATE_RETRIES;
+                      retries++) {
+            log.debug("Retrying update on {}, retries: {}", ml, retries);
+            st = update.call(ml);
         }
+        return st;
     }
 
     @Override

@@ -121,7 +121,8 @@ public class VtepTest {
         final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
         new Expectations() {{
             vtepDataClient.listUcastMacsRemote();
-            times = 1; result = Arrays.asList(new UcastMac(mac1.IEEE802(), lsId,
+            times = VtepBroker.MAC_UPDATE_RETRIES;
+            result = Arrays.asList(new UcastMac(mac1.IEEE802(), lsId,
                                                            locatorId, macIp1));
         }};
         vtepBroker.apply(new MacLocation(mac1, macIp1, lsName, midoVxTunIp));
@@ -133,7 +134,8 @@ public class VtepTest {
         final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
         new Expectations() {{
             vtepDataClient.listUcastMacsRemote();
-            times = 1; result = Arrays.asList(new UcastMac(mac1.IEEE802(), lsId,
+            times = VtepBroker.MAC_UPDATE_RETRIES;
+            result = Arrays.asList(new UcastMac(mac1.IEEE802(), lsId,
                                                            locatorId, null));
         }};
         vtepBroker.apply(new MacLocation(mac1, null, lsName, midoVxTunIp));
