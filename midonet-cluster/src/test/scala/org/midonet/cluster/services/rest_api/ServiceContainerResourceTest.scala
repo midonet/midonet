@@ -35,12 +35,12 @@ import org.midonet.cluster.HttpRequestChecks
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.rest_api.ResourceUris._
 import org.midonet.cluster.rest_api.models._
-import org.midonet.cluster.rest_api.rest_api.{TopologyBackdoor, DtoWebResource, FuncTest, Topology}
+import org.midonet.cluster.rest_api.rest_api._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class ServiceContainerResourceTest extends JerseyTest(FuncTest.getBuilder.build())
+class ServiceContainerResourceTest extends FuncJerseyTest
                                            with Suite
                                            with BeforeAndAfter
                                            with HttpRequestChecks {
