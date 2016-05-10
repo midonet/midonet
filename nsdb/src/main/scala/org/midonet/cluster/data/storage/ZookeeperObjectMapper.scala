@@ -55,7 +55,7 @@ import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.{PathCacheClosedException, NodeObservable, NodeObservableClosedException}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.eventloop.Reactor
-import org.midonet.util.functors.makeFunc1
+import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
@@ -133,7 +133,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
     /* Functions and variables to expose metrics using JMX in class
        ZoomMetrics. */
-    override implicit private[storage] val metrics = metricsRegistry match {
+    implicit protected override val metrics = metricsRegistry match {
         case null => BlackHoleZoomMetrics
         case registry => new JmxZoomMetrics(this, registry)
     }
@@ -141,10 +141,16 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     curator.getConnectionStateListenable
            .addListener(metrics.zkConnectionStateListener())
 
-    private[storage] def objectObservableCount: Int =
+    private[storage] def totalObjectObservableCount: Int =
+        objectObservables.size
+    private[storage] def totalClassObservableCount: Int =
+        classObservables.size
+
+    private[storage] def startedObjectObservableCount: Int =
         objectObservables.values.count(_.node.isStarted)
-    private[storage] def classObservableCount: Int =
+    private[storage] def startedClassObservableCount: Int =
         classObservables.values.count(_.cache.isStarted)
+
     private[storage] def objectObservableCounters: Map[Class[_], Int] = {
         val map = new mutable.HashMap[Class[_], Int]
         val it = objectObservables.iterator
@@ -644,6 +650,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                         metrics.count(e)
                         Observable.error(e)
                 }))
+                .doOnTerminate(makeAction0 {
+                    objectObservables.remove(key, ObjectObservable(nodeObs))
+                })
             val entry = ObjectObservable(nodeObs, objObs)
             objectObservables.putIfAbsent(key, entry).getOrElse(entry)
         }).obj.asInstanceOf[Observable[T]]
@@ -673,6 +682,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                         metrics.count(e)
                         Observable.error(e)
                 }))
+                .doOnTerminate(makeAction0 {
+                    classObservables.remove(clazz, ClassObservable(cache))
+                })
             val entry = ClassObservable(cache, obs)
             classObservables.putIfAbsent(clazz, entry).getOrElse(entry)
         }).clazz.asInstanceOf[Observable[Observable[T]]]

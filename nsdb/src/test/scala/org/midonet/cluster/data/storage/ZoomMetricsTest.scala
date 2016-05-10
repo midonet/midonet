@@ -93,7 +93,7 @@ class ZoomMetricsTest extends FeatureSpec
             observer1.awaitOnNext(1, timeout)
 
             Then("The number of watchers returned by zoom is 1")
-            zoom.objectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
 
             And("The list of object observers is correct")
             zoom.objectObservableCounters should contain theSameElementsAs
@@ -109,7 +109,7 @@ class ZoomMetricsTest extends FeatureSpec
             val sub2 = obs2.subscribe(observer2)
 
             Then("The number of watchers returned by zoom is 2")
-            zoom.objectObservableCount shouldBe 2
+            zoom.startedObjectObservableCount shouldBe 2
 
             And("The list of object observers is correct")
             zoom.objectObservableCounters should contain theSameElementsAs
@@ -120,7 +120,7 @@ class ZoomMetricsTest extends FeatureSpec
             val sub3 = obs1.subscribe(observer3)
 
             Then("The number of watchers is 2")
-            zoom.objectObservableCount shouldBe 2
+            zoom.startedObjectObservableCount shouldBe 2
 
             And("The list of object observers is correct")
             zoom.objectObservableCounters should contain theSameElementsAs
@@ -136,7 +136,7 @@ class ZoomMetricsTest extends FeatureSpec
             val sub4 = obs3.subscribe(observer4)
 
             Then("The number of watchers returned by zoom is 3")
-            zoom.objectObservableCount shouldBe 3
+            zoom.startedObjectObservableCount shouldBe 3
 
             And("The list of object observers is correct")
             zoom.objectObservableCounters should contain theSameElementsAs
@@ -146,7 +146,7 @@ class ZoomMetricsTest extends FeatureSpec
             sub1.unsubscribe()
 
             Then("The number of watchers returned by zoom is 3")
-            zoom.objectObservableCount shouldBe 3
+            zoom.startedObjectObservableCount shouldBe 3
 
             And("The list of object observers is correct")
             zoom.objectObservableCounters should contain theSameElementsAs
@@ -156,7 +156,7 @@ class ZoomMetricsTest extends FeatureSpec
             sub2.unsubscribe()
 
             Then("The number of watchers returned by zoom is 2")
-            zoom.objectObservableCount shouldBe 2
+            zoom.startedObjectObservableCount shouldBe 2
 
             And("The list of object observers is correct")
             zoom.objectObservableCounters should contain theSameElementsAs
@@ -166,7 +166,7 @@ class ZoomMetricsTest extends FeatureSpec
             sub3.unsubscribe()
 
             Then("The number of watchers returned by zoom is 1")
-            zoom.objectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
 
             And("The list of object observers is correct")
             zoom.objectObservableCounters should contain theSameElementsAs
@@ -176,7 +176,7 @@ class ZoomMetricsTest extends FeatureSpec
             sub4.unsubscribe()
 
             Then("The number of watchers returned by zoom is 0")
-            zoom.objectObservableCount shouldBe 0
+            zoom.startedObjectObservableCount shouldBe 0
 
             And("The list of object observers is empty")
             zoom.objectObservableCounters shouldBe Map.empty
@@ -199,7 +199,7 @@ class ZoomMetricsTest extends FeatureSpec
             observer1.awaitOnNext(1, timeout)
 
             Then("The number of class watchers returned by zoom is 1")
-            zoom.classObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 1
 
             And("The list of class observers is correct")
             zoom.startedClassObservables should contain theSameElementsAs
@@ -210,7 +210,7 @@ class ZoomMetricsTest extends FeatureSpec
             val sub2 = obs1.subscribe(observer2)
 
             Then("The number of class watchers is still 1")
-            zoom.classObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 1
 
             And("The list of class observers is correct")
             zoom.startedClassObservables should contain theSameElementsAs
@@ -224,7 +224,7 @@ class ZoomMetricsTest extends FeatureSpec
             observer1.awaitOnNext(2, timeout) shouldBe true
 
             And("The number of class watchers is still 1")
-            zoom.classObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 1
 
             And("The list of class observers is correct")
             zoom.startedClassObservables should contain theSameElementsAs
@@ -243,7 +243,7 @@ class ZoomMetricsTest extends FeatureSpec
             observer3.awaitOnNext(1, timeout) shouldBe true
 
             And("The number of class watchers is 2")
-            zoom.classObservableCount shouldBe 2
+            zoom.startedClassObservableCount shouldBe 2
 
             And("The list of class observers is correct")
             zoom.startedClassObservables should contain theSameElementsAs
@@ -253,7 +253,7 @@ class ZoomMetricsTest extends FeatureSpec
             sub3.unsubscribe()
 
             Then("The number of class watchers is 1")
-            zoom.classObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 1
 
             And("The list of class observers is correct")
             zoom.allClassObservables should contain theSameElementsAs
@@ -266,7 +266,7 @@ class ZoomMetricsTest extends FeatureSpec
             sub2.unsubscribe()
 
             Then("The list of class watchers is 0")
-            zoom.classObservableCount shouldBe 0
+            zoom.startedClassObservableCount shouldBe 0
 
             And("The list of subscribers is empty")
             zoom.startedClassObservables shouldBe Set.empty

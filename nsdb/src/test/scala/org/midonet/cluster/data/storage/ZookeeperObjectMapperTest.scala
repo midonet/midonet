@@ -38,14 +38,16 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
     private val timeout = 5 seconds
     private val hostId = UUID.randomUUID.toString
+    private var zoom: ZookeeperObjectMapper = _
 
     protected override def setup(): Unit = {
-        storage = createStorage
+        zoom = createStorage
+        storage = zoom
         assert = () => {}
         initAndBuildStorage(storage)
     }
 
-    protected override def createStorage = {
+    protected override def createStorage: ZookeeperObjectMapper = {
         new ZookeeperObjectMapper(zkRoot, hostId, curator, curator,
                                   reactor, connection, connectionWatcher)
     }
@@ -62,9 +64,13 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             And("A storage observable")
             val obs = storage.observable(classOf[PojoBridge], bridge.id)
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 0
 
             When("The observer subscribes to the observable")
             val sub = obs.subscribe(observer)
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
 
             Then("The observer receives the current bridge")
             observer.awaitOnNext(1, timeout)
@@ -72,13 +78,19 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             When("The observer unsubscribes")
             sub.unsubscribe()
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 0
 
             Then("The storage returns the same observable instance")
             storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 0
 
             When("The observer resubscribes")
             storage.observable(classOf[PojoBridge], bridge.id)
                    .subscribe(observer)
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
 
             Then("The observer receives the current bridge")
             observer.awaitOnNext(2, timeout)
@@ -86,6 +98,8 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             And("The storage returns a different observable instance")
             storage.observable(classOf[PojoBridge], bridge.id) ne obs shouldBe true
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
         }
 
         scenario("Test object observable is reused by concurrent subscribers") {
@@ -99,9 +113,13 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             And("A storage observable")
             val obs = storage.observable(classOf[PojoBridge], bridge.id)
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 0
 
             When("The observer subscribes to the observable")
             val sub1 = obs.subscribe(observer)
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
 
             Then("The observer receives the current bridge")
             observer.awaitOnNext(1, timeout)
@@ -109,6 +127,8 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             When("The observer subscribes a second time to the observable")
             val sub2 = obs.subscribe(observer)
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
 
             Then("The observer receives the current bridge")
             observer.awaitOnNext(2, timeout)
@@ -116,13 +136,19 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             When("The first subscription unsubscribes")
             sub1.unsubscribe()
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
 
             Then("The storage returns the same observable instance")
             storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
 
             When("The observer resubscribes")
             storage.observable(classOf[PojoBridge], bridge.id)
                 .subscribe(observer)
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
 
             Then("The observer receives the current bridge")
             observer.awaitOnNext(3, timeout)
@@ -130,6 +156,42 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             And("The storage returns the same observable instance")
             storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
+        }
+
+        scenario("Test object observable is removed on deleted") {
+            Given("A bridge")
+            val bridge = createPojoBridge()
+            storage.create(bridge)
+
+            And("An observer")
+            val observer = new TestObserver[PojoBridge]
+                               with AwaitableObserver[PojoBridge]
+
+            And("A storage observable")
+            val obs = storage.observable(classOf[PojoBridge], bridge.id)
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 0
+
+            When("The observer subscribes to the observable")
+            obs.subscribe(observer)
+            zoom.totalObjectObservableCount shouldBe 1
+            zoom.startedObjectObservableCount shouldBe 1
+
+            Then("The observer receives the current bridge")
+            observer.awaitOnNext(1, timeout)
+            observer.getOnNextEvents should have size 1
+
+            When("The object is deleted")
+            storage.delete(classOf[PojoBridge], bridge.id)
+
+            Then("The observable should complete")
+            observer.awaitCompletion(timeout)
+
+            And("The observable should be removed")
+            zoom.totalObjectObservableCount shouldBe 0
+            zoom.startedObjectObservableCount shouldBe 0
         }
 
         scenario("Test class observable recovers after close") {
@@ -142,9 +204,13 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             And("A storage observable")
             val obs = storage.observable(classOf[PojoBridge])
+            zoom.totalClassObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 1
 
             When("The observer subscribes to the observable")
             val sub = obs.subscribe(observer)
+            zoom.totalClassObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 1
 
             Then("The observer receives the current bridge observable")
             observer.awaitOnNext(1, timeout)
@@ -152,12 +218,18 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             When("The observer unsubscribes")
             sub.unsubscribe()
+            zoom.totalClassObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 0
 
             Then("The storage returns the same observable instance")
             storage.observable(classOf[PojoBridge]) eq obs shouldBe true
+            zoom.totalClassObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 0
 
             When("The observer resubscribes")
             storage.observable(classOf[PojoBridge]).subscribe(observer)
+            zoom.totalClassObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 1
 
             Then("The observer receives the current bridge observable")
             observer.awaitOnNext(2, timeout)
@@ -165,6 +237,8 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
             And("The storage returns a different observable instance")
             storage.observable(classOf[PojoBridge]) ne obs shouldBe true
+            zoom.totalClassObservableCount shouldBe 1
+            zoom.startedClassObservableCount shouldBe 1
         }
 
         scenario("Test class observable is reused by concurrent subscribers") {
