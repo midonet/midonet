@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.cluster.auth.AuthService;
@@ -44,7 +44,7 @@ import static org.midonet.cluster.rest_api.rest_api.FuncTest.appDesc;
 /**
  * Tests tenant API operations.  Currently assumes MockAuth is being used.
  */
-public class TestTenant extends JerseyTest {
+public class TestTenant extends RestApiTestBase {
 
     private Topology topology;
     private DtoWebResource dtoResource;
