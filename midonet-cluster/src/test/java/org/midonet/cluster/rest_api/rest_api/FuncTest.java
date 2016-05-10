@@ -78,11 +78,7 @@ public class FuncTest {
     static {
         HostIdGenerator.useTemporaryHostId();
         objectMapper = new MidonetObjectMapper();
-        objectMapper.configure(
-            DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-        // Randomize GrizzlyWebTestContainer's port for parallelism
-        System.setProperty("jersey.test.port",
-                String.valueOf((int)(Math.random() * 1000) + 62000));
+        objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, true);
     }
 
     public static WebAppDescriptor.Builder getBuilder() {
