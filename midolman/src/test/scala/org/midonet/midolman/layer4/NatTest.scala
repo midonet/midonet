@@ -99,6 +99,8 @@ class NatTest extends MidolmanSpec {
     private var pktWkfl: TestActorRef[PacketWorkflow] = null
     private val packetOutQueue: ju.Queue[(Packet, ju.List[FlowAction])] =
         new ju.LinkedList[(Packet, ju.List[FlowAction])]
+    private val statePacketOutQueue: ju.Queue[(Packet, ju.List[FlowAction])] =
+        new ju.LinkedList[(Packet, ju.List[FlowAction])]
 
     private class Mapping(val key: NatKey,
         val fwdInPort: UUID, val fwdOutPort: UUID,
@@ -305,6 +307,9 @@ class NatTest extends MidolmanSpec {
 
         mockDpChannel.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueue.add((packet,actions)) )
+        mockDpChannel.statePacketsExecuteSubscribe(
+            (packet, actions) => statePacketOutQueue.add((packet,actions)) )
+
     }
 
     scenario("connection tracking") {
