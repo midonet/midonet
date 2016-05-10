@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3ce0c6f9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-05-10T08:28:44Z",
+      "side": 1,
+      "message": "It turns out I still need this because in the QuaggaContainer I don\u0027t have access to the ActorSystem.",
+      "parentUuid": "baa041b7_f9542655",
+      "range": {
+        "startLine": 94,
+        "startChar": 4,
+        "endLine": 94,
+        "endChar": 32
+      },
+      "revId": "da8e0601db2508aa6753c68af1071d2536ccbe3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b920def8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 1
