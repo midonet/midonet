@@ -25,7 +25,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.CuratorEvent
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.zookeeper.CreateMode
-import org.apache.zookeeper.KeeperException.{NoNodeException, Code}
+import org.apache.zookeeper.KeeperException.Code
 
 import rx.functions.Func1
 import rx.{Notification, Observable}
@@ -84,18 +84,16 @@ object ZookeeperObjectState {
  * This trait will store the state value in (i) the key nodes for single-value
  * keys, and (ii) as children of the key nodes for multi-value keys.
  */
-trait ZookeeperObjectState extends StateStorage with Storage {
+trait ZookeeperObjectState extends StateStorage with Storage with StorageInternals {
 
     implicit protected def metrics: ZoomMetrics
 
-    private val objectObservables =
-        new TrieMap[Key, NodeObservable]
     private val singleObservables =
         new TrieMap[KeyIndex, NodeObservable]
     private val multiObservables =
         new TrieMap[KeyIndex, PathDirectoryObservable]
 
-    private val stateKeyMap: Func1[ChildData, StateKey] = makeFunc1(_ => null)
+    private val stateKeyMap: Func1[Any, StateKey] = makeFunc1(_ => null)
 
     protected def objectPath(clazz: Class[_], id: ObjId, version: Long): String
 
@@ -569,24 +567,13 @@ trait ZookeeperObjectState extends StateStorage with Storage {
       * order to complete single-value key observables. */
     private def objectObservable(clazz: Class[_], id: ObjId, version: Long)
     : Observable[StateKey] = {
-
-        val key = Key(clazz, getIdString(clazz, id))
-        val path = objectPath(clazz, id, version)
-
-        objectObservables.getOrElse(key, {
-            val observable = NodeObservable.create(curator, path,
-                                                   completeOnDelete = true,
-                                                   BlackHoleZoomMetrics)
-            objectObservables.putIfAbsent(key, observable).getOrElse(observable)
-        }).ignoreElements()
-          .map[StateKey](stateKeyMap)
-          .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
-            case e: NodeObservableClosedException =>
-                objectObservables.remove(key)
-                objectObservable(clazz, id, version)
-            case e: NoNodeException => Observable.empty()
-            case e: Throwable => Observable.error(e)
-        }))
+        internalObservable(clazz, id, version)
+            .ignoreElements()
+            .map[StateKey](stateKeyMap)
+            .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                case e: NotFoundException => Observable.empty()
+                case e: Throwable => Observable.error(e)
+            }))
     }
 
     /** Returns an observable for a single-value key, using a [[NodeObservable]]
