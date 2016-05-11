@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7180b0f7",
+        "filename": "tests/ci-perf.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-11T10:14:15Z",
+      "side": 1,
+      "message": "Why do we need this? we are supposed to run only this script (ci-perf) with that sandbox flavour, aren\u0027t we?",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 4
+      },
+      "revId": "2dab69be37a9a49e1e218d27b2afd13f118f9295",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
