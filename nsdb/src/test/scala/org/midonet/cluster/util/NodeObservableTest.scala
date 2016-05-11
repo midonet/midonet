@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.util
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import scala.concurrent.duration._
 
 import org.apache.curator.framework.recipes.cache.ChildData
@@ -108,7 +110,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
     }
 
     "Node observable" should "emit error after last unsubscribe" in {
-        val path = makePath("3")
+        val path = makePath("4")
         val observable = NodeObservable.create(curator, path)
 
         val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
@@ -134,9 +136,32 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
             NodeObservableClosedException] shouldBe true
     }
 
+    "Node observable" should "call onClose handler" in {
+        val path = makePath("5")
+        val closed = new AtomicBoolean()
+        val observable = NodeObservable.create(curator, path, {
+            closed set true
+        })
+
+        val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+        val obs2 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+
+        val sub1 = observable.subscribe(obs1)
+        val sub2 = observable.subscribe(obs2)
+
+        obs1.awaitOnNext(1, timeout) shouldBe true
+        obs2.awaitOnNext(1, timeout) shouldBe true
+
+        sub1.unsubscribe()
+        closed.get shouldBe false
+
+        sub2.unsubscribe()
+        closed.get shouldBe true
+    }
+
     "Node observable with null on delete" should "watch the node" in {
         val parentPath = makePath("parent")
-        val path = parentPath + "/5"
+        val path = parentPath + "/6"
 
         val observable = NodeObservable.create(curator, path,
                                                completeOnDelete = false)
