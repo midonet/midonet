@@ -22,6 +22,30 @@
       "revId": "25c50852df2ed017e6c4fd6e54355840d19e9a25",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7cae4782",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-05-11T13:43:58Z",
+      "side": 1,
+      "message": "This was addressed in patch #13. we now assign a container ID",
+      "parentUuid": "baa041b7_96ce8a2c",
+      "range": {
+        "startLine": 202,
+        "startChar": 41,
+        "endLine": 202,
+        "endChar": 62
+      },
+      "revId": "25c50852df2ed017e6c4fd6e54355840d19e9a25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
