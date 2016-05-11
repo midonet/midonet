@@ -16,6 +16,24 @@
       "revId": "766e5518c353e8e9345b2e43f578e2031bd9e6b3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_16895ac9",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-11T07:14:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d6ed32b8",
+      "revId": "766e5518c353e8e9345b2e43f578e2031bd9e6b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
