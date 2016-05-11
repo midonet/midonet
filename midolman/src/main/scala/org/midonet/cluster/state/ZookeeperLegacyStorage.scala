@@ -20,7 +20,6 @@ import java.util.UUID
 import javax.annotation.Nonnull
 
 import com.google.inject.Inject
-import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, StateAccessException}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.Serializer
@@ -47,21 +46,6 @@ class ZookeeperLegacyStorage @Inject()(connectionWatcher: ZkConnectionAwareWatch
         val map = new MacPortMap(
             zkManager.getSubDirectory(pathBuilder.getBridgeMacPortsPath(bridgeId, vlanId)),
             ephemeral)
-        map.setConnectionWatcher(connectionWatcher)
-        map
-    }
-
-    private def getIP4MacMapDirectory(id: UUID): Directory = {
-        val path = pathBuilder.getBridgeIP4MacMapPath(id)
-        if (!zkManager.exists(path))
-            zkManager.addPersistent(path, null)
-        zkManager.getSubDirectory(path)
-    }
-
-    @throws[StateAccessException]
-    override def bridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap = {
-        ensureBridgePaths(bridgeId)
-        val map = new Ip4ToMacReplicatedMap(getIP4MacMapDirectory(bridgeId))
         map.setConnectionWatcher(connectionWatcher)
         map
     }
