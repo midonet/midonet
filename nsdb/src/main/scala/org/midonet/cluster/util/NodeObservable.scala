@@ -46,47 +46,6 @@ object NodeObservable {
     private val OnCloseDefault = { }
 
     /**
-      * @see [[NodeObservable.create]] It creates a [[NodeObservable]] with
-      *     a default close handler, that completes on deletion and default
-      *     metrics.
-      */
-    def create(curator: CuratorFramework, path: String): NodeObservable = {
-        create(curator, path, OnCloseDefault, completeOnDelete = true,
-               BlackHoleZoomMetrics)
-    }
-
-    /**
-      * @see [[NodeObservable.create]] It creates a [[NodeObservable]] with
-      *     a default close handler, and default metrics.
-      */
-    def create(curator: CuratorFramework, path: String,
-               completeOnDelete: Boolean)
-    : NodeObservable = {
-        create(curator, path, OnCloseDefault, completeOnDelete,
-               BlackHoleZoomMetrics)
-    }
-
-    /**
-      * @see [[NodeObservable.create]] It creates a [[NodeObservable]] with
-      *     a default close handler.
-      */
-    def create(curator: CuratorFramework, path: String,
-               completeOnDelete: Boolean, zoomMetrics: ZoomMetrics)
-    : NodeObservable = {
-        create(curator, path, OnCloseDefault, completeOnDelete, zoomMetrics)
-    }
-
-    /**
-      * @see [[NodeObservable.create]] It creates a [[NodeObservable]] that
-      *     completes on deletion and default metrics.
-      */
-    def create(curator: CuratorFramework, path: String, onClose: => Unit)
-    : NodeObservable = {
-        create(curator, path, onClose, completeOnDelete = true,
-               BlackHoleZoomMetrics)
-    }
-
-    /**
       * Creates an [[Observable]] that emits updates when the data for a node
       * at a given path changes. If the connection to storage is lost, the
       * observable emits a [[NodeObservableDisconnectedException]]. When the
@@ -110,18 +69,20 @@ object NodeObservable {
       * more subscribers or when the corresponding object was deleted and
       * `completeOnDelete` is set to `true`.
       */
-    def create(curator: CuratorFramework, path: String, onClose: => Unit,
-               completeOnDelete: Boolean, zoomMetrics: ZoomMetrics)
+    def create(curator: CuratorFramework, path: String,
+               completeOnDelete: Boolean = true,
+               metrics: ZoomMetrics = BlackHoleZoomMetrics,
+               onClose: => Unit = OnCloseDefault)
     : NodeObservable = {
         new NodeObservable(new OnSubscribeToNode(curator, path, onClose,
-                                                 completeOnDelete, zoomMetrics))
+                                                 completeOnDelete, metrics))
     }
 }
 
 private[util]
 class OnSubscribeToNode(curator: CuratorFramework, path: String,
                         onClose: => Unit, completeOnDelete: Boolean,
-                        zoomMetrics: ZoomMetrics)
+                        metrics: ZoomMetrics)
     extends OnSubscribe[ChildData] {
 
     private val log = getLogger(s"org.midonet.cluster.zk-node-[$path]")
@@ -142,7 +103,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
     @volatile
     private var nodeWatcher = new Watcher {
         override def process(event: WatchedEvent): Unit = {
-            zoomMetrics.nodeWatcherTriggered()
+            metrics.nodeWatcherTriggered()
             processWatcher(event)
         }
     }

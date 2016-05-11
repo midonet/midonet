@@ -28,6 +28,7 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 
+import org.midonet.cluster.data.storage.BlackHoleZoomMetrics
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -139,9 +140,11 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
     "Node observable" should "call onClose handler" in {
         val path = makePath("5")
         val closed = new AtomicBoolean()
-        val observable = NodeObservable.create(curator, path, {
-            closed set true
-        })
+        val observable = NodeObservable.create(
+            curator, path, completeOnDelete = true,
+            metrics = BlackHoleZoomMetrics, {
+                closed set true
+            })
 
         val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
         val obs2 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
