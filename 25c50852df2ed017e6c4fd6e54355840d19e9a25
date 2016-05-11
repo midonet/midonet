@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_96ce8a2c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-11T13:28:12Z",
+      "side": 1,
+      "message": "Now you\u0027re scanning all the containers twice. Maybe you should rearrange the code to save the result of isQuaggaContainerPort. For example, you could change isPossibleBgpPort(RouterPort): Boolean to getBgpPortType(RouterPort): Option[BgpPortType], BgpPortType would be an enum with values QUAGGA or EXTERIOR.",
+      "range": {
+        "startLine": 202,
+        "startChar": 41,
+        "endLine": 202,
+        "endChar": 62
+      },
+      "revId": "25c50852df2ed017e6c4fd6e54355840d19e9a25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
