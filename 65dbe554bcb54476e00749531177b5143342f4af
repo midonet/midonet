@@ -16,6 +16,24 @@
       "revId": "65dbe554bcb54476e00749531177b5143342f4af",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_316b48b9",
+        "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/rest_api/RestApiTestBase.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-11T12:42:43Z",
+      "side": 1,
+      "message": "Done. Copied shamelessly those lines of code.",
+      "parentUuid": "baa041b7_d68e52cf",
+      "revId": "65dbe554bcb54476e00749531177b5143342f4af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
