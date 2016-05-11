@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7642e669",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-11T07:54:17Z",
+      "side": 1,
+      "message": "nit: even though makeBgpPeer and makePeerRedirectRule return Create Op, makeBgpNetwork does not.  Guess that\u0027s because makeBgpNetwork is used by another class.  Consider making them consistent.",
+      "revId": "7a852af07d0a7d76842434779afc9e5370416041",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9651ea38",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-11T07:54:17Z",
+      "side": 1,
+      "message": "ns doesn\u0027t seem to be used",
+      "revId": "7a852af07d0a7d76842434779afc9e5370416041",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
