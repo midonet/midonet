@@ -28,7 +28,6 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -82,7 +81,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 @RunWith(Enclosed.class)
 public class TestBridge {
 
-    public static class TestBridgeList extends JerseyTest {
+    public static class TestBridgeList extends RestApiTestBase {
 
         private Topology topology;
         private DtoWebResource dtoWebResource;

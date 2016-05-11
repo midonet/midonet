@@ -27,7 +27,6 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +38,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.midonet.cluster.rest_api.host.rest_api.HostTopology;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.rest_api.Topology;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
@@ -190,7 +190,7 @@ public class TestPort {
     }
 
     @RunWith(Parameterized.class)
-    public static class TestCreateRouterPortBadRequest extends JerseyTest {
+    public static class TestCreateRouterPortBadRequest extends RestApiTestBase {
 
         private final DtoRouterPort port;
         private final String property;
@@ -260,7 +260,7 @@ public class TestPort {
     }
 
 
-    public static class TestAllPortCrudSuccess extends JerseyTest {
+    public static class TestAllPortCrudSuccess extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private Topology topology;
@@ -489,7 +489,7 @@ public class TestPort {
 
     }
 
-    public static class TestBridgePortCrudSuccess extends JerseyTest {
+    public static class TestBridgePortCrudSuccess extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private Topology topology;
@@ -674,7 +674,7 @@ public class TestPort {
         }
     }
 
-    public static class TestRouterPortCrudSuccess extends JerseyTest {
+    public static class TestRouterPortCrudSuccess extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private Topology topology;
@@ -941,7 +941,7 @@ public class TestPort {
         }
     }
 
-    public static class TestPortLinkSuccess extends JerseyTest {
+    public static class TestPortLinkSuccess extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private Topology topology;
@@ -1111,7 +1111,7 @@ public class TestPort {
     }
 
     public static class TestExteriorBridgePortUpdateSuccess extends
-            JerseyTest {
+            RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private Topology topology;
@@ -1158,7 +1158,7 @@ public class TestPort {
 
     }
 
-    public static class TestPortGroupMembershipSuccess extends JerseyTest {
+    public static class TestPortGroupMembershipSuccess extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private Topology topology;
@@ -1246,7 +1246,7 @@ public class TestPort {
      * Test cases for the port-host-interface bindings can be retrieved from
      * the port side when the bindings are already created in the host side.
      */
-    public static class TestPortHostInterfaceGetSuccess extends JerseyTest {
+    public static class TestPortHostInterfaceGetSuccess extends RestApiTestBase {
         private DtoWebResource dtoResource;
         private Topology topology;
         private HostTopology hostTopology;
