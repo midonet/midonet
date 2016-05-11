@@ -76,7 +76,7 @@ object MacPortMap {
     }
 
     def encodePersistentPath(k :MAC, v :UUID) =
-        encodePath(k, v, Int.MaxValue)
+        encodePath(k, v, ReplicatedMap.PERSISTENT_VERSION)
 
     def encodePath(k :MAC, v :UUID, ver: Int) =
         ReplicatedMap.encodeFullPath(k.toString, v.toString, ver)

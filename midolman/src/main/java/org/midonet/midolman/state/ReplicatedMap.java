@@ -42,6 +42,8 @@ public abstract class ReplicatedMap<K, V> {
 
     protected ZkConnectionAwareWatcher connectionWatcher;
 
+    public static final int PERSISTENT_VERSION = Integer.MAX_VALUE;
+
     /*
      * TODO(pino): don't allow deletes to be lost.
      *
@@ -110,9 +112,17 @@ public abstract class ReplicatedMap<K, V> {
             for (String path : curPaths) {
                 Path p = decodePath(path);
                 MapValue mv = newMap.get(p.key);
-                if (mv == null)
+                if (mv == null) {
                     newMap.put(p.key, new MapValue(p.value, p.version));
-                else if (mv.version < p.version) {
+                } else if (mv.version == PERSISTENT_VERSION) {
+                    // if the current version is persistent, overwrite it
+                    // as learned always take precedence over persistent
+                    newMap.put(p.key, new MapValue(p.value, p.version));
+                } else if (p.version == PERSISTENT_VERSION) {
+                    // new version is persistent, but we already have an
+                    // entry so ignore it, as learned take precedence over
+                    // persistent
+                } else if (mv.version < p.version) {
                     // The one currently in newMap needs to be replaced.
                     // Also clean it up if it belongs to this ZK client.
                     newMap.put(p.key, new MapValue(p.value, p.version));
