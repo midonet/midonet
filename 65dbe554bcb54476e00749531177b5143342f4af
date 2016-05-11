@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d68e52cf",
+        "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/rest_api/RestApiTestBase.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-11T07:24:59Z",
+      "side": 1,
+      "message": "This can still hit a conflict. Math.random doesn\u0027t guarantee uniqueness. Why not have an AtomicInteger and getAndIncrement()?\n\nAlso, there\u0027s the possibility that the port will be used by the operating system for something. You can mitigate this by trying to bind it, and then releasing it.\nSee https://github.com/apache/bookkeeper/blob/master/bookkeeper-server/src/test/java/org/apache/bookkeeper/test/PortManager.java",
+      "revId": "65dbe554bcb54476e00749531177b5143342f4af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
