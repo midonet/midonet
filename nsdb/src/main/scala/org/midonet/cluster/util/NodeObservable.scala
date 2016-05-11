@@ -43,37 +43,85 @@ object NodeObservable {
         val Stopped, Started, Closed = Value
     }
 
+    private val OnCloseDefault = { }
+
     /**
-     * Creates an [[Observable]] that emits updates when the data for a node
-     * at a given path changes. If the connection to storage is lost, the
-     * observable emits a [[NodeObservableDisconnectedException]]. When the
-     * observable is closed by calling the `close()` method, the observable
-     * emits a [[NodeObservableClosedException]].
-     *
-     * The argument specifies whether the observable should
-     * terminate with a [[NoNodeException]] if the node does not exist.
-     *
-     * When `completeOnDelete` is `true`, the observable completes when the
-     * node is deleted. If the node does not exist, then the observable emits a
-     * [[NoNodeException]] error.
-     *
-     * When set to `false`, the observable will install an exists watcher on the
-     * underlying node such that it triggers a notification when the node is
-     * created. If the node does not exist, the observable will emit a `null`
-     * element.
-     */
+      * @see [[NodeObservable.create]] It creates a [[NodeObservable]] with
+      *     a default close handler, that completes on deletion and default
+      *     metrics.
+      */
+    def create(curator: CuratorFramework, path: String): NodeObservable = {
+        create(curator, path, OnCloseDefault, completeOnDelete = true,
+               BlackHoleZoomMetrics)
+    }
+
+    /**
+      * @see [[NodeObservable.create]] It creates a [[NodeObservable]] with
+      *     a default close handler, and default metrics.
+      */
     def create(curator: CuratorFramework, path: String,
-               completeOnDelete: Boolean = true,
-               zoomMetrics: ZoomMetrics = BlackHoleZoomMetrics)
+               completeOnDelete: Boolean)
     : NodeObservable = {
-        new NodeObservable(new OnSubscribeToNode(curator, path,
+        create(curator, path, OnCloseDefault, completeOnDelete,
+               BlackHoleZoomMetrics)
+    }
+
+    /**
+      * @see [[NodeObservable.create]] It creates a [[NodeObservable]] with
+      *     a default close handler.
+      */
+    def create(curator: CuratorFramework, path: String,
+               completeOnDelete: Boolean, zoomMetrics: ZoomMetrics)
+    : NodeObservable = {
+        create(curator, path, OnCloseDefault, completeOnDelete, zoomMetrics)
+    }
+
+    /**
+      * @see [[NodeObservable.create]] It creates a [[NodeObservable]] that
+      *     completes on deletion and default metrics.
+      */
+    def create(curator: CuratorFramework, path: String, onClose: => Unit)
+    : NodeObservable = {
+        create(curator, path, onClose, completeOnDelete = true,
+               BlackHoleZoomMetrics)
+    }
+
+    /**
+      * Creates an [[Observable]] that emits updates when the data for a node
+      * at a given path changes. If the connection to storage is lost, the
+      * observable emits a [[NodeObservableDisconnectedException]]. When the
+      * observable is closed by calling the `close()` method, the observable
+      * emits a [[NodeObservableClosedException]].
+      *
+      * The argument specifies whether the observable should
+      * terminate with a [[NoNodeException]] if the node does not exist.
+      *
+      * When `completeOnDelete` is `true`, the observable completes when the
+      * node is deleted. If the node does not exist, then the observable emits a
+      * [[NoNodeException]] error.
+      *
+      * When set to `false`, the observable will install an exists watcher on
+      * the underlying node such that it triggers a notification when the node
+      * is created. If the node does not exist, the observable will emit a
+      * `null` element.
+      *
+      * The `onClose` function is called when the observable closes its
+      * underlying watcher to storage, either because the observable has no
+      * more subscribers or when the corresponding object was deleted and
+      * `completeOnDelete` is set to `true`.
+      */
+    def create(curator: CuratorFramework, path: String, onClose: => Unit,
+               completeOnDelete: Boolean, zoomMetrics: ZoomMetrics)
+    : NodeObservable = {
+        new NodeObservable(new OnSubscribeToNode(curator, path, onClose,
                                                  completeOnDelete, zoomMetrics))
     }
 }
 
 private[util]
 class OnSubscribeToNode(curator: CuratorFramework, path: String,
-                        completeOnDelete: Boolean, zoomMetrics: ZoomMetrics)
+                        onClose: => Unit, completeOnDelete: Boolean,
+                        zoomMetrics: ZoomMetrics)
     extends OnSubscribe[ChildData] {
 
     private val log = getLogger(s"org.midonet.cluster.zk-node-[$path]")
@@ -248,6 +296,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
             curator.clearWatcherReferences(nodeWatcher)
 
             if (e eq null) subject.onCompleted() else subject.onError(e)
+            onClose
 
             connectionListener = null
             nodeWatcher = null
