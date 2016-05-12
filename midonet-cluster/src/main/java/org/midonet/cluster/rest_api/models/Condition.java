@@ -102,6 +102,14 @@ public class Condition extends UriResource {
     public UUID portGroup;
     @ZoomField(name = "inv_port_group")
     public boolean invPortGroup;
+    @ZoomField(name = "in_port_group_id")
+    public UUID inPortGroup;
+    @ZoomField(name = "inv_in_port_group")
+    public boolean invInPortGroup;
+    @ZoomField(name = "out_port_group_id")
+    public UUID outPortGroup;
+    @ZoomField(name = "inv_out_port_group")
+    public boolean invOutPortGroup;
     @ZoomField(name = "ip_addr_group_id_src")
     public UUID ipAddrGroupSrc;
     @ZoomField(name = "inv_ip_addr_group_id_src")
