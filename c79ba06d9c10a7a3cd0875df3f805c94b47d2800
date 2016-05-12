@@ -16,6 +16,24 @@
       "revId": "c79ba06d9c10a7a3cd0875df3f805c94b47d2800",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5f16d24c",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/CompatibilityTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-12T08:04:50Z",
+      "side": 1,
+      "message": "About 88% of characters produced by random.nextString() are valid Unicode identifier characters, so with ten characters the odds of an empty string are less than one in a billion. And the test passes with empty strings anyway, so it should be fine.",
+      "parentUuid": "baa041b7_ac581e8b",
+      "revId": "c79ba06d9c10a7a3cd0875df3f805c94b47d2800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
