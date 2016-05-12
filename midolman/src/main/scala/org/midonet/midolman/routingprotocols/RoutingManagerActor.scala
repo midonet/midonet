@@ -21,29 +21,33 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor._
+
 import com.google.inject.Inject
+
 import rx.Subscription
 import rx.subscriptions.CompositeSubscription
 
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
-import org.midonet.cluster.data.storage.StateStorage
 import org.midonet.cluster.data.Route
-import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.data.storage.StateStorage
+import org.midonet.cluster.models.Topology.{Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.BgpKey
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.state.RoutingTableStorage._
+import org.midonet.containers.Containers
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.services.SelectLoopService.ZEBRA_SERVER_LOOP
+import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.topology.{Converter, VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
-import org.midonet.util.concurrent.ReactiveActor
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
+import org.midonet.util.concurrent.{ReactiveActor, toFutureOps}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
@@ -98,14 +102,15 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                           with ActorLogWithoutPath {
     import RoutingManagerActor._
 
-    import context.system
-
     override def logSource = "org.midonet.routing.bgp"
 
     private implicit val ec: ExecutionContext = context.system.dispatcher
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
+
+    @Inject
+    var vt: VirtualTopology = null
 
     @Inject
     var config: MidolmanConfig = null
@@ -131,6 +136,9 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     private val activePorts = mutable.Map[UUID, Subscription]()
     private val portHandlers = mutable.Map[UUID, ActorRef]()
 
+    // Pre-load with null == false so we don't have to check for null.
+    private val containerIsQuagga = mutable.Map[UUID, Boolean]((null, false))
+
     @Inject
     var upcallConnManager: UpcallDatapathConnectionManager = null
 
@@ -149,6 +157,16 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
         }
     }
 
+    def isQuaggaContainerPort(port: RouterPort): Boolean = {
+        containerIsQuagga.getOrElseUpdate(port.containerId, {
+            vt.store.get(classOf[ServiceContainer], port.containerId).await()
+                .getServiceType == Containers.QUAGGA_CONTAINER
+        })
+    }
+
+    def isPossibleBgpPort(port: RouterPort): Boolean =
+        port.isExterior || isQuaggaContainerPort(port)
+
     override def receive = {
         case BgpContainerReady(portId) => sendPortActive(portId)
         case LocalPortActive(portId, true) => sendPortActive(portId)
@@ -165,8 +183,9 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                     log.error("Port {} unknown", portId)
             }
 
-        case BgpPort(port,_,_) if port.isExterior && !port.isContainer =>
-            if (activePorts.contains(port.id) &&
+        case BgpPort(port,_,_) =>
+            if (isPossibleBgpPort(port) &&
+                activePorts.contains(port.id) &&
                 !portHandlers.contains(port.id)) {
                 bgpPortIdx += 1
                 val portIndexForHandler = bgpPortIdx
@@ -178,13 +197,12 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                                          flowInvalidator, dpState,
                                          upcallConnManager,
                                          routingStorage, config, zkConnWatcher,
-                                         zebraLoop)).
+                                         zebraLoop, vt,
+                                         isQuaggaContainerPort(port))).
                         withDispatcher("actors.pinned-dispatcher"),
                     name = port.id.toString)
                 portHandlers.put(port.id, portHandler)
             }
-
-        case BgpPort(_,_,_) => // Ignore non-exterior router ports
 
         case OnCompleted => // Ignore completed notifications
 
