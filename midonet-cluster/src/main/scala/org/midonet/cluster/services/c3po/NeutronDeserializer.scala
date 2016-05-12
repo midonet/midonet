@@ -136,6 +136,8 @@ object NeutronDeserializer {
                 toMessage(node, classOf[L2Gateway])
             case "org.midonet.cluster.models.L2Gateway.L2GatewayDevice" =>
                 toMessage(node, classOf[L2GatewayDevice])
+            case "org.midonet.cluster.models.NeutronBgpSpeaker" =>
+                toMessage(node, classOf[NeutronBgpSpeaker])
             case "org.midonet.cluster.models.NeutronFirewallRule" =>
                 toMessage(node, classOf[NeutronFirewallRule])
             case "org.midonet.cluster.models.NeutronHealthMonitor.Pool" =>

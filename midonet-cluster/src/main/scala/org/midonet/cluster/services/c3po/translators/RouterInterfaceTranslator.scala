@@ -22,7 +22,7 @@ import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
@@ -50,6 +50,8 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
             with ChainManager
             with PortManager
             with RuleManager {
+
+    import BgpPeerTranslator._
     import RouterInterfaceTranslator._
 
     /* NeutronRouterInterface is a binding information and has no unique ID.
@@ -113,6 +115,15 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
                                                  rtrPort))
             midoOps += Create(sameSubnetRevSnatRule(rtr.getInboundFilterId,
                                                     rtrPort))
+
+            // Add a BgpNetwork if the router has a BgpPeer associated.
+            if (rtr.getBgpPeerIdsCount > 0 &&
+                storage.exists(classOf[Port],
+                               quaggaPortId(rtr.getId)).await()) {
+                midoOps += Create(
+                    BgpPeerTranslator.makeBgpNetwork(
+                        rtr.getId, ns.getCidr, nPort.getId))
+            }
         }
 
         // Need to do these after the update returned by bindPortOps(), since
