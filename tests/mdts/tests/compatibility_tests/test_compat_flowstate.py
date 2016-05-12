@@ -20,6 +20,7 @@ from mdts.tests.utils.asserts import *
 from mdts.tests.utils.utils import await_port_active
 from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.utils import wait_on_futures
+from mdts.tests.utils import conf
 
 from hamcrest import *
 from nose.tools import with_setup
@@ -192,6 +193,7 @@ def cleanup():
     sandbox.remove_container(agent)
     # Restart sandbox, the --no-recreate flag will spawn only missing containers
     sandbox.restart_sandbox('default_neutron+kilo+compat',
+                            conf.sandbox_name(),
                             'sandbox/override_compat')
     # Reset cached containers and reload them (await for the new agent to be up)
     service.loaded_containers = None

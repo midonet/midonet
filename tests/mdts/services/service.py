@@ -26,6 +26,7 @@ from mdts.tests.utils import conf
 cli = Client(base_url='unix://var/run/docker.sock',
              timeout=conf.docker_http_timeout())
 LOG = logging.getLogger(__name__)
+SANDBOX_PREFIX = "mnsandbox"
 
 
 class Service(object):
@@ -325,11 +326,11 @@ def get_container_by_hostname(container_hostname):
 def get_all_containers(container_type=None, include_failed=False):
     global loaded_containers
 
-    # Load and cache all containers
+    # Load and cache containers associated with the sandbox
     if not loaded_containers:
-        running_containers = cli.containers(all=include_failed)
+        sandbox_containers = _containers_for_sandbox(conf.sandbox_name(), include_failed)
         loaded_containers = {}
-        for container in running_containers:
+        for container in sandbox_containers:
             if 'type' in container['Labels']:
                 current_type = container['Labels']['type']
                 container_instance = load_from_id(container['Id'])
@@ -343,3 +344,13 @@ def get_all_containers(container_type=None, include_failed=False):
         else:
             return []
     return loaded_containers
+
+def _containers_for_sandbox(sandbox_name, include_failed):
+    only_sandbox_containers = lambda container: _is_sandbox_container(sandbox_name, container)
+    containers = cli.containers(all=include_failed)
+    return filter(only_sandbox_containers, containers)
+
+def _is_sandbox_container(sandbox_name, container):
+    container_to_sandbox_name = lambda name: name.replace('/', '')[len(SANDBOX_PREFIX):].split('_')[0]
+    container_sandbox_names = map(container_to_sandbox_name, container['Names'])
+    return sandbox_name in container_sandbox_names

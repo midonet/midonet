@@ -32,3 +32,6 @@ def service_status_timeout():
 
 def docker_http_timeout():
     return conf.getint('sandbox', 'docker_http_timeout')
+
+def sandbox_name():
+    return conf.get('sandbox', 'sandbox_name')
