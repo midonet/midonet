@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ff5006d6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 16
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-05-12T09:23:21Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "baa041b7_7ff636fa",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 69
+      },
+      "revId": "15f80ada4827cac34a76ee598bd78c5921b298f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ff46c64d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 16
