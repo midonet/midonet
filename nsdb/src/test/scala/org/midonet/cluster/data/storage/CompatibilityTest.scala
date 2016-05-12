@@ -20,9 +20,9 @@ import scala.util.Random
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 
-import org.midonet.cluster.models.Topology.{PortGroup, Host}
+import org.midonet.cluster.models.Topology.{Host, PortGroup}
 import org.midonet.cluster.util.ProtobufUtil.protoFromTxt
 import org.midonet.cluster.util.UUIDUtil._
 
@@ -33,7 +33,7 @@ class CompatibilityTest extends FlatSpec with Matchers {
 
     "Host v5.0" should "be readable from current version" in {
         val id = randomUuidProto
-        val name = random.nextString(10)
+        val name = random.nextString(10).filter(_.isUnicodeIdentifierPart)
         val floodingProxyWeight = random.nextInt()
         val tunnelZoneId1 = randomUuidProto
         val tunnelZoneId2 = randomUuidProto
@@ -61,8 +61,8 @@ class CompatibilityTest extends FlatSpec with Matchers {
 
     "Port group v5.0" should "be readable from current version" in {
         val id = randomUuidProto
-        val name = random.nextString(10)
-        val tenantId = random.nextString(10)
+        val name = random.nextString(10).filter(_.isUnicodeIdentifierPart)
+        val tenantId = random.nextString(10).filter(_.isUnicodeIdentifierPart)
         val stateful = random.nextBoolean()
         val portId1 = randomUuidProto
         val portId2 = randomUuidProto
@@ -82,7 +82,7 @@ class CompatibilityTest extends FlatSpec with Matchers {
         portGroup.getName shouldBe name
         portGroup.getTenantId shouldBe tenantId
         portGroup.getStateful shouldBe stateful
-        portGroup.getPortIdsList should contain allOf (portId1, portId2)
+        portGroup.getPortIdsList should contain allOf(portId1, portId2)
     }
 
 }
