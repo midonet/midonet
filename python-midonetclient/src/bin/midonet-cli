@@ -2537,8 +2537,7 @@ class LoadBalancer(ObjectType):
         self.put_attr(Collection(name = 'vip',
                                  element_type = VIP,
                                  list_method = 'get_vips',
-                                 getter = 'get_vip',
-                                 factory_method = 'add_vip'))
+                                 getter = 'get_vip'))
 
     def type_name(self):
         return "lb"
