@@ -16,6 +16,24 @@
       "revId": "d7642055b79a4fe2cb5671d3c5496d8ccd6c2903",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1fe4caa9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-12T11:44:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_5f237256",
+      "revId": "d7642055b79a4fe2cb5671d3c5496d8ccd6c2903",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
