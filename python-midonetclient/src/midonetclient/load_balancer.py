@@ -61,6 +61,3 @@ class LoadBalancer(resource_base.ResourceBase,
 
     def add_pool(self):
         return pool.Pool(self.dto['pools'], {}, self.auth)
-
-    def add_vip(self):
-        return vip.VIP(self.dto['vips'], {}, self.auth)
