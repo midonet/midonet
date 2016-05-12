@@ -22,7 +22,8 @@ import scala.collection.JavaConverters._
 import com.google.inject._
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 
-import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
+import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen}
+import org.scalatest.{Informer, Matchers, OneInstancePerTest}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.InMemoryStorage
@@ -61,6 +62,12 @@ trait MidolmanSpec extends FeatureSpecLike
     val log = LoggerFactory.getLogger(getClass)
     System.setProperty("java.nio.channels.spi.SelectorProvider",
                        classOf[MockSelectorProvider].getName)
+
+    override val info = new Informer() {
+        override def apply(message: String, payload: Option[Any] = None): Unit = {
+            log.info(message)
+        }
+    }
 
     var injector: Injector = null
 
