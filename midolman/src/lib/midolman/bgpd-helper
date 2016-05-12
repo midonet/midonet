@@ -228,6 +228,7 @@ case "$1" in
         remote_vty_ip=$4
         router_ip=$5
         router_mac=$6
+        iface_name=$7
 
         if [ -z "$remote_vty_ip" ] || [ -z "$local_vty_ip" ] ; then
             usage
