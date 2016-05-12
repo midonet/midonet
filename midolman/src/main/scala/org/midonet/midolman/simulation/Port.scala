@@ -16,11 +16,11 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{ArrayList => JArrayList, List => JList, UUID}
+import java.util.{Collections, UUID, ArrayList => JArrayList, List => JList}
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{NoOpStateTable, StateTable}
+import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
@@ -36,7 +36,6 @@ object Port {
     import IPSubnetUtil._
     import UUIDUtil.{fromProto, fromProtoList}
 
-    val EMPTY_PEERING_TABLE: StateTable[MAC, IPv4Addr] = new NoOpStateTable()
     val NO_MIRRORS = new JArrayList[UUID]()
 
     private implicit def jlistToSSet(from: java.util.List[Commons.UUID]): Set[UUID] =
@@ -45,8 +44,8 @@ object Port {
     def apply(proto: Topology.Port,
               infilters: JList[UUID],
               outfilters: JList[UUID],
-              servicePorts: JList[UUID] = new JArrayList[UUID](0),
-              peeringTable: StateTable[MAC, IPv4Addr] = EMPTY_PEERING_TABLE): Port = {
+              servicePorts: JList[UUID] = Collections.emptyList(),
+              peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
             servicePort(proto, infilters)
         else if (proto.hasVtepId)
@@ -141,7 +140,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     def hostId: UUID
     def interfaceName: String
     def adminStateUp: Boolean
-    def portGroups: JArrayList[UUID] = new JArrayList(0)
+    def portGroups: JList[UUID] = Collections.emptyList()
     def isActive: Boolean = false
     def isContainer: Boolean = false
     def deviceId: UUID
@@ -255,20 +254,20 @@ object BridgePort {
 }
 
 class BridgePort(override val id: UUID,
-                 override val inboundFilters: JList[UUID] = new JArrayList(0),
-                 override val outboundFilters: JList[UUID] = new JArrayList(0),
+                 override val inboundFilters: JList[UUID] = Collections.emptyList(),
+                 override val outboundFilters: JList[UUID] = Collections.emptyList(),
                  override val tunnelKey: Long = 0,
                  override val peerId: UUID = null,
                  override val hostId: UUID = null,
                  override val interfaceName: String = null,
                  override val adminStateUp: Boolean = true,
-                 override val portGroups: JArrayList[UUID] = new JArrayList(0),
+                 override val portGroups: JList[UUID] = Collections.emptyList(),
                  override val isActive: Boolean = false,
                  override val vlanId: Short = Bridge.UntaggedVlanId,
                  val networkId: UUID,
-                 override val inboundMirrors: JArrayList[UUID] = NO_MIRRORS,
-                 override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS,
-                 override val servicePorts: JList[UUID] = new JArrayList(0))
+                 override val inboundMirrors: JList[UUID] = Collections.emptyList(),
+                 override val outboundMirrors: JList[UUID] = Collections.emptyList(),
+                 override val servicePorts: JList[UUID] = Collections.emptyList())
         extends Port {
     override def toggleActive(active: Boolean) = new BridgePort(
         id, inboundFilters, outboundFilters, tunnelKey, peerId, hostId,
@@ -294,19 +293,19 @@ class BridgePort(override val id: UUID,
 }
 
 class ServicePort(override val id: UUID,
-                  override val inboundFilters: JList[UUID] = new JArrayList(0),
+                  override val inboundFilters: JList[UUID] = Collections.emptyList(),
                   override val tunnelKey: Long = 0,
                   override val peerId: UUID = null,
                   override val hostId: UUID = null,
                   override val interfaceName: String = null,
                   val realAdminStateUp: Boolean,
-                  override val portGroups: JArrayList[UUID] = new JArrayList(0),
+                  override val portGroups: JList[UUID] = Collections.emptyList(),
                   override val isActive: Boolean = false,
                   override val vlanId: Short = Bridge.UntaggedVlanId,
                   override val networkId: UUID,
-                  override val inboundMirrors: JArrayList[UUID] = NO_MIRRORS,
-                  override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS)
-        extends BridgePort(id, inboundFilters, new JArrayList(0),
+                  override val inboundMirrors: JList[UUID] = Collections.emptyList(),
+                  override val outboundMirrors: JList[UUID] = Collections.emptyList())
+        extends BridgePort(id, inboundFilters, Collections.emptyList(),
                            tunnelKey, peerId, hostId, interfaceName, true,
                            portGroups, isActive, vlanId, networkId,
                            inboundMirrors, outboundMirrors) {
@@ -365,14 +364,14 @@ class ServicePort(override val id: UUID,
 }
 
 case class RouterPort(override val id: UUID,
-                      override val inboundFilters: JList[UUID] = new JArrayList(0),
-                      override val outboundFilters: JList[UUID] = new JArrayList(0),
+                      override val inboundFilters: JList[UUID] = Collections.emptyList(),
+                      override val outboundFilters: JList[UUID] = Collections.emptyList(),
                       override val tunnelKey: Long = 0,
                       override val peerId: UUID = null,
                       override val hostId: UUID = null,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
-                      override val portGroups: JArrayList[UUID] = new JArrayList(0),
+                      override val portGroups: JList[UUID] = Collections.emptyList(),
                       override val isActive: Boolean = false,
                       override val isContainer: Boolean = false,
                       routerId: UUID,
@@ -380,11 +379,11 @@ case class RouterPort(override val id: UUID,
                       portAddress: IPv4Addr,
                       portMac: MAC,
                       routeIds: Set[UUID] = Set.empty,
-                      override val inboundMirrors: JList[UUID] = NO_MIRRORS,
-                      override val outboundMirrors: JList[UUID] = NO_MIRRORS,
+                      override val inboundMirrors: JList[UUID] = Collections.emptyList(),
+                      override val outboundMirrors: JList[UUID] = Collections.emptyList(),
                       vni: Int = 0,
                       tunnelIp: IPv4Addr = null,
-                      peeringTable: StateTable[MAC, IPv4Addr] = Port.EMPTY_PEERING_TABLE)
+                      peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty)
     extends Port {
 
     override val servicePorts: JList[UUID] = new JArrayList(0)
@@ -429,12 +428,12 @@ case class RouterPort(override val id: UUID,
 }
 
 case class VxLanPort(override val id: UUID,
-                     override val inboundFilters: JList[UUID] = new JArrayList(0),
-                     override val outboundFilters: JList[UUID] = new JArrayList(0),
+                     override val inboundFilters: JList[UUID] = Collections.emptyList(),
+                     override val outboundFilters: JList[UUID] = Collections.emptyList(),
                      override val tunnelKey: Long = 0,
                      override val peerId: UUID = null,
                      override val adminStateUp: Boolean = true,
-                     override val portGroups: JArrayList[UUID] = new JArrayList(0),
+                     override val portGroups: JList[UUID] = Collections.emptyList(),
                      networkId: UUID,
                      vtepId: UUID,
                      override val inboundMirrors: JList[UUID] = NO_MIRRORS,
@@ -447,7 +446,7 @@ case class VxLanPort(override val id: UUID,
     override def isExterior = true
     override def isInterior = false
     override def isActive = true
-    override def servicePorts: JList[UUID] = new JArrayList(0)
+    override def servicePorts: JList[UUID] = Collections.emptyList()
 
     protected def device = tryGet[Bridge](networkId)
 
