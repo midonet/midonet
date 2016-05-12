@@ -90,7 +90,7 @@ bgpd_prepare() {
     ip netns add $namespace
 
     echo "Preparing bgpd veth pair"
-    if [ -v iface_name ]; then
+    if [ -n "$iface_name" ]; then
         # If the interface name has been specified in the arguments, use that
         netdev_port_name=$iface_name
         netdev_port_mirror_name=n$iface_name
@@ -228,6 +228,7 @@ case "$1" in
         remote_vty_ip=$4
         router_ip=$5
         router_mac=$6
+        iface_name=$7
 
         if [ -z "$remote_vty_ip" ] || [ -z "$local_vty_ip" ] ; then
             usage
