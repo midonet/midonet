@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_ff46c64d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-12T08:25:36Z",
+      "side": 1,
+      "message": "We should cache this, such that we don\u0027t go to storage for every update of a port. I\u0027m fine to do this in a later patch if it turns to be a perf issue.",
+      "range": {
+        "startLine": 159,
+        "startChar": 11,
+        "endLine": 161,
+        "endChar": 67
+      },
+      "revId": "15f80ada4827cac34a76ee598bd78c5921b298f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
