@@ -23,10 +23,12 @@ import scala.collection.JavaConversions._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, Drop, SimulationResult}
+import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.{Condition, RuleResult}
+import org.midonet.midolman.simulation.PacketEmitter.{GeneratedLogicalPacket, GeneratedPacket}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
@@ -34,6 +36,8 @@ import org.midonet.packets.util.PacketBuilder._
 
 @RunWith(classOf[JUnitRunner])
 class BridgeSimulationTest extends MidolmanSpec {
+
+    private var vt: VirtualTopology =_
 
     private var port1OnHost1: UUID = _
     private var port2OnHost1: UUID = _
@@ -52,6 +56,9 @@ class BridgeSimulationTest extends MidolmanSpec {
     val port2OnHost1Mac = "0a:fe:88:70:33:ab"
 
     override def beforeTest(): Unit ={
+
+        vt = injector.getInstance(classOf[VirtualTopology])
+
         val tunnelZone = greTunnelZone("default")
 
         val host1 = newHost("host1", hostId)
@@ -189,6 +196,70 @@ class BridgeSimulationTest extends MidolmanSpec {
         verifyMacLearned(srcMac, port1OnHost1)
     }
 
+    scenario("ARP for peer router port") {
+        Given("A source and destination endpoint")
+        val srcMac = MAC.fromString("0a:fe:88:90:22:33")
+        val dstMac = MAC.fromString("0a:fe:88:90:22:43")
+        val srcIp = IPv4Addr("10.10.10.11")
+        val dstIp = IPv4Subnet.fromCidr("10.11.11.13/24")
+
+        And("A new bridge port peered to a router port")
+        val router = newRouter("router")
+        val routerPort = newRouterPort(router, dstMac, dstIp)
+        val bridgePort = newBridgePort(bridge)
+        linkPorts(bridgePort, routerPort)
+
+        And("An ARP packet from source to destination")
+        val ethPkt = { eth src srcMac dst eth_bcast } <<
+                        { arp.req.mac(srcMac -> eth_bcast)
+                            .ip(srcIp --> dstIp.getAddress) }
+        ethPkt.setVlanIDs(networkVlans)
+
+        When("Requesting the updated bridge")
+        VirtualTopology.clear()
+        bridgeDevice = fetchDevice[Bridge](bridge)
+
+        And("Simulating the packet")
+        val generatedPackets = new java.util.LinkedList[GeneratedPacket]()
+        val (pktCtx, action) = simulateDevice(bridgeDevice, ethPkt,
+                                              port1OnHost1, generatedPackets)
+
+        Then("The bridge should generate an ARP response")
+        verifyGeneratedArp(generatedPackets, action, pktCtx, port1OnHost1,
+                           dstMac, srcMac, dstIp.getAddress, srcIp)
+    }
+
+    scenario("ARP for pre-seeded MAC") {
+        Given("A source and destination endpoint")
+        val srcMac = MAC.fromString("0a:fe:88:90:22:33")
+        val dstMac = MAC.fromString("0a:fe:88:90:22:44")
+        val srcIp = IPv4Addr("10.10.10.11")
+        val dstIp = IPv4Addr("10.11.11.14")
+
+        And("The destination IP-MAC are preseeded at the bridge")
+        vt.state.bridgeIp4MacMap(bridgeDevice.id)
+                .putPersistent(dstIp, dstMac)
+
+        And("An ARP packet from source to destination")
+        val ethPkt = { eth src srcMac dst eth_bcast } <<
+                         { arp.req.mac(srcMac -> eth_bcast)
+                             .ip(srcIp --> dstIp) }
+        ethPkt.setVlanIDs(networkVlans)
+
+        When("Requesting the updated bridge")
+        VirtualTopology.clear()
+        bridgeDevice = fetchDevice[Bridge](bridge)
+
+        And("Simulating the packet")
+        val generatedPackets = new java.util.LinkedList[GeneratedPacket]()
+        val (pktCtx, action) = simulateDevice(bridgeDevice, ethPkt,
+                                              port1OnHost1, generatedPackets)
+
+        Then("The bridge should generate an ARP response")
+        verifyGeneratedArp(generatedPackets, action, pktCtx, port1OnHost1,
+                           dstMac, srcMac, dstIp, srcIp)
+    }
+
     scenario("broadcast arp on bridge") {
         val srcMac = "0a:fe:88:90:22:33"
         val ethPkt = { eth src srcMac dst eth_bcast } <<
@@ -291,6 +362,25 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         action should be (AddVirtualWildcardFlow)
         actualPorts should be (expectedPorts)
+    }
+
+    private def verifyGeneratedArp(generatedPackets: java.util.LinkedList[GeneratedPacket],
+                                   action: SimulationResult, ctx: PacketContext,
+                                   port: UUID, srcMac: MAC, dstMac: MAC,
+                                   srcIp: IPv4Addr, dstIp: IPv4Addr): Unit = {
+        val generatedPacket =
+            generatedPackets.getFirst.asInstanceOf[GeneratedLogicalPacket]
+        generatedPacket.egressPort shouldBe port
+        generatedPacket.eth.getSourceMACAddress shouldBe srcMac
+        generatedPacket.eth.getDestinationMACAddress shouldBe dstMac
+
+        val generatedArp = generatedPacket.eth.getPayload.asInstanceOf[ARP]
+        generatedArp.getSenderHardwareAddress shouldBe srcMac
+        generatedArp.getTargetHardwareAddress shouldBe dstMac
+        generatedArp.getSenderProtocolAddress shouldBe srcIp.toBytes
+        generatedArp.getTargetProtocolAddress shouldBe dstIp.toBytes
+
+        action shouldBe NoOp
     }
 }
 
