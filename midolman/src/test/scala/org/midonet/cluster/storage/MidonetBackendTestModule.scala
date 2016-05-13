@@ -19,6 +19,7 @@ import com.typesafe.config.Config
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.state.ConnectionState
 import org.mockito.Mockito._
+import org.reflections.Reflections
 import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
@@ -48,6 +49,7 @@ class MidonetTestBackend extends MidonetBackend {
     private val mockCurator: CuratorFramework = mock(classOf[CuratorFramework])
     val connectionState =
         BehaviorSubject.create[ConnectionState](ConnectionState.CONNECTED)
+    val reflections = Some(new Reflections("midonet.org"))
 
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
@@ -61,7 +63,7 @@ class MidonetTestBackend extends MidonetBackend {
         connectionState.asObservable()
 
     override def doStart(): Unit = {
-        MidonetBackend.setupBindings(store, stateStore)
+        MidonetBackend.setupBindings(store, stateStore, reflections)
         notifyStarted()
     }
 
@@ -74,7 +76,7 @@ object MidonetBackendTestModule {
 
 /** Provides all dependencies for the new backend, using a FAKE zookeeper. */
 class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
-    extends MidonetBackendModule(new MidonetBackendConfig(cfg)) {
+    extends MidonetBackendModule(new MidonetBackendConfig(cfg), None) {
 
     override protected def bindCuratorFramework() = {
         val curator = mock(classOf[CuratorFramework])
