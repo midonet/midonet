@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3395853e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-13T10:03:07Z",
+      "side": 1,
+      "message": "I\u0027m missing context here (it\u0027s missing from the jira too). I recall that the loadbalancer model changed between 1.9 and 5.0, but what was that change? Why is it still value to get_vips for a lb but not to add one?",
+      "revId": "817e89e9886f1c74b63738c8e2596a022b47d88d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
