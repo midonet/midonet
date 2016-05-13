@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.{Message, TextFormat}
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
@@ -44,15 +45,17 @@ import org.apache.zookeeper.OpResult.ErrorResult
 import org.apache.zookeeper._
 import org.apache.zookeeper.data.Stat
 import org.slf4j.LoggerFactory
+
 import rx.Notification._
+import rx.Observable.OnSubscribe
 import rx.functions.Func1
-import rx.{Notification, Observable}
+import rx.{Notification, Observable, Subscriber}
 
 import org.midonet.cluster.data.storage.CuratorUtil._
-import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
-import org.midonet.cluster.util.{PathCacheClosedException, NodeObservable, NodeObservableClosedException}
+import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException, PathCacheClosedException}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeFunc1
@@ -127,13 +130,15 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         new NamedThreadFactory("zoom", isDaemon = true))
     private implicit val executionContext = fromExecutorService(executor)
 
+    private val objectObservableRef = new AtomicLong()
+
     private val simpleNameToClass = new mutable.HashMap[String, Class[_]]()
     private val objectObservables = new TrieMap[Key, ObjectObservable]
     private val classObservables = new TrieMap[Class[_], ClassObservable]
 
     /* Functions and variables to expose metrics using JMX in class
        ZoomMetrics. */
-    override implicit private[storage] val metrics = metricsRegistry match {
+    implicit protected override val metrics = metricsRegistry match {
         case null => BlackHoleZoomMetrics
         case registry => new JmxZoomMetrics(this, registry)
     }
@@ -141,16 +146,22 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     curator.getConnectionStateListenable
            .addListener(metrics.zkConnectionStateListener())
 
-    private[storage] def objectObservableCount: Int =
-        objectObservables.values.count(_.node.isStarted)
-    private[storage] def classObservableCount: Int =
+    private[storage] def totalObjectObservableCount: Int =
+        objectObservables.size
+    private[storage] def totalClassObservableCount: Int =
+        classObservables.size
+
+    private[storage] def startedObjectObservableCount: Int =
+        objectObservables.values.count(_.nodeObservable.isStarted)
+    private[storage] def startedClassObservableCount: Int =
         classObservables.values.count(_.cache.isStarted)
+
     private[storage] def objectObservableCounters: Map[Class[_], Int] = {
         val map = new mutable.HashMap[Class[_], Int]
         val it = objectObservables.iterator
         while (it.hasNext) {
             val (key, obs) = it.next()
-            if (obs.node.isStarted) {
+            if (obs.nodeObservable.isStarted) {
                 map(key.clazz) = map.getOrElse(key.clazz, 0) + 1
             }
         }
@@ -617,26 +628,50 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         new ZoomTransactionManager(version.longValue())
     }
 
+    /**
+      * @see [[Storage.observable()]]
+      */
     @throws[ServiceUnavailableException]
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
 
+        Observable.create(new OnSubscribe[T] {
+            override def call(child: Subscriber[_ >: T]): Unit = {
+                // Only request and subscribe to the internal, cache-able
+                // observable when a child subscribes.
+                internalObservable[T](clazz, id) subscribe child
+            }
+        })
+    }
+
+    /**
+      * Returns a cache-able, recoverable observable for the specified object.
+      * If an observable for the object already exists in the cache, then
+      * the method returns the same observable. Otherwise, the method creates
+      * a new [[NodeObservable]] with an error handler and caches it, where the
+      * close handler removes it from the cache.
+      */
+    private def internalObservable[T](clazz: Class[T], id: ObjId)
+    : Observable[T] = {
         val key = Key(clazz, getIdString(clazz, id))
         val path = objectPath(clazz, id)
 
         objectObservables.getOrElse(key, {
-            val nodeObs = NodeObservable.create(curator, path,
-                                                completeOnDelete = true,
-                                                metrics)
-            val objObs = nodeObs
+            val ref = objectObservableRef.getAndIncrement()
+
+            val nodeObservable = NodeObservable.create(
+                curator, path, completeOnDelete = true, metrics, {
+                    objectObservables.remove(key, ObjectObservable(ref))
+                })
+
+            val objectObservable = nodeObservable
                 .map[Notification[T]](deserializerOf(clazz))
                 .dematerialize().asInstanceOf[Observable[T]]
                 .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
                     case e: NodeObservableClosedException =>
                         metrics.count(e)
-                        objectObservables.remove(key, ObjectObservable(nodeObs))
-                        observable(clazz, id)
+                        internalObservable(clazz, id)
                     case e: NoNodeException =>
                         metrics.count(e)
                         Observable.error(new NotFoundException(clazz, id))
@@ -644,9 +679,11 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                         metrics.count(e)
                         Observable.error(e)
                 }))
-            val entry = ObjectObservable(nodeObs, objObs)
+
+            val entry = ObjectObservable(ref, nodeObservable, objectObservable)
+
             objectObservables.putIfAbsent(key, entry).getOrElse(entry)
-        }).obj.asInstanceOf[Observable[T]]
+        }).objectObservable.asInstanceOf[Observable[T]]
     }
 
     /**
@@ -725,17 +762,18 @@ object ZookeeperObjectMapper {
         def idOf(obj: Obj) = idField.get(obj)
     }
 
-    private[storage] case class ObjectObservable(node: NodeObservable,
-                                                 obj: Observable[_] = null) {
+    private case class ObjectObservable(ref: Long,
+                                        nodeObservable: NodeObservable = null,
+                                        objectObservable: Observable[_] = null) {
         override def equals(other: Any): Boolean = other match {
-            case o: ObjectObservable => o.node eq node
+            case o: ObjectObservable => o.ref == ref
             case _ => false
         }
-        override def hashCode: Int = node.hashCode
+        override def hashCode: Int = ref.hashCode
     }
 
-    private[storage] case class ClassObservable(cache: ClassSubscriptionCache[_],
-                                                clazz: Observable[_] = null) {
+    private case class ClassObservable(cache: ClassSubscriptionCache[_],
+                                       clazz: Observable[_] = null) {
         override def equals(other: Any): Boolean = other match {
             case o: ClassObservable => o.cache eq cache
             case _ => false
