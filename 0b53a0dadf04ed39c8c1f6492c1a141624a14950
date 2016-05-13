@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0c7b83f6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-13T15:23:55Z",
+      "side": 1,
+      "message": "it\u0027d be better to match on pMatch.getNetworkProto.shortValue as we did before. We get the match for free from ovs, whereas we have to construct the packet structure outselves, and for most cases it\u0027s probably unnecessary.",
+      "range": {
+        "startLine": 392,
+        "startChar": 8,
+        "endLine": 392,
+        "endChar": 35
+      },
+      "revId": "0b53a0dadf04ed39c8c1f6492c1a141624a14950",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0c2dc3fd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-13T15:23:55Z",
+      "side": 1,
+      "message": "can this ever be null? we had a nullcheck before.",
+      "range": {
+        "startLine": 415,
+        "startChar": 43,
+        "endLine": 415,
+        "endChar": 52
+      },
+      "revId": "0b53a0dadf04ed39c8c1f6492c1a141624a14950",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
