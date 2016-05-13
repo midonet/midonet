@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import scala.util.control.NonFatal
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
-
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.ClientCnxn
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
@@ -41,14 +41,16 @@ import org.midonet.packets.{IPv4Addr, MAC}
   * backends that exist within a deployment.  It should not include any
   * dependencies linked to any specific service or component. */
 class MidonetBackendModule(val conf: MidonetBackendConfig,
+                           reflections: Option[Reflections],
                            metricRegistry: MetricRegistry = new MetricRegistry)
     extends AbstractModule {
 
     private val log = LoggerFactory.getLogger("org.midonet.nsdb")
     configureClientBuffer()
 
-    def this(config: Config, metricRegistry: MetricRegistry) =
-        this(new MidonetBackendConfig(config), metricRegistry)
+    def this(config: Config, reflections: Option[Reflections],
+             metricRegistry: MetricRegistry) =
+        this(new MidonetBackendConfig(config), reflections, metricRegistry)
 
     override def configure(): Unit = {
         val curator =  bindCuratorFramework()
@@ -66,7 +68,7 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
     protected def backend(curatorFramework: CuratorFramework,
                           failFastCurator: CuratorFramework): MidonetBackend = {
         new MidonetBackendService(conf, curatorFramework, failFastCurator,
-                                  metricRegistry) {
+                                  metricRegistry, reflections) {
             protected override def setup(storage: StateTableStorage): Unit = {
                 // Setup state tables (note: we do this here because the tables
                 // backed by the replicated maps are not available to the nsdb

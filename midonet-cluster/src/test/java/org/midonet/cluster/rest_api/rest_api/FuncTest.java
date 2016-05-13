@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,7 +156,8 @@ public class FuncTest {
 
             MidonetBackendService backend =
                 new MidonetBackendService(cfg.backend(), curator, curator,
-                                          null /* metricRegistry */) {
+                                          null /* metricRegistry */,
+                                          scala.Option.apply(null)) {
                     @Override
                     public void setup(StateTableStorage storage) {
                         storage.registerTable(
