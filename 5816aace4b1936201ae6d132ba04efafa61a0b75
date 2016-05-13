@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b396353d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-13T12:50:47Z",
+      "side": 1,
+      "message": "Yes, they are: replaced.",
+      "parentUuid": "baa041b7_735b0df7",
+      "range": {
+        "startLine": 409,
+        "startChar": 37,
+        "endLine": 409,
+        "endChar": 65
+      },
+      "revId": "5816aace4b1936201ae6d132ba04efafa61a0b75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_136ba186",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-05-13T09:33:35Z",
       "side": 1,
       "message": "I think it\u0027s just this you need to modify. ipToMac obviously contains the mac, so why not just send an arp reply with that.",
+      "range": {
+        "startLine": 440,
+        "startChar": 15,
+        "endLine": 440,
+        "endChar": 37
+      },
+      "revId": "5816aace4b1936201ae6d132ba04efafa61a0b75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d391b948",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-13T12:50:47Z",
+      "side": 1,
+      "message": "Changed the code above to check for both the peer port mac table and the bridge IP-MAC table. If any is hit during a request, we generate the response, and complete the simulation.\n\nOtherwise, use the generic ARP handling here where:\n- unicast to the peer router port, or\n- handle GARP, or\n- flood",
+      "parentUuid": "baa041b7_136ba186",
       "range": {
         "startLine": 440,
         "startChar": 15,
