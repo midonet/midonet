@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,7 +195,8 @@ public class Midolman {
         MetricRegistry metricRegistry = new MetricRegistry();
 
         injector = Guice.createInjector(
-            new MidonetBackendModule(config.zookeeper(), metricRegistry),
+            new MidonetBackendModule(config.zookeeper(),
+                                     scala.Option.apply(null), metricRegistry),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new LegacyClusterModule()
