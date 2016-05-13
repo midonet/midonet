@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b3dab54a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-13T10:00:31Z",
+      "side": 1,
+      "message": "The logger for the backend is \"org.midonet.nsdb\"",
+      "range": {
+        "startLine": 51,
+        "startChar": 29,
+        "endLine": 51,
+        "endChar": 78
+      },
+      "revId": "d1f11d6c17c102adb209cbc137df764c1601a87d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f3ecbdf4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-13T10:00:31Z",
+      "side": 1,
+      "message": "storage initializing",
+      "range": {
+        "startLine": 295,
+        "startChar": 41,
+        "endLine": 295,
+        "endChar": 49
+      },
+      "revId": "d1f11d6c17c102adb209cbc137df764c1601a87d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_53ea49dc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-13T10:00:31Z",
+      "side": 1,
+      "message": "Reflections doesn\u0027t work well with more than one instance per JVM. You must use the reflections provided by Guice.",
+      "range": {
+        "startLine": 297,
+        "startChar": 8,
+        "endLine": 297,
+        "endChar": 42
+      },
+      "revId": "d1f11d6c17c102adb209cbc137df764c1601a87d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_13f041c8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-13T10:00:31Z",
+      "side": 1,
+      "message": "You should use an interface/trait here rather than hard-coding it like this using reflection.",
+      "range": {
+        "startLine": 308,
+        "startChar": 15,
+        "endLine": 313,
+        "endChar": 68
+      },
+      "revId": "d1f11d6c17c102adb209cbc137df764c1601a87d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_53d12922",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-13T10:00:31Z",
+      "side": 1,
+      "message": "s\"Initialize storage from class $zi\"\n- use string interpolation",
+      "range": {
+        "startLine": 314,
+        "startChar": 26,
+        "endLine": 314,
+        "endChar": 55
+      },
+      "revId": "d1f11d6c17c102adb209cbc137df764c1601a87d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_33cea582",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-13T10:00:31Z",
+      "side": 1,
+      "message": "warn and rephrase message as above",
+      "range": {
+        "startLine": 317,
+        "startChar": 24,
+        "endLine": 317,
+        "endChar": 29
+      },
+      "revId": "d1f11d6c17c102adb209cbc137df764c1601a87d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
