@@ -18,20 +18,24 @@ package org.midonet.cluster.services
 
 import java.util.UUID
 
+import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
-
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.AbstractService
+import com.typesafe.scalalogging.Logger
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.apache.curator.framework.state.ConnectionState
+import org.reflections.Reflections
+import org.reflections.util.{ClasspathHelper, ConfigurationBuilder, FilterBuilder}
+import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 import rx.Observable
-
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
@@ -39,9 +43,11 @@ import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
 import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.conf.HostIdGenerator
 import org.midonet.util.eventloop.{Reactor, TryCatchReactor}
-
+import org.reflections.scanners.SubTypesScanner
 
 object MidonetBackend {
+
+    private val log = getLogger("org.midonet.nsdb")
 
     /** Indicates whether the [[MidonetBackend]] instance is used by cluster,
       * in which case the state path uses a unique host identifier. */
@@ -66,7 +72,9 @@ object MidonetBackend {
     final val PeeringTable = "peering_table"
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
-      * supported by MidoNet. */
+      * supported by MidoNet core. It also executes a provided setup function
+      * and search the classpath for classes annotated with @ZoomInit and runs
+      * their setup methods.*/
     final def setupBindings(store: Storage, stateStore: StateStorage,
                             setup: () => Unit = () => {})
     : Unit = {
@@ -269,7 +277,42 @@ object MidonetBackend {
                              classOf[Port], "remote_mac_entry_ids", CLEAR)
 
         setup()
+
+        setupFromClasspath(store, stateStore)
+
         store.build()
+    }
+
+    /** This method allows hooks to be inserted in the classpath, so that setup
+      * code can be executed before the midonet backend is built. Such hook
+      * classes must implement ZoomInitializer and be annotated with @ZoomInit.
+      * To reduce the time spent scanning the classpath, the name of those
+      * classes must have the prefix ZoomInit. */
+    final def setupFromClasspath(store: Storage, stateStore: StateStorage)
+    : Unit = {
+        log.info("Scanning classpath for storage initializing hooks...")
+
+        val reflections = new Reflections(
+            new ConfigurationBuilder()
+            .filterInputsBy(
+                new FilterBuilder().include("org\\.midonet\\..*\\.ZoomInit.*")
+            )
+            .setUrls(ClasspathHelper.forClassLoader())
+        )
+
+        val zoomIniters = reflections.getTypesAnnotatedWith(classOf[ZoomInit])
+
+        zoomIniters.foreach{ zi => try {
+                val zoomIniterObj = zi.getConstructors()(0)
+                    .newInstance()
+                    .asInstanceOf[ZoomInitializer]
+                zoomIniterObj.setup(store, stateStore)
+                log.info(s"Initialize storage from class $zi")
+            } catch {
+                case NonFatal(e) =>
+                    log.warn(s"Could not initialize storage from class $zi", e)
+            }
+        }
     }
 
 }
