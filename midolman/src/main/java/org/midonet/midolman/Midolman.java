@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -194,15 +195,18 @@ public class Midolman {
         MidolmanConfig config = createConfig(configurator);
         MetricRegistry metricRegistry = new MetricRegistry();
 
+        Reflections reflections = new Reflections("org.midonet");
         injector = Guice.createInjector(
-            new MidonetBackendModule(config.zookeeper(), metricRegistry),
+            new MidonetBackendModule(config.zookeeper(),
+                                     scala.Option.apply(reflections),
+                                     metricRegistry),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new LegacyClusterModule()
         );
 
         injector = injector.createChildInjector(
-            new MidolmanModule(injector, config, metricRegistry));
+            new MidolmanModule(injector, config, metricRegistry, reflections));
 
         // start the services
         injector.getInstance(MidonetBackend.class)
