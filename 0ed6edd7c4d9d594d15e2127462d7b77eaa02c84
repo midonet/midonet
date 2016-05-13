@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f8bffca7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-05-13T00:44:37Z",
+      "side": 1,
+      "message": "To synchronize with other BGP operations, it would be better to make this function send a new msg to the routing handler actor. This way we don\u0027t have to worry about this happening concurrently with another bgpd restart.\n\nAlso, if we can assign the addresses inside of \"startBgpd\" (after the prepareBgpd call), then we don\u0027t have to worry about getting this observer\u0027s update before the bgpd environment has been prepared.\n\nLastly, we should only restart bgpd if it was alive to begin with.",
+      "range": {
+        "startLine": 215,
+        "startChar": 29,
+        "endLine": 215,
+        "endChar": 35
+      },
+      "revId": "0ed6edd7c4d9d594d15e2127462d7b77eaa02c84",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
