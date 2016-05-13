@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package org.midonet.cluster.services.topology
 
 import java.util.concurrent.CountDownLatch
 
-import com.google.common.util.concurrent.Service.{State, Listener}
+import com.google.common.util.concurrent.Service.{Listener, State}
 import com.google.inject.{AbstractModule, Guice, Singleton}
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.{ClusterConfig, topologyApiLog}
@@ -47,8 +48,9 @@ object TopologyApiServiceApp extends App {
         }
     }
 
+    val reflections = Some(new Reflections("org.midonet"))
     protected[cluster] val injector = Guice.createInjector(
-        new MidonetBackendModule(config.backend),
+        new MidonetBackendModule(config.backend, reflections),
         topologyApiServiceModule
     )
 
