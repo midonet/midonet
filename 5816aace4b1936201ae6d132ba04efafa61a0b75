@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_735b0df7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-13T09:33:35Z",
+      "side": 1,
+      "message": "aren\u0027t these the same as the NetworkDstIp and NetworkSrcIp in the flow match?",
+      "range": {
+        "startLine": 409,
+        "startChar": 37,
+        "endLine": 409,
+        "endChar": 65
+      },
+      "revId": "5816aace4b1936201ae6d132ba04efafa61a0b75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_136ba186",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-13T09:33:35Z",
+      "side": 1,
+      "message": "I think it\u0027s just this you need to modify. ipToMac obviously contains the mac, so why not just send an arp reply with that.",
+      "range": {
+        "startLine": 440,
+        "startChar": 15,
+        "endLine": 440,
+        "endChar": 37
+      },
+      "revId": "5816aace4b1936201ae6d132ba04efafa61a0b75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
