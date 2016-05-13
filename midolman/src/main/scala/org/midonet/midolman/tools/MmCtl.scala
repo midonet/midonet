@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,11 @@ import scala.util.{Failure, Success, Try}
 import com.google.inject.{Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
 import org.apache.commons.cli._
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, StateAccessException}
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Topology
@@ -187,7 +188,7 @@ object MmCtl {
     def getInjector: Injector = {
         val configurator = MidoNodeConfigurator.apply(LegacyConfFilePath)
         val config = new MidonetBackendConfig(configurator.runtimeConfig)
-        Guice.createInjector(new MidonetBackendModule(config),
+        Guice.createInjector(new MidonetBackendModule(config, None),
                              new ZookeeperConnectionModule(
                                  classOf[ZookeeperConnectionWatcher]),
                              new SerializationModule,
