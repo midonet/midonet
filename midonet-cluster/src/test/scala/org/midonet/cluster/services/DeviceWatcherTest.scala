@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ class DeviceWatcherTest extends FunSuite with BeforeAndAfter with
 
     before {
         store = new InMemoryStorage
-        MidonetBackend.setupBindings(store, store)
+        MidonetBackend.setupBindings(store, store, None)
     }
 
     test("It receives and ignores issues according to subscriptions status") {

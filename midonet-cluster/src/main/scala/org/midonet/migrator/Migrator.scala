@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,7 +209,7 @@ object Migrator extends App {
                     .asEagerSingleton()
 
                 install(new LegacyClusterModule)
-                install(new MidonetBackendModule(makeConfig))
+                install(new MidonetBackendModule(makeConfig, None))
                 install(new SerializationModule)
 
                 if (!legacy) {

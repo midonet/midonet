@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         val executor = new SameThreadButAfterExecutorService
         val log = Logger(LoggerFactory.getLogger("containers"))
         store = new InMemoryStorage
-        MidonetBackend.setupBindings(store, store)
+        MidonetBackend.setupBindings(store, store, None)
         context = Context(store, store, executor, Schedulers.from(executor), log)
         beforeTest()
     }
