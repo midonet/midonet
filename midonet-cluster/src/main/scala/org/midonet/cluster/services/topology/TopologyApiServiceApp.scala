@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ object TopologyApiServiceApp extends App {
     }
 
     protected[cluster] val injector = Guice.createInjector(
-        new MidonetBackendModule(config.backend),
+        new MidonetBackendModule(config.backend, None),
         topologyApiServiceModule
     )
 

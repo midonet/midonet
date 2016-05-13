@@ -18,6 +18,7 @@ package org.midonet.cluster.services
 
 import java.util.UUID
 
+import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
@@ -25,6 +26,7 @@ import com.google.common.util.concurrent.AbstractService
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.apache.curator.framework.state.ConnectionState
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory.getLogger
 import rx.Observable
 
@@ -32,6 +34,7 @@ import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWat
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
@@ -40,8 +43,9 @@ import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.conf.HostIdGenerator
 import org.midonet.util.eventloop.{Reactor, TryCatchReactor}
 
-
 object MidonetBackend {
+
+    private val log = getLogger("org.midonet.nsdb")
 
     /** Indicates whether the [[MidonetBackend]] instance is used by cluster,
       * in which case the state path uses a unique host identifier. */
@@ -66,7 +70,10 @@ object MidonetBackend {
     final val PeeringTable = "peering_table"
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
-      * supported by MidoNet. */
+      * supported by MidoNet core. It also executes a provided setup function
+      * and, if a Reflections object is provided, this method searches the
+      * classpath for subclasses of ZoomInitializer which are also annotated
+      * with @ZoomInit and runs their setup methods. */
     final def setupBindings(store: Storage, stateStore: StateStorage,
                             setup: () => Unit = () => {})
     : Unit = {
@@ -269,7 +276,32 @@ object MidonetBackend {
                              classOf[Port], "remote_mac_entry_ids", CLEAR)
 
         setup()
+        
         store.build()
+    }
+
+    /** This method allows hooks to be inserted in the classpath, so that setup
+      * code can be executed before the midonet backend is built. Such hook
+      * classes must implement ZoomInitializer and have the @ZoomInit
+      * annotation. */
+    final def setupFromClasspath(store: Storage, stateStore: StateStorage,
+                                 reflections: Reflections): Unit = {
+        log.info("Scanning classpath for storage initializing hooks...")
+
+        val zoomIniters = reflections.getSubTypesOf(classOf[ZoomInitializer])
+
+        zoomIniters.filter(_.getAnnotation(classOf[ZoomInit]) != null)
+            .foreach{ zi => try {
+                val zoomIniterObj = zi.getConstructors()(0)
+                    .newInstance()
+                    .asInstanceOf[ZoomInitializer]
+                zoomIniterObj.setup(store, stateStore)
+                log.info(s"Initialize storage from $zi")
+            } catch {
+                case NonFatal(e) =>
+                    log.warn(s"Could not initialize storage from $zi", e)
+            }
+        }
     }
 
 }
@@ -307,8 +339,11 @@ abstract class MidonetBackend extends AbstractService {
 class MidonetBackendService(config: MidonetBackendConfig,
                             override val curator: CuratorFramework,
                             override val failFastCurator: CuratorFramework,
-                            metricRegistry: MetricRegistry)
+                            metricRegistry: MetricRegistry,
+                            reflections: Option[Reflections])
     extends MidonetBackend {
+
+    import MidonetBackend.setupFromClasspath
 
     private val log = getLogger("org.midonet.nsdb")
 
@@ -345,7 +380,10 @@ class MidonetBackendService(config: MidonetBackendConfig,
             }
             notifyStarted()
             log.info("Setting up storage bindings")
-            MidonetBackend.setupBindings(zoom, zoom, () => setup(zoom))
+            MidonetBackend.setupBindings(zoom, zoom, () => {
+                setup(zoom)
+                reflections.foreach(setupFromClasspath(zoom, zoom, _))
+            })
         } catch {
             case NonFatal(e) =>
                 log.error("Failed to start backend service", e)
