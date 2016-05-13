@@ -30,7 +30,6 @@ import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, L2Insertion}
 import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
-import org.midonet.midolman.simulation.Port.EMPTY_PEERING_TABLE
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc4}
 
 /**
@@ -73,7 +72,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt, log)
     private val l2insertionsTracker =
         new StoreObjectReferenceTracker[L2Insertion](vt, log)
-    private var peeringTable: StateTable[MAC, IPv4Addr] = EMPTY_PEERING_TABLE
+    private var peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty
 
     private lazy val combinator =
         makeFunc4[Boolean, Option[UUID], JList[UUID],
@@ -148,7 +147,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             portStateSubject onNext hostId.asNullableString
         }
 
-        if (port.hasVni && (peeringTable eq EMPTY_PEERING_TABLE)) {
+        if (port.hasVni && (peeringTable eq StateTable.empty)) {
             val id = fromProto(port.getId)
             peeringTable = vt.stateTables.routerPortPeeringTable(id)
             peeringTable.start()
@@ -172,9 +171,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     }
 
     private def topologyPortDeleted(): Unit = {
-        if (peeringTable ne EMPTY_PEERING_TABLE) {
+        if (peeringTable ne StateTable.empty) {
             peeringTable.stop()
-            peeringTable = EMPTY_PEERING_TABLE
+            peeringTable = StateTable.empty
         }
         portStateSubject.onCompleted()
         completeTraceChain()

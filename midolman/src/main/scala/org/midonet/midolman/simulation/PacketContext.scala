@@ -17,6 +17,7 @@
 package org.midonet.midolman.simulation
 
 import java.lang.{Integer => JInteger}
+import java.util
 import java.util.{Arrays, ArrayList, UUID}
 
 import scala.collection.JavaConversions._
@@ -344,7 +345,7 @@ class PacketContext(val cookie: Long,
 
     def jlog = log.underlying
 
-    var portGroups: ArrayList[UUID] = null
+    var portGroups: util.List[UUID] = null
 
     var idle: Boolean = true
     var runs: Int = 0

@@ -24,6 +24,32 @@ object StateTable {
 
     case class Update[K, V](key: K, oldValue: V, newValue: V)
 
+    def empty[K, V]: StateTable[K, V] = {
+        EmptyStateTable.asInstanceOf[StateTable[K, V]]
+    }
+
+    private object EmptyStateTable extends StateTable[Any, Any] {
+        override def start(): Unit = {}
+        override def stop(): Unit = {}
+        override def add(key: Any, value: Any): Unit = {}
+        override def addPersistent(key: Any, value: Any): Unit = {}
+        override def remove(key: Any): Any = null
+        override def remove(key: Any, value: Any): Any = null
+        override def removePersistent(key: Any, value: Any): Any = null
+        override def containsLocal(key: Any): Boolean = false
+        override def containsLocal(key: Any, value: Any): Boolean = false
+        override def containsRemote(key: Any): Boolean = false
+        override def containsRemote(key: Any, value: Any): Boolean = false
+        override def containsPersistent(key: Any, value: Any): Boolean = false
+        override def getLocal(key: Any): Any = null
+        override def getRemote(key: Any): Any = null
+        override def getLocalByValue(value: Any): Set[Any] = Set.empty
+        override def getRemoteByValue(value: Any): Set[Any] = Set.empty
+        override def localSnapshot: Map[Any, Any] = Map.empty
+        override def remoteSnapshot: Map[Any, Any] = Map.empty
+        override def observable: Observable[Update[Any, Any]] = Observable.never()
+    }
+
 }
 
 /**
@@ -97,26 +123,4 @@ trait StateTable[K, V] {
       * table. */
     def observable: Observable[Update[K, V]]
 
-}
-
-class NoOpStateTable[K, V >: Null <: AnyRef] extends StateTable[K, V] {
-    override def start(): Unit = {}
-    override def stop(): Unit = {}
-    override def add(key: K, value: V): Unit = {}
-    override def addPersistent(key: K, value: V): Unit = {}
-    override def remove(key: K): V = null
-    override def remove(key: K, value: V): V = null
-    override def removePersistent(key: K, value: V): V = null
-    override def containsLocal(key: K): Boolean = false
-    override def containsLocal(key: K, value: V): Boolean = false
-    override def containsRemote(key: K): Boolean = false
-    override def containsRemote(key: K, value: V): Boolean = false
-    override def containsPersistent(key: K, value: V): Boolean = false
-    override def getLocal(key: K): V = null
-    override def getRemote(key: K): V = null
-    override def getLocalByValue(value: V): Set[K] = Set.empty
-    override def getRemoteByValue(value: V): Set[K] = Set.empty
-    override def localSnapshot: Map[K, V] = Map.empty
-    override def remoteSnapshot: Map[K, V] = Map.empty
-    override def observable: Observable[Update[K, V]] = Observable.never()
 }

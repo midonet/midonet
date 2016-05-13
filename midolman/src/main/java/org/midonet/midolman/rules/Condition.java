@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.rules;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -357,7 +357,7 @@ public class Condition extends BaseConfig {
     // which indicates that the packet ingressed through a port in the
     // condition's port group.
     private boolean matchPortGroup(
-            ArrayList<UUID> pktGroups, UUID condGroup, boolean negate) {
+        List<UUID> pktGroups, UUID condGroup, boolean negate) {
         return portGroup == null ||
                 negate ^ (pktGroups != null && pktGroups.contains(condGroup));
     }
