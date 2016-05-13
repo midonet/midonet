@@ -16,14 +16,15 @@
 package org.midonet.conf
 
 import java.io.InputStreamReader
-import java.lang.{Short => JShort, Integer => JInt, Byte => JByte}
+import java.lang.{Byte => JByte, Integer => JInt, Short => JShort}
 import java.util.UUID
-import org.apache.zookeeper.KeeperException
 
-import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConversions._
+import scala.util.{Failure, Success, Try}
 
 import com.typesafe.config._
+
+import org.apache.zookeeper.KeeperException
 import org.rogach.scallop._
 
 import org.midonet.conf.HostIdGenerator.PropertiesFileNotWritableException
@@ -60,8 +61,6 @@ trait ConfCommand {
 object ListHosts extends Subcommand("hosts") with ConfCommand {
     descr("List hosts information")
 
-    import ConfCommand._
-
     override def run(configurator: MidoNodeConfigurator) = {
         val mappings = configurator.templateMappings
         val mappingsMap = mappings.entrySet() map { e =>
@@ -92,8 +91,6 @@ object ListHosts extends Subcommand("hosts") with ConfCommand {
 object ListTemplate extends Subcommand("template-list") with ConfCommand {
     descr("List configuration templates")
 
-    import ConfCommand._
-
     override def run(configurator: MidoNodeConfigurator) = {
         val mappings = configurator.templateMappings
         val templates = configurator.listTemplates
@@ -113,8 +110,6 @@ object ListTemplate extends Subcommand("template-list") with ConfCommand {
 
 object ClearTemplate extends TemplateCommand("template-clear") with ConfCommand {
     descr("Clears configuration template mappings")
-
-    import ConfCommand._
 
     override def run(configurator: MidoNodeConfigurator) = {
         getHost map UUID.fromString  match  {
@@ -196,7 +191,7 @@ object BundledConfig extends Subcommand("dump-bundled-config") with ConfCommand 
 
     val renderOpts = ConfigRenderOptions.defaults().setOriginComments(false).
                                                     setComments(true).
-                                                    setJson(false).
+                                                    setJson(true).
                                                     setFormatted(true)
 
     override def run(configurator: MidoNodeConfigurator) = {
@@ -241,7 +236,7 @@ object ImportConf extends ConfigWriter("import") with ConfCommand {
 
     val renderOpts = ConfigRenderOptions.defaults().setOriginComments(false).
                                                     setComments(false).
-                                                    setJson(false).
+                                                    setJson(true).
                                                     setFormatted(true)
 
     val filename = opt[String]("file", short = 'f', required = true, descr =
@@ -441,35 +436,39 @@ object GetConf extends ConfigQuery("get") with ConfCommand {
 abstract class ConfigQuery(name: String) extends Subcommand(name) {
     import ConfCommand._
 
-    val _renderOpts = ConfigRenderOptions.defaults().setOriginComments(true).
-                                                    setComments(true).
-                                                    setJson(false).
-                                                    setFormatted(true)
-    val _schemaRenderOpts = ConfigRenderOptions.defaults().setOriginComments(false).
-                                                    setComments(true).
-                                                    setJson(false).
-                                                    setFormatted(true)
-
-    def renderOpts = if (schema.get.get) _schemaRenderOpts else _renderOpts
+    val _renderOpts = ConfigRenderOptions.defaults().setJson(true)
+                                                    .setFormatted(true)
+    val _schemaRenderOpts = ConfigRenderOptions.defaults().setJson(true)
+                                                          .setFormatted(true)
 
     val hostId = opt[String]("host", short = 'h', default = Some("local"), descr =
         "Queries configuration for a particular MidoNet node, defaults to the " +
-        "midonet host id of the local host. If the default is overridden by this "+
-        "option, local config-file based sources (which are deprecated) will be "+
-        "ignored. If no host id is found via either means, mn-config will query "+
+        "midonet host id of the local host. If the default is overridden by this " +
+        "option, local config-file based sources (which are deprecated) will be " +
+        "ignored. If no host id is found via either means, mn-config will query " +
         "the default configuration template")
     val template = opt[String]("template", short = 't', descr =
-        "Queries a configuration template. If this option is given all "+
+        "Queries a configuration template. If this option is given all " +
         "host-specific configuration will be ignored")
     val hostOnly = opt[Boolean](
         "host-only", short = 'H', default = Some(false), descr =
-        "Queries exclusively the per-host configuration values. Schema values "+
-        "(defaults) and template-based values are ignored. The host id can be "+
+        "Queries exclusively the per-host configuration values. Schema values " +
+        "(defaults) and template-based values are ignored. The host id can be " +
         "given (-h) or looked for on the local host.")
     val schema = opt[Boolean](
         "schema", short = 's', default = Some(false), descr =
-        "Do not query any configuration sources but the schema, including "+
+        "Do not query any configuration sources but the schema, including " +
         "key documentation.")
+    val comments = opt[Boolean](
+        "comments", short = 'c', default = Some(false), descr =
+        "Add configuration source and the description of the configuration " +
+        "options to the output")
+
+    def renderOpts: ConfigRenderOptions = if (schema.get.get) {
+        _schemaRenderOpts.setOriginComments(true).setComments(true)
+    } else {
+        _renderOpts.setOriginComments(comments).setComments(comments)
+    }
 
     mutuallyExclusive(template, hostOnly)
     mutuallyExclusive(template, schema)
