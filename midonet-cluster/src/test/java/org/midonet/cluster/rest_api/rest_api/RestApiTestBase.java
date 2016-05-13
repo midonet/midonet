@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -48,8 +47,6 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
 
 public abstract class RestApiTestBase extends JerseyTest {
 
-    private static AtomicInteger portSeed = new AtomicInteger(0);
-
     protected DtoWebResource dtoResource;
     protected Topology topology;
     protected DtoApplication app;
@@ -71,16 +68,16 @@ public abstract class RestApiTestBase extends JerseyTest {
         app = topology.getApplication();
     }
 
+    @Override
     protected int getPort(int defaultPort) {
+        // Binding a socket to port 0 makes the OS returns us a free ephemeral
+        // port. Return this port so jetty binds to it.
         while (true) {
             ServerSocket ss = null;
             try {
-                int basePort = Integer.valueOf(
-                    System.getProperty("test.api.port", "50000"));
-                int port = portSeed.getAndIncrement() % (0xffff - basePort) + basePort;
-                ss = new ServerSocket(port);
+                ss = new ServerSocket(0);
                 ss.setReuseAddress(true);
-                return port;
+                return ss.getLocalPort();
             } catch (IOException e) {
             } finally {
                 if (ss != null) {
