@@ -18,7 +18,6 @@ package org.midonet.cluster.rest_api.filter;
 import java.net.URI;
 
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.test.framework.JerseyTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
@@ -50,7 +50,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 @RunWith(Enclosed.class)
 public class TestIpAddrGroup {
 
-    public static class TestCrud extends JerseyTest {
+    public static class TestCrud extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private Topology topology;
