@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,7 +179,7 @@ object ClusterNode extends App {
     }
 
     protected[cluster] var injector = Guice.createInjector(
-        new MidonetBackendModule(clusterConf.backend),
+        new MidonetBackendModule(clusterConf.backend, Some(reflections)),
         clusterNodeModule,
         dataClientDependencies
     )
