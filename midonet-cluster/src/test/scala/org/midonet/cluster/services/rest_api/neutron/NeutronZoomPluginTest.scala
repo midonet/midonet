@@ -69,7 +69,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         val clusterConfig = ClusterConfig.forTests(ConfigFactory.empty())
         MidonetBackend.isCluster = true
         backend = new MidonetBackendService(backendConfig, curator, curator,
-                                            metricRegistry = null)
+                                            metricRegistry = null, None)
         backend.startAsync().awaitRunning()
 
         val paths = new PathBuilder(zkRoot)

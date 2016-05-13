@@ -74,7 +74,7 @@ class DatapathBoundContainerDelegateTest extends FeatureSpec with Matchers
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
         }
-        MidonetBackend.setupBindings(storage, storage)
+        MidonetBackend.setupBindings(storage, storage, None)
     }
 
     feature("Container delegate handles scheduling operations") {

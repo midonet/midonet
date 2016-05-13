@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,7 @@ class MmCtl(injector: Injector) {
         val curator = backend.curator
         curator.start()
 
-        MidonetBackend.setupBindings(backend.store, backend.stateStore)
+        MidonetBackend.setupBindings(backend.store, backend.stateStore, None)
 
         val lockFactory = injector.getInstance(classOf[ZookeeperLockFactory])
         new ZoomPortBinder(backend.store, lockFactory)
@@ -187,7 +187,7 @@ object MmCtl {
     def getInjector: Injector = {
         val configurator = MidoNodeConfigurator.apply(LegacyConfFilePath)
         val config = new MidonetBackendConfig(configurator.runtimeConfig)
-        Guice.createInjector(new MidonetBackendModule(config),
+        Guice.createInjector(new MidonetBackendModule(config, None),
                              new ZookeeperConnectionModule(
                                  classOf[ZookeeperConnectionWatcher]),
                              new SerializationModule,
