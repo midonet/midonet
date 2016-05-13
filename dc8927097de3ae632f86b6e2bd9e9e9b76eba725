@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4c018bae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-13T14:36:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8c98b3c1",
+      "range": {
+        "startLine": 298,
+        "startChar": 66,
+        "endLine": 298,
+        "endChar": 76
+      },
+      "revId": "dc8927097de3ae632f86b6e2bd9e9e9b76eba725",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2cfe47ae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-13T14:36:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ac7ed767",
+      "range": {
+        "startLine": 298,
+        "startChar": 45,
+        "endLine": 298,
+        "endChar": 62
+      },
+      "revId": "dc8927097de3ae632f86b6e2bd9e9e9b76eba725",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2c8be769",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2016-05-13T14:00:37Z",
       "side": 1,
       "message": "add full license.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 3
+      },
+      "revId": "dc8927097de3ae632f86b6e2bd9e9e9b76eba725",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4c186b1e",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-13T14:36:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_2c8be769",
       "range": {
         "startLine": 1,
         "startChar": 0,
