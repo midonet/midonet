@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ public class HostServiceTest {
                 .toInstance(backendConfig);
             MidonetBackendService backend =
                 new MidonetBackendService(backendConfig, curator, curator,
-                                          null);
+                                          null, scala.Option.apply(null));
             bind(MidonetBackend.class).toInstance(backend);
             bind(Reactor.class)
                 .toProvider(ZookeeperConnectionModule.ZookeeperReactorProvider.class)
