@@ -74,7 +74,7 @@ object MidonetBackendTestModule {
 
 /** Provides all dependencies for the new backend, using a FAKE zookeeper. */
 class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
-    extends MidonetBackendModule(new MidonetBackendConfig(cfg)) {
+    extends MidonetBackendModule(new MidonetBackendConfig(cfg), None) {
 
     override protected def bindCuratorFramework() = {
         val curator = mock(classOf[CuratorFramework])
