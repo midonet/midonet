@@ -64,9 +64,9 @@ import org.midonet.util._
 
 class MidolmanModule(injector: Injector,
                      config: MidolmanConfig,
-                     metricRegistry: MetricRegistry) extends AbstractModule {
+                     metricRegistry: MetricRegistry,
+                     reflections: Reflections) extends AbstractModule {
     private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanModule])
-    private val reflections = new Reflections("org.midonet")
 
     override def configure(): Unit = {
         bind(classOf[MidolmanConfig]).toInstance(config)
