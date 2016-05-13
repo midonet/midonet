@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
 
     before {
         store = new InMemoryStorage
-        MidonetBackend.setupBindings(store, stateStore = store)
+        MidonetBackend.setupBindings(store, stateStore = store, None)
 
         vtepFixture = new VtepFixture(store)
         aVxGw = new VxlanGatewayFixture(store, vtepFixture)
