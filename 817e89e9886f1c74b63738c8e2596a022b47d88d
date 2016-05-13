@@ -16,6 +16,24 @@
       "revId": "817e89e9886f1c74b63738c8e2596a022b47d88d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_af592937",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-13T16:37:49Z",
+      "side": 1,
+      "message": "In 1.9 the VIPs were added to the load-balancer. Since, 5.0 the VIPs are added to the pool. However, at the time we decided that we\u0027re going to support the API returning the VIPs for a load-balancer if needed (which is kind-of awkward), but you have the possibility of listing all VIPs for an LB without going pool-by-pool.\n\nSee: https://docs.midonet.org/docs/latest-en/rest-api/content/vip.html\n\nHowever, we removed the possibility of creating a new VIP for an LB, now you have to created for a pool. But we haven\u0027t removed that option from the CLI.",
+      "parentUuid": "baa041b7_3395853e",
+      "revId": "817e89e9886f1c74b63738c8e2596a022b47d88d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
