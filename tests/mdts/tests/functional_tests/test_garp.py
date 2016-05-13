@@ -32,15 +32,22 @@ import pdb
 LOG = logging.getLogger(__name__)
 
 virtual_ip = '192.168.0.100'
+virtual_mac = '00:ff:00:11:22:33'
 
 # Two networks (one external, one internal)
 # There is a vip port on the internal network, which is backed
 # by two other ports. A floating ip is mapped onto the vip.
 class VT_Networks_with_SG(NeutronTopologyManager):
     fip_ip = None
+    virtual_ip = None
+    virtual_mac = None
+
+    def __init__(self, virtual_ip, virtual_mac=None):
+        super(VT_Networks_with_SG, self).__init__()
+        self.virtual_ip = virtual_ip
+        self.virtual_mac = virtual_mac
 
     def build(self, binding_data=None):
-        global virtual_ip
         (public_net, public_subnet) = self.add_network(
             'public', '1.0.0.0/24', '1.0.0.1', external=True)
         (private_net, private_subnet) = self.add_network(
@@ -54,17 +61,16 @@ class VT_Networks_with_SG(NeutronTopologyManager):
         ext0 = self.add_port('port_ext0', public_net['network']['id'])
         int0 = self.add_port('port_int0', private_net['network']['id'])
         int1 = self.add_port('port_int1', private_net['network']['id'],
-                             vip=virtual_ip)
+                             vip=self.virtual_ip, vmac=self.virtual_mac)
         int2 = self.add_port('port_int2', private_net['network']['id'],
-                             vip=virtual_ip)
+                             vip=self.virtual_ip, vmac=self.virtual_mac)
         vip0 = self.add_port('port_vip0', private_net['network']['id'],
                              subnet_id=private_subnet['subnet']['id'],
-                             real_ip=virtual_ip)
+                             real_ip=self.virtual_ip)
 
         self.add_router('garprtr',
                         public_net['network']['id'],
                         private_subnet['subnet']['id'])
-
         try:
             self.create_resource(
                 self.api.create_security_group_rule({
@@ -126,7 +132,8 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                         {'subnet_id': internal_subnet})
         return router
 
-    def add_port(self, name, network_id, subnet_id=None, real_ip=None, vip=None):
+    def add_port(self, name, network_id, subnet_id=None, real_ip=None,
+                 vip=None, vmac=None):
         port_spec = {'name': name,
                      'network_id': network_id,
                      'admin_state_up': True,
@@ -137,12 +144,18 @@ class VT_Networks_with_SG(NeutronTopologyManager):
                                        'subnet_id': subnet_id }]
         # allowed address pair not yet supported in 1.9. Uncomment if supported
         # in future. Until then, we disable antispoof protection on the bridge.
-        #if vip != None:
+        # if vip != None and vmac != None:
+        #    port_spec['allowed_address_pairs'] = [ { 'ip_address'  : vip,
+        #                                              'mac_address' : vmac } ]
+        # elif vip != None:
         #    port_spec['allowed_address_pairs'] = [ { 'ip_address' : vip } ]
         return self.create_resource(self.api.create_port({'port': port_spec}))
 
-VTM = VT_Networks_with_SG()
-BM = BindingManager(None, VTM)
+VTM_vip = VT_Networks_with_SG(virtual_ip)
+BM_vip = BindingManager(None, VTM_vip)
+
+VTM_vmac = VT_Networks_with_SG(virtual_ip, virtual_mac)
+BM_vmac = BindingManager(None, VTM_vmac)
 
 binding_multinode = {
     'description': 'multinode node setup',
@@ -174,22 +187,36 @@ binding_multinode = {
     ]
 }
 
-def enable_vip(port, virtual_ip):
+def enable_vip_novmac(port):
+    global virtual_ip
     port.execute('ip address add %s/32 dev %s' % (virtual_ip, port.get_ifname()),
                  sync=True)
     # Send both a request garp and a reply garp
-    # NOTE: we only respect reply garp
     port.execute('arping -c 1 -A -I %s %s' % (port.get_ifname(), virtual_ip),
                  sync=True)
     port.execute('arping -c 1 -U -I %s %s' % (port.get_ifname(), virtual_ip),
                  sync=True)
 
 
-def disable_vip(port, virtual_ip):
+def disable_vip_novmac(port):
+    global virtual_ip
     port.execute('ip address del %s/32 dev %s' % (virtual_ip, port.get_ifname()),
                  sync=True)
 
-def run_garp_scenario(sender_port, target_ip, virtual_ip):
+def enable_vip_vmac(port):
+    global virtual_ip, virtual_mac
+    port.execute('ip l add link %s address %s vmac0 type macvlan' % (port.get_ifname(), virtual_mac),
+                 sync=True)
+    port.execute('ip a add %s/32 dev vmac0' % virtual_ip, sync=True)
+    port.execute('ip l set up dev vmac0', sync=True)
+    # Send both a request garp and a reply garp
+    port.execute('arping -c 1 -A -I vmac0 %s' % (virtual_ip), sync=True)
+    port.execute('arping -c 1 -U -I vmac0 %s' % (virtual_ip), sync=True)
+
+def disable_vip_vmac(port):
+    port.execute('ip l del dev vmac0', sync=True)
+
+def run_garp_scenario(BM, sender_port, target_ip, enable_vip, disable_vip):
     vip1 = BM.get_interface_on_vport('port_int1')
     vip2 = BM.get_interface_on_vport('port_int2')
 
@@ -206,24 +233,24 @@ def run_garp_scenario(sender_port, target_ip, virtual_ip):
     wait_on_futures([f1, f2, f3])
 
     # enable for vip1
-    enable_vip(vip1, virtual_ip)
-    disable_vip(vip2, virtual_ip)
+    enable_vip(vip1)
+    disable_vip(vip2)
     f1 = async_assert_that(vip1, receives(rcv_filter, within_sec(10)))
     f2 = async_assert_that(vip2, should_NOT_receive(rcv_filter, within_sec(10)))
     f3 = sender.ping_ipv4_addr(target_ip, count=5)
     wait_on_futures([f1, f2, f3])
 
     # enable for vip2
-    enable_vip(vip2, virtual_ip)
-    disable_vip(vip1, virtual_ip)
+    enable_vip(vip2)
+    disable_vip(vip1)
     f1 = async_assert_that(vip1, should_NOT_receive(rcv_filter, within_sec(10)))
     f2 = async_assert_that(vip2, receives(rcv_filter, within_sec(10)))
     f3 = sender.ping_ipv4_addr(target_ip, count=5)
     wait_on_futures([f1, f2, f3])
 
     # enable for vip1
-    enable_vip(vip1, virtual_ip)
-    disable_vip(vip2, virtual_ip)
+    enable_vip(vip1)
+    disable_vip(vip2)
     f1 = async_assert_that(vip1, receives(rcv_filter, within_sec(10)))
     f2 = async_assert_that(vip2, should_NOT_receive(rcv_filter, within_sec(10)))
     f3 = sender.ping_ipv4_addr(target_ip, count=5)
@@ -231,27 +258,47 @@ def run_garp_scenario(sender_port, target_ip, virtual_ip):
 
 @attr(version="v1.2.0")
 @bindings(binding_multinode,
-          binding_manager=BM)
+          binding_manager=BM_vip)
 def test_garp_over_bridge():
     """
     Title: Access a VIP using GARP from an endpoint on a local bridge
     """
     global virtual_ip
-    run_garp_scenario('port_int0', virtual_ip, virtual_ip)
+    run_garp_scenario(BM_vip, 'port_int0', virtual_ip,
+                      enable_vip_novmac, disable_vip_novmac)
 
 
 @attr(version="v1.2.0")
 @bindings(binding_multinode,
-          binding_manager=BM)
+          binding_manager=BM_vip)
 def test_garp_over_router():
     """
     Title: Access a VIP using GARP from an endpoint over a router
+    """
+    run_garp_scenario(BM_vip, 'port_ext0', VTM_vip.get_fip_ip(),
+                      enable_vip_novmac, disable_vip_novmac)
 
-    Using ARP request type GARP.
+
+@attr(version="v1.2.0")
+@bindings(binding_multinode,
+          binding_manager=BM_vmac)
+def test_vmac_garp_over_bridge():
+    """
+    Title: Access a VIP using virtual mac GARP from an endpoint on a local bridge
     """
     global virtual_ip
-    run_garp_scenario('port_ext0', VTM.get_fip_ip(), virtual_ip)
+    run_garp_scenario(BM_vmac, 'port_int0', virtual_ip,
+                      enable_vip_vmac, disable_vip_vmac)
 
+@attr(version="v1.2.0")
+@bindings(binding_multinode,
+          binding_manager=BM_vmac)
+def test_vmac_garp_over_router():
+    """
+    Title: Access a VIP using virtual mac GARP from an endpoint over a router
+    """
+    run_garp_scenario(BM_vmac, 'port_ext0', VTM_vmac.get_fip_ip(),
+                      enable_vip_vmac, disable_vip_vmac)
 
 
 
