@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1bebb314",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-16T07:35:21Z",
+      "side": 1,
+      "message": "how about checking to make sure the port group is created/deleted in RouterTranslatorIT (\"The RouterTranslator\" should \"handle router CRUD\")?",
+      "revId": "8a68165789e00d97650a29d455db03420054355b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
