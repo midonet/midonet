@@ -63,7 +63,7 @@ IPSEC_SITE_CONN = ("application/vnd.org.midonet.neutron"
 
 # Gateway Device extension
 GATEWAY_DEVICE = "application/vnd.org.midonet.neutron.GatewayDevice-v1+json"
-REMOTE_MAC_ENTRY = "application/vnd.org.midonet.neturon.RemoteMacEntry-v1+json"
+REMOTE_MAC_ENTRY = "application/vnd.org.midonet.neutron.RemoteMacEntry-v1+json"
 
 # L2 Gateway extension
 L2_GATEWAY_CONN = ("application/vnd.org.midonet.neutron"
@@ -71,4 +71,4 @@ L2_GATEWAY_CONN = ("application/vnd.org.midonet.neutron"
 
 # Neutron BGP
 BGP_SPEAKER = "application/vnd.org.midonet.neutron.BgpSpeaker-v1+json"
-BGP_PEER = "application/vnd.org.midonet.neturon.BgpPeer-v1+json"
+BGP_PEER = "application/vnd.org.midonet.neutron.BgpPeer-v1+json"
