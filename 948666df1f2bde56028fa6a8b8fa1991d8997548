@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_21be4865",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-16T18:15:00Z",
+      "side": 1,
+      "message": "This may not be needed: this is a ReactiveActor, you can subscribe it directly to an observable, and handle the messages in the receive method.\n\nErrors are notified as OnError(e) and completion events as OnCompleted.",
+      "range": {
+        "startLine": 208,
+        "startChar": 12,
+        "endLine": 218,
+        "endChar": 13
+      },
+      "revId": "948666df1f2bde56028fa6a8b8fa1991d8997548",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_81af5429",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-16T18:15:00Z",
+      "side": 1,
+      "message": "Better say: Router CIDRs updated",
+      "range": {
+        "startLine": 331,
+        "startChar": 27,
+        "endLine": 331,
+        "endChar": 58
+      },
+      "revId": "948666df1f2bde56028fa6a8b8fa1991d8997548",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
