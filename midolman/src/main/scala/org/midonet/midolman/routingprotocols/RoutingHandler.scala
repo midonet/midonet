@@ -231,23 +231,33 @@ object RoutingHandler {
                     singleThreadExecutionContext, system)
             }
 
-            override def startZebra(): Unit = {
+            override def startZebra(softStart: Boolean = false): Unit = {
                 val zebraSocketFile = new File(s"/var/run/quagga/zserv$bgpIdx.api")
                 if (zebraSocketFile.exists()) {
                     log.debug("Deleting socket file at {}", zebraSocketFile.getAbsolutePath)
                     zebraSocketFile.delete()
                 }
 
-                log.info("Starting zebra server")
-                val socketAddress = new AfUnix.Address(zebraSocketFile.getAbsolutePath)
-                zebra = ZebraServer(socketAddress, zebraHandler, rport.portAddress,
-                    BGP_NETDEV_PORT_MIRROR_NAME, selectLoop)
+                if (softStart) {
+                    log.info("Sending start msg to zebra server")
+                    zebra ! ZebraStart
+                } else {
+                    log.info("Starting zebra server Actor")
+                    val socketAddress = new AfUnix.Address(zebraSocketFile.getAbsolutePath)
+                    zebra = ZebraServer(socketAddress, zebraHandler, rport.portAddress,
+                        BGP_NETDEV_PORT_MIRROR_NAME, selectLoop)
+                }
             }
 
-            override def stopZebra(): Unit = {
-                log.debug("Stopping zebra server")
-                if (zebra ne null) {
-                    context.stop(zebra)
+            override def stopZebra(softStop: Boolean = false): Unit = {
+                if (softStop) {
+                    log.info("Sending stop msg to zebra server")
+                    zebra ! ZebraStop
+                } else {
+                    log.info("Stopping zebra server")
+                    if (zebra ne null) {
+                        context.stop(zebra)
+                    }
                 }
             }
         }
@@ -306,8 +316,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     protected def createDpPort(port: String): Future[(DpPort, Int)]
     protected def deleteDpPort(port: NetDevPort): Future[_]
-    protected def startZebra(): Unit
-    protected def stopZebra(): Unit
+    protected def startZebra(softStart: Boolean = false): Unit
+    protected def stopZebra(softStop: Boolean = false): Unit
     protected val bgpd: BgpdProcess
 
     override def postStop(): Unit = {
@@ -330,8 +340,12 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             try {
                 log.debug("Received CIDRs from observable: {}", portBgpInfos)
                 newPortBgps = portBgpInfos
-                if (bgpd.isAlive)
-                    restartBgpd()
+                if (bgpd.isAlive) {
+                    bgpd.start()
+                    stopZebra(softStop = true)
+                    startZebra(softStart = true)
+                    bootstrapBgpdConfig()
+                }
                 Future.successful(true)
             } catch {
                 case e: Exception =>
@@ -692,11 +706,11 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         }
     }
 
-    private def bgpdPrepare(): Future[(DpPort, Int)] = {
+    private def bgpdPrepare(softStart: Boolean = false): Future[(DpPort, Int)] = {
         log.debug("preparing environment for bgpd")
 
         try {
-            startZebra()
+            startZebra(softStart)
             if (isQuagga) {
                 bgpd.prepare(Some(rport.interfaceName))
                 Future.successful((null, -1))
@@ -711,7 +725,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         }
     }
 
-    private def startBgpd(): Future[_] = {
+    private def startBgpd(softStart: Boolean = false): Future[_] = {
         bgpdPrepare().map {
             case (dpPort, pid) =>
                 log.debug("datapath port is ready, starting bgpd")
@@ -740,10 +754,10 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         }(singleThreadExecutionContext)
     }
 
-    private def stopBgpd()(implicit cbf: CbfRouteSeq): Future[_] = {
+    private def stopBgpd(softStop: Boolean = false)(implicit cbf: CbfRouteSeq): Future[_] = {
         log.info(s"Disabling BGP on port: ${rport.id}")
         clearRoutingWorkflow()
-        stopZebra()
+        stopZebra(softStop)
 
         log.debug("stopping bgpd")
         bgpd.stop()
@@ -759,8 +773,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         removeDpPort()
     }
 
-    protected def restartBgpd(): Future[_] = {
-        stopBgpd().flatMap{ case _ => startBgpd() }(singleThreadExecutionContext)
+    protected def restartBgpd(softRestart: Boolean = false): Future[_] = {
+        stopBgpd(softStop = softRestart).flatMap{ case _ => startBgpd(softStart = softRestart) }(singleThreadExecutionContext)
     }
 
     private def checkBgpdHealth(): Future[_] = {
