@@ -464,8 +464,6 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
     override def isAlive: Boolean = (state == RUNNING) && !died
 
     override def start(): Unit = {
-        if (state != PREPARED)
-            throw new Exception(s"Illegal state: $state")
         state = RUNNING
         died = false
         starts += 1
@@ -504,6 +502,6 @@ class TestableRoutingHandler(rport: RouterPort,
     }
 
     override def deleteDpPort(port: NetDevPort): Future[_] = Future.successful(true)
-    override def startZebra(): Unit = {}
-    override def stopZebra(): Unit = {}
+    override def startZebra(softStart: Boolean = false): Unit = {}
+    override def stopZebra(softStop: Boolean = false): Unit = {}
 }

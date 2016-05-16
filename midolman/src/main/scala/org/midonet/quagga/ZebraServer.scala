@@ -26,29 +26,27 @@
 
 package org.midonet.quagga
 
-import java.net.{Socket, SocketAddress}
 import java.nio.channels.spi.SelectorProvider
 import java.nio.channels.{ByteChannel, SelectionKey}
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.attribute.GroupPrincipal
-import java.nio.file.attribute.PosixFileAttributeView
-import java.nio.file.attribute.UserPrincipal
+import java.nio.file.{Files, Path, Paths}
+import java.nio.file.attribute.{GroupPrincipal, PosixFileAttributeView, UserPrincipal}
 
 import scala.collection.mutable
 
-import akka.actor.{ActorContext, Props, ActorRef, Actor}
+import akka.actor.{Actor, ActorContext, ActorRef, Props}
 import akka.event.LoggingReceive
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
 import org.midonet.packets.IPv4Addr
-import org.midonet.util.eventloop.{SelectListener, SelectLoop}
 import org.midonet.util.AfUnix
+import org.midonet.util.eventloop.{SelectListener, SelectLoop}
 
-case class SpawnConnection(channel: ByteChannel)
-case class ConnectionClosed(reqId: Int)
+sealed trait ZebraServerMessage
+case class SpawnConnection(channel: ByteChannel) extends ZebraServerMessage
+case class ConnectionClosed(reqId: Int) extends ZebraServerMessage
+case object ZebraStart extends ZebraServerMessage
+case object ZebraStop extends ZebraServerMessage
 
 object ZebraServer {
     def apply(address: AfUnix.Address, handler: ZebraProtocolHandler,
@@ -78,7 +76,7 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
             case nl: NetlinkSelectorProvider =>
                 nl.openUnixDomainSocketChannel(AfUnix.Type.SOCK_STREAM)
             case other =>
-                log.error("Invalid selector type: {}", other.getClass());
+                log.error("Invalid selector type: {}", other.getClass)
                 throw new RuntimeException()
         }
     }
@@ -86,14 +84,14 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
     private def setSocketOwnership() {
         val file: Path = Paths.get(address.getPath)
 
-        val owner: UserPrincipal = file.getFileSystem().
-            getUserPrincipalLookupService().lookupPrincipalByName("quagga")
-        Files.setOwner(file, owner);
+        val owner: UserPrincipal = file.getFileSystem
+            .getUserPrincipalLookupService.lookupPrincipalByName("quagga")
+        Files.setOwner(file, owner)
 
-        val group: GroupPrincipal = file.getFileSystem().
-            getUserPrincipalLookupService().lookupPrincipalByGroupName("quagga")
-        Files.getFileAttributeView(file, classOf[PosixFileAttributeView]).
-            setGroup(group);
+        val group: GroupPrincipal = file.getFileSystem
+            .getUserPrincipalLookupService.lookupPrincipalByGroupName("quagga")
+        Files.getFileAttributeView(file, classOf[PosixFileAttributeView])
+            .setGroup(group)
     }
 
     override def preStart() {
@@ -152,6 +150,10 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
             zebraConnections -= sender
             zebraConnMap -= sender
             context.system.stop(sender)
+
+        // restart the zebra server without restarting the actor
+        case ZebraStart => preStart()
+        case ZebraStop => postStop()
 
         case m: AnyRef => log.error("Unknown message received - {}", m)
     }
