@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c0b8ba77",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-16T04:25:21Z",
+      "side": 1,
+      "message": "keep each line to \u003c\u003d 80 chars (our python coding standard)",
+      "revId": "9c2441f6b355a3899b468c0dc1656e0741d6aa39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a0b25692",
+        "filename": "python-midonetclient/src/midonetclient/api_lib.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-16T04:25:21Z",
+      "side": 1,
+      "message": "We tend to avoid \u0027\\\u0027 for readability.  You can get around it by using () around the statement.",
+      "revId": "9c2441f6b355a3899b468c0dc1656e0741d6aa39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
