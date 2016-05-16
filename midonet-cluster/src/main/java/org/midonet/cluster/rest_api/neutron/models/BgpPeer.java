@@ -64,6 +64,7 @@ public class BgpPeer extends ZoomObject {
 
     @ZoomEnum(clazz = Neutron.NeutronBgpPeer.BgpAuthType.class)
     public enum AuthType {
+        @ZoomEnumValue("NONE") NONE,
         @ZoomEnumValue("MD5") MD5;
 
         @JsonCreator
