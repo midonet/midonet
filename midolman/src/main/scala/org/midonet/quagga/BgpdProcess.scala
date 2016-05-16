@@ -65,6 +65,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
 
     def assignAddr(iface: String, ip: String): Unit = {
         val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip"
+        log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
@@ -78,6 +79,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
 
     def remAddr(iface: String, ip: String): Unit = {
         val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip"
+        log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
@@ -91,6 +93,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
 
     def addArpEntry(iface: String, ip: String, mac: String): Unit = {
         val cmd = s"$bgpdHelperScript add_arp $bgpIndex $iface $ip $mac"
+        log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
@@ -104,6 +107,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
 
     def remArpEntry(iface: String, ip: String): Unit = {
         val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip"
+        log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
@@ -119,6 +123,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         val ifaceOpt = iface.getOrElse("")
         val cmd = s"$bgpdHelperScript prepare $bgpIndex $localVtyIp " +
                   s"$remoteVtyIp $routerIp $routerMac $ifaceOpt"
+        log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
@@ -134,6 +139,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         vty.close()
 
         val cmd = s"$bgpdHelperScript down $bgpIndex"
+        log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
