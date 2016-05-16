@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c06f9afa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-05-16T04:44:09Z",
+      "side": 1,
+      "message": "why you left these?",
+      "revId": "6bced28f5ebf6d8d12646a266d353dd28d066dfb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
