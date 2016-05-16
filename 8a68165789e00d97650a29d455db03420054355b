@@ -16,6 +16,24 @@
       "revId": "8a68165789e00d97650a29d455db03420054355b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dbc78b96",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-05-16T08:04:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1bebb314",
+      "revId": "8a68165789e00d97650a29d455db03420054355b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
