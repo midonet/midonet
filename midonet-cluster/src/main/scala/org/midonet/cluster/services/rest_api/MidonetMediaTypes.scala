@@ -30,8 +30,8 @@ object MidonetMediaTypes {
     final val NEUTRON_IPSEC_SITE_CONNECTIONS_JSON_V1 = "application/vnd.org.midonet.neutron.IpsecSiteConnections-v1+json"
     final val NEUTRON_L2_GATEWAY_CONNECTION_JSON_V1 = "application/vnd.org.midonet.neutron.L2GatewayConnection-v1+json"
     final val NEUTRON_L2_GATEWAY_CONNECTIONS_JSON_V1 = "application/vnd.org.midonet.neutron.L2GatewayConnections-v1+json"
-    final val NEUTRON_REMOTE_MAC_ENTRY_JSON_V1 = "application/vnd.org.midonet.neturon.RemoteMacEntry-v1+json"
-    final val NEUTRON_REMOTE_MAC_ENTRIES_JSON_V1 = "application/vnd.org.midonet.neturon.RemoteMacEntries-v1+json"
+    final val NEUTRON_REMOTE_MAC_ENTRY_JSON_V1 = "application/vnd.org.midonet.neutron.RemoteMacEntry-v1+json"
+    final val NEUTRON_REMOTE_MAC_ENTRIES_JSON_V1 = "application/vnd.org.midonet.neutron.RemoteMacEntries-v1+json"
     final val NEUTRON_VPN_SERVICE_JSON_V1 = "application/vnd.org.midonet.neutron.VPNService-v1+json"
     final val NEUTRON_VPN_SERVICES_JSON_V1 = "application/vnd.org.midonet.neutron.VPNServices-v1+json"
 
