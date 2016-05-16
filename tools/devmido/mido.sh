@@ -178,6 +178,7 @@ is_package_installed libreadline-dev || install_package libreadline-dev
 is_package_installed ncurses-dev || install_package ncurses-dev
 is_package_installed wget || install_package wget
 is_package_installed ruby-ronn || install_package ruby-ronn
+is_package_installed quagga || install_package quagga
 
 if ! is_package_installed zulu-8; then
     # software-properties-common includes apt-add-repository

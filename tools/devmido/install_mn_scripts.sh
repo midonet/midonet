@@ -71,4 +71,11 @@ sed -e "s@%MIDO_HOME%@$MM_HOME@" \
     $DEVMIDO_DIR/binproxy | tee $MM_MINIONS
 chmod +x $MM_MINIONS
 
+# For bgpd-helper, the script path is hard-coded in the code, so just
+# create the directory and copy it over.
+MM_LIB_PATH=/usr/lib/midolman
+mkdir -p $MM_LIB_PATH
+BGPD_HELPER_PATH=$TOP_DIR/midolman/src/lib/midolman/bgpd-helper
+cp $BGPD_HELPER_PATH $MM_LIB_PATH
+
 echo "install_mn_scripts.sh has successfully completed."
