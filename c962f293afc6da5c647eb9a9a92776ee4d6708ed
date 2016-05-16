@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bca5f647",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 883,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-16T08:51:34Z",
+      "side": 1,
+      "message": "ports -\u003e port",
+      "revId": "c962f293afc6da5c647eb9a9a92776ee4d6708ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
