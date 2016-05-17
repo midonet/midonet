@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_09180a74",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-17T08:02:27Z",
+      "side": 1,
+      "message": "So these numbers changed because state packets are recorded in a different list, is that right?",
+      "range": {
+        "startLine": 383,
+        "startChar": 11,
+        "endLine": 383,
+        "endChar": 39
+      },
+      "revId": "1d88eeab9f1407779b0a4b4b517813ab665f24d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
