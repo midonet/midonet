@@ -32,6 +32,7 @@ from mdts.tests.utils.utils import wait_on_futures
 import neutronclient.neutron.client as neutron
 
 from nose.tools import nottest
+from nose.plugins.attrib import attr
 
 import logging
 
@@ -303,6 +304,7 @@ BM = BindingManager(None, VTM)
           binding_multihost_intra_tenant,
           binding_multihost_inter_tenant,
           binding_manager=BM)
+
 def test_ping_between_three_sites():
 
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
