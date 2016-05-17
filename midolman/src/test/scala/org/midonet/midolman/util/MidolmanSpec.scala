@@ -24,6 +24,7 @@ import com.typesafe.config.{ConfigFactory, Config}
 import org.scalatest.BeforeAndAfter
 import org.scalatest.FeatureSpecLike
 import org.scalatest.GivenWhenThen
+import org.scalatest.Informer
 import org.scalatest.Matchers
 import org.scalatest.OneInstancePerTest
 
@@ -60,6 +61,12 @@ trait MidolmanSpec extends FeatureSpecLike
         with OneInstancePerTest {
 
     val log = LoggerFactory.getLogger(getClass)
+
+    override val info = new Informer() {
+        override def apply(message: String, payload: Option[Any] = None): Unit = {
+            log.info(message)
+        }
+    }
 
     var injector: Injector = null
 
