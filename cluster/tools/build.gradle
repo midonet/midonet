@@ -66,7 +66,7 @@ dependencies {
 task runTopologyZoomUpdater(type: JavaExec) {
     description = 'Run the Topology API Zoom updater app'
     classpath sourceSets.main.runtimeClasspath
-    main = "org.midonet.cluster.tools.TopologyZoomUpdaterApp"
+    mainClassName = "org.midonet.cluster.tools.TopologyZoomUpdaterApp"
     if (project.hasProperty("conf")) {
         args = [conf]
     } else {
