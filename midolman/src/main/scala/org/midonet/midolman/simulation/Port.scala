@@ -195,6 +195,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
             context.addFlowTag(deviceTag)
             context.addFlowTag(rxTag)
             context.inPortId = id
+            context.inPortGroups = portGroups
             context.currentDevice = deviceId
             mirroringInbound(context, portIngress)
         }
@@ -234,11 +235,14 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         if (isExterior && (portGroups ne null))
             c.portGroups = portGroups
         c.inPortId = id
+        c.inPortGroups = portGroups
         c.outPortId = null
+        c.outPortGroups = null
     }
 
     override protected val preOut: SimHook = c => {
         c.outPortId = id
+        c.outPortGroups = portGroups
     }
 
     override def toString =
