@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c96462ba",
+        "filename": "midolman/src/deb/control/postinst",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-17T08:59:56Z",
+      "side": 1,
+      "message": "this should be removed, the agent minions patch is not backported to 5.1 yet.",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 31
+      },
+      "revId": "cf31874c9917362398be4963af9ceb0682fd2eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
