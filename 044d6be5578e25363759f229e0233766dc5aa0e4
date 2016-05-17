@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_29186e1d",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-17T09:56:41Z",
+      "side": 1,
+      "message": "Good point, done.",
+      "parentUuid": "baa041b7_c93d8290",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 1
+      },
+      "revId": "044d6be5578e25363759f229e0233766dc5aa0e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8943fa12",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2016-05-17T08:57:40Z",
       "side": 1,
       "message": "Maybe these should belong to the class",
+      "range": {
+        "startLine": 63,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 1
+      },
+      "revId": "044d6be5578e25363759f229e0233766dc5aa0e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_89289a34",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-17T09:56:41Z",
+      "side": 1,
+      "message": "The thing is that I need a way to figure out whether each class that should be instantiated was instantiated, used and had the right parameters passed to it. Since it\u0027s the midonet initialization script the one responsible for creating the ZoomInitializer object and running its setup method, I found it easier to just have those test classes edit the same vars of ZoomInitTest...",
+      "parentUuid": "baa041b7_8943fa12",
       "range": {
         "startLine": 63,
         "startChar": 0,
