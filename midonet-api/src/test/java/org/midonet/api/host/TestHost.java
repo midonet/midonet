@@ -48,18 +48,13 @@ import org.midonet.client.resource.ResourceCollection;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
@@ -501,7 +496,7 @@ public class TestHost extends JerseyTest {
                        host.getAddresses()[i], not(nullValue()));
 
             assertThat("Address from the Dto should match the one in metadata",
-                       host.getAddresses()[i], equalTo(inetAddress.toString()));
+                       host.getAddresses()[i], equalTo(inetAddress.getHostAddress()));
         }
     }
 
@@ -660,6 +655,63 @@ public class TestHost extends JerseyTest {
                    equalTo(new MAC(anInterface.getMac()).toString()));
         assertThat("The DtoInterface type should be returned properly",
                    hIface.getType(), equalTo(DtoInterface.Type.Physical));
+    }
+
+    @Test
+    public void testHostAddresses() throws Exception {
+        UUID hostId = UUID.randomUUID();
+
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        metadata.setName("test");
+        IPv4Addr addr1 = IPv4Addr.apply("193.231.30.254");
+        IPv4Addr addr2 = IPv4Addr.apply("193.111.11.11");
+        IPv4Addr addr3 = IPv4Addr.apply("111.12.12.12");
+
+        hostManager.createHost(hostId, metadata);
+        hostManager.makeAlive(hostId);
+
+        HostDirectory.Interface anInterface = new HostDirectory.Interface();
+
+        anInterface.setName("eth0");
+        anInterface.setMac(MAC.fromString("16:1f:5c:19:a0:60").getAddress());
+        anInterface.setMtu(123);
+        anInterface.setType(HostDirectory.Interface.Type.Physical);
+        anInterface.setAddresses(new InetAddress[]{
+                InetAddress.getByAddress(addr1.toBytes()),
+                InetAddress.getByAddress(addr2.toBytes())
+        });
+
+        hostManager.createInterface(hostId, anInterface);
+
+        HostDirectory.Interface anInterface2 = new HostDirectory.Interface();
+
+        anInterface2.setName("eth1");
+        anInterface2.setMac(MAC.fromString("ff:1f:5c:19:a0:60").getAddress());
+        anInterface2.setMtu(123);
+        anInterface2.setType(HostDirectory.Interface.Type.Physical);
+        anInterface2.setAddresses(new InetAddress[]{
+                InetAddress.getByAddress(addr3.toBytes()),
+        });
+
+        hostManager.createInterface(hostId, anInterface2);
+
+        DtoHost host = resource()
+                .path("hosts/" + hostId.toString())
+                .accept(APPLICATION_HOST_JSON_V3)
+                .get(DtoHost.class);
+
+        assertThat(host, is(notNullValue()));
+        assertEquals(3, host.getAddresses().length);
+        assertThat(addr1.toString(), isIn(host.getAddresses()));
+        assertThat(addr2.toString(), isIn(host.getAddresses()));
+        assertThat(addr3.toString(), isIn(host.getAddresses()));
+
+        ResourceCollection<Host> hosts = api.getHosts();
+        Host h = hosts.get(0);
+        assertEquals(3, h.getAddresses().length);
+        assertThat(addr1.toString(), isIn(h.getAddresses()));
+        assertThat(addr2.toString(), isIn(h.getAddresses()));
+        assertThat(addr3.toString(), isIn(h.getAddresses()));
     }
 
     @Test
