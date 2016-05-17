@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c93d8290",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-17T08:57:40Z",
+      "side": 1,
+      "message": "Add this class to the object to make it local to the test.",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 1
+      },
+      "revId": "044d6be5578e25363759f229e0233766dc5aa0e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8943fa12",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-17T08:57:40Z",
+      "side": 1,
+      "message": "Maybe these should belong to the class",
+      "range": {
+        "startLine": 63,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 1
+      },
+      "revId": "044d6be5578e25363759f229e0233766dc5aa0e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
