@@ -37,10 +37,10 @@ def remove_container(container):
     LOG.debug(stdout)
 
 
-def restart_sandbox(flavour, override, no_recreate=True):
+def restart_sandbox(flavour, sandbox_name, override, no_recreate=True):
     cmd = "sandbox-manage -c sandbox.conf run %s " \
-          "--name=mdts --override=%s " \
-          "--force" % (flavour, override)
+          "--name=%s --override=%s " \
+          "--force" % (flavour, sandbox_name, override)
     if no_recreate:
         cmd += " --no-recreate"
     p = subprocess.Popen(
