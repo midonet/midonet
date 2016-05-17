@@ -29,7 +29,7 @@ import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
+import org.midonet.cluster.services.c3po.translators.PortManager.{routerInterfacePortPeerId, routerInterfacePortGroupId}
 import org.midonet.cluster.services.c3po.translators.RouteManager.{localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.util.UUIDUtil.RichJavaUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
@@ -410,6 +410,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
             val Seq(nwPort, rPort) = storage.getAll(
                 classOf[Port], Seq(nwPortId, rPortId)).await()
             nwPort.getPeerId shouldBe rPortId
+            val pg = routerInterfacePortGroupId(routerId.asProto)
+            rPort.getPortGroupIdsList should contain (pg)
             rPort.getPeerId shouldBe nwPortId.asProto
 
             rPort.getAdminStateUp shouldBe true
