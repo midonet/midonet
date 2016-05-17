@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b63859ef",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/ZoomInit.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-17T08:14:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_cf0c6dee",
+      "range": {
+        "startLine": 26,
+        "startChar": 18,
+        "endLine": 26,
+        "endChar": 26
+      },
+      "revId": "1da5ffe595fde8f73dfc713451c9fbf26d822961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0f07f5ca",
         "filename": "nsdb/src/main/java/org/midonet/cluster/data/ZoomInitializer.java",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2016-05-13T17:52:44Z",
       "side": 1,
       "message": "missing javadoc with a description of what this is for...",
+      "range": {
+        "startLine": 22,
+        "startChar": 17,
+        "endLine": 22,
+        "endChar": 32
+      },
+      "revId": "1da5ffe595fde8f73dfc713451c9fbf26d822961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a906be19",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/ZoomInitializer.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-17T08:14:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0f07f5ca",
       "range": {
         "startLine": 22,
         "startChar": 17,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_890bfa23",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-17T08:14:13Z",
+      "side": 1,
+      "message": "Good point. Done.",
+      "parentUuid": "baa041b7_2f5079d3",
+      "range": {
+        "startLine": 31,
+        "startChar": 6,
+        "endLine": 31,
+        "endChar": 18
+      },
+      "revId": "1da5ffe595fde8f73dfc713451c9fbf26d822961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8f742568",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
         "patchSetId": 5
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_693c36c8",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-17T08:14:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8f742568",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 49
+      },
+      "revId": "1da5ffe595fde8f73dfc713451c9fbf26d822961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0f6015a4",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
         "patchSetId": 5
@@ -105,6 +201,30 @@
       "writtenOn": "2016-05-13T17:52:44Z",
       "side": 1,
       "message": "both parameters can point to the same storage.",
+      "range": {
+        "startLine": 70,
+        "startChar": 46,
+        "endLine": 70,
+        "endChar": 66
+      },
+      "revId": "1da5ffe595fde8f73dfc713451c9fbf26d822961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_493972d6",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/ZoomInitTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-17T08:14:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0f6015a4",
       "range": {
         "startLine": 70,
         "startChar": 46,
