@@ -22,6 +22,30 @@
       "revId": "8ded93dff6aac9a0f20fe57851c43910916cccca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_69faf676",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-17T09:56:41Z",
+      "side": 1,
+      "message": "I changed the code to and put the call to setupFromClasspath in the function argument, but it looked quite ugly... Let me know what you think...\n\n MidonetBackend.setupBindings(zoom, zoom, reflections,\n                              () \u003d\u003e {setup(zoom) ; setupFromClasspath(zoom, zoom, reflections)})",
+      "parentUuid": "baa041b7_29e50e37",
+      "range": {
+        "startLine": 385,
+        "startChar": 46,
+        "endLine": 385,
+        "endChar": 58
+      },
+      "revId": "8ded93dff6aac9a0f20fe57851c43910916cccca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
