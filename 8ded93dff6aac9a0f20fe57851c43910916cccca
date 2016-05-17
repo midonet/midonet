@@ -46,6 +46,30 @@
       "revId": "8ded93dff6aac9a0f20fe57851c43910916cccca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_62120b59",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-17T17:45:13Z",
+      "side": 1,
+      "message": "I thought of:\n\nMidonetBackend.setupBindings(zoom, zoom, () \u003d\u003e {\n  setup(zoom)\n  setupFromClasspath(zoom, zoom)\n})\n\nsetupFromClass can be a private method of this class, it doesn\u0027t have to be static, and you don\u0027t need to pass reflections to setupBindings anymore triggering all other changes. You also don\u0027t need another static logger since you can access the one from here.\n\nDoes it make sense?",
+      "parentUuid": "baa041b7_69faf676",
+      "range": {
+        "startLine": 385,
+        "startChar": 46,
+        "endLine": 385,
+        "endChar": 58
+      },
+      "revId": "8ded93dff6aac9a0f20fe57851c43910916cccca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
