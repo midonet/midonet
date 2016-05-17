@@ -179,7 +179,7 @@ object BgpPeerTranslator {
     def redirectRuleId(peerId: UUID): UUID =
         peerId.xorWith(0x12d34babf7d84902L, 0xaa840971afc3307fL)
 
-    val bgpPortRange = RangeUtil.toProto(127, 127)
+    val bgpPortRange = RangeUtil.toProto(179, 179)
 
     private[translators] def deleteBgpContainer(router: Router)
     : OperationList = {
