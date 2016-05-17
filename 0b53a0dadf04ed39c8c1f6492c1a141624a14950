@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_29b74e3b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-17T08:37:50Z",
+      "side": 1,
+      "message": "Done. Btw, re your comment isn\u0027t the payload instance already created at this point?",
+      "parentUuid": "baa041b7_0c7b83f6",
+      "range": {
+        "startLine": 392,
+        "startChar": 8,
+        "endLine": 392,
+        "endChar": 35
+      },
+      "revId": "0b53a0dadf04ed39c8c1f6492c1a141624a14950",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0c2dc3fd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-05-13T15:23:55Z",
       "side": 1,
       "message": "can this ever be null? we had a nullcheck before.",
+      "range": {
+        "startLine": 415,
+        "startChar": 43,
+        "endLine": 415,
+        "endChar": 52
+      },
+      "revId": "0b53a0dadf04ed39c8c1f6492c1a141624a14950",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e983a654",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-17T08:37:50Z",
+      "side": 1,
+      "message": "Right, it can be if the bridge is not ARP-enabled.",
+      "parentUuid": "baa041b7_0c2dc3fd",
       "range": {
         "startLine": 415,
         "startChar": 43,
