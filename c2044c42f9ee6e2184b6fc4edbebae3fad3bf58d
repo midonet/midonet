@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f67a61f0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-05-17T05:48:04Z",
+      "side": 1,
+      "message": "won\u0027t it be a compatibility problem?\n\nis there a way to get the old output?",
+      "revId": "c2044c42f9ee6e2184b6fc4edbebae3fad3bf58d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
