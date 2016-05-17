@@ -239,7 +239,7 @@ def ping_to_inet(count=5, interval=1, port=2, retries=3):
          LOG.debug("BGP: failed ping to inet... (%d retries left)" % retries)
          ping_to_inet(count, interval, port, retries-1)
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 def test_icmp_multi_add_uplink_1():
     """
@@ -265,7 +265,7 @@ def test_icmp_multi_add_uplink_1():
     clear_bgp(p1)
     clear_bgp(p2)
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 def test_icmp_multi_add_uplink_2():
     """
@@ -284,7 +284,7 @@ def test_icmp_multi_add_uplink_2():
     clear_bgp(p1)
     clear_bgp(p2)
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 def test_icmp_remove_uplink_1():
     """
@@ -304,7 +304,7 @@ def test_icmp_remove_uplink_1():
 
     clear_bgp(p2)
 
-@attr(version="v1.2.0", slow=False)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 def test_icmp_remove_uplink_2():
     """
@@ -320,9 +320,8 @@ def test_icmp_remove_uplink_2():
     ping_to_inet() # only BGP #1 is working
     clear_bgp(p1)
 
-@attr(version="v1.2.0", slow=True)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
-@nottest # MI-593, look into usage of await_internal_route_exported in master. It's also disabled in master though
 def test_icmp_failback():
     """
     Title: BGP failover/failback
@@ -378,9 +377,8 @@ def test_icmp_failback():
     clear_bgp(p1)
     clear_bgp(p2)
 
-@attr(version="v1.2.0", slow=True)
+@attr(version="v1.2.0")
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
-@nottest
 def test_snat():
     """
     Title: SNAT test with one uplink
@@ -407,7 +405,7 @@ def test_snat():
         clear_bgp(p1)
 
 
-@attr(version="v1.2.0", slow=True)
+@attr(version="v1.2.0")
 @bindings(binding_snat_1, binding_snat_2, binding_snat_3)
 def test_mn_1172():
     """

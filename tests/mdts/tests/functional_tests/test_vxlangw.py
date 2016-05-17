@@ -22,6 +22,7 @@ from mdts.tests.utils.utils import bindings, wait_on_futures
 
 from hamcrest import *
 from nose.tools import nottest, with_setup
+from nose.plugins.attrib import attr
 
 import logging
 
@@ -258,7 +259,6 @@ def clear_multi_vtep_multi_tz():
 
 @bindings(bindings_single_mm_single_bridge)
 @with_setup(setup_single_vtep, clear_single_vtep)
-@nottest # MI-778
 def test_to_single_vtep_single_bridge():
     """Tests if VMs can ping a host connected to a VTEP from a single host
     with a single bridge."""
@@ -274,7 +274,6 @@ def test_to_single_vtep_single_bridge():
 
 @bindings(bindings_single_mm_multi_bridge_same_subnet)
 @with_setup(setup_single_vtep, clear_single_vtep)
-@nottest # MI-778
 def test_to_single_vtep_multi_bridge():
     """Tests if VMs can ping a host connected to a VTEP from single and
     multiple hosts with multiple bridges."""
@@ -288,7 +287,6 @@ def test_to_single_vtep_multi_bridge():
 
 @bindings(bindings_single_mm_multi_bridge_diff_subnet)
 @with_setup(setup_multi_vtep_single_tz, clear_multi_vtep_single_tz)
-@nottest # MI-657 flake
 def test_to_multi_vtep_single_tz():
     """Tests if VMs can ping hosts connected to multiple VTEPs in the same
     tunnel-zone from a single and multiple hosts. Because the VTEP hosts
@@ -303,7 +301,6 @@ def test_to_multi_vtep_single_tz():
 
 @bindings(bindings_single_mm_multi_bridge_diff_subnet)
 @with_setup(setup_multi_vtep_multi_tz, clear_multi_vtep_multi_tz)
-@nottest # MI-657 flake
 def test_to_multi_vtep_multi_tz():
     """Tests if VMs can ping hosts connected to multiple VTEPs in the separate
     tunnel-zones from a single and multiple hosts. Because the VTEP hosts

@@ -232,7 +232,7 @@ def await_ports(active):
     await_port_active(downlink_port()._mn_resource.get_id(), active=active)
 
 
-@attr(version="v1.6.0", slow=False)
+@attr(version="v1.6.0")
 @bindings(binding_l4state)
 def test_distributed_l4():
     '''
@@ -253,7 +253,7 @@ def test_distributed_l4():
         time.sleep(30)
 
 
-@attr(version="v1.6.0", slow=False)
+@attr(version="v1.6.0")
 @bindings(binding_l4state)
 def test_distributed_l4_expiration():
     '''
@@ -278,7 +278,7 @@ def test_distributed_l4_expiration():
                       port_num, dropped=True)
 
 
-@attr(version="v1.6.0", slow=False)
+@attr(version="v1.6.0")
 @bindings(binding_l4state)
 def test_distributed_l4_port_binding():
     '''
@@ -304,7 +304,7 @@ def test_distributed_l4_port_binding():
     check_return_flow(left_uplink_port(), left_uplink_iface(), port_num, retries=10)
 
 
-@attr(version="v1.6.0", slow=False)
+@attr(version="v1.6.0")
 @bindings(binding_l4state)
 def test_distributed_l4_storage_ttl():
     '''

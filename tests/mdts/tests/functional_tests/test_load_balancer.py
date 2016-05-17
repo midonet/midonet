@@ -436,7 +436,7 @@ def get_current_leader(lb_pools, timeout = 60, wait_time=5):
     raise RuntimeError('Not all haproxy instances found! '
                        'Only pools %s have an haproxy instance.' % haproxies)
 
-@attr(version="v1.3.0", slow=False)
+@attr(version="v1.3.0")
 @bindings(binding_onehost,
           binding_onehost_weighted,
           binding_onehost_same_subnet,
@@ -444,7 +444,6 @@ def get_current_leader(lb_pools, timeout = 60, wait_time=5):
           binding_multihost_weighted,
           binding_multihost_same_subnet)
 @with_setup(start_servers, stop_servers)
-@nottest
 def test_multi_member_loadbalancing():
     """
     Title: Balances traffic correctly when multiple pool members are active,
@@ -530,10 +529,9 @@ def test_multi_member_loadbalancing():
     stuck_pool_member.enable()
 
 
-@attr(version="v1.3.0", slow=False)
-@bindings(binding_onehost) #, binding_multihost)
+@attr(version="v1.3.0")
+@bindings(binding_onehost, binding_multihost)
 @with_setup(start_servers, stop_servers)
-@nottest #MI-618
 def test_disabling_topology_loadbalancing():
     """
     Title: Balances traffic correctly when loadbalancer topology elements
@@ -569,7 +567,6 @@ def test_disabling_topology_loadbalancing():
     disable_and_assert_traffic_fails(sender, action_loadbalancer, vips=vips)
     enable_and_assert_traffic_succeeds(sender, action_loadbalancer, vips=vips)
 
-@nottest # MI-751
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_haproxy_failback():
@@ -626,7 +623,6 @@ def test_haproxy_failback():
 
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
-@nottest # MI-751
 def test_health_monitoring_backend_failback():
     """
     Title: Health monitoring backend failure resilience test
@@ -696,7 +692,7 @@ def test_health_monitoring_backend_failback():
     assert_that(check_num_backends_hit(non_sticky_results, 3), True)
 
 @nottest
-@attr(version="v1.3.0", slow=False)
+@attr(version="v1.3.0")
 @bindings(binding_onehost, binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_long_connection_loadbalancing():
