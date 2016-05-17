@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2932aef2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-17T08:09:44Z",
+      "side": 1,
+      "message": "Looks like a ReactiveActor can only subscribe to an Observable of one type. It\u0027s already subscribing to an Observable[BgpPort].",
+      "parentUuid": "baa041b7_21be4865",
+      "range": {
+        "startLine": 208,
+        "startChar": 12,
+        "endLine": 218,
+        "endChar": 13
+      },
+      "revId": "948666df1f2bde56028fa6a8b8fa1991d8997548",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_81af5429",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 17
@@ -36,6 +60,30 @@
       "writtenOn": "2016-05-16T18:15:00Z",
       "side": 1,
       "message": "Better say: Router CIDRs updated",
+      "range": {
+        "startLine": 331,
+        "startChar": 27,
+        "endLine": 331,
+        "endChar": 58
+      },
+      "revId": "948666df1f2bde56028fa6a8b8fa1991d8997548",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_092fea88",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-17T08:09:44Z",
+      "side": 1,
+      "message": "That\u0027s not what happens, necessarily. This just sets newCidrs, which is the set of CIDRs to update bgpd with on the next restart. That may not actually happen, if bgpd hasn\u0027t started yet and another set of CIDRs comes in before it does.",
+      "parentUuid": "baa041b7_81af5429",
       "range": {
         "startLine": 331,
         "startChar": 27,
