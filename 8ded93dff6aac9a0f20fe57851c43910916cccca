@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_29e50e37",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-17T08:55:02Z",
+      "side": 1,
+      "message": "You could do the reflections initialization here, then you wouldn\u0027t need to modify setupBindings, which provides only the static initialization.",
+      "range": {
+        "startLine": 385,
+        "startChar": 46,
+        "endLine": 385,
+        "endChar": 58
+      },
+      "revId": "8ded93dff6aac9a0f20fe57851c43910916cccca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
