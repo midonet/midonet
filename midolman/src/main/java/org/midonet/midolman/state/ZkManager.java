@@ -129,16 +129,6 @@ public class ZkManager {
         }
     }
 
-    public boolean exists(String path, Runnable watcher)
-            throws StateAccessException {
-        try {
-            return zk.exists(path, watcher);
-        } catch (Exception ex) {
-            throw processException(
-                    ex, "checking whether path " + path + " exists");
-        }
-    }
-
     public String addPersistent(String path, byte[] data)
             throws StateAccessException {
         try {
@@ -241,13 +231,5 @@ public class ZkManager {
         } catch (Exception ex) {
             throw processException(ex, "updating the node at path " + path);
         }
-    }
-
-    /**
-     * Disconnects from the underlying storage.
-     */
-    public void disconnect() {
-        if (zk != null)
-            zk.closeConnection();
     }
 }

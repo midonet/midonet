@@ -40,24 +40,16 @@ import org.midonet.cluster.backend.DirectoryCallback;
 import org.midonet.util.eventloop.Reactor;
 
 public class ZkDirectory implements Directory {
-    static final Logger log = LoggerFactory.getLogger(ZkDirectory.class);
+    private static final Logger log = LoggerFactory.getLogger(ZkDirectory.class);
 
     public ZkConnection zk;
     private String basePath;
-    private List<ACL> acl;
+    private final List<ACL> acl = Ids.OPEN_ACL_UNSAFE;
     private Reactor reactor;
 
-    /**
-     * @param zk       the zookeeper object
-     * @param basePath must start with "/"
-     * @param acl      the list of {@link ACL} the we need to use
-     * @param reactor  the delayed reactor loop
-     */
-    public ZkDirectory(ZkConnection zk, String basePath,
-                       List<ACL> acl, Reactor reactor) {
+    public ZkDirectory(ZkConnection zk, String basePath, Reactor reactor) {
         this.zk = zk;
         this.basePath = basePath;
-        this.acl = Ids.OPEN_ACL_UNSAFE;
         this.reactor = reactor;
     }
 
@@ -268,12 +260,6 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-    public boolean exists(String path, Runnable watcher)
-            throws KeeperException, InterruptedException {
-        return exists(path, wrapCallback(watcher));
-    }
-
-    @Override
     public boolean has(String relativePath) throws KeeperException,
                                                    InterruptedException {
         String absPath = getAbsolutePath(relativePath);
@@ -304,8 +290,7 @@ public class ZkDirectory implements Directory {
 
     @Override
     public Directory getSubDirectory(String relativePath) {
-        return new ZkDirectory(zk, getAbsolutePath(relativePath), null,
-                               reactor);
+        return new ZkDirectory(zk, getAbsolutePath(relativePath), reactor);
     }
 
     private String getAbsolutePath(String relativePath) {
@@ -320,11 +305,5 @@ public class ZkDirectory implements Directory {
     public List<OpResult> multi(List<Op> ops)
         throws InterruptedException, KeeperException {
         return zk.getZooKeeper().multi(ops);
-    }
-
-    @Override
-    public void closeConnection() {
-        log.info("Closing the Zookeeper connection.");
-        zk.close();
     }
 }

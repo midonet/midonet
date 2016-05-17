@@ -198,8 +198,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
         val provider = getProvider(clazz, key.runtimeClass, value.runtimeClass,
                                    name)
         // Create a new directory for the state table path.
-        val directory = new ZkDirectory(connection, path, Ids.OPEN_ACL_UNSAFE,
-                                        reactor)
+        val directory = new ZkDirectory(connection, path, reactor)
 
         // Get the constructor for the provider class and create a new instance.
         val constructor =

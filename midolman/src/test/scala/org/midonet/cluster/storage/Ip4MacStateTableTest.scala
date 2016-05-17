@@ -46,7 +46,7 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     protected override def setup(): Unit = {
         connection = new CuratorZkConnection(curator, reactor)
-        directory = new ZkDirectory(connection, zkRoot, null, reactor)
+        directory = new ZkDirectory(connection, zkRoot, reactor)
         zkConnWatcher = new ZookeeperConnectionWatcher
     }
 

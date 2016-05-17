@@ -148,7 +148,7 @@ public class ZkConnection implements Watcher {
     }
 
     public Directory getRootDirectory() {
-        return new ZkDirectory(this, "", Ids.OPEN_ACL_UNSAFE, reactor);
+        return new ZkDirectory(this, "", reactor);
     }
 
     public ZooKeeper getZooKeeper()  {

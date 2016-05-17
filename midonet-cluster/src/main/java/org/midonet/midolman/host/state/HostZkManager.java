@@ -22,7 +22,6 @@ import java.util.UUID;
 
 import com.google.inject.Inject;
 
-import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,14 +67,6 @@ public class HostZkManager
 
     public boolean isAlive(UUID id) throws StateAccessException {
         return zk.exists(paths.getHostPath(id) + "/alive");
-    }
-
-    public boolean isAlive(UUID id, Runnable watcher) throws StateAccessException {
-        return zk.exists(paths.getHostPath(id) + "/alive", watcher);
-    }
-
-    public boolean isAlive(UUID id, Watcher watcher) throws StateAccessException {
-        return zk.exists(paths.getHostPath(id) + "/alive", watcher);
     }
 
     /**
