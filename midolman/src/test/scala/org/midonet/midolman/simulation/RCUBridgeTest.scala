@@ -285,4 +285,6 @@ private class MockIpMacMap(val map: Map[IPv4Addr, MAC])
             case None => null
         }
     }
+
+    override def put(ip: IPv4Addr, mac: MAC) = ???
 }

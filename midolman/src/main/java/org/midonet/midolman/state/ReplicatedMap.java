@@ -38,6 +38,8 @@ public abstract class ReplicatedMap<K, V> {
 
     protected ZkConnectionAwareWatcher connectionWatcher;
 
+    public static final int PERSISTENT_VERSION = 1;
+
     /*
      * TODO(pino): don't allow deletes to be lost.
      *
@@ -107,12 +109,21 @@ public abstract class ReplicatedMap<K, V> {
             for (String path : curPaths) {
                 Path p = decodePath(path);
                 MapValue mv = newMap.get(p.key);
-                if (mv == null)
-                    newMap.put(p.key, new MapValue(p.value, p.version));
-                else if (mv.version < p.version) {
+                if (mv == null) {
+                    newMap.put(p.key, new MapValue(p.value, p.version,
+                                                   p.persistent));
+                } else if (mv.persistent) {
+                    // if the current version is persistent, overwrite it
+                    // as learned always take precedence over persistent
+                    newMap.put(p.key, new MapValue(p.value, p.version, p.persistent));
+                } else if (p.persistent) {
+                    // new version is persistent, but we already have an
+                    // entry so ignore it, as learned take precedence over
+                    // persistent
+                } else if (mv.version < p.version) {
                     // The one currently in newMap needs to be replaced.
                     // Also clean it up if it belongs to this ZK client.
-                    newMap.put(p.key, new MapValue(p.value, p.version));
+                    newMap.put(p.key, new MapValue(p.value, p.version, p.persistent));
 
                     if (ownedVersions.contains(mv.version)) {
                         p.value = mv.value;
@@ -468,10 +479,12 @@ public abstract class ReplicatedMap<K, V> {
     private class MapValue {
         V value;
         int version;
+        boolean persistent;
 
-        MapValue(V value, int version) {
+        MapValue(V value, int version, boolean persistent) {
             this.value = value;
             this.version = version;
+            this.persistent = persistent;
         }
 
         @Override
@@ -484,11 +497,13 @@ public abstract class ReplicatedMap<K, V> {
         K key;
         V value;
         int version;
+        boolean persistent;
 
-        Path(K key, V value, int version) {
+        Path(K key, V value, int version, boolean persistent) {
             this.key = key;
             this.value = value;
             this.version = version;
+            this.persistent = persistent;
         }
     }
 
@@ -524,11 +539,18 @@ public abstract class ReplicatedMap<K, V> {
 
     private Path decodePath(String str) {
         String[] parts = getKeyValueVersion(str);
-        Path result = new Path(null, null, 0);
-        result.key = decodeKey(parts[0]);
-        result.value = decodeValue(parts[1]);
-        result.version = Integer.parseInt(parts[2]);
-        return result;
+
+        /* The check for whether the entry is persistent is nasty,
+         * but it's the only way I can think of without breaking BC.
+         * If a node is persistent, the path will be encoded with a
+         * version of '1'. If learned, a zookeeper sequential will be used,
+         * which will be '00000000X', X being the number. So learned 1 and
+         * persistent 1 can be told apart by the length of the string.
+         */
+        return new Path(decodeKey(parts[0]),
+                        decodeValue(parts[1]),
+                        Integer.parseInt(parts[2]),
+                        parts[2].equals(String.valueOf(PERSISTENT_VERSION)));
     }
 
     public synchronized boolean containsValue(V val) {

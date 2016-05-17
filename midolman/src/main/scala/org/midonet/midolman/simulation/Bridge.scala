@@ -188,7 +188,7 @@ class Bridge(val id: UUID,
         val dstDlAddress = context.wcmatch.getEthDst
         val action =
              if (isArpBroadcast())
-                 handleARPRequest()
+                 handleARP()
              else if (dstDlAddress.mcast)
                  handleL2Multicast()
              else
@@ -410,7 +410,7 @@ class Bridge(val id: UUID,
     /**
       * Used by normalProcess to handle specifically ARP multicast.
       */
-    private def handleARPRequest()(implicit context: PacketContext)
+    private def handleARP()(implicit context: PacketContext)
     : SimulationResult = {
         context.log.debug("Handling ARP multicast")
         val pMatch = context.wcmatch
@@ -420,12 +420,23 @@ class Bridge(val id: UUID,
             context.log.debug("The packet is intended for an interior port.")
             val portID = macToLogicalPortId.get(ipToMac.get(nwDst).get).get
             unicastAction(portID)
+        } else if (pMatch.getNetworkSrcIP.equals(pMatch.getNetworkDstIP)) {
+            context.log.debug(
+                "Gratuitous ARP. Adding to IP->Mac mapping "
+                    + s"${pMatch.getNetworkSrcIP} -> ${pMatch.getEthSrc}")
+            ip4MacMap.put(pMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr],
+                          pMatch.getEthSrc)
+            context.log.debug("Flooding GARP at bridge {}, source MAC {}",
+                              id, pMatch.getEthSrc)
+            context.addFlowTag(tagForArpRequests(id))
+            context.markUserspaceOnly()
+            multicastAction()
         } else {
             // If it's an ARP request, can we answer from the Bridge's IpMacMap?
             val mac = pMatch.getNetworkProto.shortValue() match {
                 case ARP.OP_REQUEST if ip4MacMap != null =>
-                    ip4MacMap get
-                        pMatch.getNetworkDstIP.asInstanceOf[IPv4Addr]
+                        ip4MacMap get
+                            pMatch.getNetworkDstIP.asInstanceOf[IPv4Addr]
                 case _ =>
                     null
             }
