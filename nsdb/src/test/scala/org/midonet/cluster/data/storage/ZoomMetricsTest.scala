@@ -687,8 +687,8 @@ class ZoomMetricsTest extends FeatureSpec
             observer2.awaitOnNext(1, timeout) shouldBe true
             observer3.awaitOnNext(1, timeout) shouldBe true
 
-            And("The number of observable premature close should be 2")
-            getMetricValue("ObservablePrematureCloseCount") shouldBe 2
+            And("The number of observable premature close should be 4")
+            getMetricValue("ObservablePrematureCloseCount") shouldBe 4
 
             When("We add multi-value key")
             key = "multi"
@@ -716,8 +716,8 @@ class ZoomMetricsTest extends FeatureSpec
             observer2.awaitOnNext(1, timeout) shouldBe true
             observer3.awaitOnNext(1, timeout) shouldBe true
 
-            And("The number of observable premature close should be 4")
-            getMetricValue("ObservablePrematureCloseCount") shouldBe 4
+            And("The number of observable premature close should be 6")
+            getMetricValue("ObservablePrematureCloseCount") shouldBe 6
         }
     }
 
