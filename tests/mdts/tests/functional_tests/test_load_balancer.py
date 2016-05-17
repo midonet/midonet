@@ -35,79 +35,6 @@ VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_load_balancer.yaml'
 BM = BindingManager(PTM, VTM)
 
 
-binding_onehost = {
-    'description': 'on single MM (equal weight, sender on different subnet)',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 4}},
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 1, 'interface_id': 5}},
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 3,
-              'host_id': 1, 'interface_id': 6}},
-        {'binding':
-             {'device_name': 'bridge-000-003', 'port_id': 1,
-              'host_id': 1, 'interface_id': 7}}
-    ],
-    'vips': {
-        'non_sticky_vip': '100.100.2.8',
-        'sticky_vip': '100.100.2.9'
-    },
-    'sender': ('bridge-000-003', 1),
-    'weighted': False
-}
-
-binding_onehost_same_subnet = {
-    'description': 'on single MM (equal weight, sender on same subnet)',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 1,
-              'host_id': 1, 'interface_id': 4}},
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 1, 'interface_id': 5}},
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 3,
-              'host_id': 1, 'interface_id': 6}},
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 4,
-              'host_id': 1, 'interface_id': 8}}
-    ],
-    'vips': {
-        'non_sticky_vip': '100.100.2.8',
-        'sticky_vip': '100.100.2.9'
-    },
-    'sender': ('bridge-000-002', 4),
-    'weighted': False
-}
-
-
-binding_onehost_weighted = {
-    'description': 'on single MM (different weights)',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
-              'host_id': 1, 'interface_id': 3}},
-        {'binding':
-             {'device_name': 'bridge-000-003', 'port_id': 1,
-              'host_id': 1, 'interface_id': 7}}
-    ],
-    'vips': {
-        'non_sticky_vip': '100.100.1.8',
-        'sticky_vip': '100.100.1.9'
-    },
-    'sender': ('bridge-000-003', 1),
-    'weighted': True
-}
-
 binding_multihost = {
     'description': 'spanning across multiple MMs (equal weight, sender on different subnet)',
     'bindings': [
@@ -431,10 +358,7 @@ def get_current_leader(lb_pools, timeout = 60, wait_time=5):
                        'Only pools %s have an haproxy instance.' % haproxies)
 
 @attr(version="v1.3.0")
-@bindings(binding_onehost,
-          binding_onehost_weighted,
-          binding_onehost_same_subnet,
-          binding_multihost,
+@bindings(binding_multihost,
           binding_multihost_weighted,
           binding_multihost_same_subnet)
 @with_setup(start_servers, stop_servers)
@@ -525,7 +449,7 @@ def test_multi_member_loadbalancing():
 
 
 @attr(version="v1.3.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_disabling_topology_loadbalancing():
     """
@@ -689,7 +613,7 @@ def test_health_monitoring_backend_failback():
 
 @nottest
 @attr(version="v1.3.0")
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_long_connection_loadbalancing():
     """

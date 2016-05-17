@@ -29,18 +29,6 @@ PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_delete_port.yaml'
 VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_delete_port.yaml')
 BM = BindingManager(PTM, VTM)
 
-binding_onehost = {
-    'description': 'on single MM',
-    'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 2,
-              'host_id': 1, 'interface_id': 1}},
-        {'binding':
-             {'device_name': 'bridge-000-002', 'port_id': 2,
-              'host_id': 1, 'interface_id': 2}},
-        ]
-    }
-
 binding_multihost = {
     'description': 'spanning across multiple MMs',
     'bindings': [
@@ -54,7 +42,7 @@ binding_multihost = {
     }
 
 
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_ping_delete_port():
     """
     Title: L3 connectivity over bridge and router, then deletes a port
