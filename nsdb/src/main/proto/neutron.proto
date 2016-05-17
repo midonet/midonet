@@ -522,6 +522,7 @@ message NeutronBgpPeer {
     optional NeutronBgpSpeaker bgp_speaker = 8;
 
     enum BgpAuthType {
-        MD5 = 0;
+        NONE = 1;
+        MD5 = 2;
     }
 }
