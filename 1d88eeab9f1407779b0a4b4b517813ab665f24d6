@@ -22,6 +22,30 @@
       "revId": "1d88eeab9f1407779b0a4b4b517813ab665f24d6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_098b6a69",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-17T08:43:49Z",
+      "side": 1,
+      "message": "Yes, that\u0027s right. I\u0027ve added a check to assert that the size of the state packets list is also 2.",
+      "parentUuid": "baa041b7_09180a74",
+      "range": {
+        "startLine": 383,
+        "startChar": 11,
+        "endLine": 383,
+        "endChar": 39
+      },
+      "revId": "1d88eeab9f1407779b0a4b4b517813ab665f24d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
