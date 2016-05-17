@@ -1909,6 +1909,10 @@ class Condition(ObjectType):
     def __init__(self, obj):
         super(Condition, self).__init__(obj)
         self.clear_attrs()
+        self.put_attr(ActiveAttr(name = 'inverted',
+                                 getter = 'is_cond_invert',
+                                 setter = 'cond_invert',
+                                 optional = True))
         self.put_attr(SingleAttr(name = 'hw-src',
                                  value_type = MacAddress(),
                                  getter = 'get_dl_src',
