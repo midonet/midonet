@@ -46,6 +46,30 @@
       "revId": "aee8f586779789db712e964de80842535e0b8ff5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_76d0911f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-05-17T02:24:03Z",
+      "side": 1,
+      "message": "ok, thank you for explanation.",
+      "parentUuid": "baa041b7_76e9b1e5",
+      "range": {
+        "startLine": 11,
+        "startChar": 37,
+        "endLine": 12,
+        "endChar": 21
+      },
+      "revId": "aee8f586779789db712e964de80842535e0b8ff5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
