@@ -149,7 +149,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             And("Expected configuration")
             val expectedSecrets =
-                s"""${vpn.localEndpointIp} ${conn.getPeerAddress} : PSK "${conn.getPsk}"
+                s"""${vpn.localEndpointIp} ${conn.getPeerId} : PSK "${conn.getPsk}"
                    |""".stripMargin
             val expectedConf =
                 s"""config setup
@@ -167,7 +167,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                    |    leftsubnets={ ${conn.getLocalCidrs(0).asJava } }
                    |    leftupdown="ipsec _updown --route yes"
                    |    right=${conn.getPeerAddress}
-                   |    rightid=${conn.getPeerAddress}
+                   |    rightid=${conn.getPeerId}
                    |    rightsubnets={ ${conn.getPeerCidrs(0).asJava } }
                    |    mtu=${conn.getMtu}
                    |    dpdaction=hold
@@ -175,10 +175,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                    |    dpdtimeout=${conn.getDpdTimeout}
                    |    authby=secret
                    |    ikev2=never
-                   |    ike=aes128-sha1;modp1536
+                   |    ike=3des-sha1;modp1024
                    |    ikelifetime=${ike.getLifetimeValue}s
                    |    auth=esp
-                   |    phase2alg=aes128-sha1;modp1536
+                   |    phase2alg=3des-sha1;modp1024
                    |    type=tunnel
                    |    lifetime=${ipsec.getLifetimeValue}s
                    |""".stripMargin
@@ -255,9 +255,9 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             And("Expected configuration")
             val expectedSecrets =
-                s"""${vpn.localEndpointIp} ${conn1.getPeerAddress} : PSK "${conn1.getPsk}"
-                   |${vpn.localEndpointIp} ${conn2.getPeerAddress} : PSK "${conn2.getPsk}"
-                   |${vpn.localEndpointIp} ${conn3.getPeerAddress} : PSK "${conn3.getPsk}"
+                s"""${vpn.localEndpointIp} ${conn1.getPeerId} : PSK "${conn1.getPsk}"
+                   |${vpn.localEndpointIp} ${conn2.getPeerId} : PSK "${conn2.getPsk}"
+                   |${vpn.localEndpointIp} ${conn3.getPeerId} : PSK "${conn3.getPsk}"
                    |""".stripMargin
             val expectedConf =
                 s"""config setup
@@ -275,7 +275,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    leftsubnets={ ${IPSecConfig.subnetsString(conn1.getLocalCidrsList) } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn1.getPeerAddress}
-                    |    rightid=${conn1.getPeerAddress}
+                    |    rightid=${conn1.getPeerId}
                     |    rightsubnets={ ${IPSecConfig.subnetsString(conn1.getPeerCidrsList) } }
                     |    mtu=${conn1.getMtu}
                     |    dpdaction=clear
@@ -283,10 +283,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    dpdtimeout=${conn1.getDpdTimeout}
                     |    authby=secret
                     |    ikev2=insist
-                    |    ike=aes128-sha1;modp1536
+                    |    ike=3des-sha1;modp1024
                     |    ikelifetime=${ike.getLifetimeValue}s
                     |    auth=ah-esp
-                    |    phase2alg=aes128-sha1;modp1536
+                    |    phase2alg=3des-sha1;modp1024
                     |    type=transport
                     |    lifetime=${ipsec.getLifetimeValue}s
                     |conn ${IPSecConfig.vpnName(conn2.getId.asJava)}
@@ -298,7 +298,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    leftsubnets={ ${IPSecConfig.subnetsString(conn2.getLocalCidrsList) } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn2.getPeerAddress}
-                    |    rightid=${conn2.getPeerAddress}
+                    |    rightid=${conn2.getPeerId}
                     |    rightsubnets={ ${IPSecConfig.subnetsString(conn2.getPeerCidrsList) } }
                     |    mtu=${conn2.getMtu}
                     |    dpdaction=restart-by-peer
@@ -306,10 +306,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    dpdtimeout=${conn2.getDpdTimeout}
                     |    authby=secret
                     |    ikev2=insist
-                    |    ike=aes128-sha1;modp1536
+                    |    ike=3des-sha1;modp1024
                     |    ikelifetime=${ike.getLifetimeValue}s
                     |    auth=ah-esp
-                    |    phase2alg=aes128-sha1;modp1536
+                    |    phase2alg=3des-sha1;modp1024
                     |    type=transport
                     |    lifetime=${ipsec.getLifetimeValue}s
                     |conn ${IPSecConfig.vpnName(conn3.getId.asJava)}
@@ -321,7 +321,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    leftsubnets={ ${IPSecConfig.subnetsString(conn3.getLocalCidrsList) } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn3.getPeerAddress}
-                    |    rightid=${conn3.getPeerAddress}
+                    |    rightid=${conn3.getPeerId}
                     |    rightsubnets={ ${IPSecConfig.subnetsString(conn3.getPeerCidrsList) } }
                     |    mtu=${conn3.getMtu}
                     |    dpdaction=restart
@@ -329,10 +329,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    dpdtimeout=${conn3.getDpdTimeout}
                     |    authby=secret
                     |    ikev2=insist
-                    |    ike=aes128-sha1;modp1536
+                    |    ike=3des-sha1;modp1024
                     |    ikelifetime=${ike.getLifetimeValue}s
                     |    auth=ah-esp
-                    |    phase2alg=aes128-sha1;modp1536
+                    |    phase2alg=3des-sha1;modp1024
                     |    type=transport
                     |    lifetime=${ipsec.getLifetimeValue}s
                     |""".stripMargin
@@ -427,8 +427,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
             And("Expected configuration")
             val expectedSecrets =
-                s"""${vpn.localEndpointIp} ${conn1.getPeerAddress} : PSK "${conn1.getPsk}"
-                   |${vpn.localEndpointIp} ${conn3.getPeerAddress} : PSK "${conn3.getPsk}"
+                s"""${vpn.localEndpointIp} ${conn1.getPeerId} : PSK "${conn1.getPsk}"
+                   |${vpn.localEndpointIp} ${conn3.getPeerId} : PSK "${conn3.getPsk}"
                    |""".stripMargin
             val expectedConf =
                 s"""config setup
@@ -446,7 +446,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    leftsubnets={ ${conn1.getLocalCidrs(0).asJava } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn1.getPeerAddress}
-                    |    rightid=${conn1.getPeerAddress}
+                    |    rightid=${conn1.getPeerId}
                     |    rightsubnets={ ${conn1.getPeerCidrs(0).asJava } }
                     |    mtu=${conn1.getMtu}
                     |    dpdaction=clear
@@ -454,10 +454,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    dpdtimeout=${conn1.getDpdTimeout}
                     |    authby=secret
                     |    ikev2=insist
-                    |    ike=aes128-sha1;modp1536
+                    |    ike=3des-sha1;modp1024
                     |    ikelifetime=${ike.getLifetimeValue}s
                     |    auth=ah-esp
-                    |    phase2alg=aes128-sha1;modp1536
+                    |    phase2alg=3des-sha1;modp1024
                     |    type=transport
                     |    lifetime=${ipsec.getLifetimeValue}s
                     |conn ${IPSecConfig.vpnName(conn3.getId.asJava)}
@@ -469,7 +469,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    leftsubnets={ ${conn3.getLocalCidrs(0).asJava } }
                     |    leftupdown="ipsec _updown --route yes"
                     |    right=${conn3.getPeerAddress}
-                    |    rightid=${conn3.getPeerAddress}
+                    |    rightid=${conn3.getPeerId}
                     |    rightsubnets={ ${conn3.getPeerCidrs(0).asJava } }
                     |    mtu=${conn3.getMtu}
                     |    dpdaction=restart
@@ -477,10 +477,10 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    dpdtimeout=${conn3.getDpdTimeout}
                     |    authby=secret
                     |    ikev2=insist
-                    |    ike=aes128-sha1;modp1536
+                    |    ike=3des-sha1;modp1024
                     |    ikelifetime=${ike.getLifetimeValue}s
                     |    auth=ah-esp
-                    |    phase2alg=aes128-sha1;modp1536
+                    |    phase2alg=3des-sha1;modp1024
                     |    type=transport
                     |    lifetime=${ipsec.getLifetimeValue}s
                     |""".stripMargin
