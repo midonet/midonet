@@ -16,9 +16,9 @@
 
 from mdts.services import service
 from mdts.services.service import Service
+from mdts.tests.utils import conf
 
 import neutronclient.neutron.client as neutron
-
 
 class NeutronHost(Service):
 
@@ -48,6 +48,6 @@ class NeutronHost(Service):
             '2.0',
             auth_url='http://%s:35357/v2.0' % keystone_host.get_ip_address(),
             endpoint_url='http://%s:9696' % self.get_ip_address(),
-            tenant_name='admin',
-            username='admin',
-            password='admin')
+            tenant_name=conf.openstack_project(),
+            username=conf.openstack_user(),
+            password=conf.openstack_password())
