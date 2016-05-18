@@ -70,6 +70,30 @@
       "revId": "8ded93dff6aac9a0f20fe57851c43910916cccca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b8e5e2a4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-18T13:30:56Z",
+      "side": 1,
+      "message": "I implemented this way, but the problem is that the MidonetTestBackend also executes setup code, so having the setupFromClassPath as an instance method of MidonetBackendService made it tricky to use the method in tests... Since setupBindings itself is a static method of MidonetBackend, I think it makes sense to put setupFromClasspath there too, no? In any case, I\u0027m calling the method from here now, so setupBindings stays the same, and the patch became a bit smaller...",
+      "parentUuid": "baa041b7_62120b59",
+      "range": {
+        "startLine": 385,
+        "startChar": 46,
+        "endLine": 385,
+        "endChar": 58
+      },
+      "revId": "8ded93dff6aac9a0f20fe57851c43910916cccca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
