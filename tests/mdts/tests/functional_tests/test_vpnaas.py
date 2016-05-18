@@ -300,9 +300,7 @@ BM = BindingManager(None, VTM)
 # so we skip under certain conditions. E.g.:
 # - neutron version does not support this test
 # - an extension is not loaded
-@bindings(binding_onehost_intra_tenant,
-          binding_multihost_intra_tenant,
-          binding_multihost_inter_tenant,
+@bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
 
 def test_ping_between_three_sites():
@@ -669,8 +667,7 @@ def test_ipsec_container_failover():
     midolman3.eject_packet_loss('eth0')
     midolman3.wait_for_status('up')
 
-@bindings(binding_multihost_intra_tenant,
-          binding_multihost_inter_tenant,
+@bindings(binding_multihost_inter_tenant,
           binding_manager=BM)
 def test_non_vpn_subnet():
     left_router, left_peer_address, left_subnet = VTM.get_site_data('left')
