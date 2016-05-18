@@ -38,3 +38,15 @@ def sandbox_name():
 
 def sandbox_prefix():
     return conf.get('sandbox', 'sandbox_prefix')
+
+def containers_file():
+    if conf.has_option('ssh', 'containers_file'):
+        return conf.get('ssh', 'containers_file')
+    else:
+        return None
+
+def extra_ssh_config_file():
+    if conf.has_option('ssh', 'extra_ssh_config_file'):
+        return conf.get('ssh', 'extra_ssh_config_file')
+    else:
+        return None
