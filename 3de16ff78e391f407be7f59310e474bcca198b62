@@ -22,6 +22,30 @@
       "revId": "3de16ff78e391f407be7f59310e474bcca198b62",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_649d74bb",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 0,
+      "message": "I saw some interactions, and not sure if they are incompatible between Docker vs Paramiko API ... specially with stream\u003dTrue calls. This can cause some problems in some cases, I agree. Let see the regression in Jenkins.",
+      "parentUuid": "baa041b7_81498ab9",
+      "range": {
+        "startLine": 233,
+        "startChar": 8,
+        "endLine": 235,
+        "endChar": 48
+      },
+      "revId": "3de16ff78e391f407be7f59310e474bcca198b62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c10b1229",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 1,
+      "message": "Nice",
+      "parentUuid": "baa041b7_a175aefa",
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e104d64a",
         "filename": "tests/mdts/services/service.py",
         "patchSetId": 1
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_241e4c5f",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 1,
+      "message": "Yes, I was thinking about that ... but was not sure about the module/directory. But I will try to find a proper one.",
+      "parentUuid": "baa041b7_e104d64a",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 24
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6197a6ec",
         "filename": "tests/mdts/services/service.py",
         "patchSetId": 1
@@ -53,6 +95,30 @@
       "writtenOn": "2016-05-18T16:21:03Z",
       "side": 1,
       "message": "Is this private? By convention, you prepend private methods with _ (don\u0027t remember the PEP).",
+      "range": {
+        "startLine": 70,
+        "startChar": 8,
+        "endLine": 70,
+        "endChar": 39
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_042348a8",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 1,
+      "message": "True",
+      "parentUuid": "baa041b7_6197a6ec",
       "range": {
         "startLine": 70,
         "startChar": 8,
@@ -111,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_842f5887",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 1,
+      "message": "Ok",
+      "parentUuid": "baa041b7_219d1e0a",
+      "range": {
+        "startLine": 83,
+        "startChar": 8,
+        "endLine": 83,
+        "endChar": 26
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_01eb3a79",
         "filename": "tests/mdts/services/service.py",
         "patchSetId": 1
@@ -122,6 +212,30 @@
       "writtenOn": "2016-05-18T16:21:03Z",
       "side": 1,
       "message": "What\u0027s the format of this file? I\u0027d add some doc about it.\n\nSmall nit. I\u0027d call it inventory.yaml, or hosts.yaml.",
+      "range": {
+        "startLine": 132,
+        "startChar": 23,
+        "endLine": 132,
+        "endChar": 37
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e443c440",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 1,
+      "message": "Yes, definitely I need to add a README somewhere",
+      "parentUuid": "baa041b7_01eb3a79",
       "range": {
         "startLine": 132,
         "startChar": 23,
@@ -157,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_047108a8",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 1,
+      "message": "Yes, originally I thought about it, but was trying to advance so left for future. But I guess it will not be difficult to add.",
+      "parentUuid": "baa041b7_818e2ace",
+      "range": {
+        "startLine": 135,
+        "startChar": 0,
+        "endLine": 135,
+        "endChar": 39
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_81e06a97",
         "filename": "tests/setup_test_server",
         "patchSetId": 1
@@ -168,6 +306,30 @@
       "writtenOn": "2016-05-18T16:21:03Z",
       "side": 1,
       "message": "Is this needed by paramiko? This will need an update on the jclouds image to be able to run.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 69
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a4b7fc38",
+        "filename": "tests/setup_test_server",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 1,
+      "message": "I did have to do it, but maybe not needed for our current environment. Let see if the paramiko dependency fails on Jenkins.",
+      "parentUuid": "baa041b7_81e06a97",
       "range": {
         "startLine": 24,
         "startChar": 0,
@@ -203,6 +365,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e49864c2",
+        "filename": "tests/ssh-containers-from-docker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 1,
+      "message": "I am using it as part of a shell script that redirects it to a file because I need to remove some \"unicode\" garbage and sed seemed useful to do that. But maybe it can be done with some extra python code to get rid of this hack.",
+      "parentUuid": "baa041b7_01d45aba",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 29
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a1e36ea3",
         "filename": "tests/ssh-containers-from-docker.sh",
         "patchSetId": 1
@@ -214,6 +400,30 @@
       "writtenOn": "2016-05-18T16:21:03Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 54
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a48edc76",
+        "filename": "tests/ssh-containers-from-docker.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T16:59:08Z",
+      "side": 1,
+      "message": "This is the unicode garbage I mentioned. Maybe I it can be ignored. I will check.",
+      "parentUuid": "baa041b7_a1e36ea3",
       "range": {
         "startLine": 1,
         "startChar": 0,
