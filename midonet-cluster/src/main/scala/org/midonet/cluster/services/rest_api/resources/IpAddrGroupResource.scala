@@ -202,6 +202,7 @@ class IpAddrGroupAddrResource @Inject()(protected[this] val ipAddrGroupId: UUID,
         }
 
         addr.setBaseUri(resContext.uriInfo.getBaseUri)
+        addr.ipAddrGroupId = ipAddrGroupId
         MidonetResource.OkCreated(addr.getUri)
     }
 
