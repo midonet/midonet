@@ -13,21 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from mdts.services.service import Service
+from mdts.services.service import Service, get_container_by_hostname
 import json, tempfile, tarfile, os, os.path
 
 class JmxTransHost(Service):
     def __init__(self, container_id):
         super(JmxTransHost, self).__init__(container_id)
 
-    def _get_config_file(self, jobname):
-        return os.path.join(self.get_volumes()['/var/lib/jmxtrans'],
-                            "%s.json" % jobname)
+    def _get_remote_config_file(self, jobname):
+        return "/var/lib/jmxtrans/%s.json" % jobname
 
     def start_monitoring_hosts(self, jobname, hosts):
         config = self._build_config(jobname, hosts)
-        with open(self._get_config_file(jobname), "w") as fd:
-            json.dump(config, fd, indent=4)
+        cmd = "echo '%s' > %s" % (json.dumps(config),
+                                  self._get_remote_config_file(jobname))
+        self.exec_command(cmd)
 
     def _build_config(self, jobname, hosts):
         servers = []
@@ -41,7 +41,7 @@ class JmxTransHost(Service):
                                            "midonet", jobname))
             servers.append({
                 "port": "7200",
-                "host": h,
+                "host": get_container_by_hostname(h).get_ip_address(),
                 "queries": queries
             })
         return { "servers": servers }
@@ -58,4 +58,5 @@ class JmxTransHost(Service):
         }
 
     def stop_monitoring_hosts(self, jobname):
-        os.unlink(self._get_config_file(jobname))
+        cmd = "rm -f %s" % (self._get_remote_config_file(jobname))
+        self.exec_command(cmd)

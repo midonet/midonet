@@ -16,17 +16,132 @@
 
 import importlib
 import logging
+import os.path
+import paramiko
 import time
+import yaml
 
 from docker import Client
 
 from mdts.services.interface import Interface
 from mdts.tests.utils import conf
 
-cli = Client(base_url='unix://var/run/docker.sock',
-             timeout=conf.docker_http_timeout())
 LOG = logging.getLogger(__name__)
 
+class SshClient(object):
+
+    def __init__(self, containers):
+
+        self._containers = containers
+
+        self.next_exec_id = 0
+        self.ssh_connections = {}
+        self.execs = {}
+
+    def inspect_container(self, container_id):
+        for container in self._containers:
+            if container_id == container['Id']:
+                return {'Name': container['Name'],
+                        'Config': container,
+                        'State': container['State'],
+                        'NetworkSettings': container['NetworkSettings'] }
+        return None
+
+    def containers(self, all=None):
+        return self._containers
+
+    def get_container_by_name(self, container_name):
+        for container in self._containers:
+            if container_name == str(container['Name']).translate(None, '/'):
+                return container
+        return None
+
+    def exec_create(self, container_name,
+                    cmd,
+                    stdout=True,
+                    stderr=True,
+                    tty=False):
+        LOG.info("Running command %s at container %s " % (cmd, container_name))
+        exec_id = self.next_exec_id
+        self.next_exec_id += 1
+        self.execs[exec_id] = (container_name, cmd, None, None)
+        return exec_id
+
+    def get_ip_address_by_container_name(self, container_name):
+        container = self.get_container_by_name(container_name)
+        return container['NetworkSettings']['IPAddress']
+
+    def get_ssh_settings_by_container_name(self, container_name):
+        container = self.get_container_by_name(container_name)
+        if 'SSHSettings' in container:
+            return (container['SSHSettings']['User'],
+                    container['SSHSettings']['Password'])
+        else:
+            print("Using default Docker credentials")
+            return ('root', 'docker.io')
+
+    def get_ssh_connection(self, container_name):
+        if container_name in self.ssh_connections:
+            return self.ssh_connections[container_name]
+
+        ip_address = self.get_ip_address_by_container_name(container_name)
+        ssh_connection = paramiko.SSHClient()
+        ssh_connection.load_system_host_keys()
+        ssh_connection.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        user, passwd = self.get_ssh_settings_by_container_name(container_name)
+        port = 22
+        try:
+            ssh_connection.connect(ip_address, port=port,
+                                   username=user, password=passwd)
+        except paramiko.ssh_exception.AuthenticationException:
+            raise Exception(("AuthenticationException while trying to "
+                             "connect to %s container: %s:***@%s:%d")) %
+                            (container_name, user, ip_address, port))
+        self.ssh_connections[container_name] = ssh_connection
+        return self.ssh_connections[container_name]
+
+    def exec_start(self, exec_id, detach=False, stream=False):
+        container_name, cmd, stdout, stderr = self.execs[exec_id]
+        ssh_connection = self.get_ssh_connection(container_name)
+        stdin, stdout, stderr = ssh_connection.exec_command(cmd)
+        if stream:
+            self.execs[exec_id] = (container_name, cmd, stdout, stderr)
+            return stdout
+        else:
+            result = ""
+            for line in stdout.readlines():
+                result += line
+            return result
+
+    def exec_inspect(self, exec_id, detach=False, stream=False):
+        container_name, cmd, stdout, stderr = self.execs[exec_id]
+
+        if stdout.channel.exit_status_ready():
+            running = False
+            exit_code = stdout.channel.recv_exit_status()
+        else:
+            running = True
+            exit_code = "N/A"
+
+        return { 'Running': running,
+                 'ProcessConfig': {
+                     'entrypoint': cmd.split(' ')[0],
+                     'arguments': cmd.split(' ')[1:] },
+                 'ExitCode': exit_code }
+
+ssh_containers_file = 'ssh-containers.yaml'
+
+cli = None
+if os.path.isfile(ssh_containers_file):
+    print("Found %s -> using SSH to access containers" %
+             ssh_containers_file)
+    with open(ssh_containers_file) as infile:
+        containers = yaml.load(infile)
+        cli = SshClient(containers)
+else:
+    print("Not found %s -> using Docker API to access containers" %
+             ssh_containers_file)
+    cli = Client()
 
 class Service(object):
 
@@ -53,7 +168,8 @@ class Service(object):
         return str(self.info['Config']['Labels']['type'])
 
     def get_name(self):
-        return str(self.info['Name'].translate({ord('/'): None}))
+        name = str(self.info['Name'])
+        return name.translate(None, '/')
 
     def get_container_id(self):
         return self.container_id
@@ -200,12 +316,19 @@ class Service(object):
         result = cli.exec_start(exec_id, detach=detach, stream=stream)
         if stream:
             # Result is a data blocking stream, exec_id for future checks
+            LOG.debug('[%s] executing command: %s -> stream',
+                  self.get_name(),
+                  cmd)
             return result, exec_id
         result = result.rstrip()
         # FIXME: different return result depending on params might be confusing
         # Awful pattern
         # Result is a string with the command output
         # return_code is the exit code
+        LOG.debug('[%s] executing command: %s -> %s',
+                  self.get_name(),
+                  cmd,
+                  result)
         return result
 
     def ensure_command_running(self, exec_id, timeout=20, raise_error=True):
@@ -230,9 +353,6 @@ class Service(object):
             cmdline += " " + arg
 
         LOG.debug("Checking exit status of %s..." % cmdline)
-        if output_stream:
-            for output in output_stream:
-                LOG.debug("Output: %s" % output)
 
         # Wait for command to finish after a certain amount of time
         while cli.exec_inspect(exec_id)['Running']:
