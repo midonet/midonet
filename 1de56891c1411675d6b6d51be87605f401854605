@@ -413,6 +413,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_443ef08c",
+        "filename": "tests/ssh-containers-from-docker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-18T17:11:30Z",
+      "side": 1,
+      "message": "Ah, ok, that\u0027s true. It would be better to remove this from this commit and include a README instead about the format of the YAML. And maybe include this file as a tool to generate the file from a running sandbox, but it is true that the main (unique?) use case is testing this commit/functionality easily. Maybe we can just remove it.",
+      "parentUuid": "baa041b7_64d2145e",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 29
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a1e36ea3",
         "filename": "tests/ssh-containers-from-docker.sh",
         "patchSetId": 1
