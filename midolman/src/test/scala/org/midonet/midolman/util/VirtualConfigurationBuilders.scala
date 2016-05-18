@@ -126,7 +126,8 @@ trait VirtualConfigurationBuilders {
 
     def newRouterPort(router: UUID, mac: MAC, portAddr: String,
                       nwAddr: String, nwLen: Int,
-                      vni: Int = 0, tunnelIp: Option[IPv4Addr] = None): UUID
+                      vni: Int = 0, tunnelIp: Option[IPv4Addr] = None,
+                      containerId: Option[UUID] = None): UUID
 
     final def newRouterPort(routerId: UUID, mac: MAC, portAddr: IPv4Subnet): UUID =
         newRouterPort(routerId, mac, portAddr.toUnicastString,
@@ -247,6 +248,8 @@ trait VirtualConfigurationBuilders {
     def enableTraceRequest(tr: UUID): Unit
     def disableTraceRequest(tr: UUID): Unit
     def isTraceRequestEnabled(tr: UUID): Boolean
+
+    def newServiceContainer(): UUID
 }
 
 trait ForwardingVirtualConfigurationBuilders
@@ -352,9 +355,10 @@ trait ForwardingVirtualConfigurationBuilders
 
     override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
                                nwAddr: String, nwLen: Int,
-                               vni: Int, tunnelIp: Option[IPv4Addr]): UUID =
+                               vni: Int, tunnelIp: Option[IPv4Addr],
+                               containerId: Option[UUID]): UUID =
         virtConfBuilderImpl.newRouterPort(router, mac, portAddr, nwAddr, nwLen,
-                                          vni, tunnelIp)
+                                          vni, tunnelIp, containerId)
 
     def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
                      vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID =
@@ -475,4 +479,7 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.disableTraceRequest(tr)
     override def isTraceRequestEnabled(tr: UUID): Boolean =
         virtConfBuilderImpl.isTraceRequestEnabled(tr)
+
+    override def newServiceContainer(): UUID =
+        virtConfBuilderImpl.newServiceContainer()
 }

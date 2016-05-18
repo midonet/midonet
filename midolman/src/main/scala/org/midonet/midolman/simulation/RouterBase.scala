@@ -273,7 +273,13 @@ abstract class RouterBase[IP <: IPAddr]()
         def applyTimeToLive(): SimulationResult = {
             if (fmatch.isUsed(Field.NetworkTTL)) {
                 val ttl = Unsigned.unsign(fmatch.getNetworkTTL)
-                if (ttl <= 1) {
+                if (inPort.containerId != null) {
+                    /* If this is a container port, then we need to act like
+                       the packet came from this router, and therefore not
+                       decrement the TTL.
+                     */
+                    NoOp
+                } else if (ttl <= 1) {
                     sendAnswer(inPort.id,
                                icmpErrors.timeExceededIcmp(
                                    inPort, context, context.preRoutingMatch))

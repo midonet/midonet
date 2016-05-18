@@ -383,7 +383,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
                                nwAddr: String, nwLen: Int,
-                               vni: Int, tunnelIp: Option[IPv4Addr]): UUID = {
+                               vni: Int, tunnelIp: Option[IPv4Addr],
+                               containerId: Option[UUID]): UUID = {
         val id = UUID.randomUUID
         val addr = IPv4Addr.fromString(portAddr)
         store.create(createRouterPort(id, routerId=Some(router),
@@ -393,7 +394,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                       portSubnet=toSubnet(nwAddr, nwLen),
                                       adminStateUp=true,
                                       vni = vni,
-                                      tunnelIp = tunnelIp))
+                                      tunnelIp = tunnelIp,
+                                      containerId = containerId))
 
         store.create(createRoute(srcNetwork=new IPv4Subnet(0,0),
                                  dstNetwork=new IPv4Subnet(addr, 32),
@@ -782,6 +784,13 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def isTraceRequestEnabled(tr: UUID): Boolean = {
         Await.result(store.get(classOf[TraceRequest], tr), awaitTimeout).getEnabled
+    }
+
+    override def newServiceContainer(): UUID = {
+        val id = UUID.randomUUID()
+        val bldr = ServiceContainer.newBuilder.setId(id.asProto)
+        store.create(bldr.build())
+        id
     }
 
     def toSubnet(network: String, length: Int): IPSubnet[_] = {
