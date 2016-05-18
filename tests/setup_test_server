@@ -20,6 +20,9 @@ sudo apt-get install --no-install-recommends -y bridge-utils vlan
 sudo apt-get install --no-install-recommends -qy debhelper autotools-dev python-unittest2 python-all-dev ruby-ronn
 sudo apt-get install -qy ruby1.9.1-dev ruby1.9.1-full rpm && sudo gem install fpm
 
+# python SSH library (paramiko) dependencies on SSL
+sudo apt-get install --no-install-recommends -y libssl-dev libffi-dev
+
 # Install python dependencies
 sudo apt-get install -qy python-pip python-setuptools python-virtualenv python-neutronclient
 

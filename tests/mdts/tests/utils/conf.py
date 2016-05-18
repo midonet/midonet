@@ -35,3 +35,33 @@ def sandbox_name():
 
 def sandbox_prefix():
     return conf.get('sandbox', 'sandbox_prefix')
+
+def containers_file():
+    if conf.has_option('ssh', 'containers_file'):
+        return conf.get('ssh', 'containers_file')
+    else:
+        return None
+
+def openstack_user():
+    if conf.has_option('openstack', 'user'):
+        return conf.get('openstack', 'user')
+    else:
+        return 'admin'
+
+def openstack_password():
+    if conf.has_option('openstack', 'password'):
+        return conf.get('openstack', 'password')
+    else:
+        return 'admin'
+
+def openstack_project():
+    if conf.has_option('openstack', 'project'):
+        return conf.get('openstack', 'project')
+    else:
+        return 'admin'
+
+def extra_ssh_config_file():
+    if conf.has_option('ssh', 'extra_ssh_config_file'):
+        return conf.get('ssh', 'extra_ssh_config_file')
+    else:
+        return None

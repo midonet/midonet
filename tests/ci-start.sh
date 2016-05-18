@@ -30,6 +30,10 @@ done
 sudo modprobe openvswitch
 sudo modprobe 8021q
 
+# python SSH library (paramiko) dependencies on SSL
+# TODO: remove once Jenkins slave image has been regenerated including it
+sudo apt-get install --no-install-recommends -y libssl-dev libffi-dev
+
 # install python dependencies (may have changed since image build)
 virtualenv venv
 source venv/bin/activate
