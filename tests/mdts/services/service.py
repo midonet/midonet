@@ -16,22 +16,32 @@
 
 import importlib
 import logging
+import os.path
 import time
+import yaml
 
-from docker import Client
+from docker import Client as DockerClient
+from mdts.lib.ssh import SshClient
 
 from mdts.services.interface import Interface
 from mdts.tests.utils import conf
 
-cli = Client(base_url='unix://var/run/docker.sock',
-             timeout=conf.docker_http_timeout())
 LOG = logging.getLogger(__name__)
 
+cli = None
+
+if conf.containers_file() is None:
+    print("containers_file not configured -> using Docker API")
+    cli = DockerClient(base_url='unix://var/run/docker.sock',
+                       timeout=conf.docker_http_timeout())
+else:
+    print("containers_file configured as '%s' -> using SSH" %
+          conf.containers_file())
+    cli = SshClient(conf.containers_file(), conf.extra_ssh_config_file())
 
 class Service(object):
 
     def __init__(self, container_id):
-        self.cli = cli
         self.container_id = container_id
         self.info = cli.inspect_container(container_id)
         timeout = conf.service_status_timeout()
@@ -53,7 +63,8 @@ class Service(object):
         return str(self.info['Config']['Labels']['type'])
 
     def get_name(self):
-        return str(self.info['Name'].translate({ord('/'): None}))
+        name = str(self.info['Name'])
+        return name.translate(None, '/')
 
     def get_container_id(self):
         return self.container_id
@@ -187,9 +198,7 @@ class Service(object):
                  else: the result of the command
         """
 
-        LOG.debug('[%s] executing command: %s',
-                  self.get_name(),
-                  cmd)
+        LOG.debug('[%s] executing command: %s', self.get_name(), cmd)
 
         exec_id = cli.exec_create(self.get_name(),
                                   cmd,
@@ -200,12 +209,16 @@ class Service(object):
         result = cli.exec_start(exec_id, detach=detach, stream=stream)
         if stream:
             # Result is a data blocking stream, exec_id for future checks
+            LOG.debug('[%s] executing command: %s -> stream',
+                      self.get_name(), cmd)
             return result, exec_id
         result = result.rstrip()
         # FIXME: different return result depending on params might be confusing
         # Awful pattern
         # Result is a string with the command output
         # return_code is the exit code
+        LOG.debug('[%s] executing command: %s -> %s',
+                  self.get_name(), cmd, result)
         return result
 
     def ensure_command_running(self, exec_id, timeout=20, raise_error=True):
@@ -230,9 +243,6 @@ class Service(object):
             cmdline += " " + arg
 
         LOG.debug("Checking exit status of %s..." % cmdline)
-        if output_stream:
-            for output in output_stream:
-                LOG.debug("Output: %s" % output)
 
         # Wait for command to finish after a certain amount of time
         while cli.exec_inspect(exec_id)['Running']:
@@ -307,7 +317,6 @@ def load_from_id(container_id):
     _module = importlib.import_module(module_name)
     _class = getattr(_module, class_name)
     return _class(container_id)
-
 
 loaded_containers = None
 
