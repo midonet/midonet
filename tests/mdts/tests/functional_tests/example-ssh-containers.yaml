@@ -1,0 +1,37 @@
+# This file configure MDTS to use SSH connections (see mdts.conf)
+#
+# It is a YAML file that contains an array of key-value maps with the
+# following entries:
+#
+#     Host: the 'container' hostname
+#     HostName: the hostname or IP address
+#     Interface: the mdts service class
+#     Type: the container/service MDTS type
+#     Password: the SSH password (optional, default none)
+#
+# Also the following SSH config options can be set (see ssh_config man page):
+#
+#     Port
+#     User
+#     IdentityFile
+#     StrictHostKeyChecking
+#     UserKnownHostsFile
+#
+# and the special '*' host can be used to provide options for all
+# containers.
+#
+# Example file contents:
+#
+# - Host: *
+#   StrictHostKeyChecking: no
+# - Host: midolman1
+#   HostName: 172.17.0.9
+#   Password: hocuspocus
+#   Interface: mdts.services.midonet_agent.MidonetAgentHost
+#   Type: midolman
+# - Host: cluster1
+#   HostName: 172.17.0.7
+#   Port: 2222
+#   Interface: mdts.services.midonet_cluster.MidonetClusterHost
+#   Type: midonet-cluster
+#
