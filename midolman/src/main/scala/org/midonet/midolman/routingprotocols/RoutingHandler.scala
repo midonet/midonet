@@ -65,13 +65,13 @@ class LazyZkConnectionMonitor(down: () => Unit,
 
     private val lock = new Object
 
-    connWatcher.scheduleOnReconnect(onReconnect _)
-    connWatcher.scheduleOnDisconnect(onDisconnect _)
-
     private var lastDisconnection: Long = 0L
     private var connected = true
 
     private val NOW = 0 seconds
+
+    connWatcher.scheduleOnReconnect(onReconnect _)
+    connWatcher.scheduleOnDisconnect(onDisconnect _)
 
     private def disconnectedFor: Long = clock.time - lastDisconnection
 
