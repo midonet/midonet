@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a1fa4e41",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-18T16:22:56Z",
+      "side": 1,
+      "message": "You must pass this instance to the MidolmanModule below.",
+      "range": {
+        "startLine": 198,
+        "startChar": 20,
+        "endLine": 198,
+        "endChar": 31
+      },
+      "revId": "7e7699260c5199bb1c9540177978e1b8a3af1274",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a1912ef3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/tools/MmCtl.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-18T16:22:56Z",
+      "side": 1,
+      "message": "MmCtl should not use reflections: this is tool that executes when launching new VMs, and reflections is just too slow. You shouldn\u0027t need custom registrations here anyway.",
+      "range": {
+        "startLine": 189,
+        "startChar": 7,
+        "endLine": 189,
+        "endChar": 62
+      },
+      "revId": "7e7699260c5199bb1c9540177978e1b8a3af1274",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_61be8666",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/MidonetBackendTestModule.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-18T16:22:56Z",
+      "side": 1,
+      "message": "Just a question: is this needed for any agent unit tests? It\u0027ll make all unit tests slower scanning for classes. If not, use None.",
+      "range": {
+        "startLine": 54,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 52
+      },
+      "revId": "7e7699260c5199bb1c9540177978e1b8a3af1274",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a1a80e21",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-18T16:22:56Z",
+      "side": 1,
+      "message": "Not used.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 51
+      },
+      "revId": "7e7699260c5199bb1c9540177978e1b8a3af1274",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_81a50a48",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-18T16:22:56Z",
+      "side": 1,
+      "message": "Remove.",
+      "range": {
+        "startLine": 279,
+        "startChar": 0,
+        "endLine": 279,
+        "endChar": 8
+      },
+      "revId": "7e7699260c5199bb1c9540177978e1b8a3af1274",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
