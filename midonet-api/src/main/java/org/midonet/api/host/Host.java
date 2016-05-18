@@ -73,7 +73,7 @@ public class Host extends UriResource {
         this.addresses = new ArrayList<String>();
         if (host.getAddresses() != null) {
             for (InetAddress inetAddress : host.getAddresses()) {
-                this.addresses.add(inetAddress.toString());
+                this.addresses.add(inetAddress.getHostAddress());
             }
         }
 
@@ -81,6 +81,11 @@ public class Host extends UriResource {
         for (org.midonet.cluster.data.host.Interface intf :
             host.getInterfaces()) {
             this.hostInterfaces.add(new Interface(this.id, intf));
+            if (intf.getAddresses() != null) {
+                for (InetAddress addr : intf.getAddresses()) {
+                    this.addresses.add(addr.getHostAddress());
+                }
+            }
         }
     }
 
