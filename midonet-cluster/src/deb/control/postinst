@@ -7,7 +7,7 @@ POST_DIR=/var/lib/dpkg/info
 install -d /var/log/$NAME $DATADIR
 
 
-test -e /etc/init/upstart-job \
+test -e /lib/init/upstart-job \
     && ln -sf /lib/init/upstart-job /etc/init.d/midonet-cluster \
     || echo "upstart not installed"
 
