@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_81498ab9",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 0,
+      "message": "FYI, we were blocking here until the output_stream was closed (don\u0027t recall why :/). Not sure how it will behave on the tests.",
+      "range": {
+        "startLine": 233,
+        "startChar": 8,
+        "endLine": 235,
+        "endChar": 48
+      },
+      "revId": "3de16ff78e391f407be7f59310e474bcca198b62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

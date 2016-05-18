@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a175aefa",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "as DockerClient (to distinguish from SSHClient)",
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e104d64a",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "Maybe this class can go into its own module.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 24
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6197a6ec",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "Is this private? By convention, you prepend private methods with _ (don\u0027t remember the PEP).",
+      "range": {
+        "startLine": 70,
+        "startChar": 8,
+        "endLine": 70,
+        "endChar": 39
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_419ca20e",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "same.",
+      "range": {
+        "startLine": 74,
+        "startChar": 8,
+        "endLine": 74,
+        "endChar": 42
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_219d1e0a",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "same. Also, I\u0027d add them at the end of the class (so public methods are at the top) or viceversa.",
+      "range": {
+        "startLine": 83,
+        "startChar": 8,
+        "endLine": 83,
+        "endChar": 26
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_01eb3a79",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "What\u0027s the format of this file? I\u0027d add some doc about it.\n\nSmall nit. I\u0027d call it inventory.yaml, or hosts.yaml.",
+      "range": {
+        "startLine": 132,
+        "startChar": 23,
+        "endLine": 132,
+        "endChar": 37
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_818e2ace",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "Nit. Can we make it a configuration parameter of mdts instead of checking for the existence of a file?",
+      "range": {
+        "startLine": 135,
+        "startChar": 0,
+        "endLine": 135,
+        "endChar": 39
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_81e06a97",
+        "filename": "tests/setup_test_server",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "Is this needed by paramiko? This will need an update on the jclouds image to be able to run.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 69
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_01d45aba",
+        "filename": "tests/ssh-containers-from-docker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "do we need this?",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 29
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a1e36ea3",
+        "filename": "tests/ssh-containers-from-docker.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-18T16:21:03Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 54
+      },
+      "revId": "1de56891c1411675d6b6d51be87605f401854605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
