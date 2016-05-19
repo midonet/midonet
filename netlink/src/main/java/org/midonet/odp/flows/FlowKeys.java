@@ -328,14 +328,17 @@ public class FlowKeys {
     }
 
     public static void addUserspaceKeys(Ethernet ethPkt, List<FlowKey> keys) {
+        FlowKey icmpUserSpace = null;
+        if (ethPkt.getPayload() != null &&
+            ethPkt.getPayload().getPayload() instanceof ICMP) {
+            icmpUserSpace = makeIcmpFlowKey((ICMP) ethPkt.getPayload().getPayload());
+        }
+
         for (int i = 0; i < keys.size(); ++i) {
             if (keys.get(i) instanceof FlowKeyICMP) {
-                ICMP icmpPkt = (ICMP) ethPkt.getPayload().getPayload();
-                FlowKey icmpUserSpace = makeIcmpFlowKey(icmpPkt);
                 if (icmpUserSpace != null) {
                     keys.set(i, icmpUserSpace);
                 }
-                return;
             }
             if (keys.get(i) instanceof FlowKeyEncap) {
                 FlowKeyEncap encap = (FlowKeyEncap) keys.get(i);
