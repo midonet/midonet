@@ -27,15 +27,16 @@ import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.zookeeper.CreateMode
 import org.apache.zookeeper.KeeperException.Code
 
+import rx.Observable.OnSubscribe
 import rx.functions.Func1
-import rx.{Notification, Observable}
+import rx.{Notification, Observable, Subscriber}
 
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.CuratorUtil.asObservable
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage.{NoOwnerId, StringEncoding}
 import org.midonet.cluster.data.storage.TransactionManager._
-import org.midonet.cluster.data.storage.ZookeeperObjectState.{KeyIndex, makeThrowable}
+import org.midonet.cluster.data.storage.ZookeeperObjectState.{KeyIndex, MultiObservable, SingleObservable, makeThrowable}
 import org.midonet.cluster.util.{DirectoryObservableClosedException, NodeObservable, NodeObservableClosedException, PathDirectoryObservable}
 import org.midonet.util.functors._
 
@@ -59,6 +60,25 @@ object ZookeeperObjectState {
     private case class KeyIndex(namespace: String, clazz: Class[_], id: String,
                                 key: String)
 
+    private case class SingleObservable(ref: Long,
+                                        nodeObservable: NodeObservable = null,
+                                        singleObservable: Observable[StateKey] = null) {
+        override def equals(other: Any): Boolean = other match {
+            case o: SingleObservable => o.ref == ref
+            case _ => false
+        }
+        override def hashCode: Int = ref.hashCode
+    }
+
+    private case class MultiObservable(ref: Long,
+                                       directoryObservable: PathDirectoryObservable = null,
+                                       multiObservable: Observable[StateKey] = null) {
+        override def equals(other: Any): Boolean = other match {
+            case o: MultiObservable => o.ref == ref
+            case _ => false
+        }
+        override def hashCode: Int = ref.hashCode
+    }
 }
 
 /**
@@ -88,10 +108,11 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
 
     implicit protected def metrics: ZoomMetrics
 
-    private val singleObservables =
-        new TrieMap[KeyIndex, NodeObservable]
-    private val multiObservables =
-        new TrieMap[KeyIndex, PathDirectoryObservable]
+    private val singleObservableRef = new AtomicLong()
+    private val multiObservableRef = new AtomicLong()
+
+    private val singleObservables = new TrieMap[KeyIndex, SingleObservable]
+    private val multiObservables = new TrieMap[KeyIndex, MultiObservable]
 
     private val stateKeyMap: Func1[Any, StateKey] = makeFunc1(_ => null)
 
@@ -104,6 +125,16 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
     protected def failFastCurator: CuratorFramework
 
     protected def version: AtomicLong
+
+    private[storage] def totalSingleObservableCount: Int =
+        singleObservables.size
+    private[storage] def totalMultiObservableCount: Int =
+        multiObservables.size
+
+    private[storage] def startedSingleObservableCount: Int =
+        singleObservables.values.count(_.nodeObservable.isStarted)
+    private[storage] def startedMultiObservableCount: Int =
+        multiObservables.values.count(_.directoryObservable.isStarted)
 
     @throws[IllegalStateException]
     @throws[IllegalArgumentException]
@@ -299,11 +330,15 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
         assertBuilt()
         val index = KeyIndex(namespace, clazz, id.toString, key)
         val ver = version.longValue()
-        if (getKeyType(clazz, key).isSingle) {
-            singleObservable(index, ver)
-        } else {
-            multiObservable(index, ver)
-        }
+        Observable.create(new OnSubscribe[StateKey] {
+            override def call(child: Subscriber[_ >: StateKey]): Unit = {
+                if (getKeyType(clazz, key).isSingle) {
+                    singleObservable(index, ver) subscribe child
+                } else {
+                    multiObservable(index, ver) subscribe child
+                }
+            }
+        })
     }
 
     @throws[ServiceUnavailableException]
@@ -565,9 +600,10 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
     /** Returns a node observable for the state path of the given object.
       * This observable is used to detect when an object is deleted, in
       * order to complete single-value key observables. */
-    private def objectObservable(clazz: Class[_], id: ObjId, version: Long)
+    private def objectObservable(clazz: Class[_], id: ObjId, version: Long,
+                                 onClose: => Unit)
     : Observable[StateKey] = {
-        internalObservable(clazz, id, version)
+        internalObservable(clazz, id, version, onClose)
             .ignoreElements()
             .map[StateKey](stateKeyMap)
             .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
@@ -595,26 +631,38 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
         val path = keyPath(namespace, clazz,
                            getIdString(clazz, id), key, version)
 
-        val obs = singleObservables.getOrElse(index, {
-            val observable = NodeObservable.create(curator, path,
-                                                   completeOnDelete = false,
-                                                   metrics)
-            singleObservables.putIfAbsent(index, observable)
-                             .getOrElse(observable)
-        })
-        obs.map[StateKey](makeFunc1[ChildData, StateKey] { data =>
-            if ((data.getData ne null) && (data.getStat ne null)) {
-                val value = new String(data.getData, StringEncoding)
-                val owner = data.getStat.getEphemeralOwner
-                SingleValueKey(index.key, Some(value), owner)
-            } else {
-                SingleValueKey(index.key, None, NoOwnerId)
-            }
-        }).onErrorResumeNext(
-            recover[StateKey, NodeObservable](index, version, obs,
-                                              singleObservables,
-                                              singleObservable)
-        ).takeUntil(objectObservable(clazz, id, version))
+        singleObservables.getOrElse(index, {
+            val ref = singleObservableRef.getAndIncrement()
+
+            val nodeObservable = NodeObservable.create(
+                curator, path, completeOnDelete = false, metrics, {
+                    singleObservables.remove(index, SingleObservable(ref))
+                })
+
+            val observable = nodeObservable
+                .map[StateKey](makeFunc1[ChildData, StateKey] { data =>
+                    if ((data.getData ne null) && (data.getStat ne null)) {
+                        val value = new String(data.getData, StringEncoding)
+                        val owner = data.getStat.getEphemeralOwner
+                        SingleValueKey(index.key, Some(value), owner)
+                    } else {
+                        SingleValueKey(index.key, None, NoOwnerId)
+                    }
+                })
+                .takeUntil(objectObservable(clazz, id, version, {
+                    singleObservables.remove(index, SingleObservable(ref))
+                }))
+                .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                    case e: NodeObservableClosedException=>
+                        singleObservable(index, version)
+                    case e: Throwable =>
+                        Observable.error(e)
+                }))
+
+            val entry = SingleObservable(ref, nodeObservable, observable)
+
+            singleObservables.putIfAbsent(index, entry).getOrElse(entry)
+        }).singleObservable
     }
 
     /** Returns an observable for a multi-value key, using a
@@ -634,24 +682,36 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
         val path = keyPath(namespace, clazz, getIdString(clazz, id), key,
                            version)
 
-        val obs = multiObservables.getOrElse(index, {
-            val observable =
-                PathDirectoryObservable.create(curator, path,
-                                               completeOnDelete = false, metrics)
-            multiObservables.putIfAbsent(index, observable)
-                            .getOrElse(observable)
-        })
-        // Note: the distinctUntilChange will filter duplicate notifications,
-        // which may occur from the directory observable when creating the
-        // multi key node in ZooKeeper.
-        obs.distinctUntilChanged()
-           .map[StateKey](makeFunc1[Set[String], StateKey] {
-            MultiValueKey(key, _)
-        }).onErrorResumeNext(
-            recover[StateKey, PathDirectoryObservable](index, version, obs,
-                                                       multiObservables,
-                                                       multiObservable)
-        ).takeUntil(objectObservable(clazz, id, version))
+        multiObservables.getOrElse(index, {
+            val ref = multiObservableRef.getAndIncrement()
+
+            val directoryObservable = PathDirectoryObservable.create(
+                curator, path, completeOnDelete = false, metrics, {
+                    multiObservables.remove(index, MultiObservable(ref))
+                })
+
+            // Note: the distinctUntilChange will filter duplicate notifications,
+            // which may occur from the directory observable when creating the
+            // multi key node in ZooKeeper.
+            val observable = directoryObservable
+                .distinctUntilChanged()
+                .map[StateKey](makeFunc1[Set[String], StateKey] {
+                    MultiValueKey(key, _)
+                })
+                .takeUntil(objectObservable(clazz, id, version, {
+                    multiObservables.remove(index, MultiObservable(ref))
+                }))
+                .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                    case e: DirectoryObservableClosedException =>
+                        multiObservable(index, version)
+                    case e: Throwable =>
+                        Observable.error(e)
+                }))
+
+            val entry = MultiObservable(ref, directoryObservable, observable)
+
+            multiObservables.putIfAbsent(index, entry).getOrElse(entry)
+        }).multiObservable
     }
 
     /** Verifies that the specified object exists in the topology model.
@@ -696,22 +756,4 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             onPathExists(path, zk)
         }
     }
-
-    /* Utility function to unify the code written below. */
-    private def recover[T, OBS](index: KeyIndex, version: Long,
-                                obs: OBS, onMap: TrieMap[KeyIndex, OBS],
-                                reAcquire: (KeyIndex, Long) => Observable[T]) = {
-        makeFunc1[Throwable, Observable[T]] { t: Throwable =>
-            metrics.count(t) match {
-                case e: NodeObservableClosedException=>
-                    onMap.remove(index, obs)
-                    reAcquire(index, version)
-                case e: DirectoryObservableClosedException =>
-                    onMap.remove(index, obs)
-                    reAcquire(index, version)
-                case e: Throwable => Observable.error(e)
-            }
-        }
-    }
-
 }
