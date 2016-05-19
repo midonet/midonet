@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.util
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import scala.concurrent.duration._
 
 import org.apache.curator.retry.RetryOneTime
@@ -24,6 +26,7 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 
+import org.midonet.cluster.data.storage.BlackHoleZoomMetrics
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -144,6 +147,30 @@ class PathDirectoryObservableTest extends FlatSpec
         obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
             DirectoryObservableClosedException]
         obs.getOnCompletedEvents shouldBe empty
+    }
+
+    "Directory observable" should "call onClose handler" in {
+        createParent()
+
+        val closed = new AtomicBoolean()
+        val observable = PathDirectoryObservable.create(
+            curator, parentPath, completeOnDelete = true, BlackHoleZoomMetrics, {
+                closed set true
+            })
+        val obs1 = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+        val obs2 = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+
+        val sub1 = observable.subscribe(obs1)
+        val sub2 = observable.subscribe(obs2)
+
+        obs1.awaitOnNext(1, timeout) shouldBe true
+        obs2.awaitOnNext(1, timeout) shouldBe true
+
+        sub1.unsubscribe()
+        closed.get shouldBe false
+
+        sub2.unsubscribe()
+        closed.get shouldBe true
     }
 
     "Complete on delete directory observable" should
