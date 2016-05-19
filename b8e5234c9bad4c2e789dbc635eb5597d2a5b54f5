@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f80ec38a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-19T12:54:02Z",
+      "side": 1,
+      "message": "Not enough detail here.\n\nWhat are the alternative positions?\nWhy are they needed?\nWhy can\u0027t the current mirrors be moved?",
+      "revId": "b8e5234c9bad4c2e789dbc635eb5597d2a5b54f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d8289fe4",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-19T12:54:02Z",
+      "side": 1,
+      "message": "Pre and post what?",
+      "revId": "b8e5234c9bad4c2e789dbc635eb5597d2a5b54f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
