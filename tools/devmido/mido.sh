@@ -203,12 +203,12 @@ if ! is_package_installed cassandra ; then
     # Install cassandra
     CASSANDRA_LIST_FILE=/etc/apt/sources.list.d/cassandra.list
     if [ ! -f $CASSANDRA_LIST_FILE ]; then
-        echo "deb http://debian.datastax.com/community 2.0 main" | sudo tee $CASSANDRA_LIST_FILE
+        echo "deb http://debian.datastax.com/community 2.2 main" | sudo tee $CASSANDRA_LIST_FILE
     fi
     curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
-    # Install latest Cassandra 2.0 release (newer versions are not yet supported).
+    # Install latest Cassandra 2.2 release (newer versions are not yet supported).
     is_package_installed cassandra || REPOS_UPDATED=False install_package cassandra
-    is_package_installed dsc20 || install_package dsc20
+    is_package_installed dsc22 || install_package dsc22
 
     # Initialize/Configure cassandra
     CASSANDRA_LIST_FILE=/etc/apt/sources.list.d/cassandra.list
