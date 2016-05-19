@@ -162,7 +162,7 @@ class Bridge(val id: UUID,
         val dstDlAddress = context.wcmatch.getEthDst
         val action =
             if (isArpBroadcast())
-                handleARP()
+                handleArp()
             else if (dstDlAddress.mcast)
                 handleL2Multicast()
             else
@@ -388,50 +388,75 @@ class Bridge(val id: UUID,
     /**
       * Used by normalProcess to handle specifically ARP multicast.
       */
-    private def handleARP()(implicit context: PacketContext): Result = {
+    private def handleArp()(implicit context: PacketContext): Result = {
         context.log.debug("Handling ARP multicast")
+        context.wcmatch.getNetworkProto.shortValue() match {
+            case ARP.OP_REQUEST => handleArpRequest()
+            case _ => handleArpGeneric()
+        }
+    }
+
+    /**
+      * Handle an ARP request: if the destination IP is found in the pre-seeding
+      * table, then generate a response and complete the similation with
+      * [[NoOp]]. Otherwise, use generic ARP handling.
+      */
+    private def handleArpRequest()(implicit context: PacketContext)
+    : Result = {
+        val pMatch = context.wcmatch
+        val nwSrc = pMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr]
+        val nwDst = pMatch.getNetworkDstIP.asInstanceOf[IPv4Addr]
+
+        context.log.debug(s"Handling ARP request from $nwSrc for $nwDst")
+
+        val mac = ipToMac.getOrElse(nwDst,
+                                    if (ip4MacMap ne null) ip4MacMap get nwDst
+                                    else null)
+        if (mac ne null) {
+            context.log.debug("Known MAC {} reply to the ARP request", mac)
+            processArpRequest(context.ethernet.getPayload.asInstanceOf[ARP],
+                              mac, context.inPortId)
+            NoOp
+        } else {
+            handleArpGeneric()
+        }
+    }
+
+    /**
+      * Generic ARP handling for requests and responses:
+      * - If ARP intended for a peer router port, and port is known, unicast
+      *   to that port.
+      * - Else, if packet is a GARP, learn entry and flood.
+      * - Else, flood.
+      */
+    private def handleArpGeneric()(implicit context: PacketContext): Result = {
         val pMatch = context.wcmatch
         val nwDst = pMatch.getNetworkDstIP
-        if (ipToMac.contains(nwDst)) {
-            // Forward broadcast ARPs to their devices if we know how.
-            context.log.debug("The packet is intended for an interior port.")
-            val portID = macToLogicalPortId.get(ipToMac.get(nwDst).get).get
-            unicastAction(portID)
-        } else if (pMatch.getNetworkSrcIP.equals(pMatch.getNetworkDstIP)) {
-            context.log.debug(
-                "Gratuitous ARP. Adding to IP->Mac mapping "
-                    + s"${pMatch.getNetworkSrcIP} -> ${pMatch.getEthSrc}")
-            ip4MacMap.put(pMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr],
-                          pMatch.getEthSrc)
-            context.log.debug("Flooding GARP at bridge {}, source MAC {}",
-                              id, pMatch.getEthSrc)
-            context.addFlowTag(tagForArpRequests(id))
-            context.markUserspaceOnly()
-            multicastAction()
-        } else {
-            // If it's an ARP request, can we answer from the Bridge's IpMacMap?
-            val mac = pMatch.getNetworkProto.shortValue() match {
-                case ARP.OP_REQUEST if ip4MacMap != null =>
-                        ip4MacMap get
-                            pMatch.getNetworkDstIP.asInstanceOf[IPv4Addr]
-                case _ =>
-                    null
-            }
 
-            // TODO(pino): tag the flow with the destination
-            // TODO: mac, so we can deal with changes in the mac.
-            if (mac == null) {
-                // Unknown MAC for this IP, or it's an ARP reply, broadcast
-                context.log.debug("Flooding ARP at bridge {}, source MAC {}",
+        ipToMac get nwDst match {
+            case Some(mac) if macToLogicalPortId.contains(mac) =>
+                val portId = macToLogicalPortId.get(mac).get
+                context.log.debug(s"ARP unicast to peer router port $portId " +
+                                  s"(IP: $nwDst MAC: $mac)")
+                unicastAction(portId)
+            case _ if pMatch.getNetworkSrcIP == pMatch.getNetworkDstIP &&
+                      (ip4MacMap ne null) =>
+                context.log.debug(
+                    "Gratuitous ARP: adding to IP->MAC mapping "
+                    + s"${pMatch.getNetworkSrcIP} -> ${pMatch.getEthSrc}")
+                ip4MacMap.put(pMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr],
+                              pMatch.getEthSrc)
+
+                context.log.debug("Flooding GARP at bridge {}, source MAC {}",
+                                  id, pMatch.getEthSrc)
+                context.addFlowTag(tagForArpRequests(id))
+                context.markUserspaceOnly()
+                multicastAction()
+            case _ =>
+                context.log.debug("Flooding ARP at bridge {} source MAC {}",
                                   id, pMatch.getEthSrc)
                 context.addFlowTag(tagForArpRequests(id))
                 multicastAction()
-            } else {
-                context.log.debug("Known MAC, {} reply to the ARP req.", mac)
-                processArpRequest(context.ethernet.getPayload.asInstanceOf[ARP],
-                                  mac, context.inPortId)
-                NoOp
-            }
         }
     }
 
