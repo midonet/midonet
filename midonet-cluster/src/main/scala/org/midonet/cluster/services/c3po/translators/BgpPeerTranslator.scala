@@ -49,7 +49,12 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
         ops ++= ensureContainer(router, speaker)
         ops ++= chainOps
         ops += createBgpPeer(router.getId, bgpPeer)
-        ops += createPeerRedirectRule(quaggaPortId(router.getId), chainId, bgpPeer)
+        ops += createPeerRedirectRule(
+            redirectRuleId(bgpPeer.getId), quaggaPortId(router.getId),
+            chainId, bgpPeer, inverse = false)
+        ops += createPeerRedirectRule(
+            inverseRedirectRuleId(bgpPeer.getId), quaggaPortId(router.getId),
+            chainId, bgpPeer, inverse = true)
         ops.toList
     }
 
@@ -88,18 +93,25 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
                    .build())
     }
 
-    def createPeerRedirectRule(portId: UUID, chainId: UUID,
-                               bgpPeer: NeutronBgpPeer): Create[Rule] = {
+    def createPeerRedirectRule(ruleId: UUID, portId: UUID, chainId: UUID,
+                               bgpPeer: NeutronBgpPeer, inverse: Boolean)
+    : Create[Rule] = {
         val peerIp = IPSubnetUtil.fromAddr(bgpPeer.getPeerIp)
 
         val peerRuleBldr = redirectRuleBuilder(
-            id = Some(redirectRuleId(bgpPeer.getId)),
+            id = Some(ruleId),
             chainId = chainId,
             targetPortId = portId)
-        peerRuleBldr.getConditionBuilder
+
+        val condBldr = peerRuleBldr.getConditionBuilder
             .setNwSrcIp(peerIp)
             .setNwProto(TCP.PROTOCOL_NUMBER)
-            .setTpDst(bgpPortRange)
+
+        if (inverse)
+            condBldr.setTpSrc(bgpPortRange)
+        else
+            condBldr.setTpDst(bgpPortRange)
+
         Create(peerRuleBldr.build())
     }
 
@@ -179,6 +191,9 @@ object BgpPeerTranslator {
     def redirectRuleId(peerId: UUID): UUID =
         peerId.xorWith(0x12d34babf7d84902L, 0xaa840971afc3307fL)
 
+    def inverseRedirectRuleId(peerId: UUID): UUID =
+        peerId.xorWith(0x12d34babf7d85900L, 0xaa840971afc3307fL)
+
     val bgpPortRange = RangeUtil.toProto(179, 179)
 
     private[translators] def deleteBgpContainer(router: Router)
@@ -196,7 +211,8 @@ object BgpPeerTranslator {
     private[translators] def deleteBgpPeer(router: Router, bgpPeerId: UUID)
     : OperationList = {
         List(Delete(classOf[BgpPeer], bgpPeerId),
-             Delete(classOf[Rule], redirectRuleId(bgpPeerId)))
+             Delete(classOf[Rule], redirectRuleId(bgpPeerId)),
+             Delete(classOf[Rule], inverseRedirectRuleId(bgpPeerId)))
     }
 
     def makeBgpNetwork(routerId: UUID, subnet: IPSubnet, rifPortId: UUID)
