@@ -45,41 +45,50 @@ object PathDirectoryObservable {
         val Stopped, Started, Closed = Value
     }
 
+    private val OnCloseDefault = { }
+
     /**
-     * Creates an [[Observable]] that emits updates of the set of child nodes
-     * for a given storage path. The observable completes, when connection to
-     * ZooKeeper is closed or when calling the `close()` method.
-     *
-     * If the path node is deleted before the observable is closed, it emits
-     * a [[ParentDeletedException]] error. If the connection to storage is lost,
-     * the observable emits a [[DirectoryObservableDisconnectedException]] error.
-     * When any other error is received, the observable emits a
-     * [[DirectoryObservableDisconnectedException]] error. When the observable
-     * is closed by calling the `close()` method, the observable emits a
-     * [[DirectoryObservableClosedException]].
-     *
-     * @param completeOnDelete The argument specifies whether the observable
-     *                         should complete when the path is deleted or if it
-     *                         does not exist. When `true` the observable
-     *                         completes with a [[ParentDeletedException]] when
-     *                         the path is deleted. Otherwise, the observable
-     *                         will install an exists watcher on the underlying
-     *                         node such that it triggers a notification when
-     *                         the node is created.
-     */
+      * Creates an [[Observable]] that emits updates of the set of child nodes
+      * for a given storage path. The observable completes, when connection to
+      * ZooKeeper is closed or when calling the `close()` method.
+      *
+      * If the path node is deleted before the observable is closed, it emits
+      * a [[ParentDeletedException]] error. If the connection to storage is lost,
+      * the observable emits a [[DirectoryObservableDisconnectedException]] error.
+      * When any other error is received, the observable emits a
+      * [[DirectoryObservableDisconnectedException]] error. When the observable
+      * is closed by calling the `close()` method, the observable emits a
+      * [[DirectoryObservableClosedException]].
+      *
+      * The `onClose` function is called when the observable closes its
+      * underlying watcher to storage, either because the observable has no
+      * more subscribers or when the corresponding object was deleted and
+      * `completeOnDelete` is set to `true`.
+      *
+      * @param completeOnDelete The argument specifies whether the observable
+      *                         should complete when the path is deleted or if
+      *                         it does not exist. When `true` the observable
+      *                         completes with a [[ParentDeletedException]] when
+      *                         the path is deleted. Otherwise, the observable
+      *                         will install an exists watcher on the underlying
+      *                         node such that it triggers a notification when
+      *                         the node is created.
+      */
     def create(curator: CuratorFramework, path: String,
                completeOnDelete: Boolean = true,
-               zoomMetrics: ZoomMetrics = BlackHoleZoomMetrics)
+               metrics: ZoomMetrics = BlackHoleZoomMetrics,
+               onClose: => Unit = OnCloseDefault)
     :PathDirectoryObservable = {
         new PathDirectoryObservable(
-            new OnSubscribeToDirectory(curator, path, completeOnDelete,
-                                       zoomMetrics))
+            new OnSubscribeToDirectory(curator, path, onClose, completeOnDelete,
+                                       metrics))
     }
 }
 
 private[util]
 class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
-                             completeOnDelete: Boolean, zoomMetrics: ZoomMetrics)
+                             onClose: => Unit, completeOnDelete: Boolean,
+                             metrics: ZoomMetrics)
     extends OnSubscribe[Set[String]] {
 
     private val log = getLogger(s"org.midonet.cluster.zk-directory-[$path]")
@@ -103,7 +112,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
         override def process(event: WatchedEvent): Unit = {
             event.getType match {
                 case NodeChildrenChanged =>
-                    zoomMetrics.childrenWatcherTriggered()
+                    metrics.childrenWatcherTriggered()
                 case _ =>
             }
             processWatcher(event)
@@ -209,7 +218,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
             children.set(event.getChildren.asScala.toSet)
             subject.onNext(children.get)
         } else if (event.getResultCode == Code.NONODE.intValue) {
-            zoomMetrics.zkNoNodeTriggered()
+            metrics.zkNoNodeTriggered()
             if (completeOnDelete) {
                 log.debug("Node deleted: closing the observable")
                 close(new ParentDeletedException(path))
@@ -254,6 +263,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
             curator.getConnectionStateListenable.removeListener(connectionListener)
             curator.clearWatcherReferences(childrenWatcher)
 
+            onClose
             subject.onError(e)
 
             connectionListener = null
