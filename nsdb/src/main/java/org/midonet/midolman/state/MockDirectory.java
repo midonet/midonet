@@ -332,11 +332,6 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public boolean exists(String path, Runnable watcher) {
-        return exists(path, wrapCallback(watcher));
-    }
-
-    @Override
     public boolean has(String path) {
         PathUtils.validatePath(path);
         try {
@@ -431,11 +426,6 @@ public class MockDirectory implements Directory {
         }
 
         return results;
-    }
-
-    @Override
-    public void closeConnection() {
-        // Do nothing here.
     }
 
     @Override

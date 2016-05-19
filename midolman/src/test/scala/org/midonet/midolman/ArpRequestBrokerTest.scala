@@ -154,8 +154,8 @@ class ArpRequestBrokerTest extends Suite
         zkConn.open()
         remoteZkConn.open()
 
-        directory = new ZkDirectory(zkConn, "", null, reactor)
-        remoteDir = new ZkDirectory(zkConn, "", null, reactor)
+        directory = new ZkDirectory(zkConn, "", reactor)
+        remoteDir = new ZkDirectory(zkConn, "", reactor)
     }
 
     override def afterAll() {

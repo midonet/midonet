@@ -42,18 +42,6 @@ public interface Directory {
     void update(String relativePath, byte[] data) throws KeeperException,
             InterruptedException;
 
-    /**
-     * Update with optimistic locking.
-     *
-     * @param relativePath
-     *      Path relative to base path.
-     * @param data
-     *      Data to write to the node.
-     * @param version
-     *      Expected node version, obtained from prior call to getWithVersion.
-     *      If a concurrent update occurs, it will increment the node's
-     *      version and this update will fail with a BadVersionException.
-     */
     void update(String relativePath, byte[] data, int version)
             throws KeeperException, InterruptedException;
 
@@ -72,9 +60,6 @@ public interface Directory {
     boolean exists(String path, Watcher watcher) throws KeeperException,
             InterruptedException;
 
-    boolean exists(String path, Runnable watcher)
-            throws KeeperException, InterruptedException;
-
     boolean has(String relativePath) throws KeeperException,
             InterruptedException;
 
@@ -87,8 +72,6 @@ public interface Directory {
 
     List<OpResult> multi(List<Op> ops) throws InterruptedException,
             KeeperException;
-
-    void closeConnection();
 
     // HACK: TypedWatcher is a runnable so that it can be passed to Directory
     // methods that take Runnable 'watchers'. However, the run method should
