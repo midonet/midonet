@@ -16,25 +16,24 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
-
+import java.util.{UUID, List => JList}
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs._
 
 import scala.collection.JavaConverters._
-
+import scala.collection.mutable.ListBuffer
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-
-import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowCreate, AllowDelete, AllowGet}
-import org.midonet.cluster.rest_api.models.{RouterPort, Port, Route, Router}
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, ApiResource}
+import org.midonet.cluster.rest_api.models.{Port, Route, Router, RouterPort}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, BadRequestHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
+
 
 @ApiResource(version = 1, template = "routeTemplate")
 @Path("routes")
@@ -80,8 +79,11 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
         for (port <- ports) {
             routes = routes ++ listResources(classOf[Route], port.routeIds.asScala)
         }
+
+        val containerHostIds = ports.filter(
+            _.serviceContainerId != null).map(_.hostId)
         for (port <- ports) {
-            routes = routes ++ getLearnedRoutes(port)
+            routes = routes ++ getLearnedRoutes(port, containerHostIds)
         }
         val result = for (route <- routes) yield {
             if ((route.routerId eq null) &&
@@ -125,13 +127,26 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
         }
     }
 
-    private def getLearnedRoutes(port: Port): Seq[Route] = {
-        resContext.backend.stateStore.getPortRoutes(port.id, port.hostId)
+    private def getLearnedRoutesFromStateStore(portId: UUID,
+                                               hostId: UUID): Seq[Route] =
+        resContext.backend.stateStore
+            .getPortRoutes(portId, hostId)
             .map[Seq[Route]](makeFunc1(_.map(route => {
-                val r = Route.fromLearned(route)
-                r.setBaseUri(resContext.uriInfo.getBaseUri)
-                r
-            }).toSeq)).asFuture.getOrThrow
-    }
+            val r = Route.fromLearned(route)
+            r.setBaseUri(resContext.uriInfo.getBaseUri)
+            r
+        }).toSeq)).asFuture.getOrThrow
 
+    private def getLearnedRoutes(port: RouterPort,
+                                 containerHostIds: Seq[UUID]): Seq[Route] = {
+
+        val routes = ListBuffer[Route]()
+        routes ++= getLearnedRoutesFromStateStore(port.id, port.hostId)
+
+        for(hostId <- containerHostIds) {
+            routes ++= getLearnedRoutesFromStateStore(port.id, hostId)
+        }
+
+        routes
+    }
 }
