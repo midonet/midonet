@@ -16,25 +16,25 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.{UUID, List => JList}
 
-import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs._
+import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowCreate, AllowDelete, AllowGet}
-import org.midonet.cluster.rest_api.models.{RouterPort, Port, Route, Router}
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, ApiResource}
+import org.midonet.cluster.rest_api.models.{Port, Route, Router, RouterPort}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, BadRequestHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.state.RoutingTableStorage._
-import org.midonet.util.functors._
 import org.midonet.util.reactivex._
+
 
 @ApiResource(version = 1, template = "routeTemplate")
 @Path("routes")
@@ -74,23 +74,24 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String): JList[Route] = {
         val router = getResource(classOf[Router], routerId)
-        val ports = listResources(classOf[RouterPort], router.portIds.asScala)
+        val ports = listResources(classOf[RouterPort], router.portIds)
         val portsMap = ports.map(port => (port.id, port)).toMap
-        var routes = listResources(classOf[Route], router.routeIds.asScala)
-        for (port <- ports) {
-            routes = routes ++ listResources(classOf[Route], port.routeIds.asScala)
-        }
-        for (port <- ports) {
-            routes = routes ++ getLearnedRoutes(port)
-        }
-        val result = for (route <- routes) yield {
-            if ((route.routerId eq null) &&
-                (route.nextHopPort ne null)) {
-                route.routerId = portsMap(route.nextHopPort).routerId
-            }
-            route
-        }
-        result.asJava
+
+        // Get static routes from router and its ports.
+        val staticRouteIds = router.routeIds ++ ports.map(_.routeIds)
+        val staticRoutes = listResources(classOf[Route], staticRouteIds)
+
+        // Get learned routes.
+        val containerHostIds =
+            for (p <- ports if p.serviceContainerId != null) yield p.hostId
+        val learnedRoutes = ports.flatMap(getLearnedRoutes(_, containerHostIds))
+
+        // Set routerId on port routes.
+        val routes = staticRoutes ++ learnedRoutes
+        for (r <- routes if r.routerId == null && r.nextHopPort != null)
+                r.routerId = portsMap(r.nextHopPort).routerId
+
+        routes
     }
 
     protected override def createFilter(route: Route, tx: ResourceTransaction)
@@ -125,13 +126,16 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
         }
     }
 
-    private def getLearnedRoutes(port: Port): Seq[Route] = {
-        resContext.backend.stateStore.getPortRoutes(port.id, port.hostId)
-            .map[Seq[Route]](makeFunc1(_.map(route => {
-                val r = Route.fromLearned(route)
-                r.setBaseUri(resContext.uriInfo.getBaseUri)
-                r
-            }).toSeq)).asFuture.getOrThrow
+    private def getLearnedRoutesFromStateStore(portId: UUID,
+                                               hostId: UUID): Seq[Route] = {
+        val obs = resContext.backend.stateStore.getPortRoutes(portId, hostId)
+        val routes = obs.asFuture.getOrThrow.toSeq
+        routes.map(Route.fromLearned(_, resContext.uriInfo.getBaseUri))
     }
 
+    private def getLearnedRoutes(port: RouterPort,
+                                 containerHostIds: Seq[UUID]): Seq[Route] = {
+        val hostIds = port.hostId +: containerHostIds
+        hostIds.flatMap(getLearnedRoutesFromStateStore(port.id, _))
+    }
 }
