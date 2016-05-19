@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ad1fdf06",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/MidonetBackendTestModule.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-19T08:17:38Z",
+      "side": 1,
+      "message": "Oops",
+      "parentUuid": "baa041b7_ed5a87f1",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 34
+      },
+      "revId": "dc1e485364bace06a5e635297165d347772a1bf1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_cd746369",
         "filename": "midolman/src/test/scala/org/midonet/cluster/storage/MidonetBackendTestModule.scala",
         "patchSetId": 14
@@ -36,6 +60,30 @@
       "writtenOn": "2016-05-19T08:10:23Z",
       "side": 1,
       "message": "Same",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 44
+      },
+      "revId": "dc1e485364bace06a5e635297165d347772a1bf1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8d189b1f",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/MidonetBackendTestModule.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-19T08:17:38Z",
+      "side": 1,
+      "message": "Removed",
+      "parentUuid": "baa041b7_cd746369",
       "range": {
         "startLine": 40,
         "startChar": 0,
