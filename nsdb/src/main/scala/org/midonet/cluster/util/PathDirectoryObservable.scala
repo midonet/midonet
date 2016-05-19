@@ -287,6 +287,8 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
       * unusable. */
     def isClosed = state.get() == State.Closed
 
+    /** Indicates that the observable is started. */
+    def isStarted = state.get() == State.Started
 }
 
 /**
@@ -325,6 +327,8 @@ class PathDirectoryObservable(onSubscribe: OnSubscribeToDirectory)
       * connection and is therefore unusable. */
     def isClosed = onSubscribe.isClosed
 
+    /** Returns true iff the observable is started. */
+    def isStarted: Boolean = onSubscribe.isStarted
 }
 
 /** Signals that the underlying observable has lost the connection to ZK. */
