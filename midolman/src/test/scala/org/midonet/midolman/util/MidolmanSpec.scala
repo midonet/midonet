@@ -22,7 +22,8 @@ import scala.collection.mutable
 
 import com.google.inject._
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
-import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
+import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen}
+import org.scalatest.{Informer, Matchers, OneInstancePerTest}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.backend.Directory
@@ -62,6 +63,12 @@ trait MidolmanSpec extends FeatureSpecLike
         with OneInstancePerTest {
 
     val log = LoggerFactory.getLogger(getClass)
+
+    override val info = new Informer() {
+        override def apply(message: String, payload: Option[Any] = None): Unit = {
+            log.info(message)
+        }
+    }
 
     var injector: Injector = null
 
