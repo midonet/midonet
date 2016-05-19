@@ -16,7 +16,7 @@
 
 package org.midonet.midolman
 
-import java.util.{UUID, LinkedList}
+import java.util.{LinkedList, UUID}
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.concurrent.Future
@@ -24,8 +24,9 @@ import scala.concurrent.Future
 import akka.actor.ActorSystem
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Injector
-import com.lmax.disruptor.{SequenceBarrier, RingBuffer}
-import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
+import com.lmax.disruptor.{RingBuffer, SequenceBarrier}
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import org.reflections.Reflections
 
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
@@ -45,10 +46,10 @@ import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockFlowProcessor, MockDatapathChannel, MockUpcallDatapathConnectionManager}
+import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockInterfaceScanner, MockUpcallDatapathConnectionManager}
 import org.midonet.netlink.NetlinkChannelFactory
-import org.midonet.odp.{Flow, FlowMatch, Datapath, OvsNetlinkFamilies}
-import org.midonet.odp.family.{PacketFamily, FlowFamily, PortFamily, DatapathFamily}
+import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
+import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
 
@@ -56,7 +57,8 @@ class MockMidolmanModule(override val hostId: UUID,
                          injector: Injector,
                          config: MidolmanConfig,
                          actorService: MidolmanActorsService)
-        extends MidolmanModule(injector, config, new MetricRegistry) {
+        extends MidolmanModule(injector, config, new MetricRegistry,
+                               new Reflections("org.midonet")) {
 
     val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
 
