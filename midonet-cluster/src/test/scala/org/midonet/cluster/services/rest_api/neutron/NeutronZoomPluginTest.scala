@@ -136,26 +136,49 @@ class NeutronZoomPluginTest extends FeatureSpec
 
         scenario("The plugin handles a security group and rule") {
             val sgId = UUID.randomUUID()
-            val sg = new SecurityGroup(sgId, "tenant", "sg1", "stargate 1",
+            val sgTenantId = "tenant"
+            val sgName = "sg1"
+            val sgDescription = "stargate 1"
+            val sg = new SecurityGroup(sgId, sgTenantId, sgName, sgDescription,
                                        List())
 
             plugin.createSecurityGroup(sg)
-
             exists(classOf[Topology.IPAddrGroup], sgId)
 
+            val createdSg = plugin.getSecurityGroup(sgId)
+            createdSg.id should equal (sgId)
+            createdSg.tenantId should equal (sgTenantId)
+            createdSg.name should equal (sgName)
+            createdSg.description should equal (sgDescription)
+
             val sgrId = UUID.randomUUID()
-            val sgr = new SecurityGroupRule(sgrId, sgId, RuleDirection.EGRESS,
-                                            RuleEthertype.IPv4,
-                                            RuleProtocol.TCP)
+            val sgrDirection = RuleDirection.EGRESS
+            val sgrEthertpe = RuleEthertype.IPv4
+            val sgrProtocol = RuleProtocol.TCP
+            val sgr = new SecurityGroupRule(sgrId, sgId, sgrDirection,
+                                            sgrEthertpe, sgrProtocol)
 
             plugin.createSecurityGroupRule(sgr)
             exists(classOf[Topology.Rule], sgrId)
 
+            val createdSgr = plugin.getSecurityGroupRule(sgrId)
+            createdSgr.securityGroupId should equal (sgId)
+            createdSgr.id should equal (sgrId)
+            createdSgr.direction should equal (sgrDirection)
+            createdSgr.ethertype should equal (sgrEthertpe)
+            createdSgr.protocol should equal (sgrProtocol)
+
             plugin.deleteSecurityGroupRule(sgrId)
             doesNotExist(classOf[Topology.Rule], sgrId)
 
+            a [NotFoundHttpException] should be thrownBy
+                plugin.getSecurityGroupRule(sgrId)
+
             plugin.deleteSecurityGroup(sgId)
             doesNotExist(classOf[Topology.IPAddrGroup], sgId)
+
+            a [NotFoundHttpException] should be thrownBy
+              plugin.getSecurityGroup(sgId)
         }
 
         scenario("The plugin gracefully (no 5xx) handles ill-formed requests") {
