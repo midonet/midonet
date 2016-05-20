@@ -55,6 +55,8 @@
     <!-- NEUTRON DATA SYNC BACKEND -->
     <!-- logger name="org.midonet.cluster.services.neutron-importer" level="DEBUG"/ -->
 
+    <!-- Keystone authentication -->
+    <logger name="org.midonet.cluster.auth.keystone" level="WARN"/>
 
     <!-- Fine grained loggers for libraries, fine tune if required
          during debug. -->
