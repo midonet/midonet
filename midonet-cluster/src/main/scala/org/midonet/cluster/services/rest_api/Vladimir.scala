@@ -207,6 +207,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
         val c = new HttpConfiguration()
         c.setSecureScheme("https")
         c.setSecurePort(config.restApi.httpsPort)
+        c.addCustomizer(new ForwardedRequestCustomizer());
         c.setOutputBufferSize(32768)
         c
     }
