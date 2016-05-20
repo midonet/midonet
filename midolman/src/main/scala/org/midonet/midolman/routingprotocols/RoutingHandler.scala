@@ -451,17 +451,24 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         log.info(s"Forgetting learned route: " +
             s"${route.getDstNetworkAddr}/${route.getDstNetworkLength} " +
             s"via ${route.getNextHopGateway}")
-        routingStorage.removeRoute(route)
+        routingStorage.removeRoute(route, rport.id)
     }
 
     private def makeRoute(destination: IPv4Subnet, path: ZebraPath): Route = {
         val route = new Route()
+        var portId = rport.id
+        for (pbi <- currentPortBgps) {
+            if (path.gateway.toString == pbi.bgpPeerIp) {
+                portId = pbi.portId
+            }
+        }
+
         route.setRouterId(rport.deviceId)
         route.setDstNetworkAddr(destination.getAddress.toString)
         route.setDstNetworkLength(destination.getPrefixLen)
         route.setNextHopGateway(path.gateway.toString)
         route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
-        route.setNextHopPort(rport.id)
+        route.setNextHopPort(portId)
         route.setWeight(path.distance)
         route.setLearned(true)
         route
@@ -535,7 +542,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             s"via ${route.getNextHopGateway}")
 
         peerRoutes.put(route, null)
-        routingStorage.addRoute(route).map { _ =>
+        routingStorage.addRoute(route, rport.id).map { _ =>
             peerRoutes.put(route, route)
             route
         }(singleThreadExecutionContext)
