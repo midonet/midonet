@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bb227250",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-20T06:47:02Z",
+      "side": 1,
+      "message": "I guess you can remove WIP (DO NOT REVIEW)",
+      "revId": "0eb7bf9dcf37843bfd0c9200e1391385d5ec7108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5b15a6e2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RouteResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-20T06:47:02Z",
+      "side": 1,
+      "message": "My fault, but I think I accidentally re-organized the imports unknowingly, and might not match the import order that we have been following.",
+      "revId": "0eb7bf9dcf37843bfd0c9200e1391385d5ec7108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
