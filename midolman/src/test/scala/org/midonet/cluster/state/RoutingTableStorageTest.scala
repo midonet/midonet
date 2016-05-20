@@ -32,7 +32,7 @@ import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend.RoutesKey
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.{MidonetBackendTest, ParentDeletedException, CuratorTestFramework}
+import org.midonet.cluster.util.{MidonetBackendTest, ParentDeletedException}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
