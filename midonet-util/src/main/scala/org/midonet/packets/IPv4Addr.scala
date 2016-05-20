@@ -84,7 +84,9 @@ object IPv4Addr {
 
     val r = new Random
 
-    def random = IPv4Addr(r.nextInt)
+    def ipv4Byte = r.nextInt(255)
+
+    def randomPrivate = fromString(s"10.$ipv4Byte.$ipv4Byte.$ipv4Byte")
 
     def apply(s: String) = fromString(s)
 
