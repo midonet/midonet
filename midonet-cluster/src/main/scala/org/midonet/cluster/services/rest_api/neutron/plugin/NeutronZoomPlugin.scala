@@ -389,7 +389,8 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         delete(id, classOf[SecurityGroup])
     }
 
-    override def getSecurityGroupRule(id: UUID): SecurityGroupRule = get(id)
+    override def getSecurityGroupRule(id: UUID): SecurityGroupRule =
+        get[SecurityGroupRule](id)
 
     override def updateSecurityGroup(id: UUID,
                                      sg: SecurityGroup): SecurityGroup = {
@@ -413,7 +414,8 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     override def getSecurityGroupRules
     : util.List[SecurityGroupRule] = listAll(classOf[SecurityGroupRule])
 
-    override def getSecurityGroup(id: UUID): SecurityGroup = get(id)
+    override def getSecurityGroup(id: UUID): SecurityGroup =
+        get[SecurityGroup](id)
 
     override def createSecurityGroupRuleBulk(rules: util
     .List[SecurityGroupRule]): util.List[SecurityGroupRule] = bulkCreate(rules)
