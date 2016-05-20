@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bbb27292",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/RoutingTableStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-20T09:49:44Z",
+      "side": 1,
+      "message": "Rename to just serialize/deserialize, since the port ID is now part of the route?",
+      "range": {
+        "startLine": 44,
+        "startChar": 24,
+        "endLine": 44,
+        "endChar": 40
+      },
+      "revId": "11b3b0f0ecbdd8593d4487afa1a913053d9b5523",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7ba86a20",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/RoutingTableStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-20T09:49:44Z",
+      "side": 1,
+      "message": "Maybe just collapse to:\n\n  val routerId \u003d new UUID(buffer.getLong, buffer.getLong)\n  val nhPortId \u003d new UUID(buffer.getLong, buffer.getLong)",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 61
+      },
+      "revId": "11b3b0f0ecbdd8593d4487afa1a913053d9b5523",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1b6a7eee",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/RoutingTableStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-20T09:49:44Z",
+      "side": 1,
+      "message": "Not necessary. Can just be values.flatMap(deserializeForPort). Or values.flatMap(deserialize) with the other change I suggested.",
+      "range": {
+        "startLine": 192,
+        "startChar": 49,
+        "endLine": 192,
+        "endChar": 52
+      },
+      "revId": "11b3b0f0ecbdd8593d4487afa1a913053d9b5523",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fe5468fe",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/routingprotocols/RoutingHandlerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-20T09:49:44Z",
+      "side": 1,
+      "message": "You need to use a matcher instead of passing in the raw argument. So this should be eq(rport.id). Except that conflicts with the Scala identity check function/operator, so you need to rename eq when you import it. I renamed it to Eq.",
+      "range": {
+        "startLine": 278,
+        "startChar": 74,
+        "endLine": 278,
+        "endChar": 82
+      },
+      "revId": "11b3b0f0ecbdd8593d4487afa1a913053d9b5523",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
