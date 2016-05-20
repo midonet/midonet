@@ -34,6 +34,7 @@ import org.scalatest.mock.MockitoSugar
 import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.data.Route
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.routingprotocols.RoutingHandler.PortBgpInfos
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.topology.PortBgpInfo
@@ -142,6 +143,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             containerRoutingHandler ! BgpPort(containerRport, baseConfig.copy(neighbors = Map.empty), Set.empty)
             bgpd.currentArpEntries.size should be (0)
 
+            containerRoutingHandler ! PortBgpInfos(Seq(PortBgpInfo(UUID.randomUUID(), "fakemac", "fakecidr", "fakeip")))
             containerRoutingHandler ! BgpPort(containerRport, baseConfig, Set(peer1Id))
             bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString)
 

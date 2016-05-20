@@ -685,7 +685,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         for (neigh <- bgpConfig.neighbors.values) {
             bgpd.vty.addPeer(bgpConfig.as, neigh)
             routingInfo.peers.add(neigh.address)
-            if (isQuagga) {
+            if (isQuagga && (newPortBgps.size != 0)) {
                 bgpd.vty.addPeerEbgp(bgpConfig.as, neigh.address)
                 log.info(s"Adding Arp entry ${neigh.address} -> ${rport.portMac}")
                 bgpd.addArpEntry(rport.interfaceName, neigh.address.toString,
