@@ -275,7 +275,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             val gw = "192.168.80.254"
 
             pushRoute(dst, gw)
-            verify(routingStorage).addRoute(argThat(matchRoute(dst, gw)))
+            verify(routingStorage).addRoute(argThat(matchRoute(dst, gw)), rport.id)
         }
 
         scenario("multipath routes") {
@@ -285,17 +285,17 @@ class RoutingHandlerTest extends FeatureSpecLike
             val order = org.mockito.Mockito.inOrder(routingStorage)
 
             pushRoute(dst, gw1)
-            order.verify(routingStorage).addRoute(argThat(matchRoute(dst, gw1)))
+            order.verify(routingStorage).addRoute(argThat(matchRoute(dst, gw1)), rport.id)
 
             pushRoute(dst, gw2)
-            order.verify(routingStorage).addRoute(argThat(matchRoute(dst, gw2)))
-            order.verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw1)))
+            order.verify(routingStorage).addRoute(argThat(matchRoute(dst, gw2)), rport.id)
+            order.verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw1)), rport.id)
 
             pushRoute(dst, gw1, gw2)
-            order.verify(routingStorage).addRoute(argThat(matchRoute(dst, gw1)))
+            order.verify(routingStorage).addRoute(argThat(matchRoute(dst, gw1)), rport.id)
 
             pushRoute(dst, gw1)
-            order.verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw2)))
+            order.verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw2)), rport.id)
         }
 
         scenario("peer stops announcing a route") {
@@ -306,8 +306,8 @@ class RoutingHandlerTest extends FeatureSpecLike
             routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw))
 
-            verify(routingStorage).addRoute(argThat(matchRoute(dst, gw)))
-            verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw)))
+            verify(routingStorage).addRoute(argThat(matchRoute(dst, gw)), rport.id)
+            verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw)), rport.id)
         }
 
         scenario("routes are synced after a glitch") {
@@ -324,18 +324,18 @@ class RoutingHandlerTest extends FeatureSpecLike
             routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst3), IPv4Addr.fromString(gw))
 
-            verify(routingStorage).addRoute(argThat(matchRoute(dst1, gw)))
-            verify(routingStorage).addRoute(argThat(matchRoute(dst2, gw)))
-            verify(routingStorage).addRoute(argThat(matchRoute(dst3, gw)))
+            verify(routingStorage).addRoute(argThat(matchRoute(dst1, gw)), rport.id)
+            verify(routingStorage).addRoute(argThat(matchRoute(dst2, gw)), rport.id)
+            verify(routingStorage).addRoute(argThat(matchRoute(dst3, gw)), rport.id)
 
             routingStorage.unbreak()
             reset(routingStorage)
 
             routingHandler ! RoutingHandler.SYNC_PEER_ROUTES
 
-            verify(routingStorage, times(2)).addRoute(anyObject())
-            verify(routingStorage).addRoute(argThat(matchRoute(dst1, gw)))
-            verify(routingStorage).addRoute(argThat(matchRoute(dst2, gw)))
+            verify(routingStorage, times(2)).addRoute(anyObject(), rport.id)
+            verify(routingStorage).addRoute(argThat(matchRoute(dst1, gw)), rport.id)
+            verify(routingStorage).addRoute(argThat(matchRoute(dst2, gw)), rport.id)
         }
     }
 
@@ -395,7 +395,7 @@ class MockRoutingStorage extends RoutingStorage {
         }
     }
 
-    override def addRoute(route: Route): Future[Route] = {
+    override def addRoute(route: Route, portId: UUID): Future[Route] = {
         if (broken) {
             Promise.failed(new StateAccessException("whatever")).future
         } else {
@@ -403,7 +403,7 @@ class MockRoutingStorage extends RoutingStorage {
         }
     }
 
-    override def removeRoute(route: Route): Future[Route] = {
+    override def removeRoute(route: Route, portId: UUID): Future[Route] = {
         if (broken) {
             Promise.failed(new StateAccessException("whatever")).future
         } else {

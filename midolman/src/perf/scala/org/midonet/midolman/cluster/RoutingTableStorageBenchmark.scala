@@ -131,7 +131,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
 
         for (index <- 1 to count) {
             val route = createPortRoute(portId = port.getId)
-            storage.addRoute(route).await(timeout)
+            storage.addRoute(route, port.getId).await(timeout)
         }
 
         storage.delete(classOf[Port], port.getId)
@@ -146,7 +146,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
 
         for (index <- 1 to count) {
             val route = createPortRoute(portId = port.getId)
-            try { futures += storage.addRoute(route).asFuture }
+            try { futures += storage.addRoute(route, port.getId).asFuture }
             catch { case NonFatal(_) => }
         }
 
@@ -166,13 +166,13 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
             val route = createPortRoute(portId = port.getId)
 
             try {
-                storage.addRoute(route).await(timeout)
+                storage.addRoute(route, port.getId).await(timeout)
                 routes += route
             } catch { case NonFatal(_) => }
         }
 
         for (route <- routes) {
-            try { storage.removeRoute(route).await(timeout) }
+            try { storage.removeRoute(route, port.getId).await(timeout) }
             catch { case NonFatal(_) => }
         }
 
@@ -191,7 +191,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
         for (index <- 1 to count) {
             val route = createPortRoute(portId = port.getId)
             try {
-                futuresAdd += storage.addRoute(route).asFuture
+                futuresAdd += storage.addRoute(route, port.getId).asFuture
                 routes += route
             } catch { case NonFatal(_) => }
         }
@@ -199,7 +199,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
         Future.sequence(futuresAdd).await(benchmarkTimeout)
 
         for (route <- routes) {
-            try { futuresRem += storage.removeRoute(route).asFuture }
+            try { futuresRem += storage.removeRoute(route, port.getId).asFuture }
             catch { case NonFatal(_) => }
         }
 
@@ -219,7 +219,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
 
         for (index <- 1 to count) {
             val route = createPortRoute(portId = port.getId)
-            try { storage.addRoute(route).await(timeout) }
+            try { storage.addRoute(route, port.getId).await(timeout) }
             catch { case NonFatal(_) => }
         }
 

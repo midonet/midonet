@@ -42,7 +42,7 @@ object RoutingTableStorage {
     }
 
     @inline private def serializeForPort(route: Route): String = {
-        val buffer = ByteBuffer.allocate(34)
+        val buffer = ByteBuffer.allocate(50)
         buffer.putInt(route.dstNetworkAddr)
         buffer.put(route.dstNetworkLength.toByte)
         buffer.putInt(route.srcNetworkAddr)
@@ -51,10 +51,12 @@ object RoutingTableStorage {
         buffer.putInt(route.weight)
         buffer.putLong(route.routerId.getMostSignificantBits)
         buffer.putLong(route.routerId.getLeastSignificantBits)
+        buffer.putLong(route.nextHopPort.getMostSignificantBits)
+        buffer.putLong(route.nextHopPort.getLeastSignificantBits)
         Hex.encodeHexString(buffer.array())
     }
 
-    @inline private def deserializeForPort(portId: UUID, string: String)
+    @inline private def deserializeForPort(string: String)
     : Option[Route] = {
         try {
             val buffer = ByteBuffer.wrap(Hex.decodeHex(string.toCharArray))
@@ -66,8 +68,11 @@ object RoutingTableStorage {
             val weight = buffer.getInt
             val routerIdMsb = buffer.getLong
             val routerIdLsb = buffer.getLong
+            val nhPortIdMsb = buffer.getLong
+            val nhPortIdLsb = buffer.getLong
+            val nhPortId = new UUID(nhPortIdMsb, nhPortIdLsb)
             Some(new Route(srcNetworkAddr, srcNetworkLength, dstNetworkAddr,
-                           dstNetworkLength, NextHop.PORT, portId,
+                           dstNetworkLength, NextHop.PORT, nhPortId,
                            nextHopGateway, weight, "",
                            new UUID(routerIdMsb, routerIdLsb), true))
         } catch {
@@ -154,10 +159,10 @@ class RoutingTableStorage(val store: StateStorage) extends AnyVal {
 
     /** Adds a [[NextHop.PORT]] route as a state value to the next hop port
       * object. Adding a route with a different [[NextHop]] is not supported. */
-    def addRoute(route: Route): Observable[StateResult] = {
+    def addRoute(route: Route, portId: UUID): Observable[StateResult] = {
         route.nextHop match {
             case NextHop.PORT =>
-                store.addValue(classOf[Port], route.nextHopPort, RoutesKey,
+                store.addValue(classOf[Port], portId, RoutesKey,
                                serializeForPort(route))
             case _ =>
                 throw new IllegalArgumentException(
@@ -167,10 +172,10 @@ class RoutingTableStorage(val store: StateStorage) extends AnyVal {
 
     /** Removes a [[NextHop.PORT]] route from the state key of the corresponding
       * next hop port. */
-    def removeRoute(route: Route): Observable[StateResult] = {
+    def removeRoute(route: Route, portId: UUID): Observable[StateResult] = {
         route.nextHop match {
             case NextHop.PORT =>
-                store.removeValue(classOf[Port], route.nextHopPort, RoutesKey,
+                store.removeValue(classOf[Port], portId, RoutesKey,
                                   serializeForPort(route))
             case _ =>
                 throw new IllegalArgumentException(
@@ -184,7 +189,7 @@ class RoutingTableStorage(val store: StateStorage) extends AnyVal {
         store.getKey(hostId.asNullableString, classOf[Port], portId,
                      RoutesKey) map makeFunc1 {
             case MultiValueKey(_, values) =>
-                values.flatMap(deserializeForPort(portId, _))
+                values.flatMap(deserializeForPort(_))
             case _ => NoRoutes
         }
     }
@@ -196,7 +201,7 @@ class RoutingTableStorage(val store: StateStorage) extends AnyVal {
         store.keyObservable(hostIds.map[String](makeFunc1 { _.asNullableString }),
                             classOf[Port], portId, RoutesKey) map makeFunc1 {
             case MultiValueKey(_, values) =>
-                values.flatMap(deserializeForPort(portId, _))
+                values.flatMap(deserializeForPort(_))
             case _ => NoRoutes
         }
     }
