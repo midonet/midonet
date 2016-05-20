@@ -403,7 +403,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         log.info(s"Forgetting learned route: " +
             s"${route.getDstNetworkAddr}/${route.getDstNetworkLength} " +
             s"via ${route.getNextHopGateway}")
-        routingStorage.removeRoute(route)
+        routingStorage.removeRoute(route, rport.id)
     }
 
     private def makeRoute(destination: IPv4Subnet, path: ZebraPath): Route = {
@@ -487,7 +487,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             s"via ${route.getNextHopGateway}")
 
         peerRoutes.put(route, null)
-        routingStorage.addRoute(route).map { _ =>
+        routingStorage.addRoute(route, rport.id).map { _ =>
             peerRoutes.put(route, route)
             route
         }(singleThreadExecutionContext)

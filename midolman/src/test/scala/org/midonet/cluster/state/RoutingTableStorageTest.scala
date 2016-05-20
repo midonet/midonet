@@ -73,7 +73,7 @@ class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
         storage.create(port)
 
         val route = createPortRoute(portId = port.getId)
-        storage.addRoute(route).await(timeout) shouldBe StateResult(ownerId)
+        storage.addRoute(route, port.getId).await(timeout) shouldBe StateResult(ownerId)
 
         storage.getPortRoutes(port.getId, hostId).await(timeout) shouldBe Set(route)
     }
@@ -83,8 +83,8 @@ class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
         storage.create(port)
 
         val route = createPortRoute(portId = port.getId)
-        storage.addRoute(route).await(timeout) shouldBe StateResult(ownerId)
-        storage.removeRoute(route).await(timeout) shouldBe StateResult(ownerId)
+        storage.addRoute(route, port.getId).await(timeout) shouldBe StateResult(ownerId)
+        storage.removeRoute(route, port.getId).await(timeout) shouldBe StateResult(ownerId)
 
         storage.getPortRoutes(port.getId, hostId).await(timeout) shouldBe Set()
     }
@@ -101,23 +101,23 @@ class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
         obs.getOnNextEvents.get(0) shouldBe Set()
 
         val route1 = createPortRoute(portId = port.getId)
-        storage.addRoute(route1).await(timeout)
+        storage.addRoute(route1, port.getId).await(timeout)
 
         obs.awaitOnNext(2, timeout) shouldBe true
         obs.getOnNextEvents.get(1) shouldBe Set(route1)
 
         val route2 = createPortRoute(portId = port.getId)
-        storage.addRoute(route2).await(timeout)
+        storage.addRoute(route2, port.getId).await(timeout)
 
         obs.awaitOnNext(3, timeout) shouldBe true
         obs.getOnNextEvents.get(2) shouldBe Set(route1, route2)
 
-        storage.removeRoute(route1).await(timeout)
+        storage.removeRoute(route1, port.getId).await(timeout)
 
         obs.awaitOnNext(4, timeout) shouldBe true
         obs.getOnNextEvents.get(3) shouldBe Set(route2)
 
-        storage.removeRoute(route2).await(timeout)
+        storage.removeRoute(route2, port.getId).await(timeout)
 
         obs.awaitOnNext(5, timeout) shouldBe true
         obs.getOnNextEvents.get(4) shouldBe Set()

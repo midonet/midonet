@@ -898,7 +898,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val route = createLearnedRoute(srcNetwork = "1.0.0.0/24",
                                            dstNetwork = "2.0.0.0/24",
                                            portId = port.getId)
-            stateStore.addRoute(route).await(timeout)
+            stateStore.addRoute(route, port.getId).await(timeout)
 
             Then("The observer should receive a router update with the route")
             obs.awaitOnNext(4, timeout) shouldBe true
@@ -908,7 +908,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
                 route
 
             When("The route is deleted")
-            stateStore.removeRoute(route).await(timeout)
+            stateStore.removeRoute(route, port.getId).await(timeout)
 
             Then("The observer should receive a router update with no route")
             obs.awaitOnNext(5, timeout) shouldBe true
@@ -930,7 +930,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val route = createLearnedRoute(srcNetwork = "1.0.0.0/24",
                                            dstNetwork = "2.0.0.0/24",
                                            portId = port.getId)
-            stateStore.addRoute(route).await(timeout)
+            stateStore.addRoute(route, port.getId).await(timeout)
 
             Then("The observer should receive a router update with no routes")
             obs.awaitOnNext(3, timeout) shouldBe true
@@ -974,7 +974,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val route = createLearnedRoute(srcNetwork = "1.0.0.0/24",
                                            dstNetwork = "2.0.0.0/24",
                                            portId = port.getId)
-            stateStore.addRoute(route).await(timeout)
+            stateStore.addRoute(route, port.getId).await(timeout)
 
             Then("The observer should receive a router update with the route")
             obs.awaitOnNext(4, timeout) shouldBe true
@@ -1023,7 +1023,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val route2 = createLearnedRoute(srcNetwork = "1.0.0.0/24",
                                             dstNetwork = "2.0.0.0/24",
                                             portId = port.getId)
-            stateStore.addRoute(route2).await(timeout)
+            stateStore.addRoute(route2, port.getId).await(timeout)
 
             Then("The observer should receive a router update with the route")
             obs.awaitOnNext(4, timeout) shouldBe true
@@ -1033,7 +1033,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
                 route2
 
             When("The learned route is deleted")
-            stateStore.removeRoute(route2).await(timeout)
+            stateStore.removeRoute(route2, port.getId).await(timeout)
 
             Then("The observer should receive a router update with the initial route")
             obs.awaitOnNext(5, timeout) shouldBe true
