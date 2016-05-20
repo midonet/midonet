@@ -469,7 +469,7 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
         starts += 1
     }
 
-    override def assignAddr(iface: String, ip: String): Unit = {
+    override def assignAddr(iface: String, ip: String, mac: String): Unit = {
         currentIps += ip
     }
 
