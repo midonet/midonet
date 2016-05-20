@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_de84040c",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-20T11:09:11Z",
+      "side": 1,
+      "message": "since these are specific to tpaas, and it\u0027s the tpaas as a service usecase that decides where they go, why not call them tpaas_inbound_mirror_ids and tpaas_outbound_mirror_ids.\n\nIdeally, i\u0027d like them to be called post_filter_inbound_mirror_ids and rename the old inbound to pre_filter_inbound_mirror_ids, but we did something stupid in storing them in text format in zk, so changing the name isn\u0027t an option :/. As such, I think it\u0027s better to not use pre/post at all and just use the actual use case.",
+      "revId": "3868ed3a4987159709a6f423cb56ee0911105ce8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
