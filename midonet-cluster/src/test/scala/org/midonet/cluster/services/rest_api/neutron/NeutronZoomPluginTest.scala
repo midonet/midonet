@@ -136,8 +136,10 @@ class NeutronZoomPluginTest extends FeatureSpec
                                        List())
 
             plugin.createSecurityGroup(sg)
-
             exists(classOf[Topology.IPAddrGroup], sgId)
+
+            noException should be thrownBy
+                plugin.getSecurityGroup(sgId)
 
             val sgrId = UUID.randomUUID()
             val sgr = new SecurityGroupRule(sgrId, sgId, RuleDirection.EGRESS,
@@ -147,11 +149,20 @@ class NeutronZoomPluginTest extends FeatureSpec
             plugin.createSecurityGroupRule(sgr)
             exists(classOf[Topology.Rule], sgrId)
 
+            noException should be thrownBy
+                plugin.getSecurityGroupRule(sgrId)
+
             plugin.deleteSecurityGroupRule(sgrId)
             doesNotExist(classOf[Topology.Rule], sgrId)
 
+            a [NotFoundHttpException] should be thrownBy
+                plugin.getSecurityGroupRule(sgrId)
+
             plugin.deleteSecurityGroup(sgId)
             doesNotExist(classOf[Topology.IPAddrGroup], sgId)
+
+            a [NotFoundHttpException] should be thrownBy
+              plugin.getSecurityGroup(sgId)
         }
 
         scenario("The plugin gracefully (no 5xx) handles ill-formed requests") {
