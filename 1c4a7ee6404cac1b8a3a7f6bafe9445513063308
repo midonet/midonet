@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a8afca28",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-20T05:56:15Z",
+      "side": 1,
+      "message": "I don\u0027t think you need explicit checks for noException here.  With the bug, if you simply called \u0027getSecurityGroup\u0027 and \u0027getSecurityGroupRule\u0027, you would have gotten the exception, which would have failed the tests.  I think the tests we need here are just to test the get* methods (check the object returned by get* instead of checking against exceptions).",
+      "revId": "1c4a7ee6404cac1b8a3a7f6bafe9445513063308",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
