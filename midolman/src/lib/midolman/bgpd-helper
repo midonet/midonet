@@ -66,11 +66,18 @@ wait_for_all() {
 }
 
 assign_addr() {
-    ip netns exec $namespace ip address add $router_ip dev n$iface
+    IFACE=n$iface
+    SUBIFACE=`echo $router_ip | cut -d'/' -f1`
+    ip netns exec $namespace ip link add link $IFACE dev $SUBIFACE type macvlan
+    ip netns exec $namespace ip address add $router_ip dev $SUBIFACE
+    ip netns exec $namespace ip link set dev $SUBIFACE address $mac
+    ip netns exec $namespace ip link set dev $SUBIFACE up
+    ip netns exec $namespace ip link set $IFACE promisc on
 }
 
 remove_addr() {
-    ip netns exec $namespace ip address del $router_ip dev n$iface
+    SUBIFACE=`echo $router_ip | cut -d'/' -f1`
+    ip netns exec $namespace ip link del $SUBIFACE
 }
 
 add_arp_entry() {
@@ -217,6 +224,7 @@ case "$1" in
     add_addr)
         iface=$3
         router_ip=$4
+        mac=$5
         if [ -z "$iface" ] || [ -z "$router_ip" ] ; then
             usage
         fi

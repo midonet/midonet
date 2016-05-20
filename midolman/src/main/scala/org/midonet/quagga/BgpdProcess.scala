@@ -28,7 +28,7 @@ trait BgpdProcess {
     def stop(): Boolean
     def isAlive: Boolean
     def start(): Unit
-    def assignAddr(iface: String, ip: String): Unit
+    def assignAddr(iface: String, ip: String, mac: String): Unit
     def remAddr(iface: String, ip: String): Unit
     def addArpEntry(iface: String, ip: String, mac: String): Unit
     def remArpEntry(iface: String, ip: String): Unit
@@ -63,8 +63,8 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
             f(it.next())
     }
 
-    def assignAddr(iface: String, ip: String): Unit = {
-        val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip"
+    def assignAddr(iface: String, ip: String, mac: String): Unit = {
+        val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip $mac"
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
