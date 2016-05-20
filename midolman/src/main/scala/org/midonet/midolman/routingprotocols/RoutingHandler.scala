@@ -590,6 +590,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpd.vty.addPeer(bgpConfig.as, peer)
             routingInfo.peers.add(peer.address)
             if (isQuagga) {
+                bgpd.vty.addPeerEbgp(bgpConfig.as, peer.address)
                 log.info(s"Adding Arp entry ${peer.address} -> ${rport.portMac}")
                 bgpd.addArpEntry(rport.interfaceName, peer.address.toString,
                     rport.portMac.toString)
@@ -610,7 +611,11 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         log.debug(s"Configuring bgpd")
 
         bgpd.vty.setAs(bgpConfig.as)
-        bgpd.vty.setRouterId(bgpConfig.as, bgpConfig.id)
+        if (isQuagga) {
+            bgpd.vty.setRouterId(bgpConfig.as)
+        } else {
+            bgpd.vty.setRouterId(bgpConfig.as, bgpConfig.id)
+        }
 
         if (bgpConfig.neighbors.nonEmpty)
             bgpd.vty.setMaximumPaths(bgpConfig.as, bgpConfig.neighbors.size)
@@ -619,6 +624,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpd.vty.addPeer(bgpConfig.as, neigh)
             routingInfo.peers.add(neigh.address)
             if (isQuagga) {
+                bgpd.vty.addPeerEbgp(bgpConfig.as, neigh.address)
                 log.info(s"Adding Arp entry ${neigh.address} -> ${rport.portMac}")
                 bgpd.addArpEntry(rport.interfaceName, neigh.address.toString,
                     rport.portMac.toString)
