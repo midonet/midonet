@@ -39,7 +39,7 @@ import rx.{Observer, Observable, Subscription}
 
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
-import org.midonet.cluster.models.Neutron.IPSecSiteConnection.{DpdAction, IkePolicy, Initiator}
+import org.midonet.cluster.models.Neutron.IPSecSiteConnection.{DpdAction, IkePolicy, Initiator, IPSecPolicy, IPSecAuthAlgorithm, IPSecEncryptionAlgorithm, IPSecPfs}
 import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.models.Topology.{Port, Router}
@@ -101,7 +101,7 @@ case class IPSecConfig(script: String,
                          s"these characters were removed.")
             }
             contents append
-            s"""${ipsecService.localEndpointIp} ${c.getPeerAddress} : PSK "$sanitizedPsk"
+            s"""${ipsecService.localEndpointIp} ${c.getPeerId} : PSK "$sanitizedPsk"
                |""".stripMargin
         }
         contents.toString()
@@ -146,6 +146,43 @@ case class IPSecConfig(script: String,
         }
     }
 
+    def ipsecEncryptionToConfig(encryptionAlgorithm : IPSecEncryptionAlgorithm): String = {
+        encryptionAlgorithm match {
+            case IPSecEncryptionAlgorithm.DES_3 => "3des"
+            case IPSecEncryptionAlgorithm.AES_128 => "aes128"
+            case IPSecEncryptionAlgorithm.AES_192 => "aes192"
+            case IPSecEncryptionAlgorithm.AES_256 => "aes256"
+        }
+    }
+
+    def ipsecAuthToConfig(authAlgorithm: IPSecAuthAlgorithm): String = {
+        authAlgorithm match {
+            case IPSecAuthAlgorithm.SHA1 => "sha1"
+        }
+    }
+
+    def ipsecPfsToConfig(pfs: IPSecPfs): String = {
+        pfs match {
+            case IPSecPfs.GROUP2 => "modp1024"
+            case IPSecPfs.GROUP5 => "modp1536"
+            case IPSecPfs.GROUP14 => "modp2048"
+        }
+    }
+
+    def ikeParamsToConfig(ikePolicy: IkePolicy): String = {
+        val ikeParams = new StringBuilder(s"${ipsecEncryptionToConfig(ikePolicy.getEncryptionAlgorithm)}" +
+                                            s"-${ipsecAuthToConfig(ikePolicy.getAuthAlgorithm)}" +
+                                            s";${ipsecPfsToConfig(ikePolicy.getPfs)}")
+        ikeParams.toString
+    }
+
+    def ipsecParamsToConfig(ipsecPolicy: IPSecPolicy): String = {
+        val ipsecParams = new StringBuilder(s"${ipsecEncryptionToConfig(ipsecPolicy.getEncryptionAlgorithm)}" +
+                                            s"-${ipsecAuthToConfig(ipsecPolicy.getAuthAlgorithm)}" +
+                                            s";${ipsecPfsToConfig(ipsecPolicy.getPfs)}")
+        ipsecParams.toString
+    }
+
     def getConfigFileContents = {
         val contents = new StringBuilder
         contents append
@@ -167,7 +204,7 @@ case class IPSecConfig(script: String,
                    |    leftsubnets={ ${subnetsString(c.getLocalCidrsList)} }
                    |    leftupdown="ipsec _updown --route yes"
                    |    right=${c.getPeerAddress}
-                   |    rightid=${c.getPeerAddress}
+                   |    rightid=${c.getPeerId}
                    |    rightsubnets={ ${subnetsString(c.getPeerCidrsList)} }
                    |    mtu=${c.getMtu}
                    |    dpdaction=${dpdActionToConfig(c.getDpdAction)}
@@ -175,10 +212,10 @@ case class IPSecConfig(script: String,
                    |    dpdtimeout=${c.getDpdTimeout}
                    |    authby=secret
                    |    ikev2=${ikeVersionToConfig(c.getIkepolicy.getIkeVersion)}
-                   |    ike=aes128-sha1;modp1536
+                   |    ike=${ikeParamsToConfig(c.getIkepolicy)}
                    |    ikelifetime=${c.getIkepolicy.getLifetimeValue}s
                    |    auth=${transformProtocolToConfig(c.getIpsecpolicy.getTransformProtocol)}
-                   |    phase2alg=aes128-sha1;modp1536
+                   |    phase2alg=${ipsecParamsToConfig(c.getIpsecpolicy)}
                    |    type=${encapModeToConfig(c.getIpsecpolicy.getEncapsulationMode)}
                    |    lifetime=${c.getIpsecpolicy.getLifetimeValue}s
                    |""".stripMargin
