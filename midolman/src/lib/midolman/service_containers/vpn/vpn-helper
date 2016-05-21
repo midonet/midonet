@@ -40,6 +40,8 @@
 exec 2>&1
 
 prepare_host() {
+    sysctl -w net.ipv4.conf.default.rp_filter=0
+    sysctl -w net.ipv4.ip_forward=1
     ipsec _stackmanager start
     ipsec checknss
 }
