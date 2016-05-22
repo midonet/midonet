@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e8026bb3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterBgpMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-22T23:43:17Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we just merge this with the BgpRouterMapper / BgpPortMapper?",
+      "range": {
+        "startLine": 39,
+        "startChar": 6,
+        "endLine": 39,
+        "endChar": 21
+      },
+      "revId": "6ff066b19ef49f2463269ec2447b89d641554a52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
