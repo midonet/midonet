@@ -133,6 +133,7 @@ object ClusterNode extends App {
             bind(classOf[MetricRegistry]).toInstance(metrics)
             bind(classOf[DataSource]).toInstance(dataSrc)
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
+            bind(classOf[Reflections]).toInstance(reflections)
             install(new AuthModule(clusterConf.auth, Logger(log)))
 
             // Minion configurations
@@ -179,7 +180,7 @@ object ClusterNode extends App {
     }
 
     protected[cluster] var injector = Guice.createInjector(
-        new MidonetBackendModule(clusterConf.backend),
+        new MidonetBackendModule(clusterConf.backend, reflections),
         clusterNodeModule,
         dataClientDependencies
     )

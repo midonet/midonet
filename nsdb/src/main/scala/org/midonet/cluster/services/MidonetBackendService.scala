@@ -18,6 +18,7 @@ package org.midonet.cluster.services
 import java.util.UUID
 
 import scala.util.control.NonFatal
+import scala.collection.JavaConversions._
 
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.AbstractService
@@ -26,6 +27,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.slf4j.LoggerFactory.getLogger
 
+import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage._
@@ -34,8 +36,11 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.HostIdGenerator
+import org.reflections.Reflections
 
 object MidonetBackend {
+
+    private val log = getLogger("org.midonet.nsdb")
 
     /** Indicates whether the [[MidonetBackend]] instance is used by cluster,
       * in which case the state path uses a unique host identifier. */
@@ -56,7 +61,8 @@ object MidonetBackend {
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
-    final def setupBindings(store: Storage, stateStore: StateStorage): Unit = {
+    final def setupBindings(store: Storage, stateStore: StateStorage,
+                            setup: () => Unit = () => {}): Unit = {
         List(classOf[AgentMembership],
              classOf[BgpNetwork],
              classOf[BgpPeer],
@@ -214,7 +220,35 @@ object MidonetBackend {
         stateStore.registerKey(classOf[Vtep], VtepConnState, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleFirstWriteWins)
 
+        setup()
         store.build()
+    }
+
+    /** This method allows hooks to be inserted in the classpath, so that setup
+      * code can be executed before the midonet backend is built. Such hook
+      * classes must implement ZoomInitializer and have the @ZoomInit
+      * annotation. */
+    final def setupFromClasspath(store: Storage, stateStore: StateStorage,
+                                 reflections: Reflections): Unit = {
+        if (null != reflections) {
+            log.info("Scanning classpath for storage initializing hooks...")
+
+            val zoomIniters = reflections
+                                  .getSubTypesOf(classOf[ZoomInitializer])
+
+            zoomIniters.filter(_.getAnnotation(classOf[ZoomInit]) != null)
+                .foreach { zi => try {
+                    val zoomIniterObj = zi.getConstructors()(0)
+                        .newInstance()
+                        .asInstanceOf[ZoomInitializer]
+                    zoomIniterObj.setup(store, stateStore)
+                    log.info(s"Initialize storage from $zi")
+                } catch {
+                    case NonFatal(e) =>
+                        log.warn(s"Could not initialize storage from $zi", e)
+                }
+            }
+        }
     }
 
 }
@@ -236,8 +270,11 @@ abstract class MidonetBackend extends AbstractService {
   * services. */
 class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
                                        override val curator: CuratorFramework,
-                                       metricRegistry: MetricRegistry)
+                                       metricRegistry: MetricRegistry,
+                                       reflections: Reflections)
     extends MidonetBackend {
+
+    import MidonetBackend.setupFromClasspath
 
     private val log = getLogger("org.midonet.nsdb")
 
@@ -259,7 +296,9 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
                 curator.start()
             }
             log.info("Setting up storage bindings")
-            MidonetBackend.setupBindings(zoom, zoom)
+            MidonetBackend.setupBindings(zoom, zoom, () => {
+                setupFromClasspath(zoom, zoom, reflections)
+            })
             notifyStarted()
         } catch {
             case NonFatal(e) =>
