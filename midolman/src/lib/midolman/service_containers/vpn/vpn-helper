@@ -94,6 +94,8 @@ makens() {
     ip netns exec $NAME ip address add $LOCAL_INTF_IP dev $NS
     ip netns exec $NAME ip link set up dev lo
     ip netns exec $NAME arp -s $GATEWAY_IP $GATEWAY_MAC
+    ip netns exec $NAME sysctl -w net.ipv4.conf.default.rp_filter=0
+    ip netns exec $NAME sysctl -w net.ipv4.ip_forward=1
     set +e
 }
 
