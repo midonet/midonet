@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,26 @@ package org.midonet.cluster.storage
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import com.google.inject.Guice
+import com.google.inject.{AbstractModule, Guice}
 import com.typesafe.config.ConfigFactory
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.test.TestingServer
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException.ConnectionLossException
-import org.scalatest.{Matchers, GivenWhenThen, BeforeAndAfterAll, FlatSpec}
-
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, GivenWhenThen, Matchers}
 import org.midonet.midolman.guice.config.MidolmanConfigModule
+import org.reflections.Reflections
 
 class MidonetBackendBufferTest extends FlatSpec with BeforeAndAfterAll
                                with Matchers with GivenWhenThen {
 
     private final val rootPath = "/midonet/test"
     private var zkServer: TestingServer = _
+    private val reflectionsModule = new AbstractModule {
+        override def configure(): Unit = {
+            bind(classOf[Reflections]).toInstance(null)
+        }
+    }
 
     val config = ConfigFactory.parseString(
         s"""
@@ -59,7 +63,8 @@ class MidonetBackendBufferTest extends FlatSpec with BeforeAndAfterAll
     "Reading 1 MB of data" should "fail with a 512 KB buffer" in {
         Given("A ZooKeeper client with a 512 KB buffer")
         val injector = Guice.createInjector(new MidolmanConfigModule(config),
-                                            new MidonetBackendModule(config))
+                                            new MidonetBackendModule(config),
+                                            reflectionsModule)
 
         And("A curator instance connecting to the ZooKeeper server")
         val curator = injector.getInstance(classOf[CuratorFramework])
@@ -100,7 +105,8 @@ class MidonetBackendBufferTest extends FlatSpec with BeforeAndAfterAll
                |zookeeper.root_key : "$rootPath"
             """.stripMargin)
         val injector = Guice.createInjector(new MidolmanConfigModule(config),
-                                            new MidonetBackendModule(config))
+                                            new MidonetBackendModule(config),
+                                            reflectionsModule)
 
         And("A curator instance connecting to the ZooKeeper server")
         val curator = injector.getInstance(classOf[CuratorFramework])

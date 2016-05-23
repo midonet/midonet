@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,11 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.AbstractModule;
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -40,6 +41,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -196,6 +198,14 @@ public class Midolman {
 
         MidolmanConfig config = MidolmanConfigModule.createConfig(configurator);
 
+        Reflections reflections = new Reflections("org.midonet");
+        AbstractModule reflectionsModule = new AbstractModule() {
+            @Override
+            protected void configure() {
+                bind(Reflections.class).toInstance(reflections);
+            }
+        };
+
         injector = Guice.createInjector(
             new MidolmanConfigModule(config),
             new MidonetBackendModule(config.zookeeper()),
@@ -208,7 +218,8 @@ public class Midolman {
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),
-            new FlowStateStorageModule()
+            new FlowStateStorageModule(),
+            reflectionsModule
         );
 
         // start the services
