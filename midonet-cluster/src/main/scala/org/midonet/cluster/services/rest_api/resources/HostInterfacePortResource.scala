@@ -28,7 +28,7 @@ import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
 import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, HOST_INTERFACE_IS_USED, PORT_ALREADY_BOUND, getMessage}
-import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -66,13 +66,13 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
 
         val host = tx.get(classOf[Host], hostId)
         if (host.tunnelZoneIds.isEmpty) {
-            throw new BadRequestHttpException(
+            throw new ConflictHttpException(
                 getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, hostId))
         }
 
         val oldPort = tx.get(classOf[Port], binding.portId)
         if (oldPort.interfaceName ne null) {
-            throw new BadRequestHttpException(
+            throw new ConflictHttpException(
                 getMessage(PORT_ALREADY_BOUND, binding.portId))
         }
 
@@ -80,7 +80,7 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
             // of those ports in the host, see if any has the same ifc
             .find(_.interfaceName == binding.interfaceName) match {
                 case Some(conflictingPort) =>
-                    throw new BadRequestHttpException(
+                    throw new ConflictHttpException(
                         getMessage(HOST_INTERFACE_IS_USED,
                                    binding.interfaceName))
                 case _ =>

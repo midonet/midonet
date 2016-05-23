@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.UUID;
 
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
 import org.apache.zookeeper.KeeperException;
@@ -52,6 +53,7 @@ import org.midonet.client.resource.ResourceCollection;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_INTERFACE_IS_USED;
@@ -196,10 +198,11 @@ public class TestHostInterfacePort {
             DtoHostInterfacePort mapping = new DtoHostInterfacePort();
             mapping.setPortId(port.getId());
             mapping.setInterfaceName("eth0");
-            DtoError error = dtoResource.postAndVerifyBadRequest(
+            ClientResponse resp = dtoResource.postAndVerifyStatus(
                     host.getPorts(),
                     APPLICATION_HOST_INTERFACE_PORT_JSON(),
-                    mapping);
+                    mapping, CONFLICT.getStatusCode());
+            DtoError error = resp.getEntity(DtoError.class);
             assertErrorMatchesLiteral(error,
                     getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, host1Id));
         }
@@ -233,10 +236,11 @@ public class TestHostInterfacePort {
             mapping = new DtoHostInterfacePort();
             mapping.setPortId(port2.getId());
             mapping.setInterfaceName("eth0");
-            DtoError error = dtoResource.postAndVerifyBadRequest(
+            ClientResponse resp = dtoResource.postAndVerifyStatus(
                 host.getPorts(),
                 APPLICATION_HOST_INTERFACE_PORT_JSON(),
-                mapping);
+                mapping, CONFLICT.getStatusCode());
+            DtoError error = resp.getEntity(DtoError.class);
             assertErrorMatchesLiteral(error,
                 getMessage(HOST_INTERFACE_IS_USED, "eth0"));
 
@@ -269,10 +273,10 @@ public class TestHostInterfacePort {
             mapping = new DtoHostInterfacePort();
             mapping.setPortId(port1.getId());
             mapping.setInterfaceName("eth1");
-            DtoError error = dtoResource.postAndVerifyBadRequest(
+            DtoError error = dtoResource.postAndVerifyError(
                 host.getPorts(),
                 APPLICATION_HOST_INTERFACE_PORT_JSON(),
-                mapping);
+                mapping,  CONFLICT);
             assertErrorMatchesLiteral(error,
                 getMessage(PORT_ALREADY_BOUND, port1.getId()));
         }
