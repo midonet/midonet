@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,18 @@
 package org.midonet.cluster.services
 
 import java.util.UUID
+import javax.annotation.Nullable
 
 import scala.util.control.NonFatal
-
+import scala.collection.JavaConversions._
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory.getLogger
-
+import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage._
@@ -33,9 +35,12 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.util.{ActualReflections, ReflectionsHolder}
 import org.midonet.conf.HostIdGenerator
 
 object MidonetBackend {
+
+    private val log = getLogger("org.midonet.nsdb")
 
     /** Indicates whether the [[MidonetBackend]] instance is used by cluster,
       * in which case the state path uses a unique host identifier. */
@@ -56,7 +61,8 @@ object MidonetBackend {
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
-    final def setupBindings(store: Storage, stateStore: StateStorage): Unit = {
+    final def setupBindings(store: Storage, stateStore: StateStorage,
+                            setup: () => Unit = () => {}): Unit = {
         List(classOf[AgentMembership],
              classOf[BgpNetwork],
              classOf[BgpPeer],
@@ -214,7 +220,37 @@ object MidonetBackend {
         stateStore.registerKey(classOf[Vtep], VtepConnState, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleFirstWriteWins)
 
+        setup()
         store.build()
+    }
+
+    /** This method allows hooks to be inserted in the classpath, so that setup
+      * code can be executed before the midonet backend is built. Such hook
+      * classes must implement ZoomInitializer and have the @ZoomInit
+      * annotation. */
+    final def setupFromClasspath(store: Storage, stateStore: StateStorage,
+                                 reflections: ReflectionsHolder): Unit = {
+        reflections match {
+            case ActualReflections(refl) =>
+                log.info("Scanning classpath for storage initializing hooks...")
+
+                val zoomIniters = refl.getSubTypesOf(classOf[ZoomInitializer])
+
+                zoomIniters.filter(_.getAnnotation(classOf[ZoomInit]) != null)
+                    .foreach { i => try {
+                        val zoomIniterObj = i.getConstructors()(0)
+                            .newInstance()
+                            .asInstanceOf[ZoomInitializer]
+                        zoomIniterObj.setup(store, stateStore)
+                        log.info(s"Initialize storage from $i")
+                    } catch {
+                        case NonFatal(e) =>
+                            log.warn(s"Could not initialize storage from $i", e)
+                    }
+                }
+
+            case _ =>
+        }
     }
 
 }
@@ -236,8 +272,11 @@ abstract class MidonetBackend extends AbstractService {
   * services. */
 class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
                                        override val curator: CuratorFramework,
-                                       metricRegistry: MetricRegistry)
+                                       metricRegistry: MetricRegistry,
+                                       reflections: ReflectionsHolder)
     extends MidonetBackend {
+
+    import MidonetBackend.setupFromClasspath
 
     private val log = getLogger("org.midonet.nsdb")
 
@@ -259,7 +298,9 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
                 curator.start()
             }
             log.info("Setting up storage bindings")
-            MidonetBackend.setupBindings(zoom, zoom)
+            MidonetBackend.setupBindings(zoom, zoom, () => {
+                setupFromClasspath(zoom, zoom, reflections)
+            })
             notifyStarted()
         } catch {
             case NonFatal(e) =>

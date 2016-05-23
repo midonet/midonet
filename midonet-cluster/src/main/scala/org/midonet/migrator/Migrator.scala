@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.net.URI
 import java.util
 import java.util.UUID
 import java.util.concurrent.Callable
-
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Validator
 import javax.ws.rs.WebApplicationException
@@ -33,19 +32,17 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.io.StdIn
 import scala.util.control.NonFatal
-
 import com.google.inject.name.Names
 import com.google.inject.servlet.{ServletModule, ServletScopes}
 import com.google.inject.{AbstractModule, Guice, Injector, Key}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.text.WordUtils
 import org.eclipse.jetty.server.Request
 import org.rogach.scallop.ScallopConf
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage._
@@ -58,6 +55,7 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.ResourceProvider
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.storage.{LegacyStateTableStorage, MidonetBackendConfig, MidonetBackendModule}
+import org.midonet.cluster.util.{ActualReflections, ReflectionsHolder}
 import org.midonet.cluster.{DataClient, LocalDataClientImpl}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
@@ -151,6 +149,8 @@ object Migrator extends App {
 
     private val resources = loadV5Resources()
 
+    private val reflections = new Reflections("org.midonet")
+
     migrateData()
 
     System.exit(0)
@@ -190,6 +190,8 @@ object Migrator extends App {
                     Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
                     .toProvider(classOf[ZookeeperReactorProvider])
                     .asEagerSingleton()
+                bind(classOf[ReflectionsHolder])
+                    .toInstance(ActualReflections(reflections))
                 bind(classOf[ResourceProvider])
                     .toInstance(new ResourceProvider(log))
                 bind(classOf[StateTableStorage])
