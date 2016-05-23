@@ -179,12 +179,17 @@ def stop_metric_capture(name):
     stop_jfr('midolman1', name)
     stop_jfr('midolman2', name)
 
+def start_metric_capture_flow_state():
+    start_metric_capture("perf_flow_state")
+
+def stop_metric_capture_flow_state():
+    stop_metric_capture("perf_flow_state")
 
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_multihost,
           binding_manager=BM)
-@with_setup(start_metric_capture("perf_flow_state"),
-            stop_metric_capture("perf_flow_state"))
+@with_setup(start_metric_capture_flow_state,
+            stop_metric_capture_flow_state)
 def perf_flowstate():
     """
     Title: Run a 1 hour workload that generates a lot of flow state
