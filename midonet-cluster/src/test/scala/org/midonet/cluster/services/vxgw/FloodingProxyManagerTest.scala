@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,8 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
 
         zkClient.create().creatingParentsIfNeeded().forPath(backendCfg.rootKey)
         backend = new MidonetBackendService(backendCfg, zkClient,
-                                            metricRegistry = null)
+                                            metricRegistry = null,
+                                            reflections = null)
         backend.startAsync().awaitRunning()
         fpManager = new FloodingProxyManager(backend)
         obs = new TestAwaitableObserver[FloodingProxy]
