@@ -24,6 +24,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.ws.rs.core.UriBuilder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
@@ -55,6 +56,12 @@ public abstract class IpAddrGroupAddr extends UriResource {
     }
 
     public abstract int getVersion();
+
+    @JsonIgnore
+    public void create(UUID ipAddrGroupId) {
+        super.create();
+        this.ipAddrGroupId = ipAddrGroupId;
+    }
 
     @Override
     public URI getUri() {
