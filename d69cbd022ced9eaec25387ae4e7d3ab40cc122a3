@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6b25355a",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/RoutingTableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-23T08:52:22Z",
+      "side": 1,
+      "message": "Is it possible to make this optional for backward compatibility / supporting rolling upgrades (i.e. only add it if the nextHop is different than the port - maybe an optional portId)?",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 65
+      },
+      "revId": "d69cbd022ced9eaec25387ae4e7d3ab40cc122a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2b24cd5b",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/RoutingTableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-23T08:52:22Z",
+      "side": 1,
+      "message": "Same here",
+      "range": {
+        "startLine": 70,
+        "startChar": 12,
+        "endLine": 70,
+        "endChar": 71
+      },
+      "revId": "d69cbd022ced9eaec25387ae4e7d3ab40cc122a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
