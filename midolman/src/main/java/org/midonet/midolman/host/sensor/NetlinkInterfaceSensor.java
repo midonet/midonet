@@ -70,8 +70,7 @@ public class NetlinkInterfaceSensor implements InterfaceSensor {
                     /* ValueFuture#get() timeout because ??? => try next one */
                     log.warn(
                         "Timeout exception thrown with value: " +
-                        NETLINK_CONN_TIMEOUT + " ms"
-                    );
+                        NETLINK_CONN_TIMEOUT + " ms", ex);
                 }
 
             }
