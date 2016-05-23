@@ -144,7 +144,8 @@ public class FuncTest {
 
             MidonetBackendService backend =
                 new MidonetBackendService(cfg.backend(), curator,
-                                          null /* metricRegistry */);
+                                          null /* metricRegistry */,
+                                          null /* reflections */);
             backend.startAsync().awaitRunning();
 
             ExecutionContext ec = ExecutionContext$.MODULE$.fromExecutor(

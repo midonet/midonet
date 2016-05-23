@@ -18,15 +18,15 @@ package org.midonet.cluster.services.topology
 
 import java.util.concurrent.CountDownLatch
 
-import com.google.common.util.concurrent.Service.{State, Listener}
+import com.google.common.util.concurrent.Service.{Listener, State}
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.{ClusterConfig, ClusterNode, topologyApiLog}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.util.concurrent.CallingThreadExecutionContext
+import org.reflections.Reflections
 
 /** Stand-alone application to start the TopologyApiService */
 object TopologyApiServiceApp extends App {
@@ -46,8 +46,9 @@ object TopologyApiServiceApp extends App {
         }
     }
 
+    val reflections = new Reflections("org.midonet")
     protected[cluster] val injector = Guice.createInjector(
-        new MidonetBackendModule(config.backend),
+        new MidonetBackendModule(config.backend, reflections),
         topologyApiServiceModule
     )
 

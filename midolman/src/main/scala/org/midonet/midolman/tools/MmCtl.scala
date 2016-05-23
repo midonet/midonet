@@ -189,7 +189,7 @@ object MmCtl {
     def getInjector: Injector = {
         val configurator = MidoNodeConfigurator.apply(LegacyConfFilePath)
         val config = new MidonetBackendConfig(configurator.runtimeConfig)
-        Guice.createInjector(new MidonetBackendModule(config),
+        Guice.createInjector(new MidonetBackendModule(config, null),
                              new ZookeeperConnectionModule(
                                  classOf[ZookeeperConnectionWatcher]),
                              new SerializationModule,

@@ -49,6 +49,7 @@ dependencies {
             libraries.logback,
             libraries.netty,
             libraries.protobuf,
+            libraries.reflections,
             libraries.rx,
             libraries.sbe,
             libraries.scala,

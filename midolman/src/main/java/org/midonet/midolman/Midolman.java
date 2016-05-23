@@ -26,6 +26,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.reflections.Reflections;
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
 
@@ -196,9 +197,10 @@ public class Midolman {
 
         MidolmanConfig config = MidolmanConfigModule.createConfig(configurator);
 
+        Reflections reflections = new Reflections("org.midonet");
         injector = Guice.createInjector(
             new MidolmanConfigModule(config),
-            new MidonetBackendModule(config.zookeeper()),
+            new MidonetBackendModule(config.zookeeper(), reflections),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new HostModule(),

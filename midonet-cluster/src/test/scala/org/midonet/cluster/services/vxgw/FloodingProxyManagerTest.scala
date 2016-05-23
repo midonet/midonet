@@ -74,7 +74,8 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
 
         zkClient.create().creatingParentsIfNeeded().forPath(backendCfg.rootKey)
         backend = new MidonetBackendService(backendCfg, zkClient,
-                                            metricRegistry = null)
+                                            metricRegistry = null,
+                                            reflections = null)
         backend.startAsync().awaitRunning()
         fpManager = new FloodingProxyManager(backend)
         obs = new TestAwaitableObserver[FloodingProxy]

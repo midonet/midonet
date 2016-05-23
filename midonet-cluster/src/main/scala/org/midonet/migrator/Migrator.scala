@@ -21,7 +21,6 @@ import java.net.URI
 import java.util
 import java.util.UUID
 import java.util.concurrent.Callable
-
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Validator
 import javax.ws.rs.WebApplicationException
@@ -33,19 +32,16 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.io.StdIn
 import scala.util.control.NonFatal
-
 import com.google.inject.name.Names
 import com.google.inject.servlet.{ServletModule, ServletScopes}
 import com.google.inject.{AbstractModule, Guice, Injector, Key}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.text.WordUtils
 import org.eclipse.jetty.server.Request
 import org.rogach.scallop.ScallopConf
 import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage._
@@ -67,6 +63,7 @@ import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWat
 import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, IPv6Subnet}
 import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.eventloop.Reactor
+import org.reflections.Reflections
 
 object Migrator extends App {
 
@@ -151,6 +148,8 @@ object Migrator extends App {
 
     private val resources = loadV5Resources()
 
+    private val reflections = new Reflections("org.midonet")
+
     migrateData()
 
     System.exit(0)
@@ -206,7 +205,7 @@ object Migrator extends App {
                     .asEagerSingleton()
 
                 install(new LegacyClusterModule)
-                install(new MidonetBackendModule(makeConfig))
+                install(new MidonetBackendModule(makeConfig, reflections))
                 install(new SerializationModule)
 
                 if (!legacy) {
