@@ -125,6 +125,7 @@ project.ext {
         netty: "io.netty:netty-all:4.0.27.Final",
         persistence: "javax.persistence:persistence-api:1.0",
         protobuf: "com.google.protobuf:protobuf-java:${versions.protobuf}",
+        reflections: "org.reflections:reflections:0.9.10",
         rx: "io.reactivex:rxjava:1.0.14",
         sbe: "uk.co.real-logic:sbe:1.0.3-RC2",
         scala: "org.scala-lang:scala-library:2.11.7",
