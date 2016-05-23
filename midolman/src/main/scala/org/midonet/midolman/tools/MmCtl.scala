@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-
-import com.google.inject.{Guice, Injector}
+import com.google.inject.{AbstractModule, Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
-
 import org.apache.commons.cli._
 import org.apache.curator.framework.CuratorFramework
 import org.slf4j.LoggerFactory
@@ -36,7 +34,7 @@ import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.{NoReflections, ReflectionsHolder, UUIDUtil}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
@@ -186,6 +184,12 @@ object MmCtl {
     // host that mm-ctl runs, use it as its primary configuration source.
     val LegacyConfFilePath = "/etc/midolman/midolman.conf"
 
+    val reflectionsModule = new AbstractModule {
+        override def configure(): Unit = {
+            bind(classOf[ReflectionsHolder]).toInstance(NoReflections)
+        }
+    }
+
     def getInjector: Injector = {
         val configurator = MidoNodeConfigurator.apply(LegacyConfFilePath)
         val config = new MidonetBackendConfig(configurator.runtimeConfig)
@@ -193,7 +197,8 @@ object MmCtl {
                              new ZookeeperConnectionModule(
                                  classOf[ZookeeperConnectionWatcher]),
                              new SerializationModule,
-                             new LegacyClusterModule)
+                             new LegacyClusterModule,
+                             reflectionsModule)
     }
 
     def getMutuallyExclusiveOptionGroup: OptionGroup = {

@@ -57,6 +57,9 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.storage.MidonetBackendConfig;
+import org.midonet.cluster.util.NoReflections;
+import org.midonet.cluster.util.NoReflections$;
+import org.midonet.cluster.util.ReflectionsHolder;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.MidoNodeConfigurator;
@@ -133,6 +136,8 @@ public class HostServiceTest {
                         MidoTestConfigurator.forAgents())));
             bind(CuratorFramework.class)
                 .toInstance(curator);
+            bind(ReflectionsHolder.class)
+                    .toInstance(NoReflections$.MODULE$);
             bind(MidonetBackend.class)
                 .to(MidonetBackendService.class).asEagerSingleton();
             bind(Reactor.class)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ class ConfResourceTest extends FeatureSpec
         
         val context = ClusterNode.Context(HostIdGenerator.getHostId)
         backend = new MidonetBackendService(new MidonetBackendConfig(config),
-                                                zkClient, null)
+                                                zkClient, null, null)
         backend.startAsync().awaitRunning()
         api = new Vladimir(context, backend, zkClient,
                            new MockAuthService(config),
