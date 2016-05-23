@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import scala.util.control.NonFatal
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.{Inject, PrivateModule, Provider, Singleton}
 import com.typesafe.config.Config
-
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.ClientCnxn
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
@@ -36,19 +36,25 @@ import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
   * are exposed to MidoNet components that need to access the various storage
   * backends that exist within a deployment.  It should not include any
   * dependencies linked to any specific service or component. */
-class MidonetBackendModule(val conf: MidonetBackendConfig)
+class MidonetBackendModule(val conf: MidonetBackendConfig,
+                           reflections: Reflections)
     extends PrivateModule {
 
     private val log = LoggerFactory.getLogger("org.midonet.nsdb")
     configureClientBuffer()
 
-    def this(config: Config) = this(new MidonetBackendConfig(config))
+    def this(config: Config, reflections: Reflections) =
+        this(new MidonetBackendConfig(config), reflections)
+
+    def this(config: Config) = this(new MidonetBackendConfig(config),
+                                    new Reflections("org.midonet"))
 
     override def configure(): Unit = {
         bindCurator()
         bindStorage()
         bindLockFactory()
 
+        bind(classOf[Reflections]).toInstance(reflections)
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
         expose(classOf[MidonetBackendConfig])
     }
