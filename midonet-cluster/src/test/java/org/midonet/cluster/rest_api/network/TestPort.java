@@ -1067,12 +1067,14 @@ public class TestPort {
             // Cannot link already linked ports
             link = new DtoLink();
             link.setPeerId(r2p1.getId());
-            dtoResource.postAndVerifyBadRequest(r1p1.getLink(),
-                APPLICATION_PORT_LINK_JSON(), link);
+            dtoResource.postAndVerifyStatus(r1p1.getLink(),
+                APPLICATION_PORT_LINK_JSON(), link,
+                Response.Status.CONFLICT.getStatusCode());
             link = new DtoLink();
             link.setPeerId(r2p1.getId());
-            dtoResource.postAndVerifyBadRequest(b1p2.getLink(),
-                APPLICATION_PORT_LINK_JSON(), link);
+            dtoResource.postAndVerifyStatus(b1p2.getLink(),
+                APPLICATION_PORT_LINK_JSON(), link,
+                Response.Status.CONFLICT.getStatusCode());
 
             // Unlink
             dtoResource.deleteAndVerifyStatus(r1p1.getLink(),

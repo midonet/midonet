@@ -124,7 +124,7 @@ class PortResource @Inject()(resContext: ResourceContext)
             tx.update(port)
             Response.created(link.getUri).build()
         } else {
-            buildErrorResponse(BAD_REQUEST.getStatusCode,
+            buildErrorResponse(CONFLICT.getStatusCode,
                                getMessage(PORTS_LINKABLE))
         }
     }
