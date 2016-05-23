@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.net.URI
 import java.util
 import java.util.UUID
 import java.util.concurrent.Callable
-
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Validator
 import javax.ws.rs.WebApplicationException
@@ -39,11 +38,11 @@ import com.google.inject.servlet.{ServletModule, ServletScopes}
 import com.google.inject.{AbstractModule, Guice, Injector, Key}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.text.WordUtils
 import org.eclipse.jetty.server.Request
 import org.rogach.scallop.ScallopConf
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
@@ -151,6 +150,8 @@ object Migrator extends App {
 
     private val resources = loadV5Resources()
 
+    private val reflections = new Reflections("org.midonet")
+
     migrateData()
 
     System.exit(0)
@@ -206,7 +207,7 @@ object Migrator extends App {
                     .asEagerSingleton()
 
                 install(new LegacyClusterModule)
-                install(new MidonetBackendModule(makeConfig))
+                install(new MidonetBackendModule(makeConfig, reflections))
                 install(new SerializationModule)
 
                 if (!legacy) {
