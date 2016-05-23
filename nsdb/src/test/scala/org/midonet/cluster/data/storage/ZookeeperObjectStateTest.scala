@@ -730,6 +730,148 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
             obs.getOnNextEvents.get(3) shouldBe SingleValueKey(
                 "first", None, NoOwnerId)
         }
+
+        scenario("Observable recovers after close") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+
+            Then("The storage does not cache any observable")
+            storage.totalSingleObservableCount shouldBe 0
+            storage.startedSingleObservableCount shouldBe 0
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            val sub = storage.keyObservable(classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalSingleObservableCount shouldBe 1
+            storage.startedSingleObservableCount shouldBe 1
+
+            And("The observer receives one update")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+
+            When("The observer unsubscribes")
+            sub.unsubscribe()
+
+            Then("The storage does not cache any observable")
+            storage.totalSingleObservableCount shouldBe 0
+            storage.startedSingleObservableCount shouldBe 0
+
+            When("The observer resubscribes to the key")
+            storage.keyObservable(classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalSingleObservableCount shouldBe 1
+            storage.startedSingleObservableCount shouldBe 1
+
+            Then("The observer receives two updates")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+            obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+        }
+
+        scenario("Observable reused by concurrent subscribers") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+
+            And("A single observable")
+            val observable = storage.keyObservable(classOf[State], obj.id, "first")
+
+            Then("The storage does not cache any observable")
+            storage.totalSingleObservableCount shouldBe 0
+            storage.startedSingleObservableCount shouldBe 0
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            val sub1 = observable.subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalSingleObservableCount shouldBe 1
+            storage.startedSingleObservableCount shouldBe 1
+
+            And("The observer receives the current key")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+
+            When("The observer subscribes a second time")
+            observable.subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalSingleObservableCount shouldBe 1
+            storage.startedSingleObservableCount shouldBe 1
+
+            And("The observer receives the current key")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+
+            When("The first subscription unsubscribes")
+            sub1.unsubscribe()
+
+            Then("The storage caches the observable")
+            storage.totalSingleObservableCount shouldBe 1
+            storage.startedSingleObservableCount shouldBe 1
+
+            When("The observer resubscribes to the key")
+            storage.keyObservable(classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalSingleObservableCount shouldBe 1
+            storage.startedSingleObservableCount shouldBe 1
+
+            And("The observer receives the current key")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents should have size 3
+        }
+
+        scenario("Observable removed on deleted") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+
+            Then("The storage does not cache any observable")
+            storage.totalSingleObservableCount shouldBe 0
+            storage.startedSingleObservableCount shouldBe 0
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalSingleObservableCount shouldBe 1
+            storage.startedSingleObservableCount shouldBe 1
+
+            When("The object is deleted")
+            storage.delete(classOf[State], obj.id)
+
+            Then("The observable should complete")
+            obs.awaitCompletion(timeout)
+
+            Then("The storage does not cache any observable")
+            storage.totalSingleObservableCount shouldBe 0
+            storage.startedSingleObservableCount shouldBe 0
+        }
     }
 
     feature("Test observable for multi value") {
@@ -883,6 +1025,148 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
                 "multi", Set("1"))
             obs.getOnNextEvents.get(1) shouldBe MultiValueKey(
                 "multi", Set())
+        }
+
+        scenario("Observable recovers after close") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+
+            Then("The storage does not cache any observable")
+            storage.totalMultiObservableCount shouldBe 0
+            storage.startedMultiObservableCount shouldBe 0
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            val sub = storage.keyObservable(classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalMultiObservableCount shouldBe 1
+            storage.startedMultiObservableCount shouldBe 1
+
+            And("The observer receives one updates")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+
+            When("The observer unsubscribes")
+            sub.unsubscribe()
+
+            Then("The storage does not cache any observable")
+            storage.totalMultiObservableCount shouldBe 0
+            storage.startedMultiObservableCount shouldBe 0
+
+            When("The observer resubscribes to the key")
+            storage.keyObservable(classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalMultiObservableCount shouldBe 1
+            storage.startedMultiObservableCount shouldBe 1
+
+            Then("The observer receives two updates")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(0) shouldBe MultiValueKey(
+                "multi", Set("1"))
+            obs.getOnNextEvents.get(1) shouldBe MultiValueKey(
+                "multi", Set("1"))
+        }
+
+        scenario("Observable reused by concurrent subscribers") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+
+            And("A single observable")
+            val observable = storage.keyObservable(classOf[State], obj.id, "multi")
+
+            Then("The storage does not cache any observable")
+            storage.totalMultiObservableCount shouldBe 0
+            storage.startedMultiObservableCount shouldBe 0
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            val sub1 = observable.subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalMultiObservableCount shouldBe 1
+            storage.startedMultiObservableCount shouldBe 1
+
+            And("The observer receives the current key")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+
+            When("The observer subscribes a second time")
+            observable.subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalMultiObservableCount shouldBe 1
+            storage.startedMultiObservableCount shouldBe 1
+
+            And("The observer receives the current key")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+
+            When("The first subscription unsubscribes")
+            sub1.unsubscribe()
+
+            Then("The storage caches the observable")
+            storage.totalMultiObservableCount shouldBe 1
+            storage.startedMultiObservableCount shouldBe 1
+
+            When("The observer resubscribes to the key")
+            storage.keyObservable(classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalMultiObservableCount shouldBe 1
+            storage.startedMultiObservableCount shouldBe 1
+
+            And("The observer receives the current key")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents should have size 3
+        }
+
+        scenario("Observable removed on deleted") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+
+            Then("The storage does not cache any observable")
+            storage.totalMultiObservableCount shouldBe 0
+            storage.startedMultiObservableCount shouldBe 0
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            Then("The storage caches the observable")
+            storage.totalMultiObservableCount shouldBe 1
+            storage.startedMultiObservableCount shouldBe 1
+
+            When("The object is deleted")
+            storage.delete(classOf[State], obj.id)
+
+            Then("The observable should complete")
+            obs.awaitCompletion(timeout)
+
+            Then("The storage does not cache any observable")
+            storage.totalMultiObservableCount shouldBe 0
+            storage.startedMultiObservableCount shouldBe 0
         }
     }
 

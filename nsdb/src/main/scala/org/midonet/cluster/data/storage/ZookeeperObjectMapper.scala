@@ -641,7 +641,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             override def call(child: Subscriber[_ >: T]): Unit = {
                 // Only request and subscribe to the internal, cache-able
                 // observable when a child subscribes.
-                internalObservable[T](clazz, id, version.get) subscribe child
+                internalObservable[T](clazz, id, version.get, OnCloseDefault)
+                    .subscribe(child)
             }
         })
     }
@@ -654,7 +655,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
       * close handler removes it from the cache.
       */
     protected override def internalObservable[T](clazz: Class[T], id: ObjId,
-                                                 version: Long)
+                                                 version: Long,
+                                                 onClose: => Unit)
     : Observable[T] = {
         val key = Key(clazz, getIdString(clazz, id))
         val path = objectPath(clazz, id, version)
@@ -665,6 +667,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             val nodeObservable = NodeObservable.create(
                 curator, path, completeOnDelete = true, metrics, {
                     objectObservables.remove(key, ObjectObservable(ref))
+                    onClose
                 })
 
             val objectObservable = nodeObservable
@@ -673,7 +676,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
                     case e: NodeObservableClosedException =>
                         metrics.count(e)
-                        internalObservable(clazz, id, version)
+                        internalObservable(clazz, id, version, OnCloseDefault)
                     case e: NoNodeException =>
                         metrics.count(e)
                         Observable.error(new NotFoundException(clazz, id))
@@ -785,6 +788,7 @@ object ZookeeperObjectMapper {
 
     protected val log = LoggerFactory.getLogger("org.midonet.nsdb")
 
+    private val OnCloseDefault = { }
     private val jsonFactory = new JsonFactory(new ObjectMapper())
     private val deserializers =
         new TrieMap[Class[_], Func1[ChildData, Notification[_]]]
