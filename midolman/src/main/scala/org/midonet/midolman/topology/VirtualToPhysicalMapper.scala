@@ -128,8 +128,9 @@ object VirtualToPhysicalMapper {
       * a future that indicate the completion of the operation. The future will
       * complete on the virtual topology thread.
       */
-    def setPortActive(portId: UUID, active: Boolean): Future[StateResult] = {
-        self.setPortActive(portId, active)
+    def setPortActive(portId: UUID, active: Boolean, tunnelKey: Long)
+    : Future[StateResult] = {
+        self.setPortActive(portId, active, tunnelKey)
     }
 
     /**
@@ -221,10 +222,11 @@ class VirtualToPhysicalMapper @Inject() (val backend: MidonetBackend,
       * a future that indicate the completion of the operation. The future will
       * complete on the virtual topology thread.
       */
-    private def setPortActive(portId: UUID, active: Boolean): Future[StateResult] = {
+    private def setPortActive(portId: UUID, active: Boolean, tunnelKey: Long)
+            : Future[StateResult] = {
         val hostId = hostIdProvider.hostId()
 
-        backend.stateStore.setPortActive(portId, hostId, active)
+        backend.stateStore.setPortActive(portId, hostId, active, tunnelKey)
                .observeOn(vt.vtScheduler)
                .doOnNext(makeAction1 { result =>
                    log.debug("Port {} active to {} (owner {})", portId,
@@ -246,7 +248,7 @@ class VirtualToPhysicalMapper @Inject() (val backend: MidonetBackend,
       */
     private def clearPortsActive(): Future[_] = {
         val futures = for (portId: UUID <- activePorts.keySet().asScala.toSet) yield {
-            setPortActive(portId, active = false)
+            setPortActive(portId, active = false, tunnelKey = 0L)
         }
         activePorts.clear()
         Future.sequence(futures)

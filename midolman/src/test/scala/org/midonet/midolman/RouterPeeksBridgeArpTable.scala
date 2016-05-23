@@ -102,6 +102,9 @@ class RouterPeeksBridgeArpTable extends MidolmanSpec {
                    exteriorTenantRouterPort)
         fetchRouters(edgeRouter, tenantRouter)
         fetchBridges(bridge)
+
+        VirtualToPhysicalMapper.setPortActive(exteriorTenantRouterPort,
+                                              active = true, tunnelKey = 0L)
     }
 
     feature ("ARP requests are suppressed") {

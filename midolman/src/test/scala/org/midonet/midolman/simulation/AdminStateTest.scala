@@ -128,7 +128,8 @@ class AdminStateTest extends MidolmanSpec {
         bca = new BackChannelAccessor(injector.getInstance(classOf[VirtualTopology]))
         bca.getAndClearBC()
 
-        VirtualToPhysicalMapper.setPortActive(exteriorBridgePort, active = true)
+        VirtualToPhysicalMapper.setPortActive(exteriorBridgePort, active = true,
+                                              tunnelKey = 0L)
     }
 
     lazy val fromBridgeSide = (exteriorBridgePort, bridgeSidePkt)
