@@ -43,37 +43,46 @@ object NodeObservable {
         val Stopped, Started, Closed = Value
     }
 
+    private val OnCloseDefault = { }
+
     /**
-     * Creates an [[Observable]] that emits updates when the data for a node
-     * at a given path changes. If the connection to storage is lost, the
-     * observable emits a [[NodeObservableDisconnectedException]]. When the
-     * observable is closed by calling the `close()` method, the observable
-     * emits a [[NodeObservableClosedException]].
-     *
-     * The argument specifies whether the observable should
-     * terminate with a [[NoNodeException]] if the node does not exist.
-     *
-     * When `completeOnDelete` is `true`, the observable completes when the
-     * node is deleted. If the node does not exist, then the observable emits a
-     * [[NoNodeException]] error.
-     *
-     * When set to `false`, the observable will install an exists watcher on the
-     * underlying node such that it triggers a notification when the node is
-     * created. If the node does not exist, the observable will emit a `null`
-     * element.
-     */
+      * Creates an [[Observable]] that emits updates when the data for a node
+      * at a given path changes. If the connection to storage is lost, the
+      * observable emits a [[NodeObservableDisconnectedException]]. When the
+      * observable is closed by calling the `close()` method, the observable
+      * emits a [[NodeObservableClosedException]].
+      *
+      * The argument specifies whether the observable should
+      * terminate with a [[NoNodeException]] if the node does not exist.
+      *
+      * When `completeOnDelete` is `true`, the observable completes when the
+      * node is deleted. If the node does not exist, then the observable emits a
+      * [[NoNodeException]] error.
+      *
+      * When set to `false`, the observable will install an exists watcher on
+      * the underlying node such that it triggers a notification when the node
+      * is created. If the node does not exist, the observable will emit a
+      * `null` element.
+      *
+      * The `onClose` function is called when the observable closes its
+      * underlying watcher to storage, either because the observable has no
+      * more subscribers or when the corresponding object was deleted and
+      * `completeOnDelete` is set to `true`.
+      */
     def create(curator: CuratorFramework, path: String,
                completeOnDelete: Boolean = true,
-               zoomMetrics: ZoomMetrics = BlackHoleZoomMetrics)
+               metrics: ZoomMetrics = BlackHoleZoomMetrics,
+               onClose: => Unit = OnCloseDefault)
     : NodeObservable = {
-        new NodeObservable(new OnSubscribeToNode(curator, path,
-                                                 completeOnDelete, zoomMetrics))
+        new NodeObservable(new OnSubscribeToNode(curator, path, onClose,
+                                                 completeOnDelete, metrics))
     }
 }
 
 private[util]
 class OnSubscribeToNode(curator: CuratorFramework, path: String,
-                        completeOnDelete: Boolean, zoomMetrics: ZoomMetrics)
+                        onClose: => Unit, completeOnDelete: Boolean,
+                        metrics: ZoomMetrics)
     extends OnSubscribe[ChildData] {
 
     private val log = getLogger(s"org.midonet.cluster.zk-node-[$path]")
@@ -94,7 +103,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
     @volatile
     private var nodeWatcher = new Watcher {
         override def process(event: WatchedEvent): Unit = {
-            zoomMetrics.nodeWatcherTriggered()
+            metrics.nodeWatcherTriggered()
             processWatcher(event)
         }
     }
@@ -247,6 +256,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
             curator.getConnectionStateListenable.removeListener(connectionListener)
             curator.clearWatcherReferences(nodeWatcher)
 
+            onClose
             if (e eq null) subject.onCompleted() else subject.onError(e)
 
             connectionListener = null
