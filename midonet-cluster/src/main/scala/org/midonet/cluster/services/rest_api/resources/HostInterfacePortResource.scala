@@ -71,8 +71,16 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
 
         val oldPort = tx.get(classOf[Port], binding.portId)
         if (oldPort.interfaceName ne null) {
-            throw new BadRequestHttpException(
-                getMessage(PORT_ALREADY_BOUND, binding.portId))
+            if (oldPort.hostId == hostId &&
+                oldPort.interfaceName == binding.interfaceName) {
+                // An attempt to bind to the same host interface returns
+                // NoContent
+                return Response.noContent().build()
+            } else {
+                throw new BadRequestHttpException(
+                        getMessage(PORT_ALREADY_BOUND,
+                                   binding.portId))
+            }
         }
 
         tx.list(classOf[Port], host.portIds.asScala)

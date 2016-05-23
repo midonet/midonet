@@ -52,6 +52,7 @@ import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.midolman.serialization.SerializationException;
 
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_INTERFACE_IS_USED;
@@ -275,6 +276,15 @@ public class TestHostInterfacePort {
                 mapping);
             assertErrorMatchesLiteral(error,
                 getMessage(PORT_ALREADY_BOUND, port1.getId()));
+
+            // Binding to the same interface is ok
+            mapping = new DtoHostInterfacePort();
+            mapping.setPortId(port1.getId());
+            mapping.setInterfaceName("eth0");
+            dtoResource.postAndVerifyStatus(
+                host.getPorts(),
+                APPLICATION_HOST_INTERFACE_PORT_JSON(),
+                mapping, NO_CONTENT.getStatusCode());
         }
 
         @Test
