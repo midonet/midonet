@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler
 import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage._
+import org.midonet.cluster.util.{ActualReflections, ReflectionsHolder}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
@@ -133,6 +134,8 @@ object ClusterNode extends App {
             bind(classOf[MetricRegistry]).toInstance(metrics)
             bind(classOf[DataSource]).toInstance(dataSrc)
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
+            bind(classOf[ReflectionsHolder])
+                .toInstance(ActualReflections(reflections))
             install(new AuthModule(clusterConf.auth, Logger(log)))
 
             // Minion configurations
