@@ -67,7 +67,7 @@ trait MidolmanServices {
 
     def setPortActive(portId: UUID, hostId: UUID, active: Boolean): Unit = {
         injector.getInstance(classOf[MidonetBackend]).stateStore
-                .setPortActive(portId, hostId, active)
+                .setPortActive(portId, hostId, active, 0L)
                 .toBlocking.first()
     }
 
