@@ -305,8 +305,10 @@ class BgpTranslationIT extends C3POMinionTestBase {
     private def checkNoBgpPeer(routerId: UUID, bgpPeerId: UUID): Unit = {
         Seq(storage.exists(classOf[NeutronBgpPeer], bgpPeerId),
             storage.exists(classOf[BgpPeer], bgpPeerId),
-            storage.exists(classOf[Rule], redirectRuleId(bgpPeerId.asProto)))
-            .map(_.await()) shouldBe Seq(false, false, false)
+            storage.exists(classOf[Rule], redirectRuleId(bgpPeerId.asProto)),
+            storage.exists(classOf[Rule],
+                           inverseRedirectRuleId(bgpPeerId.asProto)))
+            .map(_.await()) shouldBe Seq(false, false, false, false)
     }
 
     private def checkBgpPeer(routerId: UUID, bgpPeerId: UUID): Unit = {
@@ -323,18 +325,31 @@ class BgpTranslationIT extends C3POMinionTestBase {
 
         val chain = storage.get(classOf[Chain],
                                 router.getLocalRedirectChainId).await()
-        val ruleId = redirectRuleId(bgpPeerId.asProto)
+        checkPeerRedirectRule(mBgpPeer, routerId, chain, inverse = false)
+        checkPeerRedirectRule(mBgpPeer, routerId, chain, inverse = true)
+    }
+
+    private def checkPeerRedirectRule(bgpPeer: BgpPeer, routerId: UUID,
+                                      chain: Chain, inverse: Boolean): Unit = {
+        val ruleId = if (inverse) {
+            inverseRedirectRuleId(bgpPeer.getId)
+        } else {
+            redirectRuleId(bgpPeer.getId)
+        }
         chain.getRuleIdsList should contain(ruleId)
+        val rule = storage.get(classOf[Rule], ruleId).await()
 
-        val redirectRule = storage.get(classOf[Rule], ruleId).await()
-
-        val ruleData = redirectRule.getTransformRuleData
+        val ruleData = rule.getTransformRuleData
         ruleData.getTargetPortId shouldBe quaggaPortId(routerId.asProto)
 
-        val cond = redirectRule.getCondition
-        cond.getNwSrcIp.getAddress shouldBe mBgpPeer.getAddress.getAddress
+        val cond = rule.getCondition
+        cond.getNwSrcIp.getAddress shouldBe bgpPeer.getAddress.getAddress
         cond.getNwProto shouldBe TCP.PROTOCOL_NUMBER
-        cond.getTpDst shouldBe bgpPortRange
+        if (inverse) {
+            cond.getTpSrc shouldBe bgpPortRange
+        } else {
+            cond.getTpDst shouldBe bgpPortRange
+        }
     }
 
     private def checkBgpNetwork(rtrId: UUID, rifPortId: UUID,
