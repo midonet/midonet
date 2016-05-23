@@ -123,6 +123,10 @@ class PortResource @Inject()(resContext: ResourceContext)
             port.peerId = link.peerId
             tx.update(port)
             Response.created(link.getUri).build()
+        } else if (port.peerId == peer.id) {
+            // No need to throw an exception if the ports are already linked
+            // properly.
+            Response.noContent().build()
         } else {
             buildErrorResponse(BAD_REQUEST.getStatusCode,
                                getMessage(PORTS_LINKABLE))

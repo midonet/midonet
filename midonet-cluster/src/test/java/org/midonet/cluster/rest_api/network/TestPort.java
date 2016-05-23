@@ -1029,6 +1029,12 @@ public class TestPort {
                     APPLICATION_PORT_LINK_JSON(), link,
                     Response.Status.CREATED.getStatusCode());
 
+            // Linking them again should work too
+            dtoResource
+                .postAndVerifyStatus(r1p1.getLink(),
+                    APPLICATION_PORT_LINK_JSON(), link,
+                    Response.Status.NO_CONTENT.getStatusCode());
+
             // Link router1 and bridge1
             link = new DtoLink();
             link.setPeerId(b1p1.getId());
@@ -1064,9 +1070,9 @@ public class TestPort {
             assertNotNull(ports);
             assertEquals(2, ports.length);
 
-            // Cannot link already linked ports
+            // Cannot link different port to an already linked port
             link = new DtoLink();
-            link.setPeerId(r2p1.getId());
+            link.setPeerId(b1p1.getId());
             dtoResource.postAndVerifyBadRequest(r1p1.getLink(),
                 APPLICATION_PORT_LINK_JSON(), link);
             link = new DtoLink();
