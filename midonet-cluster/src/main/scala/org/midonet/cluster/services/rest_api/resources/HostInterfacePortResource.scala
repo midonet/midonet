@@ -22,13 +22,11 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 
 import scala.collection.JavaConverters._
-
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
 import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_INTERFACE_IS_USED, HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, PORT_ALREADY_BOUND, getMessage}
-import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -71,8 +69,9 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
 
         val oldPort = tx.get(classOf[Port], binding.portId)
         if (oldPort.interfaceName ne null) {
-            throw new BadRequestHttpException(
-                getMessage(PORT_ALREADY_BOUND, binding.portId))
+            throw new ConflictHttpException(
+                   getMessage(PORT_ALREADY_BOUND,
+                              binding.portId))
         }
 
         tx.list(classOf[Port], host.portIds.asScala)
