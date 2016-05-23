@@ -157,6 +157,27 @@ public class TestIpAddrGroup {
 
         }
 
+        @Test
+        public void testIpAddrGroupAddrWithNoIpAddrGroupIdSet() {
+
+            DtoIpAddrGroup group = createIPAddrGroup("Group1");
+            group = dtoResource.getAndVerifyOk(
+                group.getUri(),
+                APPLICATION_IP_ADDR_GROUP_JSON(),
+                DtoIpAddrGroup.class);
+            assertNotNull(group);
+
+            // Verify that creating IP address group addr without setting
+            // ip address group ID field still works as expected.
+            DtoIpAddrGroupAddr addr = new DtoIpv4AddrGroupAddr();
+            addr.setAddr("10.0.0.2");
+            addr = dtoResource.postAndVerifyCreated(
+                group.getAddrs(), APPLICATION_IP_ADDR_GROUP_ADDR_JSON(), addr,
+                DtoIpAddrGroupAddr.class);
+            assertNotNull(addr);
+            assertEquals(group.getId(), addr.getIpAddrGroupId());
+        }
+
         @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
         @Test
         public void testInvalidIpAddr() {
