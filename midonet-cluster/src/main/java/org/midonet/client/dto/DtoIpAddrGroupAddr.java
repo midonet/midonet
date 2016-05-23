@@ -53,6 +53,10 @@ public abstract class DtoIpAddrGroupAddr {
         return addr;
     }
 
+    public void setAddr(String addr) {
+        this.addr = addr;
+    }
+
     public UUID getIpAddrGroupId() {
         return ipAddrGroupId;
     }
