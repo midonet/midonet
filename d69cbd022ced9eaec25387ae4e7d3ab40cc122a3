@@ -45,6 +45,23 @@
       "revId": "d69cbd022ced9eaec25387ae4e7d3ab40cc122a3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cb1441ea",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/RoutingTableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-23T08:53:15Z",
+      "side": 1,
+      "message": "This should be updated",
+      "revId": "d69cbd022ced9eaec25387ae4e7d3ab40cc122a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
