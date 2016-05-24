@@ -18,7 +18,7 @@ package org.midonet.midolman
 import java.lang.{Integer => JInteger}
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{Set => JSet, UUID}
+import java.util.{BitSet => JBitSet, Set => JSet, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -29,9 +29,12 @@ import scala.reflect._
 
 import akka.actor._
 import akka.pattern.{after, pipe}
+
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
+
 import rx.{Observer, Subscription}
 
 import org.midonet.midolman.config.MidolmanConfig
@@ -273,7 +276,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
             zones = newZones
 
-            updateVPortInterfaceBindings(host.ports)
+            updateVportInterfaceBindings(host.ports)
             doDatapathZonesUpdate(oldZones, newZones)
 
         case m@TunnelZoneUpdate(zone, zoneType, hostId, address, op) =>
@@ -381,11 +384,16 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 }
 
 object DatapathStateDriver {
+    final val NoTunnelKey = 0L
+    final val LocalTunnelKeyBit = 1 << 22
+    final val LocalTunnelKeyMask = LocalTunnelKeyBit - 1
+
     case class DpTriad(
         ifname: String,
         var isUp: Boolean = false,
         var vport: UUID = null,
-        var tunnelKey: Long = 0L,
+        var localTunnelKey: Long = NoTunnelKey,
+        var remoteTunnelKey: Long = NoTunnelKey,
         var dpPort: DpPort = null,
         var dpPortNo: Integer = null)
 }
@@ -409,6 +417,7 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     val vportToTriad = new ConcurrentHashMap[UUID, DpTriad]()
     val keyToTriad = new ConcurrentHashMap[Long, DpTriad]()
     val dpPortNumToTriad = new ConcurrentHashMap[Int, DpTriad]
+    val localKeys = new ConcurrentHashMap[Long, DpTriad]
 
     override def vtepTunnellingOutputAction = tunnelVtepVxLan.toOutputAction
     override def tunnelRecircOutputAction = tunnelRecircVxLanPort.toOutputAction
