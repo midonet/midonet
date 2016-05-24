@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9cc2fde7",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/state/RoutingTableStorageTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T04:11:05Z",
+      "side": 1,
+      "message": "nit unrelated change",
+      "revId": "daf3b4c48ca96e2ffb77d497b3e8a9d44c18dc80",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5cb8f574",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/routingprotocols/RoutingHandlerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T04:11:05Z",
+      "side": 1,
+      "message": "nit unrelated change",
+      "revId": "daf3b4c48ca96e2ffb77d497b3e8a9d44c18dc80",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
