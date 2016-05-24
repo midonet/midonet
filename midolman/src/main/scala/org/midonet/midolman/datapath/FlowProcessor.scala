@@ -24,13 +24,11 @@ import java.util.ArrayList
 import org.midonet.midolman.PacketWorkflow.DuplicateFlow
 
 import scala.util.control.NonFatal
-
-import com.lmax.disruptor.{Sequencer, LifecycleAware, EventPoller}
+import com.lmax.disruptor.{EventPoller, LifecycleAware, Sequencer}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import rx.Observer
-
-import org.midonet.midolman.{SimulationBackChannel, DatapathState}
+import org.midonet.midolman.{DatapathState, SimulationBackChannel}
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink._
@@ -38,7 +36,8 @@ import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowKey}
 import org.midonet.{ErrorCode, Util}
-import org.midonet.util.concurrent.{NanoClock, DisruptorBackChannel}
+import org.midonet.sixwind.SixWindFactory
+import org.midonet.util.concurrent.{DisruptorBackChannel, NanoClock}
 
 object FlowProcessor {
     private val unsafe = Util.getUnsafe
@@ -83,10 +82,12 @@ class FlowProcessor(dpState: DatapathState,
     private val brokerChannel = channelFactory.create(blocking = false)
     private val brokerChannelPid = brokerChannel.getLocalAddress.getPid
     private val brokerProtocol = new OvsProtocol(brokerChannelPid, families)
+    private val sixwind = SixWindFactory.create()
 
     {
         log.debug(s"Created write channel with pid $createChannelPid")
         log.debug(s"Created delete channel with pid $brokerChannelPid")
+        sixwind.flush()
     }
 
     private val writer = new NetlinkBlockingWriter(createChannel)
@@ -152,6 +153,8 @@ class FlowProcessor(dpState: DatapathState,
                 datapathId, keys, actions, mask, writeBuf)
             writeBuf.putInt(NetlinkMessage.NLMSG_SEQ_OFFSET, index)
             writer.write(writeBuf)
+            writeBuf.rewind()
+            sixwind.processFlow(writeBuf, writeBuf.limit())
         } catch { case e: BufferOverflowException =>
             val capacity = writeBuf.capacity()
             if (capacity >= MAX_BUF_CAPACITY)
@@ -178,8 +181,10 @@ class FlowProcessor(dpState: DatapathState,
         if (disruptorSeq >= sequence && { brokerSeq = broker.nextSequence()
                                           brokerSeq } != NetlinkRequestBroker.FULL) {
             try {
+                val buffer = broker.get(brokerSeq)
                 brokerProtocol.prepareFlowDelete(
-                    datapathId, flowMatch.getKeys, broker.get(brokerSeq))
+                    datapathId, flowMatch.getKeys, buffer)
+                sixwind.processFlow(buffer, buffer.limit())
                 broker.publishRequest(brokerSeq, obs)
             } catch { case e: Throwable =>
                 obs.onError(e)
