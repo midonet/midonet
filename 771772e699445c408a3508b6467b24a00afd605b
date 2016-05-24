@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b7bf1a60",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv4Addr.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-05-24T10:26:05Z",
+      "side": 1,
+      "message": "Just use an int:\n\n  def randomPrivate: IPv4Addr \u003d\n      fromInt((r.nextInt \u0026 0xffffff) | (10 \u003c\u003c 24))",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 71
+      },
+      "revId": "771772e699445c408a3508b6467b24a00afd605b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
