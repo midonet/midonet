@@ -667,7 +667,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         for (pbi <- currentPortBgps diff newPortBgps)
             bgpd.remAddr(rport.interfaceName, pbi.cidr)
         for (pbi <- newPortBgps diff currentPortBgps)
-            bgpd.assignAddr(rport.interfaceName, pbi.cidr)
+            bgpd.assignAddr(rport.interfaceName, pbi.cidr, pbi.mac)
         currentPortBgps = newPortBgps
 
         for (neigh <- bgpConfig.neighbors.values) {
