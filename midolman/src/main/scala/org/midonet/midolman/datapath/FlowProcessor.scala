@@ -30,6 +30,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import rx.Observer
 
+import org.midonet.sixwind.SixwindWriter
 import org.midonet.midolman.{SimulationBackChannel, DatapathState}
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.simulation.PacketContext
@@ -90,6 +91,7 @@ class FlowProcessor(dpState: DatapathState,
     }
 
     private val writer = new NetlinkBlockingWriter(createChannel)
+    private val fpWriter = new SixwindWriter()
     private val broker = new NetlinkRequestBroker(
         new NetlinkBlockingWriter(brokerChannel),
         new NetlinkReader(brokerChannel),
@@ -151,6 +153,8 @@ class FlowProcessor(dpState: DatapathState,
                 datapathId, keys, actions, mask, writeBuf)
             writeBuf.putInt(NetlinkMessage.NLMSG_SEQ_OFFSET, index)
             writer.write(writeBuf)
+            writeBuf.rewind()
+            fpWriter.write(writeBuf)
         } catch { case e: BufferOverflowException =>
             val capacity = writeBuf.capacity()
             if (capacity >= MAX_BUF_CAPACITY)
