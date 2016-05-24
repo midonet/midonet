@@ -86,6 +86,8 @@ object IPv4Addr {
 
     def random = IPv4Addr(r.nextInt)
 
+    def randomPrivate = fromInt((r.nextInt & 0xffffff) | (10 << 24))
+
     def apply(s: String) = fromString(s)
 
     def apply(i: Int) = fromInt(i)
