@@ -56,6 +56,7 @@ import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.netlink.{NetlinkChannelFactory, NetlinkProtocol, NetlinkUtil}
+import org.midonet.sixwind.SixwindWriter
 import org.midonet.odp.OvsNetlinkFamilies
 import org.midonet.Util
 import org.midonet.util.concurrent._
@@ -100,6 +101,9 @@ class MidolmanModule(injector: Injector,
         bind(classOf[VirtualPortsResolver]).to(classOf[DatapathStateDriver])
         bind(classOf[UnderlayResolver]).to(classOf[DatapathStateDriver])
 
+        val sixwindWriter = SixwindWriter.bootstrap()
+        bind(classOf[SixwindWriter]).toInstance(sixwindWriter)
+
         val as = actorSystem()
         bind(classOf[ActorSystem]).toInstance(as)
         bind(classOf[SupervisorStrategy]).toInstance(crashStrategy())
@@ -111,7 +115,7 @@ class MidolmanModule(injector: Injector,
         val ringBuffer = RingBuffer
             .createMultiProducer(DisruptorDatapathChannel.Factory, capacity)
         val barrier = ringBuffer.newBarrier()
-        val fp = flowProcessor(dpState, families, channelFactory, backChannel)
+        val fp = flowProcessor(dpState, families, channelFactory, sixwindWriter, backChannel)
         val channel = datapathChannel(
             ringBuffer, barrier, fp, dpState, families, channelFactory, metrics)
         bind(classOf[FlowProcessor]).toInstance(fp)
@@ -210,6 +214,7 @@ class MidolmanModule(injector: Injector,
             dpState: DatapathState,
             families: OvsNetlinkFamilies,
             channelFactory: NetlinkChannelFactory,
+            sixwindWriter: SixwindWriter,
             backChannel: SimulationBackChannel) =
         new FlowProcessor(
             dpState,
@@ -217,6 +222,7 @@ class MidolmanModule(injector: Injector,
             maxPendingRequests = config.datapath.globalIncomingBurstCapacity * 2,
             maxRequestSize = 512,
             channelFactory,
+            sixwindWriter,
             SelectorProvider.provider,
             backChannel,
             NanoClock.DEFAULT)
