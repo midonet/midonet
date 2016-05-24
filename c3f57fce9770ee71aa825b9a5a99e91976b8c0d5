@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0220c6f5",
+        "filename": "tests/mdts/lib/ssh.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-24T14:23:10Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_f79242f5",
+      "revId": "c3f57fce9770ee71aa825b9a5a99e91976b8c0d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_57b8ce74",
         "filename": "tests/mdts/services/jmxtrans.py",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2016-05-24T10:28:04Z",
       "side": 1,
       "message": "this looks a little nasty. Couldn\u0027t we have a couple of methods on Service (put_file, get_file, delete_file)?",
+      "range": {
+        "startLine": 28,
+        "startChar": 19,
+        "endLine": 28,
+        "endChar": 20
+      },
+      "revId": "c3f57fce9770ee71aa825b9a5a99e91976b8c0d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_22250a08",
+        "filename": "tests/mdts/services/jmxtrans.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-24T14:23:10Z",
+      "side": 1,
+      "message": "Ok, paramiko has a SFTP interface also, so implementing them wouldn\u0027t take too much.",
+      "parentUuid": "baa041b7_57b8ce74",
       "range": {
         "startLine": 28,
         "startChar": 19,
