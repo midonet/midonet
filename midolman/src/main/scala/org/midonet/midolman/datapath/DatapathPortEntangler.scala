@@ -15,11 +15,13 @@
  */
 package org.midonet.midolman.datapath
 
-import java.util.{Set => JSet, HashSet, UUID}
+import java.util.{UUID, HashSet => JHashSet, Set => JSet}
 
 import scala.concurrent.Future
+import scala.util.Random
 
 import com.typesafe.scalalogging.Logger
+
 import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.DatapathStateDriver.DpTriad
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -88,6 +90,7 @@ trait DatapathPortEntangler {
     private val conveyor = new MultiLaneConveyorBelt[String](_ => {
         /* errors are logged elsewhere */
     })
+    private val random = new Random()
 
     def addToDatapath(interfaceName: String): Future[(DpPort, Int)]
     def removeFromDatapath(port: DpPort): Future[_]
@@ -98,6 +101,7 @@ trait DatapathPortEntangler {
     def vportToTriad = driver.vportToTriad
     def keyToTriad = driver.keyToTriad
     def dpPortNumToTriad = driver.dpPortNumToTriad
+    def localKeys = driver.localKeys
 
     /**
      * Registers an internal port (namely, port 0)
@@ -113,26 +117,26 @@ trait DatapathPortEntangler {
     /**
      * Register new interfaces, update their status or delete them.
      */
-    def updateInterfaces(itfs: JSet[InterfaceDescription]): Unit = {
-        val interfacesToDelete = new HashSet(interfaceToTriad.keySet())
-        val it = itfs.iterator()
-        while (it.hasNext) {
-            val itf = it.next()
-            interfacesToDelete.remove(itf.getName)
-            conveyor.handle(itf.getName, () => processInterface(itf, itf.getName))
+    def updateInterfaces(interfaces: JSet[InterfaceDescription]): Unit = {
+        val interfacesToDelete = new JHashSet(interfaceToTriad.keySet())
+
+        val iterator = interfaces.iterator()
+        while (iterator.hasNext) {
+            val interface = iterator.next()
+            interfacesToDelete.remove(interface.getName)
+            conveyor.handle(interface.getName, () =>
+                processInterface(interface))
         }
 
         val toDelete = interfacesToDelete.iterator()
         while (toDelete.hasNext) {
-            val ifname = toDelete.next()
-            if (!itfs.contains(ifname)) {
-                conveyor.handle(ifname, () =>
-                    if (interfaceToTriad.containsKey(ifname)) {
-                        deleteInterface(interfaceToTriad.get(ifname))
-                    } else {
-                        Future.successful(null)
-                    })
-            }
+            val interfaceName = toDelete.next()
+            conveyor.handle(interfaceName, () =>
+                if (interfaceToTriad.containsKey(interfaceName)) {
+                    deleteInterface(interfaceToTriad.get(interfaceName))
+                } else {
+                    Future.successful(null)
+                })
         }
     }
 
@@ -140,8 +144,8 @@ trait DatapathPortEntangler {
      * We do not support remapping a vport to a different interface or vice-versa.
      * We assume each vport ID and interface will occur in at most one binding.
      */
-    def updateVPortInterfaceBindings(bindings: Map[UUID, PortBinding]): Unit = {
-        log.debug(s"Updating vport to interface bindings: $bindings")
+    def updateVportInterfaceBindings(bindings: Map[UUID, PortBinding]): Unit = {
+        log.debug(s"Updating port to interface bindings: $bindings")
 
         for ((vportId, PortBinding(_, tunnelKey, ifname)) <- bindings) {
             if (!vportToTriad.containsKey(vportId)) {
@@ -151,7 +155,7 @@ trait DatapathPortEntangler {
         }
 
         val it = vportToTriad.entrySet().iterator()
-        while (it.hasNext()) {
+        while (it.hasNext) {
             val entry = it.next()
             if (!bindings.contains(entry.getKey)) {
                 val triad = entry.getValue
@@ -169,9 +173,16 @@ trait DatapathPortEntangler {
      * that this is a dangling tap. We need to recreate the dp port. Use case:
      * add tap, bind it to a vport, remove the tap. The dp port gets destroyed.
      */
-    private def processInterface(itf: InterfaceDescription, ifname: String): Future[_] = {
-        val isUp = itf.isUp
-        val triad = getOrCreate(ifname)
+    private def processInterface(interface: InterfaceDescription): Future[_] = {
+        val isUp = interface.isUp
+
+        // Do not allocate a new triad, tunnel key and DP port for a new
+        // interface if the interface is down.
+        if (!isUp && !interfaceToTriad.containsKey(interface.getName)) {
+            return Future successful null
+        }
+
+        val triad = getOrCreate(interface.getName)
         val wasUp = triad.isUp
 
         if (isUp && !wasUp) {
@@ -184,21 +195,23 @@ trait DatapathPortEntangler {
         }
     }
 
-    private def newInterfaceVportBinding(vport: UUID, tunnelKey: Long, ifname: String): Future[_] = {
+    private def newInterfaceVportBinding(vport: UUID, tunnelKey: Long,
+                                         ifname: String): Future[_] = {
         val triad = getOrCreate(ifname)
         triad.vport = vport
-        triad.tunnelKey = tunnelKey
+        triad.legacyTunnelKey = tunnelKey
         vportToTriad.put(vport, triad)
         tryCreateDpPort(triad)
     }
 
     private def getOrCreate(ifname: String): DpTriad = {
-        var status = interfaceToTriad.get(ifname)
-        if (status eq null) {
-            status = DpTriad(ifname)
-            interfaceToTriad.put(ifname, status)
+        var triad = interfaceToTriad.get(ifname)
+        if (triad eq null) {
+            triad = DpTriad(ifname)
+            allocateLocalTunnelKey(triad)
+            interfaceToTriad.put(ifname, triad)
         }
-        status
+        triad
     }
 
     private def deleteInterface(triad: DpTriad): Future[_] =
@@ -252,6 +265,7 @@ trait DatapathPortEntangler {
     private def shutdownIfNeeded(triad: DpTriad): Unit =
         if (!triad.isUp && (triad.vport eq null) && !isInternal(triad)) {
             interfaceToTriad.remove(triad.ifname)
+            releaseLocalTunnelKey(triad)
             conveyor.shutdown(triad.ifname)
         }
 
@@ -272,10 +286,36 @@ trait DatapathPortEntangler {
         }
 
     private def setVportStatus(triad: DpTriad, active: Boolean): Unit = {
-        if (active)
-            keyToTriad.put(triad.tunnelKey, triad)
-        else
-            keyToTriad.remove(triad.tunnelKey)
-        setVportStatus(triad.dpPort, triad.vport, triad.tunnelKey, active)
+        val tunnelKey = if (active) {
+            keyToTriad.put(triad.localTunnelKey, triad)
+            keyToTriad.put(triad.legacyTunnelKey, triad)
+            triad.localTunnelKey
+        } else {
+            keyToTriad.remove(triad.localTunnelKey)
+            keyToTriad.remove(triad.legacyTunnelKey)
+            DatapathStateDriver.NoTunnelKey
+        }
+        setVportStatus(triad.dpPort, triad.vport, tunnelKey, active)
     }
+
+    private def allocateLocalTunnelKey(triad: DpTriad): Unit = {
+        var tunnelKey = 0L
+        do {
+            tunnelKey = random.nextLong() &
+                        DatapathStateDriver.LocalTunnelKeyMask |
+                        DatapathStateDriver.LocalTunnelKeyBit
+        } while (localKeys.putIfAbsent(tunnelKey, triad) != null)
+        triad.localTunnelKey = tunnelKey
+
+        log debug s"Allocated local tunnel key $tunnelKey to " +
+                  s"interface ${triad.ifname}"
+    }
+
+    private def releaseLocalTunnelKey(triad: DpTriad): Unit = {
+        log debug s"Released local tunnel key ${triad.localTunnelKey} from " +
+                  s"interface ${triad.ifname}"
+
+        localKeys remove triad.localTunnelKey
+    }
+
 }
