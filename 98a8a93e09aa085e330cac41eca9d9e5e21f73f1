@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3762ea0a",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/PortStateStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-24T10:40:46Z",
+      "side": 1,
+      "message": "where does this come from? you should make it a const somewhere.",
+      "range": {
+        "startLine": 104,
+        "startChar": 32,
+        "endLine": 104,
+        "endChar": 34
+      },
+      "revId": "98a8a93e09aa085e330cac41eca9d9e5e21f73f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
