@@ -112,10 +112,12 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 newTriad.vport should be (oldTriad.vport)
                 newTriad.dpPort should not be null
                 newTriad.dpPortNo should not be null
+                newTriad.localTunnelKey shouldBe 0x400001
 
                 entangler.dpPortNumToTriad containsKey newTriad.dpPortNo should be (true)
                 entangler.vportToTriad containsKey newTriad.vport should be (true)
-                entangler.keyToTriad containsKey newTriad.tunnelKey should be (true)
+                entangler.keyToTriad containsKey newTriad.localTunnelKey shouldBe true
+                entangler.keyToTriad containsKey newTriad.remoteTunnelKey should be (true)
 
                 entangler.portActive should be (true)
             } else if (entangler.portRemoved ne null) {
@@ -142,7 +144,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 }
 
                 entangler.vportToTriad containsKey newTriad.vport should be (true)
-                entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
+                entangler.keyToTriad containsKey newTriad.localTunnelKey shouldBe false
+                entangler.keyToTriad containsKey newTriad.remoteTunnelKey should be (false)
 
                 entangler.portActive should be (false)
             } else {
@@ -205,7 +208,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 }
 
                 entangler.vportToTriad containsKey newTriad.vport should be (true)
-                entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
+                entangler.keyToTriad containsKey  newTriad.localTunnelKey shouldBe false
+                entangler.keyToTriad containsKey newTriad.remoteTunnelKey should be (false)
 
                 entangler.portActive should be (false)
             } else {
@@ -259,10 +263,12 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 newTriad.vport should be (uuid)
                 newTriad.dpPort should not be null
                 newTriad.dpPortNo should not be null
+                newTriad.localTunnelKey shouldBe 0x400001
 
                 entangler.dpPortNumToTriad containsKey newTriad.dpPortNo should be (true)
                 entangler.vportToTriad containsKey newTriad.vport should be (true)
-                entangler.keyToTriad containsKey newTriad.tunnelKey should be (true)
+                entangler.keyToTriad containsKey newTriad.localTunnelKey shouldBe true
+                entangler.keyToTriad containsKey newTriad.remoteTunnelKey should be (true)
 
                 entangler.portActive should be (true)
             } else if (entangler.portRemoved ne null) {
@@ -276,7 +282,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                         newTriad.dpPort should be (null)
                         newTriad.dpPortNo should be (null)
                         entangler.vportToTriad containsKey newTriad.vport should be (true)
-                        entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
+                        entangler.keyToTriad containsKey newTriad.localTunnelKey shouldBe false
+                        entangler.keyToTriad containsKey newTriad.remoteTunnelKey should be (false)
                     case (_, null) =>
                         fail("new binding deleted an entry")
                     case (_, _) =>
@@ -326,7 +333,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 }
 
                 entangler.vportToTriad containsKey port should be (false)
-                entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
+                entangler.keyToTriad containsKey newTriad.localTunnelKey shouldBe false
+                entangler.keyToTriad containsKey newTriad.remoteTunnelKey should be (false)
 
                 entangler.portActive should be (false)
             } else {
@@ -384,7 +392,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                         val newTriad = DpTriad(triad.ifname)
                         newTriad.isUp = triad.isUp
                         newTriad.vport = triad.vport
-                        newTriad.tunnelKey = triad.tunnelKey
+                        newTriad.localTunnelKey = triad.localTunnelKey
+                        newTriad.remoteTunnelKey = triad.remoteTunnelKey
                         newTriad.dpPort = triad.dpPort
                         newTriad.dpPortNo = triad.dpPortNo
                         (triad.ifname, newTriad)

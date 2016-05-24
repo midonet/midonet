@@ -99,6 +99,8 @@ trait DatapathPortEntangler {
     def keyToTriad = driver.keyToTriad
     def dpPortNumToTriad = driver.dpPortNumToTriad
 
+    def tunnelKeyBitSet = driver.tunnelKeyBitSet
+
     /**
      * Registers an internal port (namely, port 0)
      */
@@ -151,7 +153,7 @@ trait DatapathPortEntangler {
         }
 
         val it = vportToTriad.entrySet().iterator()
-        while (it.hasNext()) {
+        while (it.hasNext) {
             val entry = it.next()
             if (!bindings.contains(entry.getKey)) {
                 val triad = entry.getValue
@@ -187,18 +189,19 @@ trait DatapathPortEntangler {
     private def newInterfaceVportBinding(vport: UUID, tunnelKey: Long, ifname: String): Future[_] = {
         val triad = getOrCreate(ifname)
         triad.vport = vport
-        triad.tunnelKey = tunnelKey
+        triad.remoteTunnelKey = tunnelKey
         vportToTriad.put(vport, triad)
         tryCreateDpPort(triad)
     }
 
     private def getOrCreate(ifname: String): DpTriad = {
-        var status = interfaceToTriad.get(ifname)
-        if (status eq null) {
-            status = DpTriad(ifname)
-            interfaceToTriad.put(ifname, status)
+        var triad = interfaceToTriad.get(ifname)
+        if (triad eq null) {
+            triad = DpTriad(ifname)
+            allocateLocalTunnelKey(triad)
+            interfaceToTriad.put(ifname, triad)
         }
-        status
+        triad
     }
 
     private def deleteInterface(triad: DpTriad): Future[_] =
@@ -252,6 +255,7 @@ trait DatapathPortEntangler {
     private def shutdownIfNeeded(triad: DpTriad): Unit =
         if (!triad.isUp && (triad.vport eq null) && !isInternal(triad)) {
             interfaceToTriad.remove(triad.ifname)
+            releaseLocalTunnelKey(triad)
             conveyor.shutdown(triad.ifname)
         }
 
@@ -272,10 +276,34 @@ trait DatapathPortEntangler {
         }
 
     private def setVportStatus(triad: DpTriad, active: Boolean): Unit = {
-        if (active)
-            keyToTriad.put(triad.tunnelKey, triad)
-        else
-            keyToTriad.remove(triad.tunnelKey)
-        setVportStatus(triad.dpPort, triad.vport, triad.tunnelKey, active)
+        val tunnelKey = if (active) {
+            keyToTriad.put(triad.localTunnelKey, triad)
+            keyToTriad.put(triad.remoteTunnelKey, triad)
+            triad.localTunnelKey
+        } else {
+            keyToTriad.remove(triad.localTunnelKey)
+            keyToTriad.remove(triad.remoteTunnelKey)
+            DatapathStateDriver.NoTunnelKey
+        }
+        setVportStatus(triad.dpPort, triad.vport, tunnelKey, active)
     }
+
+    private def allocateLocalTunnelKey(triad: DpTriad): Unit = {
+        val tunnelKey = tunnelKeyBitSet.nextClearBit(1)
+        tunnelKeyBitSet.set(tunnelKey)
+        triad.localTunnelKey = tunnelKey | DatapathStateDriver.LocalTunnelKeyBit
+
+        log debug s"Allocated local tunnel key $tunnelKey to " +
+                  s"interface ${triad.ifname}"
+    }
+
+    private def releaseLocalTunnelKey(triad: DpTriad): Unit = {
+        val tunnelKey =
+            (triad.localTunnelKey & DatapathStateDriver.LocalTunnelKeyMask).toInt
+        log debug s"Released local tunnel key $tunnelKey from " +
+                  s"interface ${triad.ifname}"
+
+        tunnelKeyBitSet.clear(tunnelKey)
+    }
+
 }
