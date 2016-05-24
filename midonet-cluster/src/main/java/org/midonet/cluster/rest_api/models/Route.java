@@ -181,7 +181,8 @@ public class Route extends UriResource {
         }
     }
 
-    public static Route fromLearned(org.midonet.midolman.layer3.Route from) {
+    public static Route fromLearned(org.midonet.midolman.layer3.Route from,
+                                    URI baseUri) {
         Route route = new Route();
         route.id = idOf(from);
         route.dstNetworkAddr = IPv4Addr.apply(from.dstNetworkAddr).toString();
@@ -194,6 +195,7 @@ public class Route extends UriResource {
         route.nextHopPort = from.nextHopPort;
         route.type = NextHop.Normal;
         route.learned = true;
+        route.setBaseUri(baseUri);
 
         return route;
     }
