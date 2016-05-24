@@ -99,6 +99,12 @@ Midokura jira (private to the company):
     QA-xxx
     https://midobugs.atlassian.net/browse/xxxxx
 
+Midokura github issues (private to the company, no longer used):
+
+    #xxx
+    GH #xxx
+    Issue #xxx
+
 Midokura redmine (no longer available):
 
     #xxx
