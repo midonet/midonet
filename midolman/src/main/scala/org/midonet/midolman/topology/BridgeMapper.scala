@@ -169,12 +169,12 @@ object BridgeMapper {
 
     /** Represents a MAC-port mapping */
     private case class MacPortMapping(vlanId: Short, mac: MAC, portId: UUID) {
-        override val toString = s"{vlan=$vlanId mac=$mac port=$portId}"
+        override def toString = s"{vlan=$vlanId mac=$mac port=$portId}"
     }
     /** Represents a MAC table update */
     private case class MacTableUpdate(vlanId: Short, mac: MAC, oldPort: UUID,
                                       newPort: UUID) {
-        override val toString = s"{vlan=$vlanId mac=$mac oldPort=$oldPort " +
+        override def toString = s"{vlan=$vlanId mac=$mac oldPort=$oldPort " +
                                 s"newPort=$newPort}"
     }
 
