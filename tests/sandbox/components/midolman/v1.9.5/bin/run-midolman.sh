@@ -23,7 +23,7 @@ sysctl -w net.ipv6.conf.lo.disable_ipv6=1
 
 # Default cassandra replication factor
 if [ -z "$CASS_FACTOR" ]; then
-    CASS_FACTOR=3
+    CASS_FACTOR=1
 fi
 
 # Default mido_zookeeper_key
@@ -50,6 +50,8 @@ fi
 
 echo "Configuring agent using MIDO_ZOOKEEPER_HOSTS: $MIDO_ZOOKEEPER_HOSTS"
 echo "Configuring agent using MIDO_ZOOKEEPER_ROOT_KEY: $MIDO_ZOOKEEPER_ROOT_KEY"
+echo "Configuring agent using CASS_SERVERS: $CASS_SERVERS"
+echo "Configuring agent using CASS_FACTOR: $CASS_FACTOR"
 
 sed -i -e 's/zookeeper_hosts = .*$/zookeeper_hosts = '"$MIDO_ZOOKEEPER_HOSTS"'/' /etc/midolman/midolman.conf
 sed -i -e 's/root_key = .*$/root_key = '"$(echo $MIDO_ZOOKEEPER_ROOT_KEY|sed 's/\//\\\//g')"'/' /etc/midolman/midolman.conf
