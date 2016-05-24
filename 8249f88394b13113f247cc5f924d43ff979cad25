@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7c43b96c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapFlowTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T05:33:51Z",
+      "side": 1,
+      "message": "Seems unused",
+      "revId": "8249f88394b13113f247cc5f924d43ff979cad25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5c46b57b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapFlowTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T05:33:51Z",
+      "side": 1,
+      "message": "NotFoundException unused",
+      "revId": "8249f88394b13113f247cc5f924d43ff979cad25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3c62d10a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapFlowTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T05:33:51Z",
+      "side": 1,
+      "message": "unused",
+      "revId": "8249f88394b13113f247cc5f924d43ff979cad25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1c5dcd46",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapFlowTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T05:33:51Z",
+      "side": 1,
+      "message": "Mirror unused",
+      "revId": "8249f88394b13113f247cc5f924d43ff979cad25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fc57c923",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapFlowTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T05:33:51Z",
+      "side": 1,
+      "message": "unused",
+      "revId": "8249f88394b13113f247cc5f924d43ff979cad25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bc34a1fb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapServiceTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T05:33:51Z",
+      "side": 1,
+      "message": "NotFoundException unused",
+      "revId": "8249f88394b13113f247cc5f924d43ff979cad25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9c379dfe",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapServiceTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T05:33:51Z",
+      "side": 1,
+      "message": "unused",
+      "revId": "8249f88394b13113f247cc5f924d43ff979cad25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7c3a99e8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapServiceTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T05:33:51Z",
+      "side": 1,
+      "message": "unused",
+      "revId": "8249f88394b13113f247cc5f924d43ff979cad25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5c3d95db",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapServiceTranslator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-24T05:33:51Z",
+      "side": 1,
+      "message": "unused",
+      "revId": "8249f88394b13113f247cc5f924d43ff979cad25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
