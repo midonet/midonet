@@ -25,22 +25,22 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 import rx.observers.TestObserver
-
 import com.google.common.collect.Lists
 
-import org.midonet.cluster.data.storage.{UpdateOp, NotFoundException, CreateOp, Storage}
-import org.midonet.cluster.models.Topology.{BgpNetwork, BgpPeer, Port => TopologyPort, Router}
+import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
+import org.midonet.cluster.models.Topology.{BgpNetwork, BgpPeer, Router, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.cluster.state.PortStateStorage.PortInactive
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.simulation.{RouterPort, Port}
+import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.DeviceMapper.MapperState
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.{IPv4Addr, IPSubnet}
-import org.midonet.quagga.BgpdConfiguration.{Network, Neighbor, BgpRouter}
+import org.midonet.packets.{IPSubnet, IPv4Addr}
+import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -67,6 +67,7 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
                         peers: Set[BgpPeer] = Set.empty,
                         networks: Set[BgpNetwork] = Set.empty): BgpPort = {
         BgpPort(Port(port,
+                     PortInactive,
                      Lists.newArrayList(),
                      Lists.newArrayList()).asInstanceOf[RouterPort],
                 BgpRouter(

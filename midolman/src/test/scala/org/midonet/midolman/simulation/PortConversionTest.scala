@@ -18,18 +18,22 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import akka.actor.ActorSystem
+
 import org.junit.runner.RunWith
+
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
-
 import com.google.common.collect.Lists
+
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import scala.util.Random
+
+import org.midonet.cluster.state.PortStateStorage.PortInactive
 
 @RunWith(classOf[JUnitRunner])
 class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
@@ -53,6 +57,7 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 portGroupIds = Set(UUID.randomUUID, UUID.randomUUID),
                 vlanId = Some(random.nextInt().toShort))
             val device = Port(port,
+                              PortInactive,
                               Lists.newArrayList(port.getInboundFilterId.asJava),
                               Lists.newArrayList(port.getOutboundFilterId.asJava))
 
@@ -75,6 +80,7 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 adminStateUp = random.nextBoolean(),
                 portGroupIds = Set(UUID.randomUUID, UUID.randomUUID))
             val device = Port(port,
+                              PortInactive,
                               Lists.newArrayList(port.getInboundFilterId.asJava),
                               Lists.newArrayList(port.getOutboundFilterId.asJava))
 
@@ -97,6 +103,7 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 adminStateUp = random.nextBoolean(),
                 portGroupIds = Set(UUID.randomUUID, UUID.randomUUID))
             val device = Port(port,
+                              PortInactive,
                               Lists.newArrayList(port.getInboundFilterId.asJava),
                               Lists.newArrayList(port.getOutboundFilterId.asJava))
 
