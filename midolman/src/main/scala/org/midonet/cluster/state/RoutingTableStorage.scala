@@ -41,8 +41,21 @@ object RoutingTableStorage {
         new RoutingTableStorage(store)
     }
 
-    @inline private def serializeForPort(route: Route): String = {
-        val buffer = ByteBuffer.allocate(34)
+    /**
+     * Serialize route with nextHopPort.
+     *
+     * For backwards compatibility, including the next hop port ID in the
+     * serialization is necessary only if the next hop port differs from the
+     * port whose state table the route is being stored in.
+     *
+     * @param route route to serialize
+     * @param addNextHopPort if true, the next hop port ID (route.nextHopPort)
+     *                       is included in the serialization.
+     * @return serialized route
+     */
+    @inline private def serialize(route: Route, addNextHopPort: Boolean)
+    : String = {
+        val buffer = ByteBuffer.allocate(50)
         buffer.putInt(route.dstNetworkAddr)
         buffer.put(route.dstNetworkLength.toByte)
         buffer.putInt(route.srcNetworkAddr)
@@ -51,25 +64,42 @@ object RoutingTableStorage {
         buffer.putInt(route.weight)
         buffer.putLong(route.routerId.getMostSignificantBits)
         buffer.putLong(route.routerId.getLeastSignificantBits)
+        buffer.putLong(route.nextHopPort.getMostSignificantBits)
+        buffer.putLong(route.nextHopPort.getLeastSignificantBits)
         Hex.encodeHexString(buffer.array())
     }
 
-    @inline private def deserializeForPort(portId: UUID, string: String)
+    /**
+     * Deserialize a route.
+     *
+     * For backwards compatibility, the serialized route might not contain the
+     * next hop port ID. In that case, defaultPortId is used to initialize
+     * route.nextHopPort.
+     *
+     * @param string the serialized route
+     * @param defaultPortId port ID used to initialize route.nextHopPort if the
+     *                      next hop port ID is not included in the serialized
+     *                      route. Should be the ID of the port in whose state
+     *                      table the serialized route was found
+     * @return the deserialized route
+     */
+    @inline private def deserialize(string: String, defaultPortId: UUID)
     : Option[Route] = {
         try {
             val buffer = ByteBuffer.wrap(Hex.decodeHex(string.toCharArray))
-            val dstNetworkAddr = buffer.getInt
-            val dstNetworkLength = buffer.get
-            val srcNetworkAddr = buffer.getInt
-            val srcNetworkLength = buffer.get
-            val nextHopGateway = buffer.getInt
-            val weight = buffer.getInt
-            val routerIdMsb = buffer.getLong
-            val routerIdLsb = buffer.getLong
+            val dstNetworkAddr = buffer.getInt()
+            val dstNetworkLength = buffer.get()
+            val srcNetworkAddr = buffer.getInt()
+            val srcNetworkLength = buffer.get()
+            val nextHopGateway = buffer.getInt()
+            val weight = buffer.getInt()
+            val routerId = new UUID(buffer.getLong(), buffer.getLong())
+            val nhPortId = if (buffer.remaining() < 16) defaultPortId else {
+                new UUID(buffer.getLong(), buffer.getLong())
+            }
             Some(new Route(srcNetworkAddr, srcNetworkLength, dstNetworkAddr,
-                           dstNetworkLength, NextHop.PORT, portId,
-                           nextHopGateway, weight, "",
-                           new UUID(routerIdMsb, routerIdLsb), true))
+                           dstNetworkLength, NextHop.PORT, nhPortId,
+                           nextHopGateway, weight, "", routerId, true))
         } catch {
             case e @ (_: DecoderException | _: BufferUnderflowException) => None
         }
@@ -84,8 +114,8 @@ object RoutingTableStorage {
  * ephemeral values).
  *
  * Since the ZooKeeper implementation stores a value for multi-value keys as the
- * name of a z-node, routes use a 68 character hex-string serialization to
- * reduce their memory footprint, as follows:
+ * name of a z-node, routes use a 68- or 100-character hex-string serialization
+ * to reduce their memory footprint, as follows:
  *
  *  8 chars - destination IPv4 address (32 bits)
  *  2 chars - destination prefix length (8 bits)
@@ -93,7 +123,8 @@ object RoutingTableStorage {
  *  2 chars - source prefix length (8 bits)
  *  8 chars - next hop IPv4 address (32 bits)
  *  8 chars - metric (32 bits)
- *  16 chars - router identifier (128 bits)
+ *  32 chars - router identifier (128 bits)
+ *  32 chars (optional) - Next hop port ID (128 bits)
  *
  * Note that the ZooKeeper implementation of the multi-value keys uses
  * `getChildren` to read key updates. For large routing tables, this requires a
@@ -152,26 +183,39 @@ object RoutingTableStorage {
  */
 class RoutingTableStorage(val store: StateStorage) extends AnyVal {
 
-    /** Adds a [[NextHop.PORT]] route as a state value to the next hop port
-      * object. Adding a route with a different [[NextHop]] is not supported. */
-    def addRoute(route: Route): Observable[StateResult] = {
+    /** Adds a [[NextHop.PORT]] route as a state value to the specified port.
+      *
+      * @param route the route to add
+      * @param portIdOpt the port to add the route to. If None, then
+      *                  route.nextHopPort is used
+      */
+    def addRoute(route: Route, portIdOpt: Option[UUID] = None)
+    : Observable[StateResult] = {
         route.nextHop match {
             case NextHop.PORT =>
-                store.addValue(classOf[Port], route.nextHopPort, RoutesKey,
-                               serializeForPort(route))
+                val portId = portIdOpt.getOrElse(route.nextHopPort)
+                store.addValue(classOf[Port], portId, RoutesKey,
+                               serialize(route, portId != route.nextHopPort))
             case _ =>
                 throw new IllegalArgumentException(
                     s"Route next hop ${route.nextHop} not supported")
         }
     }
 
-    /** Removes a [[NextHop.PORT]] route from the state key of the corresponding
-      * next hop port. */
-    def removeRoute(route: Route): Observable[StateResult] = {
+    /** Adds a [[NextHop.PORT]] route from the state table of the specified
+      * port.
+      *
+      * @param route the route to add
+      * @param portIdOpt the port to add the route to. If None, then
+      *                  route.nextHopPort is used
+      */
+    def removeRoute(route: Route, portIdOpt: Option[UUID] = None)
+    : Observable[StateResult] = {
         route.nextHop match {
             case NextHop.PORT =>
-                store.removeValue(classOf[Port], route.nextHopPort, RoutesKey,
-                                  serializeForPort(route))
+                val portId = portIdOpt.getOrElse(route.nextHopPort)
+                store.removeValue(classOf[Port], portId, RoutesKey,
+                                  serialize(route, portId != route.nextHopPort))
             case _ =>
                 throw new IllegalArgumentException(
                     s"Route next hop ${route.nextHop} not supported")
@@ -184,7 +228,7 @@ class RoutingTableStorage(val store: StateStorage) extends AnyVal {
         store.getKey(hostId.asNullableString, classOf[Port], portId,
                      RoutesKey) map makeFunc1 {
             case MultiValueKey(_, values) =>
-                values.flatMap(deserializeForPort(portId, _))
+                values.flatMap(deserialize(_, portId))
             case _ => NoRoutes
         }
     }
@@ -196,7 +240,7 @@ class RoutingTableStorage(val store: StateStorage) extends AnyVal {
         store.keyObservable(hostIds.map[String](makeFunc1 { _.asNullableString }),
                             classOf[Port], portId, RoutesKey) map makeFunc1 {
             case MultiValueKey(_, values) =>
-                values.flatMap(deserializeForPort(portId, _))
+                values.flatMap(deserialize(_, portId))
             case _ => NoRoutes
         }
     }
