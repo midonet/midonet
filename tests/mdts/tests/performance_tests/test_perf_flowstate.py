@@ -146,7 +146,7 @@ def start_jfr(hostname, filename):
     pid = agent.exec_command("pgrep -f Midolman")
     output, exec_id = agent.exec_command(
         "jcmd %s JFR.start duration=0s "
-        "filename=/tmp/jfr/%s.%s.jfr dumponexit=true "
+        "filename=/tmp/jfr/%s.%s.jfr settings=profile dumponexit=true "
         "name=%s" % (pid, hostname, filename, filename), stream=True)
     exit_code = agent.check_exit_status(exec_id, output, timeout=60)
     if exit_code != 0:
@@ -179,12 +179,17 @@ def stop_metric_capture(name):
     stop_jfr('midolman1', name)
     stop_jfr('midolman2', name)
 
+def start_metric_capture_flow_state():
+    start_metric_capture("perf_flow_state")
+
+def stop_metric_capture_flow_state():
+    stop_metric_capture("perf_flow_state")
 
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_multihost,
           binding_manager=BM)
-@with_setup(start_metric_capture("perf_flow_state"),
-            stop_metric_capture("perf_flow_state"))
+@with_setup(start_metric_capture_flow_state,
+            stop_metric_capture_flow_state)
 def perf_flowstate():
     """
     Title: Run a 1 hour workload that generates a lot of flow state
