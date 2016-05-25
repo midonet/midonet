@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a5e361d8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-25T10:55:05Z",
+      "side": 1,
+      "message": "call this legacy to indicate that this code is only here for BC.",
+      "range": {
+        "startLine": 396,
+        "startChar": 12,
+        "endLine": 396,
+        "endChar": 27
+      },
+      "revId": "b57fca87b786c422e8151bf6f3ee9ad0dbe68945",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_05db2d1c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-25T10:55:05Z",
+      "side": 1,
+      "message": "to deal with reuse, maybe we should use the next clear bit after the highest used bit, modulo 1024 or something.\n\nthe reuse could also be a problem on agent reboot.",
+      "range": {
+        "startLine": 292,
+        "startChar": 40,
+        "endLine": 292,
+        "endChar": 52
+      },
+      "revId": "b57fca87b786c422e8151bf6f3ee9ad0dbe68945",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
