@@ -33,9 +33,10 @@ public class TestIPv4Subnet {
         IPv4Subnet testObject = IPv4Subnet.fromCidr(input);
 
         // toString simply re-constructs the original format
-        Assert.assertEquals(input, testObject.toString());
-        Assert.assertEquals(expected[0], testObject.getAddress().toString());
-        Assert.assertEquals(expected[1],
+        Assert.assertEquals(input.trim(), testObject.toString());
+        Assert.assertEquals(expected[0].trim(),
+                testObject.getAddress().toString());
+        Assert.assertEquals(expected[1].trim(),
                 Integer.toString(testObject.getPrefixLen()));
     }
 
@@ -86,7 +87,10 @@ public class TestIPv4Subnet {
                 $("10.10.10.10/32"),
                 $("255.255.255.255/0"),
                 $("255.255.255.255/16"),
-                $("255.255.255.255/32")
+                $("255.255.255.255/32"),
+                $("  0.0.0.0/0"),
+                $("0.0.0.0/0  "),
+                $("  0.0.0.0/0  ")
         );
     }
 

@@ -317,7 +317,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         }
 
         public Opt121(String rtDstSubnet, String gateway) {
-            this.rtDstSubnet = IPv4Subnet.fromString(rtDstSubnet, "/");
+            this.rtDstSubnet = IPv4Subnet.fromCidr(rtDstSubnet);
             this.gateway = IPv4Addr.fromString(gateway);
         }
 
