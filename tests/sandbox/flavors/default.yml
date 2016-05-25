@@ -140,6 +140,8 @@ quagga:
   - BGP0_IFACE=bgp0
   # Edge2 interface peering midolman2, 10.2.0.240/24
   - BGP1_IFACE=bgp1
+  # Set as passive speaker
+  - BGP_PASSIVE_SPEAKER=yes
   links:
   - "midolman1:midolman1"
   - "midolman2:midolman2"
