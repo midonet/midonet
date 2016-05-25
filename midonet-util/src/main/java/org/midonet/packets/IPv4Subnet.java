@@ -74,8 +74,8 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
         return fromString(zkCidr, "_");
     }
 
-    public static IPv4Subnet fromString(String cidr, String delim) {
-        String[] parts = cidr.split(delim);
+    private static IPv4Subnet fromString(String cidr, String delim) {
+        String[] parts = cidr.trim().split(delim);
         int prefixLen = parts.length == 1 ? 32 : Integer.parseInt(parts[1]);
         return new IPv4Subnet(IPv4Addr.fromString(parts[0]), prefixLen);
     }
@@ -132,7 +132,7 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
      * @return True if CIDR is valid
      */
     public static boolean isValidIpv4Cidr(String cidr) {
-        return cidr != null && ipv4CidrPattern.matcher(cidr).matches();
+        return cidr != null && ipv4CidrPattern.matcher(cidr.trim()).matches();
     }
 
     public static boolean addrMatch(int ip1, int ip2, int prefixLen) {
