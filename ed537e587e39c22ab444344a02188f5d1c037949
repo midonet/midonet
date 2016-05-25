@@ -22,6 +22,30 @@
       "revId": "ed537e587e39c22ab444344a02188f5d1c037949",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c561c5aa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/tools/MmCtl.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1007357
+      },
+      "writtenOn": "2016-05-25T08:42:03Z",
+      "side": 1,
+      "message": "From what I understand, you can add a @Nullable annotation to the parameter that will receive the null value, so Guice won\u0027t complain. Right? (for instance, in the MidonetBackendService constructor, the reflections constructor parameter has this annotation).",
+      "parentUuid": "baa041b7_65cc39bb",
+      "range": {
+        "startLine": 191,
+        "startChar": 12,
+        "endLine": 191,
+        "endChar": 55
+      },
+      "revId": "ed537e587e39c22ab444344a02188f5d1c037949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
