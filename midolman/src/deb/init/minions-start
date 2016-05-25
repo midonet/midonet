@@ -26,7 +26,7 @@ if [ -z "$MIDO_CFG" ]; then
 fi
 
 if [ -z "$MIDO_LOG_DIR" ]; then
-    MIDO_LOG_DIR=/var/log/midolman/minions
+    MIDO_LOG_DIR=/var/log/midolman/
 fi
 
 if [ -z "$MIDO_JMX_PORT" ]; then
