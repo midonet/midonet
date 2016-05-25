@@ -21,7 +21,9 @@ import java.util.UUID
 import scala.concurrent.duration._
 import scala.util.Random
 
-import org.scalatest.{FlatSpec, Matchers, GivenWhenThen}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
 import rx.Observable
 import rx.observers.TestObserver
@@ -32,12 +34,13 @@ import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend.RoutesKey
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.{MidonetBackendTest, ParentDeletedException, CuratorTestFramework}
+import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.util.reactivex._
 
+@RunWith(classOf[JUnitRunner])
 class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
                                       with Matchers with GivenWhenThen
                                       with TopologyBuilder {
@@ -123,7 +126,7 @@ class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
         obs.getOnNextEvents.get(4) shouldBe Set()
     }
 
-    "Store observable" should "emit error on port deletion" in {
+    "Store observable" should "complete on port deletion" in {
         val port = createRouterPort()
         storage.create(port)
 
@@ -137,8 +140,7 @@ class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
         storage.delete(classOf[Port], port.getId)
 
         obs.awaitCompletion(timeout)
-        obs.getOnCompletedEvents shouldBe empty
-        obs.getOnErrorEvents should have size 1
-        obs.getOnErrorEvents.get(0).getClass shouldBe classOf[ParentDeletedException]
+        obs.getOnCompletedEvents should have size 1
+        obs.getOnErrorEvents shouldBe empty
     }
 }
