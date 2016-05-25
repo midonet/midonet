@@ -168,6 +168,8 @@ quagga1:
   - BGP2_IFACE=bgp2
   # AS number
   - BGP_AS=64511
+  # Set as passive speaker
+  - BGP_PASSIVE_SPEAKER=yes
   links:
   - "midolman1:bgppeer1"
   - "midolman2:bgppeer2"
@@ -193,6 +195,8 @@ quagga2:
   - BGP2_IFACE=bgp2
   # AS number
   - BGP_AS=64512
+  # Set as passive speaker
+  - BGP_PASSIVE_SPEAKER=yes
   links:
   - "midolman1:bgppeer1"
   - "midolman2:bgppeer2"
