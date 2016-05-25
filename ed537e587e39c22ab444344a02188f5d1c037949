@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_65cc39bb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/tools/MmCtl.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-25T08:00:39Z",
+      "side": 1,
+      "message": "I don\u0027t think Guice allows this, this is the error I got\n\nException encountered when invoking run on a nested suite - Guice creation errors:\n\n1) Binding to null instances is not allowed.",
+      "range": {
+        "startLine": 191,
+        "startChar": 12,
+        "endLine": 191,
+        "endChar": 55
+      },
+      "revId": "ed537e587e39c22ab444344a02188f5d1c037949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
