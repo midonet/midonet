@@ -140,20 +140,51 @@ binding_multihost = {
     ]
 }
 
-def start_metric_capture():
+
+def start_jfr(hostname, filename):
+    agent = service.get_container_by_hostname(hostname)
+    pid = agent.exec_command("pgrep -f Midolman")
+    output, exec_id = agent.exec_command(
+        "jcmd %s JFR.start duration=0s "
+        "filename=/tmp/jfr/%s.%s.jfr dumponexit=true "
+        "name=%s" % (pid, hostname, filename, filename), stream=True)
+    exit_code = agent.check_exit_status(exec_id, output, timeout=60)
+    if exit_code != 0:
+        raise RuntimeError("Failed to start Java Flight Recorder for "
+                           "'%s'" % (hostname))
+
+
+def stop_jfr(hostname, filename):
+    agent = service.get_container_by_hostname(hostname)
+    pid = agent.exec_command("pgrep -f Midolman")
+    output, exec_id = agent.exec_command(
+        "jcmd %s JFR.stop name=%s" % (pid, filename), stream=True)
+    exit_code = agent.check_exit_status(exec_id, output, timeout=60)
+    if exit_code != 0:
+        raise RuntimeError("Failed to stop Java Flight Recorder for "
+                           "'%s'" % (hostname))
+
+
+def start_metric_capture(name):
     service.get_container_by_hostname('jmxtrans')\
            .start_monitoring_hosts("perf_flow_state",
                                    ["midolman1", "midolman2"])
+    start_jfr('midolman1', name)
+    start_jfr('midolman2', name)
 
-def stop_metric_capture():
+
+def stop_metric_capture(name):
     service.get_container_by_hostname('jmxtrans')\
            .stop_monitoring_hosts("perf_flow_state")
+    stop_jfr('midolman1', name)
+    stop_jfr('midolman2', name)
 
 
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_multihost,
           binding_manager=BM)
-@with_setup(start_metric_capture, stop_metric_capture)
+@with_setup(start_metric_capture("perf_flow_state"),
+            stop_metric_capture("perf_flow_state"))
 def perf_flowstate():
     """
     Title: Run a 1 hour workload that generates a lot of flow state

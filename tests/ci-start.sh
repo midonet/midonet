@@ -23,6 +23,10 @@ while getopts ":f:o:p:h" opt; do
     esac
 done
 
+# echo network address to make it easy to find the jenkins machine
+# the job is working on
+ip address
+
 # WARNING: this script is meant to be used on the CI, as it pulls images from
 # the CI infrastructure (artifactory)
 
