@@ -51,8 +51,8 @@ class LinkOpsTest extends FeatureSpec with BeforeAndAfterAll with ShouldMatchers
             dev.mac should be (devMac)
             peer.mac should be (peerMac)
 
-            LinkOps.setAddress(dev, IPv4Subnet.fromString("10.0.0.1/24", "/"))
-            LinkOps.setAddress(peer, IPv4Subnet.fromString("10.0.0.2/24", "/"))
+            LinkOps.setAddress(dev, IPv4Subnet.fromCidr("10.0.0.1/24"))
+            LinkOps.setAddress(peer, IPv4Subnet.fromCidr("10.0.0.2/24"))
 
             LinkOps.deleteLink(dev)
         }
