@@ -28,7 +28,7 @@ import rx.subjects.{PublishSubject, Subject}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, L2Insertion}
-import org.midonet.cluster.services.MidonetBackend.ActiveKey
+import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc4}
 
@@ -65,7 +65,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private var prevAdminStateUp: Boolean = false
     private var prevActive: Boolean = false
 
-    private val portStateSubject = PublishSubject.create[String]
+    private val portStateSubject = PublishSubject.create[UUID]
     private var portStateReady = false
 
     private val chainsTracker = new ObjectReferenceTracker[Chain](vt, log)
@@ -75,9 +75,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private var peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty
 
     private lazy val combinator =
-        makeFunc4[Boolean, Option[UUID], JList[UUID],
+        makeFunc4[PortState, Option[UUID], JList[UUID],
                   TopologyPort, SimulationPort](
-            (active: Boolean, traceChain: Option[UUID],
+            (state: PortState, traceChain: Option[UUID],
              servicePorts: JList[UUID], port: TopologyPort) => {
 
                 val infilters = new JArrayList[UUID](1)
@@ -95,18 +95,18 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                 if (port.hasL2InsertionOutfilterId) {
                     outfilters.add(port.getL2InsertionOutfilterId)
                 }
+                val portState = if (portStateReady) state else PortInactive
 
-                SimulationPort(port, infilters, outfilters, servicePorts, peeringTable)
-                    .toggleActive(active && portStateReady)
+                SimulationPort(port, portState, infilters, outfilters, servicePorts,
+                               peeringTable)
             })
 
     private lazy val portObservable = Observable
-        .combineLatest[Boolean, Option[UUID], JList[UUID],
+        .combineLatest[PortState, Option[UUID], JList[UUID],
                        TopologyPort, SimulationPort](
-            vt.stateStore.keyObservable(portStateSubject, classOf[TopologyPort],
-                                        id, ActiveKey)
+            vt.stateStore.portStateObservable(id, portStateSubject)
                 .observeOn(vt.vtScheduler)
-                .map[Boolean](makeFunc1(v => { portStateReady = true; v.nonEmpty }))
+                .doOnNext(makeAction1(_ => portStateReady = true))
                 .onErrorResumeNext(Observable.empty()),
             Observable.merge(traceChainObservable, Observable.just(None)),
             Observable.merge(Observable.just(new JArrayList[UUID](0)),
@@ -144,7 +144,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         if ((currentPort eq null) || (currentPort.hostId != hostId)) {
             log.debug("Monitoring port state for host: {}", hostId)
             portStateReady = false
-            portStateSubject onNext hostId.asNullableString
+            portStateSubject onNext hostId
         }
 
         if (port.hasVni && (peeringTable eq StateTable.empty)) {
