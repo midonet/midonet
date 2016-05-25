@@ -155,6 +155,8 @@ quagga0:
   - BGP_AS=64510
   # Advertise "inet" network
   - ADVERTISED_NETWORK=1.1.1.1/32
+  # Disable retransmit (advertise learned routes)
+  - BGP_ONLY_ADVERTISE_LOCAL=yes
 
 quagga1:
   extends:
@@ -177,6 +179,8 @@ quagga1:
   - BGP2_IFACE=bgp2
   # AS number
   - BGP_AS=64511
+  # Set as passive speaker
+  - BGP_PASSIVE_SPEAKER=yes
   links:
   - "midolman1:bgppeer1"
   - "midolman2:bgppeer2"
@@ -202,6 +206,8 @@ quagga2:
   - BGP2_IFACE=bgp2
   # AS number
   - BGP_AS=64512
+  # Set as passive speaker
+  - BGP_PASSIVE_SPEAKER=yes
   links:
   - "midolman1:bgppeer1"
   - "midolman2:bgppeer2"
