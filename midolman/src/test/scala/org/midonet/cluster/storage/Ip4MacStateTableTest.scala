@@ -258,7 +258,7 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         // TODO: does not change.
 
         When("Deleting the first IP-MAC pair")
-        table.removePersistent(ip1, mac1) shouldBe mac1
+        table.removePersistent(ip1, mac1) shouldBe true
 
         Then("The observer should receive the update")
         obs.awaitOnNext(2, timeout)
