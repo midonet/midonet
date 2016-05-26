@@ -75,7 +75,7 @@ public class ZkDirectory implements Directory {
     public void ensureHas(String relativePath, byte[] data)
             throws KeeperException, InterruptedException {
         try {
-            if (!this.has(relativePath)) {
+            if (!this.exists(relativePath)) {
                 this.add(relativePath, data, CreateMode.PERSISTENT);
             }
         } catch (KeeperException.NodeExistsException e) { /* node was there */ }
@@ -260,7 +260,7 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-    public boolean has(String relativePath) throws KeeperException,
+    public boolean exists(String relativePath) throws KeeperException,
                                                    InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         return zk.getZooKeeper().exists(absPath, null) != null;

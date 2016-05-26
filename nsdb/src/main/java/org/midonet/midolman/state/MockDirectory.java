@@ -332,7 +332,7 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public boolean has(String path) {
+    public boolean exists(String path) {
         PathUtils.validatePath(path);
         try {
             getNode(path);

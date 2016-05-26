@@ -61,7 +61,7 @@ object MacPortMap {
         }
 
     def hasPersistentEntry(dir: Directory, key: MAC, value: UUID): Boolean
-    = ZKExceptions.adapt(dir.has(encodePersistentPath(key, value)))
+    = ZKExceptions.adapt(dir.exists(encodePersistentPath(key, value)))
 
     def addPersistentEntry(dir: Directory, key: MAC, value: UUID)
     = ZKExceptions.adapt(
