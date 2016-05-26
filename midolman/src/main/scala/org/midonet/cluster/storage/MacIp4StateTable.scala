@@ -138,8 +138,8 @@ final class MacIp4StateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def remove(k: MAC, v: IPv4Addr): IPv4Addr = {
-        map.removeIfOwnerAndValue(k, v)
+    override def remove(k: MAC, v: IPv4Addr): Boolean = {
+        map.removeIfOwnerAndValue(k, v) ne null
     }
 
     /**
@@ -147,8 +147,8 @@ final class MacIp4StateTable(directory: Directory,
       * is synchronous.
       */
     @throws[StateAccessException]
-    def removePersistent(k: MAC, v: IPv4Addr): IPv4Addr = {
-        MacToIp4ReplicatedMap.deleteEntry(directory, k, v)
+    def removePersistent(k: MAC, v: IPv4Addr): Boolean = {
+        MacToIp4ReplicatedMap.deleteEntry(directory, k, v) ne null
     }
 
     /**
