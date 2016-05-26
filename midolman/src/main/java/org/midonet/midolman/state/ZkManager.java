@@ -112,7 +112,7 @@ public class ZkManager {
 
     public boolean exists(String path) throws StateAccessException {
         try {
-            return zk.has(path);
+            return zk.exists(path);
         } catch (Exception ex) {
             throw processException(
                     ex, "checking whether path " + path + " exists");

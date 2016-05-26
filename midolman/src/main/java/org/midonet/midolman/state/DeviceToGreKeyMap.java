@@ -46,7 +46,7 @@ public class DeviceToGreKeyMap {
     }
 
     public boolean exists(UUID deviceId) throws KeeperException, InterruptedException {
-        return dir.has("/" + deviceId.toString());
+        return dir.exists("/" + deviceId.toString());
     }
 
     public void setGreKey(UUID deviceId, int gre_key) throws IOException,
