@@ -43,7 +43,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
     @Inject
     HostZkManager hostZkManager;
 
-    private Set<String> cachedInterfaces = new HashSet<>();
+    private Map<String, Interface> cachedInterfaces = new HashMap<>();
 
     private long currentSessionId = -1L;
 
@@ -79,22 +79,25 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                                  Map<String, Interface> newMapByName) {
         try {
             Set<String> obsoleteInterfaces = new HashSet<>();
-            for (String cachedInterface : cachedInterfaces) {
+            for (Interface cachedInterface : cachedInterfaces.values()) {
                 // the interface disappeared from the new list
-                if (!newMapByName.containsKey(cachedInterface)) {
-                    obsoleteInterfaces.add(cachedInterface);
+                if (!newMapByName.containsKey(cachedInterface.getName())) {
+                    obsoleteInterfaces.add(cachedInterface.getName());
                 }
             }
 
             Set<Interface> updatedInterfaces = new HashSet<>();
             Set<Interface> createdInterfaces = new HashSet<>();
             for (Interface currentInterface : newMapByName.values()) {
-                if (cachedInterfaces.contains(currentInterface.getName())) {
-                    // The interface was already registered, update it.
-                    updatedInterfaces.add(currentInterface);
-                } else {
+
+                Interface cachedInterface =
+                    cachedInterfaces.get(currentInterface.getName());
+                if (cachedInterface == null) {
                     // It's a brand new interface, create it.
                     createdInterfaces.add(currentInterface);
+                } else if (!cachedInterface.equals(currentInterface)) {
+                    // The interface changed, update it.
+                    updatedInterfaces.add(currentInterface);
                 }
             }
 
@@ -114,7 +117,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                                                updatedInterfaces,
                                                obsoleteInterfaces);
             // Update cached interfaces if update operation was successful.
-            cachedInterfaces = newMapByName.keySet();
+            cachedInterfaces = newMapByName;
             // We don't update the session id here just in case it changed
             // after the last cache invalidation. If we did and the session
             // changed, we wouldn't be invalidating the interfaces from a

@@ -25,7 +25,6 @@ import java.util.UUID;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValueFactory;
-import scala.collection.JavaConversions;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -73,13 +72,13 @@ import static org.midonet.midolman.host.state.HostDirectory.Interface;
 
 public class DefaultInterfaceDataUpdaterTest {
 
-    InterfaceDataUpdater updater;
-    HostZkManager hostManager;
-    Directory directory;
-    ZkPathManager pathManager;
+    private InterfaceDataUpdater updater;
+    private HostZkManager hostManager;
+    private Directory directory;
+    private ZkPathManager pathManager;
 
-    UUID hostID;
-    HostDirectory.Metadata metadata;
+    private UUID hostID;
+    private HostDirectory.Metadata metadata;
 
     @Before
     public void setUp() throws Exception {
@@ -237,7 +236,7 @@ public class DefaultInterfaceDataUpdaterTest {
                     assertStoreDescriptions(first);
 
             assertThat(newBoundInterfaces.entrySet(),
-                    hasSize(boundInterfaces.size()));
+                       hasSize(boundInterfaces.size()));
             assertThat(newBoundInterfaces,
                        hasEntry(equalTo(name),
                                 HasPropertyWithValue.<Interface>hasProperty(
@@ -277,8 +276,7 @@ public class DefaultInterfaceDataUpdaterTest {
             interfaceNames.add(description.getName());
         }
 
-        Map<String, Interface> nameToHostInterfaceMap =
-            new HashMap<String, Interface>();
+        Map<String, Interface> nameToHostInterfaceMap = new HashMap<>();
 
         for (String interfaceName : interfaces) {
             Interface hostInterface =
