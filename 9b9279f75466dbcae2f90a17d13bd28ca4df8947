@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_946d29ce",
+        "filename": "midolman/pf9/mem_repo/config",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-26T15:53:42Z",
+      "side": 1,
+      "message": "will do.",
+      "parentUuid": "baa041b7_19b9542e",
+      "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f9b3504b",
         "filename": "midolman/src/rhel7/control/pf9postinst",
         "patchSetId": 6
@@ -30,6 +48,30 @@
       "writtenOn": "2016-05-26T11:36:22Z",
       "side": 1,
       "message": "what is this for? agent needs root",
+      "range": {
+        "startLine": 17,
+        "startChar": 6,
+        "endLine": 17,
+        "endChar": 14
+      },
+      "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_144b595a",
+        "filename": "midolman/src/rhel7/control/pf9postinst",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-26T15:53:42Z",
+      "side": 1,
+      "message": "nothing specifically (legacy from the current postinst script). Both systemd and upstart script does run midolman as root.",
+      "parentUuid": "baa041b7_f9b3504b",
       "range": {
         "startLine": 17,
         "startChar": 6,
@@ -58,6 +100,53 @@
         "startChar": 7,
         "endLine": 18,
         "endChar": 15
+      },
+      "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_34409d33",
+        "filename": "midolman/src/rhel7/control/pf9postinst",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-26T15:53:42Z",
+      "side": 1,
+      "message": "It should. But that\u0027s what the midolman postinst say. Do we have an issue if we change it? (thinking about upgrades)",
+      "parentUuid": "baa041b7_d9852c5a",
+      "range": {
+        "startLine": 18,
+        "startChar": 7,
+        "endLine": 18,
+        "endChar": 15
+      },
+      "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b47a6d86",
+        "filename": "midolman/src/rhel7/control/pf9postinst",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-26T15:53:42Z",
+      "side": 1,
+      "message": "This file is exactly the same as the \u0027postinst\u0027 file, just adding this sudoer file that is specific to platform9. I didn\u0027t found a good way in gradle to get a file and just add a few lines.",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 33
       },
       "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
