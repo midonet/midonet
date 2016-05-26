@@ -46,6 +46,30 @@
       "revId": "e957b762ea93de6da33856efd71459e80d16915f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d99e4cb8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-26T11:28:27Z",
+      "side": 1,
+      "message": "ah, no, transit it good then. I misunderstood their purpose.",
+      "parentUuid": "baa041b7_5ea7c2a9",
+      "range": {
+        "startLine": 7,
+        "startChar": 10,
+        "endLine": 7,
+        "endChar": 17
+      },
+      "revId": "e957b762ea93de6da33856efd71459e80d16915f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
