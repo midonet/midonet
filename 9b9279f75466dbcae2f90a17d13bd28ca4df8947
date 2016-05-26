@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_19b9542e",
+        "filename": "midolman/pf9/mem_repo/config",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-26T11:36:22Z",
+      "side": 1,
+      "message": "license",
+      "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f9b3504b",
+        "filename": "midolman/src/rhel7/control/pf9postinst",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-26T11:36:22Z",
+      "side": 1,
+      "message": "what is this for? agent needs root",
+      "range": {
+        "startLine": 17,
+        "startChar": 6,
+        "endLine": 17,
+        "endChar": 14
+      },
+      "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d9852c5a",
+        "filename": "midolman/src/rhel7/control/pf9postinst",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-26T11:36:22Z",
+      "side": 1,
+      "message": "shouldn\u0027t the group be midonet?",
+      "range": {
+        "startLine": 18,
+        "startChar": 7,
+        "endLine": 18,
+        "endChar": 15
+      },
+      "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
