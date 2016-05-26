@@ -46,6 +46,30 @@
       "revId": "ed537e587e39c22ab444344a02188f5d1c037949",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_de8bd21d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/tools/MmCtl.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-26T08:24:18Z",
+      "side": 1,
+      "message": "I don\u0027t know about that, but I installed openstack with your patch, and mm-ctl doesn\u0027t work:\n\n  sudo mm-ctl --bind-port 3153d52c-ed2e-43c4-bb16-788188ceb628 test\n  Exception in thread \"main\" com.google.inject.CreationException: Guice creation errors:\n\n1) Binding to null instances is not allowed. Use toProvider(Providers.of(null)) if this is your intended behaviour.\n  at org.midonet.midolman.tools.MmCtl$$anon$1.configure(MmCtl.scala:191)\n\n1 error\n\tat com.google.inject.internal.Errors.throwCreationExceptionIfErrorsExist(Errors.java:435)\n\tat com.google.inject.internal.InternalInjectorCreator.initializeStatically(InternalInjectorCreator.java:154)\n\tat com.google.inject.internal.InternalInjectorCreator.build(InternalInjectorCreator.java:106)\n\tat com.google.inject.Guice.createInjector(Guice.java:95)\n\tat com.google.inject.Guice.createInjector(Guice.java:72)\n\tat com.google.inject.Guice.createInjector(Guice.java:62)\n\tat org.midonet.midolman.tools.MmCtl$.getInjector(MmCtl.scala:198)\n\tat org.midonet.midolman.tools.MmCtl$.main(MmCtl.scala:245)\n\tat org.midonet.midolman.tools.MmCtl.main(MmCtl.scala)\n\n\nAnyway, it is strange to use Guice to bind a dependency to null. If you want to use Guice for this, I recommend to make the injection optional.",
+      "parentUuid": "baa041b7_c561c5aa",
+      "range": {
+        "startLine": 191,
+        "startChar": 12,
+        "endLine": 191,
+        "endChar": 55
+      },
+      "revId": "ed537e587e39c22ab444344a02188f5d1c037949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
