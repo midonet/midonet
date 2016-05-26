@@ -34,8 +34,8 @@ object StateTable {
         override def add(key: Any, value: Any): Unit = {}
         override def addPersistent(key: Any, value: Any): Unit = {}
         override def remove(key: Any): Any = null
-        override def remove(key: Any, value: Any): Any = null
-        override def removePersistent(key: Any, value: Any): Any = null
+        override def remove(key: Any, value: Any): Boolean = false
+        override def removePersistent(key: Any, value: Any): Boolean = false
         override def containsLocal(key: Any): Boolean = false
         override def containsLocal(key: Any, value: Any): Boolean = false
         override def containsRemote(key: Any): Boolean = false
@@ -61,66 +61,112 @@ object StateTable {
  */
 trait StateTable[K, V] {
 
-    /** Starts the synchronization of the state table. */
+    /**
+      * Starts the synchronization of the state table.
+      */
     def start(): Unit
 
-    /** Stops the synchronization of the state table. */
+    /**
+      * Stops the synchronization of the state table.
+      */
     def stop(): Unit
 
-    /** Adds an opinion key value pair to the state table. */
+    /**
+      * Adds a learned key value pair to the state table. The new value will
+      * overwrite a previous existing value and take precedence over persistent
+      * values.
+      */
     def add(key: K, value: V): Unit
 
-    /** Adds a persistent key value pair to the state table. */
+    /**
+      * Adds a persistent key value pair to the state table. If a learned value
+      * for the key already exists, the learned value will take precedence over
+      * the persistent one.
+      */
     def addPersistent(key: K, value: V): Unit
 
-    /** Removes the opinion for the specified key from the state table. */
+    /**
+      * Removes the value for the specified key from the state table, and it
+      * return the value if any, or `null` otherwise.
+      */
     def remove(key: K): V
 
-    /** Removes a key value pair from the state table. */
-    def remove(key: K, value: V): V
+    /**
+      * Removes a key value pair from the state table, and it returns `true`
+      * if the value existed.
+      */
+    def remove(key: K, value: V): Boolean
 
-    /** Removes a persistent key value pair from the state table. */
-    def removePersistent(key: K, value: V): V
+    /**
+      * Removes a persistent key value pair from the state table, and it returns
+      * `true` if the value existed.
+      */
+    def removePersistent(key: K, value: V): Boolean
 
-    /** Returns whether the cached version of the table contains a value for the
-      * specified key, either learned or persistent. */
+    /**
+      * Returns whether the cached version of the table contains a value for the
+      * specified key, either learned or persistent.
+      */
     def containsLocal(key: K): Boolean
 
-    /** Returns whether the cached version of the table contains the key value
-      * pair, either learned or persistent. */
+    /**
+      * Returns whether the cached version of the table contains the key value
+      * pair, either learned or persistent.
+      */
     def containsLocal(key: K, value: V): Boolean
 
-    /** Returns whether the remote table contains a value for the specified key,
-      * either learned or persistent. */
+    /**
+      * Returns whether the remote table contains a value for the specified key,
+      * either learned or persistent.
+      */
     def containsRemote(key: K): Boolean
 
-    /** Returns whether the remote table contains a value for the specified key,
-      * either learned or persistent. */
+    /**
+      * Returns whether the remote table contains a value for the specified key,
+      * either learned or persistent.
+      */
     def containsRemote(key: K, value: V): Boolean
 
-    /** Returns whether the remote table contains the persistent key value pair. */
+    /**
+      * Returns whether the remote table contains the persistent key value pair.
+      */
     def containsPersistent(key: K, value: V): Boolean
 
-    /** Gets the local cached value for the specified key. */
+    /**
+      * Gets the local cached value for the specified key.
+      */
     def getLocal(key: K): V
 
-    /** Gets the remote value for the specified key. */
+    /**
+      * Gets the remote value for the specified key.
+      */
     def getRemote(key: K): V
 
-    /** Gets the local cached set of keys corresponding to the specified value. */
+    /**
+      * Gets the local cached set of keys corresponding to the specified value.
+      */
     def getLocalByValue(value: V): Set[K]
 
-    /** Gets the remote set of keys corresponding to the specified value. */
+    /**
+      * Gets the remote set of keys corresponding to the specified value.
+      */
     def getRemoteByValue(value: V): Set[K]
 
-    /** Gets a read-only snapshot for the current state table. */
+    /**
+      * Gets the local cached read-only snapshot for the current state table.
+      */
     def localSnapshot: Map[K, V]
 
-    /** Gets a read-only snapshot for the current state table. */
+    /**
+      * Gets the remote read-only snapshot for the current state table.
+      */
     def remoteSnapshot: Map[K, V]
 
-    /** Returns an observable that notifies the updates to the current state
-      * table. */
+    /**
+      * Returns an observable that notifies the updates to the current state
+      * table. When subscribed to the observable will start the synchronization
+      * of the state table, if not already started.
+      */
     def observable: Observable[Update[K, V]]
 
 }

@@ -45,8 +45,8 @@ object ZookeeperStateTableTest {
         override def add(key: Int, value: String): Unit = ???
         override def addPersistent(key: Int, value: String): Unit = ???
         override def remove(key: Int): String = ???
-        override def remove(key: Int, value: String): String = ???
-        override def removePersistent(key: Int, value: String): String = ???
+        override def remove(key: Int, value: String): Boolean = ???
+        override def removePersistent(key: Int, value: String): Boolean = ???
         override def containsLocal(key: Int): Boolean = ???
         override def containsLocal(key: Int, value: String): Boolean = ???
         override def containsRemote(key: Int): Boolean = ???
