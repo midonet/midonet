@@ -39,13 +39,13 @@ class ZookeeperLegacyStorage @Inject()(connectionWatcher: ZkConnectionAwareWatch
     override def logSource = "org.midonet.cluster.state"
 
     @throws[StateAccessException]
-    override def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short,
-                                ephemeral: Boolean): MacPortMap = {
+    override def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short)
+    : MacPortMap = {
         ensureBridgePaths(bridgeId)
         ensureBridgeVlanPaths(bridgeId, vlanId)
         val map = new MacPortMap(
-            zkManager.getSubDirectory(pathBuilder.getBridgeMacPortsPath(bridgeId, vlanId)),
-            ephemeral)
+            zkManager.getSubDirectory(
+                pathBuilder.getBridgeMacPortsPath(bridgeId, vlanId)))
         map.setConnectionWatcher(connectionWatcher)
         map
     }

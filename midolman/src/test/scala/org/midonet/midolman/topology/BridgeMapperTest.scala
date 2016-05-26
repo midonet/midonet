@@ -1491,7 +1491,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForPort(peerPortId2))
 
             Given("The MAC-port replicated map for the bridge")
-            val map = vt.state.bridgeMacTable(bridgeId, vlanId, ephemeral = true)
+            val map = vt.state.bridgeMacTable(bridgeId, vlanId)
             map.start()
 
             When("A first MAC is added to the MAC learning table")
