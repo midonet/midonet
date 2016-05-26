@@ -22,6 +22,30 @@
       "revId": "e957b762ea93de6da33856efd71459e80d16915f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5ea7c2a9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-26T08:34:46Z",
+      "side": 1,
+      "message": "I actually meant transit, meaning intermediate bgp speakers sitting between quagga0 (internet) and the midolman bgp daemon. Maybe no the best word :?",
+      "parentUuid": "baa041b7_48438cb2",
+      "range": {
+        "startLine": 7,
+        "startChar": 10,
+        "endLine": 7,
+        "endChar": 17
+      },
+      "revId": "e957b762ea93de6da33856efd71459e80d16915f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
