@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_14f119cd",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-26T17:16:21Z",
+      "side": 1,
+      "message": "processFlow",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 20
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_34e65d15",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-26T17:16:21Z",
+      "side": 1,
+      "message": "Not needed",
+      "range": {
+        "startLine": 31,
+        "startChar": 19,
+        "endLine": 31,
+        "endChar": 21
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b4d94d59",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-26T17:16:21Z",
+      "side": 1,
+      "message": "Nit: remove space.",
+      "range": {
+        "startLine": 35,
+        "startChar": 20,
+        "endLine": 35,
+        "endChar": 21
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_94b3e909",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-26T17:16:21Z",
+      "side": 1,
+      "message": "Remove parentheses",
+      "range": {
+        "startLine": 50,
+        "startChar": 15,
+        "endLine": 50,
+        "endChar": 17
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b4c02d51",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-26T17:16:21Z",
+      "side": 1,
+      "message": "Replace with cLib.isDefined",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 9
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f4eb55da",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-26T17:16:21Z",
+      "side": 1,
+      "message": "instance",
+      "range": {
+        "startLine": 65,
+        "startChar": 22,
+        "endLine": 65,
+        "endChar": 23
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
