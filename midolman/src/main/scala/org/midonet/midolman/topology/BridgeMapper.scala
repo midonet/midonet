@@ -119,8 +119,7 @@ object BridgeMapper {
                 subject.onNext(MacTableUpdate(vlanId, mac, oldPort, newPort))
             }
         }
-        private val map = vt.state.bridgeMacTable(bridgeId, vlanId,
-                                                  ephemeral = true)
+        private val map = vt.state.bridgeMacTable(bridgeId, vlanId)
 
         // Initialize the replicated map.
         map.addWatcher(watcher)
