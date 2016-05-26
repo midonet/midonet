@@ -95,11 +95,11 @@ public class TestMockDirectory {
         byte[] bytes = "pino".getBytes();
         dir.add(path, bytes, CreateMode.PERSISTENT);
         Assert.assertArrayEquals(bytes, dir.get(path, null));
-        Assert.assertTrue(dir.has(path));
-        Assert.assertFalse(dir.has("/anotherpath"));
-        Assert.assertFalse(dir.has("/some/other/path"));
+        Assert.assertTrue(dir.exists(path));
+        Assert.assertFalse(dir.exists("/anotherpath"));
+        Assert.assertFalse(dir.exists("/some/other/path"));
         dir.delete(path);
-        Assert.assertFalse(dir.has(path));
+        Assert.assertFalse(dir.exists(path));
     }
 
     private class MyRunnable implements Runnable {
@@ -269,8 +269,8 @@ public class TestMockDirectory {
         Assert.assertArrayEquals("abcd".getBytes(), subdir.get("/d", null));
         Assert.assertArrayEquals("abcdh".getBytes(), subdir.get("/d/h", null));
         subdir.delete("/d/h");
-        Assert.assertFalse(subdir.has("/d/h"));
-        Assert.assertFalse(dir.has("/a/b/c/d/h"));
+        Assert.assertFalse(subdir.exists("/d/h"));
+        Assert.assertFalse(dir.exists("/a/b/c/d/h"));
         Set<String> expectedChildren = new HashSet<String>();
         expectedChildren.add("d");
         expectedChildren.add("e");
