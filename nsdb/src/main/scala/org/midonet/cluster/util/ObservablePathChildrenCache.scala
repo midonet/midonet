@@ -35,10 +35,12 @@ import org.apache.zookeeper.Watcher.Event.EventType._
 import org.slf4j.LoggerFactory.getLogger
 import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
+import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
 import org.midonet.util.concurrent.Locks._
+import org.midonet.util.functors._
 
 object ObservablePathChildrenCache {
 
@@ -100,6 +102,12 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
 
     @volatile
     private var initialized = false
+
+    private val unsubscribeAction = makeAction0 {
+        if (!stream.hasObservers) {
+            close()
+        }
+    }
 
     // This listener monitors the PathChildrenCache itself, which reports on
     // events affecting children, as well as the zk connection.
@@ -223,6 +231,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
 
                 if (!isFailed) {
                     stream subscribe s
+                    s add Subscriptions.create(unsubscribeAction)
                 }
             }
         }
@@ -317,7 +326,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
       * loss. The parent and child observables will emit a
       * PathCacheDisconnectedException signalling that the observables are
       * no longer listening ZK updates. */
-    def close(): Unit = failWith(new PathCacheDisconnectedException())
+    def close(): Unit = failWith(new PathCacheClosedException())
 
     /** Expose the ChildData of the children under the given absolute path. */
     def child(path: String): ChildData = cache.getCurrentData(path)
@@ -346,6 +355,9 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
             children
         }
     }
+
+    /** Returns true if the underlying cache is connected to ZK. */
+    def isStarted = !isFailed
 
 }
 /**
@@ -377,11 +389,17 @@ class ObservablePathChildrenCache(onSubscribe: OnSubscribeToPathChildren)
 
     /** Returns a view of all children currently known to the cache */
     def allChildren: Seq[ChildData] = onSubscribe.allChildren
+
+    /** Returns true if the underlying cache is connected to ZK. */
+    def isStarted = onSubscribe.isStarted
 }
 
 /** Signals that the parent node has been deleted */
 class ParentDeletedException(path: String)
     extends RuntimeException(s"Parent $path removed")
+
+/** Signals that the underlying cache connection was closed. */
+class PathCacheClosedException extends RuntimeException
 
 /** Signals that the underlying cache has lost the connection to ZK. */
 class PathCacheDisconnectedException extends RuntimeException
