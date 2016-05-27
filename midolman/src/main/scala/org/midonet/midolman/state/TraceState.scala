@@ -89,12 +89,13 @@ object TraceState {
             this
         }
 
-        def clear(): Unit = {
+        def reset(): Unit = {
             _enabled = false
+            flowTraceId = UUIDs.timeBased()
             requests.clear()
         }
         def reset(other: TraceContext): Unit = {
-            clear()
+            reset()
             flowTraceId = other.flowTraceId
             _enabled = other._enabled
             requests.addAll(other.requests)
@@ -137,6 +138,11 @@ trait TraceState extends FlowState { this: PacketContext =>
     override def clear() {
         super.clear()
         traceContext.disable()
+    }
+
+    def resetTraceState(): Unit = {
+        traceTxReadOnly = null
+        traceContext.reset()
     }
 
     def prepareForSimulationWithTracing(): Unit = {

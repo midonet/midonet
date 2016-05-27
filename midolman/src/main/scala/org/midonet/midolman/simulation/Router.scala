@@ -404,8 +404,9 @@ class Router(override val id: UUID,
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
                     val egrMatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
-                    val egrPktContext = new PacketContext(0,
-                        new Packet(eth, egrMatch, eth.length), egrMatch, outPort.id)
+                    val egrPktContext = PacketContext.generated(
+                        0, new Packet(eth, egrMatch, eth.length),
+                        egrMatch, outPort.id)
                     egrPktContext.initialize(connTrackTxNoOp, natTxNoOp,
                                              NoOpNatLeaser, traceStateTxNoOp)
                     egrPktContext.outPortId = outPort.id

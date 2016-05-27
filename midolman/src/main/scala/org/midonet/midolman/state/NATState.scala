@@ -163,6 +163,11 @@ trait NatState extends FlowState { this: PacketContext =>
         natTx.flush()
     }
 
+    def resetNatState(): Unit = {
+        natTx = null
+        natLeaser = null
+    }
+
     def applyDnat(natTargets: Array[NatTarget]): Boolean =
         applyDnat(FWD_DNAT, natTargets)
 

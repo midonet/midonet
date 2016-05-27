@@ -52,6 +52,15 @@ trait StateContext extends Clearable
         this.traceTxReadOnly = traceTx
     }
 
+    def resetStateContext(): Unit = {
+        resetConnTrackState()
+        resetNatState()
+        resetTraceState()
+
+        this.stateMessageLength = 0
+        this.stateActions.clear()
+    }
+
     def containsFlowState =
         conntrackTx.size() > 0 || natTx.size() > 0 || tracingEnabled
 

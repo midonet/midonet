@@ -109,6 +109,13 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
         isConnectionTracked = false
     }
 
+    def resetConnTrackState(): Unit = {
+        this.conntrackTx = null
+        this.isConnectionTracked = false
+        this.flowDirection = null
+        this.connKey = null
+    }
+
     /*
      * NOTE: Flow tagging and conntrack.
      *
