@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1aa14346",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 3
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-27T08:53:40Z",
+      "side": 1,
+      "message": "Should this directorory to be renamed to a non-debian specific name? Maybe it does not worth it, but it may lead to confusion.",
+      "range": {
+        "startLine": 150,
+        "startChar": 18,
+        "endLine": 150,
+        "endChar": 21
+      },
+      "revId": "f21e7c2ec0b428ddbfe0300663f0f631d5c28927",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3a9e4707",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-27T08:53:40Z",
+      "side": 1,
+      "message": "where is this used? I see rhel7Prepare being used between preparePkg_rpm and rpm.dependsOn but for debian is missing",
+      "range": {
+        "startLine": 205,
+        "startChar": 5,
+        "endLine": 205,
+        "endChar": 18
+      },
+      "revId": "f21e7c2ec0b428ddbfe0300663f0f631d5c28927",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bafb7746",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 3
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-27T08:53:40Z",
+      "side": 1,
+      "message": "Repeated from line 244?",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 37
+      },
+      "revId": "f21e7c2ec0b428ddbfe0300663f0f631d5c28927",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
