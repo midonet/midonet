@@ -180,8 +180,10 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
                 s"$zkRoot/zoom/$version/tables/PojoBridge/$id/name/0/1"
 
             And("The legacy paths are correct for a network")
-            storage.legacyTableRootPath(classOf[Network], id, "ip4_mac_table") shouldBe
-                Some(s"$zkRoot/bridges/$id/ip4_mac_map")
+            storage.legacyTablePath(classOf[Network], id, "mac_table") shouldBe
+                Some(s"$zkRoot/bridges/$id/mac_ports")
+            storage.legacyTablePath(classOf[Network], id, "mac_table", 1) shouldBe
+                Some(s"$zkRoot/bridges/$id/vlans/1/mac_ports")
             storage.legacyTablePath(classOf[Network], id, "ip4_mac_table") shouldBe
                 Some(s"$zkRoot/bridges/$id/ip4_mac_map")
         }

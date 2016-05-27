@@ -17,12 +17,14 @@
 package org.midonet.cluster.storage
 
 import java.lang.reflect.{Field, Modifier}
+import java.util.UUID
 
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
+
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.ClientCnxn
@@ -73,6 +75,9 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
                 // Setup state tables (note: we do this here because the tables
                 // backed by the replicated maps are not available to the nsdb
                 // module).
+                storage.registerTable(classOf[Network], classOf[MAC],
+                                      classOf[UUID], MidonetBackend.MacTable,
+                                      classOf[MacIdStateTable])
                 storage.registerTable(classOf[Network], classOf[IPv4Addr],
                                       classOf[MAC], MidonetBackend.Ip4MacTable,
                                       classOf[Ip4MacStateTable])
