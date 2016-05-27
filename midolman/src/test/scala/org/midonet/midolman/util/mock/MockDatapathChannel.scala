@@ -33,6 +33,7 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null)
     var flowCreateCb: Flow => Unit = _
 
     val packetsSent = new ArrayList[Packet]()
+    val contextsSeen = new ArrayList[PacketContext]()
 
     def packetsExecuteSubscribe(cb: (Packet, JList[FlowAction]) => Unit): Unit =
         packetExecCb = cb
@@ -44,6 +45,8 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null)
         flowCreateCb = cb
 
     override def handoff(context: PacketContext): Long = {
+        contextsSeen.add(context)
+
         if (!context.packetActions.isEmpty) {
             packetsSent.add(context.packet)
             if (context.stateMessageLength > 0) {

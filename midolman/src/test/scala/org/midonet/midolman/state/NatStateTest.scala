@@ -56,7 +56,7 @@ class NatStateTest extends MidolmanSpec {
 
     def context(eth: Ethernet = tcpPacket) = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
-        val ctx = new PacketContext(1, new Packet(eth, fmatch), fmatch)
+        val ctx = PacketContext.generated(1, new Packet(eth, fmatch), fmatch)
         ctx.currentDevice = deviceId
         ctx.initialize(new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null),
                        natTx,

@@ -186,7 +186,7 @@ class FlowRecorderTest extends MidolmanSpec {
             { icmp.unreach.host }
         val wcmatch = new FlowMatch(FlowKeys.fromEthernetPacket(ethernet))
         val packet = new Packet(ethernet, wcmatch)
-        val ctx = new PacketContext(0, packet, wcmatch)
+        val ctx = PacketContext.generated(0, packet, wcmatch)
         ctx.inPortId = UUID.randomUUID
 
         for (i <- 1.until(5)) {

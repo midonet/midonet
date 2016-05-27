@@ -60,7 +60,7 @@ class ConntrackStateTest extends MidolmanSpec {
 
     def context(eth: Ethernet = ping, egressPort: UUID = null) = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
-        val ctx = new PacketContext(1, new Packet(eth, fmatch), fmatch, egressPort)
+        val ctx = PacketContext.generated(1, new Packet(eth, fmatch), fmatch, egressPort)
         ctx.initialize(connTrackTx,
                        new FlowStateTransaction[NatKey, NatBinding](null),
                        HappyGoLuckyLeaser,
