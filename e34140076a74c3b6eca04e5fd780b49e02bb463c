@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_80660428",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-27T15:57:16Z",
+      "side": 1,
+      "message": "You also need to delete flows",
+      "revId": "e34140076a74c3b6eca04e5fd780b49e02bb463c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_206f38fd",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-27T15:57:16Z",
+      "side": 1,
+      "message": "make the w capital.",
+      "range": {
+        "startLine": 33,
+        "startChar": 9,
+        "endLine": 33,
+        "endChar": 10
+      },
+      "revId": "e34140076a74c3b6eca04e5fd780b49e02bb463c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c0576c24",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-27T15:57:16Z",
+      "side": 1,
+      "message": "Instead of doing a match every time, define an trait.\ntrait Writer {\n    def write(src: ByteBuffer): Unit\n}\n\ncreate SixWindWriterFactory with a factory function that creates the writer. If you can load the shared library, return the writer that does what this method does. Otherwise return a Null writer where write is implemented as {}\n\nThere\u0027s no need to return an Int, since these writes should be fire and forget.",
+      "range": {
+        "startLine": 83,
+        "startChar": 4,
+        "endLine": 93,
+        "endChar": 9
+      },
+      "revId": "e34140076a74c3b6eca04e5fd780b49e02bb463c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
