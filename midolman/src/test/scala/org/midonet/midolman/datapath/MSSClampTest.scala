@@ -152,7 +152,7 @@ class MSSClampTest extends FlatSpec with Matchers {
     private def makeCtx(bldr: PacketBuilder[Ethernet],
                         setInputPort: Boolean = true): PacketContext = {
         val pkt = new Packet(bldr.packet, new FlowMatch())
-        val ctx = new PacketContext(cookie, pkt, pkt.getMatch)
+        val ctx = PacketContext.generated(cookie, pkt, pkt.getMatch)
         cookie += 1
         if (setInputPort)
             ctx.inputPort = UUID.randomUUID()

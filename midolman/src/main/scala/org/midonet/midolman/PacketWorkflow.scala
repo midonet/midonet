@@ -18,6 +18,7 @@ package org.midonet.midolman
 
 import java.lang.{Integer => JInteger}
 import java.util.UUID
+import java.util.ArrayDeque
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -195,9 +196,13 @@ class PacketWorkflow(
     implicit val system = this.context.system
 
     protected val simulationExpireMillis = 5000L
+    private val maxPooledContexts = config.maxPooledContexts
 
     private val waitingRoom = new WaitingRoom[PacketContext](
                                         (simulationExpireMillis millis).toNanos)
+
+    private val contextPool = new ArrayDeque[PacketContext](maxPooledContexts)
+    private val processingRoom = new ArrayDeque[PacketContext]()
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
@@ -292,6 +297,7 @@ class PacketWorkflow(
         traceStateTable.expireIdleEntries()
         arpBroker.process()
         waitingRoom.doExpirations(giveUpWorkflow)
+        checkProcessedContexts()
     }
 
     protected def packetContext(packet: Packet): PacketContext =
@@ -311,14 +317,41 @@ class PacketWorkflow(
 
     private def initialize(cookie: Long, packet: Packet, fmatch: FlowMatch,
                            egressPortId: UUID, egressPortNo: JInteger) = {
-        log.debug(s"Creating new PacketContext for cookie $cookie")
-        val context = new PacketContext(cookie, packet, fmatch,
-                                        egressPortId, egressPortNo)
-        context.reset(backChannel, arpBroker)
+        log.debug(s"Building PacketContext for cookie $cookie")
+        val context = if (contextPool.peek() != null) {
+            log.debug("Taking context from pool")
+            metrics.contextsPooled.dec()
+            contextPool.remove()
+        } else {
+            log.debug(s"Allocating new context")
+            metrics.contextsAllocated.inc()
+            new PacketContext()
+        }
+        context.prepare(cookie, packet, fmatch,
+                        egressPortId, egressPortNo,
+                        backChannel, arpBroker)
         context.initialize(connTrackTx, natTx, natLeaser, traceStateTx)
         context.log = PacketTracing.loggerFor(fmatch)
         context
     }
+
+    private def returnContext(context: PacketContext): Unit =
+        if (contextPool.size() < maxPooledContexts &&
+                contextPool.offerLast(context)) {
+            log.debug("Returned context to pool")
+            metrics.contextsPooled.inc()
+        } else {
+            log.debug("Pool full, allowing context to be garbage collected")
+        }
+
+    private def checkProcessedContexts(): Unit =
+        while (processingRoom.peek() != null &&
+                   processingRoom.peek().isProcessed) {
+            metrics.contextsBeingProcessed.dec()
+            val context = processingRoom.remove()
+            context.resetContext()
+            returnContext(context)
+        }
 
     /**
      * Deal with an incomplete workflow that could not complete because it found
@@ -364,6 +397,8 @@ class PacketWorkflow(
                 context.log.debug("Dropping packet")
                 addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
                 handoff(context)
+            } else {
+                returnContext(context)
             }
         } catch { case NonFatal(e) =>
             context.log.error("Failed to install drop flow", e)
@@ -399,6 +434,8 @@ class PacketWorkflow(
         if (context.flow ne null) {
             context.flow.assignSequence(seq)
         }
+        metrics.contextsBeingProcessed.inc()
+        processingRoom.offerLast(context)
     }
 
     /**
