@@ -16,25 +16,23 @@
 package org.midonet.services.flowstate
 
 
-import java.net.{BindException, DatagramSocket}
+import java.net.{BindException, DatagramSocket, ServerSocket}
 import java.util.concurrent.{ExecutorService, TimeUnit}
-import java.util.{UUID}
+import java.util.UUID
 
-import com.datastax.driver.core.Session
 import com.typesafe.config.ConfigFactory
-
 import org.apache.curator.framework.CuratorFramework
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
 import org.mockito.Mockito.{mock, times, verify}
 import org.mockito.{Matchers => mockito}
 import org.scalatest.junit.JUnitRunner
-
 import org.midonet.cluster.storage.FlowStateStorageWriter
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.CuratorTestFramework
-import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.config.{FlowStateConfig, MidolmanConfig}
 import org.midonet.minion.Context
+import org.midonet.services.flowstate.handlers.FlowStateInternalMessageHandler
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 
 @RunWith(classOf[JUnitRunner])
@@ -51,29 +49,35 @@ class FlowStateServiceTest extends FlowStateBaseTest
         extends FlowStateService(nodeContext: Context, curator: CuratorFramework,
                                  executor: ExecutorService, config: MidolmanConfig) {
 
-        override def startServerFrontEnd() = {
-            port shouldBe 1234
-            super.startServerFrontEnd()
+        override def startServerFrontEnds() = {
+            udpPort shouldBe 1234
+            tcpPort shouldBe 4231
+            super.startServerFrontEnds()
         }
 
-        def getCassandraSession = cassandraSession
-
-        def getMessageHandler = messageHandler
-
+        def getUdpMessageHandler = internalMessageHandler
+        def getTcpMessageHandler = remoteMessageHandler
     }
 
     /** Mocked message handler, allows mocking the flow state storage interface */
-    private class TestableStorageHandler(session: Session)
-        extends FlowStateMessageHandler(session) {
+    private class TestableStorageHandler(config: FlowStateConfig)
+        extends FlowStateInternalMessageHandler(null, null, config) {
 
-        private var storage: FlowStateStorageWriter = _
+        private var legacyStorage: FlowStateStorageWriter = _
+        private var localStorageProvider: FlowStateStorageProvider = _
 
         def getStorageProvider = storageProvider
 
-        override def getStorage = {
-            if (storage eq null)
-                storage = mock(classOf[FlowStateStorageWriter])
-            storage
+        override def getLegacyStorage = {
+            if (legacyStorage eq null)
+                legacyStorage = mock(classOf[FlowStateStorageWriter])
+            legacyStorage
+        }
+
+        override def getLocalStateStorage = {
+            if (localStorageProvider eq null)
+                localStorageProvider = mock(classOf[FlowStateStorageProvider])
+            localStorageProvider
         }
     }
 
@@ -84,7 +88,10 @@ class FlowStateServiceTest extends FlowStateBaseTest
             s"""
                |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
                |agent.minions.flow_state.enabled : true
-               |agent.minions.flow_state.port : 1234
+               |agent.minions.flow_state.legacy_push_state : true
+               |agent.minions.flow_state.legacy_read_state : true
+               |agent.minions.flow_state.udp_port : 1234
+               |agent.minions.flow_state.tcp_port : 4321
                |cassandra.servers : "127.0.0.1:9142"
                |cassandra.cluster : "midonet"
                |cassandra.replication_factor : 1
@@ -101,15 +108,15 @@ class FlowStateServiceTest extends FlowStateBaseTest
                 context, curator, executor, midolmanConfig)
             service.startAsync().awaitRunning(60, TimeUnit.SECONDS)
 
-            val handler = service.getMessageHandler
+            val handler = service.getUdpMessageHandler
             And("Two threads that share the handler")
             class HandlingThread extends Thread {
                 @volatile var storage: FlowStateStorageWriter = _
                 @volatile var second_storage: FlowStateStorageWriter = _
 
                 override def run: Unit = {
-                    storage = handler.getStorage
-                    second_storage = handler.getStorage
+                    storage = handler.getLegacyStorage
+                    second_storage = handler.getLegacyStorage
                 }
             }
             val executor1 = new HandlingThread()
@@ -142,16 +149,24 @@ class FlowStateServiceTest extends FlowStateBaseTest
                 context, curator, executor, midolmanConfig)
             service.startAsync().awaitRunning(60, TimeUnit.SECONDS)
 
-            Then("The socket is bound on configured port")
+            Then("The udp socket is bound on configured port")
             intercept[BindException] {
-                new DatagramSocket(midolmanConfig.flowState.port)
+                new DatagramSocket(midolmanConfig.flowState.udpPort)
+            }
+
+            Then("The tcp socket is bound on configured port")
+            intercept[BindException] {
+                new ServerSocket(midolmanConfig.flowState.tcpPort)
             }
 
             When("The service is stopped")
             service.stopAsync().awaitTerminated(10, TimeUnit.SECONDS)
 
-            Then("The port is unbound")
-            new DatagramSocket(midolmanConfig.flowState.port).close()
+            Then("The udp port is unbound")
+            new DatagramSocket(midolmanConfig.flowState.udpPort).close()
+
+            Then("The tcp port is unbound")
+            new ServerSocket(midolmanConfig.flowState.tcpPort).close()
         }
 
         scenario("Service is enabled in the default configuration schema") {
@@ -168,7 +183,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
     feature("Message handling") {
         scenario("Service handle calls storage with a valid message") {
             Given("A flow state message handler and a valid message")
-            val handler = new TestableStorageHandler(null)
+            val handler = new TestableStorageHandler(midolmanConfig.flowState)
             val (datagram, protos, _) = validFlowStateMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
                 numConntracks = 1, numNats = 1)
@@ -176,21 +191,25 @@ class FlowStateServiceTest extends FlowStateBaseTest
             When("The message is handled")
             handler.channelRead0(null, datagram)
 
-            Then("The received message by the handler is sent to storage")
-            val mockedStorage = handler.getStorage
-            verify(mockedStorage, times(1)).touchConnTrackKey(
+            Then("The message received by the handler is sent to legacy storage")
+            val mockedLegacyStorage = handler.getLegacyStorage
+            verify(mockedLegacyStorage, times(1)).touchConnTrackKey(
                 mockito.eq(protos.conntrackKeys.head),
                 mockito.eq(protos.ingressPort), mockito.any())
-            verify(mockedStorage, times(1)).touchNatKey(
+            verify(mockedLegacyStorage, times(1)).touchNatKey(
                 mockito.eq(protos.natKeys.head._1),
                 mockito.eq(protos.natKeys.head._2),
                 mockito.eq(protos.ingressPort), mockito.any())
-            verify(mockedStorage, times(1)).submit()
+            verify(mockedLegacyStorage, times(1)).submit()
+
+            Then("The message received by the handler is saved in local storage")
+            val mockedLocalStorage = handler.getLocalStateStorage
+            verify(mockedLocalStorage, times(1)).get(mockito.any())
         }
 
         scenario("Service handle calls storage with trace keys") {
             Given("A flow state handler and a message with trace keys")
-            val handler = new TestableStorageHandler(null)
+            val handler = new TestableStorageHandler(midolmanConfig.flowState)
             val (datagram, protos, _) = validFlowStateMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
                 numConntracks = 1, numNats = 1, numTraces = 1)
@@ -198,41 +217,49 @@ class FlowStateServiceTest extends FlowStateBaseTest
             When("The message is handled")
             handler.channelRead0(null, datagram)
 
-            Then("The received message by the handler is sent to storage")
-            val mockedStorage = handler.getStorage
-            verify(mockedStorage, times(1)).touchConnTrackKey(
+            Then("The message received by the handler is sent to legacy storage")
+            val mockedLegacyStorage = handler.getLegacyStorage
+            verify(mockedLegacyStorage, times(1)).touchConnTrackKey(
                 mockito.eq(protos.conntrackKeys.head),
                 mockito.eq(protos.ingressPort), mockito.any())
-            verify(mockedStorage, times(1)).touchNatKey(
+            verify(mockedLegacyStorage, times(1)).touchNatKey(
                 mockito.eq(protos.natKeys.head._1),
                 mockito.eq(protos.natKeys.head._2),
                 mockito.eq(protos.ingressPort), mockito.any())
-            verify(mockedStorage, times(1)).submit()
+            verify(mockedLegacyStorage, times(1)).submit()
+
+            Then("The message received by the handler is saved in local storage")
+            val mockedLocalStorage = handler.getLocalStateStorage
+            verify(mockedLocalStorage, times(1)).get(mockito.any())
         }
 
         scenario("Service handle ignores non flow state sbe messages") {
             Given("A flow state message handler and an invalid message")
-            val handler = new TestableStorageHandler(null)
+            val handler = new TestableStorageHandler(midolmanConfig.flowState)
             val datagram = invalidFlowStateMessage()
 
             When("the message is handled")
             handler.channelRead0(null, datagram)
 
-            Then("The message is ignored")
-            val mockedStorage = handler.getStorage
-            verify(mockedStorage, times(0)).touchConnTrackKey(mockito.any(),
+            Then("The message is ignored in legacy storage")
+            val mockedLegacyStorage = handler.getLegacyStorage
+            verify(mockedLegacyStorage, times(0)).touchConnTrackKey(mockito.any(),
                                                               mockito.any(),
                                                               mockito.any())
-            verify(mockedStorage, times(0)).touchNatKey(mockito.any(),
+            verify(mockedLegacyStorage, times(0)).touchNatKey(mockito.any(),
                                                         mockito.any(),
                                                         mockito.any(),
                                                         mockito.any())
-            verify(mockedStorage, times(0)).submit()
+            verify(mockedLegacyStorage, times(0)).submit()
+
+            Then("The message is ignored in local storage")
+            val mockedLocalStorage = handler.getLocalStateStorage
+            verify(mockedLocalStorage, times(0)).get(mockito.any())
         }
 
         scenario("Service handle calls storage with valid empty message") {
             Given("A flow state message handler and a message without keys")
-            val handler = new TestableStorageHandler(null)
+            val handler = new TestableStorageHandler(midolmanConfig.flowState)
             val (datagram, protos, _) = validFlowStateMessage(numIngressPorts = 0,
                                                               numEgressPorts = 0,
                                                               numConntracks = 0,
@@ -241,34 +268,41 @@ class FlowStateServiceTest extends FlowStateBaseTest
             When("The message is handled")
             handler.channelRead0(null, datagram)
 
-            Then("The handler does not send any key to storage")
-            val mockedStorage = handler.getStorage
-            verify(mockedStorage, times(0)).touchConnTrackKey(mockito.any(),
+            Then("The handler does not send any key to legacy storage")
+            val mockedLegacyStorage = handler.getLegacyStorage
+            verify(mockedLegacyStorage, times(0)).touchConnTrackKey(mockito.any(),
                                                               mockito.any(),
                                                               mockito.any())
-            verify(mockedStorage, times(0)).touchNatKey(mockito.any(),
+            verify(mockedLegacyStorage, times(0)).touchNatKey(mockito.any(),
                                                         mockito.any(),
                                                         mockito.any(),
                                                         mockito.any())
-            verify(mockedStorage, times(0)).submit()
+            verify(mockedLegacyStorage, times(0)).submit()
 
+            Then("The message is ignored in local storage")
+            val mockedLocalStorage = handler.getLocalStateStorage
+            verify(mockedLocalStorage, times(0)).get(mockito.any())
         }
 
         scenario("Service handle calls to storage with > 1 keys") {
             Given("A flow state message handler and a message with > 1 keys")
-            val handler = new TestableStorageHandler(null)
+            val handler = new TestableStorageHandler(midolmanConfig.flowState)
             val (datagram, protos, _) = validFlowStateMessage(numConntracks = 2,
                                                               numNats = 2)
             When("The message is handled")
             handler.channelRead0(null, datagram)
 
-            Then("The handler does not send any key to storage")
-            val mockedStorage = handler.getStorage
-            verify(mockedStorage, times(2)).touchConnTrackKey(
+            Then("The handler sends all keys to legacy storage")
+            val mockedLegacyStorage = handler.getLegacyStorage
+            verify(mockedLegacyStorage, times(2)).touchConnTrackKey(
                 mockito.any(), mockito.eq(protos.ingressPort), mockito.any())
-            verify(mockedStorage, times(2)).touchNatKey(
+            verify(mockedLegacyStorage, times(2)).touchNatKey(
                 mockito.any(), mockito.any(), mockito.eq(protos.ingressPort), mockito.any())
-            verify(mockedStorage, times(1)).submit()
+            verify(mockedLegacyStorage, times(1)).submit()
+
+            Then("The message is saved in local storage")
+            val mockedLocalStorage = handler.getLocalStateStorage
+            verify(mockedLocalStorage, times(1)).get(mockito.any())
         }
     }
 }
