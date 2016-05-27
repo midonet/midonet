@@ -16,20 +16,19 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
+
 import javax.ws.rs.core.Response.Status._
 
-import com.sun.jersey.test.framework.JerseyTest
 import org.junit.{Before, Test}
-import org.midonet.client.dto.{DtoApplication, DtoError}
+
+import org.midonet.client.dto.DtoError
 import org.midonet.cluster.HttpRequestChecks
 import org.midonet.cluster.rest_api.models.Host
-import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncTest, Topology}
+import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncTest, RestApiTestBase, Topology}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
-class TestHostApi extends JerseyTest(FuncTest.getBuilder.build())
-    with HttpRequestChecks {
-
-    private var app: DtoApplication = _
+class TestHostApi extends RestApiTestBase(FuncTest.getBuilder.build())
+                  with HttpRequestChecks {
 
     def _makeHost(id: UUID = UUID.randomUUID(),
                   name: String = "test_host") : Host = {
