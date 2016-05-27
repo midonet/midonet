@@ -29,12 +29,6 @@ import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor
 
-/* In the main source tree to allow usage by other module's tests, without
- * creating a jar. */
-object MidonetBackendTest  {
-    final val StorageReactorTag = "storageReactor"
-}
-
 class MidonetTestBackend extends MidonetBackend {
 
     private val inMemoryZoom: InMemoryStorage = new InMemoryStorage()
