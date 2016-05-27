@@ -28,7 +28,6 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.KeeperException.NoNodeException
-import org.apache.zookeeper.ZooDefs.Ids
 
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkDirectory}
@@ -47,7 +46,7 @@ trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
 
     override def tablePath(clazz: Class[_], id: ObjId, name: String,
                            args: Any*): String = {
-        legacyTableRootPath(clazz, id, name, args) match {
+        legacyTablePath(clazz, id, name, args) match {
             case Some(path) if pathExists(path) => path
             case _ => tablePath(clazz, id, name, version.longValue(), args:_*)
         }

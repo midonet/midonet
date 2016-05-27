@@ -18,7 +18,7 @@ package org.midonet.cluster.data.storage
 
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.services.MidonetBackend.Ip4MacTable
+import org.midonet.cluster.services.MidonetBackend._
 
 /**
   * A compatibility layer for the paths of the state tables.
@@ -26,19 +26,19 @@ import org.midonet.cluster.services.MidonetBackend.Ip4MacTable
 trait LegacyStateTableStorage {
     protected def rootPath: String
 
-    type LegacyPath = (ObjId, Any*) => String
+    type LegacyPath = (ObjId, Seq[Any]) => String
     private val legacyPaths = Map[(Class[_], String), LegacyPath](
-        (classOf[Network], Ip4MacTable) -> ((id, args) => {
+        (classOf[Network], MacTable) -> ((id: ObjId, args: Seq[Any]) => {
+            val builder = new StringBuilder(s"$rootPath/bridges/$id")
+            if (args.length == 1 && args.head != 0)
+                builder.append(s"/vlans/${args.head}")
+            builder.append("/mac_ports")
+            builder.toString()
+        }),
+        (classOf[Network], Ip4MacTable) -> ((id: ObjId, args: Seq[Any]) => {
             s"$rootPath/bridges/$id/ip4_mac_map"
         })
     )
-
-    @inline
-    private[storage] def legacyTableRootPath(clazz: Class[_], id: ObjId,
-                                             name: String, args: Any*)
-    : Option[String] = {
-        legacyPaths get (clazz, name) map { _.apply(id, Seq.empty) }
-    }
 
     @inline
     private[storage] def legacyTablePath(clazz: Class[_], id: ObjId,

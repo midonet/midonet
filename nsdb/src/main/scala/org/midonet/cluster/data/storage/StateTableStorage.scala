@@ -101,11 +101,17 @@ trait StateTableStorage extends Storage {
     @throws[IllegalArgumentException]
     def tablePath(clazz: Class[_], id: ObjId, name: String, args: Any*): String
 
+    def bridgeMacTable(id: UUID, vlanId: Short) = getTable[MAC, UUID](
+            classOf[Topology.Network], id, MidonetBackend.MacTable, vlanId)
+
     def bridgeArpTable(id: UUID) = getTable[IPv4Addr, MAC](
             classOf[Topology.Network], id, MidonetBackend.Ip4MacTable)
 
     def routerPortPeeringTable(id: UUID) = getTable[MAC, IPv4Addr](
             classOf[Topology.Port], id, MidonetBackend.PeeringTable)
+
+    def bridgeMacTablePath(id: UUID, vlanId: Short) = tablePath(
+            classOf[Topology.Network], id, MidonetBackend.MacTable, vlanId)
 
     def bridgeArpTablePath(id: UUID) = tablePath(
             classOf[Topology.Network], id, MidonetBackend.Ip4MacTable)

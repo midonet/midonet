@@ -66,6 +66,7 @@ object MidonetBackend {
     final val VtepConnState = "connection_state"
     final val VtepVxgwManager = "vxgw_manager"
 
+    final val MacTable = "mac_table"
     final val Ip4MacTable = "ip4_mac_table"
     final val PeeringTable = "peering_table"
 
