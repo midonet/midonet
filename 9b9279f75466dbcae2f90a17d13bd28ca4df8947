@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_632c2a99",
+        "filename": "midolman/src/rhel7/control/pf9postinst",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-27T16:03:18Z",
+      "side": 1,
+      "message": "ah, didn\u0027t know this was derived from elsewhere.",
+      "parentUuid": "baa041b7_34409d33",
+      "range": {
+        "startLine": 18,
+        "startChar": 7,
+        "endLine": 18,
+        "endChar": 15
+      },
+      "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b47a6d86",
         "filename": "midolman/src/rhel7/control/pf9postinst",
         "patchSetId": 6
@@ -142,6 +166,30 @@
       "writtenOn": "2016-05-26T15:53:42Z",
       "side": 1,
       "message": "This file is exactly the same as the \u0027postinst\u0027 file, just adding this sudoer file that is specific to platform9. I didn\u0027t found a good way in gradle to get a file and just add a few lines.",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 33
+      },
+      "revId": "9b9279f75466dbcae2f90a17d13bd28ca4df8947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_83296e8c",
+        "filename": "midolman/src/rhel7/control/pf9postinst",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-27T16:03:18Z",
+      "side": 1,
+      "message": "Sure. My other comments are redundant.",
+      "parentUuid": "baa041b7_b47a6d86",
       "range": {
         "startLine": 49,
         "startChar": 0,
