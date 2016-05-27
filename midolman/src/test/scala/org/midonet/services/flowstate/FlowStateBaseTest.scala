@@ -22,9 +22,7 @@ import java.util.UUID
 
 import scala.collection.mutable
 import scala.util.Random
-
-import org.scalatest.{BeforeAndAfter, GivenWhenThen, Matchers, FeatureSpec}
-
+import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
@@ -32,9 +30,9 @@ import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
 import org.midonet.packets.TraceState.TraceKeyStore
 import org.midonet.packets._
 import org.midonet.util.MidonetEventually
-
 import io.netty.buffer.Unpooled
 import io.netty.channel.socket.DatagramPacket
+import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
 
 trait FlowStateBaseTest extends FeatureSpec
                                 with GivenWhenThen with Matchers
@@ -70,12 +68,12 @@ trait FlowStateBaseTest extends FeatureSpec
 
 
 
-    protected def validFlowStateMessage(numConntracks: Int = 1,
-                                        numNats: Int = 1,
-                                        numTraces: Int = 0,
-                                        numIngressPorts: Int = 1,
-                                        numEgressPorts: Int = 1,
-                                        port: Short = 6688)
+    protected def validFlowStateInternalMessage(numConntracks: Int = 1,
+                                                numNats: Int = 1,
+                                                numTraces: Int = 0,
+                                                numIngressPorts: Int = 1,
+                                                numEgressPorts: Int = 1,
+                                                port: Short = 6688)
     : (DatagramPacket, FlowStateProtos, SbeEncoder) = {
         var ingressPort: UUID = null
         val egressPorts = new util.ArrayList[UUID]()
@@ -150,6 +148,17 @@ trait FlowStateBaseTest extends FeatureSpec
         Random.nextBytes(buffer)
         new DatagramPacket(Unpooled.wrappedBuffer(buffer),
                            new InetSocketAddress(port))
+    }
+
+    protected def validFlowStateTransferRequest = {
+        val request = buildStateForPort(UUID.randomUUID())
+        Unpooled.wrappedBuffer(request.toByteArray)
+    }
+
+    protected def invalidStateTranferRequest = {
+        val buffer = new Array[Byte](100)
+        Random.nextBytes(buffer)
+        Unpooled.wrappedBuffer(buffer)
     }
 
 }
