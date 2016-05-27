@@ -139,6 +139,11 @@ trait TraceState extends FlowState { this: PacketContext =>
         traceContext.disable()
     }
 
+    def resetTraceState(): Unit = {
+        traceTxReadOnly = null
+        traceContext.clear()
+    }
+
     def prepareForSimulationWithTracing(): Unit = {
         clear()
         traceContext.enable()

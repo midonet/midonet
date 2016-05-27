@@ -181,6 +181,7 @@ sealed class PacketExecutor(dpState: DatapathState,
                     context.log.error(s"Failed to execute packet", t)
                 }
             }
+            context.setPacketProcessed()
         }
     }
 

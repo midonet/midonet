@@ -41,10 +41,10 @@ class VipTest extends MidolmanSpec {
                 .setDstPort(port1)
                 .setNetworkProto(TCP.PROTOCOL_NUMBER)
 
-        val tcpContext = new PacketContext(1, null, tcpIngressMatch)
+        val tcpContext = PacketContext.generated(1, null, tcpIngressMatch)
 
         val udpIngressMatch = tcpIngressMatch.clone().setNetworkProto(UDP.PROTOCOL_NUMBER)
-        val udpContext = new PacketContext(1, null, udpIngressMatch)
+        val udpContext = PacketContext.generated(1, null, udpIngressMatch)
 
         // Admin state up VIP with same addr / port should match
         val vip1Up = createTestVip(true, addr1, port1)

@@ -40,6 +40,15 @@ class PacketPipelineMetrics(val registry: MetricRegistry,
     val packetsDropped = registry.meter(name(
         classOf[PacketPipelineMeter], "packetsDropped", "packets"))
 
+    val contextsAllocated = registry.counter(name(
+        classOf[PacketPipelineCounter], "contextsAllocated", "contexts"))
+
+    val contextsPooled = registry.counter(name(
+        classOf[PacketPipelineCounter], "contextsPooled", "contexts"))
+
+    val contextsBeingProcessed = registry.counter(name(
+        classOf[PacketPipelineCounter], "contextsBeingProcessed", "contexts"))
+
     val liveSimulations = registry.register(name(
         classOf[PacketPipelineGauge], "liveSimulations"),
         new Gauge[Long]{ override def getValue = 0 })

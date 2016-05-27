@@ -134,8 +134,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     : PacketContext = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
         fmatch.setInputPortNumber(inPortNumber)
-        val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
-        context.reset(simBackChannel, arpBroker)
+        val context = PacketContext.generated(-1, new Packet(frame, fmatch),
+                                              fmatch, null, null,
+                                              simBackChannel, arpBroker)
         context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
         context.prepareForSimulation()
         context.inputPort = inPort
@@ -152,8 +153,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                       arpBroker: ArpRequestBroker = throwAwayArpBroker())
     : PacketContext = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
-        val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch, egressPort)
-        context.reset(simBackChannel, arpBroker)
+        val context = PacketContext.generated(-1, new Packet(frame, fmatch),
+                                              fmatch, egressPort, null,
+                                              simBackChannel, arpBroker)
         context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
         context.prepareForSimulation()
         context

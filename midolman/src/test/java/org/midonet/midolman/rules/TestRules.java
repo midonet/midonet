@@ -113,11 +113,11 @@ public class TestRules {
         nats.add(new NatTarget(0x0a090807, 0x0a090810, 21333,
                 32999));
 
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
         @SuppressWarnings("unchecked")
         ShardedFlowStateTable<ConnTrackKeyStore, Boolean> shardedConntrack =
                 ShardedFlowStateTable.create();
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
         FlowStateTable<ConnTrackKeyStore, Boolean> conntrackTable =
                 shardedConntrack.addShard(
                     Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
@@ -254,8 +254,8 @@ public class TestRules {
                                    Long.MAX_VALUE, UUID.randomUUID());
 
         Ethernet eth = createTracePacket();
-        pktCtx = new PacketContext(1, new Packet(eth, pktMatch),
-                                   pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, new Packet(eth, pktMatch),
+                                                pktMatch, null);
         pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$,
                           traceTx);
 
@@ -307,8 +307,8 @@ public class TestRules {
         Ethernet eth = createTracePacket();
         PacketContext pktCtx;
         for (int i = 0; i < limit; i++) {
-            pktCtx = new PacketContext(1, new Packet(eth, pktMatch),
-                                       pktMatch, null);
+            pktCtx = PacketContext.generatedForJava(1, new Packet(eth, pktMatch),
+                                             pktMatch, null);
             pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$,
                               traceTx);
             pktCtx.inPortId_$eq(inPort);
@@ -325,8 +325,8 @@ public class TestRules {
                                   pktCtx.tracingEnabled(requestId));
             }
         }
-        pktCtx = new PacketContext(1, new Packet(eth, pktMatch),
-                                   pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, new Packet(eth, pktMatch),
+                                                pktMatch, null);
         pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$,
                           traceTx);
         pktCtx.inPortId_$eq(inPort);

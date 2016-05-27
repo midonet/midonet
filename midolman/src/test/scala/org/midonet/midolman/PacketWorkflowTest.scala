@@ -19,6 +19,7 @@ import java.util.UUID
 
 import org.midonet.midolman.topology.VirtualTopology
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
 
 import akka.actor.Props
@@ -41,6 +42,7 @@ import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets}
 import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable, MockStateStorage}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.flows.{FlowActions, FlowAction}
@@ -233,6 +235,159 @@ class PacketWorkflowTest extends MidolmanSpec {
 
             And("packetsOut should be called")
             packetsOut should be (1)
+        }
+    }
+
+    feature("Packet Context pooling") {
+        scenario("Successful contexts are returned to the pool") {
+            Given("A successful simulation")
+            val packet = List(makePacket(1)).toArray
+            ddaRef ! PacketWorkflow.HandlePackets(packet)
+            dda.complete(null)
+            ddaRef ! CheckBackchannels
+            packetsOut should be (1)
+
+            Then("1 context should have been allocated")
+            metrics.contextsAllocated.getCount shouldBe 1
+            metrics.contextsPooled.getCount shouldBe 0
+            metrics.contextsBeingProcessed.getCount shouldBe 1
+
+            When("the context is processed")
+            mockDpChannel.contextsSeen.asScala map { c =>
+                c.setFlowProcessed()
+                c.setPacketProcessed()
+            }
+            ddaRef ! CheckBackchannels
+
+            Then("the context should be returned to the pool")
+            metrics.contextsPooled.getCount shouldBe 1
+            metrics.contextsBeingProcessed.getCount shouldBe 0
+        }
+
+        scenario("dropped contexts are returned to the pool") {
+            Given("A failed simulation")
+            val packet = List(makePacket(1)).toArray
+            ddaRef ! PacketWorkflow.HandlePackets(packet)
+            dda.completeWithException(new Exception("foobar"))
+            ddaRef ! CheckBackchannels
+
+            When("the packet is dropped")
+            isCleared(packetsSeen.head)
+            packetsOut should be (1)
+
+            Then("1 context should have been allocated, and sent to datapath")
+            metrics.contextsAllocated.getCount shouldBe 1
+            metrics.contextsPooled.getCount shouldBe 0
+            metrics.contextsBeingProcessed.getCount shouldBe 1
+
+            When("processing finishes")
+            mockDpChannel.contextsSeen.asScala map { c =>
+                c.setFlowProcessed()
+                c.setPacketProcessed()
+            }
+            ddaRef ! CheckBackchannels
+
+            Then("1 context should have been allocated and returned to pool")
+            metrics.contextsAllocated.getCount shouldBe 1
+            metrics.contextsPooled.getCount shouldBe 1
+            metrics.contextsBeingProcessed.getCount shouldBe 0
+        }
+
+        scenario("expired postponed context are returned") {
+            createDda(0)
+
+            Given("A postponed simulation")
+            val packet = List(makePacket(1)).toArray
+            ddaRef ! PacketWorkflow.HandlePackets(packet)
+
+            Then("a context is allocated, should be timed out immediately")
+            metrics.contextsAllocated.getCount shouldBe 1
+            metrics.contextsPooled.getCount shouldBe 0
+            metrics.contextsBeingProcessed.getCount shouldBe 1
+
+            When("processing finishes")
+            mockDpChannel.contextsSeen.asScala map { c =>
+                c.setFlowProcessed()
+                c.setPacketProcessed()
+            }
+            ddaRef ! CheckBackchannels
+
+            Then("the context should be returned to the pool")
+            metrics.contextsAllocated.getCount shouldBe 1
+            metrics.contextsPooled.getCount shouldBe 1
+            metrics.contextsBeingProcessed.getCount shouldBe 0
+        }
+
+        scenario("Generated packets get returned to pool on drop") {
+            Given("A successful simulation")
+            val packet = List(makePacket(1)).toArray
+            ddaRef ! PacketWorkflow.HandlePackets(packet)
+
+            Then("a context is allocated")
+            metrics.contextsAllocated.getCount shouldBe 1
+            metrics.contextsPooled.getCount shouldBe 0
+            metrics.contextsBeingProcessed.getCount shouldBe 0
+
+            When("Completed with a failing generated packet")
+            val frame: Ethernet = makeFrame(1)
+            dda.completeWithFailingGenerated(
+                List(), GeneratedPhysicalPacket(2, frame, -1),
+                new Exception("fail generated"))
+            ddaRef ! CheckBackchannels
+
+            Then("the original packet should be processed")
+            metrics.contextsBeingProcessed.getCount shouldBe 1
+
+            And("a context is allocated for the generated packet")
+            metrics.contextsAllocated.getCount shouldBe 2
+
+            And("and returned to the pool on failure")
+            metrics.contextsPooled.getCount shouldBe 1
+
+            When("the original packet finishes processing")
+            mockDpChannel.contextsSeen.asScala map { c =>
+                c.setFlowProcessed()
+                c.setPacketProcessed()
+            }
+            ddaRef ! CheckBackchannels
+
+            Then("the pool should contain both allocated contexts")
+            metrics.contextsAllocated.getCount shouldBe 2
+            metrics.contextsPooled.getCount shouldBe 2
+            metrics.contextsBeingProcessed.getCount shouldBe 0
+        }
+
+        scenario("Pool never exceeds size") {
+            Given("More packets than there are pool places")
+            val packets = 1.to(1200) map { i => makePacket(i.toShort) } toArray
+
+            When("the packets are simulated")
+            ddaRef ! PacketWorkflow.HandlePackets(packets)
+            dda.complete(null)
+            ddaRef ! CheckBackchannels
+            packetsOut should be (1200)
+
+            Then("contexts should have been allocated, but not pooled")
+            metrics.contextsAllocated.getCount shouldBe 1200
+            metrics.contextsPooled.getCount shouldBe 0
+            metrics.contextsBeingProcessed.getCount shouldBe 1200
+
+            When("the contexts are processed")
+            mockDpChannel.contextsSeen.asScala map { c =>
+                c.setFlowProcessed()
+                c.setPacketProcessed()
+            }
+            ddaRef ! CheckBackchannels
+
+            Then("the max number of contexts should be pooled")
+            metrics.contextsPooled.getCount shouldBe 1024
+
+            When("Another packet is sent")
+            ddaRef ! PacketWorkflow.HandlePackets(List(makePacket(2222)).toArray)
+
+            Then("No new contexts are allocated, there's one less pooled")
+            metrics.contextsAllocated.getCount shouldBe 1200
+            metrics.contextsPooled.getCount shouldBe 1023
         }
     }
 
@@ -449,16 +604,24 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    injector.getInstance(classOf[VirtualTopology]),
                                    packetOut)
             with MessageAccumulator {
-
         implicit override val dispatcher = this.context.dispatcher
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
+        var generatedException: Exception = _
         var nextActions: List[FlowAction] = _
         var exception: Exception = _
 
         def completeWithGenerated(actions: List[FlowAction],
                                   generatedPacket: GeneratedPacket): Unit = {
             this.generatedPacket = generatedPacket
+            complete(actions)
+        }
+
+        def completeWithFailingGenerated(actions: List[FlowAction],
+                                         generatedPacket: GeneratedPacket,
+                                         exception: Exception): Unit = {
+            this.generatedPacket = generatedPacket
+            this.generatedException = exception
             complete(actions)
         }
 
@@ -488,7 +651,9 @@ class PacketWorkflowTest extends MidolmanSpec {
             if (pktCtx.runs == 1) {
                 packetsSeen = packetsSeen :+ pktCtx
                 if (pktCtx.isGenerated) {
-                    FlowCreated
+                    if (generatedException ne null) {
+                        throw generatedException
+                    } else FlowCreated
                 } else {
                     throw new NotYetException(p.future)
                 }

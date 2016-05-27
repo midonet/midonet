@@ -78,6 +78,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
 
     def dhcpMtu: Short = getInt(s"$PREFIX.midolman.dhcp_mtu").toShort
     def simulationThreads = getInt(s"$PREFIX.midolman.simulation_threads")
+    def maxPooledContexts = getInt(s"$PREFIX.midolman.max_pooled_contexts")
     def outputChannels = getInt(s"$PREFIX.midolman.output_channels")
     def inputChannelThreading = getString(s"$PREFIX.midolman.input_channel_threading")
     def datapathName = Try(getString(s"$PREFIX.midolman.datapath")).getOrElse("midonet")

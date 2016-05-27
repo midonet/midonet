@@ -305,7 +305,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                       else
                         new FlowMatch(FlowKeys.fromEthernetPacket(ethernet))
         val packet = new Packet(ethernet, wcmatch, 0)
-        val pktCtx = new PacketContext(0, packet, wcmatch)
+        val pktCtx = PacketContext.generated(0, packet, wcmatch)
 
         if (inputPortId.isDefined)
             pktCtx.inputPort = inputPortId.get

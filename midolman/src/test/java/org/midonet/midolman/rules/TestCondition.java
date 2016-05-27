@@ -80,7 +80,7 @@ public class TestCondition {
         pktMatch.setSrcPort(4321);
         pktMatch.setDstPort(1234);
         rand = new Random();
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
     }
 
     @Test
@@ -641,7 +641,7 @@ public class TestCondition {
         cond.icmpDataSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.34"), 22);
         cond.icmpDataSrcIpInv = false;
         pktMatch.setIcmpData(null);
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
 
         Assert.assertFalse(cond.matches(pktCtx));
         cond.icmpDataSrcIpInv = true;
@@ -652,7 +652,7 @@ public class TestCondition {
         cond.icmpDataSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.34"), 22);
         cond.icmpDataSrcIpInv = false;
         pktMatch.setIcmpData(new byte[0]);
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
 
         Assert.assertFalse(cond.matches(pktCtx));
         cond.icmpDataSrcIpInv = true;
@@ -667,7 +667,7 @@ public class TestCondition {
         rand.nextBytes(randomBytes);
         randomBytes[12] = 20; // just in case random does match the ip
         pktMatch.setIcmpData(randomBytes);
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
 
         Assert.assertFalse(cond.matches(pktCtx));
         cond.icmpDataSrcIpInv = true;
@@ -682,7 +682,7 @@ public class TestCondition {
         data.setSourceAddress(IPv4Addr.fromString("10.0.11.40"));
         data.setDestinationAddress(IPv4Addr.fromString("192.168.1.1"));
         pktMatch.setIcmpData(data.serialize());
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
 
         Assert.assertTrue(cond.matches(pktCtx));
         cond.icmpDataSrcIpInv = true;
@@ -697,7 +697,7 @@ public class TestCondition {
         data.setSourceAddress(IPv4Addr.fromString("10.0.11.40"));
         data.setDestinationAddress(IPv4Addr.fromString("192.168.1.1"));
         pktMatch.setIcmpData(data.serialize());
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
 
         Assert.assertTrue(cond.matches(pktCtx));
         cond.icmpDataDstIpInv = true;
@@ -712,7 +712,7 @@ public class TestCondition {
         data.setSourceAddress(IPv4Addr.fromString("10.0.11.34"));
         data.setDestinationAddress(IPv4Addr.fromString("192.168.1.1"));
         pktMatch.setIcmpData(data.serialize());
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
 
         Assert.assertTrue(cond.matches(pktCtx));
         cond.icmpDataSrcIpInv = true;
@@ -727,7 +727,7 @@ public class TestCondition {
         data.setSourceAddress(IPv4Addr.fromString("10.0.11.40"));
         data.setDestinationAddress(IPv4Addr.fromString("192.160.23.12"));
         pktMatch.setIcmpData(data.serialize());
-        pktCtx = new PacketContext(1, null, pktMatch, null);
+        pktCtx = PacketContext.generatedForJava(1, null, pktMatch, null);
 
         Assert.assertTrue(cond.matches(pktCtx));
         cond.icmpDataDstIpInv = true;
