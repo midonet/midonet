@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5a50eb31",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-27T09:27:15Z",
+      "side": 1,
+      "message": "I think the name is needed to match the C function name to be correctly mapped, so some mismatch is not avoidable between C vs Scala name conventions. I think is better to put here the C name than the other way around.\n\nAnyway, it seems that this could be avoided using a FunctionMapper (https://jna.java.net/javadoc/com/sun/jna/FunctionMapper.html) that hopefully is not very perfornance-costly, so I will try it.",
+      "parentUuid": "baa041b7_14f119cd",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 20
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_34e65d15",
         "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5a37cbfe",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-27T09:27:15Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_34e65d15",
+      "range": {
+        "startLine": 31,
+        "startChar": 19,
+        "endLine": 31,
+        "endChar": 21
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b4d94d59",
         "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-05-26T17:16:21Z",
       "side": 1,
       "message": "Nit: remove space.",
+      "range": {
+        "startLine": 35,
+        "startChar": 20,
+        "endLine": 35,
+        "endChar": 21
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9a52f333",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-27T09:27:15Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_b4d94d59",
       "range": {
         "startLine": 35,
         "startChar": 20,
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7a4def98",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-27T09:27:15Z",
+      "side": 1,
+      "message": "Thanks, good point.",
+      "parentUuid": "baa041b7_b4c02d51",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 9
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f4eb55da",
         "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
         "patchSetId": 1
@@ -128,6 +224,30 @@
       "writtenOn": "2016-05-26T17:16:21Z",
       "side": 1,
       "message": "instance",
+      "range": {
+        "startLine": 65,
+        "startChar": 22,
+        "endLine": 65,
+        "endChar": 23
+      },
+      "revId": "52deafac1f18eec446131631043b7569db513e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7a34cffa",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixwindWriter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-05-27T09:27:15Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_f4eb55da",
       "range": {
         "startLine": 65,
         "startChar": 22,
