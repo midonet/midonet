@@ -68,7 +68,8 @@ public interface Directory {
     void delete(String relativePath)
         throws KeeperException, InterruptedException;
 
-    void asyncDelete(String relativePath, DirectoryCallback<Void> callback);
+    void asyncDelete(String relativePath, int version,
+                     DirectoryCallback<Void> callback);
 
     Directory getSubDirectory(String relativePath) throws KeeperException;
 
