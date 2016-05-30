@@ -22,6 +22,30 @@
       "revId": "aacd46afe46f27222f1082ceca66a54febf6e96c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_21c857a5",
+        "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/zkManagers/RuleZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-30T14:30:58Z",
+      "side": 1,
+      "message": "the migrator, it should be in tools, and after getting rid of the data client we should move them there",
+      "parentUuid": "baa041b7_54c0ba4f",
+      "range": {
+        "startLine": 8,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 46
+      },
+      "revId": "aacd46afe46f27222f1082ceca66a54febf6e96c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
