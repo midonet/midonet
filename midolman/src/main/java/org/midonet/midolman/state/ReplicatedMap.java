@@ -381,11 +381,6 @@ public abstract class ReplicatedMap<K, V> {
             String opDesc = "Replicated map deletion of key: " + key;
             connectionWatcher.handleError(opDesc, deleteRunnable(), ex);
         }
-
-        public void onTimeout() {
-            log.info("Deletion of key: {} timed out, retrying.", key);
-            connectionWatcher.handleTimeout(deleteRunnable());
-        }
     }
 
     /**

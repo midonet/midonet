@@ -15,8 +15,6 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.AbstractMap;
-import java.util.Map;
 import java.util.UUID;
 
 import com.google.inject.Inject;
@@ -71,32 +69,23 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
      * @return A list of rule IDs
      * @throws StateAccessException
      */
-    public Map.Entry<RuleList, Integer> getRuleListWithVersion(UUID chainId,
-            Runnable watcher) throws StateAccessException {
+    public RuleList getRuleList(UUID chainId) throws StateAccessException {
         String path = paths.getChainRulesPath(chainId);
 
         if (!zk.exists(path)) {
             // In this case we are creating the rule list along with this op
-            return new AbstractMap.SimpleEntry<>(new RuleList(), -1);
+            return new RuleList();
         }
 
-        Map.Entry<byte[], Integer> ruleIdsVersion = zk.getWithVersion(path,
-            watcher);
-        byte[] data = ruleIdsVersion.getKey();
-        int version = ruleIdsVersion.getValue();
+        byte[] ruleIds = zk.get(path, null);
 
         // convert
         try {
-            RuleList ruleList = serializer.deserialize(data, RuleList.class);
-            return new AbstractMap.SimpleEntry<>(ruleList, version);
+            return serializer.deserialize(ruleIds, RuleList.class);
         } catch (SerializationException e) {
-            log.error("Could not deserialize rule list {}", data, e);
+            log.error("Could not deserialize rule list {}", ruleIds, e);
             return null;
         }
-    }
-
-    public RuleList getRuleList(UUID chainId) throws StateAccessException {
-        return getRuleListWithVersion(chainId, null).getKey();
     }
 
 }

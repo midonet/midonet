@@ -330,7 +330,6 @@ public class TestMockDirectory {
         public int creates = 0;
         public int childUpdates = 0;
         public int dataChanges = 0;
-        public int noChanges = 0;
         public int runs = 0;
 
         @Override
@@ -351,11 +350,6 @@ public class TestMockDirectory {
         @Override
         public void pathDataChanged(String path) {
             dataChanges++;
-        }
-
-        @Override
-        public void connectionStateChanged(Watcher.Event.KeeperState state) {
-            noChanges++;
         }
 
         @Override

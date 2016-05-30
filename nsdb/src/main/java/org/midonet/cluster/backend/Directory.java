@@ -17,7 +17,6 @@
 package org.midonet.cluster.backend;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
@@ -30,48 +29,45 @@ public interface Directory {
 
     String getPath();
 
-    String add(String relativePath, byte[] data, CreateMode mode)
-        throws KeeperException, InterruptedException;
-
     void ensureHas(String relativePath, byte[] data)
         throws KeeperException, InterruptedException;
 
-    void asyncAdd(String relativePath, byte[] data, CreateMode mode,
-                  DirectoryCallback<String> cb);
+    String add(String relativePath, byte[] data, CreateMode mode)
+        throws KeeperException, InterruptedException;
 
-    void update(String relativePath, byte[] data) throws KeeperException,
-            InterruptedException;
+    void asyncAdd(String relativePath, byte[] data, CreateMode mode,
+                  DirectoryCallback<String> callback);
+
+    void update(String relativePath, byte[] data)
+        throws KeeperException, InterruptedException;
 
     void update(String relativePath, byte[] data, int version)
-            throws KeeperException, InterruptedException;
+        throws KeeperException, InterruptedException;
 
-    byte[] get(String relativePath, Runnable watcher) throws KeeperException,
-            InterruptedException;
-
-    Map.Entry<byte[], Integer> getWithVersion(String relativePath,
-            Runnable watcher) throws KeeperException, InterruptedException;
+    byte[] get(String relativePath, Runnable watcher)
+        throws KeeperException, InterruptedException;
 
     void asyncGet(String relativePath, DirectoryCallback<byte[]> data,
                   TypedWatcher watcher);
 
     Set<String> getChildren(String relativePath, Runnable watcher)
-            throws KeeperException, InterruptedException;
+        throws KeeperException, InterruptedException;
 
-    boolean exists(String path, Watcher watcher) throws KeeperException,
-            InterruptedException;
+    boolean exists(String relativePath)
+        throws KeeperException, InterruptedException;
 
-    boolean exists(String relativePath) throws KeeperException,
-            InterruptedException;
+    boolean exists(String path, Watcher watcher)
+        throws KeeperException, InterruptedException;
 
-    void delete(String relativePath) throws KeeperException,
-            InterruptedException;
+    void delete(String relativePath)
+        throws KeeperException, InterruptedException;
 
     void asyncDelete(String relativePath, DirectoryCallback<Void> callback);
 
     Directory getSubDirectory(String relativePath) throws KeeperException;
 
-    List<OpResult> multi(List<Op> ops) throws InterruptedException,
-            KeeperException;
+    List<OpResult> multi(List<Op> ops)
+        throws InterruptedException, KeeperException;
 
     // HACK: TypedWatcher is a runnable so that it can be passed to Directory
     // methods that take Runnable 'watchers'. However, the run method should
@@ -81,7 +77,6 @@ public interface Directory {
         void pathCreated(String path);
         void pathChildrenUpdated(String path);
         void pathDataChanged(String path);
-        void connectionStateChanged(Watcher.Event.KeeperState state);
     }
 
     class DefaultTypedWatcher implements TypedWatcher {
@@ -103,11 +98,6 @@ public interface Directory {
         @Override
         public void pathDataChanged(String path) {
             run();
-        }
-
-        @Override
-        public void connectionStateChanged(Watcher.Event.KeeperState state) {
-            // do nothing
         }
 
         @Override
