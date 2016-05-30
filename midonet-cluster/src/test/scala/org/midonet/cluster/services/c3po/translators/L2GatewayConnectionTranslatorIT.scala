@@ -395,7 +395,7 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
 
         val peeringTable =
             backend.stateTableStore.routerPortPeeringTable(rtrPortId.asJava)
-        peeringTable.remoteSnapshot should
+        peeringTable.remoteSnapshot.await() should
             contain theSameElementsAs rms.map(rm => (rm.mac, rm.ip))
     }
 }

@@ -18,19 +18,20 @@ package org.midonet.cluster.data.storage
 
 import java.util.UUID
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import org.apache.zookeeper.CreateMode
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{GivenWhenThen, Matchers, FeatureSpec}
+import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
 import rx.Observable
 
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.StateTable.Update
-import org.midonet.cluster.data.storage.StorageTestClasses.{PojoRouter, PojoBridge}
+import org.midonet.cluster.data.storage.StorageTestClasses.{PojoBridge, PojoRouter}
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.MidonetEventually
@@ -43,21 +44,21 @@ object ZookeeperStateTableTest {
         override def start(): Unit = ???
         override def stop(): Unit = ???
         override def add(key: Int, value: String): Unit = ???
-        override def addPersistent(key: Int, value: String): Unit = ???
+        override def addPersistent(key: Int, value: String): Future[Unit] = ???
         override def remove(key: Int): String = ???
         override def remove(key: Int, value: String): Boolean = ???
-        override def removePersistent(key: Int, value: String): Boolean = ???
+        override def removePersistent(key: Int, value: String): Future[Boolean] = ???
         override def containsLocal(key: Int): Boolean = ???
         override def containsLocal(key: Int, value: String): Boolean = ???
-        override def containsRemote(key: Int): Boolean = ???
-        override def containsRemote(key: Int, value: String): Boolean = ???
-        override def containsPersistent(key: Int, value: String): Boolean = ???
+        override def containsRemote(key: Int): Future[Boolean] = ???
+        override def containsRemote(key: Int, value: String): Future[Boolean] = ???
+        override def containsPersistent(key: Int, value: String): Future[Boolean] = ???
         override def getLocal(key: Int): String = ???
         override def getLocalByValue(value: String): Set[Int] = ???
-        override def getRemote(key: Int): String = ???
-        override def getRemoteByValue(value: String): Set[Int] = ???
+        override def getRemote(key: Int): Future[String] = ???
+        override def getRemoteByValue(value: String): Future[Set[Int]] = ???
         override def localSnapshot: Map[Int, String] = ???
-        override def remoteSnapshot: Map[Int, String] = ???
+        override def remoteSnapshot: Future[Map[Int, String]] = ???
         override def observable: Observable[Update[Int, String]] = ???
     }
 }

@@ -46,6 +46,7 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
 import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.util.concurrent._
 
 class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                                  legacyStorage: LegacyStorage)
@@ -305,7 +306,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit = {
         val map = backend.stateTableStore.bridgeArpTable(bridge)
-        map.addPersistent(ip, mac)
+        map.addPersistent(ip, mac).await()
     }
 
     override def deleteBridge(bridge: UUID): Unit = {

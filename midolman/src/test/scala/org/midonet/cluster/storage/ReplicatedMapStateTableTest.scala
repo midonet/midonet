@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.storage
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import org.apache.curator.utils.ZKPaths
@@ -51,14 +52,22 @@ class ReplicatedMapStateTableTest extends FlatSpec with GivenWhenThen
         }
         protected override val nullValue: String = null
 
-        override def addPersistent(key: String, value: String): Unit = { }
-        override def containsPersistent(key: String, value: String): Boolean = false
-        override def containsRemote(key: String): Boolean = false
-        override def containsRemote(key: String, value: String): Boolean = false
-        override def getRemote(key: String): String = null
-        override def getRemoteByValue(value: String): Set[String] = Set.empty
-        override def remoteSnapshot: Map[String, String] = Map.empty
-        override def removePersistent(key: String, value: String): Boolean = false
+        override def addPersistent(key: String, value: String): Future[Unit] =
+            Future.successful({})
+        override def containsPersistent(key: String, value: String): Future[Boolean] =
+            Future.successful(false)
+        override def containsRemote(key: String): Future[Boolean] =
+            Future.successful(false)
+        override def containsRemote(key: String, value: String): Future[Boolean] =
+            Future.successful(false)
+        override def getRemote(key: String): Future[String] =
+            Future.successful(null)
+        override def getRemoteByValue(value: String): Future[Set[String]] =
+            Future.successful(Set.empty)
+        override def remoteSnapshot: Future[Map[String, String]] =
+            Future.successful(Map.empty)
+        override def removePersistent(key: String, value: String): Future[Boolean] =
+            Future.successful(false)
     }
 
     override def beforeEach(): Unit = {

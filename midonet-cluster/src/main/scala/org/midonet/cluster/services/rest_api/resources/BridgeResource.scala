@@ -24,6 +24,7 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.{MediaType, Response}
 
 import scala.collection.JavaConversions._
+import scala.concurrent.Await
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -103,7 +104,8 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         tryLegacyRead {
             val table = arpTable(bridgeId)
 
-            if (table.containsRemote(address, mac)) {
+            if (Await.result(table.containsRemote(address, mac),
+                             MidonetResource.Timeout)) {
                 new Ip4MacPair(resContext.uriInfo.getBaseUri, bridgeId,
                                address.toString, mac.toString)
             } else {
@@ -120,7 +122,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         val entries = tryLegacyRead {
             val table = arpTable(bridgeId)
 
-            table.remoteSnapshot
+            Await.result(table.remoteSnapshot, MidonetResource.Timeout)
         }
         for ((ip, mac) <- entries.toList)
             yield new Ip4MacPair(resContext.uriInfo.getBaseUri, bridgeId,
@@ -145,7 +147,8 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
         tryLegacyWrite {
             val table = arpTable(bridgeId)
-            table.addPersistent(address, mac)
+            Await.result(table.addPersistent(address, mac),
+                         MidonetResource.Timeout)
             Response.created(arpEntry.getUri).build()
         }
     }
@@ -158,7 +161,8 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
         tryLegacyWrite {
             val table = arpTable(bridgeId)
-            table.removePersistent(address, mac)
+            Await.result(table.removePersistent(address, mac),
+                         MidonetResource.Timeout)
             Response.noContent().build()
         }
     }
