@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.state;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,11 +28,13 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.NotEmptyException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.data.Stat;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.backend.Directory;
+import org.midonet.cluster.backend.DirectoryCallback;
 
 
 public class TestMockDirectory {
@@ -86,6 +89,16 @@ public class TestMockDirectory {
         expectedChildren.add("e");
         Assert.assertEquals(expectedChildren,
                             dir.getChildren("/a/b", null));
+        dir.asyncGetChildren("/a/b", new DirectoryCallback<Collection<String>>() {
+            @Override
+            public void onSuccess(Collection<String> children, Stat stat) {
+                Assert.assertEquals(expectedChildren, children);
+            }
+            @Override
+            public void onError(KeeperException e) {
+                Assert.fail();
+            }
+        });
     }
 
     @Test
@@ -279,6 +292,26 @@ public class TestMockDirectory {
                             subdir.getChildren("/", null));
         Assert.assertEquals(expectedChildren,
                             dir.getChildren("/a/b/c", null));
+        subdir.asyncGetChildren("/", new DirectoryCallback<Collection<String>>() {
+            @Override
+            public void onSuccess(Collection<String> children, Stat stat) {
+                Assert.assertEquals(expectedChildren, children);
+            }
+            @Override
+            public void onError(KeeperException e) {
+                Assert.fail();
+            }
+        });
+        dir.asyncGetChildren("/a/b/c", new DirectoryCallback<Collection<String>>() {
+            @Override
+            public void onSuccess(Collection<String> children, Stat stat) {
+                Assert.assertEquals(expectedChildren, children);
+            }
+            @Override
+            public void onError(KeeperException e) {
+                Assert.fail();
+            }
+        });
         subdir.add("/x", "x".getBytes(), CreateMode.PERSISTENT);
         subdir.add("/x/y", "xy".getBytes(), CreateMode.PERSISTENT);
         String actualPath = subdir.add("/x/y/z", "xyz".getBytes(),

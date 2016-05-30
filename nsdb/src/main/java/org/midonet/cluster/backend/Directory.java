@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.backend;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -52,6 +53,9 @@ public interface Directory {
 
     Set<String> getChildren(String relativePath, Runnable watcher)
         throws KeeperException, InterruptedException;
+
+    void asyncGetChildren(String relativePath,
+                          DirectoryCallback<Collection<String>> callback);
 
     boolean exists(String relativePath)
         throws KeeperException, InterruptedException;
