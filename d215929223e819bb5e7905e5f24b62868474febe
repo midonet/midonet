@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a99e9360",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-30T03:47:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_dc7be5bc",
+      "range": {
+        "startLine": 66,
+        "startChar": 22,
+        "endLine": 66,
+        "endChar": 45
+      },
+      "revId": "d215929223e819bb5e7905e5f24b62868474febe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9c50bd33",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
         "patchSetId": 3
@@ -59,6 +83,30 @@
       "writtenOn": "2016-05-26T08:33:07Z",
       "side": 1,
       "message": "+1",
+      "parentUuid": "baa041b7_9c50bd33",
+      "range": {
+        "startLine": 81,
+        "startChar": 30,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "d215929223e819bb5e7905e5f24b62868474febe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_89998f7b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-05-30T03:47:56Z",
+      "side": 1,
+      "message": "Done",
       "parentUuid": "baa041b7_9c50bd33",
       "range": {
         "startLine": 81,
