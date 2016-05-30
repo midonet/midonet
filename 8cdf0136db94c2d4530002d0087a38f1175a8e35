@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4f1ee770",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/ReplicatedMapStateTableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-30T13:39:29Z",
+      "side": 1,
+      "message": "I\u0027m not very familiar with the state table interface, but shouldn\u0027t the 2nd observer get the current state of the table on subscribe? I assume it is ok to just receive updates otherwise.",
+      "range": {
+        "startLine": 246,
+        "startChar": 8,
+        "endLine": 247,
+        "endChar": 56
+      },
+      "revId": "8cdf0136db94c2d4530002d0087a38f1175a8e35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0f145f4a",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/ReplicatedMapStateTableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-30T13:39:29Z",
+      "side": 1,
+      "message": "The first observer should not receive updates?\n\nobserver1.getOnNextEvents() should have size 3",
+      "range": {
+        "startLine": 273,
+        "startChar": 8,
+        "endLine": 273,
+        "endChar": 60
+      },
+      "revId": "8cdf0136db94c2d4530002d0087a38f1175a8e35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
