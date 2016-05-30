@@ -66,5 +66,4 @@ public class Route extends ZoomObject {
                 .add("destination", destination)
                 .add("nexthop", nexthop).toString();
     }
-
 }
