@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_41a7db0a",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/ReplicatedMapStateTableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-30T14:17:20Z",
+      "side": 1,
+      "message": "ah got it.",
+      "parentUuid": "baa041b7_21173749",
+      "range": {
+        "startLine": 246,
+        "startChar": 8,
+        "endLine": 247,
+        "endChar": 56
+      },
+      "revId": "8cdf0136db94c2d4530002d0087a38f1175a8e35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0f145f4a",
         "filename": "midolman/src/test/scala/org/midonet/cluster/storage/ReplicatedMapStateTableTest.scala",
         "patchSetId": 3
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "The first observer has unsubscribed before, this is just to test that the map sends updates to the remaining subscribers.",
       "parentUuid": "baa041b7_0f145f4a",
+      "range": {
+        "startLine": 273,
+        "startChar": 8,
+        "endLine": 273,
+        "endChar": 60
+      },
+      "revId": "8cdf0136db94c2d4530002d0087a38f1175a8e35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a19ea7b6",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/ReplicatedMapStateTableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-05-30T14:17:20Z",
+      "side": 1,
+      "message": "Yes I saw it, I just meant adding a test that the unsubscribe method does what it\u0027s supposed to do. Not really important.",
+      "parentUuid": "baa041b7_8f006f03",
       "range": {
         "startLine": 273,
         "startChar": 8,
