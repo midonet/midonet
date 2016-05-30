@@ -31,6 +31,7 @@ import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.packets.{MAC, IPv4Addr}
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent._
 import org.midonet.util.eventloop.CallingThreadReactor
 import org.midonet.util.reactivex. TestAwaitableObserver
 
@@ -238,7 +239,7 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         When("Adding a IP-MAC pair to the table")
         val ip1 = IPv4Addr.random
         val mac1 = MAC.random()
-        table.addPersistent(ip1, mac1)
+        table.addPersistent(ip1, mac1).await(timeout)
 
         Then("The observer should receive the update")
         obs.awaitOnNext(1, timeout)
@@ -258,7 +259,7 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         // TODO: does not change.
 
         When("Deleting the first IP-MAC pair")
-        table.removePersistent(ip1, mac1) shouldBe true
+        table.removePersistent(ip1, mac1).await(timeout) shouldBe true
 
         Then("The observer should receive the update")
         obs.awaitOnNext(2, timeout)

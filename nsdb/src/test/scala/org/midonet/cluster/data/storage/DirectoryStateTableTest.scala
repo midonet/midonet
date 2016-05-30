@@ -28,6 +28,7 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkDirectory}
 import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.util.MidonetBackendTest
+import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
@@ -71,55 +72,55 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
         val table = new TestStateTable(new ZkDirectory(connection, path, reactor))
 
         Then("The remote snapshot should be empty")
-        table.remoteSnapshot shouldBe empty
+        table.remoteSnapshot.await() shouldBe empty
 
         When("Adding a persistent value")
-        table.addPersistent("key0", "value0")
+        table.addPersistent("key0", "value0").await()
 
         Then("The remote snapshot should contain the value")
-        table.remoteSnapshot should contain only "key0" -> "value0"
+        table.remoteSnapshot.await() should contain only "key0" -> "value0"
 
         And("Zookeeper should contain the node")
         curator.getChildren.forPath(path) should contain only
             s"key0,value0,${StateTableEncoder.PersistentVersion}"
 
         And("The table should indicates that contains the key")
-        table.containsRemote("key0") shouldBe true
-        table.containsRemote("key0", "value0") shouldBe true
-        table.containsPersistent("key0", "value0") shouldBe true
+        table.containsRemote("key0").await() shouldBe true
+        table.containsRemote("key0", "value0").await() shouldBe true
+        table.containsPersistent("key0", "value0").await() shouldBe true
 
         And("The table should not indicate that contains other key/values")
-        table.containsRemote("key1") shouldBe false
-        table.containsRemote("key0", "value1") shouldBe false
-        table.containsPersistent("key0", "value1") shouldBe false
+        table.containsRemote("key1").await() shouldBe false
+        table.containsRemote("key0", "value1").await() shouldBe false
+        table.containsPersistent("key0", "value1").await() shouldBe false
 
         And("The table should return the value for the key")
-        table.getRemote("key0") shouldBe "value0"
-        table.getRemote("key1") shouldBe null
+        table.getRemote("key0").await() shouldBe "value0"
+        table.getRemote("key1").await() shouldBe null
 
         And("The table should return the key set for the value")
-        table.getRemoteByValue("value0") shouldBe Set("key0")
-        table.getRemoteByValue("value1") shouldBe Set.empty
+        table.getRemoteByValue("value0").await() shouldBe Set("key0")
+        table.getRemoteByValue("value1").await() shouldBe Set.empty
 
         When("Removing the persistent value")
-        table.removePersistent("key0", "value0") shouldBe true
+        table.removePersistent("key0", "value0").await() shouldBe true
 
         Then("The remote snapshot should be empty")
-        table.remoteSnapshot shouldBe empty
+        table.remoteSnapshot.await() shouldBe empty
 
         And("Zookeeper should not contain the node")
         curator.getChildren.forPath(path) shouldBe empty
 
         And("The table should indicates that it does not contain the key")
-        table.containsRemote("key0") shouldBe false
-        table.containsRemote("key0", "value0") shouldBe false
-        table.containsPersistent("key0", "value0") shouldBe false
+        table.containsRemote("key0").await() shouldBe false
+        table.containsRemote("key0", "value0").await() shouldBe false
+        table.containsPersistent("key0", "value0").await() shouldBe false
 
         And("The table should not return the value for the key")
-        table.getRemote("key0") shouldBe null
+        table.getRemote("key0").await() shouldBe null
 
         And("The table should return an empty set for the value")
-        table.getRemoteByValue("value0") shouldBe Set.empty
+        table.getRemoteByValue("value0").await() shouldBe Set.empty
     }
 
     "Directory state table" should "handle multiple persistent entries" in {
@@ -127,11 +128,11 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
         val table = new TestStateTable(new ZkDirectory(connection, path, reactor))
 
         When("Adding two values for a key")
-        table.addPersistent("key0", "value0")
-        table.addPersistent("key0", "value1")
+        table.addPersistent("key0", "value0").await()
+        table.addPersistent("key0", "value1").await()
 
         Then("The remote snapshot should contain the value")
-        table.remoteSnapshot should contain only "key0" -> "value0"
+        table.remoteSnapshot.await() should contain only "key0" -> "value0"
 
         And("Zookeeper should contain the node")
         curator.getChildren.forPath(path) should contain allOf (
@@ -140,25 +141,25 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
             )
 
         And("The table should indicates that contains the key")
-        table.containsRemote("key0") shouldBe true
-        table.containsRemote("key0", "value0") shouldBe true
-        table.containsRemote("key0", "value1") shouldBe true
-        table.containsPersistent("key0", "value0") shouldBe true
-        table.containsPersistent("key0", "value1") shouldBe true
+        table.containsRemote("key0").await() shouldBe true
+        table.containsRemote("key0", "value0").await() shouldBe true
+        table.containsRemote("key0", "value1").await() shouldBe true
+        table.containsPersistent("key0", "value0").await() shouldBe true
+        table.containsPersistent("key0", "value1").await() shouldBe true
 
         And("The table should not indicate that contains other key/values")
-        table.containsRemote("key1") shouldBe false
-        table.containsRemote("key0", "value2") shouldBe false
-        table.containsPersistent("key0", "value2") shouldBe false
+        table.containsRemote("key1").await() shouldBe false
+        table.containsRemote("key0", "value2").await() shouldBe false
+        table.containsPersistent("key0", "value2").await() shouldBe false
 
         And("The table should return the value for the key")
-        table.getRemote("key0") shouldBe "value0"
-        table.getRemote("key1") shouldBe null
+        table.getRemote("key0").await() shouldBe "value0"
+        table.getRemote("key1").await() shouldBe null
 
         And("The table should return the key set for the value")
-        table.getRemoteByValue("value0") shouldBe Set("key0")
-        table.getRemoteByValue("value1") shouldBe Set("key0")
-        table.getRemoteByValue("value2") shouldBe Set.empty
+        table.getRemoteByValue("value0").await() shouldBe Set("key0")
+        table.getRemoteByValue("value1").await() shouldBe Set("key0")
+        table.getRemoteByValue("value2").await() shouldBe Set.empty
     }
 
     "Directory state table" should "handle non-existent entries" in {
@@ -166,7 +167,7 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
         val table = new TestStateTable(new ZkDirectory(connection, path, reactor))
 
         Then("Removing a non-existent entry should return false")
-        table.removePersistent("keyN", "valueN") shouldBe false
+        table.removePersistent("keyN", "valueN").await() shouldBe false
     }
 
     "Directory state table" should "handle persistent with learned entries" in {
@@ -175,30 +176,30 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
         val table = new TestStateTable(directory)
 
         When("Adding a persistent entry")
-        table.addPersistent("key0", "value0")
+        table.addPersistent("key0", "value0").await()
 
         And("Adding a learned entry for the same key")
         directory.add("/key0,value1,0", null, CreateMode.EPHEMERAL)
 
         Then("The remote snapshot should contain the learned value")
-        table.remoteSnapshot should contain only "key0" -> "value1"
+        table.remoteSnapshot.await() should contain only "key0" -> "value1"
 
         And("The table should contain the remote value")
-        table.containsRemote("key0") shouldBe true
-        table.containsRemote("key0", "value1") shouldBe true
-        table.containsPersistent("key0", "value0") shouldBe true
+        table.containsRemote("key0").await() shouldBe true
+        table.containsRemote("key0", "value1").await() shouldBe true
+        table.containsPersistent("key0", "value0").await() shouldBe true
 
         When("Removing the learned entry")
         directory.delete("/key0,value1,0")
 
         Then("The remote snapshot should contain the persistent value")
-        table.remoteSnapshot should contain only "key0" -> "value0"
+        table.remoteSnapshot.await() should contain only "key0" -> "value0"
 
         And("The table should contain the remote value")
-        table.containsRemote("key0") shouldBe true
-        table.containsRemote("key0", "value0") shouldBe true
-        table.containsRemote("key0", "value1") shouldBe false
-        table.containsPersistent("key0", "value0") shouldBe true
+        table.containsRemote("key0").await() shouldBe true
+        table.containsRemote("key0", "value0").await() shouldBe true
+        table.containsRemote("key0", "value1").await() shouldBe false
+        table.containsPersistent("key0", "value0").await() shouldBe true
     }
 
     "Directory state table" should "handle mixed learned entries" in {
@@ -210,24 +211,24 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
         directory.add("/key2,value2,0", null, CreateMode.EPHEMERAL)
 
         Then("The remote snapshot should contain the learned value")
-        table.remoteSnapshot should contain only "key2" -> "value2"
+        table.remoteSnapshot.await() should contain only "key2" -> "value2"
 
         And("The table should contain the remote value")
-        table.containsRemote("key2") shouldBe true
-        table.containsRemote("key2", "value2") shouldBe true
-        table.containsPersistent("key2", "value2") shouldBe false
+        table.containsRemote("key2").await() shouldBe true
+        table.containsRemote("key2", "value2").await() shouldBe true
+        table.containsPersistent("key2", "value2").await() shouldBe false
 
         When("Adding a second learned entry for the same key")
         directory.add("/key2,value3,1", null, CreateMode.EPHEMERAL)
 
         Then("The remote snapshot should contain the learned value")
-        table.remoteSnapshot should contain only "key2" -> "value3"
+        table.remoteSnapshot.await() should contain only "key2" -> "value3"
 
         And("The table should contain the remote value")
-        table.containsRemote("key2") shouldBe true
-        table.containsRemote("key2", "value2") shouldBe false
-        table.containsRemote("key2", "value3") shouldBe true
-        table.containsPersistent("key2", "value3") shouldBe false
+        table.containsRemote("key2").await() shouldBe true
+        table.containsRemote("key2", "value2").await() shouldBe false
+        table.containsRemote("key2", "value3").await() shouldBe true
+        table.containsPersistent("key2", "value3").await() shouldBe false
     }
 
     "Directory state table" should "ignore invalid entries" in {
@@ -239,7 +240,7 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
         directory.add("/invalid-entry", null, CreateMode.EPHEMERAL)
 
         Then("The remote snapshot should be empty")
-        table.remoteSnapshot shouldBe empty
+        table.remoteSnapshot.await() shouldBe empty
     }
 
     "Directory state table" should "throw on invalid directory" in {
@@ -249,7 +250,7 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
 
         Then("The table operations should fail")
         intercept[StateAccessException] {
-            table.remoteSnapshot shouldBe empty
+            table.remoteSnapshot.await() shouldBe empty
         }
     }
 

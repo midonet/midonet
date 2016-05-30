@@ -31,6 +31,7 @@ import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
+import org.midonet.util.concurrent._
 
 
 @RunWith(classOf[JUnitRunner])
@@ -236,7 +237,7 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         And("The destination IP-MAC are preseeded at the bridge")
         vt.stateTables.bridgeArpTable(bridgeDevice.id)
-                      .addPersistent(dstIp, dstMac)
+                      .addPersistent(dstIp, dstMac).await()
 
         And("An ARP packet from source to destination")
         val ethPkt = { eth src srcMac dst eth_bcast } <<

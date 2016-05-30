@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.{UUID, List => JList}
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.Response.Status._
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -274,7 +275,8 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
 
         tryLegacyRead {
             val table = peeringTable(portId)
-            if (table.containsRemote(mac, address)) {
+            if (Await.result(table.containsRemote(mac, address),
+                             MidonetResource.Timeout)) {
                 new MacIpPair(resContext.uriInfo.getRequestUriBuilder.replacePath(trimmedPath).build(),
                               address.toString, mac.toString)
             } else {
@@ -293,11 +295,12 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
         val entries = tryLegacyRead {
             val table = peeringTable(portId)
 
-            table.remoteSnapshot
+            Await.result(table.remoteSnapshot, MidonetResource.Timeout)
         }
 
         for ((mac, ip) <- entries.toList)
-            yield new MacIpPair(resContext.uriInfo.getRequestUri, ip.toString, mac.toString)
+            yield new MacIpPair(resContext.uriInfo.getRequestUri, ip.toString,
+                                mac.toString)
     }
 
     @POST
@@ -316,7 +319,8 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
 
         tryLegacyWrite {
             val table = peeringTable(portId)
-            table.addPersistent(mac, address)
+            Await.result(table.addPersistent(mac, address),
+                         MidonetResource.Timeout)
             Response.created(entry.getUri).build()
         }
     }
@@ -329,7 +333,8 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
 
         tryLegacyWrite {
             val table = peeringTable(portId)
-            table.removePersistent(mac, address)
+            Await.result(table.removePersistent(mac, address),
+                         MidonetResource.Timeout)
             Response.noContent().build()
         }
     }
