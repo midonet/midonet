@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_21173749",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/ReplicatedMapStateTableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-30T13:54:57Z",
+      "side": 1,
+      "message": "So this is because ReplicatedMaps don\u0027t have a current state once started, so the observable from a replicated map is a hot one, and produces updates regardless of whether it is subscribed to or not. Storing the last update doesn\u0027t make much sense because it only says what\u0027s the last entry that has changed if any. An improvement would be to emit all entries to a new subscriber and then continue with subsequent updates (i.e. make the observable cold), but since that wasn\u0027t required for the moment I didn\u0027t work on it. Especially since the ZK minion will replace the notification path anyway.",
+      "parentUuid": "baa041b7_4f1ee770",
+      "range": {
+        "startLine": 246,
+        "startChar": 8,
+        "endLine": 247,
+        "endChar": 56
+      },
+      "revId": "8cdf0136db94c2d4530002d0087a38f1175a8e35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0f145f4a",
         "filename": "midolman/src/test/scala/org/midonet/cluster/storage/ReplicatedMapStateTableTest.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-05-30T13:39:29Z",
       "side": 1,
       "message": "The first observer should not receive updates?\n\nobserver1.getOnNextEvents() should have size 3",
+      "range": {
+        "startLine": 273,
+        "startChar": 8,
+        "endLine": 273,
+        "endChar": 60
+      },
+      "revId": "8cdf0136db94c2d4530002d0087a38f1175a8e35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8f006f03",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/ReplicatedMapStateTableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-30T13:54:57Z",
+      "side": 1,
+      "message": "The first observer has unsubscribed before, this is just to test that the map sends updates to the remaining subscribers.",
+      "parentUuid": "baa041b7_0f145f4a",
       "range": {
         "startLine": 273,
         "startChar": 8,
