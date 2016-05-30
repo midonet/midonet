@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.inject.Inject;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +77,7 @@ public class ZkSystemDataProvider implements SystemDataProvider {
         final int DEFAULT_RETRIES = 10;
         int retries = DEFAULT_RETRIES;
 
-        public void onSuccess(byte[] data) {
+        public void onSuccess(byte[] data, Stat stat) {
             cachedWriteVersion.set(new String(data));
         }
 

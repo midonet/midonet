@@ -266,7 +266,7 @@ public class MockDirectory implements Directory {
     @Override
     public void asyncAdd(String relativePath, byte[] data, CreateMode mode, DirectoryCallback<String> cb) {
         try {
-            cb.onSuccess(add(relativePath, data, mode));
+            cb.onSuccess(add(relativePath, data, mode), null);
         } catch (KeeperException e) {
             cb.onError(e);
         }
@@ -297,7 +297,8 @@ public class MockDirectory implements Directory {
     @Override
     public void asyncGet(String relativePath, DirectoryCallback<byte[]> dataCb, TypedWatcher watcher) {
         try {
-            dataCb.onSuccess(getNode(relativePath).getData(wrapCallback(watcher)));
+            dataCb.onSuccess(getNode(relativePath).getData(wrapCallback(watcher)),
+                             null);
         } catch (NoNodeException e) {
             dataCb.onError(e);
         }
@@ -351,7 +352,7 @@ public class MockDirectory implements Directory {
     public void asyncDelete(String relativePath, DirectoryCallback<Void> callback) {
          try {
              delete(relativePath, false);
-             callback.onSuccess(null);
+             callback.onSuccess(null, null);
          } catch (KeeperException ex) {
              callback.onError(ex);
          }
