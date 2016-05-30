@@ -141,6 +141,30 @@
       "revId": "8cdf0136db94c2d4530002d0087a38f1175a8e35",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_81ef231d",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/ReplicatedMapStateTableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-30T14:26:55Z",
+      "side": 1,
+      "message": "Ah, got it: I didn\u0027t add one because that should be controlled by the rx subscription, so I thought that there is no need to test it. On the other hand, I thought about it, but it needs a synchronous observable, or otherwise we need to add a timeout (or we can\u0027t be sure we won\u0027t receive an async notification unless we wait).\n\nSo:\n- I didn\u0027t want to add a sleep in the unit test\n- I verified that rx.SafeSubcriber already blocks notifications after unsubscribe (it has a `if (!done)`), so it should be an rx issue\n\nIn addition, testing the unsubscribe doesn\u0027t increase the coverage for the tested class (which I think was 100% or close - will check).",
+      "parentUuid": "baa041b7_a19ea7b6",
+      "range": {
+        "startLine": 273,
+        "startChar": 8,
+        "endLine": 273,
+        "endChar": 60
+      },
+      "revId": "8cdf0136db94c2d4530002d0087a38f1175a8e35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
