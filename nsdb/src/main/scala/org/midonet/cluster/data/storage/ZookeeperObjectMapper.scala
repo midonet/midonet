@@ -109,7 +109,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                             protected override val namespace: String,
                             protected override val curator: CuratorFramework,
                             metricsRegistry: MetricRegistry = null)
-    extends ZookeeperObjectState with Storage {
+    extends ZookeeperObjectState with Storage with StorageInternals {
 
     import ZookeeperObjectMapper._
 
@@ -623,7 +623,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             override def call(child: Subscriber[_ >: T]): Unit = {
                 // Only request and subscribe to the internal, cache-able
                 // observable when a child subscribes.
-                internalObservable[T](clazz, id) subscribe child
+                internalObservable[T](clazz, id, version.get) subscribe child
             }
         })
     }
@@ -635,10 +635,11 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
       * a new [[NodeObservable]] with an error handler and caches it, where the
       * close handler removes it from the cache.
       */
-    private def internalObservable[T](clazz: Class[T], id: ObjId)
+    protected override def internalObservable[T](clazz: Class[T], id: ObjId,
+                                                 version: Long)
     : Observable[T] = {
         val key = Key(clazz, getIdString(clazz, id))
-        val path = objectPath(clazz, id)
+        val path = objectPath(clazz, id, version)
 
         objectObservables.getOrElse(key, {
             val ref = objectObservableRef.getAndIncrement()
@@ -654,7 +655,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
                     case e: NodeObservableClosedException =>
                         metrics.count(e)
-                        internalObservable(clazz, id)
+                        internalObservable(clazz, id, version)
                     case e: NoNodeException =>
                         metrics.count(e)
                         Observable.error(new NotFoundException(clazz, id))
