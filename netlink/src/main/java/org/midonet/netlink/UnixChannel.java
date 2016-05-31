@@ -136,7 +136,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
                 if (!prepareWrite())
                     return 0;
                 do {
-                    n = IOUtil.write(fd, buffers, nd);
+                    n = (int)IOUtil.write(fd, buffers, nd);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
                 return normalizeAndCountTxBytes(n);
             } finally {
@@ -181,7 +181,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
                 if (!prepareRead())
                     return n;
                 do {
-                    n = IOUtil.read(fd, buffers, nd);
+                    n = (int)IOUtil.read(fd, buffers, nd);
                 } while ((n == IOStatus.INTERRUPTED) && isOpen());
                 return normalizeAndCountRxBytes(n);
             } finally {
