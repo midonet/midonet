@@ -125,6 +125,7 @@ class FlowProcessor(dpState: DatapathState,
 
             lastSequence = sequence
         }
+        context.setFlowProcessed()
         true
     }
 

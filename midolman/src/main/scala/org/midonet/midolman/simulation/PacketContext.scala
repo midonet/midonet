@@ -19,6 +19,7 @@ package org.midonet.midolman.simulation
 import java.lang.{Integer => JInteger}
 import java.util
 import java.util.{Arrays, ArrayList, UUID}
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.collection.JavaConversions._
 
@@ -49,6 +50,27 @@ object PacketContext {
         Logger(LoggerFactory.getLogger("org.midonet.packets.debug.packet-processor"))
     val traceLog =
         Logger(LoggerFactory.getLogger("org.midonet.packets.trace.packet-processor"))
+
+    /*
+     * The default values doesn't work when called from java.
+     * Workaround it by overloading the method.
+     */
+    def generatedForJava(cookie: Int, packet: Packet,
+                         origMatch: FlowMatch,
+                         egressPort: UUID): PacketContext =
+        generated(cookie, packet, origMatch, egressPort)
+
+    def generated(cookie: Int, packet: Packet,
+                  origMatch: FlowMatch,
+                  egressPort: UUID = null,
+                  egressPortNo: JInteger = null,
+                  backChannel: SimulationBackChannel = null,
+                  arpBroker: ArpRequestBroker = null): PacketContext = {
+        val context = new PacketContext()
+        context.prepare(cookie, packet, origMatch, egressPort, egressPortNo,
+                        backChannel, arpBroker)
+        context
+    }
 }
 
 /**
@@ -87,17 +109,21 @@ trait FlowContext extends Clearable { this: PacketContext =>
 
     def isEncapped = isRecirc && (recircPayload.getParent ne null)
 
-    override def clear(): Unit = {
-        if (recircMatch ne null)
-            origMatch.reset(recircMatch)
+    def resetFlowContext(): Unit = {
+        virtualFlowActions.clear()
+        packetActions.clear()
+        recircFlowActions.clear()
+        flowActions.clear()
+        flowTags.clear()
         recircMatch = null
         recircPayload = null
         flow = null
-        virtualFlowActions.clear()
-        flowActions.clear()
-        packetActions.clear()
-        recircFlowActions.clear()
-        flowTags.clear()
+    }
+
+    override def clear(): Unit = {
+        if (recircMatch ne null)
+            origMatch.reset(recircMatch)
+        resetFlowContext()
         super.clear()
     }
 
@@ -291,10 +317,15 @@ trait RecordedContext extends Clearable {
         traversedRulesApplied.add(applied)
     }
 
-    override def clear(): Unit = {
+    def resetRecordedContext(): Unit = {
         traversedRules.clear()
         traversedRuleResults.clear()
         traversedRulesMatched.clear()
+        traversedRulesApplied.clear()
+    }
+
+    override def clear(): Unit = {
+        resetRecordedContext()
         super.clear()
     }
 }
@@ -318,9 +349,13 @@ trait RedirectContext extends Clearable {
         redirectFailOpen = false
     }
 
-    override def clear(): Unit = {
+    def resetRedirectContext(): Unit = {
         clearRedirect()
         servicePorts.clear()
+    }
+
+    override def clear(): Unit = {
+        resetRedirectContext()
         super.clear()
     }
 }
@@ -332,15 +367,11 @@ trait RedirectContext extends Clearable {
  * used to pass state between different simulation stages, or between virtual
  * devices.
  */
-class PacketContext(val cookie: Long,
-                    val packet: Packet,
-                    val origMatch: FlowMatch,
-                    val egressPort: UUID = null,
-                    val egressPortNo: JInteger = null) extends Clearable
-                                                 with FlowContext
-                                                 with RedirectContext
-                                                 with RecordedContext
-                                                 with StateContext {
+class PacketContext extends Clearable
+        with FlowContext
+        with RedirectContext
+        with RecordedContext
+        with StateContext {
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying
@@ -359,15 +390,24 @@ class PacketContext(val cookie: Long,
     val outPorts = new ArrayList[UUID]()
     var currentDevice: UUID = _
     var routeTo: Route = _
-    val preRoutingMatch = origMatch.clone()
 
-    val wcmatch = origMatch.clone()
-    val diffBaseMatch = origMatch.clone()
+    val preRoutingMatch = new FlowMatch
+    val wcmatch = new FlowMatch
+    val diffBaseMatch = new FlowMatch
 
     var inputPort: UUID = _
 
     var backChannel: SimulationBackChannel = _
     var arpBroker: ArpRequestBroker = _
+
+    var cookie: Long = -1
+    var packet: Packet = null
+    val origMatch: FlowMatch = new FlowMatch
+    var egressPort: UUID = null
+    var egressPortNo: JInteger = null
+
+    val flowProcessed: AtomicBoolean = new AtomicBoolean(false)
+    val packetProcessed: AtomicBoolean = new AtomicBoolean(false)
 
     // Stores the callback to call when this flow is removed.
     val flowRemovedCallbacks = new ArrayList[Callback0]()
@@ -383,9 +423,54 @@ class PacketContext(val cookie: Long,
 
     def cookieStr = s"[cookie:$cookie]"
 
-    def reset(backChannel: SimulationBackChannel, arpBroker: ArpRequestBroker): Unit = {
+    def prepare(cookie: Long,
+                packet: Packet,
+                origMatch: FlowMatch,
+                egressPort: UUID, egressPortNo: JInteger,
+                backChannel: SimulationBackChannel,
+                arpBroker: ArpRequestBroker): Unit = {
+        resetContext()
+        this.cookie = cookie
+        this.packet = packet
+
+        this.origMatch.reset(origMatch)
+        this.preRoutingMatch.reset(origMatch)
+        this.wcmatch.reset(origMatch)
+        this.diffBaseMatch.reset(origMatch)
+
+        this.egressPort = egressPort
+        this.egressPortNo = egressPortNo
+
         this.backChannel = backChannel
         this.arpBroker = arpBroker
+    }
+
+    def resetContext(): Unit = {
+        flowProcessed.set(false)
+        packetProcessed.set(false)
+
+        resetFlowContext()
+        resetRedirectContext()
+        resetRecordedContext()
+        resetStateContext()
+
+        this.log = PacketContext.defaultLog
+        this.idle = true
+        this.devicesTraversed = 0
+        this.runs = 0
+        this.cookie = -1
+        this.packet = null
+        this.origMatch.clear()
+        this.egressPort = null
+        this.egressPortNo = null
+        this.preRoutingMatch.clear()
+        this.wcmatch.clear()
+        this.diffBaseMatch.clear()
+        this.outPorts.clear()
+        this.portGroups = null
+        this.inPortGroups = null
+        this.outPortGroups = null
+        this.flowRemovedCallbacks.clear()
     }
 
     override def clear(): Unit = {
@@ -420,6 +505,10 @@ class PacketContext(val cookie: Long,
         clear()
     }
 
+    def isProcessed = flowProcessed.get && packetProcessed.get
+    def setFlowProcessed(): Unit = flowProcessed.set(true)
+    def setPacketProcessed(): Unit = packetProcessed.set(true)
+
     def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
         backChannel.tell(GeneratedLogicalPacket(uuid, ethernet, cookie))
 
@@ -431,12 +520,4 @@ class PacketContext(val cookie: Long,
         wcmatch.markUserspaceOnly()
 
     override def toString = s"PacketContext($cookieStr tags$flowTags actions$virtualFlowActions $origMatch)"
-
-    /*
-     * The default values doesn't work in case called from java.
-     * Workaound it by overloading the constructor.
-     */
-    def this(cookie: Int, packet: Packet, origMatch: FlowMatch,
-             egressPort: UUID) =
-        this(cookie, packet, origMatch, egressPort, null)
 }

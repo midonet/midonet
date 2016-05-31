@@ -135,7 +135,8 @@ class ArpRequestBrokerTest extends Suite
         val frame = Ethernet.random()
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
         fmatch.setInputPortNumber(1)
-        val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
+        val context = PacketContext.generated(-1, new Packet(frame, fmatch),
+                                              fmatch)
         context.backChannel = backChannel
         context
     }

@@ -171,7 +171,7 @@ class FlowControllerTest extends MidolmanSpec {
         var linkedCallbackCalled = false
 
         def add(tags: FlowTag*): ManagedFlow = {
-            val context = new PacketContext(0, null, fmatch)
+            val context = PacketContext.generated(0, null, fmatch)
             tags foreach context.addFlowTag
             context addFlowRemovedCallback new Callback0 {
                 def call() = callbackCalled = true
