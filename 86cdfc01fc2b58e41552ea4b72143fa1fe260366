@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b766e5b8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-31T09:52:40Z",
+      "side": 1,
+      "message": "Do we need to reset the context before returning it to the pool?",
+      "range": {
+        "startLine": 401,
+        "startChar": 16,
+        "endLine": 401,
+        "endChar": 38
+      },
+      "revId": "86cdfc01fc2b58e41552ea4b72143fa1fe260366",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
