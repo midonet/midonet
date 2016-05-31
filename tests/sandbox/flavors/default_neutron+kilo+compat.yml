@@ -115,17 +115,11 @@ keystone:
     interface: mdts.services.keystone.KeystoneHost
     type: keystone
 
-mariadb:
-  image: mariadb:5.5
-  hostname: mariadb
-  environment:
-  - MYSQL_ROOT_PASSWORD=root
-
 neutron:
   extends:
     file: $BASE/neutron.yml
     service: neutron
-  image: sandbox/neutron:kilo
+  image: sandbox/neutron:kilo_v1
   hostname: neutron
   labels:
     interface: mdts.services.neutron.NeutronHost
@@ -133,4 +127,3 @@ neutron:
   links:
   - "keystone:keystone"
   - "api:midonetapi"
-  - "mariadb:mariadb"
