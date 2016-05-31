@@ -16,7 +16,9 @@
 
 package org.midonet.cluster
 
+import java.lang.management.ManagementFactory
 import java.nio.file.{Files, Paths}
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import javax.sql.DataSource
@@ -27,6 +29,7 @@ import scala.util.control.NonFatal
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice, Singleton}
+import com.typesafe.config.ConfigRenderOptions
 import com.typesafe.scalalogging.Logger
 
 import org.apache.commons.dbcp2.BasicDataSource
@@ -64,7 +67,28 @@ object ClusterNode extends App {
     private val metrics = new MetricRegistry()
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()
 
-    log info "Cluster node starting.." // TODO show build.properties
+    // Log GIT commit information.
+    val properties = new Properties
+    properties
+        .load(getClass.getClassLoader.getResourceAsStream("git.properties"))
+    log info "MidoNet Cluster starting..."
+    log info s"branch: ${properties.get("git.branch")}"
+    log info s"commit.time: ${properties.get("git.commit.time")}"
+    log info s"commit.id: ${properties.get("git.commit.id")}"
+    log info s"commit.user: ${properties.get("git.commit.user.name")}"
+    log info s"build.time: ${properties.get("git.build.time")}"
+    log info s"build.user: ${properties.get("git.build.user.name")}"
+    log info "-------------------------------------"
+
+    // Log command line and JVM info.
+    log info s"Command-line arguments: $args"
+    val runtimeMxBean = ManagementFactory.getRuntimeMXBean
+    val arguments = runtimeMxBean.getInputArguments
+    log info "JVM options: "
+    for (argument <- arguments){
+        log info s"  $argument"
+    }
+    log info "-------------------------------------"
 
     // Load cluster node configuration
     private val nodeId = HostIdGenerator.getHostId
@@ -97,10 +121,13 @@ object ClusterNode extends App {
                 .subscribe(new LoggerLevelWatcher(Some("cluster")))
 
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
-
+    val renderOpts = ConfigRenderOptions.defaults
+        .setComments(false).setOriginComments(false).setFormatted(true)
+    log.info("Loaded configuration: {}",
+             configurator.dropSchema(clusterConf.conf).root.render(renderOpts))
     val clusterExecutor = ExecutorsModule(clusterConf.executors, log)
 
-    log.info("Scanning classpath for Cluster Minions..")
+    log.info("Scanning classpath for Cluster Minions...")
     private val reflections = new Reflections("org.midonet")
     private val annotated = reflections.getTypesAnnotatedWith(classOf[MinionService])
 
@@ -188,8 +215,8 @@ object ClusterNode extends App {
 
     log debug "Registering shutdown hook"
     sys addShutdownHook {
+        log info "MidoNet Cluster shutting down..."
         if (daemon.isRunning) {
-            log.info("Shutdown hook triggered, shutting down..")
             jmxReporter.stop()
             daemon.stopAsync().awaitTerminated()
         }
@@ -204,20 +231,21 @@ object ClusterNode extends App {
             log warn "Shutting down the cluster executor timed out"
             clusterExecutor.shutdownNow()
         }
+        log info "MidoNet Cluster stopped!"
     }
 
-    log info "MidoNet Cluster daemon starts.."
+    log info "MidoNet Cluster daemon starts..."
     try {
         jmxReporter.start()
         injector.getInstance(classOf[MidonetBackend])
                 .startAsync().awaitRunning()
         daemon.startAsync().awaitRunning()
-        log info "MidoNet Cluster is up!"
+        log info "MidoNet Cluster started"
     } catch {
         case e: Throwable =>
             e.getCause match {
                 case e: ClusterException =>
-                    log error("The Daemon was not able to start", e.getCause)
+                    log error("The daemon was not able to start", e.getCause)
                     System.exit(255)
                 case NonFatal(t) =>
                     log error("Failure in Cluster startup", e)
