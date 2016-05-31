@@ -25,10 +25,12 @@ import scala.util.Random
 
 import com.google.common.collect.ArrayListMultimap
 import com.typesafe.scalalogging.Logger
+
 import org.jctools.queues.SpscGrowableArrayQueue
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.{SimulationBackChannel, NotYetException}
+import org.midonet.cluster.data.storage.model.ArpEntry
+import org.midonet.midolman.{NotYetException, SimulationBackChannel}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.PacketWorkflow.GeneratedLogicalPacket
 import org.midonet.midolman.simulation._
@@ -219,12 +221,12 @@ class SingleRouterArpRequestBroker(id: UUID,
         (config.arptable.stale * STALE_JITTER * random.nextDouble()).toLong
     }
 
-    private def shouldArp(cacheEntry: ArpCacheEntry): Boolean = {
-        (cacheEntry eq null) || (cacheEntry.macAddr eq null) ||
+    private def shouldArp(cacheEntry: ArpEntry): Boolean = {
+        (cacheEntry eq null) || (cacheEntry.mac eq null) ||
             (clock.time > (cacheEntry.stale + stalenessJitter))
     }
 
-    private def upToDate(entry: ArpCacheEntry): Boolean = !shouldArp(entry)
+    private def upToDate(entry: ArpEntry): Boolean = !shouldArp(entry)
 
     /*
      * Checks whether this broker is actually managing any work right now.
@@ -267,12 +269,12 @@ class SingleRouterArpRequestBroker(id: UUID,
 
         if (shouldArp(cacheEntry)) {
             arpForAddress(ip, port, cookie)
-            if ((cacheEntry ne null) && (cacheEntry.macAddr ne null))
-                cacheEntry.macAddr
+            if ((cacheEntry ne null) && (cacheEntry.mac ne null))
+                cacheEntry.mac
             else
                 throw new NotYetException(waitForArpEntry(ip), s"MAC for IP $ip unknown, suspending during ARP")
         } else {
-            cacheEntry.macAddr
+            cacheEntry.mac
         }
     }
 
@@ -303,13 +305,13 @@ class SingleRouterArpRequestBroker(id: UUID,
     def set(ip: IPv4Addr, mac: MAC): Unit = {
         val entry = arpCache.get(ip)
 
-        if (upToDate(entry) && mac == entry.macAddr) {
+        if (upToDate(entry) && mac == entry.mac) {
             log.debug("Skipping write to ArpCache because a non-stale " +
                 "entry for {} with the same value ({}) exists.", ip, mac)
         } else {
             log.debug("Got address for {}: {}", ip, mac)
             val now = clock.time
-            val entry = new ArpCacheEntry(mac, now + config.arptable.expiration,
+            val entry = new ArpEntry(mac, now + config.arptable.expiration,
                                                now + config.arptable.stale, 0)
             arpCache.add(ip, entry)
             expiryQ.add((entry.expiry, ip))
@@ -320,8 +322,8 @@ class SingleRouterArpRequestBroker(id: UUID,
         set(ip, mac)
         val entry = arpCache.get(ip)
 
-        if ((entry ne null) && (entry.macAddr ne null))
-            Future.successful(entry.macAddr)
+        if ((entry ne null) && (entry.mac ne null))
+            Future.successful(entry.mac)
         else
             waitForArpEntry(ip)
     }
@@ -349,7 +351,7 @@ class SingleRouterArpRequestBroker(id: UUID,
 
             if (upToDate(entry)) {
                 arpLoops.remove(loop.ip)
-                keepPromises(loop.ip, entry.macAddr)
+                keepPromises(loop.ip, entry.mac)
             } else if (loop.timedOut) {
                 arpLoops.remove(loop.ip)
                 breakPromises(loop.ip)

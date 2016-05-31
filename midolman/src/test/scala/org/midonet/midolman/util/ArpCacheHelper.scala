@@ -16,8 +16,9 @@
 package org.midonet.midolman.util
 
 
+import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.state.{ArpCache, ArpCacheEntry}
+import org.midonet.midolman.state.ArpCache
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.UnixClock
 
@@ -25,8 +26,8 @@ object ArpCacheHelper {
     var ARP_EXPIRATION_MILLIS = 10000L
     var ARP_STALE_MILLIS = 1800000L
     def feedArpCache(cache: ArpCache, ip: IPv4Addr, mac: MAC) {
-        val entry = new ArpCacheEntry(mac, UnixClock().time + ARP_EXPIRATION_MILLIS,
-                                      UnixClock().time + ARP_STALE_MILLIS, 0)
+        val entry = new ArpEntry(mac, UnixClock().time + ARP_EXPIRATION_MILLIS,
+                                 UnixClock().time + ARP_STALE_MILLIS, 0)
         cache.add(ip, entry)
     }
 

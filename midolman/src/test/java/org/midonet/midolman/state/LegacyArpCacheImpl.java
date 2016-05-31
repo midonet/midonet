@@ -1,14 +1,16 @@
 package org.midonet.midolman.state;
 
-import org.midonet.packets.IPv4Addr;
-import org.midonet.util.eventloop.Reactor;
+import java.util.UUID;
+
 import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import java.util.UUID;
+import org.midonet.cluster.data.storage.model.ArpEntry;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.util.eventloop.Reactor;
 
-public class LegacyArpCacheImpl implements ArpCache, ReplicatedMap.Watcher<IPv4Addr, ArpCacheEntry> {
+public class LegacyArpCacheImpl implements ArpCache, ReplicatedMap.Watcher<IPv4Addr, ArpEntry> {
 
     public final UUID routerId;
     ArpTable arpTable;
@@ -29,34 +31,33 @@ public class LegacyArpCacheImpl implements ArpCache, ReplicatedMap.Watcher<IPv4A
     }
 
     @Override
-    public void processChange(IPv4Addr key, ArpCacheEntry oldV,
-                              ArpCacheEntry newV) {
+    public void processChange(IPv4Addr key, ArpEntry oldV, ArpEntry newV) {
         if (oldV == null && newV == null)
             return;
         if (newV != null && oldV != null) {
-            if (newV.macAddr == null && oldV.macAddr == null)
+            if (newV.mac() == null && oldV.mac() == null)
                 return;
-            if (newV.macAddr != null && oldV.macAddr != null &&
-                    newV.macAddr.equals(oldV.macAddr)) {
+            if (newV.mac() != null && oldV.mac() != null &&
+                    newV.mac().equals(oldV.mac())) {
                 return;
             }
         }
 
         updates.onNext(new ArpCacheUpdate(
                 key,
-                oldV != null ? oldV.macAddr : null,
-                newV != null ? newV.macAddr : null));
+                oldV != null ? oldV.mac() : null,
+                newV != null ? newV.mac() : null));
     }
 
     @Override
-    public ArpCacheEntry get(final IPv4Addr ipAddr) {
+    public ArpEntry get(final IPv4Addr ipAddr) {
         // It's ok to do a synchronous get on the map because it only
         // queries local state (doesn't go remote like the other calls.
         return arpTable.get(ipAddr);
     }
 
     @Override
-    public void add(final IPv4Addr ipAddr, final ArpCacheEntry entry) {
+    public void add(final IPv4Addr ipAddr, final ArpEntry entry) {
         reactor.submit(new Runnable() {
 
             @Override
