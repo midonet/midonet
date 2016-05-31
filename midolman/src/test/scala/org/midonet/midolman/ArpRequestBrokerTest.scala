@@ -367,7 +367,7 @@ class ArpRequestBrokerTest extends Suite
         eventually(ZK_RTT_TIMEOUT) {
             val e = arpCache.get(THEIR_IP)
             e should not be null
-            e.macAddr should be (THEIR_MAC)
+            e.mac should be (THEIR_MAC)
             arpBroker.shouldProcess() should be (true)
         }
         arpBroker.process()

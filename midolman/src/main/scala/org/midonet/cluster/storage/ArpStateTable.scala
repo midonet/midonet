@@ -18,15 +18,16 @@ package org.midonet.cluster.storage
 
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
+import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.data.storage.{DirectoryStateTable, StateTableEncoder}
 import org.midonet.cluster.storage.ArpStateTable.ArpEncoder
 import org.midonet.midolman.serialization.SerializationException
-import org.midonet.midolman.state.{ArpCacheEntry, ReplicatedMap}
+import org.midonet.midolman.state.ReplicatedMap
 import org.midonet.packets.IPv4Addr
 
 object ArpStateTable {
 
-    trait ArpEncoder extends StateTableEncoder[IPv4Addr, ArpCacheEntry] {
+    trait ArpEncoder extends StateTableEncoder[IPv4Addr, ArpEntry] {
         @inline protected override def encodeKey(address: IPv4Addr): String = {
             address.toString
         }
@@ -35,13 +36,13 @@ object ArpStateTable {
             IPv4Addr(string)
         }
 
-        @inline protected override def encodeValue(entry: ArpCacheEntry): String = {
-            entry.encode()
+        @inline protected override def encodeValue(entry: ArpEntry): String = {
+            entry.encode
         }
 
         @throws[SerializationException]
-        @inline protected override def decodeValue(string: String): ArpCacheEntry = {
-            ArpCacheEntry.decode(string)
+        @inline protected override def decodeValue(string: String): ArpEntry = {
+            ArpEntry.decode(string)
         }
     }
     object ArpEncoder extends ArpEncoder
@@ -50,12 +51,12 @@ object ArpStateTable {
 
 final class ArpStateTable(override val directory: Directory,
                           zkConnWatcher: ZkConnectionAwareWatcher)
-    extends DirectoryStateTable[IPv4Addr, ArpCacheEntry]
-    with ReplicatedMapStateTable[IPv4Addr, ArpCacheEntry]
+    extends DirectoryStateTable[IPv4Addr, ArpEntry]
+    with ReplicatedMapStateTable[IPv4Addr, ArpEntry]
     with ArpEncoder {
 
     protected override val nullValue = null
-    protected override val map = new ReplicatedMap[IPv4Addr, ArpCacheEntry](directory)
+    protected override val map = new ReplicatedMap[IPv4Addr, ArpEntry](directory)
                                  with ArpEncoder
 
     if (zkConnWatcher ne null)

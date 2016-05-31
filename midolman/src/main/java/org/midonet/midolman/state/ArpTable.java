@@ -17,10 +17,10 @@
 package org.midonet.midolman.state;
 
 import org.midonet.cluster.backend.Directory;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.cluster.data.storage.model.ArpEntry;
 import org.midonet.packets.IPv4Addr;
 
-public class ArpTable extends ReplicatedMap<IPv4Addr, ArpCacheEntry> {
+public class ArpTable extends ReplicatedMap<IPv4Addr, ArpEntry> {
 
     public ArpTable(Directory dir) {
         super(dir);
@@ -37,15 +37,15 @@ public class ArpTable extends ReplicatedMap<IPv4Addr, ArpCacheEntry> {
     }
 
     @Override
-    protected String encodeValue(ArpCacheEntry value) {
+    protected String encodeValue(ArpEntry value) {
         return value.encode();
     }
 
     @Override
-    protected ArpCacheEntry decodeValue(String str) {
+    protected ArpEntry decodeValue(String str) {
         try {
-            return ArpCacheEntry.decode(str);
-        } catch (SerializationException e) {
+            return ArpEntry.decode(str);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
