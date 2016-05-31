@@ -20,7 +20,7 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.StateTableEncoder.MacToIp4Encoder
 import org.midonet.cluster.data.storage.{DirectoryStateTable, StateTable}
-import org.midonet.midolman.state.MacToIp4ReplicatedMap
+import org.midonet.midolman.state.ReplicatedMap
 import org.midonet.packets.{IPv4Addr, MAC}
 
 /**
@@ -41,7 +41,8 @@ final class MacIp4StateTable(override val directory: Directory,
     with MacToIp4Encoder {
 
     protected override val nullValue = null
-    protected override val map = new MacToIp4ReplicatedMap(directory)
+    protected override val map = new ReplicatedMap[MAC, IPv4Addr](directory)
+                                 with MacToIp4Encoder
     if (zkConnWatcher ne null)
         map.setConnectionWatcher(zkConnWatcher)
 

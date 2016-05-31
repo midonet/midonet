@@ -189,10 +189,11 @@ abstract class MidonetResource[T >: Null <: UriResource]
     protected final implicit val log =
         Logger(getLogger(restApiResourceLog(getClass)))
 
-    private val validator = resContext.validator
-    protected val store = resContext.backend.store
-    protected val stateStore = resContext.backend.stateStore
-    protected val uriInfo = resContext.uriInfo
+    private def validator = resContext.validator
+    protected def store = resContext.backend.store
+    protected def stateStore = resContext.backend.stateStore
+    protected def stateTableStore = resContext.backend.stateTableStore
+    protected def uriInfo = resContext.uriInfo
 
     /* Determines whether a zookeeper lock is needed when performing
        CRUD operations. This variable can be overridden in subclasses. */

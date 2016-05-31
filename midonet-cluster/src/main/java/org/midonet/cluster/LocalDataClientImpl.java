@@ -65,8 +65,6 @@ import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
-import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
@@ -252,15 +250,6 @@ public class LocalDataClientImpl implements DataClient {
 
         log.debug("bridgesFindByTenant exiting: {} bridges found", bridges.size());
         return bridges;
-    }
-
-    @Override
-    public MacPortMap bridgeGetMacTable(
-            @Nonnull UUID bridgeId, short vlanId, boolean ephemeral)
-            throws StateAccessException {
-        return new MacPortMap(
-                bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId),
-                ephemeral);
     }
 
     @Override
@@ -1075,13 +1064,5 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return hostCfg.getIp();
-    }
-
-    @Override
-    public Ip4ToMacReplicatedMap getIp4MacMap(UUID bridgeId)
-        throws StateAccessException {
-        return new Ip4ToMacReplicatedMap(
-            bridgeZkManager.getIP4MacMapDirectory(bridgeId)
-        );
     }
 }

@@ -25,10 +25,13 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
+
 import org.slf4j.LoggerFactory.getLogger
+
 import rx.Observer
 import rx.functions.Action1
 
+import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.vxgwVtepControlLog
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.data.vtep.model.MacLocation
@@ -37,7 +40,6 @@ import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.services.vxgw.VtepSynchronizer.NetworkInfo
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.midolman.state.MapNotification
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.VtepConstants._
 import org.midonet.util.concurrent._
@@ -66,12 +68,12 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
     /** Build a handler to process changes that may need propagation from the
       * given network in MidoNet to the VTEP.
       */
-    def buildMacPortHandler(nwId: UUID): Action1[MapNotification[MAC, UUID]] = {
+    def buildMacPortHandler(nwId: UUID): Action1[Update[MAC, UUID]] = {
         val lsName = bridgeIdToLogicalSwitchName(nwId)
         makeAction1 { notification =>
             val mac = notification.key
-            val oldPortId = notification.oldVal
-            val newPortId = notification.newVal
+            val oldPortId = notification.oldValue
+            val newPortId = notification.newValue
             log.debug(s"MAC $mac moves from $oldPortId to $newPortId")
             nwInfos.get(nwId) match {
                 case null => // no longer watching this network
@@ -93,7 +95,7 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
                     // use one.  An alternative would be not to attempt ARP
                     // suppression for MACs on router ports.
                     val ip = if (nwInfo.arpTable != null) {
-                        val ipsOnMac = nwInfo.arpTable.getByValue(mac)
+                        val ipsOnMac = nwInfo.arpTable.getLocalByValue(mac)
                         if (ipsOnMac.isEmpty) null else ipsOnMac.head
                     } else {
                         null
@@ -110,10 +112,10 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
       * Flooding Proxy and there is no ARP suppression for them.
       */
     def buildArpUpdateHandler(nwId: UUID)
-    : Action1[MapNotification[IPv4Addr, MAC]] = {
+    : Action1[Update[IPv4Addr, MAC]] = {
         makeAction1 { notification =>
             log.debug(s"IP ${notification.key} moves from " +
-                      s"${notification.oldVal} to ${notification.newVal}")
+                      s"${notification.oldValue} to ${notification.newValue}")
             val nwState = nwInfos.get(nwId)
             if (nwState != null) {
                 updateIpOnMacRemote(nwId, nwState, notification)
@@ -124,26 +126,26 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
     /** Updates the IP-MAC association. */
     private def updateIpOnMacRemote(nwId: UUID,
                                     nwState: NetworkInfo,
-                                    n: MapNotification[IPv4Addr, MAC]): Unit = {
+                                    n: Update[IPv4Addr, MAC]): Unit = {
         val lsName = bridgeIdToLogicalSwitchName(nwId)
         val ip = n.key
-        val newMac = n.newVal
-        val oldMac = n.oldVal
+        val newMac = n.newValue
+        val oldMac = n.oldValue
         if (newMac == null) {
             if (oldMac != null) {
                 // clear IP from the MacRemote entry, but keep the MAC
-                setRemoteMac(oldMac, null, lsName, nwState.macTable.get(oldMac))
+                setRemoteMac(oldMac, null, lsName, nwState.macTable.getLocal(oldMac))
             } else {
                 log.warn(s"Unexpected update on IP $ip MAC mapping: null to null")
             }
         } else {
             if (oldMac != null) {
                 // remove the IP from the old mac, if any
-                setRemoteMac(oldMac, null, lsName, nwState.macTable.get(oldMac))
+                setRemoteMac(oldMac, null, lsName, nwState.macTable.getLocal(oldMac))
             }
 
             // Add the IP to the current MacRemote entry of the new MAC
-            nwState.macTable.get(newMac) match {
+            nwState.macTable.getLocal(newMac) match {
                 case null =>
                     log.debug(s"Can't set IP $ip on an unknown MAC $newMac")
                 case port =>

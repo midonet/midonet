@@ -33,10 +33,11 @@ import org.slf4j.LoggerFactory.getLogger
 import rx.functions.Action1
 import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
-import rx.{Observable, Observer, Subscriber}
+import rx.{Observer, Subscriber}
 
 import org.midonet.cluster.backend.zookeeper.StateAccessException
-import org.midonet.cluster.data.storage.{NotFoundException, StateStorage, Storage}
+import org.midonet.cluster.data.storage.StateTable.Update
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.vtep.VtepStateException
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.models.State.VtepConfiguration
@@ -48,9 +49,8 @@ import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.{DataClient, vxgwVtepControlLog}
-import org.midonet.midolman.state._
-import org.midonet.packets.IPv4Addr
+import org.midonet.cluster.vxgwVtepControlLog
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.ConnectionState._
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
@@ -71,8 +71,8 @@ object VtepSynchronizer {
       */
     class NetworkInfo {
         // MAC-Port and ARP tables of the network.
-        var macTable: MacPortMap = _
-        var arpTable: Ip4ToMacReplicatedMap = _
+        var macTable: StateTable[MAC, UUID] = _
+        var arpTable: StateTable[IPv4Addr, MAC] = _
         // port used by the network for all traffic from/to the VTEP.
         var vxPort: UUID = _
         // subscriptions involved in syncing with the network, based on its
@@ -91,8 +91,7 @@ object VtepSynchronizer {
 class VtepSynchronizer(vtepId: UUID,
                        store: Storage,
                        stateStore: StateStorage,
-                       dataClient: DataClient, // TODO: remove, after
-                       // abstracting ReplicatedMaps from DataClient
+                       stateTableStorage: StateTableStorage,
                        fpHerald: FloodingProxyHerald,
                        ovsdbProvider: (IPv4Addr, Int) => OvsdbVtepDataClient)
     extends Subscriber[NsdbVtep] {
@@ -472,8 +471,8 @@ class VtepSynchronizer(vtepId: UUID,
             log.debug("ARP table for network {} is already being watched", nwId)
             return
         }
-        val arpTable: Ip4ToMacReplicatedMap = try {
-            dataClient.getIp4MacMap(nwId)
+        val arpTable: StateTable[IPv4Addr, MAC] = try {
+            stateTableStorage.bridgeArpTable(nwId)
         } catch {
             case e: StateAccessException =>
                 log.warn("Error loading ARP table of network {}: retrying", nwId)
@@ -503,8 +502,8 @@ class VtepSynchronizer(vtepId: UUID,
             log.debug("MAC table for network {} is already being watched", nwId)
             return
         }
-        val macTable: MacPortMap = try {
-            dataClient.bridgeGetMacTable(nwId, 0, false)
+        val macTable: StateTable[MAC, UUID] = try {
+            stateTableStorage.bridgeMacTable(nwId, 0)
         } catch {
             case e: StateAccessException =>
                 log.warn("Error loading MAC table of network {}: retrying", nwId)
@@ -529,16 +528,14 @@ class VtepSynchronizer(vtepId: UUID,
       * Only as long as the given nwId is among the networks bound for this
       * Vtep.
       */
-    private def watchMap[K, V](nwId: UUID, map: ReplicatedMap[K, V],
-                               handlr: Action1[MapNotification[K, V]]): Unit = {
+    private def watchMap[K, V](nwId: UUID, table: StateTable[K, V],
+                               handler: Action1[Update[K, V]]): Unit = {
         boundNetworks.get(nwId) match {
             case null =>
-            case info => info.subscriptions.add (
-                Observable.create(new MapObservableOnSubscribe(map))
-                          .observeOn(VtepSynchronizer.scheduler)
-                          .doOnUnsubscribe { makeAction0 { map.stop() } }
-                          .subscribe(handlr)
-            )
+            case info => info.subscriptions.add(
+                table.observable
+                     .observeOn(VtepSynchronizer.scheduler)
+                     .subscribe(handler))
         }
     }
 

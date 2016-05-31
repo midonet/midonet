@@ -29,17 +29,18 @@ import org.mockito.Mockito.verify
 import org.scalatest.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.slf4j.LoggerFactory._
+
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
-import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.storage.{ObjectExistsException, Storage}
+import org.midonet.cluster.data.storage.{ObjectExistsException, StateTable, StateTableStorage, Storage}
 import org.midonet.cluster.data.vtep.model.{MacLocation, PhysicalSwitch}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.storage.{Ip4MacStateTable, MacIdStateTable}
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.UUIDUtil.{toProto, fromProto}
-import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, MockDirectory}
-import org.midonet.packets.IPv4Addr
+import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
+import org.midonet.cluster.util.IPAddressUtil
+import org.midonet.midolman.state.MockDirectory
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.ConnectionState.Disconnected
 import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
@@ -175,8 +176,8 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
         val port2 = putOnHost(createBridgePort(port2Id, Some(nwId)),
                               host2Id, "eth2")
 
-        var macPortMap: MacPortMap = _
-        var arpTable: Ip4ToMacReplicatedMap = _
+        var macPortTable: StateTable[MAC, UUID] = _
+        var arpTable: StateTable[IPv4Addr, MAC] = _
 
         val vxPorts = new java.util.HashMap[UUID, UUID]
 
@@ -187,14 +188,14 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
           *
           * Not called by default, because some tests don't need this.
           */
-        def mockStateTables(dataClient: DataClient): Unit = {
+        def mockStateTables(stateTableStorage: StateTableStorage): Unit = {
             // Mock the DataClient
-            macPortMap = new MacPortMap(new MockDirectory())
-            Mockito.when(dataClient.bridgeGetMacTable(Eq(nwId), Eq(0.toShort),
-                                                      Eq(false)))
-                   .thenReturn(macPortMap)
-            arpTable = new Ip4ToMacReplicatedMap(new MockDirectory())
-            Mockito.when(dataClient.getIp4MacMap(Eq(nwId))).thenReturn(arpTable)
+            macPortTable = new MacIdStateTable(new MockDirectory(), null)
+            Mockito.when(stateTableStorage.bridgeMacTable(Eq(nwId), Eq(0.toShort)))
+                   .thenReturn(macPortTable)
+            arpTable = new Ip4MacStateTable(new MockDirectory(), null)
+            Mockito.when(stateTableStorage.bridgeArpTable(Eq(nwId)))
+                   .thenReturn(arpTable)
         }
 
         /** Add a VxLAN port on the network connecting to the given VTEP, and

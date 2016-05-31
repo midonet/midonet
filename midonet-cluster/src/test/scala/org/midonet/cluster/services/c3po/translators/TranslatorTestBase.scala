@@ -16,20 +16,21 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.concurrent.Promise
-
 import java.util.{UUID => JUUID}
+
 import org.mockito.Mockito.{mock, when}
 import org.mockito.Matchers.any
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.cluster.data.storage.{StateTableStorage, NotFoundException, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Update}
 import org.midonet.cluster.services.c3po.OpType
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.packets.{IPv4Addr, MAC}
 
 /**
  * Abstract base class for C3PO Translator unit test classes.
@@ -51,11 +52,49 @@ abstract class TranslatorTestBase  extends FlatSpec
     protected def initMockStorage() {
         storage = mock(classOf[ReadOnlyStorage])
         stateTableStorage = mock(classOf[StateTableStorage])
+        when(stateTableStorage.bridgeMacTablePath(any[JUUID](),
+                                                  any[Short]())).thenAnswer(
+            new Answer[String] {
+                override def answer(invocation: InvocationOnMock): String = {
+                    val id = invocation.getArguments()(0).asInstanceOf[JUUID]
+                    val vlanId = invocation.getArguments()(1).asInstanceOf[Short]
+                    s"$zkRoot/0/tables/Network/$id/vlans/$vlanId/mac_port_table"
+                }
+            }
+        )
+        when(stateTableStorage.bridgeMacEntryPath(any[JUUID](),
+                                                  any[Short](),
+                                                  any[MAC](),
+                                                  any[JUUID]())).thenAnswer(
+            new Answer[String] {
+                override def answer(invocation: InvocationOnMock): String = {
+                    val id = invocation.getArguments()(0).asInstanceOf[JUUID]
+                    val vlanId = invocation.getArguments()(1).asInstanceOf[Short]
+                    val mac = invocation.getArguments()(2).asInstanceOf[MAC]
+                    val portId = invocation.getArguments()(3).asInstanceOf[JUUID]
+                    s"$zkRoot/0/tables/Network/$id/vlans/$vlanId/" +
+                    s"mac_port_table/$mac,$portId,${Int.MaxValue}"
+                }
+            }
+        )
         when(stateTableStorage.bridgeArpTablePath(any[JUUID]())).thenAnswer(
             new Answer[String] {
                 override def answer(invocation: InvocationOnMock): String = {
                     val id = invocation.getArguments()(0).asInstanceOf[JUUID]
-                    s"$zkRoot/1/tables/Port/$id/ip4_mac_table"
+                    s"$zkRoot/0/tables/Network/$id/ip4_mac_table"
+                }
+            }
+        )
+        when(stateTableStorage.bridgeArpEntryPath(any[JUUID](),
+                                                  any[IPv4Addr](),
+                                                  any[MAC]())).thenAnswer(
+            new Answer[String] {
+                override def answer(invocation: InvocationOnMock): String = {
+                    val id = invocation.getArguments()(0).asInstanceOf[JUUID]
+                    val ip = invocation.getArguments()(1).asInstanceOf[IPv4Addr]
+                    val mac = invocation.getArguments()(2).asInstanceOf[MAC]
+                    s"$zkRoot/0/tables/Network/$id/mac_port_table" +
+                    s"/$ip,$mac,${Int.MaxValue}"
                 }
             }
         )

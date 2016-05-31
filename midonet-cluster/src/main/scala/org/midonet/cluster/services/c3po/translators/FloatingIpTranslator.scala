@@ -27,7 +27,7 @@ import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.PathBuilder
-import org.midonet.packets.IPAddr
+import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for FloatingIp. */
@@ -85,9 +85,10 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
 
     private def fipArpEntryPath(fip: FloatingIp, gwPortId: UUID): String = {
         val gwPort = storage.get(classOf[NeutronPort], gwPortId).await()
-        arpEntryPath(gwPort.getNetworkId,
-                     fip.getFloatingIpAddress.getAddress,
-                     gwPort.getMacAddress)
+        stateTableStorage.bridgeArpEntryPath(
+            gwPort.getNetworkId,
+            IPv4Addr(fip.getFloatingIpAddress.getAddress),
+            MAC.fromString(gwPort.getMacAddress))
     }
 
     /* Generates a CreateNode Op for FIP IP and Router GW port. */

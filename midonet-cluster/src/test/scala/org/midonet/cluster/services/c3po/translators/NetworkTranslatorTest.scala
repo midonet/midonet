@@ -21,8 +21,6 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.midonet
-import org.midonet.cluster.services.c3po.midonet.CreateNode
 import org.midonet.cluster.util.UUIDUtil
 
 /**
@@ -60,11 +58,7 @@ class NetworkTranslatorTest extends TranslatorTestBase {
                                               .setName(networkName)
                                               .setAdminStateUp(adminStateUp)
                                               .build()
-        midoOps should contain only(
-            Create(midoNetwork),
-            CreateNode(pathBldr.getBridgeIP4MacMapPath(id), null),
-            CreateNode(pathBldr.getBridgeMacPortsPath(id), null),
-            CreateNode(pathBldr.getBridgeVlansPath(id), null))
+        midoOps should contain only Create(midoNetwork)
     }
 
     // TODO Test that NetworkTranslator ensures the provider router if
@@ -106,11 +100,7 @@ class NetworkTranslatorTest extends TranslatorTestBase {
             translator.translate(Delete(classOf[NeutronNetwork], id))
 
         val juuid = UUIDUtil.fromProto(id)
-        midoOps should contain only(
-            Delete(classOf[Network], id),
-            midonet.DeleteNode(pathBldr.getBridgeIP4MacMapPath(juuid)),
-            midonet.DeleteNode(pathBldr.getBridgeMacPortsPath(juuid)),
-            midonet.DeleteNode(pathBldr.getBridgeVlansPath(juuid)))
+        midoOps should contain only Delete(classOf[Network], id)
 
         // TODO Verify external network is also deleted.
     }

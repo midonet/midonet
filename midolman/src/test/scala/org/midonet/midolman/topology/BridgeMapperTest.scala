@@ -1491,12 +1491,12 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForPort(peerPortId2))
 
             Given("The MAC-port replicated map for the bridge")
-            val map = vt.state.bridgeMacTable(bridgeId, vlanId)
-            map.start()
+            val table = vt.stateTables.bridgeMacTable(bridgeId, vlanId)
+            table.start()
 
             When("A first MAC is added to the MAC learning table")
             val otherMac1 = MAC.random
-            map.put(otherMac1, portId1)
+            table.add(otherMac1, portId1)
 
             Then("Flows should be invalidated")
             simBackChannel should invalidate (
@@ -1508,7 +1508,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             When("A second MAC is added to the MAC learning table")
             val otherMac2 = MAC.random
-            map.put(otherMac2, portId1)
+            table.add(otherMac2, portId1)
 
             Then("Flows should be invalidated")
             simBackChannel should invalidate (
@@ -1520,7 +1520,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac2))
 
             When("A MAC changes from one port to another")
-            map.put(otherMac1, portId2)
+            table.add(otherMac1, portId2)
 
             Then("Flows should be invalidated")
             simBackChannel should invalidate (
@@ -1533,7 +1533,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForVlanPort(bridgeId, otherMac1, vlanId, portId1))
 
             When("A MAC is deleted")
-            map.removeIfOwner(otherMac2)
+            table.remove(otherMac2)
 
             Then("Flows should be invalidated")
             simBackChannel should invalidate (

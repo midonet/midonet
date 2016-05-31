@@ -23,6 +23,7 @@ import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Upd
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for VIP. */
@@ -71,9 +72,10 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         if (router.hasGwPortId) {
             val gwPort = storage.get(classOf[NeutronPort],
                                      router.getGwPortId).await()
-            val arpPath = arpEntryPath(networkId,
-                                       nVip.getAddress.getAddress,
-                                       gwPort.getMacAddress)
+            val arpPath = stateTableStorage.bridgeArpEntryPath(
+                networkId,
+                IPv4Addr(nVip.getAddress.getAddress),
+                MAC.fromString(gwPort.getMacAddress))
             midoOps += CreateNode(arpPath, null)
             // Set a back reference from gateway port to VIP.
             mVip.setGatewayPortId(router.getGwPortId)
@@ -97,9 +99,10 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         if (vip.hasGatewayPortId) {
             val gwPort = storage.get(classOf[NeutronPort],
                                      vip.getGatewayPortId).await()
-            val arpPath = arpEntryPath(gwPort.getNetworkId,
-                                       vip.getAddress.getAddress,
-                                       gwPort.getMacAddress)
+            val arpPath = stateTableStorage.bridgeArpEntryPath(
+                gwPort.getNetworkId,
+                IPv4Addr(vip.getAddress.getAddress),
+                MAC.fromString(gwPort.getMacAddress))
             midoOps += DeleteNode(arpPath)
         }
 

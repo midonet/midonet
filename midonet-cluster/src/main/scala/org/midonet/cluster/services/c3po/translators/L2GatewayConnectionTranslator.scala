@@ -28,6 +28,7 @@ import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
@@ -59,9 +60,10 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
                                  gwDev.getRemoteMacEntryIdsList).await()
         val rmOps = for (rm <- rms if rm.getSegmentationId == vni) yield {
             rtrPortBldr.addRemoteMacEntryIds(rm.getId)
-            CreateNode(portPeeringEntryPath(rtrPortBldr.getId.asJava,
-                                            rm.getMacAddress,
-                                            rm.getVtepAddress.getAddress))
+            CreateNode(stateTableStorage.portPeeringEntryPath(
+                rtrPortBldr.getId.asJava,
+                MAC.fromString(rm.getMacAddress),
+                IPv4Addr(rm.getVtepAddress.getAddress)))
         }
 
         List(Create(nwPort), Create(rtrPortBldr.build())) ++ rmOps
@@ -114,8 +116,10 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         val rms = storage.getAll(classOf[RemoteMacEntry],
                                  gwPort.getRemoteMacEntryIdsList).await()
         val rmOps = for (rm <- rms) yield {
-            DeleteNode(portPeeringEntryPath(gwPortId.asJava, rm.getMacAddress,
-                                            rm.getVtepAddress.getAddress))
+            DeleteNode(stateTableStorage.portPeeringEntryPath(
+                gwPortId.asJava,
+                MAC.fromString(rm.getMacAddress),
+                IPv4Addr(rm.getVtepAddress.getAddress)))
         }
 
         Delete(classOf[Port], l2gwNetworkPortId(cnxn.getNetworkId)) ::

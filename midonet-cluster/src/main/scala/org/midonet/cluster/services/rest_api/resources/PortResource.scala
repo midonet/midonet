@@ -148,8 +148,6 @@ class PortResource @Inject()(resContext: ResourceContext)
                                         tx: ResourceTransaction): Unit = {
         val port = tx.get(classOf[VxLanPort], id)
         if (port.vtepId ne null) {
-            //val vtepId = port.getVtepId.asJava
-            //val nwId = port.getNetworkId.asJava
             throw new ConflictHttpException("This port type doesn't allow  " +
                 s"deletions as it binds network ${port.networkId} to VTEP " +
                 s"${port.vtepId}. Please remove the bindings instead.")
@@ -257,11 +255,10 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
     protected override def updateFilter(to: RouterPort, from: RouterPort,
                                         tx: ResourceTransaction): Unit = {
         super.updateFilter(to, from, tx)
-        if ((to.rtrPortVni != null) && (from.rtrPortVni == null))
-            tx.tx.createNode(resContext.backend.stateTableStore.routerPortPeeringTablePath(to.id), "")
     }
 
-    private def peeringTable(id: UUID) = resContext.backend.stateTableStore.routerPortPeeringTable(id)
+    private def peeringTable(id: UUID) =
+        resContext.backend.stateTableStore.portPeeringTable(id)
 
     @GET
     @Path("{id}/peering_table/{pair}")
@@ -269,7 +266,7 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
         APPLICATION_JSON))
     def getPeeringEntry(@PathParam("id") portId: UUID,
                         @PathParam("pair") pair: String): MacIpPair = {
-        val (address, mac) = parseMacIpPair(pair)
+        val (address, mac) = parseIpMac(pair)
 
         def trimmedPath = resContext.uriInfo.getRequestUri.getPath.replaceFirst("\\/" + pair, "")
 
@@ -329,7 +326,7 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
     @Path("{id}/peering_table/{pair}")
     def deletePeeringEntry(@PathParam("id") portId: UUID,
                            @PathParam("pair") pair: String): Response = {
-        val (address, mac) = parseMacIpPair(pair)
+        val (address, mac) = parseIpMac(pair)
 
         tryLegacyWrite {
             val table = peeringTable(portId)
@@ -337,6 +334,21 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
                          MidonetResource.Timeout)
             Response.noContent().build()
         }
+    }
+
+    private def parseIpMac(pair: String): (IPv4Addr, MAC) = {
+        val tokens = pair.split("_")
+        val address =
+            try IPv4Addr.fromString(tokens(0))
+            catch { case NonFatal(_) =>
+                throw new BadRequestHttpException(getMessage(IP_ADDR_INVALID))
+            }
+        val mac =
+            try MAC.fromString(tokens(1).replace('-', ':'))
+            catch { case NonFatal(_) =>
+                throw new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID))
+            }
+        (address, mac)
     }
 
 }

@@ -48,8 +48,6 @@ import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
-import org.midonet.midolman.state.MacPortMap;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -78,20 +76,6 @@ public interface DataClient {
 
     List<Bridge> bridgesGetAll() throws StateAccessException,
             SerializationException;
-
-    /**
-     * Returns a MAC-port table for the specified bridge / VLAN IDs that are
-     * automatically synchronized with the backend data store.
-     * @param bridgeId A bridge ID.
-     * @param vlanId A VLAN ID
-     * @param ephemeral True if a MAC/port entry newly inserted to the table are
-     * ephemeral entries, and false otherwise.
-     * @return A MAC-port table that is synchronized with the backend datastore.
-     * @throws StateAccessException
-     */
-    MacPortMap bridgeGetMacTable(
-            @Nonnull UUID bridgeId, short vlanId, boolean ephemeral)
-            throws StateAccessException;
 
     /* Chains related methods */
     @CheckForNull Chain chainsGet(UUID id)
@@ -275,7 +259,4 @@ public interface DataClient {
      */
     List<VtepBinding> vtepGetBindings(@Nonnull IPv4Addr ipAddr)
             throws StateAccessException;
-
-    Ip4ToMacReplicatedMap getIp4MacMap(UUID bridgeId)
-        throws StateAccessException;
 }
