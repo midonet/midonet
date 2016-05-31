@@ -1,0 +1,124 @@
+#!/usr/bin/python
+
+import json
+import optparse
+import platform
+import subprocess
+import sys
+
+from configutils import configutils
+
+# Configuration files related to midolman service
+MIDOLMAN_CONFIG_FILE = "/etc/midolman/midolman.conf"
+
+
+def get_config(option, opt_str, value, parser):
+    """
+    Callback method invoked when get-config is called. Returns the configuration
+    that needs to be managed for this app. Writes a JSON string to stdout
+    :param option: Option object
+    :param str opt_str: Name of the option
+    :param str value: Value of the option
+    :param Parser parser: The optparse parser object
+    """
+    try:
+        conf = configutils.inifile_to_json(MIDOLMAN_CONFIG_FILE)
+
+        # only grab the relevant keys from the paste file
+        cfg = {'midolman': conf}
+
+        sys.stdout.write(json.dumps(cfg))
+    except Exception, e:
+        sys.stderr.write(str(e))
+        sys.exit(1) # Non zero exit status
+
+    sys.exit(0)
+
+
+def set_config(option, opt_str, value, parser):
+    """
+    Callback method invoked when set-config is called. Sets the configuration
+    that needs to be managed for this app. JSON configuration is passed as an
+    argument to the script
+    :param option: Option object
+    :param str opt_str: Name of the option
+    :param str value: Value of the option
+    :param Parser parser: The optparse parser object
+
+    """
+    try:
+        # Config to be set
+        cfg = json.loads(value)
+
+        # incoming config represents the config options
+        in_conf = cfg['midolman']
+
+        # generate the whole conf file
+        cfgparser = configutils.json_to_ini(in_conf)
+        with open(MIDOLMAN_CONFIG_FILE, "w") as wfp:
+            cfgparser.write(wfp)
+
+    except Exception, e:
+        sys.stderr.write(str(e))
+        sys.exit(1) # Non zero exit status
+
+    # Restart the service
+    cmd = "sudo service midolman restart"
+
+    proc = subprocess.Popen(cmd, shell=True,
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+    code = proc.returncode
+
+    if code:
+        # Consider any non zero code as error
+        sys.stdout.write(out)
+        sys.stderr.write("Service midolman restart failed. {%d}:%s" % (code, err))
+        sys.exit(1)
+
+    sys.exit(0)
+
+def get_services(option, opt_str, value, parser):
+    """
+    Callback method invoked when get-services is called. Returns
+    the names of the services this app can manage.
+    :param option: Option object
+    :param str opt_str: Name of the option
+    :param str value: Value of the option
+    :param Parser parser: The optparse parser object
+    """
+    sys.stdout.write('midolman')
+    sys.exit(0)
+
+def parse_args():
+    """
+    Build a parser with callbacks for the different options. The callback
+    function is called based on the option passed in.
+    """
+    parser = optparse.OptionParser()
+    parser.add_option("--get-config",
+                      action="callback",
+                      callback=get_config,
+                      help="Get the configuration of the midolman application"
+                      )
+
+    parser.add_option("--set-config",
+                      type='string',
+                      action="callback",
+                      callback=set_config,
+                      help="Set the configuration of the midolman application"
+                      )
+    parser.add_option("--get-services",
+                      action="callback",
+                      callback=get_services,
+                      help="Get a list of service names for the midolman app")
+
+    parser.parse_args()
+
+def main():
+    options = parse_args()
+
+if __name__ == "__main__":
+    main()

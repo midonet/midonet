@@ -1,0 +1,21 @@
+#!/bin/sh
+
+NAME="midolman"
+LOGDIR=/var/log/$NAME
+DATADIR=/var/lib/$NAME
+POST_DIR=/var/lib/dpkg/info
+
+install -d $LOGDIR $DATADIR
+
+test -e /etc/init/upstart-job \
+    && ln -sf /lib/init/upstart-job /etc/init.d/midolman \
+    || echo "upstart not installed"
+
+systemctl preset midolman.service 2>1 > /dev/null \
+    || echo "systemd not installed"
+systemctl enable midolman.service 2>1 > /dev/null \
+    || echo "systemd not installed"
+
+# Setting correct permissions for sudoers file
+chown root.root /etc/sudoers.d/midolman
+chmod 440 /etc/sudoers.d/midolman
