@@ -31,6 +31,7 @@ import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.packets.MAC
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent._
 import org.midonet.util.eventloop.CallingThreadReactor
 import org.midonet.util.reactivex.TestAwaitableObserver
 
@@ -237,7 +238,7 @@ class MacIdStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         When("Adding a MAC-ID pair to the table")
         val id1 = UUID.randomUUID()
         val mac1 = MAC.random()
-        table.addPersistent(mac1, id1)
+        table.addPersistent(mac1, id1).await(timeout)
 
         Then("The observer should receive the update")
         obs.awaitOnNext(1, timeout)
@@ -257,7 +258,7 @@ class MacIdStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         // TODO: does not change.
 
         When("Deleting the first MAC-ID pair")
-        table.removePersistent(mac1, id1) shouldBe true
+        table.removePersistent(mac1, id1).await(timeout) shouldBe true
 
         Then("The observer should receive the update")
         obs.awaitOnNext(2, timeout)

@@ -19,7 +19,7 @@ import java.util.{LinkedList => JLinkedList, List => JList, Queue => JQueue, UUI
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext}
 import scala.reflect._
 
 import akka.actor.{ActorSystem, Props}
@@ -49,6 +49,7 @@ import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
 import org.midonet.util.UnixClock
+import org.midonet.util.concurrent._
 
 trait VirtualTopologyHelper { this: MidolmanServices =>
 
@@ -90,7 +91,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
 
     def feedArpCache(bridge: SimBridge, ip: IPv4Addr, mac: MAC): Unit = {
         val map = virtualTopology.backend.stateTableStore.bridgeArpTable(bridge.id)
-        map.addPersistent(ip, mac)
+        map.addPersistent(ip, mac).await()
     }
 
     def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
@@ -99,7 +100,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
 
     def feedPeeringTable(port: UUID, mac: MAC, ip: IPv4Addr): Unit = {
         val map = virtualTopology.backend.stateTableStore.routerPortPeeringTable(port)
-        map.addPersistent(mac, ip)
+        map.addPersistent(mac, ip).await()
     }
 
     def clearMacTable(bridge: SimBridge, vlan: Short, mac: MAC, port: UUID): Unit = {

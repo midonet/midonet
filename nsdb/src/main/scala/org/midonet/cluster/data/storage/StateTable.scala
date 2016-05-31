@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.data.storage
 
+import scala.concurrent.Future
+
 import rx.Observable
 
 import org.midonet.cluster.data.storage.StateTable.Update
@@ -29,25 +31,37 @@ object StateTable {
     }
 
     private object EmptyStateTable extends StateTable[Any, Any] {
+        private val UnitFuture = Future.successful({})
+        private val BooleanFuture = Future.successful(false)
+        private val SetFuture = Future.successful(Set.empty[Any])
+        private val MapFuture = Future.successful(Map.empty[Any, Any])
+
         override def start(): Unit = {}
         override def stop(): Unit = {}
         override def add(key: Any, value: Any): Unit = {}
-        override def addPersistent(key: Any, value: Any): Unit = {}
+        override def addPersistent(key: Any, value: Any): Future[Unit] =
+            UnitFuture
         override def remove(key: Any): Any = null
         override def remove(key: Any, value: Any): Boolean = false
-        override def removePersistent(key: Any, value: Any): Boolean = false
+        override def removePersistent(key: Any, value: Any): Future[Boolean] =
+            BooleanFuture
         override def containsLocal(key: Any): Boolean = false
         override def containsLocal(key: Any, value: Any): Boolean = false
-        override def containsRemote(key: Any): Boolean = false
-        override def containsRemote(key: Any, value: Any): Boolean = false
-        override def containsPersistent(key: Any, value: Any): Boolean = false
+        override def containsRemote(key: Any): Future[Boolean] =
+            BooleanFuture
+        override def containsRemote(key: Any, value: Any): Future[Boolean] =
+            BooleanFuture
+        override def containsPersistent(key: Any, value: Any): Future[Boolean] =
+            BooleanFuture
         override def getLocal(key: Any): Any = null
-        override def getRemote(key: Any): Any = null
+        override def getRemote(key: Any): Future[Any] = null
         override def getLocalByValue(value: Any): Set[Any] = Set.empty
-        override def getRemoteByValue(value: Any): Set[Any] = Set.empty
+        override def getRemoteByValue(value: Any): Future[Set[Any]] =
+            SetFuture
         override def localSnapshot: Map[Any, Any] = Map.empty
-        override def remoteSnapshot: Map[Any, Any] = Map.empty
-        override def observable: Observable[Update[Any, Any]] = Observable.never()
+        override def remoteSnapshot: Future[Map[Any, Any]] = MapFuture
+        override def observable: Observable[Update[Any, Any]] =
+            Observable.never()
     }
 
 }
@@ -83,7 +97,7 @@ trait StateTable[K, V] {
       * for the key already exists, the learned value will take precedence over
       * the persistent one.
       */
-    def addPersistent(key: K, value: V): Unit
+    def addPersistent(key: K, value: V): Future[Unit]
 
     /**
       * Removes the value for the specified key from the state table, and it
@@ -101,7 +115,7 @@ trait StateTable[K, V] {
       * Removes a persistent key value pair from the state table, and it returns
       * `true` if the value existed.
       */
-    def removePersistent(key: K, value: V): Boolean
+    def removePersistent(key: K, value: V): Future[Boolean]
 
     /**
       * Returns whether the cached version of the table contains a value for the
@@ -119,18 +133,18 @@ trait StateTable[K, V] {
       * Returns whether the remote table contains a value for the specified key,
       * either learned or persistent.
       */
-    def containsRemote(key: K): Boolean
+    def containsRemote(key: K): Future[Boolean]
 
     /**
       * Returns whether the remote table contains a value for the specified key,
       * either learned or persistent.
       */
-    def containsRemote(key: K, value: V): Boolean
+    def containsRemote(key: K, value: V): Future[Boolean]
 
     /**
       * Returns whether the remote table contains the persistent key value pair.
       */
-    def containsPersistent(key: K, value: V): Boolean
+    def containsPersistent(key: K, value: V): Future[Boolean]
 
     /**
       * Gets the local cached value for the specified key.
@@ -140,7 +154,7 @@ trait StateTable[K, V] {
     /**
       * Gets the remote value for the specified key.
       */
-    def getRemote(key: K): V
+    def getRemote(key: K): Future[V]
 
     /**
       * Gets the local cached set of keys corresponding to the specified value.
@@ -150,7 +164,7 @@ trait StateTable[K, V] {
     /**
       * Gets the remote set of keys corresponding to the specified value.
       */
-    def getRemoteByValue(value: V): Set[K]
+    def getRemoteByValue(value: V): Future[Set[K]]
 
     /**
       * Gets the local cached read-only snapshot for the current state table.
@@ -160,7 +174,7 @@ trait StateTable[K, V] {
     /**
       * Gets the remote read-only snapshot for the current state table.
       */
-    def remoteSnapshot: Map[K, V]
+    def remoteSnapshot: Future[Map[K, V]]
 
     /**
       * Returns an observable that notifies the updates to the current state

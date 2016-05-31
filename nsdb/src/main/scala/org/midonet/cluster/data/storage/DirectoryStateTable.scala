@@ -19,13 +19,16 @@ package org.midonet.cluster.data.storage
 import java.util
 
 import scala.collection.JavaConverters._
+import scala.concurrent.{Future, Promise}
+import scala.util.control.NonFatal
 
-import org.apache.zookeeper.KeeperException.NoNodeException
+import org.apache.zookeeper.data.Stat
 import org.apache.zookeeper.{CreateMode, KeeperException}
 
-import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.backend.{Directory, DirectoryCallback}
 import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.data.storage.StateTableEncoder.PersistentVersion
+import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 trait DirectoryStateTable[K, V]
     extends StateTable[K, V] with StateTableEncoder[K, V] {
@@ -36,31 +39,44 @@ trait DirectoryStateTable[K, V]
     /**
       * @see [[StateTable.addPersistent()]]
       */
-    @throws[StateAccessException]
     @inline
-    override def addPersistent(key: K, value: V): Unit = {
-        tryZk {
-            directory.add(encodePersistentPath(key, value), null,
-                          CreateMode.PERSISTENT)
+    override def addPersistent(key: K, value: V): Future[Unit] = {
+        val promise = Promise[Unit]()
+        val callback = new DirectoryCallback[String] {
+            override def onSuccess(name: String, stat: Stat): Unit =
+                promise.trySuccess(())
+            override def onError(e: KeeperException): Unit =
+                promise.tryFailure(wrapException(e))
         }
+        directory.asyncAdd(encodePersistentPath(key, value), null,
+                           CreateMode.PERSISTENT, callback)
+        promise.future
     }
 
     /**
       * @see [[StateTable.removePersistent()]]
       */
     @throws[StateAccessException]
-    override def removePersistent(key: K, value: V): Boolean = {
+    override def removePersistent(key: K, value: V): Future[Boolean] = {
         val path = encodePersistentPath(key, value)
-        if (directory.exists(path)) {
-            try {
-                directory.delete(path)
-                true
-            } catch {
-                case e: NoNodeException => false
-                case e: KeeperException => throw new StateAccessException(e)
-                case e: InterruptedException => throw new StateAccessException(e)
+        val promise = Promise[Boolean]()
+        val deleteCallback = new DirectoryCallback[Void] {
+            override def onSuccess(data: Void, stat: Stat): Unit =
+                promise.trySuccess(true)
+            override def onError(e: KeeperException): Unit =
+                promise.tryFailure(wrapException(e))
+        }
+        val existsCallback = new DirectoryCallback[java.lang.Boolean] {
+            override def onSuccess(exists: java.lang.Boolean, stat: Stat): Unit = {
+                if (exists) directory.asyncDelete(path, stat.getVersion,
+                                                  deleteCallback)
+                else promise.trySuccess(false)
             }
-        } else false
+            override def onError(e: KeeperException): Unit =
+                promise.tryFailure(wrapException(e))
+        }
+        directory.asyncExists(path, existsCallback)
+        promise.future
     }
 
     /**
@@ -68,8 +84,8 @@ trait DirectoryStateTable[K, V]
       */
     @throws[StateAccessException]
     @inline
-    override def containsRemote(key: K): Boolean = {
-        getEntries.get(key) ne null
+    override def containsRemote(key: K): Future[Boolean] = {
+        getEntries.map(_.get(key) ne null)(CallingThreadExecutionContext)
     }
 
     /**
@@ -77,8 +93,11 @@ trait DirectoryStateTable[K, V]
       */
     @throws[StateAccessException]
     @inline
-    override def containsRemote(key: K, value: V): Boolean = {
-        hasPersistentEntry(key, value) || hasLearnedEntry(key, value)
+    override def containsRemote(key: K, value: V): Future[Boolean] = {
+        hasPersistentEntry(key, value).flatMap { result =>
+            if (!result) hasLearnedEntry(key, value)
+            else Future.successful(result)
+        } (CallingThreadExecutionContext)
     }
 
     /**
@@ -86,7 +105,7 @@ trait DirectoryStateTable[K, V]
       */
     @throws[StateAccessException]
     @inline
-    override def containsPersistent(key: K, value: V): Boolean = {
+    override def containsPersistent(key: K, value: V): Future[Boolean] = {
         hasPersistentEntry(key, value)
     }
 
@@ -94,76 +113,114 @@ trait DirectoryStateTable[K, V]
       * Gets the remote value for the specified key.
       */
     @inline
-    def getRemote(key: K): V = {
-        val entry = getEntries.get(key)
-        if (entry ne null) entry._1 else nullValue
+    def getRemote(key: K): Future[V] = {
+        getEntries.map { entries =>
+            val entry = entries.get(key)
+            if (entry ne null) entry._1 else nullValue
+        } (CallingThreadExecutionContext)
     }
 
     /**
       * @see [[StateTable.getRemoteByValue()]]
       */
     @inline
-    override def getRemoteByValue(value: V): Set[K] = {
-        val iterator = tryZk { directory.getChildren("/", null).iterator() }
-        val set = new util.HashSet[K]()
-        while (iterator.hasNext) {
-            decodePath(iterator.next()) match {
-                case (key, v, _) if v == value => set.add(key)
-                case _ =>
+    override def getRemoteByValue(value: V): Future[Set[K]] = {
+        val promise = Promise[Set[K]]()
+        val callback = new DirectoryCallback[util.Collection[String]] {
+            override def onSuccess(children: util.Collection[String],
+                                   stat: Stat): Unit = {
+                val iterator = children.iterator()
+                val set = new util.HashSet[K]()
+                while (iterator.hasNext) {
+                    decodePath(iterator.next()) match {
+                        case (key, v, _) if v == value => set.add(key)
+                        case _ =>
+                    }
+                }
+                promise.trySuccess(set.asScala.toSet)
             }
+            override def onError(e: KeeperException): Unit =
+                promise.tryFailure(wrapException(e))
         }
-        set.asScala.toSet
+        directory.asyncGetChildren("", callback)
+        promise.future
     }
 
     /**
       * @see [[StateTable.remoteSnapshot]]
       */
     @inline
-    override def remoteSnapshot: Map[K, V] = {
-        getEntries.asScala.mapValues(_._1).toMap
+    override def remoteSnapshot: Future[Map[K, V]] = {
+        getEntries.map(_.asScala.mapValues(_._1).toMap)(CallingThreadExecutionContext)
     }
 
-    private def hasPersistentEntry(key: K, value: V): Boolean = {
-        directory.exists(encodePersistentPath(key, value))
-    }
-
-    private def hasLearnedEntry(key: K, value: V): Boolean = {
-        getEntries get key match {
-            case null => false
-            case (_, PersistentVersion) => false
-            case (v, _) if v == value => true
-            case _ => false
+    private def hasPersistentEntry(key: K, value: V): Future[Boolean] = {
+        val promise = Promise[Boolean]()
+        val callback = new DirectoryCallback[java.lang.Boolean] {
+            override def onSuccess(exists: java.lang.Boolean, stat: Stat): Unit =
+                promise.trySuccess(exists)
+            override def onError(e: KeeperException): Unit =
+                promise.tryFailure(wrapException(e))
         }
+        directory.asyncExists(encodePersistentPath(key, value), callback)
+        promise.future
     }
 
-    protected def tryZk[T](f: => T): T = {
-        try f catch {
-            case e: KeeperException      => throw new StateAccessException(e)
-            case e: InterruptedException => throw new StateAccessException(e)
-        }
-    }
-
-    protected def getEntries: util.Map[K, (V, Int)] = {
-        val iterator = tryZk { directory.getChildren("/", null).iterator() }
-        val map = new util.HashMap[K, (V, Int)]()
-        while (iterator.hasNext) {
-            decodePath(iterator.next()) match {
-                case (key, value, version) =>
-                    map get key match {
-                        case null =>
-                            map.put(key, (value, version))
-                        case (v, ver) if version > ver &&
-                                         version != PersistentVersion =>
-                            map.put(key, (value, version))
-                        case (v, ver) if ver == PersistentVersion &&
-                                         version != PersistentVersion =>
-                            map.put(key, (value, version))
-                        case _ => // Ignore: multiple persistent entries.
-                    }
-                case _ => // Ignore: entries that cannot be read.
+    private def hasLearnedEntry(key: K, value: V): Future[Boolean] = {
+        getEntries.map {
+            _.get(key) match {
+                case null => false
+                case (_, PersistentVersion) => false
+                case (v, _) if v == value => true
+                case _ => false
             }
+        } (CallingThreadExecutionContext)
+    }
+
+    protected def wrapException(e: Exception): StateAccessException = {
+        e match {
+            case e: StateAccessException => e
+            case NonFatal(t) => new StateAccessException(t)
         }
-        map
+    }
+
+    /**
+      * @return A future that completes with the set of entries for this state
+      *         table. The map returned by the completed future is not
+      *         synchronized and continuations of this future must execute on
+      *         the calling thread.
+      */
+    protected def getEntries: Future[util.Map[K, (V, Int)]] = {
+        val promise = Promise[util.Map[K, (V, Int)]]()
+        val callback = new DirectoryCallback[util.Collection[String]] {
+            override def onSuccess(children: util.Collection[String],
+                                   stat: Stat): Unit = {
+                val iterator = children.iterator()
+                val map = new util.HashMap[K, (V, Int)]()
+                while (iterator.hasNext) {
+                    decodePath(iterator.next()) match {
+                        case (key, value, version) =>
+                            map get key match {
+                                case null =>
+                                    map.put(key, (value, version))
+                                case (v, ver) if version > ver &&
+                                                 version != PersistentVersion =>
+                                    map.put(key, (value, version))
+                                case (v, ver) if ver == PersistentVersion &&
+                                                 version != PersistentVersion =>
+                                    map.put(key, (value, version))
+                                case _ => // Ignore: multiple persistent entries.
+                            }
+                        case _ => // Ignore: entries that cannot be read.
+                    }
+                }
+                promise.trySuccess(map)
+            }
+            override def onError(e: KeeperException): Unit =
+                promise.tryFailure(wrapException(e))
+        }
+        directory.asyncGetChildren("", callback)
+        promise.future
     }
 
 }
