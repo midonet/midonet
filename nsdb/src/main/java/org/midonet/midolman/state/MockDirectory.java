@@ -18,6 +18,7 @@ package org.midonet.midolman.state;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -308,6 +309,16 @@ public class MockDirectory implements Directory {
     public Set<String> getChildren(String path, Runnable watcher)
         throws NoNodeException {
         return getNode(path).getChildren(watcher);
+    }
+
+    @Override
+    public void asyncGetChildren(String relativePath,
+                                 DirectoryCallback<Collection<String>> callback) {
+        try {
+            callback.onSuccess(getNode(relativePath).getChildren(null), null);
+        } catch (KeeperException e) {
+            callback.onError(e);
+        }
     }
 
     @Override

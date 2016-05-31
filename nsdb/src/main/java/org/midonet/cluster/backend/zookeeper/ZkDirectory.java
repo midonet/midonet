@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.backend.zookeeper;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -229,6 +230,25 @@ public class ZkDirectory implements Directory {
         return
             new HashSet<>(
                 zk.getZooKeeper().getChildren(absPath, wrapCallback(watcher)));
+    }
+
+    @Override
+    public void asyncGetChildren(String relativePath,
+                                 DirectoryCallback<Collection<String>> callback) {
+        String absPath = getAbsolutePath(relativePath);
+        zk.getZooKeeper().getChildren(
+            absPath, null, new AsyncCallback.Children2Callback() {
+                @Override
+                public void processResult(int rc, String path, Object ctx,
+                                          List<String> children, Stat stat) {
+                    if (rc == KeeperException.Code.OK.intValue()) {
+                        callback.onSuccess(children, stat);
+                    } else {
+                        callback.onError(KeeperException.create(
+                            KeeperException.Code.get(rc), path));
+                    }
+                }
+            }, null);
     }
 
     @Override
