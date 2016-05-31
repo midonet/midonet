@@ -35,7 +35,7 @@ import rx.Observable.OnSubscribe
 import rx._
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.backend.{Directory, MockDirectory}
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.InMemoryStorage._
 import org.midonet.cluster.data.storage.KeyType.KeyType
@@ -44,7 +44,6 @@ import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
-import org.midonet.midolman.state.MockDirectory
 import org.midonet.util.concurrent._
 import org.midonet.util.functors._
 

@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.backend.Directory;
+import org.midonet.cluster.backend.MockDirectory;
 
 
 public class TestReplicatedMap {
