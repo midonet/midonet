@@ -156,8 +156,6 @@ object BridgeMapper {
                               "to port {}", mac, vlanIdObj, portId, t)
             }
         }
-        /** TODO: Obsolete method. */
-        override def notify(cb: Callback3[MAC, UUID, UUID]): Unit = ???
         /** Stops the underlying replicated map and completes the observable. */
         def complete(): Unit = {
             map.stop()

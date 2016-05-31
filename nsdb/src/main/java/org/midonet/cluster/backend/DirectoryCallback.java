@@ -18,8 +18,10 @@ package org.midonet.cluster.backend;
 
 import org.apache.zookeeper.KeeperException;
 
-import org.midonet.util.functors.Callback;
+public interface DirectoryCallback<T> {
 
-public interface DirectoryCallback<T> extends Callback<T, KeeperException> {
+    void onSuccess(T data);
+
+    void onError(KeeperException e);
 
 }

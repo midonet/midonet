@@ -295,16 +295,6 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public Map.Entry<byte[], Integer> getWithVersion(String path,
-            Runnable watcher) throws NoNodeException {
-        int version = -1;
-
-        byte[] data = getNode(path).getData(wrapCallback(watcher));
-
-        return new AbstractMap.SimpleEntry<>(data, version);
-    }
-
-    @Override
     public void asyncGet(String relativePath, DirectoryCallback<byte[]> dataCb, TypedWatcher watcher) {
         try {
             dataCb.onSuccess(getNode(relativePath).getData(wrapCallback(watcher)));
@@ -492,10 +482,6 @@ public class MockDirectory implements Directory {
 
                 case NodeDataChanged:
                     typedWatcher.pathDataChanged(event.getPath());
-                    break;
-
-                case None:
-                    typedWatcher.connectionStateChanged(event.getState());
                     break;
             }
         }

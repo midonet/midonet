@@ -80,11 +80,6 @@ public class ZkSystemDataProvider implements SystemDataProvider {
             cachedWriteVersion.set(new String(data));
         }
 
-        public void onTimeout() {
-            log.error("Timeout reading from zookeeper, trying again");
-            readWriteVersion();
-        }
-
         public void onError(KeeperException e) {
             log.error("Error reading from zookeeper, trying again", e);
             readWriteVersion();

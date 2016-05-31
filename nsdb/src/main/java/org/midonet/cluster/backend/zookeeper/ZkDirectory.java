@@ -191,10 +191,6 @@ public class ZkDirectory implements Directory {
                 case NodeDataChanged:
                     typedWatcher.pathDataChanged(event.getPath());
                     break;
-
-                case None:
-                    typedWatcher.connectionStateChanged(event.getState());
-                    break;
             }
         }
     }
@@ -204,18 +200,6 @@ public class ZkDirectory implements Directory {
         throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         return zk.getZooKeeper().getData(absPath, wrapCallback(watcher), null);
-    }
-
-    @Override
-    public Map.Entry<byte[], Integer> getWithVersion(String relativePath, Runnable watcher)
-            throws KeeperException, InterruptedException {
-        String absPath = getAbsolutePath(relativePath);
-        Stat returnStat = new Stat();
-
-        byte[] data = zk.getZooKeeper().getData(absPath, wrapCallback(watcher), returnStat);
-        int version = returnStat.getVersion();
-
-        return new AbstractMap.SimpleEntry<>(data, version);
     }
 
     @Override

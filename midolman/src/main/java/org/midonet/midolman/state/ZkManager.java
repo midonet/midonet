@@ -119,16 +119,6 @@ public class ZkManager {
         }
     }
 
-    public boolean exists(String path, Watcher watcher)
-            throws StateAccessException {
-        try {
-            return zk.exists(path, watcher);
-        } catch (Exception ex) {
-            throw processException(
-                ex, "checking whether path " + path + " exists");
-        }
-    }
-
     public String addPersistent(String path, byte[] data)
             throws StateAccessException {
         try {
@@ -155,15 +145,6 @@ public class ZkManager {
             throws StateAccessException {
         try {
             return zk.get(path, watcher);
-        }  catch (Exception ex) {
-            throw processException(ex, "getting the node at path " + path);
-        }
-    }
-
-    public Map.Entry<byte[], Integer> getWithVersion(String path, Runnable watcher)
-            throws StateAccessException {
-        try {
-            return zk.getWithVersion(path, watcher);
         }  catch (Exception ex) {
             throw processException(ex, "getting the node at path " + path);
         }
