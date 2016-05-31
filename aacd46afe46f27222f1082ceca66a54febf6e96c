@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_e4195d23",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-05-31T06:09:54Z",
+      "side": 1,
+      "message": "what\u0027s 10kp?",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 4
+      },
+      "revId": "aacd46afe46f27222f1082ceca66a54febf6e96c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_54c0ba4f",
         "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/zkManagers/RuleZkManager.java",
         "patchSetId": 1
