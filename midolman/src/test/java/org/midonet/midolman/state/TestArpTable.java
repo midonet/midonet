@@ -16,12 +16,13 @@
 
 package org.midonet.midolman.state;
 
-import org.midonet.cluster.backend.MockDirectory;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import org.midonet.cluster.backend.MockDirectory;
+import org.midonet.cluster.data.storage.model.ArpEntry;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,7 +34,7 @@ public class TestArpTable {
     final IPv4Addr ip = IPv4Addr.fromString("1.2.3.4");
     final byte[] macBytes = { 0, 1, 2, 3, 4, 5 };
     final MAC mac = new MAC(macBytes);
-    final ArpCacheEntry cacheEntry = new ArpCacheEntry(mac,10,100,1000);
+    final ArpEntry cacheEntry = new ArpEntry(mac, 10, 100, 1000);
 
     @Before
     public void setUp() {
