@@ -23,17 +23,18 @@ import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 
 import com.google.common.util.concurrent.MoreExecutors
+
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
-import org.midonet.cluster.data.storage.InMemoryStorage
+import org.midonet.cluster.data.storage.StateTable.Update
+import org.midonet.cluster.data.storage.{InMemoryStorage, StateTable}
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.vxgw.VtepSynchronizer.NetworkInfo
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, MapNotification}
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.VtepConstants
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
@@ -71,10 +72,10 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
     }
 
     def notification[K, V >: Null <: Any](k: K, v: V)
-        = new MapNotification[K, V](k, null, v)
+        = new Update[K, V](k, null, v)
 
     def notification[K, V >: Null <: Any](k: K, oldV: V, newV: V)
-    = new MapNotification[K, V](k, oldV, newV)
+        = new Update[K, V](k, oldV, newV)
 
     feature("Watch networks") {
         scenario("Handle a MAC lifecycle that's beyond the L2 segment") {
@@ -86,13 +87,15 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             Given("A managed network")
             val st = new NetworkInfo
             st.vxPort = randomUUID()
-            st.arpTable = mock[Ip4ToMacReplicatedMap]
-            st.macTable = mock[MacPortMap]
+            st.arpTable = mock[StateTable[IPv4Addr, MAC]]
+            st.macTable = mock[StateTable[MAC, UUID]]
             nwInfos.put(aVxGw.nwId, st)
 
             When("A mac-port change is notified, on a port that's not bound")
             val mac = MAC.random()
             val mpHandler = vu.buildMacPortHandler(aVxGw.nwId)
+            Mockito.when(st.arpTable.getLocalByValue(mac))
+                .thenReturn(Set.empty[IPv4Addr])
             mpHandler.call(notification(mac, aVxGw.intPortId))
 
             Then("The VTEP should be told to remove the MAC, so it falls " +
@@ -111,14 +114,19 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             When("The network appears in the map")
             val st = new NetworkInfo
             st.vxPort = vxPortId
-            st.arpTable = mock[Ip4ToMacReplicatedMap]
-            st.macTable = mock[MacPortMap]
+            st.arpTable = mock[StateTable[IPv4Addr, MAC]]
+            st.macTable = mock[StateTable[MAC, UUID]]
             nwInfos.put(aVxGw.nwId, st)
+
 
             val mac1 = MAC.fromString("00:00:00:00:00:00")
             val mac2 = MAC.fromString("11:11:11:11:11:11")
-            Mockito.when(st.macTable.get(mac1)).thenReturn(vxPortId)
-            Mockito.when(st.macTable.get(mac2)).thenReturn(aVxGw.port1Id)
+            Mockito.when(st.macTable.getLocal(mac1)).thenReturn(vxPortId)
+            Mockito.when(st.macTable.getLocal(mac2)).thenReturn(aVxGw.port1Id)
+            Mockito.when(st.arpTable.getLocalByValue(mac1))
+                   .thenReturn(Set.empty[IPv4Addr])
+            Mockito.when(st.arpTable.getLocalByValue(mac2))
+                   .thenReturn(Set.empty[IPv4Addr])
 
             And("A mac-port change is notified on the VxLAN port of the VTEP")
             mpHandler.call(notification(mac1, vxPortId))
@@ -134,7 +142,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             mockMacRemoteObs.getOnNextEvents.head.mac shouldBe mac2
 
             When("A MAC on the VxLAN port moves to a different port")
-            Mockito.when(st.macTable.get(mac1)).thenReturn(aVxGw.port1Id)
+            Mockito.when(st.macTable.getLocal(mac1)).thenReturn(aVxGw.port1Id)
             mpHandler.call(notification(mac1, aVxGw.port1Id))
 
             Then("The MacRemote is written")
@@ -165,12 +173,14 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             When("The network appears in the map")
             val st = new NetworkInfo
             st.vxPort = aVxGw.vxPorts.get(vtepFixture.vtepId)
-            st.arpTable = mock[Ip4ToMacReplicatedMap]
-            st.macTable = mock[MacPortMap]
+            st.arpTable = mock[StateTable[IPv4Addr, MAC]]
+            st.macTable = mock[StateTable[MAC, UUID]]
             nwInfos.put(aVxGw.nwId, st)
 
             And("A new MAC-port is added to the map and notified")
-            Mockito.when(st.macTable.get(mac)).thenReturn(aVxGw.port1Id)
+            Mockito.when(st.macTable.getLocal(mac)).thenReturn(aVxGw.port1Id)
+            Mockito.when(st.arpTable.getLocalByValue(mac))
+                .thenReturn(Set.empty[IPv4Addr])
             mpHandler.call(notification(mac, aVxGw.port1Id))
 
             Then("The MAC-port mapping is sent to the VTEP")
@@ -181,7 +191,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
 
             When("The MAC gets an IP")
             val someIp = IPv4Addr.random
-            Mockito.when(st.arpTable.getByValue(mac)).thenReturn(List(someIp))
+            Mockito.when(st.arpTable.getLocalByValue(mac)).thenReturn(Set(someIp))
             arpHandler.call(notification(someIp, mac))
 
             Then("The VTEP's MAC remote entry is updated")
@@ -191,7 +201,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             ml shouldBe MacLocation(mac, someIp, lsName, aVxGw.host1Ip)
 
             When("The MAC migrates")
-            Mockito.when(st.macTable.get(mac)).thenReturn(aVxGw.port2Id)
+            Mockito.when(st.macTable.getLocal(mac)).thenReturn(aVxGw.port2Id)
             mpHandler.call(notification(mac, aVxGw.port1Id, aVxGw.port2Id))
 
             Then("The MAC-port mapping is changed")
@@ -201,7 +211,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             ml shouldBe MacLocation(mac, someIp, lsName, aVxGw.host2Ip)
 
             When("The IP is removed from the MAC")
-            Mockito.when(st.arpTable.getByValue(mac)).thenReturn(List.empty)
+            Mockito.when(st.arpTable.getLocalByValue(mac)).thenReturn(Set.empty[IPv4Addr])
             arpHandler.call(notification(someIp, mac, null))
 
             Then("The MAC remote entry is updated")
@@ -211,7 +221,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             ml shouldBe MacLocation(mac, lsName, aVxGw.host2Ip)
 
             When("The MAC is removed")
-            Mockito.when(st.macTable.get(mac)).thenReturn(null)
+            Mockito.when(st.macTable.getLocal(mac)).thenReturn(null)
             mpHandler.call(notification(mac, aVxGw.port1Id, null))
 
             Then("The MAC-port mapping is removed")

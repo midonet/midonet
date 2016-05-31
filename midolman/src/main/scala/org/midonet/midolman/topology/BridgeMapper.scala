@@ -41,7 +41,6 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.Bridge.{MacFlowCount, RemoveFlowCallbackGenerator, UntaggedVlanId}
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, _}
-import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state.ReplicatedMap
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForVlanPort}
@@ -112,29 +111,24 @@ object BridgeMapper {
         override def logSource =
             s"org.midonet.devices.bridge.bridge-$bridgeId.mac-learning-table"
 
-        private val subject = PublishSubject.create[MacTableUpdate]
-        private val watcher = new Watcher[MAC, UUID] {
-            override def processChange(mac: MAC, oldPort: UUID, newPort: UUID)
-            : Unit = {
-                subject.onNext(MacTableUpdate(vlanId, mac, oldPort, newPort))
-            }
-        }
-        private val map = vt.state.bridgeMacTable(bridgeId, vlanId)
+        private val mark = PublishSubject.create[MacTableUpdate]
+        private val table = vt.stateTables.bridgeMacTable(bridgeId, vlanId)
 
-        // Initialize the replicated map.
-        map.addWatcher(watcher)
-        map.start()
-
-        val observable = subject.asObservable
+        val observable = table.observable
+            .map[MacTableUpdate](makeFunc1(update => {
+                MacTableUpdate(vlanId, update.key, update.oldValue,
+                               update.newValue)
+            }))
+            .takeUntil(mark)
 
         /** Gets the port for the specified MAC. */
-        override def get(mac: MAC): UUID = map.get(mac)
+        override def get(mac: MAC): UUID = table.getLocal(mac)
         /** Adds a new MAC-port mapping to the MAC learning table. */
         override def add(mac: MAC, portId: UUID): Unit = {
             try {
                 log.info("Mapping MAC {}, VLAN {} to port {}",
                          mac, Short.box(vlanId), portId)
-                map.put(mac, portId)
+                table.add(mac, portId)
             } catch {
                 case NonFatal(e) =>
                     log.error(s"Failed to map MAC {}, VLAN {} to port {}",
@@ -147,7 +141,7 @@ object BridgeMapper {
             log.debug("Removing mapping from MAC {}, VLAN {} to port {}",
                       mac, vlanIdObj, portId)
             try {
-                if (map.removeIfOwnerAndValue(mac, portId) == null)
+                if (!table.remove(mac, portId))
                     log.debug("No mapping from MAC {}, VLAN {} to port {} " +
                               "owned by this node.", mac, vlanIdObj, portId)
             } catch {
@@ -158,8 +152,7 @@ object BridgeMapper {
         }
         /** Stops the underlying replicated map and completes the observable. */
         def complete(): Unit = {
-            map.stop()
-            subject.onCompleted()
+            mark.onCompleted()
         }
     }
 

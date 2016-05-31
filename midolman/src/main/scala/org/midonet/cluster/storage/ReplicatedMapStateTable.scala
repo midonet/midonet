@@ -54,13 +54,13 @@ trait ReplicatedMapStateTable[K, V] extends StateTable[K, V] {
                 }
             }
             sync.synchronized {
-                start()
                 map addWatcher watcher
+                start()
             }
             child add Subscriptions.create(makeAction0 {
                 sync.synchronized {
-                    map removeWatcher watcher
                     stop()
+                    map removeWatcher watcher
                 }
             })
         }

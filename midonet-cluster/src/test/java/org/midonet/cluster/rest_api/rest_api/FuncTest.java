@@ -24,7 +24,6 @@ import javax.servlet.ServletContextEvent;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.ExecutionContext$;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -47,7 +46,6 @@ import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.data.storage.StateTableStorage;
-import org.midonet.cluster.models.*;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 import org.midonet.cluster.rest_api.serialization.MidonetObjectMapper;
@@ -56,6 +54,7 @@ import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.services.rest_api.Vladimir;
 import org.midonet.cluster.storage.Ip4MacStateTable;
+import org.midonet.cluster.storage.MacIdStateTable;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
@@ -160,6 +159,9 @@ public class FuncTest {
                                           scala.Option.apply(null)) {
                     @Override
                     public void setup(StateTableStorage storage) {
+                        storage.registerTable(
+                            Topology.Network.class, MAC.class, UUID.class,
+                            MidonetBackend.MacTable(), MacIdStateTable.class);
                         storage.registerTable(
                             Topology.Network.class, IPv4Addr.class, MAC.class,
                             MidonetBackend.Ip4MacTable(),

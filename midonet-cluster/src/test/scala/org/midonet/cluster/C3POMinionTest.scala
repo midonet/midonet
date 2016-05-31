@@ -56,7 +56,7 @@ import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.c3po.translators.StateTableManager
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
-import org.midonet.cluster.storage.{Ip4MacStateTable, MacIp4StateTable, MidonetBackendConfig}
+import org.midonet.cluster.storage.{Ip4MacStateTable, MacIdStateTable, MacIp4StateTable, MidonetBackendConfig}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.{DataClient => LegacyDataClient}
@@ -324,6 +324,10 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
             override protected def setup(stateTableStorage: StateTableStorage)
             : Unit = {
                 super.setup(stateTableStorage)
+                stateTableStore.registerTable(
+                    classOf[Network], classOf[MAC],
+                    classOf[UUID], MidonetBackend.MacTable,
+                    classOf[MacIdStateTable])
                 stateTableStore.registerTable(
                     classOf[Topology.Port], classOf[MAC],
                     classOf[IPv4Addr], MidonetBackend.PeeringTable,
@@ -830,22 +834,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def getChains(ipg: IPAddrGroup): ChainPair =
         getChains(ipg.getInboundChainId, ipg.getOutboundChainId)
 
-    protected def checkReplMaps(bridgeId: UUID, shouldExist: Boolean)
-    : Unit = {
-        val arpPath = stateTableStorage.bridgeArpTablePath(bridgeId)
-        val macPath = getBridgeMacPortsPath(bridgeId)
-        val vlansPath = getBridgeVlansPath(bridgeId)
-        if (shouldExist) {
-            curator.checkExists.forPath(arpPath) shouldNot be(null)
-            curator.checkExists.forPath(macPath) shouldNot be(null)
-            curator.checkExists.forPath(vlansPath) shouldNot be(null)
-        } else {
-            curator.checkExists.forPath(arpPath) shouldBe null
-            curator.checkExists.forPath(macPath) shouldBe null
-            curator.checkExists.forPath(vlansPath) shouldBe null
-        }
-    }
-
     protected def checkPortBinding(hostId: UUID, portId: UUID,
                                    interfaceName: String): Unit = {
         val hostFtr = storage.get(classOf[Host], hostId)
@@ -1063,9 +1051,10 @@ class C3POMinionTest extends C3POMinionTestBase {
         }
 
         // Creates a VIF port.
-        val portMac = MAC.random().toString
+        val portMac = MAC.random()
         val vifPortJson = portJson(name = "port1", id = vifPortUuid,
-                                   networkId = network1Uuid, macAddr = portMac)
+                                   networkId = network1Uuid,
+                                   macAddr = portMac.toString)
         insertCreateTask(3, PortType, vifPortJson, vifPortUuid)
 
         val vifPort = eventually(storage.get(classOf[Port], vifPortId).await())
@@ -1077,24 +1066,26 @@ class C3POMinionTest extends C3POMinionTestBase {
         network1.getPortIdsList should contain (vifPortId)
 
         eventually(curator.checkExists.forPath(
-            macEntryPath(network1Uuid, portMac, vifPortId)) shouldNot be(null))
+            stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac,
+                                                 vifPortUuid)) shouldNot be(null))
 
         // Update the port admin status and MAC address. Through the Neutron
         // API, you cannot change the Network the port is attached to.
-        val portMac2 = MAC.random().toString
+        val portMac2 = MAC.random()
         val vifPortUpdate = portJson(id = vifPortUuid, networkId = network1Uuid,
                                      adminStateUp = false,      // Down now.
-                                     macAddr = portMac2)
+                                     macAddr = portMac2.toString)
         insertUpdateTask(4, PortType, vifPortUpdate, vifPortUuid)
 
         eventually {
             val updatedVifPort = storage.get(classOf[Port], vifPortId).await()
             updatedVifPort.getAdminStateUp shouldBe false
             curator.checkExists.forPath(
-                macEntryPath(network1Uuid, portMac, vifPortId)) shouldBe null
+                stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac,
+                                                     vifPortUuid)) shouldBe null
             curator.checkExists.forPath(
-                macEntryPath(network1Uuid,
-                             portMac2, vifPortId)) shouldNot be(null)
+                stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac2,
+                                                     vifPortUuid)) shouldNot be(null)
         }
 
         // Delete the VIF port.
@@ -1103,7 +1094,8 @@ class C3POMinionTest extends C3POMinionTestBase {
         eventually {
             storage.exists(classOf[Port], vifPortId).await() shouldBe false
             curator.checkExists.forPath(
-                macEntryPath(network1Uuid, portMac2, vifPortId)) shouldBe null
+                stateTableStorage.bridgeMacEntryPath(network1Uuid, 0, portMac2,
+                                                     vifPortUuid)) shouldBe null
         }
         // Back reference was cleared.
         val finalNw1 = storage.get(classOf[Network], network1Uuid).await()

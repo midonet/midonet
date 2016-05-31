@@ -27,6 +27,7 @@ import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Upd
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
+import org.midonet.packets.{IPv4Addr, MAC}
 
 class VipTranslatorTestBase extends TranslatorTestBase
                             with LoadBalancerManager {
@@ -183,7 +184,9 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
         midoOps should contain (Create(
                 midoVip(poolId = poolId, lbId = lbId, gwPortId = gwPortId)))
         midoOps should contain (CreateNode(
-                arpEntryPath(networkId, vipIpAddr, gwPortMac), null))
+                stateTableStorage.bridgeArpEntryPath(
+                    networkId, IPv4Addr(vipIpAddr), MAC.fromString(gwPortMac)),
+                null))
     }
 
     it should "not add an ARP entry when it is associated with a Pool but is " +
@@ -302,6 +305,7 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
                 Delete(classOf[NeutronVIP], vipId))
 
         midoOps should contain (DeleteNode(
-                arpEntryPath(networkId, vipIpAddr, gwPortMac)))
+                stateTableStorage.bridgeArpEntryPath(
+                    networkId, IPv4Addr(vipIpAddr), MAC.fromString(gwPortMac))))
     }
 }

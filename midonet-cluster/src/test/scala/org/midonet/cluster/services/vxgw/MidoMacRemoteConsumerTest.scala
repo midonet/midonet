@@ -18,20 +18,21 @@ package org.midonet.cluster.services.vxgw
 
 import java.util.UUID
 
-import scala.collection.JavaConversions._
+import scala.concurrent.Future
 
 import org.junit.runner.RunWith
+import org.mockito.Matchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify}
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
+
 import rx.Subscription
 
+import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.data.vtep.model.{MacLocation, VtepMAC}
 import org.midonet.cluster.services.vxgw.VtepSynchronizer.NetworkInfo
-import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap}
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 
@@ -39,7 +40,6 @@ import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 class MidoMacRemoteConsumerTest extends FeatureSpec with Matchers
                                                     with BeforeAndAfter
                                                     with GivenWhenThen
-                                                    with TopologyBuilder
                                                     with MockitoSugar {
 
     var nwCard: NetworkInfo = _
@@ -59,8 +59,8 @@ class MidoMacRemoteConsumerTest extends FeatureSpec with Matchers
         nwId = UUID.randomUUID()
 
         nwCard = new NetworkInfo
-        nwCard.arpTable = mock[Ip4ToMacReplicatedMap]
-        nwCard.macTable = mock[MacPortMap]
+        nwCard.arpTable = mock[StateTable[IPv4Addr, MAC]]
+        nwCard.macTable = mock[StateTable[MAC, UUID]]
         nwCard.vxPort = UUID.randomUUID()
 
         nwCards = new java.util.HashMap[UUID, NetworkInfo]
@@ -88,41 +88,59 @@ class MidoMacRemoteConsumerTest extends FeatureSpec with Matchers
             val ip1 = IPv4Addr.random
             val ip2 = IPv4Addr.random
             // let's pretend we have 2 IPs associated to the mac
-            Mockito.when(nwCard.arpTable.getByValue(mac)).thenReturn(List(ip1, ip2))
+            Mockito.when(nwCard.arpTable.getRemoteByValue(mac))
+                   .thenReturn(Future.successful(Set(ip1, ip2)))
+            Mockito.when(nwCard.macTable.addPersistent(any[MAC](), any[UUID]()))
+                   .thenReturn(Future.successful({}))
+            Mockito.when(nwCard.arpTable.removePersistent(any[IPv4Addr](), any[MAC]()))
+                   .thenReturn(Future.successful(false))
             updater.onNext(ml)
-            verify(nwCard.macTable, times(1)).put(mac, nwCard.vxPort)
+            verify(nwCard.macTable, times(1)).addPersistent(mac, nwCard.vxPort)
             // The mac location carried a null IP, so all IPs should be
             // removed from the MAC in MidoNet
-            verify(nwCard.arpTable, times(1)).removeIfOwnerAndValue(ip1, mac)
-            verify(nwCard.arpTable, times(1)).removeIfOwnerAndValue(ip2, mac)
+            verify(nwCard.arpTable, times(1)).removePersistent(ip1, mac)
+            verify(nwCard.arpTable, times(1)).removePersistent(ip2, mac)
         }
 
         scenario("An mac-port update with IP for a known network") {
             val ip = IPv4Addr.random
             val ml = MacLocation(mac, ip, lsName(nwId), tunIp)
             // let's pretend that we have ip1 ssociated to the mac
-            Mockito.when(nwCard.arpTable.getByValue(mac)).thenReturn(List.empty)
+            Mockito.when(nwCard.arpTable.getRemoteByValue(mac))
+                   .thenReturn(Future.successful(Set(ip)))
+            Mockito.when(nwCard.macTable.addPersistent(any[MAC](), any[UUID]()))
+                   .thenReturn(Future.successful({}))
+            Mockito.when(nwCard.arpTable.addPersistent(any[IPv4Addr](), any[MAC]()))
+                   .thenReturn(Future.successful({}))
             updater.onNext(ml)
-            verify(nwCard.macTable, times(1)).put(mac, nwCard.vxPort)
-            verify(nwCard.arpTable, times(1)).put(ip, mac)
+            verify(nwCard.macTable, times(1)).addPersistent(mac, nwCard.vxPort)
+            verify(nwCard.arpTable, times(1)).addPersistent(ip, mac)
         }
 
         scenario("An mac-port removal with IP for a known network") {
             val ip = IPv4Addr.random
             val ml = MacLocation(mac, ip, lsName(nwId), null)
             // let's pretend that we have ip1 ssociated to the mac
-            Mockito.when(nwCard.arpTable.getByValue(mac)).thenReturn(List(ip))
+            Mockito.when(nwCard.arpTable.getRemoteByValue(mac))
+                   .thenReturn(Future.successful(Set(ip)))
+            Mockito.when(nwCard.macTable.removePersistent(any[MAC](), any[UUID]()))
+                   .thenReturn(Future.successful(false))
+            Mockito.when(nwCard.arpTable.removePersistent(any[IPv4Addr](), any[MAC]()))
+                   .thenReturn(Future.successful(false))
             updater.onNext(ml)
-            verify(nwCard.macTable, times(1)).removeIfOwnerAndValue(mac, nwCard.vxPort)
-            verify(nwCard.arpTable, times(1)).removeIfOwnerAndValue(ip, mac)
+            verify(nwCard.macTable, times(1)).removePersistent(mac, nwCard.vxPort)
+            verify(nwCard.arpTable, times(1)).removePersistent(ip, mac)
         }
 
         scenario("An mac-port removal without IP for a known network") {
             val ml = MacLocation(mac, lsName(nwId), null)
             // let's pretend that we have ip1 ssociated to the mac
-            Mockito.when(nwCard.arpTable.getByValue(mac)).thenReturn(List.empty)
+            Mockito.when(nwCard.arpTable.getRemoteByValue(mac))
+                   .thenReturn(Future.successful(Set.empty[IPv4Addr]))
+            Mockito.when(nwCard.macTable.removePersistent(any[MAC](), any[UUID]()))
+                   .thenReturn(Future.successful(false))
             updater.onNext(ml)
-            verify(nwCard.macTable, times(1)).removeIfOwnerAndValue(mac, nwCard.vxPort)
+            verify(nwCard.macTable, times(1)).removePersistent(mac, nwCard.vxPort)
         }
 
     }

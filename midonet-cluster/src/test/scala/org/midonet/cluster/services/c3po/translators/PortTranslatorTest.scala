@@ -29,7 +29,6 @@ import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.{MatchResult, Matcher}
 
-import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronBgpSpeaker, NeutronPort}
@@ -43,7 +42,6 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.SequenceDispenser.{OverlayTunnelKey, SequenceType}
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util._
-import org.midonet.midolman.state.MacPortMap
 import org.midonet.packets.{ARP, IPv4Addr, MAC}
 
 trait OpMatchers {
@@ -231,12 +229,6 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
         """
     val mNetworkWithIpv4Subnet = mNetworkFromTxt(midoNetworkWithIpv4Subnet)
 
-    protected def macEntryPath(nwId: UUID, mac: String, portId: UUID) = {
-        val entry = MacPortMap.encodePersistentPath(
-            MAC.fromString(mac), UUIDUtil.fromProto(portId))
-        pathBldr.getBridgeMacPortEntryPath(UUIDUtil.fromProto(networkId),
-                                           Bridge.UNTAGGED_VLAN_ID, entry)
-    }
 }
 
 /* Contains generic port translation tests */
@@ -288,8 +280,12 @@ class VifPortTranslationTest extends PortTranslatorTest {
           subnet_id { $nIpv6Subnet1Id }
         }
         """)
-    protected val vifArpEntryPath = arpEntryPath(networkId, ipv4Addr1Txt, mac)
-    protected val vifMacEntryPath = macEntryPath(networkId, mac, portId)
+    protected val vifArpEntryPath =
+        stateTableStorage.bridgeArpEntryPath(networkId, IPv4Addr(ipv4Addr1Txt),
+                                             MAC.fromString(mac))
+    protected val vifMacEntryPath =
+        stateTableStorage.bridgeMacEntryPath(networkId, 0, MAC.fromString(mac),
+                                             portId)
 
     val vifPortWithFipsAndSgs = nPortFromTxt(s"""
         $vifPortWithFixedIps
@@ -390,9 +386,13 @@ class VifPortTranslationTest extends PortTranslatorTest {
         mac_address: "$gwPortMac"
         """)
     val fip1ArpEntryPath =
-            arpEntryPath(externalNetworkId, floatingIp1Addr, gwPortMac)
+        stateTableStorage.bridgeArpEntryPath(externalNetworkId,
+                                             IPv4Addr(floatingIp1Addr),
+                                             MAC.fromString(gwPortMac))
     val fip2ArpEntryPath =
-            arpEntryPath(externalNetworkId, floatingIp2Addr, gwPortMac)
+        stateTableStorage.bridgeArpEntryPath(externalNetworkId,
+                                             IPv4Addr(floatingIp2Addr),
+                                             MAC.fromString(gwPortMac))
 }
 
 /**
@@ -1403,10 +1403,12 @@ class RouterInterfacePortCreateTranslationTest
             .thenReturn(Future.successful(Seq()))
         val midoOps = translator.translate(CreateOp(routerIfPort))
         midoOps should contain only (
-            CreateNode(arpEntryPath(networkId, routerIfPortIpStr,
-                                    routerIfPortMac)),
-            CreateNode(macEntryPath(networkId, routerIfPortMac,
-                                    portWithPeerId)),
+            CreateNode(stateTableStorage.bridgeArpEntryPath(
+                networkId, IPv4Addr(routerIfPortIpStr),
+                MAC.fromString(routerIfPortMac))),
+            CreateNode(stateTableStorage.bridgeMacEntryPath(
+                networkId, 0, MAC.fromString(routerIfPortMac),
+                portWithPeerId)),
             CreateOp(mBridgePortBaseWithPeer))
     }
 }
@@ -1449,10 +1451,12 @@ class RouterInterfacePortUpdateDeleteTranslationTest
                 DeleteOp(classOf[Rule],
                                sameSubnetSnatRuleId(postRouteChainId,
                                                     peerPortId)),
-                DeleteNode(arpEntryPath(networkId, routerIfPortIpStr,
-                                        routerIfPortMac)),
-                DeleteNode(macEntryPath(networkId, routerIfPortMac,
-                                        portWithPeerId)))
+                DeleteNode(stateTableStorage.bridgeArpEntryPath(
+                    networkId, IPv4Addr(routerIfPortIpStr),
+                    MAC.fromString(routerIfPortMac))),
+                DeleteNode(stateTableStorage.bridgeMacEntryPath(
+                    networkId, 0, MAC.fromString(routerIfPortMac),
+                    portWithPeerId)))
     }
 }
 
@@ -1651,10 +1655,12 @@ class RemotePortTranslationTest extends PortTranslatorTest {
         }
         """)
 
-    protected val remotePortArpEntryPath = arpEntryPath(
-        networkId, ipv4Addr1Txt, mac)
-    protected val remotePortMacEntryPath = macEntryPath(
-        networkId, mac, l2gwNetworkPortId(networkId))
+    protected val remotePortArpEntryPath =
+        stateTableStorage.bridgeArpEntryPath(networkId, IPv4Addr(ipv4Addr1Txt),
+                                             MAC.fromString(mac))
+    protected val remotePortMacEntryPath =
+        stateTableStorage.bridgeMacEntryPath(networkId, 0, MAC.fromString(mac),
+                                             l2gwNetworkPortId(networkId))
 
     before {
         initMockStorage()

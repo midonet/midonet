@@ -23,8 +23,6 @@ import java.util.UUID;
 import com.google.inject.Inject;
 
 import org.midonet.cluster.WatchableZkManager;
-import org.midonet.cluster.backend.Directory;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
@@ -107,23 +105,6 @@ public class BridgeZkManager
     @Override
     protected Class<BridgeConfig> getConfigClass() {
         return BridgeConfig.class;
-    }
-
-    // This method creates the directory if it doesn't already exist,
-    // because bridges may have been created before the ARP feature was added.
-    public Directory getIP4MacMapDirectory(UUID id)
-            throws StateAccessException {
-        String path = paths.getBridgeIP4MacMapPath(id);
-        if (exists(id) && !zk.exists(path))
-            zk.addPersistent(path, null);
-
-        return zk.getSubDirectory(path);
-    }
-
-
-    public Directory getMacPortMapDirectory(UUID id, short vlanId)
-            throws StateAccessException{
-        return zk.getSubDirectory(paths.getBridgeMacPortsPath(id, vlanId));
     }
 
 }

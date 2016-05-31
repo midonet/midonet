@@ -19,9 +19,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.UUID;
 
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -97,85 +94,6 @@ public class ZkPathManager {
 
     protected StringBuilder buildBridgePath(UUID id) {
         return buildBridgesPath().append("/").append(id);
-    }
-
-    protected StringBuilder buildBridgeMacPortsPath(UUID id, short vlanId) {
-        StringBuilder builder = buildBridgePath(id);
-        if (vlanId != Bridge.UNTAGGED_VLAN_ID)
-            builder.append("/vlans/").append(vlanId);
-        builder.append("/mac_ports");
-        return builder;
-    }
-
-    /**
-     * Get the path of a bridge's dynamic filtering database (mac to ports map).
-     *
-     * @param id Bridge UUID
-     * @param vlanId VLAN ID. Bridge.UNTAGGED_VLAN_ID for the untagged VLAN.
-     * @return If vlanId == UNTAGGED_VLAN_ID: /bridges/bridgeId/mac_ports.
-     *         Otherwise: /bridges/bridgeId/vlans/vlanId/mac_ports.
-     */
-    public String getBridgeMacPortsPath(UUID id, short vlanId) {
-        return buildBridgeMacPortsPath(id, vlanId).toString();
-    }
-
-    public String getBridgeMacPortsPath(UUID id) {
-        return getBridgeMacPortsPath(id, Bridge.UNTAGGED_VLAN_ID);
-    }
-
-    public String getBridgeMacPortEntryPath(UUID bridgeId, short vlanId,
-                                            String macEntry) {
-        StringBuilder macPortPath = buildBridgeMacPortsPath(bridgeId, vlanId);
-        macPortPath.append(macEntry);
-        return macPortPath.toString();
-    }
-
-    public String getBridgeMacPortEntryPath(Neutron.NeutronPort port) {
-        MAC mac = MAC.fromString(port.getMacAddress());
-        UUID portId = UUIDUtil.fromProto(port.getId());
-        UUID networkId = UUIDUtil.fromProto(port.getNetworkId());
-        return getBridgeMacPortEntryPath(
-            networkId, Bridge.UNTAGGED_VLAN_ID,
-            MacPortMap.encodePersistentPath(mac, portId));
-    }
-
-    /**
-     * Get the path of VLANs under a bridge.
-     *
-     * @param id Bridge UUID
-     * @return /bridges/bridgeId/vlans
-     */
-    public String getBridgeVlansPath(UUID id) {
-        return buildBridgeVlansPath(id).toString();
-    }
-
-    protected StringBuilder buildBridgeVlansPath(UUID id) {
-        return buildBridgePath(id).append("/vlans");
-    }
-
-    /**
-     * Get the path of a specific VLAN under a bridge.
-     *
-     * @param id Bridge UUID
-     * @param vlanId Vlan Short
-     * @return /bridges/bridgeId/vlans/vlanId
-     */
-    public String getBridgeVlanPath(UUID id, Short vlanId) {
-        return buildBridgeVlanPath(id, vlanId).toString();
-    }
-
-    protected StringBuilder buildBridgeVlanPath(UUID id, Short vlanId) {
-        return buildBridgeVlansPath(id).append("/").append(vlanId);
-    }
-
-    /**
-     +     * Get the path of a bridge's arp table.
-     +     *
-     +     * @param id Bridge UUID
-     +     * @return /bridges/bridgeId/ip4_mac_map
-     +     */
-    public String getBridgeIP4MacMapPath(UUID id) {
-        return buildBridgePath(id).append("/ip4_mac_map").toString();
     }
 
     /**
