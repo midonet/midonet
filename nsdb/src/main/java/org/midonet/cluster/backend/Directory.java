@@ -63,6 +63,8 @@ public interface Directory {
     boolean exists(String path, Watcher watcher)
         throws KeeperException, InterruptedException;
 
+    void asyncExists(String relativePath, DirectoryCallback<Boolean> callback);
+
     void delete(String relativePath)
         throws KeeperException, InterruptedException;
 

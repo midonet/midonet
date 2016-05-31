@@ -109,10 +109,50 @@ public class TestMockDirectory {
         dir.add(path, bytes, CreateMode.PERSISTENT);
         Assert.assertArrayEquals(bytes, dir.get(path, null));
         Assert.assertTrue(dir.exists(path));
+        dir.asyncExists(path, new DirectoryCallback<Boolean>() {
+            @Override
+            public void onSuccess(Boolean data, Stat stat) {
+                Assert.assertTrue(data);
+            }
+            @Override
+            public void onError(KeeperException e) {
+                Assert.fail();
+            }
+        });
         Assert.assertFalse(dir.exists("/anotherpath"));
+        dir.asyncExists("/anotherpath", new DirectoryCallback<Boolean>() {
+            @Override
+            public void onSuccess(Boolean data, Stat stat) {
+                Assert.assertFalse(data);
+            }
+            @Override
+            public void onError(KeeperException e) {
+                Assert.fail();
+            }
+        });
         Assert.assertFalse(dir.exists("/some/other/path"));
+        dir.asyncExists("/some/other/path", new DirectoryCallback<Boolean>() {
+            @Override
+            public void onSuccess(Boolean data, Stat stat) {
+                Assert.assertFalse(data);
+            }
+            @Override
+            public void onError(KeeperException e) {
+                Assert.fail();
+            }
+        });
         dir.delete(path);
         Assert.assertFalse(dir.exists(path));
+        dir.asyncExists(path, new DirectoryCallback<Boolean>() {
+            @Override
+            public void onSuccess(Boolean data, Stat stat) {
+                Assert.assertFalse(data);
+            }
+            @Override
+            public void onError(KeeperException e) {
+                Assert.fail();
+            }
+        });
     }
 
     private class MyRunnable implements Runnable {

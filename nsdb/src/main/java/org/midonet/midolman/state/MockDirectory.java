@@ -66,6 +66,7 @@ public class MockDirectory implements Directory {
         ArrayListMultimap.create();
 
     protected class Node {
+
         // The node's path from the root.
         private String path;
         private byte[] data;
@@ -96,7 +97,7 @@ public class MockDirectory implements Directory {
 
         // Document that this returns the absolute path of the child
         synchronized String addChild(String name, byte[] data, CreateMode mode,
-                        boolean multi)
+                                     boolean multi)
             throws NodeExistsException, NoChildrenForEphemeralsException {
             if (enableDebugLog)
                 log.debug("addChild {} => {}", name, data);
@@ -184,7 +185,7 @@ public class MockDirectory implements Directory {
 
         public Node clone() {
             Node n = new Node(this.path, this.data, this.mode);
-            for (String key: this.children.keySet()) {
+            for (String key : this.children.keySet()) {
                 n.children.put(key, this.children.get(key).clone());
             }
             return n;
@@ -258,14 +259,15 @@ public class MockDirectory implements Directory {
 
     @Override
     public void ensureHas(String relativePath, byte[] data)
-            throws NoNodeException, NoChildrenForEphemeralsException {
+        throws NoNodeException, NoChildrenForEphemeralsException {
         try {
             add(relativePath, data, CreateMode.PERSISTENT, false);
         } catch (KeeperException.NodeExistsException e) { /* node was there */ }
     }
 
     @Override
-    public void asyncAdd(String relativePath, byte[] data, CreateMode mode, DirectoryCallback<String> cb) {
+    public void asyncAdd(String relativePath, byte[] data, CreateMode mode,
+                         DirectoryCallback<String> cb) {
         try {
             cb.onSuccess(add(relativePath, data, mode), null);
         } catch (KeeperException e) {
@@ -285,7 +287,7 @@ public class MockDirectory implements Directory {
 
     @Override
     public void update(String path, byte[] data, int version)
-            throws NoNodeException {
+        throws NoNodeException {
         // TODO: Implement node version.
         update(path, data, false);
     }
@@ -296,10 +298,12 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public void asyncGet(String relativePath, DirectoryCallback<byte[]> dataCb, TypedWatcher watcher) {
+    public void asyncGet(String relativePath, DirectoryCallback<byte[]> dataCb,
+                         TypedWatcher watcher) {
         try {
-            dataCb.onSuccess(getNode(relativePath).getData(wrapCallback(watcher)),
-                             null);
+            dataCb
+                .onSuccess(getNode(relativePath).getData(wrapCallback(watcher)),
+                           null);
         } catch (NoNodeException e) {
             dataCb.onError(e);
         }
@@ -341,6 +345,16 @@ public class MockDirectory implements Directory {
             return true;
         } catch (NoNodeException e) {
             return false;
+        }
+    }
+
+    @Override
+    public void asyncExists(String relativePath,
+                            DirectoryCallback<Boolean> callback) {
+        try {
+            callback.onSuccess(getNode(relativePath).exists(null), null);
+        } catch (NoNodeException e) {
+            callback.onSuccess(false, null);
         }
     }
 
