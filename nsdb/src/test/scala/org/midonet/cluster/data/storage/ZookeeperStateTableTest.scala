@@ -21,7 +21,8 @@ import java.util.UUID
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import org.apache.zookeeper.CreateMode
+import org.apache.curator.utils.ZKPaths
+import org.apache.zookeeper.{CreateMode, KeeperException}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
@@ -35,6 +36,7 @@ import org.midonet.cluster.data.storage.StorageTestClasses.{PojoBridge, PojoRout
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent._
 
 object ZookeeperStateTableTest {
     private class ScoreStateTable(val directory: Directory,
@@ -330,6 +332,42 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             val path = storage.tableRootPath(classOf[PojoBridge], obj.id,
                                              "score-table")
             curator.checkExists().forPath(path + "/test_node") should not be null
+        }
+    }
+
+    feature("Test state table arguments") {
+        scenario("Storage returns arguments for tables") {
+            Given("An object in storage")
+            val storage = setupStorage()
+            val obj = new PojoBridge(UUID.randomUUID(), null, null, null)
+            storage.create(obj)
+
+            And("Two tables with arguments")
+            storage.getTable[Int, String](classOf[PojoBridge], obj.id,
+                                          "score-table", 0)
+            storage.getTable[Int, String](classOf[PojoBridge], obj.id,
+                                          "score-table", 1)
+
+            When("Retrieving the arguments")
+            val args = storage.tableArguments(classOf[PojoBridge], obj.id,
+                                              "score-table").await(timeout)
+
+            Then("The arguments should be 0 and 1")
+            args shouldBe Set("0", "1")
+        }
+
+        scenario("Storage returns empty arguments for non-existing tables") {
+            Given("An object in storage")
+            val storage = setupStorage()
+            val obj = new PojoBridge(UUID.randomUUID(), null, null, null)
+            storage.create(obj)
+
+            When("Retrieving the arguments")
+            val args = storage.tableArguments(classOf[PojoBridge], obj.id,
+                                              "score-table", 0).await(timeout)
+
+            Then("The arguments should be empty")
+            args shouldBe empty
         }
     }
 
