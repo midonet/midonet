@@ -22,6 +22,30 @@
       "revId": "86cdfc01fc2b58e41552ea4b72143fa1fe260366",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_978be11e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-05-31T09:55:26Z",
+      "side": 1,
+      "message": "ah, yes, we should. I was doing in the happy case, not in the drop case. if we don\u0027t, it may hold on to references that may be tenured since there\u0027s no guarantee a context returned to the pool will be used any time soon.",
+      "parentUuid": "baa041b7_b766e5b8",
+      "range": {
+        "startLine": 401,
+        "startChar": 16,
+        "endLine": 401,
+        "endChar": 38
+      },
+      "revId": "86cdfc01fc2b58e41552ea4b72143fa1fe260366",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
