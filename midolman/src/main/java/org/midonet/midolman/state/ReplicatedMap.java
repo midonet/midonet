@@ -373,7 +373,7 @@ public abstract class ReplicatedMap<K, V> {
             final DeleteCallBack thisCb = this;
             return new Runnable() {
                 public void run() {
-                    dir.asyncDelete(encodePath(key, value, version), thisCb);
+                    dir.asyncDelete(encodePath(key, value, version), -1, thisCb);
                 }
             };
         }
@@ -449,7 +449,7 @@ public abstract class ReplicatedMap<K, V> {
                 return null;
 
         }
-        dir.asyncDelete(encodePath(key, mv.value, mv.version),
+        dir.asyncDelete(encodePath(key, mv.value, mv.version), -1,
                         new DeleteCallBack(key, mv.value, mv.version));
         return mv.value;
     }

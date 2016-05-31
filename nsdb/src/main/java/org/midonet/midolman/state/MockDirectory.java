@@ -374,7 +374,8 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public void asyncDelete(String relativePath, DirectoryCallback<Void> callback) {
+    public void asyncDelete(String relativePath, int version,
+                            DirectoryCallback<Void> callback) {
          try {
              delete(relativePath, false);
              callback.onSuccess(null, null);
