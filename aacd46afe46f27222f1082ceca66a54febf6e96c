@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e4da7d16",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-05-31T07:30:41Z",
+      "side": 1,
+      "message": "To increase MN scalability to 10000 ports per bridge.",
+      "parentUuid": "baa041b7_e4195d23",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 4
+      },
+      "revId": "aacd46afe46f27222f1082ceca66a54febf6e96c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_54c0ba4f",
         "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/zkManagers/RuleZkManager.java",
         "patchSetId": 1
