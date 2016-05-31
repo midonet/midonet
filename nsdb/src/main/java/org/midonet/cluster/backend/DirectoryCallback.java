@@ -17,10 +17,11 @@
 package org.midonet.cluster.backend;
 
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
 
 public interface DirectoryCallback<T> {
 
-    void onSuccess(T data);
+    void onSuccess(T data, Stat stat);
 
     void onError(KeeperException e);
 

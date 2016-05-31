@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -329,7 +330,7 @@ public abstract class ReplicatedMap<K, V> {
             value = v;
         }
 
-        public void onSuccess(String result) {
+        public void onSuccess(String result, Stat stat) {
             // Claim the sequence number added by ZooKeeper.
             Path p = decodePath(result);
             synchronized(ReplicatedMap.this) {
@@ -357,7 +358,7 @@ public abstract class ReplicatedMap<K, V> {
             version = ver;
         }
 
-        public void onSuccess(Void result) {
+        public void onSuccess(Void result, Stat stat) {
             synchronized(ReplicatedMap.this) {
                 /* The map entry that was just removed from Zookeeper was or
                    will be deleted from the local map in method run(). This is

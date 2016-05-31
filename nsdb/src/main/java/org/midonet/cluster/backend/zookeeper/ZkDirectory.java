@@ -16,10 +16,8 @@
 
 package org.midonet.cluster.backend.zookeeper;
 
-import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.zookeeper.AsyncCallback;
@@ -90,17 +88,14 @@ public class ZkDirectory implements Directory {
         zk.getZooKeeper().create(
             absPath, data, acl, mode,
             new AsyncCallback.StringCallback() {
-
                 @Override
                 public void processResult(int rc, String path,
                                           Object ctx, String name) {
-                    KeeperException.Code code = KeeperException.Code.get(rc);
-                    switch (code) {
-                        case OK:
-                            cb.onSuccess(name.substring(basePath.length()));
-                            break;
-                        default:
-                            cb.onError(KeeperException.create(code, path));
+                    if (rc == KeeperException.Code.OK.intValue()) {
+                        cb.onSuccess(name.substring(basePath.length()), null);
+                    } else {
+                        cb.onError(KeeperException.create(
+                            KeeperException.Code.get(rc), path));
                     }
                 }
             },
@@ -211,7 +206,7 @@ public class ZkDirectory implements Directory {
                 public void processResult(int rc, String path, Object ctx,
                                           byte[] data, Stat stat) {
                     if (rc == KeeperException.Code.OK.intValue()) {
-                        dataCallback.onSuccess(data);
+                        dataCallback.onSuccess(data, stat);
                     } else {
                         dataCallback.onError(KeeperException.create(
                             KeeperException.Code.get(rc), path));
@@ -264,9 +259,10 @@ public class ZkDirectory implements Directory {
             @Override
             public void processResult(int rc, String path, Object ctx) {
                 if (rc == KeeperException.Code.OK.intValue()) {
-                    callback.onSuccess(null);
+                    callback.onSuccess(null, null);
                 } else {
-                    callback.onError(KeeperException.create(KeeperException.Code.get(rc), path));
+                    callback.onError(KeeperException.create(
+                        KeeperException.Code.get(rc), path));
                 }
             }
         }, null);
