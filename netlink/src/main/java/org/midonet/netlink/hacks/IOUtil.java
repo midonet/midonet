@@ -36,10 +36,8 @@ public class IOUtil {
     private static Class<?> ioUtilClassRef;
     private static Method fdValRef;
     private static Method newFdRef;
-    private static int writeArity;
     private static Method writeRef;
     private static Method writeMultipleRef;
-    private static int readArity;
     private static Method readRef;
     private static Method readMultipleRef;
     private static Method configureBlockingRef;
@@ -53,34 +51,12 @@ public class IOUtil {
         }
 
         try {
-            writeRef = ioUtilClassRef.getDeclaredMethod("write", FileDescriptor.class, ByteBuffer.class, long.class, NativeDispatcher.nativeDispatcherClass, Object.class);
-            writeArity = 5;
+            writeRef = ioUtilClassRef.getDeclaredMethod("write", FileDescriptor.class, ByteBuffer.class, long.class, NativeDispatcher.nativeDispatcherClass);
             writeRef.setAccessible(true);
-        } catch (Exception e) {
-            try {
-                writeRef = ioUtilClassRef.getDeclaredMethod("write", FileDescriptor.class, ByteBuffer.class, long.class, NativeDispatcher.nativeDispatcherClass);
-                writeArity = 4;
-                writeRef.setAccessible(true);
-            } catch (Exception f) {
-                log.error("Exception retrieving handle to sun.nio.ch.IOUtil.write():\n{}\n{}", e, f);
-            }
-        }
 
-        try {
-            readRef = ioUtilClassRef.getDeclaredMethod("read", FileDescriptor.class, ByteBuffer.class, long.class, NativeDispatcher.nativeDispatcherClass, Object.class);
-            readArity = 5;
+            readRef = ioUtilClassRef.getDeclaredMethod("read", FileDescriptor.class, ByteBuffer.class, long.class, NativeDispatcher.nativeDispatcherClass);
             readRef.setAccessible(true);
-        } catch (Exception e) {
-            try {
-                readRef = ioUtilClassRef.getDeclaredMethod("read", FileDescriptor.class, ByteBuffer.class, long.class, NativeDispatcher.nativeDispatcherClass);
-                readArity = 4;
-                readRef.setAccessible(true);
-            } catch (Exception f) {
-                log.error("Exception retrieving handle to sun.nio.ch.IOUtil.read():\n{}\n{}", e, f);
-            }
-        }
 
-        try {
             fdValRef = ioUtilClassRef.getDeclaredMethod("fdVal", FileDescriptor.class);
             fdValRef.setAccessible(true);
 
@@ -121,10 +97,7 @@ public class IOUtil {
     public static int write(FileDescriptor fd, ByteBuffer src, long position,
                             NativeDispatcher nd) {
         try {
-            if (writeArity == 5)
-                return (Integer)writeRef.invoke(null, fd, src, position, nd.dispatcher, null);
-            else
-                return (Integer)writeRef.invoke(null, fd, src, position, nd.dispatcher);
+            return (Integer)writeRef.invoke(null, fd, src, position, nd.dispatcher);
         } catch (Exception e) {
             log.error("Error invoking method {}", writeRef, e);
         }
@@ -143,10 +116,7 @@ public class IOUtil {
     public static int read(FileDescriptor fd, ByteBuffer src, long position,
                             NativeDispatcher nd) {
         try {
-            if (readArity == 5)
-                return (Integer)readRef.invoke(null, fd, src, position, nd.dispatcher, null);
-            else
-                return (Integer)readRef.invoke(null, fd, src, position, nd.dispatcher);
+            return (Integer)readRef.invoke(null, fd, src, position, nd.dispatcher);
         } catch (Exception e) {
             log.error("Error invoking method {}", readRef, e);
         }
