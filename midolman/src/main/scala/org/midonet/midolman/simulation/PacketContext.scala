@@ -55,12 +55,12 @@ object PacketContext {
      * The default values doesn't work when called from java.
      * Workaround it by overloading the method.
      */
-    def generatedForJava(cookie: Int, packet: Packet,
+    def generatedForJava(cookie: Long, packet: Packet,
                          origMatch: FlowMatch,
                          egressPort: UUID): PacketContext =
         generated(cookie, packet, origMatch, egressPort)
 
-    def generated(cookie: Int, packet: Packet,
+    def generated(cookie: Long, packet: Packet,
                   origMatch: FlowMatch,
                   egressPort: UUID = null,
                   egressPortNo: JInteger = null,

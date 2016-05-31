@@ -234,7 +234,8 @@ class RecircTest extends FeatureSpec
 
         val fmatch = FlowMatches.fromEthernetPacket(packetf())
         fmatch.addKey(FlowKeys.inPort(injectorInput.getPortNo))
-        val context = new PacketContext(1L, new Packet(packetf(), fmatch), fmatch)
+        val context = PacketContext.generated(1L, new Packet(packetf(), fmatch),
+                                              fmatch)
 
         context.decap(inner, vni)
 
@@ -295,7 +296,8 @@ class RecircTest extends FeatureSpec
         fmatch.addKey(FlowKeys.inPort(injectorInput.getPortNo))
         fmatch.fieldSeen(Field.SrcPort)
         fmatch.fieldSeen(Field.DstPort)
-        val context = new PacketContext(1L, new Packet(packetf(), fmatch), fmatch)
+        val context = PacketContext.generated(1L, new Packet(packetf(), fmatch),
+                                              fmatch)
         context.wcmatch.setSrcPort(9876)
         context.wcmatch.setDstPort(80)
         val vni = 4624
