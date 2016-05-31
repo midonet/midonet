@@ -22,12 +22,13 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.FloatingIp
-import org.midonet.cluster.models.Topology.{Router, Port, Rule}
+import org.midonet.cluster.models.Topology.{Port, Router, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
-import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import RouterTranslator.tenantGwPortId
+import org.midonet.packets.{IPv4Addr, MAC}
 
 class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                                                               with OpMatchers {
@@ -110,8 +111,9 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         .setPortSubnet(tntRouterInternalPortSubnet)
         .build()
 
-    protected val fipArpEntryPath = arpEntryPath(
-            externalNetworkId, fipIpAddr.getAddress, tntRouterGatewayPortMac)
+    protected val fipArpEntryPath = stateTableStorage.bridgeArpEntryPath(
+            externalNetworkId, IPv4Addr(fipIpAddr.getAddress),
+            MAC.fromString(tntRouterGatewayPortMac))
 
     protected val snatRuleId = RouteManager.fipSnatRuleId(fipId)
     protected val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
@@ -347,8 +349,9 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         $outChainDummyRuleIds
         """)
 
-    protected val fipArpEntryPath2 = arpEntryPath(
-            externalNetworkId, fipIpAddr.getAddress, tntRouter2GwPortMac)
+    protected val fipArpEntryPath2 = stateTableStorage.bridgeArpEntryPath(
+            externalNetworkId, IPv4Addr(fipIpAddr.getAddress),
+            MAC.fromString(tntRouter2GwPortMac))
 
     before {
         initMockStorage()

@@ -51,6 +51,7 @@ import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.rest_api.models.MacPort;
 import org.midonet.cluster.rest_api.models.Tenant;
 
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -562,8 +563,8 @@ public class TestBridge {
                 APPLICATION_MAC_PORT_JSON_V2(), mp2);
             // Try to create a MacPort entry with a bogus port ID.
             mp2 = new DtoMacPort("02:aa:bb:cc:dd:ee", UUID.randomUUID());
-            dtoResource.postAndVerifyBadRequest(bridge.getMacTable(),
-                APPLICATION_MAC_PORT_JSON_V2(), mp2);
+            dtoResource.postAndVerifyError(bridge.getMacTable(),
+                APPLICATION_MAC_PORT_JSON_V2(), mp2, NOT_FOUND);
         }
 
         @Test

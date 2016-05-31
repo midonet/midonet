@@ -128,7 +128,8 @@ class VxlanGatewayService @Inject()(
             )
         }
         val syncer = new VtepSynchronizer(vtepId, backend.store,
-                                          backend.stateStore, dataClient,
+                                          backend.stateStore,
+                                          backend.stateTableStore,
                                           fpManager.herald, loadOvdsbCnxn)
         vtepSyncers.put(vtepId, syncer)
         backend.store.observable(classOf[Vtep], vtepId).subscribe(syncer)

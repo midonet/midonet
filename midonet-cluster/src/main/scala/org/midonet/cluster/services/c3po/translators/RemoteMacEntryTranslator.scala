@@ -18,14 +18,14 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConversions._
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage}
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Neutron.{GatewayDevice, RemoteMacEntry}
 import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.services.c3po.C3POStorageManager.Update
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
@@ -48,8 +48,9 @@ class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
             p <- ports if p.hasVni && p.getVni == rm.getSegmentationId
         } yield {
             rmBldr.addPortIds(p.getId)
-            CreateNode(portPeeringEntryPath(p.getId.asJava, rm.getMacAddress,
-                                            rm.getVtepAddress.getAddress))
+            CreateNode(stateTableStorage.portPeeringEntryPath(
+                p.getId.asJava, MAC.fromString(rm.getMacAddress),
+                IPv4Addr(rm.getVtepAddress.getAddress)))
         }
 
         // Update the RemoteMacEntry if it was added to any ports.
@@ -64,8 +65,9 @@ class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
     : OperationList = {
         val ports = storage.getAll(classOf[Port], rm.getPortIdsList).await()
         for (p <- ports.toList) yield {
-            DeleteNode(portPeeringEntryPath(p.getId.asJava, rm.getMacAddress,
-                                            rm.getVtepAddress.getAddress))
+            DeleteNode(stateTableStorage.portPeeringEntryPath(
+                p.getId.asJava, MAC.fromString(rm.getMacAddress),
+                IPv4Addr(rm.getVtepAddress.getAddress)))
         }
     }
 

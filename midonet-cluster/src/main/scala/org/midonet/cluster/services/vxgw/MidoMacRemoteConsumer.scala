@@ -19,7 +19,8 @@ package org.midonet.cluster.services.vxgw
 import java.util
 import java.util.UUID
 
-import scala.collection.JavaConversions._
+import scala.collection.breakOut
+import scala.concurrent.Future
 
 import rx.Observer
 
@@ -27,6 +28,7 @@ import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.services.vxgw.VtepSynchronizer.NetworkInfo
 import org.midonet.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
 import org.midonet.packets.MAC
+import org.midonet.util.concurrent._
 
 /** This class is used by the VtepSynchronizer when updates are detected
   * in the MacLocal tables of a VTEP and need to be pushed into MidoNet.
@@ -46,32 +48,49 @@ class MidoMacRemoteConsumer(nwStates: util.Map[UUID, NetworkInfo])
             return
         }
         if (ml.vxlanTunnelEndpoint == null) {
-            macRemoval(nwId, nwState, ml)
+            macRemoval(nwId, nwState, ml).await()
         } else {
-            macUpdate(nwId, nwState, ml)
+            macUpdate(nwId, nwState, ml).await()
         }
     }
 
     private def macRemoval(nwId: UUID, nwState: NetworkInfo,
-                           ml: MacLocation): Unit = {
-        nwState.macTable.removeIfOwnerAndValue(ml.mac.IEEE802, nwState.vxPort)
-        removeIpsOnMac(nwState, ml.mac.IEEE802)
+                           ml: MacLocation): Future[Unit] = {
+        nwState.macTable.removePersistent(ml.mac.IEEE802,
+                                          nwState.vxPort).flatMap { _ =>
+            removeIpsOnMac(nwState, ml.mac.IEEE802)
+        } (CallingThreadExecutionContext)
     }
 
     private def macUpdate(nwId: UUID, nwState: NetworkInfo, ml: MacLocation)
-    : Unit = {
+    : Future[Unit] = {
         val mac = ml.mac.IEEE802
-        nwState.macTable.put(mac, nwState.vxPort)
-        if (ml.ipAddr == null) {
-            removeIpsOnMac(nwState, mac)
-        } else {
-            nwState.arpTable.put(ml.ipAddr, mac)
-        }
+        nwState.macTable.addPersistent(mac, nwState.vxPort).flatMap { _ =>
+            if (ml.ipAddr == null) {
+                removeIpsOnMac(nwState, mac)
+            } else {
+                nwState.arpTable.addPersistent(ml.ipAddr, mac)
+            }
+        } (CallingThreadExecutionContext)
     }
 
-    private def removeIpsOnMac(nwState: NetworkInfo, mac: MAC): Unit = {
-        nwState.arpTable.getByValue(mac) foreach {
-            nwState.arpTable.removeIfOwnerAndValue(_, mac)
-        }
+    private def removeIpsOnMac(nwState: NetworkInfo, mac: MAC): Future[Unit] = {
+
+        // Here we can use either the local cache of the table, or making a
+        // remote request.
+        // val ips = nwState.arpTable.getLocalByValue(mac)
+        // val futures = for (ip <- ips) yield {
+        //    nwState.arpTable.removePersistent(ip, mac)
+        // }
+        // Future.sequence(futures)(breakOut, CallingThreadExecutionContext)
+        //    .map { _ => {} } (CallingThreadExecutionContext)
+
+        nwState.arpTable.getRemoteByValue(mac).flatMap { ips =>
+            val futures = for (ip <- ips) yield {
+                nwState.arpTable.removePersistent(ip, mac)
+            }
+            Future.sequence(futures)(breakOut, CallingThreadExecutionContext)
+                  .map { _ => {} } (CallingThreadExecutionContext)
+        } (CallingThreadExecutionContext)
     }
 }

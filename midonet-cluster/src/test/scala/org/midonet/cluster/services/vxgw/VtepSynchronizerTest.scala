@@ -23,6 +23,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
+
 import org.junit.runner.RunWith
 import org.mockito.Matchers.{any, eq => Eq}
 import org.mockito.Mockito
@@ -30,16 +31,15 @@ import org.mockito.Mockito.{times, verify}
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
+
 import rx.Subscriber
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.storage.InMemoryStorage
+import org.midonet.cluster.data.storage.{InMemoryStorage, StateTableStorage}
+import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
-import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.midolman.state.MapNotification
 import org.midonet.packets.MAC
 import org.midonet.southbound.vtep.ConnectionState
 import org.midonet.util.MidonetEventually
@@ -48,14 +48,13 @@ import org.midonet.util.MidonetEventually
 class VtepSynchronizerTest extends FeatureSpec with Matchers
                                                with BeforeAndAfter
                                                with GivenWhenThen
-                                               with TopologyBuilder
                                                with VxlanGatewayFixtures
                                                with MockitoSugar
                                                with MidonetEventually {
 
     implicit val ec = fromExecutor(directExecutor())
 
-    type MapNotificationSubscriber = Subscriber[MapNotification[MAC, UUID]]
+    type MapNotificationSubscriber = Subscriber[Update[MAC, UUID]]
 
     var timeout = 10 second
     var store: InMemoryStorage = _
@@ -67,7 +66,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
 
     // Some mocks
     var fpHerald: FloodingProxyHerald = _
-    var dataClient: DataClient = _
+    var stateTableStorage: StateTableStorage = _
     var fpObservable: PublishSubject[FloodingProxy] = _
 
     before {
@@ -78,12 +77,12 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
         Mockito.when(backend.store).thenReturn(store)
         Mockito.when(backend.stateStore).thenReturn(store)
 
-        dataClient = mock[DataClient]
+        stateTableStorage = mock[StateTableStorage]
 
         vtep1Fix = new VtepFixture(store)
         vtep2Fix = new VtepFixture(store, vtep1Fix.tzId)
         vxgw = new VxlanGatewayFixture(store, vtep1Fix)
-        vxgw.mockStateTables(dataClient)
+        vxgw.mockStateTables(stateTableStorage)
 
         fpHerald = mock[FloodingProxyHerald]
 
@@ -100,7 +99,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
 
         scenario("Macs from MidoNet") {
             val vs = new VtepSynchronizer(vtep1Fix.vtepId, store, store,
-                                          dataClient, fpHerald,
+                                          stateTableStorage, fpHerald,
                                           (ip, port) => vtep1Fix.ovsdb)
             vtep1Fix.addBinding(vxgw.nwId, "swp1_1", 11)
 
@@ -114,7 +113,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
 
             // Preseed table
             val mac1 = MAC.random
-            vxgw.macPortMap.put(mac1, vxgw.port1Id)
+            vxgw.macPortTable.add(mac1, vxgw.port1Id)
 
             // map so we can inject stuff ourselves.
             vs.onNext(vtep1Fix.vtep)
@@ -130,20 +129,20 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
 
             // Let's add another mac
             val mac2 = MAC.random
-            vxgw.macPortMap.put(mac2, vxgw.port2Id)
+            vxgw.macPortTable.add(mac2, vxgw.port2Id)
 
             // The VTEP should've seen it now
             vtep1Fix.expectMacRemote(MacLocation(mac2, vxgw.lsName, vxgw.host2Ip), 3)
 
             // Let's add another mac
-            vxgw.macPortMap.put(mac1, vxgw.port2Id)
+            vxgw.macPortTable.add(mac1, vxgw.port2Id)
 
             // The VTEP should've seen it now
             vtep1Fix.expectMacRemote(MacLocation(mac1, vxgw.lsName, vxgw.host2Ip), 4)
 
             // Let's add a MAC on an interior port
             val mac3 = MAC.random
-            vxgw.macPortMap.put(mac3, vxgw.intPortId)
+            vxgw.macPortTable.add(mac3, vxgw.intPortId)
 
             // The VTEP should've been told to remove mac3, as this
             // MAC is not on a hypervisor, we'll simply let it fallback to
@@ -152,7 +151,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
             vtep1Fix.expectMacRemote(MacLocation(mac3, vxgw.lsName, null), 5)
 
             // Let's move one of the macs to the interior port
-            vxgw.macPortMap.put(mac1, vxgw.intPortId)
+            vxgw.macPortTable.add(mac1, vxgw.intPortId)
 
             // The VTEP should've been told to remove so it goes to the
             // flooding proxy
@@ -166,7 +165,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
                 MacLocation.unknownAt(vxgw.host2Ip, vxgw.lsName), 7)
 
             // And finally, let's remove a MAC
-            vxgw.macPortMap.removeIfOwner(mac1)
+            vxgw.macPortTable.remove(mac1)
 
             vtep1Fix.expectMacRemote(
                 MacLocation(mac1, vxgw.lsName, null), 8)
@@ -174,7 +173,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
 
         scenario("Flooding Proxy lifecycle") {
             val vs = new VtepSynchronizer(vtep1Fix.vtepId, store, store,
-                                          dataClient, fpHerald,
+                                          stateTableStorage, fpHerald,
                                           (ip, port) => vtep1Fix.ovsdb)
 
             val lsId = UUID.randomUUID()
@@ -216,7 +215,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
 
             // Let's bind a new network to the VTEP
             val vxgw2 = new VxlanGatewayFixture(store, vtep1Fix)
-            vxgw2.mockStateTables(dataClient)
+            vxgw2.mockStateTables(stateTableStorage)
             vtep1Fix.addBinding(vxgw2.nwId, "swp1_2", 22)
             vs.onNext(vtep1Fix.vtep)
 
