@@ -19,15 +19,18 @@ package org.midonet.cluster.data.storage
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.{Future, Promise}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent}
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException
-import org.apache.zookeeper.KeeperException.NoNodeException
+import org.apache.zookeeper.KeeperException.{Code, NoNodeException}
 
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkDirectory}
@@ -177,8 +180,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
     protected def connectionWatcher: ZkConnectionAwareWatcher
 
     /**
-      * Returns a [[StateTable]] instance for the specified object class,
-      * table name, object identifier and optional table arguments.
+      * @see [[StateTableStorage.getTable()]]
       */
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
@@ -205,6 +207,33 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
                                           classOf[ZkConnectionAwareWatcher])
         constructor.newInstance(directory, connectionWatcher)
                    .asInstanceOf[StateTable[K, V]]
+    }
+
+    /**
+      * @see [[StateTableStorage.tableArguments()]]
+      */
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
+    def tableArguments(clazz: Class[_], id: ObjId, name: String, args: Any*)
+    : Future[Set[String]] = {
+        assertBuilt()
+        val promise = Promise[Set[String]]()
+
+        curator.getChildren.inBackground(new BackgroundCallback {
+            override def processResult(client: CuratorFramework,
+                                       event: CuratorEvent): Unit = {
+                if (event.getResultCode == Code.OK.intValue()) {
+                    promise trySuccess Set(event.getChildren.asScala: _*)
+                } else if (event.getResultCode == Code.NONODE.intValue()) {
+                    promise trySuccess Set.empty
+                } else {
+                    promise tryFailure KeeperException.create(
+                        Code.get(event.getResultCode))
+                }
+            }
+        }).forPath(tablePath(clazz, id, name, args: _*))
+
+        promise.future
     }
 
     /** Gets the table provider for the given object, key and value classes. */

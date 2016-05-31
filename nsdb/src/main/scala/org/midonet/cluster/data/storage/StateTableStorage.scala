@@ -19,6 +19,7 @@ package org.midonet.cluster.data.storage
 import java.util.UUID
 
 import scala.collection.concurrent.TrieMap
+import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 import org.midonet.cluster.data.ObjId
@@ -100,6 +101,14 @@ trait StateTableStorage extends Storage {
       */
     @throws[IllegalArgumentException]
     def tablePath(clazz: Class[_], id: ObjId, name: String, args: Any*): String
+
+    /**
+      * Returns the list of arguments for the specified state table and prefixed
+      * by the given arguments.
+      */
+    @throws[IllegalArgumentException]
+    def tableArguments(clazz: Class[_], id: ObjId, name: String, args: Any*)
+    : Future[Set[String]]
 
     def bridgeMacTable(id: UUID, vlanId: Short) = getTable[MAC, UUID](
             classOf[Topology.Network], id, MidonetBackend.MacTable, vlanId)
