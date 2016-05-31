@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state;
+package org.midonet.cluster.backend;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,9 +44,6 @@ import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.midonet.cluster.backend.Directory;
-import org.midonet.cluster.backend.DirectoryCallback;
 
 import static org.apache.zookeeper.Watcher.Event.EventType;
 import static org.apache.zookeeper.Watcher.Event.KeeperState;
