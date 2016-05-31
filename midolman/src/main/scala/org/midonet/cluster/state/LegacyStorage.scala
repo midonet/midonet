@@ -20,19 +20,13 @@ import java.util.UUID
 import javax.annotation.Nonnull
 
 import org.midonet.cluster.backend.zookeeper.StateAccessException
-import org.midonet.midolman.state.{MacPortMap, _}
+import org.midonet.midolman.state._
 
 /**
  * A trait defining the cluster state API. Currently, this trait represents a
  * transitional interface from the legacy DataClient.
  */
 trait LegacyStorage {
-
-    /**
-     * Gets the MAC-port table for the specified bridge.
-     */
-    @throws[StateAccessException]
-    def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short): MacPortMap
 
     /**
      * Gets the ARP table for the specified router.

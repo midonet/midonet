@@ -57,9 +57,6 @@ class NetworkIT extends C3POMinionTestBase {
         network1.getAdminStateUp shouldBe true
         eventually(getLastProcessedIdFromTable shouldBe Some(2))
 
-        // Test the replicated map nodes, etc.
-        eventually(checkReplMaps(network1Uuid, shouldExist = true))
-
         // Below we'll test the integration between ZOOM with ReplicatedMap:
         // Add an ARP entry node under the ARP replicated map node by
         // directly calling CreateNodeOp on Storage. The root directory for the
@@ -67,7 +64,8 @@ class NetworkIT extends C3POMinionTestBase {
         // CreateNodeOp here will just add a child node encoding IP/MAC.
         val ipAddr1 = "10.0.0.1"
         val mac1 = "01:01:01:01:01:01"
-        val ipMacPath1 = arpEntryPath(network1Uuid, ipAddr1, mac1)
+        val ipMacPath1 = stateTableStorage.bridgeArpEntryPath(
+            network1Uuid, ipAddr1, mac1)
         storage.multi(Seq(CreateNodeOp(ipMacPath1, null)))
         curator.checkExists.forPath(ipMacPath1) shouldNot be(null)
 
@@ -83,7 +81,8 @@ class NetworkIT extends C3POMinionTestBase {
         // Test adding a new ARP entry to the already started Replicated Map.
         val ipAddr2 = "10.10.10.20"
         val mac2 = "02:02:02:02:02:02"
-        val ipMacPath2 = arpEntryPath(network1Uuid, ipAddr2, mac2)
+        val ipMacPath2 = stateTableStorage.bridgeArpEntryPath(
+            network1Uuid, ipAddr2, mac2)
         storage.multi(Seq(CreateNodeOp(ipMacPath2, null)))
         curator.checkExists.forPath(ipMacPath2) shouldNot be(null)
         eventually {
@@ -109,7 +108,6 @@ class NetworkIT extends C3POMinionTestBase {
             storage.get(classOf[Network], network2Uuid).await())
         network2.getId shouldBe toProto(network2Uuid)
         network2.getName shouldBe "corporate-network"
-        eventually(checkReplMaps(network2Uuid, shouldExist = true))
 
         eventually {
             val network1a = storage.get(classOf[Network], network1Uuid).await()
@@ -124,7 +122,6 @@ class NetworkIT extends C3POMinionTestBase {
         eventually {
             storage.exists(classOf[Network], network1Uuid).await() shouldBe false
             getLastProcessedIdFromTable shouldBe Some(5)
-            checkReplMaps(network1Uuid, shouldExist = false)
         }
 
         eventually {

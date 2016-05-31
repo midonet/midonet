@@ -32,8 +32,9 @@ import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.cluster.util._
+import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.PathBuilder
-import org.midonet.packets.ARP
+import org.midonet.packets.{ARP, IPv4Addr, MAC}
 import org.midonet.util.Range
 import org.midonet.util.concurrent.toFutureOps
 
@@ -202,8 +203,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val portId = if (isRemoteSitePort(nPort)) {
             l2gwNetworkPortId(nPort.getNetworkId)
         } else nPort.getId
-        val macPath = macEntryPath(nPort.getNetworkId, nPort.getMacAddress,
-                                   portId)
+        val macPath = stateTableStorage.bridgeMacEntryPath(
+            nPort.getNetworkId, 0, MAC.fromString(nPort.getMacAddress), portId)
         if (nPort.getFixedIpsCount == 0) {
             Seq(macPath)
         } else {
@@ -634,9 +635,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val ops = new OperationListBuffer
         if (newPort.getMacAddress != oldPort.getMacAddress) {
             if (oldPort.hasMacAddress)
-                ops += DeleteNode(pathBldr.getBridgeMacPortEntryPath(oldPort))
+                ops += DeleteNode(macEntryPath(oldPort))
             if (newPort.hasMacAddress)
-                ops += CreateNode(pathBldr.getBridgeMacPortEntryPath(newPort))
+                ops += CreateNode(macEntryPath(newPort))
         }
         ops.toList
     }
@@ -657,10 +658,17 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
+    private def macEntryPath(nPort: NeutronPort): String = {
+        stateTableStorage.bridgeMacEntryPath(
+            nPort.getNetworkId, Bridge.UntaggedVlanId,
+            MAC.fromString(nPort.getMacAddress), nPort.getId)
+    }
+
     private def arpEntryPath(nPort: NeutronPort): String = {
-        arpEntryPath(nPort.getNetworkId,
-                     nPort.getFixedIps(0).getIpAddress.getAddress,
-                     nPort.getMacAddress)
+        stateTableStorage.bridgeArpEntryPath(
+            nPort.getNetworkId,
+            IPv4Addr(nPort.getFixedIps(0).getIpAddress.getAddress),
+            MAC.fromString(nPort.getMacAddress))
     }
 
     /* Returns a Buffer of DeleteNode ops */
@@ -674,9 +682,10 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                                      fip.getRouterId).await()
             val gwPort = storage.get(classOf[NeutronPort],
                                      router.getGwPortId).await()
-            val arpPath = arpEntryPath(gwPort.getNetworkId,
-                                       fip.getFloatingIpAddress.getAddress,
-                                       gwPort.getMacAddress)
+            val arpPath = stateTableStorage.bridgeArpEntryPath(
+                gwPort.getNetworkId,
+                IPv4Addr(fip.getFloatingIpAddress.getAddress),
+                MAC.fromString(gwPort.getMacAddress))
             DeleteNode(arpPath)
         }
     }

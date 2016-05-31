@@ -23,6 +23,7 @@ import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 import org.midonet.cluster.data.ObjId
+import org.midonet.cluster.data.storage.StateTableEncoder.{Ip4ToMacEncoder, MacToIdEncoder, MacToIp4Encoder}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -116,15 +117,32 @@ trait StateTableStorage extends Storage {
     def bridgeArpTable(id: UUID) = getTable[IPv4Addr, MAC](
             classOf[Topology.Network], id, MidonetBackend.Ip4MacTable)
 
-    def routerPortPeeringTable(id: UUID) = getTable[MAC, IPv4Addr](
+    def portPeeringTable(id: UUID) = getTable[MAC, IPv4Addr](
             classOf[Topology.Port], id, MidonetBackend.PeeringTable)
 
-    def bridgeMacTablePath(id: UUID, vlanId: Short) = tablePath(
-            classOf[Topology.Network], id, MidonetBackend.MacTable, vlanId)
+    def bridgeMacTablePath(id: UUID, vlanId: Short) =
+        tablePath(classOf[Topology.Network], id, MidonetBackend.MacTable, vlanId)
 
-    def bridgeArpTablePath(id: UUID) = tablePath(
-            classOf[Topology.Network], id, MidonetBackend.Ip4MacTable)
+    def bridgeArpTablePath(id: UUID) =
+        tablePath(classOf[Topology.Network], id, MidonetBackend.Ip4MacTable)
 
-    def routerPortPeeringTablePath(id: UUID) = tablePath(
-            classOf[Topology.Port], id, MidonetBackend.PeeringTable)
+    def portPeeringTablePath(id: UUID) =
+        tablePath(classOf[Topology.Port], id, MidonetBackend.PeeringTable)
+
+    def bridgeMacEntryPath(bridgeId: UUID, vlanId: Short, mac: MAC,
+                           portId: UUID): String = {
+        bridgeMacTablePath(bridgeId, vlanId) +
+            MacToIdEncoder.encodePersistentPath(mac, portId)
+    }
+
+    def bridgeArpEntryPath(bridgeId: UUID, address: IPv4Addr, mac: MAC): String = {
+        bridgeArpTablePath(bridgeId) +
+            Ip4ToMacEncoder.encodePersistentPath(address, mac)
+    }
+
+    def portPeeringEntryPath(portId: UUID, mac: MAC, address: IPv4Addr): String = {
+        portPeeringTablePath(portId) +
+            MacToIp4Encoder.encodePersistentPath(mac, address)
+    }
+
 }

@@ -39,61 +39,12 @@ class ZookeeperLegacyStorage @Inject()(connectionWatcher: ZkConnectionAwareWatch
     override def logSource = "org.midonet.cluster.state"
 
     @throws[StateAccessException]
-    override def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short)
-    : MacPortMap = {
-        ensureBridgePaths(bridgeId)
-        ensureBridgeVlanPaths(bridgeId, vlanId)
-        val map = new MacPortMap(
-            zkManager.getSubDirectory(
-                pathBuilder.getBridgeMacPortsPath(bridgeId, vlanId)))
-        map.setConnectionWatcher(connectionWatcher)
-        map
-    }
-
-    @throws[StateAccessException]
     override def routerArpTable(@Nonnull routerId: UUID): ArpTable = {
         ensureRouterPaths(routerId)
         val arpTable = new ArpTable(zkManager.getSubDirectory(
                 pathBuilder.getRouterArpTablePath(routerId)))
         arpTable.setConnectionWatcher(connectionWatcher)
         arpTable
-    }
-
-    /** Ensures that the path for the specified bridge is created in the
-      * legacy storage. */
-    @throws[StateAccessException]
-    private def ensureBridgePaths(bridgeId: UUID) = {
-        // Create path.
-        val bridgesPath = pathBuilder.getBridgesPath
-        val bridgePath = pathBuilder.getBridgePath(bridgeId)
-        val bridgeMacPortsPath =
-            pathBuilder.getBridgeMacPortsPath(bridgeId, UntaggedVlanId)
-        val bridgeVlansPath = pathBuilder.getBridgeVlansPath(bridgeId)
-
-        // Create the bridge path if it does not exist.
-        log.info("Creating bridge {} path in state storage.", bridgeId)
-        createPath(bridgesPath)
-        createPath(bridgePath)
-        createPath(bridgeMacPortsPath)
-        createPath(bridgeVlansPath)
-    }
-
-    /** Ensures that the path for the specified bridge and VLAN is created in
-      * the legacy storage. */
-    @throws[StateAccessException]
-    private def ensureBridgeVlanPaths(bridgeId: UUID, vlanId: Short): Unit = {
-        // Create the VLAN if different from the default VLAN.
-        if (vlanId != UntaggedVlanId) {
-
-            log.info("Creating bridge {} VLAN {} path in state storage.",
-                     bridgeId, Short.box(vlanId))
-
-            val bridgeVlanPath = pathBuilder.getBridgeVlanPath(bridgeId, vlanId)
-            val bridgeVlanMacPortsPath =
-                pathBuilder.getBridgeMacPortsPath(bridgeId, vlanId)
-            createPath(bridgeVlanPath)
-            createPath(bridgeVlanMacPortsPath)
-        }
     }
 
     /** Ensures that the path for the specified router is created in the legacy
