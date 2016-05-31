@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.data
 
-import java.util.{List => JList, UUID}
+import java.util.{UUID, List => JList}
 
 import scala.collection.JavaConverters._
 
@@ -23,10 +23,10 @@ import org.apache.zookeeper.{Op, OpResult}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.backend.MockDirectory
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.midolman.rules.TraceRule
 import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain, Port => SimPort}
-import org.midonet.midolman.state.MockDirectory
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.VirtualConfigurationBuilders.TraceDeviceType
