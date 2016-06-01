@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.midonet
+package org.midonet.services.rest_api
 
-/**
-  * Package object that handle package level constants. All minions log names
-  * must be specified here so all of them follow the same pattern and can be
-  * disabled/enabled/configured following a hierarchy.
-  */
-package object services {
+import javax.ws.rs.core.MediaType
+import javax.ws.rs.PUT
+import javax.ws.rs.Path
+import javax.ws.rs.Consumes
+import javax.ws.rs.Produces
 
-    final val AgentServicesLog = "org.midonet.services"
 
-    final val FlowStateLog =  "org.midonet.services.flowstate"
-
-    final val BindingApiLog = "org.midonet.services.binding-api"
+@Path("/echo")
+class EchoHandler {
+    @PUT
+    @Consumes(Array(MediaType.TEXT_PLAIN))
+    @Produces(Array(MediaType.TEXT_PLAIN))
+    def put(value: String) = value
 }
