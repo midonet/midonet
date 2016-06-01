@@ -29,6 +29,7 @@ import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigur
 import org.midonet.minion.{MinionConfig, ExecutorsConfig}
 import org.midonet.packets.{MAC, IPv4Subnet}
 import org.midonet.services.flowstate.FlowStateService
+import org.midonet.services.rest_api.RestApiService
 
 object MidolmanConfig {
     val DEFAULT_MTU: Short = 1500
@@ -99,6 +100,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val containers = new ContainerConfig(conf, schema)
     val services = new ServicesConfig(conf, schema)
     val flowState = new FlowStateConfig(conf, schema)
+    val restApi = new RestApiConfig(conf, schema)
 }
 
 class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
@@ -235,4 +237,12 @@ class FlowStateConfig(val conf: Config, val schema: Config)
 
     override def isEnabled: Boolean = getBoolean(s"$prefix.enabled")
     def port: Int = getInt(s"$prefix.port")
+}
+
+class RestApiConfig(val conf: Config, val schema: Config)
+    extends TypeFailureFallback with MinionConfig[RestApiService] {
+    val prefix = "agent.minions.rest_api"
+
+    override def isEnabled: Boolean = getBoolean(s"$prefix.enabled")
+    def unixSocket = getString(s"$prefix.unix_socket")
 }
