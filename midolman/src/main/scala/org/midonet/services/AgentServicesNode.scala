@@ -109,7 +109,6 @@ object AgentServicesNode extends App {
             bind(classOf[Reflections]).toInstance(reflections)
             install(new ExecutorsModule(servicesExecutor,
                                         midolmanConf.services.executors))
-
             // Minion configurations
             bind(classOf[MidolmanConfig]).toInstance(midolmanConf)
 

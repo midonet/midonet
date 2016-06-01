@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.midonet
+package org.midonet.services.agent_rest_api
 
-/**
-  * Package object that handle package level constants. All minions log names
-  * must be specified here so all of them follow the same pattern and can be
-  * disabled/enabled/configured following a hierarchy.
-  */
-package object services {
+import scala.beans.BeanProperty
 
-    final val AgentServicesLog = "org.midonet.services"
-
-    final val FlowStateLog =  "org.midonet.services.flowstate"
-
-    final val AgentRestApiLog =  "org.midonet.services.agent-rest-api"
+class BindingInfo {
+    @BeanProperty
+    var interfaceName: String = _
 }
