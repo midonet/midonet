@@ -55,6 +55,9 @@ package object cluster {
     def restApiResourceLog(clazz: Class[_]) =
         s"org.midonet.cluster.services.rest-api.resources.${clazz.getSimpleName}"
 
+    final val stateProxyLog =
+        "org.midonet.cluster.services.state-proxy"
+
     final val topologyApiLog =
         "org.midonet.cluster.services.topology-api"
     final val topologyApiAggregatorLog =
