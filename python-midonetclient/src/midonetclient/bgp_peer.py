@@ -44,6 +44,10 @@ class BgpPeer(resource_base.ResourceBase):
     def get_password(self):
         return self.dto['password']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def asn(self, asn):
         self.dto['asNumber'] = asn
         return self
