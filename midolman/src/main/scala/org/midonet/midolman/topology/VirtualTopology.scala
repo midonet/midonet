@@ -32,7 +32,6 @@ import rx.subjects.Subject
 
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
@@ -165,7 +164,6 @@ object VirtualTopology extends MidolmanLogging {
  */
 class VirtualTopology(val backend: MidonetBackend,
                       val config: MidolmanConfig,
-                      val state: LegacyStorage,
                       val connectionWatcher: ZkConnectionAwareWatcher,
                       val simBackChannel: SimulationBackChannel,
                       val metricRegistry: MetricRegistry,

@@ -457,28 +457,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK router routing table path.
-     *
-     * @param routerId Router UUID
-     * @return /routers/routerId/routing_table
-     */
-    public String getRouterRoutingTablePath(UUID routerId) {
-        return buildRouterRoutingTablePath(routerId).toString();
-    }
-
-    private StringBuilder buildRouterRoutingTablePath(UUID routerId) {
-        return buildRouterPath(routerId).append("/routing_table");
-    }
-
-    public String getRouterArpTablePath(UUID routerId) {
-        return buildRouterArpTablePath(routerId).toString();
-    }
-
-    private StringBuilder buildRouterArpTablePath(UUID routerId) {
-        return buildRouterPath(routerId).append("/arp_table");
-    }
-
-    /**
      * Get ZK BGP path.
      *
      * @return /bgps
