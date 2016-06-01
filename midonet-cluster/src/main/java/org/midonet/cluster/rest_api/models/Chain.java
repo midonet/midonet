@@ -18,6 +18,7 @@ package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.validation.constraints.Size;
@@ -26,9 +27,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.util.LogMetadataConverter;
 
 @ZoomClass(clazz = Topology.Chain.class)
 public class Chain extends UriResource {
@@ -45,6 +48,12 @@ public class Chain extends UriResource {
     @Size(min = MIN_CHAIN_NAME_LEN, max = MAX_CHAIN_NAME_LEN)
     @ZoomField(name = "name")
     public String name;
+
+    @ZoomField(name = "log_resource_ids")
+    public List<UUID> logResourceIds;
+
+    @ZoomField(name = "log_metadata", converter = LogMetadataConverter.class)
+    public Map<String, String> logMetadata;
 
     @JsonIgnore
     @ZoomField(name = "rule_ids")

@@ -17,6 +17,8 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.validation.constraints.Min;
@@ -37,6 +39,7 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.util.LogMetadataConverter;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -114,6 +117,12 @@ public abstract class Rule extends Condition {
 
     @ZoomField(name = "chain_id")
     public UUID chainId;
+
+    @ZoomField(name = "log_resource_ids")
+    public List<UUID> logResourceIds;
+
+    @ZoomField(name = "log_metadata", converter = LogMetadataConverter.class)
+    public Map<String, String> logMetadata;
 
     @JsonIgnore
     @ZoomField(name = "type")

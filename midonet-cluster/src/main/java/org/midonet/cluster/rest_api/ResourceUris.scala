@@ -43,6 +43,7 @@ object ResourceUris {
     val IP_ADDR_GROUPS: String = "ip_addr_groups"
     val LINK: String = "link"
     val LOAD_BALANCERS: String = "load_balancers"
+    val LOG_RESOURCES: String = "log_resources"
     val L2INSERTIONS: String = "l2insertions"
     val MAC_TABLE: String = "mac_table"
     val MIRRORS: String = "mirrors"

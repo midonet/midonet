@@ -132,3 +132,8 @@ message Condition {
     optional bool inv_out_port_group = 69;
     // end of condition fields
 }
+
+message MetadataEntry {
+    optional string key = 1;
+    optional string value = 2;
+}

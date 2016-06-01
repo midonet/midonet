@@ -50,6 +50,7 @@ public class DtoApplication {
     private URI licenses;
     private URI licenseStatus;
     private URI installLicense;
+    private URI logResources;
     private String adRouteTemplate;
     private String bgpTemplate;
     private String bridgeTemplate;
@@ -72,6 +73,7 @@ public class DtoApplication {
     private String vipTemplate;
     private String vtepTemplate;
     private String licenseTemplate;
+    private String logResourceTemplate;
 
     public String getVersion() {
         return version;
@@ -285,6 +287,14 @@ public class DtoApplication {
         return UriBuilder.fromPath(getVtepTemplate()).build(id);
     }
 
+    public URI getLogResources() {
+        return this.logResources;
+    }
+
+    public void setLogResources(URI logResources) {
+        this.logResources = logResources;
+    }
+
     public String getAdRouteTemplate() {
         return adRouteTemplate;
     }
@@ -481,5 +491,13 @@ public class DtoApplication {
 
     public void setLicenseTemplate(String licenseTemplate) {
         this.licenseTemplate = licenseTemplate;
+    }
+
+    public String getLogResourceTemplate() {
+        return logResourceTemplate;
+    }
+
+    public void setLogResourceTemplate(String logResourceTemplate) {
+        this.logResourceTemplate = logResourceTemplate;
     }
 }

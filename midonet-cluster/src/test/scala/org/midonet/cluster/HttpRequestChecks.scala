@@ -43,6 +43,9 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
             APPLICATION_CHAIN_JSON, APPLICATION_CHAIN_COLLECTION_JSON),
         classOf[Host] -> (
             APPLICATION_HOST_JSON_V3, APPLICATION_HOST_COLLECTION_JSON_V3),
+        classOf[LogResource] -> (
+            APPLICATION_LOG_RESOURCE_JSON,
+            APPLICATION_LOG_RESOURCE_COLLECTION_JSON),
         classOf[Port] -> (
             APPLICATION_PORT_V3_JSON, APPLICATION_PORT_V3_COLLECTION_JSON),
         classOf[Router] -> (

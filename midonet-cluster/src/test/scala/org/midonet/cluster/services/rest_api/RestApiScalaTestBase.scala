@@ -34,7 +34,8 @@ class RestApiScalaTestBase(appDesc: AppDescriptor)
 
     private lazy val typeUris = Map[Class[_], URI](
         classOf[Chain] -> app.getChains,
-        classOf[Host] -> app.getHosts
+        classOf[Host] -> app.getHosts,
+        classOf[LogResource] -> app.getLogResources
     )
 
     def create[T <: UriResource](t: T): T = {
@@ -43,10 +44,14 @@ class RestApiScalaTestBase(appDesc: AppDescriptor)
     }
 
     def makeChain(id: UUID = UUID.randomUUID(),
-                  ruleIds: Seq[UUID] = Seq()): Chain = {
+                  ruleIds: Seq[UUID] = Seq(),
+                  logResourceIds: Seq[UUID] = Seq(),
+                  logMetadata: Map[String, String] = Map()): Chain = {
         val chain = new Chain
         chain.id = id
         chain.ruleIds = ruleIds
+        chain.logResourceIds = logResourceIds
+        chain.logMetadata = logMetadata
         chain.setBaseUri(app.getUri)
         chain
     }
@@ -54,12 +59,16 @@ class RestApiScalaTestBase(appDesc: AppDescriptor)
     def makeRule(chainId: UUID,
                  ruleType: RuleType = RuleType.LITERAL,
                  action: RuleAction = RuleAction.ACCEPT,
-                 id: UUID = UUID.randomUUID()): Rule = {
+                 id: UUID = UUID.randomUUID(),
+                 logResourceIds: Seq[UUID] = Seq(),
+                 logMetadata: Map[String, String] = Map()): Rule = {
         val r = (ruleType, action) match {
             case (RuleType.LITERAL, RuleAction.ACCEPT) => new AcceptRule
             case _ => fail(s"$ruleType/$action not implemented in makeRule()")
         }
         r.id = id
+        r.logMetadata = logMetadata
+        r.logResourceIds = logResourceIds
         r.setBaseUri(app.getUri)
         r
     }

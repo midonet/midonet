@@ -95,6 +95,7 @@ object MidonetBackend {
              classOf[L2GatewayConnection],
              classOf[L2Insertion],
              classOf[LoadBalancer],
+             classOf[LogResource],
              classOf[Mirror],
              classOf[Network],
              classOf[NeutronBgpPeer],
@@ -239,6 +240,11 @@ object MidonetBackend {
                              classOf[Chain], "rule_ids", CASCADE)
         store.declareBinding(classOf[Rule], "fip_port_id", CLEAR,
                              classOf[Port], "fip_nat_rule_ids", CASCADE)
+        store.declareBinding(classOf[Rule], "log_resource_ids", CLEAR,
+                             classOf[LogResource], "rule_ids", CLEAR)
+
+        store.declareBinding(classOf[Chain], "log_resource_ids", CLEAR,
+                             classOf[LogResource], "chain_ids", CLEAR)
 
         // Field bindings between Neutron objects
         store.declareBinding(classOf[NeutronPort], "floating_ip_ids", CLEAR,
