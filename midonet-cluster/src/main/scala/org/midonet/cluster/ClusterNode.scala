@@ -18,7 +18,7 @@ package org.midonet.cluster
 
 import java.lang.management.ManagementFactory
 import java.nio.file.{Files, Paths}
-import java.util.Properties
+import java.util.{Arrays, Properties}
 import java.util.concurrent.TimeUnit
 
 import javax.sql.DataSource
@@ -27,6 +27,7 @@ import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
+import com.google.common.base.Joiner
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import com.typesafe.config.ConfigRenderOptions
@@ -68,20 +69,25 @@ object ClusterNode extends App {
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()
 
     // Log GIT commit information.
-    val properties = new Properties
-    properties
-        .load(getClass.getClassLoader.getResourceAsStream("git.properties"))
     log info "MidoNet Cluster starting..."
-    log info s"branch: ${properties.get("git.branch")}"
-    log info s"commit.time: ${properties.get("git.commit.time")}"
-    log info s"commit.id: ${properties.get("git.commit.id")}"
-    log info s"commit.user: ${properties.get("git.commit.user.name")}"
-    log info s"build.time: ${properties.get("git.build.time")}"
-    log info s"build.user: ${properties.get("git.build.user.name")}"
     log info "-------------------------------------"
 
+    val gitStream = getClass.getClassLoader.getResourceAsStream("git.properties")
+    if (gitStream ne null) {
+        val properties = new Properties
+        properties.load(gitStream)
+        log info s"branch: ${properties.get("git.branch")}"
+        log info s"commit.time: ${properties.get("git.commit.time")}"
+        log info s"commit.id: ${properties.get("git.commit.id")}"
+        log info s"commit.user: ${properties.get("git.commit.user.name")}"
+        log info s"build.time: ${properties.get("git.build.time")}"
+        log info s"build.user: ${properties.get("git.build.user.name")}"
+        log info "-------------------------------------"
+    }
+
     // Log command line and JVM info.
-    log info s"Command-line arguments: $args"
+    log info "Command-line arguments: " +
+             s"${Joiner.on(' ').join(args.asInstanceOf[Array[Object]])}"
     val runtimeMxBean = ManagementFactory.getRuntimeMXBean
     val arguments = runtimeMxBean.getInputArguments
     log info "JVM options: "
