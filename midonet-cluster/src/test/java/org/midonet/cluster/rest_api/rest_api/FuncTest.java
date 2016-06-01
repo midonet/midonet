@@ -46,6 +46,7 @@ import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.data.storage.StateTableStorage;
+import org.midonet.cluster.data.storage.model.ArpEntry;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 import org.midonet.cluster.rest_api.serialization.MidonetObjectMapper;
@@ -53,6 +54,7 @@ import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.services.rest_api.Vladimir;
+import org.midonet.cluster.storage.ArpStateTable;
 import org.midonet.cluster.storage.Ip4MacStateTable;
 import org.midonet.cluster.storage.MacIdStateTable;
 import org.midonet.conf.HostIdGenerator;
@@ -166,6 +168,10 @@ public class FuncTest {
                             Topology.Network.class, IPv4Addr.class, MAC.class,
                             MidonetBackend.Ip4MacTable(),
                             Ip4MacStateTable.class);
+                        storage.registerTable(
+                            Topology.Router.class, IPv4Addr.class,
+                            ArpEntry.class, MidonetBackend.ArpTable(),
+                            ArpStateTable.class);
                     }
                 };
             backend.startAsync().awaitRunning();
