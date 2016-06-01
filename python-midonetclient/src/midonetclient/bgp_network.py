@@ -32,6 +32,10 @@ class BgpNetwork(resource_base.ResourceBase):
     def get_subnet_length(self):
         return self.dto['subnetLength']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def subnet_address(self, subnet_address):
         self.dto['subnetAddress'] = subnet_address
         return self
