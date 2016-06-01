@@ -80,8 +80,6 @@ class RouterResource @Inject()(resContext: ResourceContext,
     protected override def createFilter(router: Router, tx: ResourceTransaction)
     : Unit = {
         tx.create(router)
-        tx.tx.createNode(pathBuilder.getRouterArpTablePath(router.id), null)
-        tx.tx.createNode(pathBuilder.getRouterRoutingTablePath(router.id), null)
     }
 
     protected override def updateFilter(to: Router, from: Router,

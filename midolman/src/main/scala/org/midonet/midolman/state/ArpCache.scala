@@ -22,7 +22,6 @@ import javax.annotation.concurrent.ThreadSafe
 
 import com.typesafe.scalalogging.Logger
 
-import rx.subjects.PublishSubject
 import rx.{Observable, Subscriber}
 import rx.Observable.OnSubscribe
 
@@ -31,7 +30,7 @@ import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.util.functors.makeRunnable
+import org.midonet.util.functors.{makeFunc1, makeRunnable}
 
 /** An ARP cache update. */
 case class ArpCacheUpdate(ipAddr: IPv4Addr, oldMac: MAC, newMac: MAC)
@@ -94,38 +93,17 @@ object ArpCache {
                                  override val routerId: UUID, log: Logger)
         extends ArpCache with MidolmanLogging {
 
-        private val subject = PublishSubject.create[ArpCacheUpdate]()
-        private val watcher =
-            new ReplicatedMap.Watcher[IPv4Addr, ArpEntry] {
-                override def processChange(ipAddr: IPv4Addr,
-                                           oldEntry: ArpEntry,
-                                           newEntry: ArpEntry): Unit = {
-
-                    if ((oldEntry eq null) && (newEntry eq null)) return
-                    if ((oldEntry ne null) && (newEntry ne null) &&
-                        (oldEntry.mac == newEntry.mac)) return
-
-                    subject.onNext(ArpCacheUpdate(
-                        ipAddr,
-                        if (oldEntry ne null) oldEntry.mac else null,
-                        if (newEntry ne null) newEntry.mac else null
-                        ))
-                }
-            }
-        private val arpTable = vt.state.routerArpTable(routerId)
-
-        arpTable.addWatcher(watcher)
-        arpTable.start()
+        private val arpTable = vt.stateTables.routerArpTable(routerId)
 
         /** Gets an entry from the underlying ARP table. The request only
           * queries local state. */
-        override def get(ipAddr: IPv4Addr): ArpEntry = arpTable.get(ipAddr)
+        override def get(ipAddr: IPv4Addr): ArpEntry = arpTable.getLocal(ipAddr)
         /** Adds an ARP entry to the underlying ARP table. The operation is
           * scheduled on the topology IO executor. */
         override def add(ipAddr: IPv4Addr, entry: ArpEntry): Unit = {
             vt.executeIo {
                 try {
-                    arpTable.put(ipAddr, entry)
+                    arpTable.add(ipAddr, entry)
                 } catch {
                     case e: Exception =>
                         log.error("Failed to add ARP entry IP: {} Entry: {}",
@@ -138,7 +116,7 @@ object ArpCache {
         override def remove(ipAddr: IPv4Addr): Unit = {
             vt.executeIo {
                 try {
-                    arpTable.removeIfOwner(ipAddr)
+                    arpTable.remove(ipAddr)
                 } catch {
                     case e: Exception =>
                         log.error("Failed to remove ARP entry for IP: {}",
@@ -147,7 +125,19 @@ object ArpCache {
             }
         }
         /** Observable that emits ARP cache updates. */
-        override def observable: Observable[ArpCacheUpdate] =
-            subject.asObservable()
+        override val observable: Observable[ArpCacheUpdate] = arpTable
+            .observable
+            .filter(makeFunc1 { update =>
+                if ((update.oldValue eq null) && (update.newValue eq null)) false
+                else if ((update.oldValue ne null) && (update.newValue ne null) &&
+                         (update.oldValue.mac == update.newValue.mac)) false
+                else true
+            })
+            .map[ArpCacheUpdate](makeFunc1 { update =>
+                ArpCacheUpdate(
+                    update.key,
+                    if (update.oldValue ne null) update.oldValue.mac else null,
+                    if (update.newValue ne null) update.newValue.mac else null)
+            })
     }
 }

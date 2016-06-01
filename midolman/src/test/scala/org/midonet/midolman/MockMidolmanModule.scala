@@ -30,7 +30,6 @@ import org.reflections.Reflections
 
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
@@ -92,7 +91,6 @@ class MockMidolmanModule(override val hostId: UUID,
         new VirtualTopology(
             injector.getInstance(classOf[MidonetBackend]),
             config,
-            injector.getInstance(classOf[LegacyStorage]),
             injector.getInstance(classOf[ZkConnectionAwareWatcher]),
             simBackChannel,
             new MetricRegistry,

@@ -37,7 +37,6 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.MidolmanConfig
@@ -391,7 +390,6 @@ class MidolmanModule(injector: Injector,
         new VirtualTopology(
             injector.getInstance(classOf[MidonetBackend]),
             config,
-            injector.getInstance(classOf[LegacyStorage]),
             injector.getInstance(classOf[ZkConnectionAwareWatcher]),
             simBackChannel,
             metricRegistry,

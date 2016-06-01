@@ -11,7 +11,6 @@ import com.google.inject.name.Names;
 
 import org.midonet.cluster.backend.Directory;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
-import org.midonet.cluster.state.LegacyStorage;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
@@ -55,7 +54,6 @@ public class LegacyDataClientModule extends PrivateModule {
         requireBinding(Key.get(Reactor.class,
                                Names.named(DIRECTORY_REACTOR_TAG)));
         requireBinding(ZkConnectionAwareWatcher.class);
-        requireBinding(LegacyStorage.class);
         requireBinding(PathBuilder.class);
         requireBinding(ZkManager.class);
 

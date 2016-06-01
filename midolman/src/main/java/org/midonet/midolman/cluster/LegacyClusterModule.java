@@ -23,8 +23,6 @@ import com.google.inject.name.Names;
 
 import org.midonet.cluster.backend.Directory;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
-import org.midonet.cluster.state.LegacyStorage;
-import org.midonet.cluster.state.ZookeeperLegacyStorage;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
@@ -54,10 +52,6 @@ public class LegacyClusterModule extends PrivateModule {
         bind(ZkManager.class).toProvider(BaseZkManagerProvider.class)
                              .asEagerSingleton();
         expose(ZkManager.class);
-
-        bind(LegacyStorage.class).to(ZookeeperLegacyStorage.class)
-                                 .asEagerSingleton();
-        expose(LegacyStorage.class);
 
         binder().requireExplicitBindings();
     }
