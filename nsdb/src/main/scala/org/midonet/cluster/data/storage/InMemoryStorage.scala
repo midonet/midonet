@@ -17,32 +17,34 @@ package org.midonet.cluster.data.storage
 
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.{AtomicLong, AtomicInteger, AtomicReference}
-
-import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
-import org.midonet.midolman.state.MockDirectory
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong, AtomicReference}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
+import scala.util.Try
 import scala.util.control.NonFatal
 
 import org.apache.zookeeper.KeeperException.{BadVersionException, Code}
+
 import rx.Observable.OnSubscribe
 import rx._
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, namespaceId, PrimedSubject, asObservable, copyObj}
+import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
+import org.midonet.cluster.data.storage.InMemoryStorage._
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
+import org.midonet.midolman.state.MockDirectory
 import org.midonet.util.concurrent._
 import org.midonet.util.functors._
 
@@ -779,9 +781,13 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
 
     val tablesDirectory = new MockDirectory()
 
+    /**
+      * @see [[StateTableStorage.registerTable()]]
+      */
     override def registerTable[K, V](clazz: Class[_], key: Class[K],
-                            value: Class[V], name: String,
-                            provider: Class[_ <: StateTable[K,V]]): Unit = {
+                                     value: Class[V], name: String,
+                                     provider: Class[_ <: StateTable[K,V]])
+    : Unit = {
         val newProvider = TableProvider(key, value, provider)
         tableInfo.putIfAbsent(clazz, new TableInfo)
         tableInfo(clazz).tables.getOrElse(name, {
@@ -790,8 +796,13 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         })
     }
 
-    override def getTable[K, V](clazz: Class[_], id: ObjId, name: String, args: Any*)
-                      (implicit key: ClassTag[K], value: ClassTag[V]): StateTable[K, V] = {
+    /**
+      * @see [[StateTableStorage.getTable()]]
+      */
+    override def getTable[K, V](clazz: Class[_], id: ObjId, name: String,
+                                args: Any*)
+                               (implicit key: ClassTag[K], value: ClassTag[V])
+    : StateTable[K, V] = {
         val path = "/" + (if (args.nonEmpty) {
             tablePath(clazz, id, name, version.longValue(), args: _*)
         } else {
@@ -805,6 +816,22 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         val constructor = provider.clazz.getConstructor(classOf[Directory],
                                                         classOf[ZkConnectionAwareWatcher])
         constructor.newInstance(directory, null).asInstanceOf[StateTable[K, V]]
+    }
+
+    /**
+      * @see [[StateTableStorage.tableArguments()]]
+      */
+    override def tableArguments(clazz: Class[_], id: ObjId, name: String,
+                                args: Any*): Future[Set[String]] = {
+        val path = "/" + (if (args.nonEmpty) {
+            tablePath(clazz, id, name, version.longValue(), args: _*)
+        } else {
+            tableRootPath(clazz, id, name)
+        }).replace('/', '_')
+
+        Future.fromTry(Try {
+            tablesDirectory.getChildren(path, null).asScala.toSet
+        })
     }
 
     /** Gets the table provider for the given object, key and value classes. */
