@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
 import scala.util.Try
+import scala.util.control.NonFatal
 
 import com.typesafe.config.{ConfigException, ConfigFactory, Config}
 import com.typesafe.scalalogging.Logger
@@ -63,6 +64,7 @@ trait TypeFailureFallback {
     def getBoolean(key: String): Boolean = get(key, (c, k) => c.getBoolean(k))
     def getString(key: String): String = get(key, (c, k) => c.getString(k))
     def getInt(key: String): Int = get(key, (c, k) => c.getInt(k))
+    def getLong(key: String): Long = get(key, (c, k) => c.getLong(k))
     def getDouble(key: String): Double = get(key, (c, k) => c.getDouble(k))
     def getDuration(key: String, unit: TimeUnit): Long = get(key, (c, k) => c.getDuration(k, unit))
 }
@@ -234,4 +236,17 @@ class FlowStateConfig(val conf: Config, val schema: Config)
 
     override def isEnabled: Boolean = getBoolean(s"$prefix.enabled")
     def port: Int = getInt(s"$prefix.port")
+    def logDirectory: String = {
+        val logDir = try {
+            System.getProperty("midolman.log.dir", "/var/log/midolman")
+        } catch {
+            case NonFatal(e) => "/var/log/midolman"
+        }
+        s"$logDir/${getString(s"$prefix.log_directory")}"
+    }
+    def blockSize: Int = getInt(s"$prefix.block_size")
+    def totalStorageSize: Long = getLong(s"$prefix.total_storage_size")
+    def expirationTime: Duration = getDuration(s"$prefix.expiration_time",
+                                               TimeUnit.MILLISECONDS) millis
+    def compressionRatio: Int = getInt(s"$prefix.compression_ratio")
 }
