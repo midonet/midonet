@@ -22,7 +22,7 @@ import org.junit.runner.RunWith
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.models.Topology.{Network, Router}
 import org.midonet.cluster.services.MidonetBackend._
 
 @RunWith(classOf[JUnitRunner])
@@ -56,6 +56,15 @@ class LegacyStateTableStorageTest extends FlatSpec with GivenWhenThen
         Then("Storage returns the correct paths for a IPv4-MAC table")
         legacyTablePath(classOf[Network], id, Ip4MacTable) shouldBe
             Some(s"$root/bridges/$id/ip4_mac_map")
+    }
+
+    "Legacy storage" should "handle paths for router ARP tables" in {
+        Given("A router identifier")
+        val id = UUID.randomUUID()
+
+        Then("Storage returns the correct paths for an ARP table")
+        legacyTablePath(classOf[Router], id, ArpTable) shouldBe
+            Some(s"$root/routers/$id/arp_table")
     }
 
 }

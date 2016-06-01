@@ -26,8 +26,10 @@ import org.mockito.Mockito._
 import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
+import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.Topology.Router
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -42,6 +44,9 @@ class MidonetTestBackend extends MidonetBackend {
     inMemoryZoom.registerTable(classOf[Topology.Network], classOf[IPv4Addr],
                                classOf[MAC], MidonetBackend.Ip4MacTable,
                                classOf[Ip4MacStateTable])
+    inMemoryZoom.registerTable(classOf[Router], classOf[IPv4Addr],
+                               classOf[ArpEntry], MidonetBackend.ArpTable,
+                               classOf[ArpStateTable])
     inMemoryZoom.registerTable(classOf[Topology.Port], classOf[MAC],
                                classOf[IPv4Addr], MidonetBackend.PeeringTable,
                                classOf[MacIp4StateTable])
