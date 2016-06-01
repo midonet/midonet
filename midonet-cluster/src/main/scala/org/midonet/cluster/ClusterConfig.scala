@@ -17,16 +17,18 @@ package org.midonet.cluster
 
 import java.util.concurrent.TimeUnit
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
+
 import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.services.rest_api.Vladimir
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.heartbeat.Heartbeat
+import org.midonet.cluster.services.state.StateProxy
 import org.midonet.cluster.services.topology.TopologyApiService
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
-import org.midonet.minion.{ScheduledMinionConfig, MinionConfig, ExecutorsConfig}
+import org.midonet.minion.{ExecutorsConfig, MinionConfig, ScheduledMinionConfig}
 
 object ClusterConfig {
     val DEFAULT_MTU: Short = 1500
@@ -65,6 +67,7 @@ class ClusterConfig(_conf: Config) {
     val restApi = new RestApiConfig(conf)
     val containers = new ContainersConfig(conf)
     val translators = new TranslatorsConfig(conf)
+    val stateProxy = new StateProxyConfig(conf)
     val executors = new ExecutorsConfig(conf, prefix)
 }
 
@@ -158,4 +161,10 @@ class ContainersConfig(val conf: Config) extends MinionConfig[ContainerService] 
     def schedulerRetryMs = conf.getDuration(s"$Prefix.scheduler_retry", TimeUnit.MILLISECONDS)
     def schedulerMaxRetries = conf.getInt(s"$Prefix.scheduler_max_retries")
     def schedulerBadHostLifetimeMs = conf.getDuration(s"$Prefix.scheduler_bad_host_lifetime", TimeUnit.MILLISECONDS)
+}
+
+class StateProxyConfig(val conf: Config) extends MinionConfig[StateProxy] {
+    final val Prefix = "cluster.state_proxy"
+
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
 }
