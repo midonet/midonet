@@ -24,6 +24,7 @@ import scala.reflect.ClassTag
 
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage.StateTableEncoder.{Ip4ToMacEncoder, MacToIdEncoder, MacToIp4Encoder}
+import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -116,6 +117,9 @@ trait StateTableStorage extends Storage {
 
     def bridgeArpTable(id: UUID) = getTable[IPv4Addr, MAC](
             classOf[Topology.Network], id, MidonetBackend.Ip4MacTable)
+
+    def routerArpTable(id: UUID) = getTable[IPv4Addr, ArpEntry](
+            classOf[Topology.Router], id, MidonetBackend.ArpTable)
 
     def portPeeringTable(id: UUID) = getTable[MAC, IPv4Addr](
             classOf[Topology.Port], id, MidonetBackend.PeeringTable)
