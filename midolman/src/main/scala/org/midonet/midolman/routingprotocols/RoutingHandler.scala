@@ -291,6 +291,11 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     /** IP addresses to update bgpd with on startup/restart. */
     protected var newPortBgps: Seq[PortBgpInfo] = Seq()
 
+    /* IP address to use as the router-id.
+     * Only used with BGP on Interior ports
+     */
+    var routerId = IPv4Addr.randomPrivate
+
     val NO_UPLINK = -1
     val NO_PORT = -1
 
@@ -667,7 +672,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         bgpd.vty.setAs(bgpConfig.as)
         if (isQuagga) {
-            bgpd.vty.setRouterId(bgpConfig.as)
+            bgpd.vty.setRouterId(bgpConfig.as, routerId)
         } else {
             bgpd.vty.setRouterId(bgpConfig.as, bgpConfig.id)
         }
