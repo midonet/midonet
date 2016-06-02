@@ -29,13 +29,12 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, Suite}
 
-import org.midonet.client.dto.{DtoError, DtoRouterPort}
+import org.midonet.client.dto.DtoError
 import org.midonet.cluster.HttpRequestChecks
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.rest_api.ResourceUris._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.rest_api._
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
@@ -61,10 +60,8 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         val group = new ServiceContainerGroup
         group.id = UUID.randomUUID()
         group.setBaseUri(app.getUri)
-        val scgUri = postAndAssertOk(group, groupBase.getURI,
-                        APPLICATION_SERVICE_CONTAINER_GROUP_JSON)
-        getAndAssertOk[ServiceContainerGroup](scgUri,
-                        APPLICATION_SERVICE_CONTAINER_GROUP_JSON)
+        val scgUri = postAndAssertOk(group, groupBase.getURI)
+        getAndAssertOk[ServiceContainerGroup](scgUri)
     }
 
     private def createHost(): UUID = {
@@ -78,9 +75,8 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         router.id = UUID.randomUUID()
         router.name = "test-" + router.id.toString
         router.setBaseUri(app.getUri)
-        val rUri = postAndAssertOk(router, app.getRouters,
-                                   APPLICATION_ROUTER_JSON_V3)
-        getAndAssertOk[Router](rUri, APPLICATION_ROUTER_JSON_V3)
+        val rUri = postAndAssertOk(router, app.getRouters)
+        getAndAssertOk[Router](rUri)
     }
 
     private def createPort(router: Router): Port = {
@@ -91,9 +87,8 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         port.portAddress = IPv4Addr.random.toString
         port.networkAddress = port.portAddress
         port.networkLength = 12
-        val uri = postAndAssertOk(port, router.getPorts,
-                                  APPLICATION_PORT_V3_JSON)
-        getAndAssertOk[RouterPort](uri, APPLICATION_PORT_V3_JSON)
+        val uri = postAndAssertOk(port, router.getPorts)
+        getAndAssertOk[RouterPort](uri)
     }
 
     @Test
@@ -111,9 +106,8 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         container.setBaseUri(app.getUri)
 
         // Then creating the container should fail.
-        postAndAssertStatus(container, containerBase.getURI,
-                            APPLICATION_SERVICE_CONTAINER_JSON,
-                            NOT_FOUND).getEntity(classOf[DtoError])
+        postAndAssertStatus(container, containerBase.getURI, NOT_FOUND)
+            .getEntity(classOf[DtoError])
     }
 
     @Test
@@ -130,8 +124,7 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         sc.setBaseUri(app.getUri)
 
         // Then creating the container should succeed.
-        postAndAssertOk(sc, containerBase.getURI,
-                        APPLICATION_SERVICE_CONTAINER_JSON)
+        postAndAssertOk(sc, containerBase.getURI)
     }
 
     @Test
@@ -152,17 +145,14 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         container.setBaseUri(app.getUri)
 
         // Then creating the container should succeed.
-        postAndAssertOk(container, containerBase.getURI,
-                        APPLICATION_SERVICE_CONTAINER_JSON)
+        postAndAssertOk(container, containerBase.getURI)
 
         // And updating the container should succeed.
         container.configurationId = UUID.randomUUID()
-        putAndAssertStatus(container, APPLICATION_SERVICE_CONTAINER_JSON,
-                           NO_CONTENT.getStatusCode)
+        putAndAssertStatus(container, NO_CONTENT)
 
         // And the container configuration remains unchanged.
-        getAndAssertOk[ServiceContainer](container.getUri,
-                                         APPLICATION_SERVICE_CONTAINER_JSON)
+        getAndAssertOk[ServiceContainer](container.getUri)
                 .configurationId shouldBe configurationId
     }
 
@@ -175,8 +165,7 @@ class ServiceContainerResourceTest extends FuncJerseyTest
 
         // Then the initial list of containers should be empty.
         listAndAssertOk[ServiceContainer](
-            group.getServiceContainers,
-            APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON) shouldBe empty
+            group.getServiceContainers) shouldBe empty
 
         // Given a container.
         val container = new ServiceContainer
@@ -191,36 +180,30 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         val uri1 = containerBase.getUriBuilder.path(container.id.toString).build()
 
         // Then creating the container should succeed.
-        val uri2 = postAndAssertOk(container, group.getServiceContainers,
-                                   APPLICATION_SERVICE_CONTAINER_JSON)
+        val uri2 = postAndAssertOk(container, group.getServiceContainers)
 
         // And getting the container at the returned URI should succeed.
-        get[ServiceContainer](
-            uri1, APPLICATION_SERVICE_CONTAINER_JSON) shouldBe container
+        get[ServiceContainer](uri1) shouldBe container
 
 
         // And getting the container should return the container.
-        val dtoContainer = getAndAssertOk[ServiceContainer](
-            uri2, APPLICATION_SERVICE_CONTAINER_JSON)
+        val dtoContainer = getAndAssertOk[ServiceContainer](uri2)
         dtoContainer.getUri shouldBe uri2
 
         // And the port should reference the container.
-        val dtoPort = get[DtoRouterPort](dtoContainer.getPort,
-                                         APPLICATION_PORT_V3_JSON)
-        dtoPort.getId shouldBe port.id
+        val dtoPort = getAndAssertOk[RouterPort](dtoContainer.getPort)
+        dtoPort.id shouldBe port.id
         dtoPort.getDeviceId shouldBe router.id
         dtoPort.getServiceContainer shouldBe uri2
 
         // And the group should reference the container.
-        val dtoGroup = getAndAssertOk[ServiceContainerGroup](
-            group.getUri, APPLICATION_SERVICE_CONTAINER_GROUP_JSON)
+        val dtoGroup = getAndAssertOk[ServiceContainerGroup](group.getUri)
         dtoGroup.serviceContainerIds should have size 1
         dtoGroup.serviceContainerIds.head shouldBe dtoContainer.id
 
         // And the list of containers should have the container.
         val containers = listAndAssertOk[ServiceContainer](
-            group.getServiceContainers,
-            APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON)
+            group.getServiceContainers)
         containers should have size 1
         containers.head shouldBe dtoContainer
     }
@@ -239,15 +222,13 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         container.setBaseUri(app.getUri)
 
         // Then creating the container should succeed.
-        postAndAssertOk(container, containerBase.getURI,
-                        APPLICATION_SERVICE_CONTAINER_JSON)
+        postAndAssertOk(container, containerBase.getURI)
 
         // Schedule the container at a random host.
         container.hostId = UUID.randomUUID()
 
         // Then scheduling the container should fail.
-        putAndAssertStatus(container, APPLICATION_SERVICE_CONTAINER_JSON,
-                           NOT_ACCEPTABLE.getStatusCode)
+        putAndAssertStatus(container, NOT_ACCEPTABLE)
     }
 
     @Test
@@ -267,15 +248,13 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         container.setBaseUri(app.getUri)
 
         // Then creating the container should succeed.
-        postAndAssertOk(container, containerBase.getURI,
-                        APPLICATION_SERVICE_CONTAINER_JSON)
+        postAndAssertOk(container, containerBase.getURI)
 
         // Schedule the container at a random host.
         container.hostId = UUID.randomUUID()
 
         // Then scheduling the container should fail.
-        putAndAssertStatus(container, APPLICATION_SERVICE_CONTAINER_JSON,
-                           NOT_FOUND.getStatusCode)
+        putAndAssertStatus(container, NOT_FOUND)
     }
 
     @Test
@@ -296,28 +275,25 @@ class ServiceContainerResourceTest extends FuncJerseyTest
         container.setBaseUri(app.getUri)
 
         // Then creating the container should succeed.
-        postAndAssertOk(container, containerBase.getURI,
-                        APPLICATION_SERVICE_CONTAINER_JSON)
+        postAndAssertOk(container, containerBase.getURI)
 
         // Schedule the container at the host.
         container.hostId = hostId
 
         // Then scheduling the container should succeed.
-        putAndAssertOk(container, APPLICATION_SERVICE_CONTAINER_JSON)
+        putAndAssertOk(container)
 
         // And the port should be bound at that host.
-        getAndAssertOk[Port](port.getUri, APPLICATION_PORT_V3_JSON)
-            .hostId shouldBe hostId
+        getAndAssertOk[Port](port.getUri).hostId shouldBe hostId
 
         // And unscheduling the container should succeed.
         container.hostId = null
 
         // Then scheduling the container should succeed.
-        putAndAssertOk(container, APPLICATION_SERVICE_CONTAINER_JSON)
+        putAndAssertOk(container)
 
         // And the port should be bound at that host.
-        getAndAssertOk[Port](port.getUri, APPLICATION_PORT_V3_JSON)
-            .hostId shouldBe null
+        getAndAssertOk[Port](port.getUri).hostId shouldBe null
     }
 
 }
