@@ -17,23 +17,43 @@
 package org.midonet.cluster
 
 import java.net.URI
+
 import scala.collection.JavaConversions._
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.core.Response.Status.{NO_CONTENT, CREATED}
+import javax.ws.rs.core.Response.Status.{CREATED, NO_CONTENT}
 
 import scala.reflect.ClassTag
 
 import com.sun.jersey.api.client.ClientResponse
 import com.sun.jersey.test.framework.JerseyTest
+
 import org.scalatest.ShouldMatchers
 
-import org.midonet.cluster.rest_api.models.{ServiceContainer, UriResource}
+import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.rest_api.FuncTest
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 /** Utility assertions for JerseyTests to be used in REST API tests.
   */
 trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
+
+    private def mediaTypes = Map[Class[_], (String, String)](
+        classOf[Host] -> (
+            APPLICATION_HOST_JSON_V3, APPLICATION_HOST_COLLECTION_JSON_V3),
+        classOf[Port] -> (
+            APPLICATION_PORT_V3_JSON, APPLICATION_PORT_V3_COLLECTION_JSON),
+        classOf[Router] -> (
+            APPLICATION_ROUTER_JSON_V3, APPLICATION_ROUTER_COLLECTION_JSON_V3),
+        classOf[RouterPort] -> (
+            APPLICATION_PORT_V3_JSON, APPLICATION_PORT_V3_COLLECTION_JSON),
+        classOf[ServiceContainer] ->(
+            APPLICATION_SERVICE_CONTAINER_JSON,
+            APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON),
+        classOf[ServiceContainerGroup] -> (
+            APPLICATION_SERVICE_CONTAINER_GROUP_JSON,
+            APPLICATION_SERVICE_CONTAINER_GROUP_COLLECTION_JSON)
+    )
 
     /**
       * Assert a successful POST the given DTO to the base resource URI.  We
@@ -42,37 +62,48 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
       *
       * @param dto the DTO
       * @param typeUri the root URI for the resource type
-      * @param mediaType the media type
       * @return the value of the LOCATION header
       */
-    def postAndAssertOk(dto: UriResource,
-                        typeUri: URI, mediaType: String): URI = {
-        val postResp = postAndAssertStatus(dto, typeUri, mediaType, CREATED)
+    def postAndAssertOk(dto: UriResource, typeUri: URI): URI = {
+        val postResp = postAndAssertStatus(dto, typeUri, CREATED)
         postResp.getLocation shouldBe dto.getUri
         postResp.getLocation
     }
 
-    def postAndAssertStatus(dto: UriResource, typeUri: URI, mediaType: String,
+    def postAndAssertConflict(dto: UriResource, typeUri: URI): Unit = {
+        postAndAssertStatus(dto, typeUri, Status.CONFLICT)
+    }
+
+    def postAndAssertStatus(dto: UriResource, typeUri: URI,
                             status: Response.Status): ClientResponse = {
         val postResp = resource().uri(typeUri)
-            .`type`(mediaType)
+            .`type`(mediaTypes(dto.getClass)._1)
             .post(classOf[ClientResponse], dto)
         postResp.getStatus shouldBe status.getStatusCode
         postResp
     }
 
-    def putAndAssertStatus(dto: UriResource, mediaType: String,
-                           status: Int): ClientResponse = {
+    def putAndAssertStatus(dto: UriResource, status: Int): ClientResponse = {
         val postResp = resource().uri(dto.getUri)
-            .`type`(mediaType)
+            .`type`(mediaTypes(dto.getClass)._1)
             .put(classOf[ClientResponse], dto)
         postResp.getStatus shouldBe status
         postResp
     }
 
-    def get[T](uri: URI, mediaType: String)(implicit ct: ClassTag[T]): T = {
+    def getAndAssertStatus[T <: UriResource](uri: URI, status: Status)
+                                            (implicit ct: ClassTag[T])
+    : ClientResponse = {
         val r = resource().uri(uri)
-            .accept(mediaType)
+            .accept(mediaTypes(ct.runtimeClass)._1)
+            .get(classOf[ClientResponse])
+        r.getStatus shouldBe status.getStatusCode
+        r
+    }
+
+    def get[T](uri: URI)(implicit ct: ClassTag[T]): T = {
+        val r = resource().uri(uri)
+            .accept(mediaTypes(ct.runtimeClass)._1)
             .get(classOf[ClientResponse])
         r.getStatus shouldBe Status.OK.getStatusCode
         r.getEntity(ct.runtimeClass.asInstanceOf[Class[T]])
@@ -81,18 +112,18 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
     /** Assert a successful GET the resource at the given DTO, checking that
       * the relevant headers and result codes are set.
       */
-    def getAndAssertOk[T <: UriResource](uri: URI, mediaType: String)
+    def getAndAssertOk[T <: UriResource](uri: URI)
                                         (implicit ct: ClassTag[T]): T = {
-        val e = get(uri, mediaType)(ct)
+        val e = get[T](uri)
         e.setBaseUri(resource().getURI)
         e.getUri shouldBe uri
         e
     }
 
-    def listAndAssertOk[T <: UriResource](uri: URI, mediaType: String)
+    def listAndAssertOk[T <: UriResource](uri: URI)
                                          (implicit ct: ClassTag[T]): List[T] = {
         val r = resource().uri(uri)
-            .accept(mediaType)
+            .accept(mediaTypes(ct.runtimeClass)._2)
             .get(classOf[ClientResponse])
         r.getStatus shouldBe Status.OK.getStatusCode
 
@@ -108,8 +139,8 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
     /** Assert a successful PUT of the resource, checking that the relevant
       * headers are set correctly and the status code meets the standard.
       */
-    def putAndAssertOk(dto: UriResource, mediaType: String): Unit = {
-        putAndAssertStatus(dto, mediaType, NO_CONTENT.getStatusCode)
+    def putAndAssertOk(dto: UriResource): Unit = {
+        putAndAssertStatus(dto, NO_CONTENT.getStatusCode)
     }
 
     /** Assert a successful DELETE of the resource, checking that the
@@ -118,6 +149,13 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
     def deleteAndAssertOk(uri: URI): Unit = {
         val delResp = resource().uri(uri).delete(classOf[ClientResponse])
         delResp.getStatus shouldBe NO_CONTENT.getStatusCode
+    }
+
+    def deleteAndAssertGone[T <: UriResource](uri: URI)
+                                             (implicit ct: ClassTag[T])
+    : Unit = {
+        deleteAndAssertOk(uri)
+        getAndAssertStatus(uri, Status.NOT_FOUND)
     }
 
     /** Assert a failed DELETE of the resource, checking that the
