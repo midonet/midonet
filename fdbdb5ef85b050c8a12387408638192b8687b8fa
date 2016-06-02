@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1357daca",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-02T10:42:17Z",
+      "side": 0,
+      "message": "This should be included in a separate patch.",
+      "revId": "fdbdb5ef85b050c8a12387408638192b8687b8fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
