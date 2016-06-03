@@ -22,6 +22,30 @@
       "revId": "5d62f27fb0ac78a06b281bb1bd7c62df352283b3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c43c07e3",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateBaseTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-03T14:18:18Z",
+      "side": 1,
+      "message": "Yes, done.",
+      "parentUuid": "baa041b7_4ebed8ae",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 5
+      },
+      "revId": "5d62f27fb0ac78a06b281bb1bd7c62df352283b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
