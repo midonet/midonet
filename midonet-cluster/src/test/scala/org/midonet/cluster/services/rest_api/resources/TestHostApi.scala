@@ -15,45 +15,17 @@
  */
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.UUID
+import org.junit.Test
 
-import org.junit.{Before, Test}
+import org.midonet.cluster.rest_api.rest_api._
+import org.midonet.cluster.services.rest_api.RestApiScalaTestBase
 
-import org.midonet.cluster.HttpRequestChecks
-import org.midonet.cluster.rest_api.models.Host
-import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncTest, RestApiTestBase, Topology}
-
-class TestHostApi extends RestApiTestBase(FuncTest.getBuilder.build())
-                  with HttpRequestChecks {
-
-    def _makeHost(id: UUID = UUID.randomUUID(),
-                  name: String = "test_host") : Host = {
-        val h = new Host()
-        h.id = id
-        h.name = name
-        h.setBaseUri(app.getUri)
-        h
-    }
-
-    def _createHost(id: UUID = UUID.randomUUID(),
-                    name: String = "test_host") : Host = {
-        val h = _makeHost(id = id, name = name)
-        val uri = postAndAssertOk(h, app.getHosts)
-        getAndAssertOk[Host](uri)
-        h
-    }
-
-    @Before
-    override def setUp(): Unit = {
-        val dtoWebResource = new DtoWebResource(resource())
-        val topology = new Topology.Builder(dtoWebResource).build()
-        app = topology.getApplication
-    }
+class TestHostApi extends RestApiScalaTestBase(FuncTest.getBuilder.build()) {
 
     @Test
     def testCreateWithDuplicatedId(): Unit = {
-        val h1 = _createHost()
-        val h2 = _makeHost(id = h1.id)
+        val h1 = create(makeHost())
+        val h2 = makeHost(id = h1.id)
 
         // This should return HttpConflict
         postAndAssertConflict(h2, app.getHosts)
