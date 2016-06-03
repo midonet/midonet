@@ -16,9 +16,10 @@
 package org.midonet.cluster.util
 
 import java.lang.reflect.Type
-import java.util.{List => JList}
+import java.util.{List => JList, Map => JMap}
 
 import scala.collection.JavaConverters._
+import scala.collection.breakOut
 
 import com.google.protobuf.MessageOrBuilder
 
@@ -47,10 +48,33 @@ trait MapConverter[K, V, U <: MessageOrBuilder]
     def toProto(key: K, value: V): U
 
     override def toProto(value: Map[K, V], clazz: Type): JList[U] = {
-        value.map(el => toProto(el._1, el._2)).toList.asJava
+        val l: List[U] = value.toList.map(el => toProto(el._1, el._2))(breakOut)
+        l.asJava
     }
 
     override def fromProto(value: JList[U], clazz: Type): Map[K, V] = {
-        Map(value.asScala.map(el => (toKey(el), toValue(el))).toArray: _*)
+        value.asScala.map(el => (toKey(el), toValue(el)))(breakOut)
+    }
+}
+
+trait JMapConverter[K, V, U <: MessageOrBuilder]
+    extends ZoomConvert.Converter[JMap[K, V], JList[U]] {
+
+    def toKey(proto: U): K
+    def toValue(proto: U): V
+    def toProto(key: K, value: V): U
+
+    override def toProto(value: JMap[K, V], clazz: Type): JList[U] = {
+        val l: List[U] = value.asScala.toList.map {
+            case (k, v) => toProto(k, v)
+        }(breakOut)
+        l.asJava
+    }
+
+    override def fromProto(value: JList[U], clazz: Type): JMap[K, V] = {
+        val m: Map[K, V] = value.asScala.map {
+            el => (toKey(el), toValue(el))
+        }(breakOut)
+        m.asJava
     }
 }
