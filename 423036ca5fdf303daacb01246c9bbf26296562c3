@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_81495133",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1003057
+      },
+      "writtenOn": "2016-06-03T10:58:41Z",
+      "side": 1,
+      "message": "I would suggest /var/run/midonet.sock. Otherwise you have to have code needlessly creating the /var/run/midolman directory (systemd can handle that for you though).",
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
