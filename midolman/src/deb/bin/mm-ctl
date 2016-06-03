@@ -1,6 +1,6 @@
-#!/bin/bash
+#! /usr/bin/env python
 
-# Copyright 2014 Midokura SARL
+# Copyright 2016 Midokura SARL
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,34 +14,84 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# If MIDO_HOME has not been set, set it.
-if [ -z "$MIDO_HOME" ]; then
-   MIDO_HOME=/usr/share/midolman
-fi
+import httplib
+import json
+import socket
+import sys
 
-if [ ! -d "$MIDO_HOME" ]; then
-   echo "ERROR: $MIDO_HOME does not exist"
-   exit 1
-fi
 
-if [ -f $MIDO_HOME/prepare-java ]; then
-    . $MIDO_HOME/prepare-java
-else
-    echo "$MIDO_HOME/prepare-java: file not found"
-    exit 1
-fi
+class UnixDomainHTTPConnection(httplib.HTTPConnection):
+    def __init__(self, path):
+        httplib.HTTPConnection.__init__(self, "dummy-host")
+        self.__unix_socket_path = path
 
-if [ -z "$MIDO_JAR" ]; then
-   MIDO_JAR=`ls $MIDO_HOME/midolman.jar`
-fi
+    def connect(self):
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.connect(self.__unix_socket_path)
+        # NOTE(yamamoto): self.sock is not a part of public API.
+        # I guess this is portable enough as it's what Neutron does.
+        self.sock = sock
 
-if [ ! -e "$MIDO_JAR" ]; then
-   echo "ERROR: $MIDO_JAR does not exist"
-   exit 1
-fi
 
-JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
+class HTTPError(RuntimeError):
+    def __init__(self, **kwargs):
+        self._kwargs = kwargs
 
-$JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml $JAVA_LIBRARY_PATH \
-    -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
-    -cp $MIDO_JAR org.midonet.midolman.tools.MmCtl $*
+    def __str__(self):
+        return "HTTPError %s" % self._kwargs
+
+
+def connect():
+    # REVISIT(yamamoto): make the path configurable?
+    socket_path = '/var/run/midolman/midolman.sock'
+    return UnixDomainHTTPConnection(socket_path)
+
+
+def consume_response(conn):
+    res = conn.getresponse()
+    if not 200 <= res.status < 300:
+        raise HTTPError(status=res.status, reason=res.reason, msg=str(res.msg))
+    res.read()
+
+
+def bind_port(port_id, interface_name):
+    conn = connect()
+    body = json.dumps({
+        'interfaceName': interface_name,
+    })
+    headers = {
+        'Content-Type': 'application/json',
+    }
+    conn.request('PUT', 'http://dummy/binding/%s' % port_id,
+                 body=body, headers=headers)
+    consume_response(conn)
+
+
+def unbind_port(port_id):
+    conn = connect()
+    conn.request('DELETE', 'http://dummy/binding/%s' % port_id)
+    consume_response(conn)
+
+
+def usage():
+    sys.stderr.write("Usage:\n")
+    sys.stderr.write("mm-ctl --bind-port <portId> <interfaceName>\n")
+    sys.stderr.write("mm-ctl --unbind-port <portId>\n")
+    sys.exit(1)
+
+
+def main():
+    try:
+        if len(sys.argv) == 4 and sys.argv[1] == '--bind-port':
+            bind_port(sys.argv[2], sys.argv[3])
+        elif len(sys.argv) == 3 and sys.argv[1] == '--unbind-port':
+            unbind_port(sys.argv[2])
+        else:
+            usage()
+    except HTTPError as e:
+        sys.stderr.write(str(e))
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
