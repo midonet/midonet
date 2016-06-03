@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5f4fa033",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-03T16:09:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_fff1d401",
+      "range": {
+        "startLine": 413,
+        "startChar": 56,
+        "endLine": 415,
+        "endChar": 21
+      },
+      "revId": "16b9b7bfc9b4d981b246ee7e72fbcfb2d22d5150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_dff4d0f1",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-03T15:52:29Z",
       "side": 1,
       "message": "also in",
+      "range": {
+        "startLine": 419,
+        "startChar": 51,
+        "endLine": 419,
+        "endChar": 53
+      },
+      "revId": "16b9b7bfc9b4d981b246ee7e72fbcfb2d22d5150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3f617ca9",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 419,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-03T16:09:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_dff4d0f1",
       "range": {
         "startLine": 419,
         "startChar": 51,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1f6478b6",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-03T16:09:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_5f8a0065",
+      "range": {
+        "startLine": 427,
+        "startChar": 46,
+        "endLine": 428,
+        "endChar": 34
+      },
+      "revId": "16b9b7bfc9b4d981b246ee7e72fbcfb2d22d5150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3fecdc28",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-03T15:52:29Z",
       "side": 1,
       "message": "Remove. We\u0027ll continue sending the udp messages, so not legacy.",
+      "range": {
+        "startLine": 432,
+        "startChar": 32,
+        "endLine": 432,
+        "endChar": 38
+      },
+      "revId": "16b9b7bfc9b4d981b246ee7e72fbcfb2d22d5150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ff5674cc",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-03T16:09:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_3fecdc28",
       "range": {
         "startLine": 432,
         "startChar": 32,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_df5970fe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-03T16:09:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_bfe0ec29",
+      "range": {
+        "startLine": 84,
+        "startChar": 57,
+        "endLine": 86,
+        "endChar": 49
+      },
+      "revId": "16b9b7bfc9b4d981b246ee7e72fbcfb2d22d5150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9fdbe87b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateRequestTcpClient.scala",
         "patchSetId": 1
@@ -128,6 +248,30 @@
       "writtenOn": "2016-06-03T15:52:29Z",
       "side": 1,
       "message": "top of the file",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 3
+      },
+      "revId": "16b9b7bfc9b4d981b246ee7e72fbcfb2d22d5150",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bf758c64",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateRequestTcpClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-03T16:09:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_9fdbe87b",
       "range": {
         "startLine": 10,
         "startChar": 0,
