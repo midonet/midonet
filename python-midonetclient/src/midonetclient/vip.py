@@ -44,6 +44,10 @@ class VIP(resource_base.ResourceBase, admin_state_up_mixin.AdminStateUpMixin):
     def get_session_persistence(self):
         return self.dto['sessionPersistence']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def load_balancer_id(self, load_balancer_id):
         self.dto['loadBalancerId'] = load_balancer_id
         return self
