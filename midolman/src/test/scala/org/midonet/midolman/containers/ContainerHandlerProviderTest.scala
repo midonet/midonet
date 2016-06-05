@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory
 
 import rx.Observable
 
-import org.midonet.containers.Container
+import org.midonet.containers.{Container, ContainerHandler, ContainerPort, ContainerStatus}
 import org.midonet.midolman.containers.ContainerHandlerProviderTest.TestContainer
 import org.midonet.midolman.topology.VirtualTopology
 

@@ -25,13 +25,13 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Topology.{ServiceContainer, Port, Host}
+import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.topology.ContainerMapper.{Changed, Deleted, Created, Notification}
+import org.midonet.containers.ContainerPort
+import org.midonet.midolman.topology.ContainerMapper.{Changed, Created, Deleted, Notification}
 import org.midonet.midolman.topology.DeviceMapper.MapperState
-import org.midonet.midolman.containers.ContainerPort
 import org.midonet.midolman.util.MidolmanSpec
 
 @RunWith(classOf[JUnitRunner])

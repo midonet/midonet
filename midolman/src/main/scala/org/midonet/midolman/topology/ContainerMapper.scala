@@ -36,12 +36,12 @@ import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.{Zoom, ZoomField, ZoomObject}
-import org.midonet.cluster.models.Topology.{ServiceContainer, Host, Port}
+import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.containers.ContainerPort
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.ContainerMapper.{BindingState, Notification}
 import org.midonet.midolman.topology.DeviceMapper.MapperState
-import org.midonet.midolman.containers.ContainerPort
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 object ContainerMapper {

@@ -17,7 +17,7 @@
 package org.midonet.midolman.containers
 
 import java.util.UUID
-import java.util.concurrent.{ScheduledExecutorService, ExecutorService}
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 
 import scala.reflect.classTag
 
@@ -27,7 +27,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.reflections.Reflections
 
-import org.midonet.containers.ContainerProvider
+import org.midonet.containers.{ContainerHandler, ContainerProvider}
 import org.midonet.midolman.topology.VirtualTopology
 
 /**

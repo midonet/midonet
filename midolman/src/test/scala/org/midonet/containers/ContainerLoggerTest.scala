@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.containers.models.Containers.Log
 import org.midonet.midolman.config.ContainerConfig
 import org.midonet.midolman.containers.ContainerLogger.ContainerKey
-import org.midonet.midolman.containers.{ContainerFlag, ContainerLogger, ContainerOp}
+import org.midonet.midolman.containers.ContainerLogger
 
 @RunWith(classOf[JUnitRunner])
 class ContainerLoggerTest extends FlatSpec with BeforeAndAfter

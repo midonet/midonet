@@ -26,12 +26,14 @@ import scala.concurrent.Future
 
 import com.google.common.util.concurrent.SettableFuture
 import com.google.protobuf.TextFormat
+
 import org.apache.commons.io.FileUtils
 import org.apache.curator.framework.state.ConnectionState.RECONNECTED
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.reflections.Reflections
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -44,7 +46,7 @@ import org.midonet.cluster.services.MidonetBackend.{ContainerKey, StatusKey}
 import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.containers.Container
+import org.midonet.containers._
 import org.midonet.containers.models.Containers.Log
 import org.midonet.midolman.containers.ContainerServiceTest.{GoodContainer, TestContainer, TestNamespace}
 import org.midonet.midolman.topology.VirtualTopology

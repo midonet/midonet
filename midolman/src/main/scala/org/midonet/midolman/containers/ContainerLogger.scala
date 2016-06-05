@@ -27,6 +27,7 @@ import scala.util.control.NonFatal
 import com.google.common.base.MoreObjects
 import com.typesafe.scalalogging.Logger
 
+import org.midonet.containers.{ContainerFlag, ContainerOp}
 import org.midonet.containers.models.Containers
 import org.midonet.midolman.config.ContainerConfig
 import org.midonet.midolman.containers.ContainerLogger._

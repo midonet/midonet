@@ -43,6 +43,7 @@ import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus
 import org.midonet.cluster.models.Topology.{Host, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend.{ContainerKey, StatusKey}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.containers._
 import org.midonet.midolman.containers.ContainerService.Operation.Operation
 import org.midonet.midolman.containers.ContainerService._
 import org.midonet.midolman.logging.MidolmanLogging

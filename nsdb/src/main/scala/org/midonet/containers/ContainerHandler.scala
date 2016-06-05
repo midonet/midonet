@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.containers
+package org.midonet.containers
 
 import scala.concurrent.Future
 
@@ -23,7 +23,7 @@ import com.google.common.base.MoreObjects
 import rx.Observable
 
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.midolman.containers.ContainerFlag.ContainerFlag
+import org.midonet.containers.ContainerFlag.ContainerFlag
 
 object ContainerFlag extends Enumeration {
     type ContainerFlag = Value
