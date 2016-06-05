@@ -45,6 +45,7 @@ fi
 
 MIDO_JAR=`ls $MIDO_HOME/midolman.jar`
 MIDO_MAIN=org.midonet.midolman.Midolman
+MIDO_PLUGINS="$MIDO_HOME/plugins"
 
 test -r $MIDO_JAR || exit 1
 
@@ -68,10 +69,10 @@ MIDO_WATCHDOG_TIMEOUT="${WATCHDOG_TIMEOUT:-10}"
 if [ -x /usr/bin/wdog ] && [ -z "$WATCHDOG_DISABLE" ] ; then
     exec /usr/bin/wdog -d /var/log/midolman $WATCHDOG_TIMEOUT -- \
                 $JAVA $JAVA_LIBRARY_PATH \
-                -cp $MIDO_JAR \
+                -cp $MIDO_JAR:$MIDO_PLUGINS/* \
                 $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
 else
     exec $JAVA $JAVA_LIBRARY_PATH \
-                -cp $MIDO_JAR \
+                -cp $MIDO_JAR:$MIDO_PLUGINS/* \
                 $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
 fi
