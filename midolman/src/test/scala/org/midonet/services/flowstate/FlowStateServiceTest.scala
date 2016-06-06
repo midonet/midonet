@@ -16,12 +16,9 @@
 package org.midonet.services.flowstate
 
 
-import java.net.{BindException, DatagramSocket, InetSocketAddress}
+import java.net.{BindException, DatagramSocket}
 import java.util.concurrent.{ExecutorService, TimeUnit}
-import java.util.{ArrayList, UUID}
-
-import scala.collection.mutable
-import scala.util.Random
+import java.util.{UUID}
 
 import com.datastax.driver.core.Session
 import com.typesafe.config.ConfigFactory
@@ -32,27 +29,16 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito.{mock, times, verify}
 import org.mockito.{Matchers => mockito}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.storage.FlowStateStorageWriter
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.minion.Context
-import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
-import org.midonet.packets.FlowStateStorePackets._
-import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
-import org.midonet.packets.TraceState.TraceKeyStore
-import org.midonet.packets._
-import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 
-import io.netty.buffer.Unpooled
-import io.netty.channel.socket.DatagramPacket
-
 @RunWith(classOf[JUnitRunner])
-class FlowStateServiceTest extends FeatureSpec with GivenWhenThen with Matchers
-                                   with BeforeAndAfter with MidonetEventually
+class FlowStateServiceTest extends FlowStateBaseTest
                                    with TopologyBuilder with CuratorTestFramework {
 
     private var midolmanConfig: MidolmanConfig = _
@@ -89,115 +75,6 @@ class FlowStateServiceTest extends FeatureSpec with GivenWhenThen with Matchers
                 storage = mock(classOf[FlowStateStorageWriter])
             storage
         }
-    }
-
-    private def randomPort: Int = Random.nextInt(Short.MaxValue + 1)
-
-    private def randomConnTrackKey: ConnTrackKeyStore =
-        ConnTrackKeyStore(IPv4Addr.random, randomPort,
-                          IPv4Addr.random, randomPort,
-                          0, UUID.randomUUID)
-
-    private def randomNatKey: NatKeyStore =
-        NatKeyStore(NatState.FWD_DNAT,
-                    IPv4Addr.random, randomPort,
-                    IPv4Addr.random, randomPort,
-                    1, UUID.randomUUID)
-
-    private def randomNatBinding: NatBinding =
-        NatBinding(IPv4Addr.random, randomPort)
-
-    private def randomTraceKey: (UUID, TraceKeyStore) =
-        (UUID.randomUUID,
-            TraceKeyStore(MAC.random(), MAC.random(), 0, IPv4Addr.random,
-                          IPv4Addr.random, 0, Random.nextInt(), Random.nextInt()))
-
-
-    case class FlowStateProtos(ingressPort: UUID, egressPorts: ArrayList[UUID],
-                               conntrackKeys: Seq[ConnTrackKeyStore],
-                               natKeys: Seq[(NatKeyStore, NatBinding)])
-
-
-
-    private def validFlowStateMessage(numConntracks: Int = 1,
-                                      numNats: Int = 1,
-                                      numTraces: Int = 0,
-                                      numIngressPorts: Int = 1,
-                                      numEgressPorts: Int = 1)
-    : (DatagramPacket, FlowStateProtos) = {
-        var ingressPort: UUID = null
-        val egressPorts = new ArrayList[UUID]()
-        val conntrackKeys = mutable.MutableList.empty[ConnTrackKeyStore]
-        val natKeys = mutable.MutableList.empty[(NatKeyStore, NatBinding)]
-
-        // Prepare UDP shell
-        val buffer = new Array[Byte](
-            FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
-
-        // Encode flow state message into buffer
-        val encoder = new SbeEncoder()
-        val flowStateMessage = encoder.encodeTo(buffer)
-
-        // Encode sender
-        val sender = UUID.randomUUID()
-        uuidToSbe(sender, flowStateMessage.sender)
-
-        // Encode keys
-        val c = flowStateMessage.conntrackCount(numConntracks)
-        while (c.hasNext) {
-            val conntrackKey = randomConnTrackKey
-            conntrackKeys += conntrackKey
-            connTrackKeyToSbe(conntrackKey, c.next)
-        }
-
-        val n = flowStateMessage.natCount(numNats)
-        while (n.hasNext) {
-            val (natKey, natBinding) = (randomNatKey, randomNatBinding)
-            natKeys += ((natKey, natBinding))
-            natToSbe(natKey, natBinding, n.next)
-        }
-
-        val t = flowStateMessage.traceCount(numTraces)
-        while (t.hasNext) {
-            val (traceId, traceKey) = randomTraceKey
-            traceToSbe(traceId, traceKey, t.next)
-        }
-
-        val r = flowStateMessage.traceRequestIdsCount(numTraces)
-        while (r.hasNext) {
-            uuidToSbe(UUID.randomUUID, r.next().id)
-        }
-
-        // Encode ingress/egress ports
-        if (numIngressPorts > 0 && numEgressPorts > 0) {
-            val p = flowStateMessage.portIdsCount(1)
-            ingressPort = UUID.randomUUID()
-
-            for (i <- 1 to numEgressPorts) {
-                egressPorts.add(UUID.randomUUID)
-            }
-
-            portIdsToSbe(ingressPort, egressPorts, p.next)
-        } else {
-            flowStateMessage.portIdsCount(0)
-        }
-
-        val udp = new DatagramPacket(
-            Unpooled.wrappedBuffer(buffer),
-            new InetSocketAddress(midolmanConfig.flowState.port))
-
-        val protos = FlowStateProtos(ingressPort, egressPorts, conntrackKeys, natKeys)
-
-        (udp, protos)
-    }
-
-    private def invalidFlowStateMessage: DatagramPacket = {
-        val buffer = new Array[Byte](
-            FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
-
-        Random.nextBytes(buffer)
-        new DatagramPacket(Unpooled.wrappedBuffer(buffer),
-                           new InetSocketAddress(midolmanConfig.flowState.port))
     }
 
     before {
@@ -292,7 +169,7 @@ class FlowStateServiceTest extends FeatureSpec with GivenWhenThen with Matchers
         scenario("Service handle calls storage with a valid message") {
             Given("A flow state message handler and a valid message")
             val handler = new TestableStorageHandler(null)
-            val (datagram, protos) = validFlowStateMessage(
+            val (datagram, protos, _) = validFlowStateMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
                 numConntracks = 1, numNats = 1)
 
@@ -314,7 +191,7 @@ class FlowStateServiceTest extends FeatureSpec with GivenWhenThen with Matchers
         scenario("Service handle calls storage with trace keys") {
             Given("A flow state handler and a message with trace keys")
             val handler = new TestableStorageHandler(null)
-            val (datagram, protos) = validFlowStateMessage(
+            val (datagram, protos, _) = validFlowStateMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
                 numConntracks = 1, numNats = 1, numTraces = 1)
 
@@ -336,7 +213,7 @@ class FlowStateServiceTest extends FeatureSpec with GivenWhenThen with Matchers
         scenario("Service handle ignores non flow state sbe messages") {
             Given("A flow state message handler and an invalid message")
             val handler = new TestableStorageHandler(null)
-            val datagram = invalidFlowStateMessage
+            val datagram = invalidFlowStateMessage()
 
             When("the message is handled")
             handler.channelRead0(null, datagram)
@@ -356,10 +233,10 @@ class FlowStateServiceTest extends FeatureSpec with GivenWhenThen with Matchers
         scenario("Service handle calls storage with valid empty message") {
             Given("A flow state message handler and a message without keys")
             val handler = new TestableStorageHandler(null)
-            val (datagram, protos) = validFlowStateMessage(numIngressPorts = 0,
-                                                           numEgressPorts = 0,
-                                                           numConntracks = 0,
-                                                           numNats = 0)
+            val (datagram, protos, _) = validFlowStateMessage(numIngressPorts = 0,
+                                                              numEgressPorts = 0,
+                                                              numConntracks = 0,
+                                                              numNats = 0)
 
             When("The message is handled")
             handler.channelRead0(null, datagram)
@@ -380,8 +257,8 @@ class FlowStateServiceTest extends FeatureSpec with GivenWhenThen with Matchers
         scenario("Service handle calls to storage with > 1 keys") {
             Given("A flow state message handler and a message with > 1 keys")
             val handler = new TestableStorageHandler(null)
-            val (datagram, protos) = validFlowStateMessage(numConntracks = 2,
-                                                           numNats = 2)
+            val (datagram, protos, _) = validFlowStateMessage(numConntracks = 2,
+                                                              numNats = 2)
             When("The message is handled")
             handler.channelRead0(null, datagram)
 
