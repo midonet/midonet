@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_96d4eeeb",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateRemoteMessageHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-06T09:15:28Z",
+      "side": 1,
+      "message": "You\u0027re assuming here a single type of operations (read). I\u0027d add support for different operations in case we need to add other operations in the future?\n\nLook at https://review.gerrithub.io/#/c/278569/ for what Alexandru proposed for State Tables.\n\nMaybe the protocol is not that complex, but at least we should be able to answer with ACK and ERROR messages (what if the input stream failed for any reason).\n\nIt\u0027s not specified anywhere, but we should think about it.",
+      "range": {
+        "startLine": 51,
+        "startChar": 17,
+        "endLine": 51,
+        "endChar": 42
+      },
+      "revId": "9c7cc017044c494f59a09559faa2533a2097977c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
