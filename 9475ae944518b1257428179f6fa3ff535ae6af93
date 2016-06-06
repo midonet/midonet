@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_76e5ea06",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-06T08:48:36Z",
+      "side": 1,
+      "message": "Nit: put the midonet imports at the bottom (use the java-code-style.xml)",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 66
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b6b5b2ed",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-06T08:48:36Z",
+      "side": 1,
+      "message": "Order imports.",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 30
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_96d18e25",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-06T08:48:36Z",
+      "side": 1,
+      "message": "Call this: SixWind (i.e. make it a companion object for the SixWind trait).",
+      "range": {
+        "startLine": 51,
+        "startChar": 7,
+        "endLine": 51,
+        "endChar": 21
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d6b27605",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-06T08:48:36Z",
+      "side": 1,
+      "message": "Nit: we don\u0027t leave a space before colon, this applies below too.",
+      "range": {
+        "startLine": 57,
+        "startChar": 29,
+        "endLine": 57,
+        "endChar": 30
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f6a69abf",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-06T08:48:36Z",
+      "side": 1,
+      "message": "You can just use: Map",
+      "range": {
+        "startLine": 60,
+        "startChar": 38,
+        "endLine": 60,
+        "endChar": 66
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_16a45eb7",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-06T08:48:36Z",
+      "side": 1,
+      "message": "Should this be an info? Generally we don\u0027t expect 6wind support, isn\u0027t it? Maybe we should reword the message too: something like:\n\n6Wind DPDK support is not available on this platform and will be disabled",
+      "range": {
+        "startLine": 110,
+        "startChar": 20,
+        "endLine": 110,
+        "endChar": 24
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
