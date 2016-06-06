@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,16 @@ package org.midonet.cluster.services.topology
 
 import java.util.concurrent.CountDownLatch
 
-import com.google.common.util.concurrent.Service.{State, Listener}
+import com.google.common.util.concurrent.Service.{Listener, State}
 import com.google.inject.{AbstractModule, Guice, Singleton}
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.{ClusterConfig, ClusterNode, topologyApiLog}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
+import org.midonet.cluster.util.{ActualReflections, ReflectionsHolder}
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 /** Stand-alone application to start the TopologyApiService */
@@ -39,8 +41,11 @@ object TopologyApiServiceApp extends App {
         ClusterConfig()
     }
 
+    val reflections = new Reflections("org.midonet")
     private val topologyApiServiceModule = new AbstractModule {
         override def configure(): Unit = {
+            bind(classOf[ReflectionsHolder])
+                .toInstance(ActualReflections(reflections))
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
             bind(classOf[TopologyApiService]).in(classOf[Singleton])
         }

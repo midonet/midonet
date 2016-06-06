@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,6 @@ dependencies {
             project(':midolman'),
             project(':midonet-util'),
             "org.opendaylight.ovsdb:library:1.1.1-Lithium-SR1",
-            "org.reflections:reflections:0.9.10",
             'org.slf4j:jul-to-slf4j:1.7.12',
             "org.jasypt:jasypt:1.7",
             libraries.metrics,
@@ -75,6 +74,7 @@ dependencies {
             libraries.netty,
             libraries.mysql_jdbc,
             libraries.protobuf,
+            libraries.reflections,
             libraries.rx,
             libraries.scala,
             libraries.zookeeper
