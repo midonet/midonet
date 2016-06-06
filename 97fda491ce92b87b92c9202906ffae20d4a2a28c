@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_701f31b7",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/LogResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-06T02:38:52Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "97fda491ce92b87b92c9202906ffae20d4a2a28c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_307c09eb",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/LogResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-06T02:38:52Z",
+      "side": 1,
+      "message": "not sure if it\u0027s a good idea to include these.  There\u0027s still a chance that these will not be implemented.  We may be introducing potential dead code.  I would remove SYSLOG and UNDERLAY_SYSLOG from this until we decide to actually implement these.",
+      "revId": "97fda491ce92b87b92c9202906ffae20d4a2a28c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_107fc5e0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/LogResourceResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-06T02:38:52Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "97fda491ce92b87b92c9202906ffae20d4a2a28c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f08101c4",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/RestApiScalaTestBase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-06T02:38:52Z",
+      "side": 1,
+      "message": "I am not certain if we will ever really going to use these.  At least more discussion will be needed to see if these are necessary.  For 5.2, it is more than likely that these are not needed so I think it\u0027s better not to include them in this patch .",
+      "revId": "97fda491ce92b87b92c9202906ffae20d4a2a28c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d084bdd3",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/resources/TestLogResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-06T02:38:52Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "97fda491ce92b87b92c9202906ffae20d4a2a28c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b070190c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/LogMetadataConverter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-06T02:38:52Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "97fda491ce92b87b92c9202906ffae20d4a2a28c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
