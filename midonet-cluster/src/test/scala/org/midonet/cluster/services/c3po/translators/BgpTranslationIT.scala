@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{BgpPeer => BgpPeerType, BgpSpeaker => BgpSpeakerType, Port => PortType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{BgpPeer => BgpPeerType, BgpSpeaker => BgpSpeakerType, Port => PortType, Router => RouterType}
 import org.midonet.cluster.models.Neutron.NeutronBgpPeer
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
@@ -63,7 +63,8 @@ class BgpTranslationIT extends C3POMinionTestBase {
         storage.getAll(classOf[ServiceContainer]).await().size shouldBe 1
     }
 
-    it should "delete Quagga container when router's last peer is deleted" in {
+    it should "not delete Quagga container when router's last peer is " +
+              "deleted" in {
         val rtrId = createRouter(10)
         createNetworkAndRouterInterface(20, rtrId, "10.0.0.0/24", "10.0.0.1")
 
@@ -87,7 +88,7 @@ class BgpTranslationIT extends C3POMinionTestBase {
         insertDeleteTask(60, BgpPeerType, peer2Id)
         eventually {
             checkNoBgpPeer(rtrId, peer2Id)
-            checkNoQuaggaContainer(rtrId)
+            checkQuaggaContainer(rtrId)
         }
     }
 
@@ -133,7 +134,7 @@ class BgpTranslationIT extends C3POMinionTestBase {
         }
     }
 
-    it should "delete all BgpNetworks when the router's last BgpPeer is " +
+    it should "not delete all BgpNetworks when the router's last BgpPeer is " +
               "deleted" in {
         val rtrId = createRouter(10)
         val rifPortId = createNetworkAndRouterInterface(
@@ -160,8 +161,9 @@ class BgpTranslationIT extends C3POMinionTestBase {
         // Delete the second peer. Networks should be deleted.
         insertDeleteTask(70, BgpPeerType, peer2Id)
         eventually {
-            checkNoBgpNetwork(rifPortId)
-            checkNoBgpNetwork(rifPort2Id)
+            checkNoBgpPeer(rtrId, peer2Id)
+            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+            checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
         }
     }
 
@@ -259,7 +261,37 @@ class BgpTranslationIT extends C3POMinionTestBase {
 
             checkNoBgpPeer(rtrId, peer2Id)
             checkNoBgpPeer(rtrId, peer2Id)
+            checkQuaggaContainer(rtrId)
+        }
+    }
+
+    "RouterTranslator" should "delete a router's container, container group, " +
+                              "group, container port, and BGP networks when " +
+                              "deleting that router" in {
+        val rtrId = createRouter(10)
+        val rifPortId = createNetworkAndRouterInterface(
+            20, rtrId, "10.0.0.0/24", "10.0.0.1")
+        val rifPort2Id = createNetworkAndRouterInterface(
+            30, rtrId, "10.0.1.0/24", "10.0.1.1")
+        val peerId = createBgpPeer(40, rtrId, "30.0.0.1")
+        val peer2Id = createBgpPeer(50, rtrId, "40.0.0.1")
+        eventually {
+            checkQuaggaContainer(rtrId)
+            checkBgpPeer(rtrId, peerId)
+            checkBgpPeer(rtrId, peer2Id)
+            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+            checkBgpNetwork(rtrId, rifPort2Id, "10.0.1.0/24")
+        }
+
+        insertDeleteTask(60, BgpPeerType, peerId)
+        insertDeleteTask(70, BgpPeerType, peer2Id)
+        insertDeleteTask(80, RouterType, rtrId)
+        eventually {
+            checkNoBgpPeer(rtrId, peerId)
+            checkNoBgpPeer(rtrId, peer2Id)
             checkNoQuaggaContainer(rtrId)
+            checkNoBgpNetwork(rifPortId)
+            checkNoBgpNetwork(rifPort2Id)
         }
     }
 

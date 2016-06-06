@@ -52,11 +52,6 @@ class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
             ops += Delete(classOf[NeutronBgpPeer], bgpPeerId)
         }
 
-        // If that was all the router's peers, delete the Quagga container, too.
-        if (bgpSpeaker.getDelBgpPeerIdsCount == router.getBgpPeerIdsCount) {
-            ops ++= deleteBgpContainer(router)
-        }
-
         ops.toList
     }
 

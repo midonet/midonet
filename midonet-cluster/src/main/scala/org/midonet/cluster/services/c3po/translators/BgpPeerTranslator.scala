@@ -76,9 +76,6 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
 
         val ops = new OperationListBuffer
         ops ++= deleteBgpPeer(router, bgpPeer.getId)
-        if (router.getBgpPeerIdsCount == 1) {
-            ops ++= deleteBgpContainer(router)
-        }
         ops.toList
     }
 
@@ -117,12 +114,13 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
 
     private def ensureContainer(router: Router, bgpSpeaker: NeutronBgpSpeaker)
     : OperationList = {
+        val portId = quaggaPortId(router.getId)
         val ops = new OperationListBuffer
-        if (router.getBgpPeerIdsCount == 0) {
+        if (!storage.exists(classOf[Port], portId).await()) {
             ops += Update(
                 router.toBuilder.setAsNumber(bgpSpeaker.getLocalAs).build())
             ops += createQuaggaRouterPort(router)
-            ops ++= scheduleService(quaggaPortId(router.getId), router.getId)
+            ops ++= scheduleService(portId, router.getId)
             ops ++= addNetworks(router)
         }
         ops.toList
@@ -195,18 +193,6 @@ object BgpPeerTranslator {
         peerId.xorWith(0x12d34babf7d85900L, 0xaa840971afc3307fL)
 
     val bgpPortRange = RangeUtil.toProto(179, 179)
-
-    private[translators] def deleteBgpContainer(router: Router)
-    : OperationList = {
-        val ops = new OperationListBuffer
-        ops += Delete(classOf[Port], quaggaPortId(router.getId))
-        ops += Delete(classOf[ServiceContainer],
-                      quaggaContainerId(router.getId))
-        ops += Delete(classOf[ServiceContainerGroup],
-                      quaggaContainerGroupId(router.getId))
-        ops ++= router.getBgpNetworkIdsList.map(Delete(classOf[BgpNetwork], _))
-        ops.toList
-    }
 
     private[translators] def deleteBgpPeer(router: Router, bgpPeerId: UUID)
     : OperationList = {

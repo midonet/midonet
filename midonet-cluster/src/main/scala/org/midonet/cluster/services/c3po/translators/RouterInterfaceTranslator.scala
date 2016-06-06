@@ -19,7 +19,6 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.mutable
 
 import org.midonet.cluster.ClusterConfig
-import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
@@ -118,9 +117,8 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
             midoOps += Create(sameSubnetRevSnatRule(rtr.getInboundFilterId,
                                                     rtrPort))
 
-            // Add a BgpNetwork if the router has a BgpPeer associated.
-            if (rtr.getBgpPeerIdsCount > 0 &&
-                storage.exists(classOf[Port],
+            // Add a BgpNetwork if the router has a BGP container.
+            if (storage.exists(classOf[Port],
                                quaggaPortId(rtr.getId)).await()) {
                 midoOps += Create(
                     BgpPeerTranslator.makeBgpNetwork(

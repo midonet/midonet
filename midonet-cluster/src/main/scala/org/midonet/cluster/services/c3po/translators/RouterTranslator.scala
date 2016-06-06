@@ -18,13 +18,14 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{StateTableStorage, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronSubnet, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Update, Create, Delete}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.translators.BgpPeerTranslator.quaggaContainerGroupId
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
@@ -77,12 +78,15 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     }
 
     override protected def translateDelete(nr: NeutronRouter): OperationList = {
+        // ServiceContainerGroup may not exist, but delete is idempotent.
         List(Delete(classOf[Chain], inChainId(nr.getId)),
              Delete(classOf[Chain], outChainId(nr.getId)),
              Delete(classOf[Chain], fwdChainId(nr.getId)),
              Delete(classOf[PortGroup], PortManager.portGroupId(nr.getId)),
              Delete(classOf[PortGroup],
                 PortManager.routerInterfacePortGroupId(nr.getId)),
+             Delete(classOf[ServiceContainerGroup],
+                    quaggaContainerGroupId(nr.getId)),
              Delete(classOf[Router], nr.getId))
     }
 
