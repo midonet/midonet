@@ -9,9 +9,10 @@ install -d /var/log/$NAME $DATADIR
 
 test -e /lib/init/upstart-job \
     && ln -sf /lib/init/upstart-job /etc/init.d/midonet-cluster \
-    || echo "upstart not installed"
+    && echo "Upstart supported." \
+    || echo "Upstart not supported."
 
 systemctl preset midonet-cluster.service 2>1 > /dev/null \
-    || echo "systemd not installed"
-systemctl enable midonet-cluster.service 2>1 > /dev/null \
-    || echo "systemd not installed"
+    && echo "Systemd supported." \
+    || echo "Systemd not supported."
+systemctl enable midonet-cluster.service 2>1 > /dev/null
