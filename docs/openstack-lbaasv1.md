@@ -27,10 +27,11 @@ MidoNet LBaaS translation supports the following scenarios.
 
 <pre>
           net/subnet -- VIP
+          (external)
             |
-            |
+            |gateway port
           router
-            |
+            |router interface
             |
           net/subnet -- pool/member
 </pre>
@@ -69,10 +70,11 @@ This scenario has a few limitations:
 
 <pre>
           net/subnet
+          (external)
             |
-            |
+            |gateway port
           router
-            |
+            |router interface
             |
           net/subnet -+-- VIP
                       |
