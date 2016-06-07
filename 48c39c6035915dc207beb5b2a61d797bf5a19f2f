@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b0b5b2ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-06-07T08:58:32Z",
+      "side": 1,
+      "message": "hmm... getOrElse does not work because i need the result.portId. Any suggestions?",
+      "parentUuid": "baa041b7_b06ff2c2",
+      "range": {
+        "startLine": 376,
+        "startChar": 0,
+        "endLine": 381,
+        "endChar": 13
+      },
+      "revId": "48c39c6035915dc207beb5b2a61d797bf5a19f2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_70660aee",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 1
