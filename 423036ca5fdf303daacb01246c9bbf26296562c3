@@ -34,6 +34,24 @@
       "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7023aabd",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1003057
+      },
+      "writtenOn": "2016-06-07T09:55:31Z",
+      "side": 1,
+      "message": "very well ;-)",
+      "parentUuid": "baa041b7_0abf9161",
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
