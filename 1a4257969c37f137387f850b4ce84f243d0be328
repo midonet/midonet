@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3d485acb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/WaitingRoom.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-07T12:48:14Z",
+      "side": 1,
+      "message": "Shouldn\u0027t be enough with removing the waiter from the timeouts list?\n\nActually, for efficiency and simplicity, instead of a waiters hashmap, and a timeouts list, we could use a LinkedHashMap which preserves insertion order. This way, entering is just adding to the map, leaving is removing from the map, and doExpiration would not accidentaly remove the reused entry because it would have a new timeout set when entering.",
+      "range": {
+        "startLine": 61,
+        "startChar": 8,
+        "endLine": 61,
+        "endChar": 25
+      },
+      "revId": "1a4257969c37f137387f850b4ce84f243d0be328",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
