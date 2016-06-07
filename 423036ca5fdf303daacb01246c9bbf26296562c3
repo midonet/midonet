@@ -16,6 +16,24 @@
       "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0abf9161",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-07T04:45:26Z",
+      "side": 1,
+      "message": "i tend to think it\u0027s simpler to have a directory because it\u0027s cumbersome to tweak unix domain socket\u0027s permission, especially with java.",
+      "parentUuid": "baa041b7_81495133",
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
