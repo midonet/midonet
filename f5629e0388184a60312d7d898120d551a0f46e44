@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0b9e73b8",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-07T10:24:04Z",
+      "side": 1,
+      "message": "missing underline",
+      "range": {
+        "startLine": 109,
+        "startChar": 2,
+        "endLine": 109,
+        "endChar": 25
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
