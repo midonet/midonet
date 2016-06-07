@@ -23,7 +23,6 @@ import com.google.common.io.Files
 import com.typesafe.config.ConfigFactory
 
 import org.junit.runner.RunWith
-import org.mockito.{Matchers => mockito}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.config.{FlowStateConfig, MidolmanConfig}
@@ -57,7 +56,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
             val manager = new FlowStateStorageProvider(config)
             val streams = manager.get(portId)
-            val msg = validFlowStateMessage(numNats = 2, numEgressPorts = 3)
+            val msg = validFlowStateInternalMessage(numNats = 2, numEgressPorts = 3)
             msg match {
                 case (_, _, encoder) =>
                     streams.out.write(encoder)
@@ -75,7 +74,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val iter = streams.out.buffers.iterator
             var currentBuffer = iter.next
             eventually {
-                validFlowStateMessage(numNats = 2, numEgressPorts = 3) match {
+                validFlowStateInternalMessage(numNats = 2, numEgressPorts = 3) match {
                     case (_, _, enc) => encoder = enc
                 }
                 val previousPosition = currentBuffer.position()
