@@ -36,6 +36,11 @@ trait StateTableSubscription {
     def unsubscribe(): Unit
 
     /**
+      * @return True if the current subscription is unsubscribed.
+      */
+    def isUnsubscribed: Boolean
+
+    /**
       * Requests a snapshot of the state table corresponding to this
       * subscription. The snapshot will be emitted in the observable stream
       * corresponding to the subscription.
