@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d0c836aa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-07T08:41:33Z",
+      "side": 1,
+      "message": "Set server to null.",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 61,
+        "endChar": 26
+      },
+      "revId": "d1594d6f41fc406f48d0248e38275f1f7314e47b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
