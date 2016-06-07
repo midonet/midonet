@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8a8cc1da",
+        "filename": "midolman/src/deb/bin/mm-ctl",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-07T04:43:12Z",
+      "side": 1,
+      "message": "mm-ctl isn\u0027t a human-facing command, isn\u0027t it?\nthe original mm-ctl doesn\u0027t seem catching the corresponding exceptions either.\nif you feel strongly i can do it though.",
+      "parentUuid": "baa041b7_01d6614e",
+      "revId": "500c06808b12f88f5a74074cf1b32a07e353b2f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_21d3a561",
         "filename": "midolman/src/deb/bin/mm-ctl",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2016-06-03T10:49:31Z",
       "side": 1,
       "message": "Here you should print the usage.",
+      "revId": "500c06808b12f88f5a74074cf1b32a07e353b2f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6a873db5",
+        "filename": "midolman/src/deb/bin/mm-ctl",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-07T04:43:12Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "baa041b7_21d3a561",
       "revId": "500c06808b12f88f5a74074cf1b32a07e353b2f2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
