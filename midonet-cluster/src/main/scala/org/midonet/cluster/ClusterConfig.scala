@@ -17,6 +17,8 @@ package org.midonet.cluster
 
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.duration._
+
 import com.typesafe.config.{Config, ConfigFactory}
 
 import org.midonet.cluster.services.containers.ContainerService
@@ -167,4 +169,13 @@ class StateProxyConfig(val conf: Config) extends MinionConfig[StateProxy] {
     final val Prefix = "cluster.state_proxy"
 
     override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    def serverAddress = conf.getString(s"$Prefix.server.address")
+    def serverPort = conf.getInt(s"$Prefix.server.port")
+    def serverSupervisorThreads = conf.getInt(s"$Prefix.server.supervisor_threads")
+    def serverWorkerThreads = conf.getInt(s"$Prefix.server.worker_threads")
+    def serverMaxPendingConnections = conf.getInt(s"$Prefix.server.max_pending_connections")
+    def serverBindRetryInterval = conf.getDuration(s"$Prefix.server.bind_retry_interval", TimeUnit.SECONDS) seconds
+    def serverChannelTimeout = conf.getDuration(s"$Prefix.server.channel_timeout", TimeUnit.MILLISECONDS) millis
+    def serverShutdownQuietPeriod = conf.getDuration(s"$Prefix.server.shutdown_quiet_period", TimeUnit.MILLISECONDS) millis
+    def serverShutdownTimeout = conf.getDuration(s"$Prefix.server.shutdown_timeout", TimeUnit.MILLISECONDS) millis
 }
