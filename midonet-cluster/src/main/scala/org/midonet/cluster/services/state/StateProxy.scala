@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster._
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.state.server.StateProxyServer
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 
@@ -38,16 +39,28 @@ class StateProxy @Inject()(context: Context,
     extends Minion(context) {
 
     private val log = Logger(LoggerFactory.getLogger(stateProxyLog))
+    private var server: StateProxyServer = null
 
     override def isEnabled = config.stateProxy.isEnabled
 
     override def doStart(): Unit = {
         log info s"Stating the state proxy service"
+
+        if (server ne null) {
+            server.close()
+        }
+        server = new StateProxyServer(config.stateProxy)
+
         notifyStarted()
     }
 
     override def doStop(): Unit = {
         log info s"Stopping the state proxy service"
+
+        if (server ne null) {
+            server.close()
+        }
+
         notifyStopped()
     }
 
