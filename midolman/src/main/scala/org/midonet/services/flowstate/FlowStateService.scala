@@ -74,7 +74,7 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
     protected var messageHandler: FlowStateMessageHandler = _
 
     @VisibleForTesting
-    protected val port = config.flowState.port
+    protected val port = config.flowState.udpPort
 
     @VisibleForTesting
     /** Initialize the UDP server frontend. Cassandra session MUST be

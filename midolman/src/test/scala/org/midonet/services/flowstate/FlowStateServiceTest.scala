@@ -144,14 +144,14 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
             Then("The socket is bound on configured port")
             intercept[BindException] {
-                new DatagramSocket(midolmanConfig.flowState.port)
+                new DatagramSocket(midolmanConfig.flowState.udpPort)
             }
 
             When("The service is stopped")
             service.stopAsync().awaitTerminated(10, TimeUnit.SECONDS)
 
             Then("The port is unbound")
-            new DatagramSocket(midolmanConfig.flowState.port).close()
+            new DatagramSocket(midolmanConfig.flowState.udpPort).close()
         }
 
         scenario("Service is enabled in the default configuration schema") {
