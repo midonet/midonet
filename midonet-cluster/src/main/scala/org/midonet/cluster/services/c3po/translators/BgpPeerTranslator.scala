@@ -41,7 +41,7 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateCreate(bgpPeer: NeutronBgpPeer)
     : OperationList = {
         val speaker = bgpPeer.getBgpSpeaker
-        val router = storage.get(classOf[Router], speaker.getRouterId).await()
+        val router = storage.get(classOf[Router], speaker.getLogicalRouter).await()
 
         val (chainId, chainOps) = ensureRedirectChain(router)
 
@@ -72,7 +72,7 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateDelete(bgpPeer: NeutronBgpPeer)
     : OperationList = {
          val router = storage.get(classOf[Router],
-                                  bgpPeer.getBgpSpeaker.getRouterId).await()
+                                  bgpPeer.getBgpSpeaker.getLogicalRouter).await()
 
         val ops = new OperationListBuffer
         ops ++= deleteBgpPeer(router, bgpPeer.getId)
