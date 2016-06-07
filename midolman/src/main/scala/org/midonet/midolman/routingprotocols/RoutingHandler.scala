@@ -373,13 +373,20 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         case RemovePeerRoute(ribType, destination, gateway) =>
             log.info(s"Forgetting route: $ribType, $destination, $gateway")
+            var portId = rport.id
+            for (pbi <- currentPortBgps) {
+                if (gateway.toString == pbi.bgpPeerIp) {
+                    portId = pbi.portId
+                }
+            }
+
             val route = new Route()
             route.setRouterId(rport.deviceId)
             route.setDstNetworkAddr(destination.getAddress.toString)
             route.setDstNetworkLength(destination.getPrefixLen)
             route.setNextHopGateway(gateway.toString)
             route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
-            route.setNextHopPort(rport.id)
+            route.setNextHopPort(portId)
             route.setLearned(true)
             peerRoutes.remove(route) match {
                 case None => // route missing
