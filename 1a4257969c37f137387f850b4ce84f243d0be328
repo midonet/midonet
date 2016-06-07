@@ -22,6 +22,30 @@
       "revId": "1a4257969c37f137387f850b4ce84f243d0be328",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dd65ee44",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/WaitingRoom.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-07T13:01:12Z",
+      "side": 1,
+      "message": "this would imply a doExpirations() which uses an iterator to iterate over the entries. iterator() allocs, and since we run doExpirations very often, this is bad.",
+      "parentUuid": "baa041b7_3d485acb",
+      "range": {
+        "startLine": 61,
+        "startChar": 8,
+        "endLine": 61,
+        "endChar": 25
+      },
+      "revId": "1a4257969c37f137387f850b4ce84f243d0be328",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
