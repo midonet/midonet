@@ -16,6 +16,24 @@
       "revId": "3868ed3a4987159709a6f423cb56ee0911105ce8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8516f249",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-07T05:54:32Z",
+      "side": 1,
+      "message": "i don\u0027t understand why it\u0027s a good idea to embed the name of consumer (taas) in the midonet model.  i actually prefer names not tied to a specific consumer.\n\ni agree with the ideal names and it isn\u0027t an option.",
+      "parentUuid": "baa041b7_de84040c",
+      "revId": "3868ed3a4987159709a6f423cb56ee0911105ce8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
