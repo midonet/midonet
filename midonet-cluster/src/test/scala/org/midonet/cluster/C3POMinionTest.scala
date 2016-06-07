@@ -983,7 +983,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         sgId
     }
 
-    protected def bgpSpeakerJson(routerId: UUID,
+    protected def bgpSpeakerJson(logicalRouterId: UUID,
                                  id: UUID = UUID.randomUUID(),
                                  tenantId: String = "admin",
                                  name: String = null,
@@ -997,7 +997,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         p.put("name", name)
         p.put("local_as", localAs)
         p.put("ip_version", ipVersion)
-        p.put("router_id", routerId.toString)
+        p.put("logical_router", logicalRouterId.toString)
         val delPeersNode = p.putArray("del_bgp_peer_ids")
         for (peerId <- delBgpPeerIds) delPeersNode.add(peerId.toString)
         p

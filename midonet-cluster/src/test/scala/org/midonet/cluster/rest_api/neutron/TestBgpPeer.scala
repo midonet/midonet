@@ -43,7 +43,7 @@ class TestBgpPeer extends NeutronApiTest {
 
         val bgpSpeaker = new BgpSpeaker
         bgpSpeaker.id = UUID.randomUUID()
-        bgpSpeaker.routerId = router.id
+        bgpSpeaker.logicalRouter = router.id
         bgpSpeaker.delBgpPeerIds = new util.ArrayList[UUID]()
 
         val bgpPeer = new BgpPeer

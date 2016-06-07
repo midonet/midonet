@@ -49,9 +49,9 @@ public class BgpSpeaker extends ZoomObject {
     @ZoomField(name = "ip_version")
     public Integer ipVersion;
 
-    @JsonProperty("router_id")
-    @ZoomField(name = "router_id")
-    public UUID routerId;
+    @JsonProperty("logical_router")
+    @ZoomField(name = "logical_router")
+    public UUID logicalRouter;
 
     @JsonProperty("del_bgp_peer_ids")
     @ZoomField(name = "del_bgp_peer_ids")
@@ -73,14 +73,14 @@ public class BgpSpeaker extends ZoomObject {
                Objects.equals(name, that.name) &&
                Objects.equals(localAs, that.localAs) &&
                Objects.equals(ipVersion, that.ipVersion) &&
-               Objects.equals(routerId, that.routerId) &&
+               Objects.equals(logicalRouter, that.logicalRouter) &&
                isEqualList(delBgpPeerIds, that.delBgpPeerIds);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, tenantId, name, localAs, ipVersion, routerId,
-                            delBgpPeerIds);
+        return Objects.hash(id, tenantId, name, localAs, ipVersion,
+                            logicalRouter, delBgpPeerIds);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class BgpSpeaker extends ZoomObject {
             .add("name", name)
             .add("localAs", localAs)
             .add("ipVersion", ipVersion)
-            .add("routerId", routerId)
+            .add("routerId", logicalRouter)
             .add("delBgpPeerIds", delBgpPeerIds)
             .toString();
     }

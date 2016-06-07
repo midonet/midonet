@@ -507,7 +507,7 @@ message NeutronBgpSpeaker {
     optional string name = 3;
     optional uint32 local_as = 4;
     optional uint32 ip_version = 5;
-    optional UUID router_id = 6;
+    optional UUID logical_router = 6;
     repeated UUID del_bgp_peer_ids = 7;
 }
 

@@ -42,7 +42,7 @@ class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
             return List()
 
         val router =
-            storage.get(classOf[Router], bgpSpeaker.getRouterId).await()
+            storage.get(classOf[Router], bgpSpeaker.getLogicalRouter).await()
 
         val ops = new OperationListBuffer
 
