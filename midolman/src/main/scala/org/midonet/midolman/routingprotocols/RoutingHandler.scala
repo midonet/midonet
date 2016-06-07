@@ -373,14 +373,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         case RemovePeerRoute(ribType, destination, gateway) =>
             log.info(s"Forgetting route: $ribType, $destination, $gateway")
-            val route = new Route()
-            route.setRouterId(rport.deviceId)
-            route.setDstNetworkAddr(destination.getAddress.toString)
-            route.setDstNetworkLength(destination.getPrefixLen)
-            route.setNextHopGateway(gateway.toString)
-            route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
-            route.setNextHopPort(rport.id)
-            route.setLearned(true)
+
+            val route = makeRoute(destination, gateway.toString)
             peerRoutes.remove(route) match {
                 case None => // route missing
                 case Some(null) => // route not published
@@ -455,24 +449,27 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def makeRoute(destination: IPv4Subnet, path: ZebraPath): Route = {
+        val route = makeRoute(destination, path.gateway.toString)
+        route.setWeight(path.distance)
+        route
+    }
+
+    private def makeRoute(destination: IPv4Subnet, gwIp: String): Route = {
         val route = new Route()
-        var portId = rport.id
-        for (pbi <- currentPortBgps) {
-            if (path.gateway.toString == pbi.bgpPeerIp) {
-                portId = pbi.portId
-            }
-        }
+        val portId = currentPortBgps.find(_.bgpPeerIp == gwIp)
+            .map(_.portId)
+            .getOrElse(rport.id)
 
         route.setRouterId(rport.deviceId)
         route.setDstNetworkAddr(destination.getAddress.toString)
         route.setDstNetworkLength(destination.getPrefixLen)
-        route.setNextHopGateway(path.gateway.toString)
+        route.setNextHopGateway(gwIp)
         route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
         route.setNextHopPort(portId)
-        route.setWeight(path.distance)
         route.setLearned(true)
         route
     }
+
 
     /*
      * Publishes routes to a prefix.
