@@ -373,13 +373,20 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         case RemovePeerRoute(ribType, destination, gateway) =>
             log.info(s"Forgetting route: $ribType, $destination, $gateway")
+            var portId = rport.id
+            for (pbi <- currentPortBgps) {
+                if (gateway.toString == pbi.bgpPeerIp) {
+                    portId = pbi.portId
+                }
+            }
+
             val route = new Route()
             route.setRouterId(rport.deviceId)
             route.setDstNetworkAddr(destination.getAddress.toString)
             route.setDstNetworkLength(destination.getPrefixLen)
             route.setNextHopGateway(gateway.toString)
             route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
-            route.setNextHopPort(rport.id)
+            route.setNextHopPort(portId)
             route.setLearned(true)
             peerRoutes.remove(route) match {
                 case None => // route missing
@@ -456,17 +463,15 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private def makeRoute(destination: IPv4Subnet, path: ZebraPath): Route = {
         val route = new Route()
-        var portId = rport.id
-        for (pbi <- currentPortBgps) {
-            if (path.gateway.toString == pbi.bgpPeerIp) {
-                portId = pbi.portId
-            }
-        }
+        val gwIp = path.gateway.toString
+        val portId = currentPortBgps.find(_.bgpPeerIp == gwIp)
+            .map(_.portId)
+            .getOrElse(rport.id)
 
         route.setRouterId(rport.deviceId)
         route.setDstNetworkAddr(destination.getAddress.toString)
         route.setDstNetworkLength(destination.getPrefixLen)
-        route.setNextHopGateway(path.gateway.toString)
+        route.setNextHopGateway(gwIp)
         route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
         route.setNextHopPort(portId)
         route.setWeight(path.distance)
