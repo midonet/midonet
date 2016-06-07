@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_101b3e82",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-07T10:05:54Z",
+      "side": 1,
+      "message": "Oh, right. You\u0027d have to throw in a map(_.portId) before the getOrElse. I\u0027ll do it, after I investigate the test failures.",
+      "parentUuid": "baa041b7_b0b5b2ed",
+      "range": {
+        "startLine": 376,
+        "startChar": 0,
+        "endLine": 381,
+        "endChar": 13
+      },
+      "revId": "48c39c6035915dc207beb5b2a61d797bf5a19f2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_70660aee",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 1
