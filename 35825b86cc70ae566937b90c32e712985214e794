@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e23929a5",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T15:38:17Z",
+      "side": 1,
+      "message": "why not Request and Response? Even the notify messages are responses, since they require a subscribe to start with.",
+      "range": {
+        "startLine": 165,
+        "startChar": 8,
+        "endLine": 165,
+        "endChar": 21
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c23ce594",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T15:38:17Z",
+      "side": 1,
+      "message": "when do you see this being used?",
+      "range": {
+        "startLine": 192,
+        "startChar": 12,
+        "endLine": 192,
+        "endChar": 19
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_624e393c",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T15:38:17Z",
+      "side": 1,
+      "message": "what is this for?",
+      "range": {
+        "startLine": 233,
+        "startChar": 28,
+        "endLine": 233,
+        "endChar": 43
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
