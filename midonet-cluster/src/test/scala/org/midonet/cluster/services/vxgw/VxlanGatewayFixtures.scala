@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory._
 
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
+import org.midonet.cluster.backend.MockDirectory
 import org.midonet.cluster.data.storage.{ObjectExistsException, StateTable, StateTableStorage, Storage}
 import org.midonet.cluster.data.vtep.model.{MacLocation, PhysicalSwitch}
 import org.midonet.cluster.models.Topology._
@@ -39,7 +40,6 @@ import org.midonet.cluster.storage.{Ip4MacStateTable, MacIdStateTable}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
 import org.midonet.cluster.util.IPAddressUtil
-import org.midonet.midolman.state.MockDirectory
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.ConnectionState.Disconnected
 import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
