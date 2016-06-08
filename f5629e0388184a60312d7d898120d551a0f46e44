@@ -22,6 +22,184 @@
       "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6cc75296",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T09:00:06Z",
+      "side": 1,
+      "message": "I would split client-\u003eserver and server-\u003eclient messages into separate messages.",
+      "range": {
+        "startLine": 164,
+        "startChar": 8,
+        "endLine": 164,
+        "endChar": 15
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0cb8c60f",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T09:00:06Z",
+      "side": 1,
+      "message": "What is this used for now?",
+      "range": {
+        "startLine": 176,
+        "startChar": 24,
+        "endLine": 176,
+        "endChar": 39
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ac3f9a85",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T09:00:06Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 181,
+        "startChar": 22,
+        "endLine": 181,
+        "endChar": 34
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ec3922a5",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T09:00:06Z",
+      "side": 1,
+      "message": "the client should already have the old_value. If it doesn\u0027t then it shouldn\u0027t care about it anyhow. I would just send the new_value. I assume in the case of deletion, new_value is unset?",
+      "range": {
+        "startLine": 223,
+        "startChar": 34,
+        "endLine": 223,
+        "endChar": 43
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cc3c1e95",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T09:00:06Z",
+      "side": 1,
+      "message": "I wouldn\u0027t bundle multiple changes into a single message. Just send write the change to a stream as you see them. TCP will guarantee that they arrive at the client in the correct order. Similarly for snapshot. Just ship a set of KV-pairs, with a flag whether it\u0027s an update or part of a snapshot. The client should know that when it sees a snapshot, it should clear it\u0027s current state and start updating again.",
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8c42960d",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T09:00:06Z",
+      "side": 1,
+      "message": "why do we need an ack? also, there should be a ping message, that the client sends periodically. Not sure if it needs to contain the subscription_id even, since the subscriptions on the server side should be tied to the tcp connection.",
+      "range": {
+        "startLine": 243,
+        "startChar": 12,
+        "endLine": 243,
+        "endChar": 23
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0ce1e629",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T09:00:06Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 251,
+        "startChar": 12,
+        "endLine": 251,
+        "endChar": 27
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ecd2425b",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T09:00:06Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 252,
+        "startChar": 12,
+        "endLine": 252,
+        "endChar": 28
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
