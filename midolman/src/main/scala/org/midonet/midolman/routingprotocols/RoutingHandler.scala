@@ -291,6 +291,9 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     /** IP addresses to update bgpd with on startup/restart. */
     protected var newPortBgps: Seq[PortBgpInfo] = Seq()
 
+    case class PeerRoute(destination: String, gateway: String)
+    private val peerRouteToPort = mutable.Map[PeerRoute, UUID]()
+
     /* IP address to use as the router-id.
      * Only used with BGP on Interior ports
      */
@@ -379,7 +382,10 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         case RemovePeerRoute(ribType, destination, gateway) =>
             log.info(s"Forgetting route: $ribType, $destination, $gateway")
 
-            val route = makeRoute(destination, gateway.toString)
+            val portId = peerRouteToPort.remove(
+                PeerRoute(destination.toString, gateway.toString))
+                .getOrElse(rport.id)
+            val route = makeRoute(destination, gateway.toString, portId)
             peerRoutes.remove(route) match {
                 case None => // route missing
                 case Some(null) => // route not published
@@ -454,17 +460,19 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def makeRoute(destination: IPv4Subnet, path: ZebraPath): Route = {
-        val route = makeRoute(destination, path.gateway.toString)
+        val portId = currentPortBgps.find(_.bgpPeerIp == path.gateway.toString)
+            .map(_.portId)
+            .getOrElse(rport.id)
+        peerRouteToPort.put(PeerRoute(destination.toString,
+                                      path.gateway.toString), portId)
+        val route = makeRoute(destination, path.gateway.toString, portId)
         route.setWeight(path.distance)
         route
     }
 
-    private def makeRoute(destination: IPv4Subnet, gwIp: String): Route = {
+    private def makeRoute(destination: IPv4Subnet, gwIp: String,
+                          portId: UUID): Route = {
         val route = new Route()
-        val portId = currentPortBgps.find(_.bgpPeerIp == gwIp)
-            .map(_.portId)
-            .getOrElse(rport.id)
-
         route.setRouterId(rport.deviceId)
         route.setDstNetworkAddr(destination.getAddress.toString)
         route.setDstNetworkLength(destination.getPrefixLen)
