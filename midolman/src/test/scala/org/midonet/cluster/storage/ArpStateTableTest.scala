@@ -28,8 +28,8 @@ import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkDirectory, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.storage.StateTable.Update
+import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.util.CuratorTestFramework
-import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent._
@@ -52,34 +52,34 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         zkConnWatcher = new ZookeeperConnectionWatcher
     }
 
-    private def getPath(address: IPv4Addr, entry: ArpCacheEntry, version: Int)
+    private def getPath(address: IPv4Addr, entry: ArpEntry, version: Int)
     : String = {
         val formatter = new Formatter()
         formatter.format("%s/%s,%s,%010d", zkRoot, address.toString,
-                         entry.encode(), Int.box(version))
+                         entry.encode, Int.box(version))
         formatter.toString
     }
 
-    private def getPersistentPath(address: IPv4Addr, entry: ArpCacheEntry): String = {
+    private def getPersistentPath(address: IPv4Addr, entry: ArpEntry): String = {
         getPath(address, entry, Int.MaxValue)
     }
 
-    private def hasNode(address: IPv4Addr, entry: ArpCacheEntry, version: Int): Boolean = {
+    private def hasNode(address: IPv4Addr, entry: ArpEntry, version: Int): Boolean = {
         val stat = new Stat
         val data = curator.getData.storingStatIn(stat)
             .forPath(getPath(address, entry, version))
         stat.getEphemeralOwner != 0
     }
 
-    private def hasPersistentNode(address: IPv4Addr, entry: ArpCacheEntry): Boolean = {
+    private def hasPersistentNode(address: IPv4Addr, entry: ArpEntry): Boolean = {
         val stat = new Stat
         val data = curator.getData.storingStatIn(stat)
             .forPath(getPersistentPath(address, entry))
         stat.getEphemeralOwner == 0
     }
 
-    private def randomArpEntry(): ArpCacheEntry = {
-        new ArpCacheEntry(MAC.random(), 0L, 0L, 0L)
+    private def randomArpEntry(): ArpEntry = {
+        new ArpEntry(MAC.random(), 0L, 0L, 0L)
     }
 
     "State table" should "support ephemeral CRUD operations for single entry" in {
@@ -87,7 +87,7 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         val table = new ArpStateTable(directory, zkConnWatcher)
 
         And("An observer to the table")
-        val obs = new TestAwaitableObserver[Update[IPv4Addr, ArpCacheEntry]]
+        val obs = new TestAwaitableObserver[Update[IPv4Addr, ArpEntry]]
         table.observable subscribe obs
 
         When("Adding a IP-entry pair to the table")
@@ -144,7 +144,7 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         val table = new ArpStateTable(directory, zkConnWatcher)
 
         And("An observer to the table")
-        val obs = new TestAwaitableObserver[Update[IPv4Addr, ArpCacheEntry]]
+        val obs = new TestAwaitableObserver[Update[IPv4Addr, ArpEntry]]
         table.observable subscribe obs
 
         When("Adding a IP-entry pair to the table")
@@ -218,7 +218,7 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         And("The table snapshot should have all entries")
         table.localSnapshot shouldBe Map(ip1 -> entry4, ip2 -> entry2, ip3 -> entry3)
 
-        When("Deleting the secindIP-ArpCacheEntry pair")
+        When("Deleting the second IP-ArpEntry pair")
         eventually { table.remove(ip2) shouldBe entry2 }
 
         Then("The observer should receive the update")
@@ -235,7 +235,7 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         val table = new ArpStateTable(directory, zkConnWatcher)
 
         And("An observer to the table")
-        val obs = new TestAwaitableObserver[Update[IPv4Addr, ArpCacheEntry]]
+        val obs = new TestAwaitableObserver[Update[IPv4Addr, ArpEntry]]
         table.observable subscribe obs
 
         When("Adding a IP-entry pair to the table")
@@ -260,7 +260,7 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         // TODO: because in the underlying implementation the version number
         // TODO: does not change.
 
-        When("Deleting the first IP-ArpCacheEntry pair")
+        When("Deleting the first IP-ArpEntry pair")
         table.removePersistent(ip1, entry1).await(timeout) shouldBe true
 
         Then("The observer should receive the update")
