@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2cb82a29",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/model/ArpEntry.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T08:40:32Z",
+      "side": 1,
+      "message": "maybe make a lazy val",
+      "range": {
+        "startLine": 56,
+        "startChar": 4,
+        "endLine": 56,
+        "endChar": 7
+      },
+      "revId": "2b916be821a62f44c379c494bf510210573c5904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
