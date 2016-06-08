@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
  */
 class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
 
-    private[this] val waiters = new java.util.HashSet[W]()
+    private[this] val waiters = new java.util.HashMap[W, Long]()
     private[this] val timeouts = new mutable.ListBuffer[(W, Long)]()
 
     /**
@@ -46,13 +46,16 @@ class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
      * If the element is already in the waiting room, it will not be added again
      * and the *old* waiting time remains unaltered.
      */
-    def enter(w: W): Boolean =
-        if (waiters.add(w)) {
-            timeouts += ((w, System.nanoTime() + timeout))
+    def enter(w: W): Boolean = {
+        val waitFor = System.nanoTime() + timeout
+        if (!waiters.containsKey(w)) {
+            waiters.put(w, waitFor)
+            timeouts += ((w, waitFor))
             true
         } else {
             false
         }
+    }
 
     def leave(w: W): Unit = {
         waiters.remove(w)
@@ -61,9 +64,12 @@ class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
     def doExpirations(f: W => Unit): Unit = {
         val now = System.nanoTime()
         while (timeouts.nonEmpty && (now - timeouts.head._2) > 0) {
-            val w = (timeouts remove 0)._1
-            if (waiters.remove(w)) {
-                f(w)
+            val pair = timeouts remove 0
+            val waiter = pair._1
+            val timeout = pair._2
+            if (waiters.containsKey(waiter)
+                    && waiters.remove(waiter) == timeout) {
+                f(waiter)
             }
         }
     }

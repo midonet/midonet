@@ -16,6 +16,7 @@
 package org.midonet.midolman
 
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable.ListBuffer
 
 import org.scalatest.{Matchers, FeatureSpec}
@@ -84,6 +85,23 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
             Thread.sleep(TimeUnit.NANOSECONDS.toMillis(to))
             wr enter 4
             evictions(wr) should (contain(1) and contain(3) and not contain 2)
+        }
+    }
+
+    feature("Reentry of objects") {
+        scenario("A waiter is added, completes, and is added again.") {
+            val wr = new WaitingRoom[AtomicInteger](to)
+            val waiter = new AtomicInteger(0)
+
+            wr enter waiter
+            wr leave waiter
+
+            Thread.sleep(TimeUnit.NANOSECONDS.toMillis(to))
+
+            wr enter waiter
+            wr.doExpirations(_.incrementAndGet)
+
+            waiter.get shouldBe 0
         }
     }
 }
