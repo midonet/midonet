@@ -19,7 +19,6 @@ package org.midonet.midolman.util
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.topology.VirtualTopology
 
 import scala.concurrent.ExecutionContext
@@ -40,7 +39,6 @@ import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.DhcpConfig
 import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockUpcallDatapathConnectionManager}
 import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory}
