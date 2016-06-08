@@ -174,7 +174,7 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
 trait BgpConnection {
     def setAs(as: Int)
 
-    def setRouterId(as: Int, localAddr: IPAddr = IPv4Addr.randomPrivate)
+    def setRouterId(as: Int, localAddr: IPAddr)
 
     def addPeerEbgp(as: Int, peer: IPAddr)
 
@@ -228,7 +228,7 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
         })
     }
 
-    override def setRouterId(as: Int, localAddr: IPAddr = IPv4Addr.randomPrivate) {
+    override def setRouterId(as: Int, localAddr: IPAddr) {
         exec(SetAs(as, s"bgp router-id $localAddr"))
     }
 
