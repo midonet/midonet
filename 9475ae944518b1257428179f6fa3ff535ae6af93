@@ -48,6 +48,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_cc52de12",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-08T08:25:05Z",
+      "side": 1,
+      "message": "Do we actually ever use len?",
+      "range": {
+        "startLine": 42,
+        "startChar": 37,
+        "endLine": 42,
+        "endChar": 45
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_96d18e25",
         "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
         "patchSetId": 5
