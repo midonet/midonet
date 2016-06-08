@@ -45,6 +45,7 @@ import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => 
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.StateTableStorage
+import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
@@ -56,7 +57,7 @@ import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.c3po.translators.StateTableManager
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
-import org.midonet.cluster.storage.{Ip4MacStateTable, MacIdStateTable, MacIp4StateTable, MidonetBackendConfig}
+import org.midonet.cluster.storage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.{DataClient => LegacyDataClient}
@@ -336,6 +337,10 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                     classOf[Topology.Network], classOf[IPv4Addr],
                     classOf[MAC], MidonetBackend.Ip4MacTable,
                     classOf[Ip4MacStateTable])
+                stateTableStore.registerTable(
+                    classOf[Router], classOf[IPv4Addr],
+                    classOf[ArpEntry], MidonetBackend.ArpTable,
+                    classOf[ArpStateTable])
             }
         }
         backend.startAsync().awaitRunning()

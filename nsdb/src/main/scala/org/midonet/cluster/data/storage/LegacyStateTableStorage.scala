@@ -17,7 +17,7 @@
 package org.midonet.cluster.data.storage
 
 import org.midonet.cluster.data.ObjId
-import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.models.Topology.{Network, Router}
 import org.midonet.cluster.services.MidonetBackend._
 
 /**
@@ -37,6 +37,9 @@ trait LegacyStateTableStorage {
         }),
         (classOf[Network], Ip4MacTable) -> ((id: ObjId, args: Seq[Any]) => {
             s"$rootPath/bridges/$id/ip4_mac_map"
+        }),
+        (classOf[Router], ArpTable) -> ((id: ObjId, args: Seq[Any]) => {
+            s"$rootPath/routers/$id/arp_table"
         })
     )
 
