@@ -353,7 +353,7 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
             .map(_.await()) shouldBe Seq(false, false)
 
         val peeringTablePath =
-            backend.stateTableStore.routerPortPeeringTablePath(rtrPortId.asJava)
+            backend.stateTableStore.portPeeringTablePath(rtrPortId.asJava)
         curator.checkExists().forPath(peeringTablePath) shouldBe null
     }
 
@@ -394,7 +394,7 @@ class L2GatewayConnectionTranslatorIT extends C3POMinionTestBase
         } should contain theSameElementsAs rmIds
 
         val peeringTable =
-            backend.stateTableStore.routerPortPeeringTable(rtrPortId.asJava)
+            backend.stateTableStore.portPeeringTable(rtrPortId.asJava)
         peeringTable.remoteSnapshot.await() should
             contain theSameElementsAs rms.map(rm => (rm.mac, rm.ip))
     }

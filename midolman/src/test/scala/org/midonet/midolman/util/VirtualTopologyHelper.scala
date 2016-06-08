@@ -99,7 +99,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     }
 
     def feedPeeringTable(port: UUID, mac: MAC, ip: IPv4Addr): Unit = {
-        val map = virtualTopology.backend.stateTableStore.routerPortPeeringTable(port)
+        val map = virtualTopology.backend.stateTableStore.portPeeringTable(port)
         map.addPersistent(mac, ip).await()
     }
 

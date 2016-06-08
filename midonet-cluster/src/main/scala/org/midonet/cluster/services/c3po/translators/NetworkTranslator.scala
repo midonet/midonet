@@ -16,13 +16,10 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
@@ -38,7 +35,6 @@ class NetworkTranslator(protected val storage: ReadOnlyStorage,
 
         val ops = new OperationListBuffer
         ops += Create(translate(nn))
-        ops ++= replMapPaths(nn.getId).map(CreateNode(_, null))
         ops.toList
     }
 
@@ -62,7 +58,6 @@ class NetworkTranslator(protected val storage: ReadOnlyStorage,
 
         val ops = new OperationListBuffer
         ops += Delete(classOf[Network], nn.getId)
-        ops ++= replMapPaths(nn.getId).map(DeleteNode)
         ops.toList
     }
 
@@ -73,13 +68,6 @@ class NetworkTranslator(protected val storage: ReadOnlyStorage,
         .setName(network.getName)
         .setAdminStateUp(network.getAdminStateUp)
         .build
-
-    /** Paths for legacy replicated maps (ARP and MAC tables). */
-    private def replMapPaths(networkId: UUID): Iterable[String] = {
-        val id = networkId.asJava
-        Iterable(pathBldr.getBridgeMacPortsPath(id),
-                 pathBldr.getBridgeVlansPath(id))
-    }
 }
 
 private[translators] object NetworkTranslator {

@@ -15,10 +15,14 @@
  */
 package org.midonet.cluster.storage
 
+import java.util.UUID
+
 import com.typesafe.config.Config
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.state.ConnectionState
 import org.mockito.Mockito._
+
 import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
@@ -32,6 +36,9 @@ import org.midonet.util.eventloop.Reactor
 class MidonetTestBackend extends MidonetBackend {
 
     private val inMemoryZoom: InMemoryStorage = new InMemoryStorage()
+    inMemoryZoom.registerTable(classOf[Topology.Network], classOf[MAC],
+                               classOf[UUID], MidonetBackend.MacTable,
+                               classOf[MacIdStateTable])
     inMemoryZoom.registerTable(classOf[Topology.Network], classOf[IPv4Addr],
                                classOf[MAC], MidonetBackend.Ip4MacTable,
                                classOf[Ip4MacStateTable])

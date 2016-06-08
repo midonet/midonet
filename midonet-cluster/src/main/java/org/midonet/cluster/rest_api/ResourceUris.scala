@@ -15,12 +15,6 @@
  */
 package org.midonet.cluster.rest_api
 
-import java.util.UUID
-import scala.util.Try
-
-import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.packets.{IPv4Addr, MAC}
-
 /**
  * This class contains the name of all the resources that are exposed via our
  * REST API.
@@ -71,23 +65,6 @@ object ResourceUris {
 
     def macToUri(mac: String): String = {
         mac.replace(':', '-')
-    }
-
-    def macPortUriToMac(macPortAsUri: String): MAC = {
-        MAC.fromString(macPortAsUri.split("_")(0).replace('-', ':'))
-    }
-
-    def macPortUriToPort(macPortAsUri: String): UUID = {
-        UUID.fromString(macPortAsUri.split("_")(1))
-    }
-
-    def parseMacIpPair(pair: String): (IPv4Addr, MAC) = {
-        val parts = pair.split("_")
-        val address = Try(IPv4Addr.fromString(parts(0))).getOrElse(
-            throw new BadRequestHttpException(getMessage(IP_ADDR_INVALID)))
-        val mac = Try(MAC.fromString(parts(1).replace('-', ':'))).getOrElse(
-            throw new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID)))
-        (address, mac)
     }
 
 }

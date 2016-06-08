@@ -41,8 +41,9 @@ import static org.midonet.cluster.rest_api.ResourceUris.VXLAN_PORTS;
 @ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
 
-    public static final int MIN_BRIDGE_NAME_LEN = 0;
-    public static final int MAX_BRIDGE_NAME_LEN = 255;
+    private static final int MIN_BRIDGE_NAME_LEN = 0;
+    private static final int MAX_BRIDGE_NAME_LEN = 255;
+    public static final short UNTAGGED_VLAN_ID = 0;
 
     @ZoomField(name = "id")
     public UUID id;
