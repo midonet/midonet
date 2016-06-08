@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e7013b06",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/routingprotocols/RoutingHandlerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-08T11:36:22Z",
+      "side": 1,
+      "message": "For future reference, I think you can just use \"shouldBe\" here. If they\u0027re both mutable maps and they have the same elements, they\u0027re equal. Or just skip the expectedMap variable altogether and say:\n\n  peerRouteToPortAccount should contain only (\n      PeerRoute(dstSub, gw1Addr) -\u003e rport.id)",
+      "range": {
+        "startLine": 310,
+        "startChar": 35,
+        "endLine": 310,
+        "endChar": 67
+      },
+      "revId": "4bc3d88768be717f2f4f8034524b5f0129a519ae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c704f715",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/routingprotocols/RoutingHandlerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-08T11:36:22Z",
+      "side": 1,
+      "message": "Or:\n\n  peerRouteToPortAccount should be empty\n\nshouldBe empty? Something like that.",
+      "range": {
+        "startLine": 322,
+        "startChar": 12,
+        "endLine": 322,
+        "endChar": 73
+      },
+      "revId": "4bc3d88768be717f2f4f8034524b5f0129a519ae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
