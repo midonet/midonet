@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_825b7d85",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T16:33:29Z",
+      "side": 1,
+      "message": "Yeah, we can call them like that too. Initially I modeled the protocol using SIP, where message exchanges always come in pairs: request-responses. Since we have optional responses here (ack) maybe that distinction is not really needed.\n\nI was also lazy and didn\u0027t want to change the doc :/",
+      "parentUuid": "baa041b7_e23929a5",
+      "range": {
+        "startLine": 165,
+        "startChar": 8,
+        "endLine": 165,
+        "endChar": 21
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c23ce594",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_22a95124",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T16:33:29Z",
+      "side": 1,
+      "message": "I think this was only in the context of future improvements where we\u0027re able to persists a subscription past the lifetime of a connection (e.g. try and emulate the zk session lifetime). I agree that we can added later too.",
+      "parentUuid": "baa041b7_c23ce594",
+      "range": {
+        "startLine": 192,
+        "startChar": 12,
+        "endLine": 192,
+        "endChar": 19
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_624e393c",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2016-06-08T15:38:17Z",
       "side": 1,
       "message": "what is this for?",
+      "range": {
+        "startLine": 233,
+        "startChar": 28,
+        "endLine": 233,
+        "endChar": 43
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c2c185e5",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T16:33:29Z",
+      "side": 1,
+      "message": "I added this only to distinguish the beginning of a snapshot, in case we make any improvements where sending a current snapshot can be interrupted by a newer one (i.e. the reset message from the spec), so we wouldn\u0027t have to finish sending the entire old snapshot.",
+      "parentUuid": "baa041b7_624e393c",
       "range": {
         "startLine": 233,
         "startChar": 28,
