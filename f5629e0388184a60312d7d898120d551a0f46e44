@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0ca7a6a7",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T10:35:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0b9e73b8",
+      "range": {
+        "startLine": 109,
+        "startChar": 2,
+        "endLine": 109,
+        "endChar": 25
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6cc75296",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-08T09:00:06Z",
       "side": 1,
       "message": "I would split client-\u003eserver and server-\u003eclient messages into separate messages.",
+      "range": {
+        "startLine": 164,
+        "startChar": 8,
+        "endLine": 164,
+        "endChar": 15
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0c4326b0",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T10:35:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6cc75296",
       "range": {
         "startLine": 164,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2c482acb",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T10:35:58Z",
+      "side": 1,
+      "message": "The VLAN ID for bridge mac tables.",
+      "parentUuid": "baa041b7_0cb8c60f",
+      "range": {
+        "startLine": 176,
+        "startChar": 24,
+        "endLine": 176,
+        "endChar": 39
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ac3f9a85",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-08T09:00:06Z",
       "side": 1,
       "message": "typo",
+      "range": {
+        "startLine": 181,
+        "startChar": 22,
+        "endLine": 181,
+        "endChar": 34
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2cc38a39",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T10:35:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ac3f9a85",
       "range": {
         "startLine": 181,
         "startChar": 22,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ac58ba8a",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T10:35:58Z",
+      "side": 1,
+      "message": "removed\nyes, new_value is unset when deleted.",
+      "parentUuid": "baa041b7_ec3922a5",
+      "range": {
+        "startLine": 223,
+        "startChar": 34,
+        "endLine": 223,
+        "endChar": 43
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_cc3c1e95",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 3
@@ -134,6 +254,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8ca05643",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T10:35:58Z",
+      "side": 1,
+      "message": "Done: so this was intended to batch updates.",
+      "parentUuid": "baa041b7_cc3c1e95",
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8c42960d",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 3
@@ -145,6 +283,30 @@
       "writtenOn": "2016-06-08T09:00:06Z",
       "side": 1,
       "message": "why do we need an ack? also, there should be a ping message, that the client sends periodically. Not sure if it needs to contain the subscription_id even, since the subscriptions on the server side should be tied to the tcp connection.",
+      "range": {
+        "startLine": 243,
+        "startChar": 12,
+        "endLine": 243,
+        "endChar": 23
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6c8cf2d9",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T10:35:58Z",
+      "side": 1,
+      "message": "This returns the subscription id for a table.",
+      "parentUuid": "baa041b7_8c42960d",
       "range": {
         "startLine": 243,
         "startChar": 12,
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4c87eeb4",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T10:35:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0ce1e629",
+      "range": {
+        "startLine": 251,
+        "startChar": 12,
+        "endLine": 251,
+        "endChar": 27
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ecd2425b",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 3
@@ -191,6 +377,30 @@
       "writtenOn": "2016-06-08T09:00:06Z",
       "side": 1,
       "message": "typo",
+      "range": {
+        "startLine": 252,
+        "startChar": 12,
+        "endLine": 252,
+        "endChar": 28
+      },
+      "revId": "f5629e0388184a60312d7d898120d551a0f46e44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2c926af6",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-08T10:35:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ecd2425b",
       "range": {
         "startLine": 252,
         "startChar": 12,
