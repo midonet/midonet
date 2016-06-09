@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2916d5f1",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T09:16:07Z",
+      "side": 1,
+      "message": "ZK session lifetime only makes sense in the context of ephemeral nodes, which this client won\u0027t be adding (they\u0027ll go through zk client directly for now).",
+      "parentUuid": "baa041b7_22a95124",
+      "range": {
+        "startLine": 192,
+        "startChar": 12,
+        "endLine": 192,
+        "endChar": 19
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_624e393c",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 4
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "I added this only to distinguish the beginning of a snapshot, in case we make any improvements where sending a current snapshot can be interrupted by a newer one (i.e. the reset message from the spec), so we wouldn\u0027t have to finish sending the entire old snapshot.",
       "parentUuid": "baa041b7_624e393c",
+      "range": {
+        "startLine": 233,
+        "startChar": 28,
+        "endLine": 233,
+        "endChar": 43
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_89e60115",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T09:16:07Z",
+      "side": 1,
+      "message": "Ah, i think that\u0027s an optimisation too soon. It only makes sense to interrupt a snapshot to send a newer one when the sequence of changes is larger than the snapshot.",
+      "parentUuid": "baa041b7_c2c185e5",
       "range": {
         "startLine": 233,
         "startChar": 28,
