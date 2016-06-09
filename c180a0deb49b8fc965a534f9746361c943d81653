@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6f785d2c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Mirror.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T14:31:08Z",
+      "side": 1,
+      "message": "Alternative is a little vague, but I don\u0027t have a better name.",
+      "range": {
+        "startLine": 62,
+        "startChar": 23,
+        "endLine": 62,
+        "endChar": 34
+      },
+      "revId": "c180a0deb49b8fc965a534f9746361c943d81653",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
