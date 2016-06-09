@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_499eb964",
+        "filename": "midolman/src/deb/bin/mm-ctl",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T09:26:34Z",
+      "side": 1,
+      "message": "We should have a note in the configuration document for mn-conf in the minion patch, that warns people against changing the path because mm-ctl expects it in a certain location.",
+      "range": {
+        "startLine": 45,
+        "startChar": 31,
+        "endLine": 45,
+        "endChar": 52
+      },
+      "revId": "41c6d8800ccee7d8c427122cf5f65c36cceaf2c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
