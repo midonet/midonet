@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a901c56c",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-09T09:47:30Z",
+      "side": 1,
+      "message": "i prefer a generic name even if there will be no other users.",
+      "parentUuid": "baa041b7_49c7d964",
+      "range": {
+        "startLine": 421,
+        "startChar": 8,
+        "endLine": 421,
+        "endChar": 22
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_81495133",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 3
@@ -101,6 +125,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_69cdfd5c",
+        "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/AgentRestApiService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-09T09:47:30Z",
+      "side": 1,
+      "message": "i see.  i\u0027ll remove.",
+      "parentUuid": "baa041b7_09a0b1a4",
+      "range": {
+        "startLine": 112,
+        "startChar": 13,
+        "endLine": 112,
+        "endChar": 25
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a9b785f4",
         "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/hacks/UnixDomainSocketChannel.scala",
         "patchSetId": 3
@@ -112,6 +160,30 @@
       "writtenOn": "2016-06-09T09:23:58Z",
       "side": 1,
       "message": "which assumptions?",
+      "range": {
+        "startLine": 33,
+        "startChar": 49,
+        "endLine": 33,
+        "endChar": 60
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a9eae5aa",
+        "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/hacks/UnixDomainSocketChannel.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-09T09:47:30Z",
+      "side": 1,
+      "message": "jetty assumes ServerSocketChannel/SocketChannel, where what we have is AbstractSelectableChannel.",
+      "parentUuid": "baa041b7_a9b785f4",
       "range": {
         "startLine": 33,
         "startChar": 49,
