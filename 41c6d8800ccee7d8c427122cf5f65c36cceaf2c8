@@ -70,6 +70,30 @@
       "revId": "41c6d8800ccee7d8c427122cf5f65c36cceaf2c8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_14032478",
+        "filename": "midolman/src/deb/bin/mm-ctl",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-06-09T12:59:31Z",
+      "side": 1,
+      "message": "If it\u0027s easy, that\u0027d be nice, but we can still point zephyr to this path (as it\u0027s in its own /var/run/midolman/... directory), so it\u0027s not a rush or high priority if it\u0027s troublesome.",
+      "parentUuid": "baa041b7_294a55ad",
+      "range": {
+        "startLine": 45,
+        "startChar": 31,
+        "endLine": 45,
+        "endChar": 52
+      },
+      "revId": "41c6d8800ccee7d8c427122cf5f65c36cceaf2c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
