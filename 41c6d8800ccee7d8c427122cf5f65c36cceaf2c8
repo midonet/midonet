@@ -46,6 +46,30 @@
       "revId": "41c6d8800ccee7d8c427122cf5f65c36cceaf2c8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_294a55ad",
+        "filename": "midolman/src/deb/bin/mm-ctl",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-09T10:12:14Z",
+      "side": 1,
+      "message": "mike,\n\ndoes zephyr need this configurable?\nthis is a unix domain socket used by mm-ctl to communicate with midolman for port bind/unbind.",
+      "parentUuid": "baa041b7_49f11995",
+      "range": {
+        "startLine": 45,
+        "startChar": 31,
+        "endLine": 45,
+        "endChar": 52
+      },
+      "revId": "41c6d8800ccee7d8c427122cf5f65c36cceaf2c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
