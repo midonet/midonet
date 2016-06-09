@@ -81,6 +81,24 @@
       "revId": "0b79c0fbcd0c43215a5fa4f19c470221039ec813",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_099431e6",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T10:33:01Z",
+      "side": 1,
+      "message": "Ah, i think I know what you mean. I had tried to work something like this into the original protocol. It doesn\u0027t work though, because even if you know the last_version, and you connect to a different node, there\u0027s no guarantee that you\u0027ll get all updates, as there\u0027s no guarantee that each node sees all updates, rather they are guaranteed to eventually see the up to date set (think of what happens if a znode is created and deleted between getChildren calls).\n\nIf we move to log tailing, we will be able to guarantee that we see all updates, but given that we can send multiple updates per Update, we can just use 1 version number.",
+      "parentUuid": "baa041b7_09ed518e",
+      "revId": "0b79c0fbcd0c43215a5fa4f19c470221039ec813",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
