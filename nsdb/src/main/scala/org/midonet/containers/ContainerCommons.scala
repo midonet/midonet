@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,18 @@ import java.io._
 
 import scala.util.control.NonFatal
 
-import org.midonet.midolman.logging.MidolmanLogging
+import com.typesafe.scalalogging.Logger
+
+import org.slf4j.LoggerFactory
 
 /**
   * Provides common functions for service containers.
   */
-trait ContainerCommons extends MidolmanLogging {
+trait ContainerCommons  {
+
+    def logSource = getClass.getName
+    val log = Logger(LoggerFactory.getLogger(logSource))
+
 
     /**
       * Writes the specified string in a text file at the given path.
