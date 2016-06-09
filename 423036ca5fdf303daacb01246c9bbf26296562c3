@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_2f47f54c",
+        "filename": "midolman/src/main/java/org/midonet/services/agent_rest_api/hacks/UnixDomainServerConnector.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T13:53:14Z",
+      "side": 1,
+      "message": "I\u0027m missing some context as to why we need all these hacks. Is it for performance reasons? Conflict with some other dependency? Can you add an explanation to the commit message?\n\nWe already have a rest api based on jersey that doesn\u0027t need these hacks? What\u0027s the difference here?",
+      "range": {
+        "startLine": 86,
+        "startChar": 13,
+        "endLine": 86,
+        "endChar": 38
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_af71c5aa",
+        "filename": "midolman/src/main/java/org/midonet/services/agent_rest_api/hacks/UnixDomainServerConnector.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T13:53:14Z",
+      "side": 1,
+      "message": "A bunch of trailing spaces here and below.",
+      "range": {
+        "startLine": 106,
+        "startChar": 82,
+        "endLine": 106,
+        "endChar": 83
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6f361de9",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T13:53:14Z",
+      "side": 1,
+      "message": "Add the logger.",
+      "range": {
+        "startLine": 290,
+        "startChar": 8,
+        "endLine": 290,
+        "endChar": 52
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_49c7d964",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 3
@@ -42,6 +111,29 @@
         "startChar": 8,
         "endLine": 421,
         "endChar": 22
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6f0f3d2f",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T13:53:14Z",
+      "side": 1,
+      "message": "I don\u0027t have a strong opinion but I also feel that rest_api is too generic for the agent, I mean the agent agent should run only some very specific services. It also seems confusing with the MidoNet REST API that runs at the cluster.\n\nIn addition, the \"agent_\" prefix seems redundant: this is agent.conf and everything is already prefixed by \"agent\"",
+      "range": {
+        "startLine": 421,
+        "startChar": 8,
+        "endLine": 421,
+        "endChar": 15
       },
       "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -102,6 +194,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8f3961db",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T13:53:14Z",
+      "side": 1,
+      "message": "So like commented in agent.conf the \"Agent\" prefix seems redundant.",
+      "range": {
+        "startLine": 242,
+        "startChar": 6,
+        "endLine": 242,
+        "endChar": 11
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_09a0b1a4",
         "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/AgentRestApiService.scala",
         "patchSetId": 3
@@ -142,6 +257,29 @@
         "startChar": 13,
         "endLine": 112,
         "endChar": 25
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4f3359f7",
+        "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/BindingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T13:53:14Z",
+      "side": 1,
+      "message": "Needed?",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 16
       },
       "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
