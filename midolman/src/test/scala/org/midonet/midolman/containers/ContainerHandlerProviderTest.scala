@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory
 
 import rx.Observable
 
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.containers.{Container, ContainerHandler, ContainerPort, ContainerStatus}
 import org.midonet.midolman.containers.ContainerHandlerProviderTest.TestContainer
 import org.midonet.midolman.topology.VirtualTopology
@@ -43,6 +44,7 @@ object ContainerHandlerProviderTest {
     @Container(name = "test-handler", version = 1)
     class TestContainer @Inject()(@Named("id") val id: UUID,
                                   val vt: VirtualTopology,
+                                  val backend: MidonetBackend,
                                   @Named("container") val containerExecutor: ExecutorService,
                                   @Named("io") val ioExecutor: ScheduledExecutorService)
         extends ContainerHandler {
@@ -64,8 +66,10 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
 
     "Container provider" should "load a container with the VT as argument" in {
         Given("A mock virtual topology")
+        val backend = Mockito.mock(classOf[MidonetBackend])
         val vt = Mockito.mock(classOf[VirtualTopology])
         val executor = Mockito.mock(classOf[ScheduledExecutorService])
+        Mockito.when(vt.backend).thenReturn(backend)
 
         And("A provider for the current class path")
         val provider = new ContainerHandlerProvider(reflections, vt, executor,
@@ -81,14 +85,17 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
         container should not be null
         container.id shouldBe id
         container.vt shouldBe vt
+        container.backend shouldBe vt.backend
         container.containerExecutor shouldBe executor
         container.ioExecutor shouldBe executor
     }
 
     "Container provider" should "fail to create container without identifier" in {
         Given("A mock virtual topology")
+        val backend = Mockito.mock(classOf[MidonetBackend])
         val vt = Mockito.mock(classOf[VirtualTopology])
         val executor = Mockito.mock(classOf[ScheduledExecutorService])
+        Mockito.when(vt.backend).thenReturn(backend)
 
         And("A provider for the current class path")
         val provider = new ContainerHandlerProvider(reflections, vt, executor,
