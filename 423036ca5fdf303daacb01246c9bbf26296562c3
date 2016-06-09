@@ -287,6 +287,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_afa8a5dc",
+        "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/BindingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T13:56:07Z",
+      "side": 1,
+      "message": "Why not bind the binder in Guice instead of creating a new instance for every call?",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 43
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a9b785f4",
         "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/hacks/UnixDomainSocketChannel.scala",
         "patchSetId": 3
