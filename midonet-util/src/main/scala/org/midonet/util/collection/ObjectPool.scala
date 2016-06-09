@@ -16,6 +16,8 @@
 
 package org.midonet.util.collection
 
+import scala.collection.mutable
+
 trait ObjectPool[T >: Null] {
     def take: T
 
@@ -89,4 +91,43 @@ final class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
             pool(available) = element
             available += 1
         }
+}
+
+final class DynamicObjectPool[T >: Null : Manifest](val capacity: Int,
+                                                    val factory: ObjectPool[T] => T,
+                                                    val clear: T => Unit)
+    extends ObjectPool[T] {
+
+    private[util] val free = mutable.ListBuffer.empty[T]
+    private[util] val taken = mutable.HashSet.empty[T]
+
+    def take: T =
+        if (available > 0) {
+            val elem = free.remove(0)
+            taken += elem
+            elem
+        } else if (size < capacity) {
+            val elem = factory(this)
+            taken += elem
+            elem
+        } else {
+            null
+        }
+
+    def offer(element: T): Unit =
+        if (available < capacity) {
+            free += element
+            taken -= element
+        }
+
+    def available: Int = free.size
+
+    def release: Unit = {
+        free foreach clear
+        taken foreach clear
+        free.clear()
+        taken.clear()
+    }
+
+    def size: Int = free.size + taken.size
 }

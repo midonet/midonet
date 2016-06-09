@@ -76,4 +76,68 @@ class ObjectPoolTest extends FeatureSpec with Matchers with OneInstancePerTest {
             }
         }
     }
+
+    feature ("DynamicPooledObjects are pooled") {
+        class PObject(val pool: ObjectPool[PObject]) extends PooledObject {
+            override def clear(): Unit = { clearCount += 1 }
+
+            var clearCount = 0
+        }
+
+        def initPool(): DynamicObjectPool[PObject] = {
+            new DynamicObjectPool[PObject](capacity,
+                                           new PObject(_),
+                                           (p: PObject) => p.clear())
+        }
+        scenario ("PooledObjects are reference counted") {
+            val pool = initPool()
+            val pobject = pool.take
+
+            pool.available should be (0)
+            pool.size should be (1)
+            pobject.ref()
+            pobject.ref()
+
+            pobject.unref()
+            pool.available should be (0)
+            pool.size should be (1)
+
+            pobject.unref()
+            pool.available should be (1)
+            pool.size should be (1)
+        }
+
+        scenario ("DynamicPool releases the objects accordingly") {
+            val pool = initPool()
+            val pobject1 = pool.take
+            val pobject2 = pool.take
+
+            pool.available should be (0)
+            pool.size should be (2)
+
+            pool.offer(pobject2)
+
+            pool.available should be (1)
+
+            pool.release
+
+            pobject1.clearCount should be (1)
+            pobject2.clearCount should be (1)
+            pool.size should be (0)
+            pool.available should be (0)
+        }
+
+        scenario ("The pool is bounded") {
+            val pool = initPool()
+            (0 until capacity) foreach { _ => pool.take should not be null }
+            pool.take should be (null)
+            pool.available should be (0)
+
+            (0 until capacity * 2) foreach { i => pool offer new PObject(pool) }
+            pool.available should be (capacity)
+            (0 until capacity) foreach { _ => pool.take should not be null }
+            pool.take should be (null)
+            pool.available should be (0)
+        }
+    }
 }
