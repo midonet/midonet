@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_29edb5ef",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T09:16:07Z",
+      "side": 1,
+      "message": "maybe instead of having sequence number and bool and a separate message for snapshot and entry, update could have an enum\n\nenum Type {\n    BEGIN_SNAPSHOT \u003d 1;\n    SNAPSHOT \u003d 2;\n    END_SNAPSHOT \u003d 3;\n    UPDATE \u003d 4;\n}",
+      "range": {
+        "startLine": 248,
+        "startChar": 28,
+        "endLine": 248,
+        "endChar": 43
+      },
+      "revId": "0b79c0fbcd0c43215a5fa4f19c470221039ec813",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_09b9d1ec",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T09:16:07Z",
+      "side": 1,
+      "message": "Why do you need last_version and current_version?",
+      "revId": "0b79c0fbcd0c43215a5fa4f19c470221039ec813",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
