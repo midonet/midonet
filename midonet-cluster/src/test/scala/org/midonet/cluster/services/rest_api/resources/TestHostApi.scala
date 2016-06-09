@@ -17,15 +17,11 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 
-import javax.ws.rs.core.Response.Status._
-
 import org.junit.{Before, Test}
 
-import org.midonet.client.dto.DtoError
 import org.midonet.cluster.HttpRequestChecks
 import org.midonet.cluster.rest_api.models.Host
 import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncTest, RestApiTestBase, Topology}
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 class TestHostApi extends RestApiTestBase(FuncTest.getBuilder.build())
                   with HttpRequestChecks {
@@ -42,9 +38,8 @@ class TestHostApi extends RestApiTestBase(FuncTest.getBuilder.build())
     def _createHost(id: UUID = UUID.randomUUID(),
                     name: String = "test_host") : Host = {
         val h = _makeHost(id = id, name = name)
-        val uri = postAndAssertOk(h, app.getHosts,
-                                  APPLICATION_HOST_JSON_V3)
-        getAndAssertOk[Host](uri, APPLICATION_HOST_JSON_V3)
+        val uri = postAndAssertOk(h, app.getHosts)
+        getAndAssertOk[Host](uri)
         h
     }
 
@@ -61,8 +56,6 @@ class TestHostApi extends RestApiTestBase(FuncTest.getBuilder.build())
         val h2 = _makeHost(id = h1.id)
 
         // This should return HttpConflict
-        postAndAssertStatus(h2, app.getHosts,
-                            APPLICATION_HOST_JSON_V3,
-                            CONFLICT).getEntity(classOf[DtoError])
+        postAndAssertConflict(h2, app.getHosts)
     }
 }
