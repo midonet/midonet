@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.midonet.containers
 
-import java.io.{IOException, FileNotFoundException, File}
+import java.io.{File, FileNotFoundException, IOException}
 import java.util.UUID
 
 import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, GivenWhenThen, FlatSpec}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
 @RunWith(classOf[JUnitRunner])
 class ContainerCommonsTest extends FlatSpec with Matchers with GivenWhenThen {
