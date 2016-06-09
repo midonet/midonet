@@ -34,6 +34,7 @@ import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.containers.ContainerDelegate
 
 
 abstract class DatapathBoundContainerDelegate (backend: MidonetBackend)

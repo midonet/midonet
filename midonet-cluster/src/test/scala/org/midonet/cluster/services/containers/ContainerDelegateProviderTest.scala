@@ -33,7 +33,7 @@ import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.containers.ContainerDelegateProviderTest.TestContainer
-import org.midonet.containers.Container
+import org.midonet.containers.{Container, ContainerDelegate}
 
 object ContainerDelegateProviderTest {
 

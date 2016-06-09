@@ -25,7 +25,7 @@ import org.reflections.Reflections
 
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.containers.ContainerProvider
+import org.midonet.containers.{ContainerDelegate, ContainerProvider}
 
 /**
   * Scans the current classpath for service container delegates.

@@ -22,12 +22,14 @@ import java.util.concurrent.TimeUnit
 import com.google.common.util.concurrent.Service
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
+
 import org.apache.curator.framework.recipes.leader.LeaderLatch.CloseMode
 import org.junit.runner.RunWith
 import org.reflections.Reflections
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
+
 import rx.schedulers.Schedulers
 import rx.subjects.{PublishSubject, Subject}
 
@@ -44,7 +46,7 @@ import org.midonet.cluster.storage.MidonetTestBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers
-import org.midonet.containers.Container
+import org.midonet.containers.{Container, ContainerDelegate}
 import org.midonet.minion.Context
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService

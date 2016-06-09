@@ -24,9 +24,11 @@ import scala.util.control.NonFatal
 import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
+
 import rx.schedulers.Schedulers
 import rx.{Observer, Subscription}
 
@@ -35,8 +37,9 @@ import org.midonet.cluster.services.containers.schedulers._
 import org.midonet.cluster.services._
 import org.midonet.cluster.{ClusterConfig, containersLog}
 import org.midonet.containers
+import org.midonet.containers.ContainerDelegate
 import org.midonet.minion.MinionService.TargetNode
-import org.midonet.minion.{MinionService, Context, Minion}
+import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.makeAction0
 

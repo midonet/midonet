@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services.containers
+package org.midonet.containers
 
 import java.util.UUID
 
 import javax.annotation.Nullable
 
-import org.midonet.cluster.models.State.ContainerStatus
+import org.midonet.cluster.models.State
 import org.midonet.cluster.models.Topology.ServiceContainer
-import org.midonet.containers.Container
 
 /**
   * Allows the implementation of custom handlers for the service containers.
@@ -72,7 +71,7 @@ trait ContainerDelegate {
       * [[ContainerStatus]] with the host identifier, namespace and interface
       * name where the container is connected and the container health status.
       */
-    def onUp(container: ServiceContainer,  status: ContainerStatus): Unit
+    def onUp(container: ServiceContainer, status: State.ContainerStatus): Unit
 
     /**
       * Method called when the container is no longer available on the scheduled
@@ -82,7 +81,7 @@ trait ContainerDelegate {
       * has been deleted.
       */
     def onDown(container: ServiceContainer,
-               @Nullable status: ContainerStatus): Unit
+               @Nullable status: State.ContainerStatus): Unit
 
     /**
       * Method called when the container has been unscheduled from a host.
