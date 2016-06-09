@@ -76,4 +76,41 @@ class ObjectPoolTest extends FeatureSpec with Matchers with OneInstancePerTest {
             }
         }
     }
+
+    feature ("On demand pooled objects are pooled on demand") {
+        class PObject(val pool: ObjectPool[PObject]) extends PooledObject {
+            override def clear(): Unit = { }
+        }
+
+        val pool = new OnDemandArrayObjectPool[PObject](capacity, new PObject(_))
+
+        scenario ("Objects are not allocated until taken") {
+            pool.pool(pool.capacity - 1) shouldBe null
+            val p1 = pool.take
+            pool.pool(pool.capacity - 1) should not be null
+        }
+
+        scenario ("Objects are not removed from the array once released") {
+            val p1 = pool.take
+            pool.pool(pool.capacity - 1) should not be null
+            val p2 = pool.take
+            pool.pool(pool.capacity - 2) should not be null
+            pool.offer(p2)
+            pool.pool(pool.capacity - 2) should not be null
+        }
+
+        scenario ("Releasing objects only removes those not used") {
+            val p1 = pool.take
+            val p2 = pool.take
+            pool.pool(pool.capacity - 1) should not be null
+            pool.pool(pool.capacity - 2) should not be null
+            pool.offer(p1)
+            pool.pool(pool.capacity - 1) should not be null
+            pool.pool(pool.capacity - 2) should not be null
+            pool.release()
+            pool.pool(pool.capacity - 1) should not be null
+            pool.pool(pool.capacity - 2) shouldBe null
+
+        }
+    }
 }

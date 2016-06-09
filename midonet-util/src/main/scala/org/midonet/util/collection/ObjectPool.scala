@@ -61,20 +61,12 @@ final class NoOpPool[T >: Null](factory: ObjectPool[T] => T) extends ObjectPool[
     override def capacity: Int = Int.MaxValue
 }
 
-final class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
-                                                  val factory: ObjectPool[T] => T)
-    extends ObjectPool[T] {
+abstract class AbstractObjectPool[T >: Null : Manifest]
+    (val capacity: Int,
+     val factory: ObjectPool[T] => T) extends ObjectPool[T]{
 
     var available = capacity
-    private val pool = new Array[T](capacity)
-
-    {
-        var i = 0
-        while (i < capacity) {
-            pool(i) = factory(this)
-            i += 1
-        }
-    }
+    protected[collection] val pool = new Array[T](capacity)
 
     def take: T =
         if (available == 0) {
@@ -89,4 +81,47 @@ final class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
             pool(available) = element
             available += 1
         }
+
+}
+
+final class ArrayObjectPool[T >: Null : Manifest]
+    (override val capacity: Int,
+     override val factory: ObjectPool[T] => T)
+    extends AbstractObjectPool[T](capacity, factory) {
+
+    {
+        var i = 0
+        while (i < capacity) {
+            pool(i) = factory(this)
+            i += 1
+        }
+    }
+
+}
+
+final class OnDemandArrayObjectPool[T >: Null : Manifest]
+    (override val capacity: Int,
+     override val factory: ObjectPool[T] => T)
+    extends AbstractObjectPool[T](capacity, factory) {
+
+    override def take: T =
+        if (available == 0) {
+            null
+        } else {
+            available -= 1
+            if (pool(available) == null) {
+                pool(available) = factory(this)
+            }
+            pool(available)
+        }
+
+    /** Set to null the unused objects for garbage collection */
+    def release(): Unit = {
+        var i = available - 1
+        while (pool(i) != null) {
+            pool(i) = null
+            i -= 1
+        }
+    }
+
 }
