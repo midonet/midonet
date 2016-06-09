@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_49c7d964",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T09:23:58Z",
+      "side": 1,
+      "message": "I suggest you call it the binding_api for now, since there\u0027s nothing else using it, and probably shouldn\u0027t be in the future.",
+      "range": {
+        "startLine": 421,
+        "startChar": 8,
+        "endLine": 421,
+        "endChar": 22
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_81495133",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 3
@@ -49,6 +72,52 @@
       "side": 1,
       "message": "very well ;-)",
       "parentUuid": "baa041b7_0abf9161",
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_09a0b1a4",
+        "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/AgentRestApiService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T09:23:58Z",
+      "side": 1,
+      "message": "Unnecessary. Minions extend guava AbstractServices which already take care of all synchronization.\n\nhttps://github.com/google/guava/blob/master/guava/src/com/google/common/util/concurrent/AbstractService.java",
+      "range": {
+        "startLine": 112,
+        "startChar": 13,
+        "endLine": 112,
+        "endChar": 25
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a9b785f4",
+        "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/hacks/UnixDomainSocketChannel.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T09:23:58Z",
+      "side": 1,
+      "message": "which assumptions?",
+      "range": {
+        "startLine": 33,
+        "startChar": 49,
+        "endLine": 33,
+        "endChar": 60
+      },
       "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
