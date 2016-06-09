@@ -17,13 +17,15 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
+
+import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.Response.Status._
 
 import scala.collection.JavaConversions._
 
 import com.sun.jersey.api.client.WebResource
 import com.sun.jersey.test.framework.JerseyTest
-import org.eclipse.jetty.http.HttpStatus.METHOD_NOT_ALLOWED_405
+
 import org.junit.{Before, Test}
 import org.scalatest.ShouldMatchers
 
@@ -33,7 +35,6 @@ import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.rest_api.ResourceUris._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncTest, Topology}
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.packets.IPv4Addr
 
 class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
@@ -58,10 +59,8 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
         val scg = new ServiceContainerGroup
         scg.id = UUID.randomUUID()
         scg.setBaseUri(app.getUri)
-        val scgUri = postAndAssertOk(scg, scgBase.getURI,
-                        APPLICATION_SERVICE_CONTAINER_GROUP_JSON)
-        getAndAssertOk[ServiceContainerGroup](scgUri,
-                        APPLICATION_SERVICE_CONTAINER_GROUP_JSON)
+        val scgUri = postAndAssertOk(scg, scgBase.getURI)
+        getAndAssertOk[ServiceContainerGroup](scgUri)
     }
 
     def makeRouter(): Router = {
@@ -69,9 +68,8 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
         r.id = UUID.randomUUID()
         r.name = "test-" + r.id.toString
         r.setBaseUri(app.getUri)
-        val rUri = postAndAssertOk(r, app.getRouters,
-                                   APPLICATION_ROUTER_JSON_V3)
-        getAndAssertOk[Router](rUri, APPLICATION_ROUTER_JSON_V3)
+        val rUri = postAndAssertOk(r, app.getRouters)
+        getAndAssertOk[Router](rUri)
     }
 
     def makePort(onRouter: Router): Port = {
@@ -82,9 +80,8 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
         p.portAddress = IPv4Addr.random.toString
         p.networkAddress = p.portAddress
         p.networkLength = 12
-        val uri = postAndAssertOk(p, onRouter.getPorts,
-                                  APPLICATION_PORT_V3_JSON)
-        getAndAssertOk[RouterPort](uri, APPLICATION_PORT_V3_JSON)
+        val uri = postAndAssertOk(p, onRouter.getPorts)
+        getAndAssertOk[RouterPort](uri)
     }
 
     @Test
@@ -97,9 +94,8 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
         sc.serviceType = "MEH"
         sc.serviceGroupId = UUID.randomUUID()
         sc.setBaseUri(app.getUri)
-        postAndAssertStatus(sc, scBase.getURI,
-                            APPLICATION_SERVICE_CONTAINER_JSON,
-                            NOT_FOUND).getEntity(classOf[DtoError])
+        postAndAssertStatus(sc, scBase.getURI, NOT_FOUND)
+            .getEntity(classOf[DtoError])
 
     }
 
@@ -112,7 +108,7 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
         sc.portId = port.id
         sc.serviceType = "MOH"
         sc.setBaseUri(app.getUri)
-        postAndAssertOk(sc, scBase.getURI, APPLICATION_SERVICE_CONTAINER_JSON)
+        postAndAssertOk(sc, scBase.getURI)
     }
 
     @Test
@@ -127,12 +123,10 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
         sc.serviceType = "IPSEC"
         sc.serviceGroupId = scg.id
         sc.setBaseUri(app.getUri)
-        postAndAssertOk(sc, scBase.getURI, APPLICATION_SERVICE_CONTAINER_JSON)
+        postAndAssertOk(sc, scBase.getURI)
         sc.configurationId = UUID.randomUUID()
-        putAndAssertStatus(sc, APPLICATION_SERVICE_CONTAINER_JSON,
-                           METHOD_NOT_ALLOWED_405)
-        putAndAssertStatus(scg, APPLICATION_SERVICE_CONTAINER_JSON,
-                           METHOD_NOT_ALLOWED_405)
+        putAndAssertStatus(sc, 405)
+        putAndAssertStatus(scg, 405)
     }
 
     @Test
@@ -142,8 +136,7 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
         val scg = makeServiceContainerGroup()
 
         listAndAssertOk[ServiceContainer](
-            scg.getServiceContainers,
-            APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON) shouldBe empty
+            scg.getServiceContainers) shouldBe empty
 
         val sc = new ServiceContainer
         sc.id = UUID.randomUUID()
@@ -157,38 +150,32 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
         val expectUri= scBase.getUriBuilder.path(sc.id.toString).build()
 
         /* Make a service container into a group */
-        val scUri = postAndAssertOk(sc, scg.getServiceContainers,
-                                    APPLICATION_SERVICE_CONTAINER_JSON)
+        val scUri = postAndAssertOk(sc, scg.getServiceContainers)
 
         // Check that it's there
-        val dtoSc = getAndAssertOk[ServiceContainer](scUri,
-                                    APPLICATION_SERVICE_CONTAINER_JSON)
+        val dtoSc = getAndAssertOk[ServiceContainer](scUri)
         dtoSc.getUri shouldBe scUri
 
         // And the linked router port is expected to have a backref
-        val dtoPort = get[DtoRouterPort](dtoSc.getPort,
-                                         APPLICATION_PORT_V3_JSON)
-        dtoPort.getId shouldBe port.id
+        val dtoPort = getAndAssertOk[RouterPort](dtoSc.getPort)
+        dtoPort.id shouldBe port.id
         dtoPort.getDeviceId shouldBe router.id
         dtoPort.getServiceContainer shouldBe scUri
 
         // The SC group should also link to the SC
         // Check that it's there
-        val dtoScg = getAndAssertOk[ServiceContainerGroup](scg.getUri,
-                                     APPLICATION_SERVICE_CONTAINER_GROUP_JSON)
+        val dtoScg = getAndAssertOk[ServiceContainerGroup](scg.getUri)
         dtoScg.serviceContainerIds should have size 1
         dtoScg.serviceContainerIds.head shouldBe dtoSc.id
 
         // It's also returned when listing SCs in the SCG
         val nestedScs = listAndAssertOk[ServiceContainer](
-            scg.getServiceContainers,
-            APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON)
+            scg.getServiceContainers)
         nestedScs should have size 1
         nestedScs.head shouldBe dtoSc
 
         // Finally, ensure that the SC is accessible at the root path
-        get[ServiceContainer](expectUri,
-            APPLICATION_SERVICE_CONTAINER_JSON) shouldBe sc
+        get[ServiceContainer](expectUri) shouldBe sc
     }
 
 }
