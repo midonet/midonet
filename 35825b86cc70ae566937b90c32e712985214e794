@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c9cf6928",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T10:19:11Z",
+      "side": 1,
+      "message": "Okay: removed for now.",
+      "parentUuid": "baa041b7_2916d5f1",
+      "range": {
+        "startLine": 192,
+        "startChar": 12,
+        "endLine": 192,
+        "endChar": 19
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_624e393c",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 4
@@ -179,6 +203,30 @@
       "side": 1,
       "message": "Ah, i think that\u0027s an optimisation too soon. It only makes sense to interrupt a snapshot to send a newer one when the sequence of changes is larger than the snapshot.",
       "parentUuid": "baa041b7_c2c185e5",
+      "range": {
+        "startLine": 233,
+        "startChar": 28,
+        "endLine": 233,
+        "endChar": 43
+      },
+      "revId": "35825b86cc70ae566937b90c32e712985214e794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e9ca2d1a",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T10:19:11Z",
+      "side": 1,
+      "message": "Right: having a begin flag works too, I changed like you suggested.",
+      "parentUuid": "baa041b7_89e60115",
       "range": {
         "startLine": 233,
         "startChar": 28,
