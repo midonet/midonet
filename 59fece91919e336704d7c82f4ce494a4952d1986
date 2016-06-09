@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b544721b",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferExpirationStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-09T19:14:42Z",
+      "side": 1,
+      "message": "Probably don\u0027t need it as we need to keep the block around until the last entry (not the first) was written.",
+      "range": {
+        "startLine": 22,
+        "startChar": 4,
+        "endLine": 22,
+        "endChar": 28
+      },
+      "revId": "59fece91919e336704d7c82f4ce494a4952d1986",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
