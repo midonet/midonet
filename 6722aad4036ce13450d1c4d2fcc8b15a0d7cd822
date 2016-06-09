@@ -22,6 +22,30 @@
       "revId": "6722aad4036ce13450d1c4d2fcc8b15a0d7cd822",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_09179155",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T11:11:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0930b106",
+      "range": {
+        "startLine": 186,
+        "startChar": 12,
+        "endLine": 186,
+        "endChar": 16
+      },
+      "revId": "6722aad4036ce13450d1c4d2fcc8b15a0d7cd822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
