@@ -16,15 +16,33 @@
 
 package org.midonet.util.collection
 
-class RingBuffer[T: Manifest](val capacity: Int, emptyValue: T) {
+/**
+  * Writes(put) on the head and reads(take/peek) from the tail of the queu.
+  */
+class RingBuffer[T: Manifest](val capacity: Int, val emptyValue: T) {
 
-    private val ring = new Array[T](capacity)
-    private var readIndex = 0
-    private var writeIndex = 0
+    protected val ring = new Array[T](capacity)
+    protected var readIndex = 0
+    protected var writeIndex = 0
 
-    def isEmpty = readIndex == writeIndex
-    def isFull =  ((writeIndex + 1) % capacity) == readIndex
+    /**
+      * Constructor allowing to create the ring buffer with a given position
+      * for reading and writting.
+      */
+    def this(capacity: Int, emptyValue: T, head: Int, tail: Int) = {
+        this(capacity, emptyValue)
+        readIndex = head
+        writeIndex = tail
+    }
 
+    def isEmpty: Boolean = readIndex == writeIndex
+    def nonEmpty: Boolean = readIndex != writeIndex
+    def isFull: Boolean =  ((writeIndex + 1) % capacity) == readIndex
+    def length: Int = (writeIndex - readIndex + capacity) % capacity
+
+    /**
+      * Writes an element to the head of the queue.
+      */
     def put(value: T) {
         if (isFull) {
             throw new IllegalArgumentException("buffer is full")
@@ -34,8 +52,21 @@ class RingBuffer[T: Manifest](val capacity: Int, emptyValue: T) {
         }
     }
 
-    def peek: Option[T] = if (isEmpty) None else Option(ring(readIndex))
+   /**
+      * Reads (without removing) the element at the tail of the queue.
+      */
+    def peek: Option[T] =
+        if (isEmpty) None else Option(ring(readIndex))
 
+    /**
+      * Reads (without removing) the element at the head of the queue.
+      */
+    def head: Option[T] =
+        if (isEmpty) None else Option(ring((writeIndex - 1 + capacity) % capacity))
+
+    /**
+      * Reads and removes the element at the tail of the queue.
+      */
     def take(): Option[T] = {
         if (isEmpty) {
             None
@@ -44,6 +75,56 @@ class RingBuffer[T: Manifest](val capacity: Int, emptyValue: T) {
             ring(readIndex) = emptyValue
             readIndex = (readIndex + 1) % capacity
             ret
+        }
+    }
+
+    /** This iterator is not thread safe. The behaviour is undefined
+      * the underlying ring buffer is modified. */
+    def iterator: Iterator[T] = new Iterator[T] {
+        private var tailIndex = readIndex
+        private val headIndex = writeIndex
+
+        override def hasNext = headIndex != tailIndex
+
+        override def next = {
+            if (hasNext) {
+                val ret = ring(tailIndex)
+                tailIndex = (tailIndex + 1) % capacity
+                ret
+            } else {
+                throw new IndexOutOfBoundsException(
+                    "Trying to access a value outside the view")
+            }
+        }
+
+        override def length = (headIndex - tailIndex + capacity) % capacity
+
+    }
+}
+
+class RingBufferWithFactory[T: Manifest](capacity: Int,
+                                         emptyValue: T,
+                                         factory: (Int) => T )
+    extends RingBuffer[T](capacity, emptyValue) {
+
+    def this(capacity: Int, emptyValue: T, factory: (Int) => T, head: Int, tail: Int) = {
+        this(capacity, emptyValue, factory)
+        readIndex = head
+        writeIndex = tail
+    }
+
+    /**
+      * Writes the element created by the factory method to the head
+      * of the queue.
+      */
+    def allocateAndPut(): T = {
+        if (isFull) {
+            throw new IllegalArgumentException("buffer is full")
+        } else {
+            val value = factory(writeIndex)
+            ring(writeIndex) = value
+            writeIndex = (writeIndex + 1) % capacity
+            value
         }
     }
 }
