@@ -90,3 +90,37 @@ final class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
             available += 1
         }
 }
+
+final class OnDemandArrayObjectPool[T >: Null : Manifest](val capacity: Int,
+                                                    val factory: ObjectPool[T] => T)
+    extends ObjectPool[T] {
+
+    var available = capacity
+    private[collection] val pool = new Array[T](capacity)
+
+    def take: T =
+        if (available == 0) {
+            null
+        } else {
+            available -= 1
+            if (pool(available) == null) {
+                pool(available) = factory(this)
+            }
+            pool(available)
+        }
+
+    def offer(element: T): Unit = {
+        if (available < capacity) {
+            pool(available) = element
+            available += 1
+        }
+    }
+
+    /** Set to null the unused objects for garbage collection */
+    def release(): Unit = {
+        (0 until available) foreach {
+            i => pool(i) = null
+        }
+    }
+
+}
