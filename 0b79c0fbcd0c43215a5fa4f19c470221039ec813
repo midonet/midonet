@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_494d99c3",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T10:19:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_29edb5ef",
+      "range": {
+        "startLine": 248,
+        "startChar": 28,
+        "endLine": 248,
+        "endChar": 43
+      },
+      "revId": "0b79c0fbcd0c43215a5fa4f19c470221039ec813",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_09b9d1ec",
         "filename": "nsdb/src/main/proto/state_api.proto",
         "patchSetId": 6
@@ -36,6 +60,24 @@
       "writtenOn": "2016-06-09T09:16:07Z",
       "side": 1,
       "message": "Why do you need last_version and current_version?",
+      "revId": "0b79c0fbcd0c43215a5fa4f19c470221039ec813",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_09ed518e",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-09T10:19:11Z",
+      "side": 1,
+      "message": "Just to enable a sanity check at a client. I agree that this is not needed for the same connection, I figured when losing the connection and reconnecting and the client requests a differential update rather than a full snapshot.",
+      "parentUuid": "baa041b7_09b9d1ec",
       "revId": "0b79c0fbcd0c43215a5fa4f19c470221039ec813",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
