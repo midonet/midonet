@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0930b106",
+        "filename": "nsdb/src/main/proto/state_api.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-09T11:08:39Z",
+      "side": 1,
+      "message": "There should also be Pong in ProxyResponse, that the server responds with.",
+      "range": {
+        "startLine": 186,
+        "startChar": 12,
+        "endLine": 186,
+        "endChar": 16
+      },
+      "revId": "6722aad4036ce13450d1c4d2fcc8b15a0d7cd822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
