@@ -27,6 +27,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.reflections.Reflections
 
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.containers.{ContainerHandler, ContainerProvider}
 import org.midonet.midolman.topology.VirtualTopology
 
@@ -42,6 +43,7 @@ class ContainerHandlerProvider(reflections: Reflections,
     protected override val injector = Guice.createInjector(new AbstractModule() {
         override def configure(): Unit = {
             bind(classOf[VirtualTopology]).toInstance(vt)
+            bind(classOf[MidonetBackend]).toInstance(vt.backend)
             bind(classOf[ScheduledExecutorService]).annotatedWith(Names.named("io"))
                                                    .toInstance(ioExecutor)
         }
