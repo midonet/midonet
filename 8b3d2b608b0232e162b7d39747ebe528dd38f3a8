@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0f3671b4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-09T19:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_496b5986",
+      "range": {
+        "startLine": 80,
+        "startChar": 16,
+        "endLine": 80,
+        "endChar": 30
+      },
+      "revId": "8b3d2b608b0232e162b7d39747ebe528dd38f3a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_295ed512",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-09T08:42:16Z",
       "side": 1,
       "message": "this should be automatic",
+      "range": {
+        "startLine": 101,
+        "startChar": 44,
+        "endLine": 101,
+        "endChar": 55
+      },
+      "revId": "8b3d2b608b0232e162b7d39747ebe528dd38f3a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cf3f6986",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-09T19:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_295ed512",
       "range": {
         "startLine": 101,
         "startChar": 44,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_af44251b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-09T19:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8971617a",
+      "range": {
+        "startLine": 155,
+        "startChar": 31,
+        "endLine": 155,
+        "endChar": 40
+      },
+      "revId": "8b3d2b608b0232e162b7d39747ebe528dd38f3a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_295135d9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-09T08:42:16Z",
       "side": 1,
       "message": "here you have 2 ifs on state variables, which are mutually exclusive. I would suggest just having a single AtomicReference\u003cState\u003e state and do check and set. It also removed the need for synchronized, which we tend not to use.\n\nYou could make the state class a case class, which contains the members specific to the state to avoid having to a lot of synchronization. the CAS should handle it all.\n\nsealed trait State\ncase class Disconnect extends State\ncase class Connecting(promise: Promise) extends State\ncase class Connected(connection: Connection) extends State\ncase class Disconnection(connection: Connection) extends State\n\netc",
+      "range": {
+        "startLine": 119,
+        "startChar": 1,
+        "endLine": 120,
+        "endChar": 79
+      },
+      "revId": "8b3d2b608b0232e162b7d39747ebe528dd38f3a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b5e0f2fb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-09T19:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_295135d9",
       "range": {
         "startLine": 119,
         "startChar": 1,
@@ -111,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_95e60e15",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-09T19:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c93f6986",
+      "revId": "8b3d2b608b0232e162b7d39747ebe528dd38f3a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_095d51ec",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 1
@@ -122,6 +236,30 @@
       "writtenOn": "2016-06-09T08:42:16Z",
       "side": 1,
       "message": "Indeed. Best to never block. You\u0027ll probably need to give a ScheduledExecutor to this class. Be sure to save the future returned from the scheduled executor, in case you need to cancel the reconnect.",
+      "range": {
+        "startLine": 175,
+        "startChar": 21,
+        "endLine": 175,
+        "endChar": 28
+      },
+      "revId": "8b3d2b608b0232e162b7d39747ebe528dd38f3a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d5b25606",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-09T19:57:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_095d51ec",
       "range": {
         "startLine": 175,
         "startChar": 21,
