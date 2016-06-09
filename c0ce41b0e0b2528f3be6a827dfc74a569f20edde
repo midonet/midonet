@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2fd7f5ee",
+        "filename": "nsdb/src/main/scala/org/midonet/containers/ContainerCommons.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-09T14:37:44Z",
+      "side": 1,
+      "message": "extra space\n\nshould we have a NsdbLogging with all the loggers? as we do in cluster I believe.",
+      "range": {
+        "startLine": 30,
+        "startChar": 23,
+        "endLine": 30,
+        "endChar": 24
+      },
+      "revId": "c0ce41b0e0b2528f3be6a827dfc74a569f20edde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
