@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_672e41a7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-10T08:06:18Z",
+      "side": 1,
+      "message": "Please ignore this file.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 2
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
