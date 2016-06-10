@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7dac9035",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-10T14:22:28Z",
+      "side": 1,
+      "message": "But in that case I understand state would be of type AtomicReference[Ready.type] instead of AtomicReference[State]?",
+      "parentUuid": "baa041b7_dd803cfa",
+      "range": {
+        "startLine": 82,
+        "startChar": 49,
+        "endLine": 82,
+        "endChar": 56
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5dc30c39",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5da9cc23",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-10T14:22:28Z",
+      "side": 1,
+      "message": "Initially I was passing Connection to all callbacks so the user didn\u0027t need to keep a reference. Then I moved to Observer[Message] and this was a leftover as I couldn\u0027t fancy anything more meaningful to return.\n\nI\u0027ll change it to Future[Unit]",
+      "parentUuid": "baa041b7_5dc30c39",
+      "range": {
+        "startLine": 125,
+        "startChar": 26,
+        "endLine": 125,
+        "endChar": 36
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3d1cc8c0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2016-06-10T13:01:54Z",
       "side": 1,
       "message": "In the case of a race, the connection may have already succeeded, so the tryFailure would fail. Better to just return an already completed with Future.failed.",
+      "range": {
+        "startLine": 142,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 65
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_20fedf05",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-10T14:22:28Z",
+      "side": 1,
+      "message": "The original idea was that the connect() could be completed before compareAndSet, so tryFailure would be a noop and it will still be returning the correct result.\n\nBut it is still racey against continued calls to connect(). What about a PreConnecting state to prevent more than one thread calling connect() ?",
+      "parentUuid": "baa041b7_3d1cc8c0",
       "range": {
         "startLine": 142,
         "startChar": 0,
@@ -164,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bd15784a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-10T14:22:28Z",
+      "side": 1,
+      "message": "My understanding is that it will fail the connect future. I wanted to make sure that Observer callbacks were only fired after a successful connect.",
+      "parentUuid": "baa041b7_5dac2c8c",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 204,
+        "endChar": 58
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fd630040",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 3
@@ -175,6 +271,30 @@
       "writtenOn": "2016-06-10T13:25:45Z",
       "side": 1,
       "message": "this should happen in the callback in connect. Otherwise a concurrent connection could set state to connected but then be disconnected itself.",
+      "range": {
+        "startLine": 210,
+        "startChar": 27,
+        "endLine": 210,
+        "endChar": 39
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9d0bd42b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-10T14:22:28Z",
+      "side": 1,
+      "message": "Right.",
+      "parentUuid": "baa041b7_fd630040",
       "range": {
         "startLine": 210,
         "startChar": 27,
@@ -210,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5d054c12",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-10T14:22:28Z",
+      "side": 1,
+      "message": "Right.",
+      "parentUuid": "baa041b7_fd92e04a",
+      "range": {
+        "startLine": 211,
+        "startChar": 14,
+        "endLine": 211,
+        "endChar": 17
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_bd9c585e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 3
@@ -233,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7d5a5052",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-10T14:22:28Z",
+      "side": 1,
+      "message": "It seems that doesn\u0027t work with case classes. \n\ncase class A(v: Int)\nval a \u003d A(3)\na match { case z: A(3) \u003d\u003e println(s\"Result: z\") }\n\u003cconsole\u003e:1: error: \u0027\u003d\u003e\u0027 expected but \u0027(\u0027 found.\n\na match { case z @ A(3) \u003d\u003e println(s\"Result: $z\") }\nResult: A(3)",
+      "parentUuid": "baa041b7_bd9c585e",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 216,
+        "endChar": 42
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_bd857808",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 3
@@ -244,6 +412,30 @@
       "writtenOn": "2016-06-10T13:01:54Z",
       "side": 1,
       "message": "To me, Ready implies the connection is setup and ready to use. Better to use something like Disconnected or Init.",
+      "range": {
+        "startLine": 226,
+        "startChar": 16,
+        "endLine": 226,
+        "endChar": 21
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3d54c81f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-10T14:22:28Z",
+      "side": 1,
+      "message": "You\u0027re right. I didn\u0027t want to use Disconnected because it could be confused with Closed. But I agree Init is much better than Ready for an initial state.",
+      "parentUuid": "baa041b7_bd857808",
       "range": {
         "startLine": 226,
         "startChar": 16,
