@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_409b2373",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T16:01:47Z",
+      "side": 1,
+      "message": "This will fail with ArrayOutOfBoundsException if available is 0 or pool(i) for every i !\u003d null.\n\nTry test:\n\n val ps \u003d for (i \u003c- 0 until capacity) yield pool.take\n for (p \u003c- ps) pool.offer(p)\n pool.release()\n\nOr maybe I don\u0027t understand the usage :/",
+      "range": {
+        "startLine": 120,
+        "startChar": 8,
+        "endLine": 120,
+        "endChar": 29
+      },
+      "revId": "dde10efad5713fee54eb905676436d961ee15569",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
