@@ -2,6 +2,236 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_6780818c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "Nit: I think scala doesn\u0027t require parentheses after accessor methods like get.",
+      "range": {
+        "startLine": 84,
+        "startChar": 40,
+        "endLine": 84,
+        "endChar": 42
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_477d7db0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "Nit: space after comma",
+      "range": {
+        "startLine": 114,
+        "startChar": 42,
+        "endLine": 114,
+        "endChar": 43
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c73e2dda",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "This can be just Ready if using case object.",
+      "range": {
+        "startLine": 125,
+        "startChar": 17,
+        "endLine": 125,
+        "endChar": 34
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e73931f4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "I guess the possibility of this executing after operationComplete above is low, right? What do you think? should we synchronize?",
+      "range": {
+        "startLine": 138,
+        "startChar": 16,
+        "endLine": 140,
+        "endChar": 17
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e7425168",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "You can replace with Future.failed()",
+      "range": {
+        "startLine": 143,
+        "startChar": 22,
+        "endLine": 143,
+        "endChar": 36
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_875a654f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "Check the state is connecting?",
+      "range": {
+        "startLine": 208,
+        "startChar": 8,
+        "endLine": 208,
+        "endChar": 33
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a77689d6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "Can this be a case object?",
+      "range": {
+        "startLine": 223,
+        "startChar": 9,
+        "endLine": 223,
+        "endChar": 14
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_877385e7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "Same here",
+      "range": {
+        "startLine": 226,
+        "startChar": 9,
+        "endLine": 226,
+        "endChar": 14
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_071c1576",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "case object",
+      "range": {
+        "startLine": 226,
+        "startChar": 9,
+        "endLine": 226,
+        "endChar": 14
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_27171956",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "Don\u0027t use val, the stack trace will be meaningless. Also, maybe we should introduce/use some more specific exceptions.",
+      "range": {
+        "startLine": 231,
+        "startChar": 4,
+        "endLine": 231,
+        "endChar": 7
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_672e41a7",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateClient.scala",
         "patchSetId": 2
@@ -18,6 +248,98 @@
         "startChar": 0,
         "endLine": 1,
         "endChar": 2
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_27627917",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "Use the java-code-style.xml we have in tree to order imports. Intellij will do it for you.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 41
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c7150d4a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "Nit: capitalize log sentences",
+      "range": {
+        "startLine": 74,
+        "startChar": 27,
+        "endLine": 74,
+        "endChar": 28
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a70b292b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "This doesn\u0027t override toString, I\u0027m not sure if will print anything useful.",
+      "range": {
+        "startLine": 74,
+        "startChar": 46,
+        "endLine": 74,
+        "endChar": 64
+      },
+      "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8708252f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T08:13:28Z",
+      "side": 1,
+      "message": "Replace with:\n\n  log.warn(\"Failed to subscribe\", e)",
+      "range": {
+        "startLine": 77,
+        "startChar": 27,
+        "endLine": 77,
+        "endChar": 67
       },
       "revId": "2d1cf5453f80a63f57fe16b349411c07565f2246",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
