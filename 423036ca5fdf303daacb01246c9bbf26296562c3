@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e7cff127",
+        "filename": "midolman/src/main/java/org/midonet/services/agent_rest_api/hacks/UnixDomainServerConnector.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-10T07:15:38Z",
+      "side": 1,
+      "message": "we have a rest api, but a rest api using unix domain socket is new.\ni\u0027ll add an explanation somewhere.",
+      "parentUuid": "baa041b7_2f47f54c",
+      "range": {
+        "startLine": 86,
+        "startChar": 13,
+        "endLine": 86,
+        "endChar": 38
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_af71c5aa",
         "filename": "midolman/src/main/java/org/midonet/services/agent_rest_api/hacks/UnixDomainServerConnector.java",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a76c4937",
+        "filename": "midolman/src/main/java/org/midonet/services/agent_rest_api/hacks/UnixDomainServerConnector.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-10T07:15:38Z",
+      "side": 1,
+      "message": "i won\u0027t make cosmetic changes to this file because i want to keep the diff from the original minimum.",
+      "parentUuid": "baa041b7_af71c5aa",
+      "range": {
+        "startLine": 106,
+        "startChar": 82,
+        "endLine": 106,
+        "endChar": 83
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6f361de9",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2016-06-09T13:53:14Z",
       "side": 1,
       "message": "Add the logger.",
+      "range": {
+        "startLine": 290,
+        "startChar": 8,
+        "endLine": 290,
+        "endChar": 52
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_47733d16",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-10T07:15:38Z",
+      "side": 1,
+      "message": "i followed the pattern of flowstate.  does it need the logger too?",
+      "parentUuid": "baa041b7_6f361de9",
       "range": {
         "startLine": 290,
         "startChar": 8,
@@ -129,6 +201,30 @@
       "writtenOn": "2016-06-09T13:53:14Z",
       "side": 1,
       "message": "I don\u0027t have a strong opinion but I also feel that rest_api is too generic for the agent, I mean the agent agent should run only some very specific services. It also seems confusing with the MidoNet REST API that runs at the cluster.\n\nIn addition, the \"agent_\" prefix seems redundant: this is agent.conf and everything is already prefixed by \"agent\"",
+      "range": {
+        "startLine": 421,
+        "startChar": 8,
+        "endLine": 421,
+        "endChar": 15
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_07641547",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-10T07:15:38Z",
+      "side": 1,
+      "message": "i thought it was confusing with cluster\u0027s rest_api.\nbut removing the prefix is fine for me.",
+      "parentUuid": "baa041b7_6f0f3d2f",
       "range": {
         "startLine": 421,
         "startChar": 8,
@@ -298,6 +394,30 @@
       "writtenOn": "2016-06-09T13:56:07Z",
       "side": 1,
       "message": "Why not bind the binder in Guice instead of creating a new instance for every call?",
+      "range": {
+        "startLine": 48,
+        "startChar": 29,
+        "endLine": 48,
+        "endChar": 43
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_87694528",
+        "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/BindingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-10T07:15:38Z",
+      "side": 1,
+      "message": "my understanding is it\u0027s created just once as BindingHandler is a singleton.",
+      "parentUuid": "baa041b7_afa8a5dc",
       "range": {
         "startLine": 48,
         "startChar": 29,
