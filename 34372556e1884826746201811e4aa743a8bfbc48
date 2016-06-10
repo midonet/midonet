@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_dd803cfa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:01:54Z",
+      "side": 1,
+      "message": "you don\u0027t need to specify the type, the scala compiler will infer it (it does many passes over the code, which is why it\u0027s so slow).",
+      "range": {
+        "startLine": 82,
+        "startChar": 49,
+        "endLine": 82,
+        "endChar": 56
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5dc30c39",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:01:54Z",
+      "side": 1,
+      "message": "why return a Connection? The caller will already have a reference to the Connection since it is calling connect().",
+      "range": {
+        "startLine": 125,
+        "startChar": 26,
+        "endLine": 125,
+        "endChar": 36
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3d1cc8c0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:01:54Z",
+      "side": 1,
+      "message": "In the case of a race, the connection may have already succeeded, so the tryFailure would fail. Better to just return an already completed with Future.failed.",
+      "range": {
+        "startLine": 142,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 65
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5ddaec18",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:01:54Z",
+      "side": 1,
+      "message": "in the case that you failed to set the state, you have initiated a connection, that needs to be closed.\n\nif (!state.compareAndSet(Ready,Connecting(channelFuture))) {\n    channelFuture.addListener(\n        new ChannelFutureListener {\n            override def operationComplete(future: ChannelFuture) {\n                future.channel().close();\n            }\n        });\n    promise.tryFailure(alreadyConnectedException)\n}",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 17
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bd01f86c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:01:54Z",
+      "side": 1,
+      "message": "this returns a future, which can fail. I guess this is ok, as long as the exceptionCaught handler is triggered.",
+      "range": {
+        "startLine": 170,
+        "startChar": 31,
+        "endLine": 170,
+        "endChar": 44
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5dac2c8c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:01:54Z",
+      "side": 1,
+      "message": "What about an exception in the Connecting state?",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 204,
+        "endChar": 58
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fd92e04a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:01:54Z",
+      "side": 1,
+      "message": "you should only move to connected state from connecting state. What if there had been an exception or close() had been called? The object gets into an inconsistent state (in connected state but context is closed.\n\nIn general you should only ever be modifying state with compareAndSet to avoid races like this, and also checking the return.",
+      "range": {
+        "startLine": 211,
+        "startChar": 14,
+        "endLine": 211,
+        "endChar": 17
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bd9c585e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:01:54Z",
+      "side": 1,
+      "message": "we usually use:\ncase current: Connected(_) \u003d\u003e\n\nNot even sure what the @ does.",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 216,
+        "endChar": 42
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bd857808",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:01:54Z",
+      "side": 1,
+      "message": "To me, Ready implies the connection is setup and ready to use. Better to use something like Disconnected or Init.",
+      "range": {
+        "startLine": 226,
+        "startChar": 16,
+        "endLine": 226,
+        "endChar": 21
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
