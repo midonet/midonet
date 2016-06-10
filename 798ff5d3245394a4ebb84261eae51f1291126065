@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_aa12d056",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-10T08:51:11Z",
+      "side": 1,
+      "message": "maybe change for:\n`\nval blockIter: Iterator[ByteBuffer] \u003d _\nvar current: ByteBuffer \u003d _\n\nreset()\n`\njust for consistency",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 15
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0a789c8e",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-10T08:51:11Z",
+      "side": 1,
+      "message": "Does this need a case for when the current BB has no more remaining bytes to read but there are more BB\u0027s in the stream?\nMaybe something like:\n\n...\n} else if (current.remaining() \u003e 0) {\n    result \u003d current.get() \u0026 0xff\n} else { // no more in current, but not EOF either\n    nextBuffer()\n    read()\n}\n...",
+      "range": {
+        "startLine": 53,
+        "startChar": 4,
+        "endLine": 62,
+        "endChar": 5
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6ab8482b",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-10T08:51:11Z",
+      "side": 1,
+      "message": "I don\u0027t see current being set to null for the `eof` function. Maybe change for:\n...\n} else {\n    if (current ne null \u0026\u0026 current.remaining \u003d\u003d 0) current \u003d null\n    log.debug(\"No more block available for reading.\")\n}\n...",
+      "range": {
+        "startLine": 119,
+        "startChar": 8,
+        "endLine": 121,
+        "endChar": 9
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4a8c647f",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-10T08:51:11Z",
+      "side": 1,
+      "message": "written",
+      "range": {
+        "startLine": 58,
+        "startChar": 20,
+        "endLine": 58,
+        "endChar": 26
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2ae80016",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-10T08:51:11Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 62,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 18
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_aac3f089",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-10T08:51:11Z",
+      "side": 1,
+      "message": "Maybe change for (top|head|read)? apply sounds like it\u0027s changing state",
+      "range": {
+        "startLine": 76,
+        "startChar": 8,
+        "endLine": 76,
+        "endChar": 13
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_47545d20",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferExpirationStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-10T08:51:11Z",
+      "side": 1,
+      "message": "Change for stale or isStale?",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 61,
+        "endChar": 16
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
