@@ -94,6 +94,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9ddab4e8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:25:45Z",
+      "side": 1,
+      "message": "In fact, i\u0027d do.\n\nval channelFuture \u003d bootstrap.connect(host, port)\n\nif (!state.compareAndSet(Ready,Connecting(channelFuture))) {\n    channelFuture.addListener(\n        new ChannelFutureListener {\n            override def operationComplete(future: ChannelFuture) {\n                future.channel().close();\n            }\n        });\n    Future.failed(alreadyConnectedException)\n} else {\n    channelFuture.addListener(\n        new ChannelFutureListener {\n            override def operationComplete(future: ChannelFuture) {\n                val expectedState \u003d Connecting(channelFuture)\n                if (future.isSuccess \u0026\u0026\n                        state.compareAndSet(\n                            expectedState,\n                            Connected(channelFuture.channel)) \u0026\u0026\n                        promise.trySuccess(connection)) {\n                    // noop\n                } else {\n                    // cleanup, connect failed\n                    future.channel().close();\n                    promise.tryFailure(errorConnecting)\n                    state.compareAndSet(expectedState, Closed)\n                }\n            }\n        })\n}\n\nYou shouldn\u0027t change state from the ChannelHandler callbacks as the handler could be shared by multiple connections. Except for setting to Closed I think.",
+      "parentUuid": "baa041b7_5ddaec18",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 17
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_bd01f86c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 3
@@ -133,6 +157,29 @@
         "startChar": 0,
         "endLine": 204,
         "endChar": 58
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fd630040",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-10T13:25:45Z",
+      "side": 1,
+      "message": "this should happen in the callback in connect. Otherwise a concurrent connection could set state to connected but then be disconnected itself.",
+      "range": {
+        "startLine": 210,
+        "startChar": 27,
+        "endLine": 210,
+        "endChar": 39
       },
       "revId": "34372556e1884826746201811e4aa743a8bfbc48",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
