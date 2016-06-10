@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0a62dcad",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T09:13:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_953e0e28",
+      "range": {
+        "startLine": 94,
+        "startChar": 12,
+        "endLine": 94,
+        "endChar": 35
+      },
+      "revId": "7f2dcdefa6fc5ec4f06ba019ad54e1225609fd19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d5337661",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-09T21:03:27Z",
       "side": 1,
       "message": "What\u0027s the usage of this? Maybe you should use a while?",
+      "range": {
+        "startLine": 120,
+        "startChar": 8,
+        "endLine": 120,
+        "endChar": 15
+      },
+      "revId": "7f2dcdefa6fc5ec4f06ba019ad54e1225609fd19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6a54c8c9",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T09:13:22Z",
+      "side": 1,
+      "message": "Done. Explained in the commit also, can be removed or added later if necessary. Range is too allocatey?",
+      "parentUuid": "baa041b7_d5337661",
       "range": {
         "startLine": 120,
         "startChar": 8,
