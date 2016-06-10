@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0aa53cb4",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T11:09:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_aa12d056",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 15
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4a68e487",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-10T09:10:15Z",
       "side": 1,
       "message": "next byte read cast as an Int?",
+      "range": {
+        "startLine": 51,
+        "startChar": 20,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_eaa9f891",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T11:09:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4a68e487",
       "range": {
         "startLine": 51,
         "startChar": 20,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ca851408",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T11:09:30Z",
+      "side": 1,
+      "message": "Done. Added a test that made the eof function change a bit.",
+      "parentUuid": "baa041b7_0a789c8e",
+      "range": {
+        "startLine": 53,
+        "startChar": 4,
+        "endLine": 62,
+        "endChar": 5
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6ab8482b",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-10T08:51:11Z",
       "side": 1,
       "message": "I don\u0027t see current being set to null for the `eof` function. Maybe change for:\n...\n} else {\n    if (current ne null \u0026\u0026 current.remaining \u003d\u003d 0) current \u003d null\n    log.debug(\"No more block available for reading.\")\n}\n...",
+      "range": {
+        "startLine": 119,
+        "startChar": 8,
+        "endLine": 121,
+        "endChar": 9
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ca9cf45f",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T11:09:30Z",
+      "side": 1,
+      "message": "current is only null if the buffers queue is empty. That\u0027s why eof is protecting against this case (when you create an \"empty\" input stream and try to read from it).",
+      "parentUuid": "baa041b7_6ab8482b",
       "range": {
         "startLine": 119,
         "startChar": 8,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8a9f0c50",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T11:09:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4a8c647f",
+      "range": {
+        "startLine": 58,
+        "startChar": 20,
+        "endLine": 58,
+        "endChar": 26
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2ae80016",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
         "patchSetId": 5
@@ -128,6 +248,30 @@
       "writtenOn": "2016-06-10T08:51:11Z",
       "side": 1,
       "message": "same as above",
+      "range": {
+        "startLine": 62,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 18
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6aacc88c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T11:09:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_2ae80016",
       "range": {
         "startLine": 62,
         "startChar": 12,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ea333861",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T11:09:30Z",
+      "side": 1,
+      "message": "It\u0027s scala magic to ceate a case class instance (in this case the header).",
+      "parentUuid": "baa041b7_aac3f089",
+      "range": {
+        "startLine": 76,
+        "startChar": 8,
+        "endLine": 76,
+        "endChar": 13
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6a196822",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferExpirationStream.scala",
         "patchSetId": 5
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4a4584b1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferExpirationStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T11:09:30Z",
+      "side": 1,
+      "message": "I already added a comment questioning this field. It was on the specs I believe but what we really need is the last entry time yeah. Will remove.",
+      "parentUuid": "baa041b7_6a196822",
+      "range": {
+        "startLine": 22,
+        "startChar": 4,
+        "endLine": 22,
+        "endChar": 28
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_47545d20",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferExpirationStream.scala",
         "patchSetId": 5
@@ -197,6 +389,30 @@
       "writtenOn": "2016-06-10T08:51:11Z",
       "side": 1,
       "message": "Change for stale or isStale?",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 61,
+        "endChar": 16
+      },
+      "revId": "798ff5d3245394a4ebb84261eae51f1291126065",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_aa6c1037",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferExpirationStream.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-10T11:09:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_47545d20",
       "range": {
         "startLine": 61,
         "startChar": 12,
