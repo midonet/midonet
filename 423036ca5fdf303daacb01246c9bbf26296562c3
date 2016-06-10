@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_27303907",
+        "filename": "midolman/src/main/java/org/midonet/services/agent_rest_api/hacks/UnixDomainServerConnector.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1003057
+      },
+      "writtenOn": "2016-06-10T07:58:51Z",
+      "side": 1,
+      "message": "We need a REST API through unix socket file that is owned by the \u0027midonet\u0027 group so that only services belonging to the \u0027midonet\u0027 group in the machine can make rest requests to the minion. Otherwise we\u0027d need to deal with another layer of authentication and it would be detrimental to the UX",
+      "parentUuid": "baa041b7_e7cff127",
+      "range": {
+        "startLine": 86,
+        "startChar": 13,
+        "endLine": 86,
+        "endChar": 38
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_af71c5aa",
         "filename": "midolman/src/main/java/org/midonet/services/agent_rest_api/hacks/UnixDomainServerConnector.java",
         "patchSetId": 3
