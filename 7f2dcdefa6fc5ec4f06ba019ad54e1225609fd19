@@ -93,6 +93,30 @@
       "revId": "7f2dcdefa6fc5ec4f06ba019ad54e1225609fd19",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ddaefc80",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-10T12:36:42Z",
+      "side": 1,
+      "message": "I don\u0027t know, maybe not really: that\u0027s why I asked how you planned to use this. If it\u0027s used sparingly, allocating a range and a function may not be that expensive. XD",
+      "parentUuid": "baa041b7_6a54c8c9",
+      "range": {
+        "startLine": 120,
+        "startChar": 8,
+        "endLine": 120,
+        "endChar": 15
+      },
+      "revId": "7f2dcdefa6fc5ec4f06ba019ad54e1225609fd19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
