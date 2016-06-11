@@ -341,7 +341,7 @@ trait NatState extends FlowState { this: PacketContext =>
 
     val snatTransformer = (ipv4: IPv4, from: IPv4Addr, to: IPv4Addr,
                            port: Int) => {
-        if (ipv4.getSourceIPAddress() == from) {
+        if (ipv4.getSourceIPAddress == from) {
             ipv4.setSourceAddress(to)
 
             ipv4.getPayload match {
@@ -353,14 +353,14 @@ trait NatState extends FlowState { this: PacketContext =>
             true
         } else {
             log.debug("Source address {} doesn't match {}",
-                      ipv4.getSourceIPAddress(), from)
+                      ipv4.getSourceIPAddress, from)
             false
         }
     }
 
     val dnatTransformer = (ipv4: IPv4, from: IPv4Addr, to: IPv4Addr,
                            port: Int) =>
-        if (ipv4.getDestinationIPAddress() == from) {
+        if (ipv4.getDestinationIPAddress == from) {
             ipv4.setDestinationAddress(to)
 
             ipv4.getPayload match {
@@ -372,7 +372,7 @@ trait NatState extends FlowState { this: PacketContext =>
             true
         } else {
             log.debug("Destination address {} doesn't match {}",
-                      ipv4.getDestinationIPAddress(), from)
+                      ipv4.getDestinationIPAddress, from)
             false
         }
 
@@ -450,7 +450,7 @@ trait NatState extends FlowState { this: PacketContext =>
     def isIcmp = wcmatch.getNetworkProto == ICMP.PROTOCOL_NUMBER
 
     private def chooseRandomNatTarget(nats: Array[NatTarget]): NatTarget =
-        nats(ThreadLocalRandom.current().nextInt(nats.size))
+        nats(ThreadLocalRandom.current().nextInt(nats.length))
 
     private def chooseRandomIp(nat: NatTarget): IPv4Addr =
         nat.nwStart.randomTo(nat.nwEnd, ThreadLocalRandom.current())

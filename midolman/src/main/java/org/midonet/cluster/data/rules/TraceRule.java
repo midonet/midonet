@@ -15,11 +15,11 @@
  */
 package org.midonet.cluster.data.rules;
 
+import java.util.UUID;
+
+import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.RuleResult;
-import org.midonet.cluster.data.Rule;
-
-import java.util.UUID;
 
 /**
  * Rule for tracing

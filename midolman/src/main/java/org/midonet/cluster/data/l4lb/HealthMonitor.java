@@ -15,12 +15,13 @@
  */
 package org.midonet.cluster.data.l4lb;
 
+import java.util.UUID;
+
 import com.google.common.base.Objects;
+
 import org.midonet.cluster.data.Entity;
 import org.midonet.midolman.state.l4lb.HealthMonitorType;
 import org.midonet.midolman.state.l4lb.LBStatus;
-
-import java.util.UUID;
 
 public class HealthMonitor
         extends Entity.Base<UUID, HealthMonitor.Data, HealthMonitor>{

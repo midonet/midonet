@@ -15,10 +15,10 @@
  */
 package org.midonet.cluster.data;
 
-import org.midonet.midolman.rules.Condition;
-
 import java.util.Objects;
 import java.util.UUID;
+
+import org.midonet.midolman.rules.Condition;
 
 public class TraceRequest
     extends Entity.Base<UUID, TraceRequest.Data, TraceRequest> {

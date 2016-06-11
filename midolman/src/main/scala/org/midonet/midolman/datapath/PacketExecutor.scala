@@ -20,8 +20,13 @@ import java.nio.BufferOverflowException
 import java.nio.channels.AsynchronousCloseException
 import java.util.{ArrayList => JArrayList}
 
+import scala.annotation.tailrec
+import scala.util.control.NonFatal
+
 import com.lmax.disruptor.{EventHandler, LifecycleAware}
 import com.typesafe.scalalogging.Logger
+
+import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.DatapathState
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
@@ -32,9 +37,6 @@ import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction
 import org.midonet.packets._
 import org.midonet.util.concurrent.NanoClock
-import org.slf4j.LoggerFactory
-import scala.annotation.tailrec
-import scala.util.control.NonFatal
 
 trait StatePacketExecutor {
     val log: Logger

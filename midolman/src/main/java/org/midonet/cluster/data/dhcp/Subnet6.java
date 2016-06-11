@@ -18,8 +18,6 @@ package org.midonet.cluster.data.dhcp;
 import org.midonet.cluster.data.Entity;
 import org.midonet.packets.IPv6Subnet;
 
-import java.util.List;
-
 /**
  * DHCPv6 subnet6
  */

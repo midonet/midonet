@@ -21,16 +21,16 @@ import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.odp.OvsConnectionOps
 import org.midonet.odp.test.OvsIntegrationTestBase
-import org.midonet.util.Bucket;
+import org.midonet.util.Bucket
 
 object ConnectionFactory {
 
-    val conf = new MidolmanConfig(MidoTestConfigurator.forAgents)
+    val conf = new MidolmanConfig(MidoTestConfigurator.forAgents())
 
     def fromManager(getter: () => ManagedDatapathConnection) = {
         val manager = getter()
         manager.start()
-        manager.getConnection()
+        manager.getConnection
     }
 
     def selectorBasedConnection(singleThreaded: Boolean = true) = {

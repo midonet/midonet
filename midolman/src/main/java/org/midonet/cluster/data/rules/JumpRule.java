@@ -15,10 +15,10 @@
  */
 package org.midonet.cluster.data.rules;
 
-import org.midonet.midolman.rules.Condition;
-import org.midonet.cluster.data.Rule;
-
 import java.util.UUID;
+
+import org.midonet.cluster.data.Rule;
+import org.midonet.midolman.rules.Condition;
 
 /**
  * Basic abstraction for a jump rule

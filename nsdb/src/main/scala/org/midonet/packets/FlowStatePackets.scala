@@ -285,7 +285,7 @@ class SbeEncoder {
         flowStateMessage
     }
 
-    def encodedLength(): Int = flowStateHeader.size + flowStateMessage.size
+    def encodedLength: Int = flowStateHeader.size + flowStateMessage.size
 
     def decodeFrom(bytes: Array[Byte]): FlowStateSbe = {
         flowStateBuffer.wrap(bytes)

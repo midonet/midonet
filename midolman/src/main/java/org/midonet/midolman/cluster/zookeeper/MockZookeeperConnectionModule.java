@@ -18,6 +18,7 @@ package org.midonet.midolman.cluster.zookeeper;
 import javax.inject.Singleton;
 
 import com.google.inject.name.Names;
+
 import org.midonet.cluster.backend.Directory;
 import org.midonet.cluster.backend.zookeeper.SessionUnawareConnectionWatcher;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;

@@ -20,7 +20,6 @@ import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
 public class ReverseNatRule extends NatRule {
-    private RuleResult result;
 
     public ReverseNatRule(Condition condition, Action action, boolean dnat) {
         super(condition, action, dnat);

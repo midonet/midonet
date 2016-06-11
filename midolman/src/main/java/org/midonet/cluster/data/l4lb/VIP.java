@@ -16,16 +16,15 @@
 
 package org.midonet.cluster.data.l4lb;
 
+import java.util.UUID;
+
 import com.google.common.base.Objects;
+
 import org.midonet.cluster.data.Entity;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 
-import java.util.UUID;
-
 public class VIP
         extends Entity.Base<UUID, VIP.Data, VIP>  {
-
-    public final static int VIP_STICKY_TIMEOUT_SECONDS = 86400;
 
     public VIP() {
         this(null, new Data());

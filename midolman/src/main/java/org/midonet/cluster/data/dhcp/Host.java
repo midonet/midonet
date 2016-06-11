@@ -18,12 +18,12 @@ package org.midonet.cluster.data.dhcp;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Preconditions;
 import org.midonet.cluster.data.Entity;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-
-import javax.annotation.Nonnull;
 
 /**
  * DHCP host

@@ -275,7 +275,7 @@ class FlowStateReplicator(
 
     private def acceptNewState(msg: FlowStateSbe) {
         val conntrackIter = msg.conntrack
-        while (conntrackIter.hasNext()) {
+        while (conntrackIter.hasNext) {
             val k = connTrackKeyFromSbe(conntrackIter.next(), ConnTrackKey)
             log.debug("got new conntrack key: {}", k)
             conntrackTable.touch(k, ConnTrackState.RETURN_FLOW)
@@ -283,7 +283,7 @@ class FlowStateReplicator(
         }
 
         val natIter = msg.nat
-        while (natIter.hasNext()) {
+        while (natIter.hasNext) {
             val nat = natIter.next()
             val k = natKeyFromSbe(nat, NatKey)
             val v = natBindingFromSbe(nat)
@@ -293,7 +293,7 @@ class FlowStateReplicator(
         }
 
         val traceIter = msg.trace
-        if (traceIter.hasNext()) {
+        if (traceIter.hasNext) {
             val trace = traceIter.next()
             val k = traceFromSbe(trace, TraceKey)
             val ctx = new TraceContext(uuidFromSbe(trace.flowTraceId))

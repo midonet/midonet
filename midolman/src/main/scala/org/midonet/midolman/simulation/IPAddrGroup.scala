@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
-import org.midonet.packets.IPAddr
 import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.packets.IPAddr
 
 class IPAddrGroup(val id: UUID, val addrs: Set[IPAddr]) extends Device {
     def contains(addr: IPAddr) = addrs.contains(addr)

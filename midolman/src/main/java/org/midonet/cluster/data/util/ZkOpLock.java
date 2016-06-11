@@ -18,12 +18,12 @@ package org.midonet.cluster.data.util;
 
 import java.util.concurrent.TimeUnit;
 
-import org.midonet.cluster.ZookeeperLockFactory;
-
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.ZookeeperLockFactory;
 
 
 public class ZkOpLock {

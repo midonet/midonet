@@ -15,8 +15,6 @@
  */
 package org.midonet.cluster.data.host;
 
-import org.midonet.cluster.data.Entity;
-
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import org.midonet.cluster.data.Entity;
 
 /**
  * Host metadata

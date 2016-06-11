@@ -29,8 +29,6 @@ import org.midonet.midolman.simulation.PacketContext;
 @ZoomOneOf(name = "transform_rule_data")
 public class L2TransformRule extends Rule {
 
-    private static final long serialVersionUID = -7212783590950701193L;
-
     @ZoomField(name = "pop_vlan")
     public boolean popVlan;
     @ZoomField(name = "push_vlan")

@@ -17,9 +17,9 @@ package org.midonet.cluster.data.ports;
 
 import java.util.UUID;
 
-import org.midonet.cluster.data.Port;
-
 import javax.annotation.Nonnull;
+
+import org.midonet.cluster.data.Port;
 
 /**
  * Basic abstraction for a Bridge Port.

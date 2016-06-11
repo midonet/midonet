@@ -16,6 +16,7 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
+
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 
 /**

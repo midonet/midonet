@@ -15,10 +15,11 @@
  */
 package org.midonet.midolman.layer3;
 
-import org.midonet.packets.IPAddr;
+import java.util.List;
+
 import org.slf4j.Logger;
 
-import java.util.List;
+import org.midonet.packets.IPAddr;
 
 /**
  * Defines the common interface for a Routes table generic for all versions of

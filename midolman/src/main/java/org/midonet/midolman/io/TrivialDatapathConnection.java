@@ -17,15 +17,9 @@ package org.midonet.midolman.io;
 
 import java.util.concurrent.ExecutionException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.midonet.netlink.Callback;
 import org.midonet.odp.protos.OvsDatapathConnection;
 
 public class TrivialDatapathConnection implements ManagedDatapathConnection {
-    private Logger log = LoggerFactory.getLogger(this.getClass());
-
 
     private OvsDatapathConnection conn = null;
 

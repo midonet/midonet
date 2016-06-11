@@ -22,7 +22,6 @@ import java.util.{Set => JSet, UUID}
 import java.util.Random
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import org.slf4j.helpers.NOPLogger
@@ -273,7 +272,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             val sender = UUID.randomUUID
             uuidToSbe(sender, flowStateMessage.sender)
 
-            val len = encoder.encodedLength()
+            val len = encoder.encodedLength
             System.arraycopy(encodingBytes, 0, buffer, 0, len)
             val fse = packet.getEthernet.asInstanceOf[FlowStateEthernet]
             fse.limit(len)

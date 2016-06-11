@@ -17,8 +17,6 @@ package org.midonet.cluster.data.host;
 
 import java.net.InetAddress;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.midonet.midolman.host.state.HostDirectory.Interface.Type;
 import org.midonet.cluster.data.Entity;
@@ -168,7 +166,7 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
                     "name=" + name +
                     ", type=" + type +
                     ", endpoint='" + endpoint + '\'' +
-                    ", mac=" + mac +
+                    ", mac=" + Arrays.toString(mac) +
                     ", status=" + status +
                     ", mtu=" + mtu +
                     ", addresses=" + (addresses == null ? null : Arrays.asList(
@@ -187,7 +185,7 @@ public class Interface extends Entity.Base<String, Interface.Data, Interface> {
             this.addresses = original.addresses.clone();
             this.endpoint = original.endpoint;
             this.mac = original.mac.clone();
-            this.name = new String(original.name);
+            this.name = original.name;
             this.type = original.type;
             this.portType = original.portType;
         }

@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 

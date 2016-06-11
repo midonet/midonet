@@ -25,7 +25,6 @@ import java.nio.channels.{Channels, ByteChannel}
 import org.midonet.midolman.state.NoStatePathException
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
-import org.midonet.quagga.ZebraProtocol.RIBType
 
 case object ProcessMessage
 
@@ -185,7 +184,7 @@ class ZebraConnection(val dispatcher: ActorRef,
         log.trace(s"prefixLen: $prefixLen")
         val prefix = new Array[Byte](Ipv4MaxBytelen)
         // Protocol daemons only send network part.
-        in.read(prefix, 0, ((prefixLen + 7) / 8))
+        in.read(prefix, 0, (prefixLen + 7) / 8)
         log.trace("prefix: {}", prefix.map(_.toInt))
 
         new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen)
@@ -258,7 +257,7 @@ class ZebraConnection(val dispatcher: ActorRef,
 
     def handleMessage(message: Short) {
         def unsupported() {
-            val msg = ZebraMessageTable.get(message).getOrElse("unrecognized-message")
+            val msg = ZebraMessageTable.getOrElse(message, "unrecognized-message")
             log.error(s"$msg isn't implemented yet")
             throw new RuntimeException("not implemented")
         }
@@ -328,8 +327,7 @@ class ZebraConnection(val dispatcher: ActorRef,
                     dispatcher ! ConnectionClosed(clientId)
             }
 
-        case _ => {
+        case _ =>
             log.error("received unknown request")
-        }
     }
 }

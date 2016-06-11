@@ -18,8 +18,6 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.{Objects, UUID}
 
-import akka.actor.ActorSystem
-
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.sdn.flows.FlowTagger

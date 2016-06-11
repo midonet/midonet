@@ -16,10 +16,10 @@
 
 package org.midonet.cluster.data.l4lb;
 
-import org.midonet.cluster.data.Entity;
-
 import java.util.Objects;
 import java.util.UUID;
+
+import org.midonet.cluster.data.Entity;
 
 public class LoadBalancer
         extends Entity.Base<UUID, LoadBalancer.Data, LoadBalancer> {

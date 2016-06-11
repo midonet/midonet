@@ -18,18 +18,21 @@ package org.midonet.midolman.datapath
 
 import java.util.UUID
 
-import com.typesafe.scalalogging.Logger
-import org.junit.runner.RunWith
-import org.midonet.midolman.simulation.PacketContext
-import org.midonet.odp.{Packet, FlowMatch}
-import org.midonet.packets.util.{EthBuilder, PacketBuilder}
-import org.midonet.packets._
-import org.scalatest.{Matchers, FlatSpec}
-import org.scalatest.junit.JUnitRunner
-import org.midonet.packets.util.PacketBuilder._
-import org.slf4j.LoggerFactory
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
+
+import com.typesafe.scalalogging.Logger
+
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
+import org.slf4j.LoggerFactory
+
+import org.midonet.midolman.simulation.PacketContext
+import org.midonet.odp.{FlowMatch, Packet}
+import org.midonet.packets._
+import org.midonet.packets.util.PacketBuilder
+import org.midonet.packets.util.PacketBuilder._
 
 @RunWith(classOf[JUnitRunner])
 class MSSClampTest extends FlatSpec with Matchers {

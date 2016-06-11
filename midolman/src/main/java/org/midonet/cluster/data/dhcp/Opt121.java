@@ -16,9 +16,7 @@
 package org.midonet.cluster.data.dhcp;
 
 import java.util.Objects;
-import java.util.UUID;
 
-import org.midonet.cluster.data.Entity;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 

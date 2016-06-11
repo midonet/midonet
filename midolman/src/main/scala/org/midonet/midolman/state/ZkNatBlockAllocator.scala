@@ -162,7 +162,7 @@ class ZkNatBlockAllocator(
 
     private def fetchBlock(path: String): Future[CuratorEvent] = {
         val getPromise = Promise[CuratorEvent]()
-        zk.getData()
+        zk.getData
           .inBackground(backgroundCallbackToFuture, getPromise, executor)
           .forPath(path)
         getPromise.future
@@ -170,7 +170,7 @@ class ZkNatBlockAllocator(
 
     private def fetchChildren(path: String): Future[CuratorEvent] = {
         val getPromise = Promise[CuratorEvent]()
-        zk.getChildren()
+        zk.getChildren
           .inBackground(backgroundCallbackToFuture, getPromise, executor)
           .forPath(path)
         getPromise.future

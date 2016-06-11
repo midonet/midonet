@@ -38,8 +38,6 @@ public class SelectorThreadPair {
 
     public final String name;
 
-    private final MidolmanConfig config;
-
     private Thread readThread;
     private Thread writeThread;
     private SelectLoop readLoop;
@@ -48,15 +46,9 @@ public class SelectorThreadPair {
 
     private Set<ManagedDatapathConnection> conns = new HashSet<>();
 
-    public SelectorThreadPair(String name, MidolmanConfig config,
-                              boolean singleThreaded) {
-        this.config = config;
+    public SelectorThreadPair(String name, boolean singleThreaded) {
         this.name = name;
         this.singleThreaded = singleThreaded;
-    }
-
-    public SelectorThreadPair(String name, MidolmanConfig config) {
-        this(name, config, false);
     }
 
     public boolean isRunning() {

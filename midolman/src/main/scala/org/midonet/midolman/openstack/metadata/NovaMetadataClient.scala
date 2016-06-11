@@ -18,11 +18,11 @@ package org.midonet.midolman.openstack.metadata
 
 import com.sun.jersey.api.client.Client
 import com.sun.jersey.api.client.UniformInterfaceException
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.Logger
 
 object Conv {
     implicit def to_hexstring(bytes: Array[Byte]): String =
-        (bytes flatMap (x => f"${x}%02x")).mkString
+        (bytes flatMap (x => f"$x%02x")).mkString
 
     implicit def to_bytes(string: String): Array[Byte] =
         string.getBytes
@@ -52,7 +52,7 @@ object Conv {
 
 class UnknownRemoteAddressException(remoteAddr: String)
     extends RuntimeException(
-        s"Unknown remote address ${remoteAddr}")
+        s"Unknown remote address $remoteAddr")
 
 object NovaMetadataClient {
     private val log: Logger = MetadataService.getLogger
@@ -66,17 +66,17 @@ object NovaMetadataClient {
     def getMetadata(path: String, remoteAddr: String,
                     nova_metadata_url: String,
                     shared_secret: String): String = {
-        log debug s"Forwarding a request from ${remoteAddr}"
+        log debug s"Forwarding a request from $remoteAddr"
         InstanceInfoMap getByAddr remoteAddr match {
             case Some(info) =>
-                log debug s"InstanceInfo ${info}"
+                log debug s"InstanceInfo $info"
                 getMetadata(path, info, nova_metadata_url, shared_secret)
             case None =>
                 /*
                  * This shouldn't happen normally as datapath flows are
                  * installed using InstanceInfo.
                  */
-                log warn s"Got a request from unknown address ${remoteAddr}"
+                log warn s"Got a request from unknown address $remoteAddr"
                 throw new UnknownRemoteAddressException(remoteAddr)
         }
     }
@@ -96,8 +96,8 @@ object NovaMetadataClient {
             r get classOf[String]
         } catch {
             case e: UniformInterfaceException =>
-                log error s"Unexpected HTTP response: ${e} for request: " +
-                          s"${url} ${info}"
+                log error s"Unexpected HTTP response: $e for request: " +
+                          s"$url $info"
                 throw e
         }
     }

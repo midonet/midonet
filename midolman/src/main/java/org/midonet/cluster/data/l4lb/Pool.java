@@ -15,14 +15,15 @@
  */
 package org.midonet.cluster.data.l4lb;
 
-import com.google.common.base.Objects;
-import org.midonet.cluster.data.Entity;
-import org.midonet.midolman.state.l4lb.PoolLBMethod;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.l4lb.PoolProtocol;
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
-
 import java.util.UUID;
+
+import com.google.common.base.Objects;
+
+import org.midonet.cluster.data.Entity;
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
+import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.midolman.state.l4lb.PoolLBMethod;
+import org.midonet.midolman.state.l4lb.PoolProtocol;
 
 public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
 
