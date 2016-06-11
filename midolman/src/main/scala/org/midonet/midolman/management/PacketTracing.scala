@@ -16,15 +16,17 @@
 package org.midonet.midolman.management
 
 import java.lang.management._
-import java.util
+
 import javax.management._
+
 import scala.collection.immutable.List
 
 import com.typesafe.scalalogging.Logger
-import org.midonet.odp.FlowMatch
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.odp.FlowMatch
 
 object PacketTracing extends PacketTracingMXBean {
     val log = Logger(LoggerFactory.getLogger("org.midonet.midolman.management"))

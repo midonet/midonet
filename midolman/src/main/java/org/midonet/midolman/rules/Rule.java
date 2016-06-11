@@ -47,7 +47,6 @@ import org.midonet.sdn.flows.FlowTagger;
     @JsonSubTypes.Type(value = StaticForwardNatRule.class, name = "StaticForwardNat"),
     @JsonSubTypes.Type(value = ReverseNatRule.class, name = "ReverseNat")
 })
-
 @ZoomClass(clazz = Topology.Rule.class, factory = Rule.RuleFactory.class)
 public abstract class Rule extends BaseConfig {
 

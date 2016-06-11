@@ -18,9 +18,9 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
-import org.midonet.packets.IPv4Addr
-
 import scala.concurrent.TimeoutException
+
+import org.midonet.packets.IPv4Addr
 
 case class ArpTimeoutException(router: UUID, address: IPv4Addr) extends TimeoutException {
     override def fillInStackTrace(): Throwable = this

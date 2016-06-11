@@ -19,6 +19,7 @@ package org.midonet.midolman.datapath
 import java.nio.ByteBuffer
 
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import org.midonet.ErrorCode
 import org.midonet.midolman.DatapathStateDriver
@@ -27,8 +28,6 @@ import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.rtnetlink.{NeighOps, LinkOps}
 import org.midonet.odp.{Datapath, OvsNetlinkFamilies, OvsProtocol}
-
-import scala.util.control.NonFatal
 
 object DatapathBootstrap {
     class DatapathBootstrapError(msg: String, cause: Throwable = null)

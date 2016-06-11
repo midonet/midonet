@@ -15,12 +15,14 @@
  */
 package org.midonet.midolman.management
 
-import java.lang.{Short => JShort, Integer => JInt, Byte => JByte}
-import java.util
-import org.rogach.scallop._
+import java.lang.{Byte => JByte, Integer => JInt, Short => JShort}
+
 import javax.management.remote.{JMXConnectorFactory, JMXServiceURL}
 import javax.management.{JMX, ObjectName}
+
 import scala.util.{Failure, Success, Try}
+
+import org.rogach.scallop._
 
 object TraceCommand {
     val SUCCESS = 0

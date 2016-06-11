@@ -258,7 +258,7 @@ class OneToManyDpConnManager(c: MidolmanConfig,
                              tbPolicy: TokenBucketPolicy)
         extends UpcallDatapathConnectionManagerBase(c, tbPolicy) {
 
-    val threadPair = new SelectorThreadPair("upcall", config, false)
+    val threadPair = new SelectorThreadPair("upcall", false)
 
     private val lock = new ReentrantLock()
 

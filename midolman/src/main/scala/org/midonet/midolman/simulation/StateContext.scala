@@ -18,9 +18,6 @@ package org.midonet.midolman.simulation
 
 import java.util.ArrayList
 
-
-import com.google.protobuf.MessageLite
-
 import org.midonet.midolman.state.{NatLeaser, ConnTrackState, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.NatKey
@@ -71,7 +68,7 @@ trait StateContext extends Clearable
 
     abstract override def clear(): Unit = {
         super.clear()
-        stateMessageLength = 0;
+        stateMessageLength = 0
         stateActions.clear()
     }
 }

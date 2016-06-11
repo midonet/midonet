@@ -29,7 +29,6 @@ import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPAddr$;
 
 public class StaticForwardNatRule extends NatRule {
     @ZoomField(name = "nat_targets")

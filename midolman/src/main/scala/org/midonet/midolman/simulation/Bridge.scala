@@ -71,21 +71,11 @@ object Bridge {
   * Note that Bridges will *NOT* apply pre- or post- chains on vlan tagged
   * traffic (see MN-590)
   *
-  * @param id
-  * @param tunnelKey
-  * @param vlanMacTableMap
-  * @param ip4MacMap
-  * @param flowCount
-  * @param infilters
-  * @param outfilters
   * @param vlanPortId this field is the id of the interior port of a peer Bridge
   *                   connected to this device. This means that this Bridge is
   *                   considered to be on VLAN X, Note that a vlan-unaware
   *                   bridge can only be connected to a single vlan-aware device
   *                   (thus having only a single optional value)
-  * @param flowRemovedCallbackGen
-  * @param macToLogicalPortId
-  * @param ipToMac
   * @param subnetIds only used for the new storage
   */
 class Bridge(val id: UUID,

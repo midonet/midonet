@@ -15,38 +15,18 @@
  */
 package org.midonet.cluster.data;
 
-import org.midonet.midolman.rules.Condition;
-import org.midonet.midolman.rules.RuleResult;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.RuleResult;
 
 
 public abstract class Rule
         <RuleData extends Rule.Data, Self
                 extends Rule<RuleData, Self>>
         extends Entity.Base<UUID, RuleData, Self> {
-
-    public static class RuleIndexOutOfBoundsException extends Exception {
-        private static final long serialVersionUID = 1L;
-
-        /**
-         * Default constructor
-         */
-        public RuleIndexOutOfBoundsException() {
-            super();
-        }
-
-        public RuleIndexOutOfBoundsException(String message) {
-            super(message);
-        }
-
-        public RuleIndexOutOfBoundsException(String message, Throwable cause) {
-            super(message, cause);
-        }
-
-    }
 
     public enum Property {
     }

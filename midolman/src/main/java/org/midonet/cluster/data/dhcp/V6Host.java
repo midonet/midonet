@@ -18,8 +18,6 @@ package org.midonet.cluster.data.dhcp;
 import org.midonet.cluster.data.Entity;
 import org.midonet.packets.IPv6Addr;
 
-import java.util.UUID;
-
 /**
  * DHCPv6 host
  */

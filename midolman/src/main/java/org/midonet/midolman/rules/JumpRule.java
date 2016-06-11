@@ -28,8 +28,6 @@ import org.midonet.midolman.simulation.PacketContext;
 @ZoomOneOf(name = "jump_rule_data")
 public class JumpRule extends Rule {
 
-    private static final long serialVersionUID = -7212783590950701193L;
-
     @ZoomField(name = "jump_chain_id")
     public UUID jumpToChainID;
     @ZoomField(name = "jump_chain_name")

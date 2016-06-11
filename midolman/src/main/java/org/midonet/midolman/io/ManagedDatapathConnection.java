@@ -18,7 +18,6 @@ package org.midonet.midolman.io;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
-import org.midonet.netlink.Callback;
 import org.midonet.odp.protos.OvsDatapathConnection;
 
 public interface ManagedDatapathConnection {

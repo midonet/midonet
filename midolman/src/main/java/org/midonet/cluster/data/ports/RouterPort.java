@@ -19,13 +19,12 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import org.midonet.cluster.data.BGP;
-import org.midonet.cluster.data.Port;
-import org.midonet.packets.MAC;
-import org.midonet.packets.IPv4Addr;
-
 import javax.annotation.Nonnull;
 
+import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.Port;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
 
 /**
  * Basic abstraction for a Router Port.

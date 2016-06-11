@@ -20,7 +20,6 @@ import java.nio.ByteBuffer
 import java.util.UUID
 
 import org.midonet.cluster.flowhistory.JsonSerialization
-import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => MMSimRes}
 import org.midonet.midolman.config.FlowHistoryConfig
 import org.midonet.midolman.simulation.PacketContext

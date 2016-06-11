@@ -16,7 +16,6 @@
 package org.midonet.midolman.state;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
@@ -27,7 +26,6 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.NotEmptyException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
-import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,14 +98,6 @@ public class ZkManager {
 
     public Directory getDirectory() {
         return zk;
-    }
-
-    public Directory getSubDirectory(String path) throws StateAccessException {
-        try {
-            return zk.getSubDirectory(path);
-        } catch (Exception ex) {
-            throw processException(ex, "getting the directory " + path);
-        }
     }
 
     public boolean exists(String path) throws StateAccessException {

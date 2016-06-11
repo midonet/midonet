@@ -29,7 +29,6 @@ import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLb}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimulationLb, Pool => SimulationPool, Vip}
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
-import org.midonet.util.collection._
 import org.midonet.util.functors._
 
 final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology)

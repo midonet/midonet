@@ -25,7 +25,7 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.midolman.simulation.PacketContext;
 
 public class RedirectRule extends L2TransformRule {
-    private static final long serialVersionUID = -7212783590950701194L;
+
     @ZoomField(name = "target_port_id")
     public UUID targetPort;
     @ZoomField(name = "ingress")
@@ -73,7 +73,7 @@ public class RedirectRule extends L2TransformRule {
         RedirectRule res = (RedirectRule)other;
         return Objects.equals(targetPort, res.targetPort)
             && (ingress != res.ingress)
-            && (ingress != res.ingress);
+            && (failOpen != res.failOpen);
     }
 
     @Override

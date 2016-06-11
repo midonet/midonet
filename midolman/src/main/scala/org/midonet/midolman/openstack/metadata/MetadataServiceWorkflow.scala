@@ -62,14 +62,14 @@ trait MetadataServiceWorkflow {
         val remoteAddr =
             AddressManager dpPortToRemoteAddress fmatch.getInputPortNumber
 
-        context.log debug s"MetadataIngress: remoteAddr ${remoteAddr}"
+        context.log debug s"MetadataIngress: remoteAddr $remoteAddr"
         // Do not wildcard src address
         fmatch.fieldSeen(FlowMatch.Field.NetworkSrc)
         fmatch.fieldSeen(FlowMatch.Field.SrcPort)
         fmatch.setEthDst(mdInfo.mac)
         fmatch.setNetworkSrc(IPv4Addr(remoteAddr))
         fmatch.setDstPort(Proxy.port)
-        context.calculateActionsFromMatchDiff
+        context.calculateActionsFromMatchDiff()
         context.addVirtualAction(output(mdInfo.dpPortNo))
         AddVirtualWildcardFlow
     }
@@ -80,7 +80,7 @@ trait MetadataServiceWorkflow {
         val mac = MAC fromString "94:e7:ac:7a:c5:13"  // random
 
         context.log debug "MetadataIngress: " +
-                          s"Replying ARP: ${remoteAddr}/${mac}"
+                          s"Replying ARP: $remoteAddr/$mac"
         context.addGeneratedPacket(context.inputPort,
                                    makeArpReply(context, mac))
         NoOp
@@ -129,15 +129,15 @@ trait MetadataServiceWorkflow {
                     AddressManager remoteAddressToDpPort remoteAddr
 
                 context.log debug "MetadataEgress: " +
-                                  s"remoteAddr ${remoteAddr} info ${vmInfo}" +
-                                  s"vm-port ${vmDpPortNo}"
+                                  s"remoteAddr $remoteAddr info $vmInfo" +
+                                  s"vm-port $vmDpPortNo"
                 // Do not wildcard dst address
                 fmatch.fieldSeen(FlowMatch.Field.NetworkDst)
                 fmatch.fieldSeen(FlowMatch.Field.DstPort)
                 fmatch.setEthDst(vmInfo.mac)
                 fmatch.setNetworkDst(IPv4Addr(vmInfo.addr))
                 fmatch.setSrcPort(MetadataApi.port)
-                context.calculateActionsFromMatchDiff
+                context.calculateActionsFromMatchDiff()
                 context.addVirtualAction(output(vmDpPortNo))
                 AddVirtualWildcardFlow
             case None =>
@@ -146,7 +146,7 @@ trait MetadataServiceWorkflow {
                  * InstanceInfoMap yet.  Very unlikely but possible.
                  */
                 context.log warn "MetadataEgress: " +
-                                 s"Unknown remote ${remoteAddr}"
+                                 s"Unknown remote $remoteAddr"
                 ShortDrop
         }
     }
@@ -164,14 +164,14 @@ trait MetadataServiceWorkflow {
                  * our flows anyway.
                  */
                 context.log debug "MetadataEgress: " +
-                                  s"Replying ARP: ${remoteAddr}/${vmInfo.mac}"
+                                  s"Replying ARP: $remoteAddr/${vmInfo.mac}"
                 val mac = MAC fromString vmInfo.mac
                 context.addGeneratedPhysicalPacket(mdInfo.dpPortNo,
                                                    makeArpReply(context, mac))
                 NoOp
             case None =>
                 context.log warn "MetadataEgress: " +
-                                 s"Unknown Arp tpa ${remoteAddr}"
+                                 s"Unknown Arp tpa $remoteAddr"
                 ShortDrop
         }
     }

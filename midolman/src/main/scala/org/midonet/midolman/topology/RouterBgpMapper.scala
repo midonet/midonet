@@ -30,7 +30,6 @@ import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /** Given a router ID, produces an observable that publishes the CIDR, MAC, port

@@ -40,9 +40,9 @@ public interface DatapathConnectionPool {
     /*
      * Starts this pool. After calling this method, calls to get() will
      * return connected, valid, channels. */
-    public void start() throws Exception;
+    void start() throws Exception;
 
     /*
      * Stops this pool. */
-    public void stop() throws Exception;
+    void stop() throws Exception;
 }

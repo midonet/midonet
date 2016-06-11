@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman
 
-import scala.collection.{immutable, mutable}
+import scala.collection.mutable
 import java.util.concurrent.TimeUnit
 
 /**

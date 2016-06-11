@@ -18,17 +18,17 @@ package org.midonet.midolman
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import java.nio.file.FileSystems
-import java.nio.file.Path
-import java.nio.file.StandardOpenOption
-import java.util.Timer
-import java.util.TimerTask
+import java.nio.file.{FileSystems, Path, StandardOpenOption}
+import java.util.{Timer, TimerTask}
 import java.util.concurrent.TimeoutException
 
-import com.typesafe.scalalogging.Logger
-import org.midonet.util.concurrent.CallingThreadExecutionContext
-import org.slf4j.LoggerFactory
 import scala.concurrent.Promise
+
+import com.typesafe.scalalogging.Logger
+
+import org.slf4j.LoggerFactory
+
+import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 class WatchedProcess {
     val log = Logger(LoggerFactory.getLogger("org.midonet.midolman.watchdog"))

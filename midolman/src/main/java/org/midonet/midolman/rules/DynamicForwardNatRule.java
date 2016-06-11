@@ -29,8 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPAddr$;
 
 public class DynamicForwardNatRule extends NatRule {
     @ZoomField(name = "nat_targets")
