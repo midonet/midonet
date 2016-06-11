@@ -22,6 +22,30 @@
       "revId": "dde10efad5713fee54eb905676436d961ee15569",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5be1d499",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/ObjectPool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-11T04:06:26Z",
+      "side": 1,
+      "message": "Sorry, I was choppy submitting it. I improved the test case and check for boundary limits. I also added a bit more of context as to why the release method is necessary (basically, memory mapped files keep the file locked in the OS while their byte buffers are not GC, which is the case if we always keep them in the pool).",
+      "parentUuid": "baa041b7_409b2373",
+      "range": {
+        "startLine": 120,
+        "startChar": 8,
+        "endLine": 120,
+        "endChar": 29
+      },
+      "revId": "dde10efad5713fee54eb905676436d961ee15569",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
