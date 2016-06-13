@@ -102,6 +102,7 @@ object MidonetBackend {
              classOf[L2GatewayConnection],
              classOf[L2Insertion],
              classOf[LoadBalancer],
+             classOf[LoggingResource],
              classOf[Mirror],
              classOf[Network],
              classOf[NeutronBgpPeer],
@@ -126,6 +127,7 @@ object MidonetBackend {
              classOf[Route],
              classOf[Router],
              classOf[Rule],
+             classOf[RuleLogger],
              classOf[SecurityGroup],
              classOf[ServiceContainer],
              classOf[ServiceContainerGroup],
@@ -263,6 +265,11 @@ object MidonetBackend {
                              classOf[TraceRequest], "router_id", CLEAR)
         store.declareBinding(classOf[Port], "trace_request_ids", CASCADE,
                              classOf[TraceRequest], "port_id", CLEAR)
+
+        store.declareBinding(classOf[RuleLogger], "chain_id", CLEAR,
+                             classOf[Chain], "logger_ids", CASCADE)
+        store.declareBinding(classOf[RuleLogger], "logging_resource_id", CLEAR,
+                             classOf[LoggingResource], "logger_ids", CASCADE)
 
         stateStore.registerKey(classOf[ServiceContainer], StatusKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Host], AliveKey, SingleLastWriteWins)

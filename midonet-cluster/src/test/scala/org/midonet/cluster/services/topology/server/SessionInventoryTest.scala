@@ -96,6 +96,8 @@ class SessionInventoryTest extends FeatureSpec
         scenario("generate updates") {
             val topologyClasses = classOf[Topology].getClasses.toSet[Class[_]]
                 .filterNot(_.getSimpleName.matches("(.*)OrBuilder"))
+                .filterNot(_.getSimpleName == "RuleLogger")
+                .filterNot(_.getSimpleName == "LoggingResource")
                 .filterNot(_.getSimpleName == "Type")
                 .filterNot(_.getSimpleName == "ServiceContainerPolicy")
             val testObjects: Set[Message] = topologyClasses.map(
