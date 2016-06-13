@@ -59,6 +59,8 @@ package object cluster {
         "org.midonet.cluster.services.state-proxy"
     final val stateProxyServerLog =
         "org.midonet.cluster.services.state-proxy.server"
+    final val stateProxyCacheLog =
+        "org.midonet.cluster.services.state-proxy.cache"
 
     final val topologyApiLog =
         "org.midonet.cluster.services.topology-api"
