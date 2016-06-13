@@ -260,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b2223e00",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-13T15:56:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_bd15784a",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 204,
+        "endChar": 58
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fd630040",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 3
@@ -436,6 +460,30 @@
       "side": 1,
       "message": "You\u0027re right. I didn\u0027t want to use Disconnected because it could be confused with Closed. But I agree Init is much better than Ready for an initial state.",
       "parentUuid": "baa041b7_bd857808",
+      "range": {
+        "startLine": 226,
+        "startChar": 16,
+        "endLine": 226,
+        "endChar": 21
+      },
+      "revId": "34372556e1884826746201811e4aa743a8bfbc48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_921f3ab7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-13T15:56:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_3d54c81f",
       "range": {
         "startLine": 226,
         "startChar": 16,
