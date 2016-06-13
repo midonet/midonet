@@ -169,6 +169,10 @@ class StateProxyConfig(val conf: Config) extends MinionConfig[StateProxy] {
     final val Prefix = "cluster.state_proxy"
 
     override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    def initialSubscriberQueueSize =
+        conf.getInt(s"$Prefix.initial_subscriber_queue_size")
+    def notifyBatchSize =
+        conf.getInt(s"$Prefix.notify_batch_size")
     def serverAddress = conf.getString(s"$Prefix.server.address")
     def serverPort = conf.getInt(s"$Prefix.server.port")
     def serverSupervisorThreads =
