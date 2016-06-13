@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b2735ee7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-13T15:56:38Z",
+      "side": 1,
+      "message": "where else will promise be completed from that could have completed it before here?",
+      "range": {
+        "startLine": 122,
+        "startChar": 20,
+        "endLine": 122,
+        "endChar": 27
+      },
+      "revId": "db52e4447bb5625e1daa8950f97062c3dea670ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_92805a8d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-13T15:56:38Z",
+      "side": 1,
+      "message": "only used inside the first branch of the if statement, so it should be scoped there.",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 43
+      },
+      "revId": "db52e4447bb5625e1daa8950f97062c3dea670ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_72a6f654",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-13T15:56:38Z",
+      "side": 1,
+      "message": "if close is called when the connection is in PreConnect, it will not have access to the channelFuture, so you need to cancel it, and close any channel associated with it.",
+      "revId": "db52e4447bb5625e1daa8950f97062c3dea670ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
