@@ -221,15 +221,15 @@ message ProxyResponse {
 
         message Update {
             enum Type {
-                BEGIN_SNAPSHOT = 1;
-                SNAPSHOT = 2;
-                END_SNAPSHOT = 3;
-                RELATIVE = 4;
+                SNAPSHOT = 1;
+                RELATIVE = 2;
             }
 
             optional Type type = 1;
             optional uint64 current_version = 2;
-            repeated Entry entries = 4;
+            optional bool begin = 3;
+            optional bool end = 4;
+            repeated Entry entries = 5;
         }
 
         optional uint64 subscription_id = 1;

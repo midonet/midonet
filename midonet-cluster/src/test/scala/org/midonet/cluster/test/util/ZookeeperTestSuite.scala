@@ -47,6 +47,7 @@ trait ZookeeperTestSuite extends BeforeAndAfterAll with BeforeAndAfter { this: S
         zkClient = CuratorFrameworkFactory.newClient(
                 zkServer.getConnectString, new RetryNTimes(1, 1000))
         zkClient.start()
+        zkClient.blockUntilConnected()
         zkClient.create().forPath(ZK_ROOT)
     }
 
