@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_156d54cc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-13T16:29:35Z",
+      "side": 1,
+      "message": "Sorry. Partly leftover code, partly being extra paranoid.",
+      "parentUuid": "baa041b7_b2735ee7",
+      "range": {
+        "startLine": 122,
+        "startChar": 20,
+        "endLine": 122,
+        "endChar": 27
+      },
+      "revId": "db52e4447bb5625e1daa8950f97062c3dea670ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_92805a8d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 4
