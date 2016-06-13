@@ -30,6 +30,8 @@ class TopologyMappingsTest extends FeatureSpec with Matchers {
 
     val classes: List[Class[_ <: Message]] = classOf[Topology].getClasses.toList
         .filterNot(_.getSimpleName.matches("(.*)OrBuilder"))
+        .filterNot(_.getSimpleName == "LoggingResource")
+        .filterNot(_.getSimpleName == "RuleLogger")
         .filterNot(_.getSimpleName.matches("Type"))
         .filterNot(_.getSimpleName.matches("ServiceContainerPolicy"))
         .asInstanceOf[List[Class[_ <: Message]]]
