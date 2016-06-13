@@ -49,6 +49,11 @@ message Int32Range {
     optional int32 end = 2;
 }
 
+message LogMetadataEntry {
+    optional string key = 1;
+    optional string value = 2;
+}
+
 enum RuleDirection {
     EGRESS = 0;
     INGRESS = 1;
@@ -70,6 +75,12 @@ enum Protocol {
 enum LBStatus {
     ACTIVE = 1;
     INACTIVE = 2;
+}
+
+enum LogEvent {
+    ACCEPT = 1;
+    DROP = 2;
+    ALL = 3;
 }
 
 message Condition {
