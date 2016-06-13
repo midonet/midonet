@@ -526,3 +526,20 @@ message NeutronBgpPeer {
         MD5 = 2;
     }
 }
+
+message NeutronLoggingResource {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional string description = 3;
+    optional string tenant_id = 4;
+    optional bool enabled = 5;
+}
+
+message FirewallLog {
+    optional UUID id = 1;
+    optional string description = 2;
+    optional string tenant_id = 3;
+    optional UUID logging_resource_id = 4;
+    optional LogEvent fw_event = 5;
+    optional UUID firewall_id = 6;
+}
