@@ -23,15 +23,16 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import rx.Observable
-import rx.subjects.{PublishSubject,Subject}
+import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Rule => TopologyRule}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.rules.{JumpRule, Rule => SimRule}
-import org.midonet.midolman.simulation.{Chain => SimChain, IPAddrGroup => SimIPAddrGroup}
+import org.midonet.midolman.simulation.{RuleLogger, Chain => SimChain, IPAddrGroup => SimIPAddrGroup}
 import org.midonet.midolman.topology.ChainMapper.{IpAddressGroupState, RuleState}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
@@ -105,7 +106,7 @@ object ChainMapper {
      * @param vt The virtual topology object.
      */
     final class IpAddressGroupState(ipAddrGroupId: UUID,
-                                            vt: VirtualTopology) {
+                                    vt: VirtualTopology) {
         /** The number of rules that reference this IP address group. */
         var refCount = 1
 
@@ -155,6 +156,9 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
     private val ipAddrGroupStream = PublishSubject
         .create[Observable[SimIPAddrGroup]]()
     private val ipAddrGroups = new mutable.HashMap[UUID, IpAddressGroupState]()
+
+    private val ruleLoggerTracker =
+        new ObjectReferenceTracker(vt, classOf[RuleLogger], log)
 
     private def subscribeToJumpChain(jumpChainId: UUID): Unit = {
         jumpChains get jumpChainId match {
@@ -259,6 +263,9 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
             ruleStream onNext ruleState.observable
         }
 
+        val loggerIds = chain.getLoggerIdsList.asScala.map(_.asJava).toSet
+        ruleLoggerTracker.requestRefs(loggerIds)
+
         chainProto = chain
         chainProto
     }
@@ -311,6 +318,10 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
         chainProto
     }
 
+    private def ruleLoggerUpdated(ruleLogger: RuleLogger): TopologyChain = {
+        chainProto
+    }
+
     private def handleIpAddrGroupSubscription(previousId: UUID, currentId: UUID)
     : Option[IpAddressGroupState] = {
         if (previousId == currentId) {
@@ -327,7 +338,8 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
     private def chainReady(update: Any): Boolean = {
         assertThread()
         val ready = rules.forall(_._2.isReady) && refTracker.areRefsReady &&
-                    ipAddrGroups.forall(_._2.isReady)
+                    ipAddrGroups.forall(_._2.isReady) &&
+                    ruleLoggerTracker.areRefsReady
         log.debug("Chain ready: {}", Boolean.box(ready))
         ready
     }
@@ -344,6 +356,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
         ipAddrGroupStream.onCompleted()
         ipAddrGroups.values.foreach(_.complete())
         ipAddrGroups.clear()
+        ruleLoggerTracker.completeRefs()
     }
 
     private def buildChain(update: Any): SimChain = {
@@ -368,7 +381,15 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
         for ((id, chain) <- refTracker.currentRefs) {
             chainMap.put(id, chain)
         }
-        val chain = new SimChain(chainId, ruleList, chainMap, chainProto.getName)
+
+        val metadata = chainProto.getMetadataList.asScala.map {
+            e => s"${e.getKey}=${e.getValue}"
+        }.mkString(",")
+
+        ruleLoggerTracker.currentRefs.values.toSeq
+        val chain = new SimChain(chainId, ruleList, chainMap,
+                                 chainProto.getName, metadata,
+                                 ruleLoggerTracker.currentRefs.values.toSeq)
         log.debug("Emitting {}", chain)
         chain
     }
@@ -401,7 +422,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
     //                  |    +----------------+
     //                  +--> | map(buildChain)|-> simChain
     //                       +----------------+
-    protected override lazy val observable =
+    protected[topology] override lazy val observable =
         // WARNING! The device observable merges the rules, and the chain
         // observables. Publish subjects for rule and chain observable must be
         // added to the merge before observables that may trigger their update,
@@ -411,6 +432,8 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
                               Observable.merge(ipAddrGroupStream),
                               Observable.merge(ruleStream)
                                   .map[TopologyChain](makeFunc1(ruleUpdated)),
+                              ruleLoggerTracker.refsObservable
+                                  .map[TopologyChain](makeFunc1(ruleLoggerUpdated)),
                               chainObservable)
             .filter(makeFunc1(chainReady))
             .map[SimChain](makeFunc1(buildChain))
