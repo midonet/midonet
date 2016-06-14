@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_81192625",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T13:19:07Z",
+      "side": 1,
+      "message": "I\u0027m not an expert on akka actors, but it is okay to block its dispatcher like this? Do you know if it\u0027s shared with other actors?\n\nAlternatively, I would suggest to schedule calling the bootstrap method, like:\n\n                if (bgpd.isAlive) {\n                    bgpd.start()\n                    stopZebra(softStop \u003d true)\n                    startZebra(softStart \u003d true)\n                    val promise \u003d Promise[Boolean]()\n                    context.system.scheduler.scheduleOnce(5 seconds, makeRunnable {\n                        bootstrapBgpdConfig()\n                        promise trySuccess true\n                    })\n                    promise.future\n                } else Future.successful(true)",
+      "range": {
+        "startLine": 358,
+        "startChar": 20,
+        "endLine": 358,
+        "endChar": 38
+      },
+      "revId": "85aaf72f900ab623b3ebce96558a32d749677380",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
