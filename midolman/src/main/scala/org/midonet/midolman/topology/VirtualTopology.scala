@@ -219,6 +219,8 @@ class VirtualTopology(val backend: MidonetBackend,
             classTag[Router], new RouterMapper(_, this, traceChains)),
         classTag[RouterPort] -> DeviceFactory(
             classTag[Port], new PortMapper(_, this, traceChains)),
+        classTag[RuleLogger] -> DeviceFactory(
+            classTag[RuleLogger], new RuleLoggerMapper(_, this)),
         classTag[TunnelZone] -> DeviceFactory(
             classTag[TunnelZone], new TunnelZoneMapper(_, this)),
         classTag[Mirror] -> DeviceFactory(

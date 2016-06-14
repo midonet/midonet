@@ -62,6 +62,7 @@ public abstract class Rule extends BaseConfig {
     @JsonIgnore
     public FlowTagger.UserTag meter;
     private Map<String, String> properties = new HashMap<>();
+    private Map<String, String> metadata = new HashMap<>();
 
     protected RuleResult result;
 
