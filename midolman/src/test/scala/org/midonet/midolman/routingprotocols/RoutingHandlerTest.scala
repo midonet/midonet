@@ -20,6 +20,7 @@ import java.util.UUID
 
 import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
+import scala.concurrent.duration._
 
 import akka.actor._
 import akka.testkit.TestActorRef
@@ -549,6 +550,7 @@ class TestableRoutingHandler(rport: RouterPort,
                                    config, new MockZkConnWatcher(), isQuagga) {
 
     override val peerRouteToPort = peerPortMap
+    override val bgdpBootstrapDelay = 0 seconds
 
     override def createDpPort(port: String): Future[(DpPort, Int)]  = {
         val p = DpPort.fakeFrom(new NetDevPort("bgpd"), 27).asInstanceOf[NetDevPort]
