@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_462574ac",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "Nit: observer to differentiate it from an rx.Subscriber",
+      "range": {
+        "startLine": 73,
+        "startChar": 17,
+        "endLine": 73,
+        "endChar": 27
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_061f6c5c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "Minor comment: is this future needed? The class already uses an Rx Observer to send async notifications. Why not notify directly the observer?",
+      "range": {
+        "startLine": 140,
+        "startChar": 19,
+        "endLine": 140,
+        "endChar": 31
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e62368a6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "Nit: move up",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 45
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_db3efd28",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -65,6 +134,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_66b51830",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "And a test (at least to improve coverage)",
+      "parentUuid": "baa041b7_9b575526",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1b3a25e8",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -93,6 +180,29 @@
       "writtenOn": "2016-06-14T09:46:14Z",
       "side": 1,
       "message": "abstract",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4681f44c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "Not tested.",
+      "range": {
+        "startLine": 94,
+        "startChar": 4,
+        "endLine": 98,
+        "endChar": 31
+      },
       "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -132,6 +242,29 @@
         "startChar": 17,
         "endLine": 110,
         "endChar": 16
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2678308f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "When could this happen other than a race? If that\u0027s the case maybe this can be ignored. Anyway, I would rephrase the message since it could be confusing for the operator and add some connection info.",
+      "range": {
+        "startLine": 111,
+        "startChar": 20,
+        "endLine": 111,
+        "endChar": 69
       },
       "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -195,6 +328,29 @@
         "startChar": 0,
         "endLine": 157,
         "endChar": 63
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6647584c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "Replace with \"Disconnecting from $host:$port\"",
+      "range": {
+        "startLine": 178,
+        "startChar": 17,
+        "endLine": 178,
+        "endChar": 33
       },
       "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -276,6 +432,75 @@
       "writtenOn": "2016-06-14T09:46:14Z",
       "side": 1,
       "message": "I would suggest adding two more states, Init and Dead. Users can only call start() from Init, and when the user stops the persistentConnection, it should go to Dead.\n\nI\u0027d also add a state for AwaitingReconnect.",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c6ae24e7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "Add more connection info to these messages, if they\u0027re ever being logged.",
+      "range": {
+        "startLine": 227,
+        "startChar": 4,
+        "endLine": 232,
+        "endChar": 57
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_469a14c7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "Nit: if it\u0027s unused, add it in a next patch.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 30
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_06a40c06",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClientSettings.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:25:50Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 24,
+        "startChar": 26,
+        "endLine": 26,
+        "endChar": 62
+      },
       "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
