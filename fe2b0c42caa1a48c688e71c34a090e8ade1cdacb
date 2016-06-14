@@ -214,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ac47811c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T16:09:16Z",
+      "side": 1,
+      "message": "Right, so I commented without thinking last time: so this caps the number of threads to 4. It should be okay, right?",
+      "parentUuid": "baa041b7_6102a20d",
+      "range": {
+        "startLine": 190,
+        "startChar": 25,
+        "endLine": 190,
+        "endChar": 65
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_819246f5",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 5
