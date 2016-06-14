@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8175a633",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-14T13:55:37Z",
+      "side": 1,
+      "message": "Typo?",
+      "range": {
+        "startLine": 257,
+        "startChar": 64,
+        "endLine": 258,
+        "endChar": 25
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
