@@ -113,7 +113,8 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         host.delete()
     }
 
-    "A bridge with local ports" should "publish mac updates from Midonet" in {
+    // MI-694
+    ignore /*"A bridge with local ports"*/ should "publish mac updates from Midonet" in {
 
         Given("A bridge bound to a VTEP")
         val host = new HostOnVtepTunnelZone(1)
@@ -295,7 +296,8 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         host.delete()
     }
 
-    "A bridge with local ports" should "process updates from VTEPs" in {
+    // MI-694
+    ignore /*"A bridge with local ports"*/ should "process updates from VTEPs" in {
 
         Given("A bridge bound to a VTEP")
         val host = new HostOnVtepTunnelZone(1)
