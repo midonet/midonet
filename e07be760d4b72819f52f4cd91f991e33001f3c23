@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_46fe9406",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/state/StateTableCacheTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T09:51:52Z",
+      "side": 1,
+      "message": "This is to do: following some initial feedback first.",
+      "range": {
+        "startLine": 664,
+        "startChar": 8,
+        "endLine": 675,
+        "endChar": 5
+      },
+      "revId": "e07be760d4b72819f52f4cd91f991e33001f3c23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
