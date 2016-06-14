@@ -48,15 +48,24 @@ trait BlockHeaderBuilder[T <: BlockHeader] {
 
     /**
       * Moves the position of the byte buffer to the position specified by
-      * the header if it is valid. If the header is not valid, or the reset
-      * flag is set to true, this method initializes the meta data
-      * information of the block and moves the position of this buffer to the
-      * header size to not override the header information.
+      * the header if it is valid. Needed to read the current information
+      * on the buffer without modifying it. If the header is not valid, this
+      * method should initialize the meta data information of the block and move
+      * the position of this buffer to the header size to not override the
+      * header information.
       *
       * @param buffer
-      * @param reset wether to discard the current values on the byte buffer
       */
-    def init(buffer: ByteBuffer, reset: Boolean): Unit
+    def init(buffer: ByteBuffer): Unit
+
+    /**
+      * This method initializes the meta data information of the block and moves
+      * the position of this buffer to the header size to not override the
+      * header information.
+      *
+      * @param buffer
+      */
+    def reset(buffer: ByteBuffer): Unit
 
     /**
       * Updates the metadata of the block. Shouldn't modify the buffer position.
@@ -113,7 +122,7 @@ class MemoryMappedBlockFactory[T <: BlockHeader](val fileChannel: FileChannel,
     def allocate(index: Int): ByteBuffer = {
         val offset = index * blockSize
         val bb = fileChannel.map(FileChannel.MapMode.READ_WRITE, offset, blockSize)
-        blockBuilder.init(bb, reset = false)
+        blockBuilder.init(bb)
         bb
     }
 
@@ -144,7 +153,7 @@ class HeapBlockFactory[T <: BlockHeader](override val blockSize: Int,
 
     def allocate(index: Int): ByteBuffer = {
         val bb = ByteBuffer.allocate(blockSize)
-        blockBuilder.init(bb, reset = false)
+        blockBuilder.init(bb)
         bb
     }
 

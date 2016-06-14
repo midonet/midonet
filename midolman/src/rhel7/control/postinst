@@ -17,7 +17,9 @@
 NAME="midolman"
 GROUP="midokura"
 USER="midolman"
-DATADIR=/var/lib/midolman
+LOGDIR=/var/log/$NAME
+DATADIR=/var/lib/$NAME
+DBDIR=/var/db/$NAME
 POST_DIR=/var/lib/dpkg/info
 
 # shamelessly copied from debian mysql-server package...
@@ -38,7 +40,7 @@ if ! getent passwd $USER >/dev/null ; then
           $USER  >/dev/null
 fi
 
-install -d -o $USER -g $GROUP /var/log/$NAME $DATADIR
+install -d -o $USER -g $GROUP $LOGDIR $DATADIR $DBDIR
 mkdir /var/log/$NAME/minions
 
 # allow group access to /var/run/quagga
