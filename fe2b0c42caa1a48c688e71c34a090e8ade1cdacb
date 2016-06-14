@@ -22,6 +22,98 @@
       "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e1d472be",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T14:42:38Z",
+      "side": 1,
+      "message": "Needed?\n\nhttps://google.github.io/guava/releases/19.0/api/docs/com/google/common/util/concurrent/Service.html\n\nState transitions are a DAG, so doStart should never be called more than once on an instance.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 9
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e1eb5277",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T14:42:38Z",
+      "side": 1,
+      "message": "how many threads will be calling close()? Isn\u0027t it only called from doStop(). If so, AbstractService is taking care of all the synchronization.",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 27
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_019e3607",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T14:42:38Z",
+      "side": 1,
+      "message": "Do we really want 48 or more worked threads?",
+      "range": {
+        "startLine": 190,
+        "startChar": 25,
+        "endLine": 190,
+        "endChar": 65
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_819246f5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T14:42:38Z",
+      "side": 1,
+      "message": "This would be cleaner as a state machine, like adrian has used in the client.\n\nin this case, you\u0027d have, Init, Binding(ChannelFuture), Bound(Channel), Dead",
+      "range": {
+        "startLine": 220,
+        "startChar": 16,
+        "endLine": 221,
+        "endChar": 40
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
