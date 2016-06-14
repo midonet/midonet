@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_db95dd88",
+        "filename": "midolman/src/main/java/org/midonet/services/agent_rest_api/hacks/UnixDomainServerConnector.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-14T07:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e7cff127",
+      "range": {
+        "startLine": 86,
+        "startChar": 13,
+        "endLine": 86,
+        "endChar": 38
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_af71c5aa",
         "filename": "midolman/src/main/java/org/midonet/services/agent_rest_api/hacks/UnixDomainServerConnector.java",
         "patchSetId": 3
@@ -261,6 +285,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3b2a897f",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-14T07:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_07641547",
+      "range": {
+        "startLine": 421,
+        "startChar": 8,
+        "endLine": 421,
+        "endChar": 15
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_81495133",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 3
@@ -337,6 +385,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_fb2301a6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-14T07:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8f3961db",
+      "range": {
+        "startLine": 242,
+        "startChar": 6,
+        "endLine": 242,
+        "endChar": 11
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_09a0b1a4",
         "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/AgentRestApiService.scala",
         "patchSetId": 3
@@ -384,6 +456,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bb3699e5",
+        "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/AgentRestApiService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-14T07:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_69cdfd5c",
+      "range": {
+        "startLine": 112,
+        "startChar": 13,
+        "endLine": 112,
+        "endChar": 25
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4f3359f7",
         "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/BindingHandler.scala",
         "patchSetId": 3
@@ -395,6 +491,30 @@
       "writtenOn": "2016-06-09T13:53:14Z",
       "side": 1,
       "message": "Needed?",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 16
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5b4c2d76",
+        "filename": "midolman/src/main/scala/org/midonet/services/agent_rest_api/BindingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-14T07:16:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4f3359f7",
       "range": {
         "startLine": 45,
         "startChar": 4,
