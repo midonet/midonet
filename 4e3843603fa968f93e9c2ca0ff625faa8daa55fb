@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e7b7e2f3",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T21:39:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_904e2e39",
+      "revId": "4e3843603fa968f93e9c2ca0ff625faa8daa55fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d00dd6e8",
         "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2016-06-07T08:45:30Z",
       "side": 1,
       "message": "I would also keep \"Exiting. BYE (signal)!\"",
+      "range": {
+        "startLine": 271,
+        "startChar": 22,
+        "endLine": 271,
+        "endChar": 29
+      },
+      "revId": "4e3843603fa968f93e9c2ca0ff625faa8daa55fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c7cdfe87",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T21:39:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d00dd6e8",
       "range": {
         "startLine": 271,
         "startChar": 22,
