@@ -21,7 +21,7 @@ import java.util.UUID
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -55,6 +55,7 @@ import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.{AfUnix, UnixClock}
+import org.midonet.util.functors.makeRunnable
 
 class LazyZkConnectionMonitor(down: () => Unit,
                               up: () => Unit,
@@ -353,6 +354,15 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     bgpd.start()
                     stopZebra(softStop = true)
                     startZebra(softStart = true)
+                    // Sleep for 5 seconds to allow time for the zebra
+                    // channel to be set up.
+                    Thread.sleep(5000)
+                    val promise = Promise[Boolean]()
+                    context.system.scheduler.scheduleOnce(5 seconds, makeRunnable {
+                        bootstrapBgpdConfig()
+                        promise trySuccess true
+                    })
+                    promise.future
                     bootstrapBgpdConfig()
                 }
                 Future.successful(true)
