@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_41879e12",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T13:37:18Z",
+      "side": 1,
+      "message": "That patch didn\u0027t add it either, well otherwise the logger doesn\u0027t appear in the mn-conf dump to an operator. Also mn-conf will warn that the logger is not in schema if you try and modify. Anyway, feel free to add it later patch.",
+      "parentUuid": "baa041b7_47733d16",
+      "range": {
+        "startLine": 290,
+        "startChar": 8,
+        "endLine": 290,
+        "endChar": 52
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_49c7d964",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 3
@@ -321,6 +345,30 @@
       "side": 1,
       "message": "I prefer a non-generic name, because we want to discourage people putting rest apis on the agent. This is a special case, to get around the need for locks and neutron not writing the binding directly itself. Otherwise, noone should be putting rest apis on the agent.",
       "parentUuid": "baa041b7_3b2a897f",
+      "range": {
+        "startLine": 421,
+        "startChar": 8,
+        "endLine": 421,
+        "endChar": 15
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_218c9a34",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T13:37:18Z",
+      "side": 1,
+      "message": "Like I said: I don\u0027t have a strong opinion about it, but I favor Ivan\u0027s suggestion.",
+      "parentUuid": "baa041b7_61c4e25e",
       "range": {
         "startLine": 421,
         "startChar": 8,
