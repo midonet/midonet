@@ -263,6 +263,46 @@ trait FlowStatePackets[ConnTrackKeyT <: ConnTrackKeyStore,
             case _ => null
         }
     }
+
+    def toString(msg: FlowStateSbe,
+                 connTrackAllocator: ConnTrackKeyAllocator[ConnTrackKeyT],
+                 natAllocator: NatKeyAllocator[NatKeyT]): String = {
+        val result = new StringBuilder("FlowStateMessage[")
+        result.append(s"sender=${uuidFromSbe(msg.sender)}, ")
+
+        val conntrackIter = msg.conntrack
+        while (conntrackIter.hasNext) {
+            val k = connTrackKeyFromSbe(conntrackIter.next(), connTrackAllocator)
+            result.append(s"conntrack=$k, ")
+        }
+
+        val natIter = msg.nat
+        while (natIter.hasNext) {
+            val nat = natIter.next()
+            val k = natKeyFromSbe(nat, natAllocator)
+            val v = natBindingFromSbe(nat)
+            result.append(s"natMapping=[$k -> $v], ")
+        }
+
+        // Bypass trace messages, not interested in them
+        val traceIter = msg.trace
+        while (traceIter.hasNext) traceIter.next
+        val reqsIter = msg.traceRequestIds
+        while (reqsIter.hasNext) reqsIter.next
+
+        // There's only one group element of portIds in the message
+        val portsIter = msg.portIds
+        if (portsIter.count == 1) {
+            val (ingressPortId, egressPortIds) = portIdsFromSbe(portsIter.next)
+            result.append(s"ingress=$ingressPortId, ")
+            val egressIter = egressPortIds.iterator()
+            while (egressIter.hasNext) {
+                result.append(s"egress=${egressIter.next()}, ")
+            }
+            result.append("]")
+        }
+        result.toString()
+    }
 }
 
 object FlowStateStorePackets

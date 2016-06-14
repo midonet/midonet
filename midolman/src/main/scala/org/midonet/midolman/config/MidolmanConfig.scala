@@ -235,4 +235,9 @@ class FlowStateConfig(val conf: Config, val schema: Config)
 
     override def isEnabled: Boolean = getBoolean(s"$prefix.enabled")
     def port: Int = getInt(s"$prefix.port")
+    def blockSize: Int = Math.max(getInt(s"$prefix.block_size"), 1024)
+    def blocksPerPort: Int = getInt(s"$prefix.blocks_per_port")
+    def expirationTime: Duration = getDuration(s"$prefix.expiration_time",
+                                               TimeUnit.MILLISECONDS) millis
+    def logDirectory: String = getString(s"$prefix.log_directory")
 }
