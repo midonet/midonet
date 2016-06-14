@@ -660,10 +660,12 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpd.vty.addPeer(bgpConfig.as, peer)
             routingInfo.peers.add(peer.address)
             if (isQuagga) {
-                bgpd.vty.addPeerEbgp(bgpConfig.as, peer.address)
+                bgpd.vty.addPeerBgpIpOpts(bgpConfig.as, peer.address)
                 log.info(s"Adding Arp entry ${peer.address} -> ${rport.portMac}")
                 bgpd.addArpEntry(rport.interfaceName, peer.address.toString,
                     rport.portMac.toString)
+            } else {
+                bgpd.vty.addPeerExteriorBgpOpts(bgpConfig.as, peer.address)
             }
             log.info(s"Set up BGP session with AS ${peer.as} at ${peer.address}")
         }
@@ -717,10 +719,12 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpd.vty.addPeer(bgpConfig.as, neigh)
             routingInfo.peers.add(neigh.address)
             if (isQuagga && newPortBgps.nonEmpty) {
-                bgpd.vty.addPeerEbgp(bgpConfig.as, neigh.address)
+                bgpd.vty.addPeerBgpIpOpts(bgpConfig.as, neigh.address)
                 log.info(s"Adding Arp entry ${neigh.address} -> ${rport.portMac}")
                 bgpd.addArpEntry(rport.interfaceName, neigh.address.toString,
                     rport.portMac.toString)
+            } else if (!isQuagga) {
+                bgpd.vty.addPeerExteriorBgpOpts(bgpConfig.as, neigh.address)
             }
             log.info(s"Set up BGP session with AS ${neigh.as} at ${neigh.address}")
         }

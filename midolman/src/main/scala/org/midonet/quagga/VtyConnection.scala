@@ -176,7 +176,9 @@ trait BgpConnection {
 
     def setRouterId(as: Int, localAddr: IPAddr)
 
-    def addPeerEbgp(as: Int, peer: IPAddr)
+    def addPeerBgpIpOpts(as: Int, peer: IPAddr)
+
+    def addPeerExteriorBgpOpts(as: Int, peer: IPAddr)
 
     def addPeer(as: Int, peerAddr: IPAddr, peerAs: Int, keepAliveSecs: Int,
                 holdTimeSecs: Int, connectRetrySecs: Int)
@@ -232,9 +234,16 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
         exec(SetAs(as, s"bgp router-id $localAddr"))
     }
 
-    override def addPeerEbgp(as: Int, peer: IPAddr): Unit = {
+    override def addPeerBgpIpOpts(as: Int, peer: IPAddr): Unit = {
         exec(SetAs(as){ List(
+            s"neighbor $peer next-hop-self",
             s"neighbor $peer ebgp-multihop")
+        })
+    }
+
+    override def addPeerExteriorBgpOpts(as: Int, peer: IPAddr): Unit = {
+        exec(SetAs(as){ List(
+            s"neighbor $peer filter-list 1 out")
         })
     }
 
@@ -243,14 +252,12 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
         exec(SetAs(as){ List(
             s"neighbor $peer remote-as $peerAs",
             s"neighbor $peer timers $keepAliveSecs $holdTimeSecs",
-            s"neighbor $peer timers connect $connectRetrySecs",
-            s"neighbor $peer filter-list 1 out")
+            s"neighbor $peer timers connect $connectRetrySecs")
         })
     }
 
     override def addPeer(as: Int, neigh: Neighbor) {
-       var cmds = List(s"neighbor ${neigh.address} remote-as ${neigh.as}",
-                       s"neighbor ${neigh.address} filter-list 1 out")
+       var cmds = List(s"neighbor ${neigh.address} remote-as ${neigh.as}")
 
         for (keepalive <- neigh.keepalive ; holdtime <- neigh.holdtime) {
             cmds :+= s"neighbor ${neigh.address} timers $keepalive $holdtime"
