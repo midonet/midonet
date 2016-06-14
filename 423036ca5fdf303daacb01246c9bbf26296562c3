@@ -309,6 +309,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_61c4e25e",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T13:24:10Z",
+      "side": 1,
+      "message": "I prefer a non-generic name, because we want to discourage people putting rest apis on the agent. This is a special case, to get around the need for locks and neutron not writing the binding directly itself. Otherwise, noone should be putting rest apis on the agent.",
+      "parentUuid": "baa041b7_3b2a897f",
+      "range": {
+        "startLine": 421,
+        "startChar": 8,
+        "endLine": 421,
+        "endChar": 15
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_81495133",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 3
