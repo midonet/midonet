@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e6cda8b8",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:52:21Z",
+      "side": 1,
+      "message": "private",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 31
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a6d9e085",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:52:21Z",
+      "side": 1,
+      "message": "Do we want to log this at debug level? Plus, it doesn\u0027t have any other info.",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 42
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_86e6dc42",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:52:21Z",
+      "side": 1,
+      "message": "Same comment here.",
+      "range": {
+        "startLine": 125,
+        "startChar": 12,
+        "endLine": 125,
+        "endChar": 61
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_66687888",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:52:21Z",
+      "side": 1,
+      "message": "Add this message to the exception too. Also maybe the method should just throw rather than log. The users of this can handle the exception and log as appropriate.",
+      "range": {
+        "startLine": 86,
+        "startChar": 26,
+        "endLine": 89,
+        "endChar": 44
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_46e8d416",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T10:52:21Z",
+      "side": 1,
+      "message": "services?",
+      "range": {
+        "startLine": 84,
+        "startChar": 45,
+        "endLine": 84,
+        "endChar": 53
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
