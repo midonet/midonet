@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_671632f3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateEntryDecoder.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T21:34:41Z",
+      "side": 1,
+      "message": "No: the name is pretty uninspired. I wanted to represent the data type for a key or a value. I should change the name in the proto file.",
+      "parentUuid": "baa041b7_c1af2e2a",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 20
+      },
+      "revId": "177a95540debd8e566c5adb93d47be47ec7cb37e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e1ea32ac",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/state/StateEntryDecoderTest.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-14T14:03:45Z",
       "side": 1,
       "message": "typo: should be int",
+      "range": {
+        "startLine": 80,
+        "startChar": 67,
+        "endLine": 80,
+        "endChar": 71
+      },
+      "revId": "177a95540debd8e566c5adb93d47be47ec7cb37e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_47d20e36",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/state/StateEntryDecoderTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T21:34:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e1ea32ac",
       "range": {
         "startLine": 80,
         "startChar": 67,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_27d70a25",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/state/StateEntryDecoderTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T21:34:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_01e636e8",
+      "range": {
+        "startLine": 93,
+        "startChar": 37,
+        "endLine": 93,
+        "endChar": 49
+      },
+      "revId": "177a95540debd8e566c5adb93d47be47ec7cb37e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c1d04efa",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/state/StateEntryDecoderTest.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-14T14:03:45Z",
       "side": 1,
       "message": "typo: should be byte array",
+      "range": {
+        "startLine": 99,
+        "startChar": 67,
+        "endLine": 99,
+        "endChar": 71
+      },
+      "revId": "177a95540debd8e566c5adb93d47be47ec7cb37e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_07dc0645",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/state/StateEntryDecoderTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T21:34:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c1d04efa",
       "range": {
         "startLine": 99,
         "startChar": 67,
