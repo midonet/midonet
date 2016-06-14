@@ -71,6 +71,80 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_06408c06",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T11:05:43Z",
+      "side": 1,
+      "message": "Why would we ever allow a split? Remove it until we need it.",
+      "range": {
+        "startLine": 44,
+        "startChar": 29,
+        "endLine": 44,
+        "endChar": 39
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_665198d8",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T11:05:43Z",
+      "side": 1,
+      "message": "Since we are creating a implicit contract with the caller that we will not split a written array, we shouldn\u0027t really inherit from OutputStream. It\u0027s not really a stream, but a block writer.",
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_465d74eb",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T11:05:43Z",
+      "side": 1,
+      "message": "Not needed, since we shouldn\u0027t use outputstream.",
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_06576ccb",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T11:05:43Z",
+      "side": 1,
+      "message": "rename to writeBlock. We don\u0027t need the offset, length, just write the whole array.",
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_66687888",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
         "patchSetId": 8
@@ -88,6 +162,23 @@
         "endLine": 89,
         "endChar": 44
       },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c6718479",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-14T11:05:43Z",
+      "side": 1,
+      "message": "why inline? It\u0027s not particularly a frequently called method.",
       "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
