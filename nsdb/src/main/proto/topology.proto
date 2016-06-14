@@ -229,9 +229,6 @@ message LoggingResource {
     optional UUID id = 1;
     optional Type type = 2;
     optional bool enabled = 3;
-    oneof log_dest {
-        string file_name = 4;
-    }
 
     // Backreferences
     repeated UUID logger_ids = 101;
@@ -530,6 +527,7 @@ message RuleLogger {
     optional UUID logging_resource_id = 2;
     optional LogEvent event = 3;
     optional UUID chain_id = 4;
+    optional string file_name = 5;
 }
 
 message ServiceContainer {
