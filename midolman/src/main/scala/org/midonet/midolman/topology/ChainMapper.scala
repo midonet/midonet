@@ -367,7 +367,13 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
         for ((id, chain) <- refTracker.currentRefs) {
             chainMap.put(id, chain)
         }
-        val chain = new SimChain(chainId, ruleList, chainMap, chainProto.getName)
+
+        val metadata = chainProto.getMetadataList.asScala.map {
+            e => s"${e.getKey}=${e.getValue}"
+        }.mkString(",")
+
+        val chain = new SimChain(chainId, ruleList, chainMap,
+                                 chainProto.getName, metadata)
         log.debug("Emitting {}", chain)
         chain
     }

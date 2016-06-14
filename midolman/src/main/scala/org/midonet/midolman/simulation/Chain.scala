@@ -42,7 +42,8 @@ object Chain {
 case class Chain(id: UUID,
                  rules: JList[Rule],
                  jumpTargets: JMap[UUID, Chain],
-                 name: String) extends VirtualDevice with SimDevice {
+                 name: String,
+                 metadata: String = "") extends VirtualDevice with SimDevice {
     import Chain._
 
     override val deviceTag: FlowTagger.FlowTag = FlowTagger.tagForChain(id)
