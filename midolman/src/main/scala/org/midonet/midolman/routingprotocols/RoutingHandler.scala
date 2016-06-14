@@ -353,6 +353,9 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     bgpd.start()
                     stopZebra(softStop = true)
                     startZebra(softStart = true)
+                    // Sleep for 5 seconds to allow time for the zebra
+                    // channel to be set up.
+                    Thread.sleep(5000)
                     bootstrapBgpdConfig()
                 }
                 Future.successful(true)
