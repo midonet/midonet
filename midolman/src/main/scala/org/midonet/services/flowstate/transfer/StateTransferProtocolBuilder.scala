@@ -50,7 +50,9 @@ object StateTransferProtocolBuilder {
     private def buildErrorInternal(code: Code, e: Throwable) = {
         StateForPortResponse.Error.newBuilder()
             .setCode(code)
-            .setDescription(e.getMessage)
+            .setDescription(
+                Option(e.getMessage).getOrElse(e.getClass.getSimpleName)
+            )
             .build()
     }
 

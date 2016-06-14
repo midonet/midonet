@@ -52,14 +52,13 @@ object StateTransferProtocolParser {
     }
 
     private def parseError(error: StateForPortResponse.Error) = {
-        val portId = toJavaUUID(error.getPortId)
         val code = ErrorCode.withName(error.getCode.name())
         val description = error.getDescription
 
-        new StateTransferError(portId, code, description)
+        new StateTransferError(code, description)
     }
 
     private def toJavaUUID(protoUUID: ProtoUUID) = {
-        new UUID(protoUUID.getLsb, protoUUID.getMsb)
+        new UUID(protoUUID.getMsb, protoUUID.getLsb)
     }
 }

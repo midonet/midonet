@@ -52,16 +52,16 @@ object FlowStateRequestTcpClient {
 
             parseTransferResponse(response) match {
                 case StateTransferAck(port, flowState) =>
-                    log debug s"Ack received from previous owner of $port"
+                    log debug s"Ack received from previous owner of $portId"
                     flowState
-                case StateTransferError(port, code, description) =>
-                    log warn s"$code error received from previous owner of $port: $description"
+                case StateTransferError(code, description) =>
+                    log warn s"$code error received from previous owner of $portId: $description"
                     throw new RuntimeException(description)
             }
 
         } catch {
             case e: IOException =>
-                log warn (s"Unable to get requested flow from $portId", e)
+                log warn (s"Unable to get requested flow from $host", e)
                 throw e
         } finally {
             socket.close()

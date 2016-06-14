@@ -54,6 +54,8 @@ class FlowStateRemoteMessageHandler(flowStateStorageProvider: FlowStateStoragePr
 
                 ctx.writeAndFlush(Unpooled.wrappedBuffer(error.toByteArray))
         }
+
+        ctx.close()
     }
 
     private def respond(ctx: ChannelHandlerContext, portId: UUID): Unit = {
@@ -78,7 +80,9 @@ class FlowStateRemoteMessageHandler(flowStateStorageProvider: FlowStateStoragePr
 
     private def parseSegment(msg: ByteBuf) = {
         try {
-            val request = StateForPortRequest.parseFrom(msg.array())
+            val data = new Array[Byte](msg.readableBytes())
+            msg.getBytes(0, data)
+            val request = StateForPortRequest.parseFrom(data)
             StateTransferProtocolParser.parseTransferRequest(request)
         } catch {
             case NonFatal(e) => InvalidStateTransferRequest(e)

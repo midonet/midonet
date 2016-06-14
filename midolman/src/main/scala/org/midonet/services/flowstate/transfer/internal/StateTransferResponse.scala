@@ -22,7 +22,7 @@ abstract class StateTransferResponse
 case class StateTransferAck(portId: UUID, flowState: Array[Byte])
     extends StateTransferResponse
 
-case class StateTransferError(portId: UUID, code: ErrorCode.ErrorCode, description: String)
+case class StateTransferError(code: ErrorCode.ErrorCode, description: String)
     extends StateTransferResponse
 
 object ErrorCode extends Enumeration {

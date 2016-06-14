@@ -52,9 +52,8 @@ message StateForPortResponse {
             STORAGE_ERROR = 3; // Error reading flowstate from internal storage
         }
 
-        optional UUID port_id = 1;
-        optional Code code = 2;
-        optional string description = 3;
+        optional Code code = 1;
+        optional string description = 2;
     }
 
     oneof data {

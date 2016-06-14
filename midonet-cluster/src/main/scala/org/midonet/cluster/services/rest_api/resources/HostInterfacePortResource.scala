@@ -98,8 +98,11 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = tryTx { tx =>
         val port = tx.get(classOf[Port], id)
+        val previousHostId = if(port.active) port.hostId else port.previousHostId
+
         port.hostId = null
         port.interfaceName = null
+        port.previousHostId = previousHostId
         tx.update(port)
         MidonetResource.OkNoContentResponse
     }
