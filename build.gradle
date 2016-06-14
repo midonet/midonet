@@ -140,6 +140,7 @@ project.ext {
         scalatest: "org.scalatest:scalatest_2.11:2.2.2",
         scallop: "org.rogach:scallop_2.11:0.9.5",
         slf4j: "org.slf4j:slf4j-api:1.7.7",
+        snappy: "org.xerial.snappy:snappy-java:1.1.2.4",
         sqlite: "org.xerial:sqlite-jdbc:3.8.7",
         sun_tools: project.files("${System.properties['java.home']}/../lib/tools.jar"),
         test_frameworks: ["junit:junit:4.11",
