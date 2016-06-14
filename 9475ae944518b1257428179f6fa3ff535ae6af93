@@ -94,6 +94,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_766baa1e",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-06-14T14:54:54Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_96d18e25",
+      "range": {
+        "startLine": 51,
+        "startChar": 7,
+        "endLine": 51,
+        "endChar": 21
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d6b27605",
         "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
         "patchSetId": 5
@@ -105,6 +129,30 @@
       "writtenOn": "2016-06-06T08:48:36Z",
       "side": 1,
       "message": "Nit: we don\u0027t leave a space before colon, this applies below too.",
+      "range": {
+        "startLine": 57,
+        "startChar": 29,
+        "endLine": 57,
+        "endChar": 30
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_56766606",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-06-14T14:54:54Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_d6b27605",
       "range": {
         "startLine": 57,
         "startChar": 29,
@@ -140,6 +188,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3671a20c",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-06-14T14:54:54Z",
+      "side": 1,
+      "message": "I think it was needed, but not sure now, so trying again just with Map.",
+      "parentUuid": "baa041b7_f6a69abf",
+      "range": {
+        "startLine": 60,
+        "startChar": 38,
+        "endLine": 60,
+        "endChar": 66
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_16a45eb7",
         "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
         "patchSetId": 5
@@ -151,6 +223,30 @@
       "writtenOn": "2016-06-06T08:48:36Z",
       "side": 1,
       "message": "Should this be an info? Generally we don\u0027t expect 6wind support, isn\u0027t it? Maybe we should reword the message too: something like:\n\n6Wind DPDK support is not available on this platform and will be disabled",
+      "range": {
+        "startLine": 110,
+        "startChar": 20,
+        "endLine": 110,
+        "endChar": 24
+      },
+      "revId": "9475ae944518b1257428179f6fa3ff535ae6af93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f6657a44",
+        "filename": "netlink/src/main/scala/org/midonet/sixwind/SixWindFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-06-14T14:54:54Z",
+      "side": 1,
+      "message": "Ok, it makes sense if the common case is not to support it.",
+      "parentUuid": "baa041b7_16a45eb7",
       "range": {
         "startLine": 110,
         "startChar": 20,
