@@ -21,7 +21,7 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Commons.{Condition, IPAddress, LBStatus}
+import org.midonet.cluster.models.Commons.{Condition, IPAddress, LBStatus, LogEvent}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.{IkeVersion, Phase1NegotiationMode}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
@@ -33,7 +33,8 @@ import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
-import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.Topology.LoggingResource.{Type => LRType}
+import org.midonet.cluster.models.Topology.{LoggingResource, _}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -41,7 +42,7 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUti
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.midolman.{layer3 => l3}
-import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.packets._
 import org.midonet.util.Range
 
 trait TopologyBuilder {
@@ -1077,6 +1078,32 @@ trait TopologyBuilder {
         builder.addAllPeerCidrs(peerCidrs.map(_.asProto).asJava)
         builder.addAllLocalCidrs(localCidrs.map(_.asProto).asJava)
         builder.build()
+    }
+
+    def createLoggingResource(id: UUID = UUID.randomUUID(),
+                              resType: LRType = LRType.FILE,
+                              enabled: Boolean = true,
+                              loggerIds: Seq[UUID] = Seq()): LoggingResource = {
+        LoggingResource.newBuilder
+            .setId(id.asProto)
+            .setType(resType)
+            .setEnabled(enabled)
+            .addAllLoggerIds(loggerIds.map(_.asProto).asJava)
+            .build()
+    }
+
+    def createRuleLogger(loggingResourceId: UUID,
+                         chainId: UUID,
+                         id: UUID = UUID.randomUUID(),
+                         logEvent: LogEvent = LogEvent.ALL,
+                         fileName: Option[String] = None): RuleLogger = {
+        val bldr = RuleLogger.newBuilder
+            .setLoggingResourceId(loggingResourceId.asProto)
+            .setChainId(chainId.asProto)
+            .setId(id.asProto)
+            .setEvent(logEvent)
+        fileName.foreach(bldr.setFileName)
+        bldr.build()
     }
 }
 
