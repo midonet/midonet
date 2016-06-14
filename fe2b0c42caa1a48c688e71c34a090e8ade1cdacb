@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4149de8d",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T14:59:27Z",
+      "side": 1,
+      "message": "The second \"server\" removed",
+      "parentUuid": "baa041b7_8175a633",
+      "range": {
+        "startLine": 257,
+        "startChar": 64,
+        "endLine": 258,
+        "endChar": 25
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e1d472be",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-14T14:42:38Z",
       "side": 1,
       "message": "Needed?\n\nhttps://google.github.io/guava/releases/19.0/api/docs/com/google/common/util/concurrent/Service.html\n\nState transitions are a DAG, so doStart should never be called more than once on an instance.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 9
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0143d66d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T14:59:27Z",
+      "side": 1,
+      "message": "I know, it was redundant, I will remove.",
+      "parentUuid": "baa041b7_e1d472be",
       "range": {
         "startLine": 48,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4130be07",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T14:59:27Z",
+      "side": 1,
+      "message": "But it has to be synchronized with the completion of bind, where we have a state transition.",
+      "parentUuid": "baa041b7_e1eb5277",
+      "range": {
+        "startLine": 109,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 27
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_019e3607",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 5
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c15dee49",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T14:59:27Z",
+      "side": 1,
+      "message": "Oh, it should have been the max",
+      "parentUuid": "baa041b7_019e3607",
+      "range": {
+        "startLine": 190,
+        "startChar": 25,
+        "endLine": 190,
+        "endChar": 65
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_819246f5",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 5
@@ -105,6 +201,30 @@
       "writtenOn": "2016-06-14T14:42:38Z",
       "side": 1,
       "message": "This would be cleaner as a state machine, like adrian has used in the client.\n\nin this case, you\u0027d have, Init, Binding(ChannelFuture), Bound(Channel), Dead",
+      "range": {
+        "startLine": 220,
+        "startChar": 16,
+        "endLine": 221,
+        "endChar": 40
+      },
+      "revId": "fe2b0c42caa1a48c688e71c34a090e8ade1cdacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_013ab6e7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-14T14:59:27Z",
+      "side": 1,
+      "message": "Yeah, but since server has only bind() to change to the state, I though it was too much work. But I like it better to, I will change.",
+      "parentUuid": "baa041b7_819246f5",
       "range": {
         "startLine": 220,
         "startChar": 16,
