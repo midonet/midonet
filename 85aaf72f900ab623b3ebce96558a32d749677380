@@ -22,6 +22,30 @@
       "revId": "85aaf72f900ab623b3ebce96558a32d749677380",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d9cde25e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-06-15T08:54:50Z",
+      "side": 1,
+      "message": "Thanks for the suggestion. Fixed.",
+      "parentUuid": "baa041b7_81192625",
+      "range": {
+        "startLine": 358,
+        "startChar": 20,
+        "endLine": 358,
+        "endChar": 38
+      },
+      "revId": "85aaf72f900ab623b3ebce96558a32d749677380",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
