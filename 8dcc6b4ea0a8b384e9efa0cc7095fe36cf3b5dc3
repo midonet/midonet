@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6fc60818",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-15T16:46:23Z",
+      "side": 1,
+      "message": "Should this return a future too? Not sure.",
+      "range": {
+        "startLine": 213,
+        "startChar": 17,
+        "endLine": 213,
+        "endChar": 21
+      },
+      "revId": "8dcc6b4ea0a8b384e9efa0cc7095fe36cf3b5dc3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4f16a4a8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-15T16:46:23Z",
+      "side": 1,
+      "message": "Nit: This could have been a member of Connection like isConnected, since it\u0027s only used there.",
+      "range": {
+        "startLine": 273,
+        "startChar": 16,
+        "endLine": 273,
+        "endChar": 28
+      },
+      "revId": "8dcc6b4ea0a8b384e9efa0cc7095fe36cf3b5dc3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0f5e5c76",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-15T16:46:23Z",
+      "side": 1,
+      "message": "Nit: scala doc, what does it return? The close is async, should it return a future?",
+      "range": {
+        "startLine": 135,
+        "startChar": 8,
+        "endLine": 135,
+        "endChar": 12
+      },
+      "revId": "8dcc6b4ea0a8b384e9efa0cc7095fe36cf3b5dc3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2f59208f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-15T16:46:23Z",
+      "side": 1,
+      "message": "I think here you could have used: state.getAndSet(Dead)",
+      "range": {
+        "startLine": 138,
+        "startChar": 8,
+        "endLine": 141,
+        "endChar": 9
+      },
+      "revId": "8dcc6b4ea0a8b384e9efa0cc7095fe36cf3b5dc3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0f109ca7",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/ConnectionTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-15T16:46:23Z",
+      "side": 1,
+      "message": "Move up",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 18
+      },
+      "revId": "8dcc6b4ea0a8b384e9efa0cc7095fe36cf3b5dc3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
