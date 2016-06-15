@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c63e2429",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_462574ac",
+      "range": {
+        "startLine": 73,
+        "startChar": 17,
+        "endLine": 73,
+        "endChar": 27
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_061f6c5c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-14T10:25:50Z",
       "side": 1,
       "message": "Minor comment: is this future needed? The class already uses an Rx Observer to send async notifications. Why not notify directly the observer?",
+      "range": {
+        "startLine": 140,
+        "startChar": 19,
+        "endLine": 140,
+        "endChar": 31
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e10c723d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Connection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "rx.Observer doesn\u0027t provide a \"onStart\" callback and I wanted the ability to perform operations at connection time. Another choice would\u0027ve been to use rx.Subscriber which does provide onStart, or drop the Observer altogether and use a custom interface. Do you think I should change it?",
+      "parentUuid": "baa041b7_061f6c5c",
       "range": {
         "startLine": 140,
         "startChar": 19,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_41e8be16",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done. My java-code-style.xml settings were missing an entry for \"io\"",
+      "parentUuid": "baa041b7_e62368a6",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 45
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_db3efd28",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_01f2b606",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_db3efd28",
+      "range": {
+        "startLine": 66,
+        "startChar": 46,
+        "endLine": 66,
+        "endChar": 73
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3b35e9f6",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -105,6 +201,30 @@
       "writtenOn": "2016-06-14T09:46:14Z",
       "side": 1,
       "message": "Make this a generic parameter.",
+      "range": {
+        "startLine": 71,
+        "startChar": 21,
+        "endLine": 71,
+        "endChar": 28
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_eccd89b8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_3b35e9f6",
       "range": {
         "startLine": 71,
         "startChar": 21,
@@ -152,6 +272,42 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e1cd92b8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_9b575526",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9ca62852",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_66b51830",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1b3a25e8",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -169,6 +325,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_61baa20c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1b3a25e8",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fb3e61d9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -180,6 +354,24 @@
       "writtenOn": "2016-06-14T09:46:14Z",
       "side": 1,
       "message": "abstract",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a1c0aa7d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_fb3e61d9",
       "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3ce71cae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4681f44c",
+      "range": {
+        "startLine": 94,
+        "startChar": 4,
+        "endLine": 98,
+        "endChar": 31
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_db5ddd49",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -226,6 +442,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_213b7a9e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_db5ddd49",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_db24bdc7",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -237,6 +471,30 @@
       "writtenOn": "2016-06-14T09:46:14Z",
       "side": 1,
       "message": "else on same line as }",
+      "range": {
+        "startLine": 109,
+        "startChar": 17,
+        "endLine": 110,
+        "endChar": 16
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e144721c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_db24bdc7",
       "range": {
         "startLine": 109,
         "startChar": 17,
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e15b52f5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "You\u0027re right. The only possible state transition between get and compareAndSet is to Disconnected. In that case is correct to just ignore.",
+      "parentUuid": "baa041b7_2678308f",
+      "range": {
+        "startLine": 111,
+        "startChar": 20,
+        "endLine": 111,
+        "endChar": 69
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1b0b457f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -289,6 +571,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_41043ec5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1b0b457f",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_7b45b1b1",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -300,6 +600,30 @@
       "writtenOn": "2016-06-14T09:46:14Z",
       "side": 1,
       "message": "this is specific to the proxy protocol, while the rest of the class isn\u0027t. I would suggest adding another abstract method, getMessagePrototype() or similar.",
+      "range": {
+        "startLine": 154,
+        "startChar": 44,
+        "endLine": 154,
+        "endChar": 57
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_01dcf644",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done. Is there any specific reason to make it an abstract method instead of a constructor parameter?",
+      "parentUuid": "baa041b7_7b45b1b1",
       "range": {
         "startLine": 154,
         "startChar": 44,
@@ -335,6 +659,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_19eb4ab2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_9b2e35a4",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 63
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6647584c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -346,6 +694,30 @@
       "writtenOn": "2016-06-14T10:25:50Z",
       "side": 1,
       "message": "Replace with \"Disconnecting from $host:$port\"",
+      "range": {
+        "startLine": 178,
+        "startChar": 17,
+        "endLine": 178,
+        "endChar": 33
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c1e60e16",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6647584c",
       "range": {
         "startLine": 178,
         "startChar": 17,
@@ -381,6 +753,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a1e30a05",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1b346548",
+      "range": {
+        "startLine": 181,
+        "startChar": 0,
+        "endLine": 181,
+        "endChar": 70
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fb38a13f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -392,6 +788,24 @@
       "writtenOn": "2016-06-14T09:46:14Z",
       "side": 1,
       "message": "you have a race here. state could change from connecting to connected between state.get and state.set. You need to do something like\n\nvar current \u003d state.get\nwhile (!state.set(current, Disconnected)) {\n    current \u003d state.get\n}\n// cleanup of current.",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f9d0a6f9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_fb38a13f",
       "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -421,6 +835,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_61ed02ef",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_5b49cd8d",
+      "range": {
+        "startLine": 200,
+        "startChar": 27,
+        "endLine": 200,
+        "endChar": 30
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1b43456e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -438,6 +876,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f94ae626",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1b43456e",
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c6ae24e7",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
         "patchSetId": 7
@@ -449,6 +905,30 @@
       "writtenOn": "2016-06-14T10:25:50Z",
       "side": 1,
       "message": "Add more connection info to these messages, if they\u0027re ever being logged.",
+      "range": {
+        "startLine": 227,
+        "startChar": 4,
+        "endLine": 232,
+        "endChar": 57
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bca9ec26",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c6ae24e7",
       "range": {
         "startLine": 227,
         "startChar": 4,
@@ -484,6 +964,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_813366f6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_469a14c7",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 30
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_06a40c06",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClientSettings.scala",
         "patchSetId": 7
@@ -495,6 +999,30 @@
       "writtenOn": "2016-06-14T10:25:50Z",
       "side": 1,
       "message": "Indent",
+      "range": {
+        "startLine": 24,
+        "startChar": 26,
+        "endLine": 26,
+        "endChar": 62
+      },
+      "revId": "6385c00cc9dc077aff9fb313d0758722eee4a1f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_414c3e76",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClientSettings.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-15T13:42:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_06a40c06",
       "range": {
         "startLine": 24,
         "startChar": 26,
