@@ -26,6 +26,8 @@ import java.util.Set;
 
 import com.sun.jna.Native;
 import com.sun.jna.ptr.IntByReference;
+import sun.nio.ch.NativeThread;
+
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,7 +112,14 @@ public abstract class UnixDomainChannel extends UnixChannel<AfUnix.Address>
             synchronized (sendLock) {
                 synchronized (stateLock) {
                     ensureOpenAndListening();
+                }
+                begin();
+                try {
+                    accepterThread = NativeThread.current();
                     newConn = executeAccept();
+                } finally {
+                    accepterThread = 0;
+                    end(newConn != null);
                 }
             }
         }
