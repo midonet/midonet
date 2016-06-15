@@ -381,6 +381,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f96786e8",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-06-15T07:08:14Z",
+      "side": 1,
+      "message": "we can discourage it eg. by having a comment.\n\ni agree it should be discouraged in general.\nhowever, honestly, i\u0027m not sure how you can be confident there will not be another \"special case\".\nor how having non-generic name improves the situation.",
+      "parentUuid": "baa041b7_218c9a34",
+      "range": {
+        "startLine": 421,
+        "startChar": 8,
+        "endLine": 421,
+        "endChar": 15
+      },
+      "revId": "423036ca5fdf303daacb01246c9bbf26296562c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_81495133",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 3
