@@ -79,6 +79,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
     // IDs of native threads doing reads and writes, for signalling
     protected volatile long readerThread = 0;
     protected volatile long writerThread = 0;
+    protected volatile long accepterThread = 0;
 
     private long rxBytes = 0;
     private long txBytes = 0;
@@ -292,6 +293,8 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
             if ((th = readerThread) != 0)
                 NativeThread.signal(th);
             if ((th = writerThread) != 0)
+                NativeThread.signal(th);
+            if ((th = accepterThread) != 0)
                 NativeThread.signal(th);
             if (!isRegistered())
                 kill();
