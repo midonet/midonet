@@ -185,6 +185,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3943ae6e",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-15T09:52:52Z",
+      "side": 1,
+      "message": "Since the bufferPool will be a custom implementation, why not have that initialize the blocks before it gives them to you?",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 113,
+        "endChar": 33
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_46e8d416",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockStream.scala",
         "patchSetId": 8
