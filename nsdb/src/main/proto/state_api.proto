@@ -171,7 +171,7 @@ message ProxyRequest {
         optional string key_class = 3;
         optional string value_class = 4;
         optional string table_name = 5;
-        optional string table_arguments = 6;
+        repeated string table_arguments = 6;
         optional uint64 last_version = 7;
     }
 
@@ -212,6 +212,7 @@ message ProxyResponse {
             enum Code {
                 NSDB_ERROR = 1;
                 UNHANDLED_ERROR = 2;
+                SERVER_SHUTDOWN = 3;
             }
 
             optional Code code = 1;
@@ -255,7 +256,8 @@ message ProxyResponse {
             UNKNOWN_MESSAGE = 1;
             UNKNOWN_PROTOCOL = 2;
             NO_SUBSCRIPTION = 3;
-            NO_TABLE = 4;
+            SERVER_SHUTDOWN = 4;
+            INVALID_ARGUMENT = 5;
         }
 
         optional Code code = 1;
