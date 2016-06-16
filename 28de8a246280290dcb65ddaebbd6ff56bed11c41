@@ -91,6 +91,30 @@
       "revId": "28de8a246280290dcb65ddaebbd6ff56bed11c41",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_481c5a77",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-16T10:52:56Z",
+      "side": 1,
+      "message": "But this means you\u0027re calling bind before changing the state. What if the future returned by bind completes before?",
+      "parentUuid": "baa041b7_0871b2e0",
+      "range": {
+        "startLine": 256,
+        "startChar": 0,
+        "endLine": 264,
+        "endChar": 9
+      },
+      "revId": "28de8a246280290dcb65ddaebbd6ff56bed11c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
