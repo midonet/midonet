@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c3e3ab04",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-16T12:19:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_635dffeb",
+      "range": {
+        "startLine": 110,
+        "startChar": 16,
+        "endLine": 110,
+        "endChar": 20
+      },
+      "revId": "0d71f0c4adc050b134be62e5694c80c1d31958c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4362fbae",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 8
@@ -36,6 +60,24 @@
       "writtenOn": "2016-06-16T12:06:57Z",
       "side": 1,
       "message": "Also add a channelFuture.cancel() here.",
+      "revId": "0d71f0c4adc050b134be62e5694c80c1d31958c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_23dc9745",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-16T12:19:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4362fbae",
       "revId": "0d71f0c4adc050b134be62e5694c80c1d31958c4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_03e193fe",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-16T12:19:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a36b0785",
+      "range": {
+        "startLine": 290,
+        "startChar": 0,
+        "endLine": 290,
+        "endChar": 22
+      },
+      "revId": "0d71f0c4adc050b134be62e5694c80c1d31958c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4309dbdc",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 8
@@ -76,6 +142,30 @@
       "writtenOn": "2016-06-16T12:06:57Z",
       "side": 1,
       "message": "Similarly, the retry of bind is only valid if the for the initial binding state that this was called for. Any other state, even a new binding state is invalid, so you don\u0027t need the loop. you only need to compareAndSet once.\n\nClose is a special case, because it\u0027s being called externally and is forcing a transition, so it has to retry until it works.",
+      "range": {
+        "startLine": 331,
+        "startChar": 0,
+        "endLine": 331,
+        "endChar": 58
+      },
+      "revId": "0d71f0c4adc050b134be62e5694c80c1d31958c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e3e6af15",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-16T12:19:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4309dbdc",
       "range": {
         "startLine": 331,
         "startChar": 0,
