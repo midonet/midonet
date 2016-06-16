@@ -96,6 +96,12 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "outbound_mirror_ids")
     public List<UUID> outboundMirrorIds;
 
+    @ZoomField(name = "post_in_filter_mirror_ids")
+    public List<UUID> postInFilterMirrorIds;
+
+    @ZoomField(name = "pre_out_filter_mirror_ids")
+    public List<UUID> preOutFilterMirrorIds;
+
     @JsonIgnore
     @ZoomField(name = "mirror_ids")
     public List<UUID> mirrorIds;
