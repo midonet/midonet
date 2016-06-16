@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a1ab0ad6",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e6cda8b8",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 31
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a6d9e085",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-14T10:52:21Z",
       "side": 1,
       "message": "Do we want to log this at debug level? Plus, it doesn\u0027t have any other info.",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 42
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_017bd67c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "Removed. Put it there for testing but no need. Actually, following Ivan\u0027s comment, this read method is not necessary anymore (it really doesn\u0027t make sense to have an inputstream if we put restrictions on the input being a block).",
+      "parentUuid": "baa041b7_a6d9e085",
       "range": {
         "startLine": 50,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e17fd264",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockInputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_86e6dc42",
+      "range": {
+        "startLine": 125,
+        "startChar": 12,
+        "endLine": 125,
+        "endChar": 61
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_06408c06",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
         "patchSetId": 8
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-14T11:05:43Z",
       "side": 1,
       "message": "Why would we ever allow a split? Remove it until we need it.",
+      "range": {
+        "startLine": 44,
+        "startChar": 29,
+        "endLine": 44,
+        "endChar": 39
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_818fe674",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_06408c06",
       "range": {
         "startLine": 44,
         "startChar": 29,
@@ -111,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_21d49a45",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_665198d8",
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_465d74eb",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
         "patchSetId": 8
@@ -128,6 +242,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_01c996ac",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "baa041b7_465d74eb",
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_06576ccb",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
         "patchSetId": 8
@@ -139,6 +271,24 @@
       "writtenOn": "2016-06-14T11:05:43Z",
       "side": 1,
       "message": "rename to writeBlock. We don\u0027t need the offset, length, just write the whole array.",
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9c2bc894",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "what is being written is not a block per se, but a chunk of data (a block can be composed of severa chunks). What we enforce is that each chunk won\u0027t be split in several blocks.\n\nShould we change the name to writeChunk? Also, the snappy writer reuses the output buffer and its written size may be different depending on the compressed data so I would leave this method as is and let the caller specify how much of the array to actually write to the block.",
+      "parentUuid": "baa041b7_06576ccb",
       "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -168,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c195ee88",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_66687888",
+      "range": {
+        "startLine": 86,
+        "startChar": 26,
+        "endLine": 89,
+        "endChar": 44
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c6718479",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
         "patchSetId": 8
@@ -179,6 +353,24 @@
       "writtenOn": "2016-06-14T11:05:43Z",
       "side": 1,
       "message": "why inline? It\u0027s not particularly a frequently called method.",
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a192ea9d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "True, done. I guess allocateNewBlock was bufferPool.take when I started and I left like that.",
+      "parentUuid": "baa041b7_c6718479",
       "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -208,6 +400,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9c8f48cc",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "Done. The writer takes a factory method that initializes the header with the builder init method.",
+      "parentUuid": "baa041b7_3943ae6e",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 113,
+        "endChar": 33
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_46e8d416",
         "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockStream.scala",
         "patchSetId": 8
@@ -219,6 +435,30 @@
       "writtenOn": "2016-06-14T10:52:21Z",
       "side": 1,
       "message": "services?",
+      "range": {
+        "startLine": 84,
+        "startChar": 45,
+        "endLine": 84,
+        "endChar": 53
+      },
+      "revId": "d2e5ddba060792cdaf11268b1dd34cbcdb371432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_af02d0b2",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_46e8d416",
       "range": {
         "startLine": 84,
         "startChar": 45,
