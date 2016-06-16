@@ -22,6 +22,30 @@
       "revId": "5afb923331e6b5f18337af15a52ec4f19a7dc207",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e8532e6b",
+        "filename": "midolman/src/deb/control/control",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003057
+      },
+      "writtenOn": "2016-06-16T09:15:02Z",
+      "side": 1,
+      "message": "I think the idea whoever did this had was that by depending on 1.10 and conflicting with 1.11, it would only pick openvswitch-datapath-source if it was an old enough repo, otherwise it would use the newer linux image.\n\nAs I read it though, what it said to me is, if you can find an old enough openvswitch-datapath-source, prefer it over the linux-image that includes openvswitch.",
+      "parentUuid": "baa041b7_a8764604",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 68
+      },
+      "revId": "5afb923331e6b5f18337af15a52ec4f19a7dc207",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
