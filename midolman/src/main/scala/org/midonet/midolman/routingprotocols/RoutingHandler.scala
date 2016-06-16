@@ -21,7 +21,7 @@ import java.util.UUID
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -55,6 +55,7 @@ import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.{AfUnix, UnixClock}
+import org.midonet.util.functors.makeRunnable
 
 class LazyZkConnectionMonitor(down: () => Unit,
                               up: () => Unit,
@@ -293,7 +294,9 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     /** IP addresses to update bgpd with on startup/restart. */
     protected var newPortBgps: Seq[PortBgpInfo] = Seq()
 
-    val peerRouteToPort = mutable.Map[PeerRoute, UUID]()
+    protected val peerRouteToPort = mutable.Map[PeerRoute, UUID]()
+
+    protected val bgdpBootstrapDelay = 5 seconds
 
     /* IP address to use as the router-id.
      * Only used with BGP on Interior ports
@@ -353,9 +356,10 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     bgpd.start()
                     stopZebra(softStop = true)
                     startZebra(softStart = true)
-                    bootstrapBgpdConfig()
+                    delayedBootstrapBgpdConfig()
+                } else {
+                    Future.successful(true)
                 }
-                Future.successful(true)
             } catch {
                 case e: Exception =>
                 log.warn("Could not update CIDRs in quagga namespace", e)
@@ -673,7 +677,23 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             invalidateFlows()
     }
 
-    private def bootstrapBgpdConfig() {
+    private def delayedBootstrapBgpdConfig(): Future[Boolean] = {
+        // Sleep for 5 seconds to allow time for the zebra
+        // channel to be set up.
+        if (bgdpBootstrapDelay.length > 0) {
+            val promise = Promise[Boolean]()
+            context.system.scheduler.scheduleOnce(bgdpBootstrapDelay, makeRunnable {
+                bootstrapBgpdConfig()
+                promise trySuccess true
+            })(singleThreadExecutionContext)
+            promise.future
+        } else {
+            bootstrapBgpdConfig()
+            Future.successful(true)
+        }
+    }
+
+    private def bootstrapBgpdConfig(): Unit = {
         log.debug(s"Configuring bgpd")
 
         bgpd.vty.setAs(bgpConfig.as)
@@ -696,7 +716,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         for (neigh <- bgpConfig.neighbors.values) {
             bgpd.vty.addPeer(bgpConfig.as, neigh)
             routingInfo.peers.add(neigh.address)
-            if (isQuagga && (newPortBgps.size != 0)) {
+            if (isQuagga && newPortBgps.nonEmpty) {
                 bgpd.vty.addPeerEbgp(bgpConfig.as, neigh.address)
                 log.info(s"Adding Arp entry ${neigh.address} -> ${rport.portMac}")
                 bgpd.addArpEntry(rport.interfaceName, neigh.address.toString,
