@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_635dffeb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T12:06:57Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 110,
+        "startChar": 16,
+        "endLine": 110,
+        "endChar": 20
+      },
+      "revId": "0d71f0c4adc050b134be62e5694c80c1d31958c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4362fbae",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T12:06:57Z",
+      "side": 1,
+      "message": "Also add a channelFuture.cancel() here.",
+      "revId": "0d71f0c4adc050b134be62e5694c80c1d31958c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a36b0785",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T12:06:57Z",
+      "side": 1,
+      "message": "the while is not needed here. If the state changes from binding to anything else, the channel is no longer valid, so you should just close it.\n\nval oldState \u003d state.get()\noldState match {\n    case Binding(_) if state.compareAndSet(oldState, Bound(channel) \u003d\u003e\n        serverChannelPromise trySuccess channel\n    case _ \u003d\u003e\n        channel.close()\n        serverChannelPromise tryFailure ...\n}",
+      "range": {
+        "startLine": 290,
+        "startChar": 0,
+        "endLine": 290,
+        "endChar": 22
+      },
+      "revId": "0d71f0c4adc050b134be62e5694c80c1d31958c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4309dbdc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T12:06:57Z",
+      "side": 1,
+      "message": "Similarly, the retry of bind is only valid if the for the initial binding state that this was called for. Any other state, even a new binding state is invalid, so you don\u0027t need the loop. you only need to compareAndSet once.\n\nClose is a special case, because it\u0027s being called externally and is forcing a transition, so it has to retry until it works.",
+      "range": {
+        "startLine": 331,
+        "startChar": 0,
+        "endLine": 331,
+        "endChar": 58
+      },
+      "revId": "0d71f0c4adc050b134be62e5694c80c1d31958c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
