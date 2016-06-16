@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_ddc83cab",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockStream.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-16T11:21:06Z",
+      "side": 1,
+      "message": "will fix in later patchsets.",
+      "range": {
+        "startLine": 72,
+        "startChar": 1,
+        "endLine": 72,
+        "endChar": 2
+      },
+      "revId": "8073866bee4f7a9e468ea0e65fd1df6fb0861dae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
