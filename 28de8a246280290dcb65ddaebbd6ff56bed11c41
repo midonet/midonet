@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c8086a30",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-16T11:16:41Z",
+      "side": 1,
+      "message": "I think synchronized is simpler for this use case, this is only supposed to be done when you initialize the server.",
+      "parentUuid": "baa041b7_68627e18",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 33
+      },
+      "revId": "28de8a246280290dcb65ddaebbd6ff56bed11c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_286c7607",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 7
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a8052615",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-16T11:16:41Z",
+      "side": 1,
+      "message": "Will fix.",
+      "parentUuid": "baa041b7_286c7607",
+      "range": {
+        "startLine": 147,
+        "startChar": 25,
+        "endLine": 147,
+        "endChar": 45
+      },
+      "revId": "28de8a246280290dcb65ddaebbd6ff56bed11c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4867ba25",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
         "patchSetId": 7
@@ -59,6 +107,30 @@
       "writtenOn": "2016-06-16T10:41:01Z",
       "side": 1,
       "message": "val currentState \u003d state.get\ncurrentState match {\n    case Binding(future) \u003d\u003e\n        future.cancel(true)\n    case Bound(channel) \u003d\u003e\n        // channel shutdown\n    case _ \u003d\u003e\n}\nif (!state.compareAndSet(currentState, ShutDown)) {\n    // warning or debug log maybe\n}",
+      "range": {
+        "startLine": 140,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 9
+      },
+      "revId": "28de8a246280290dcb65ddaebbd6ff56bed11c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_030d1337",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-16T11:16:41Z",
+      "side": 1,
+      "message": "This has to be synchronized if the state changes after doing state.get since at that point you may do a future.cancel but already by in the Bound state.",
+      "parentUuid": "baa041b7_4867ba25",
       "range": {
         "startLine": 140,
         "startChar": 0,
