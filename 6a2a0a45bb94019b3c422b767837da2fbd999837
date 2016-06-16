@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0372b3ad",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T11:27:31Z",
+      "side": 1,
+      "message": "This can be abbreviated to\n\nif (state.compareAndSet(Connecting, Connected(connection))) {\n    onConnect()\n} else {\n    connection.close()\n}",
+      "range": {
+        "startLine": 180,
+        "startChar": 0,
+        "endLine": 200,
+        "endChar": 5
+      },
+      "revId": "6a2a0a45bb94019b3c422b767837da2fbd999837",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2356d706",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T11:27:31Z",
+      "side": 1,
+      "message": "this construct looks a little weird. I\u0027d just put the throw in where the exceptions are created.",
+      "range": {
+        "startLine": 218,
+        "startChar": 12,
+        "endLine": 218,
+        "endChar": 34
+      },
+      "revId": "6a2a0a45bb94019b3c422b767837da2fbd999837",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a361c7d5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T11:27:31Z",
+      "side": 1,
+      "message": "catch on same line as }",
+      "range": {
+        "startLine": 231,
+        "startChar": 20,
+        "endLine": 232,
+        "endChar": 25
+      },
+      "revId": "6a2a0a45bb94019b3c422b767837da2fbd999837",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
