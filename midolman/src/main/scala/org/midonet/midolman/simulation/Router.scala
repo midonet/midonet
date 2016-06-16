@@ -50,8 +50,10 @@ object Router {
                       inboundFilters: JList[UUID] = new util.ArrayList(0),
                       outboundFilters: JList[UUID] = new util.ArrayList(0),
                       loadBalancer: UUID = null,
-                      inboundMirrors: JList[UUID] = new util.ArrayList[UUID](),
-                      outboundMirrors: JList[UUID] = new util.ArrayList[UUID]()) {
+                      preInFilterMirrors: JList[UUID] =
+                        new util.ArrayList[UUID](),
+                      postOutFilterMirrors: JList[UUID] =
+                        new util.ArrayList[UUID]()) {
         override def toString =
             s"adminStateUp=$adminStateUp inboundFilters=$inboundFilters " +
             s"outboundFilters=$outboundFilters loadBalancer=$loadBalancer"
@@ -89,8 +91,10 @@ class Router(override val id: UUID,
 
     import Router._
 
-    override def inboundMirrors = cfg.inboundMirrors
-    override def outboundMirrors = cfg.outboundMirrors
+    override def postInFilterMirrors = throw new NotImplementedError()
+    override def preOutFilterMirrors = throw new NotImplementedError()
+    override def preInFilterMirrors = cfg.preInFilterMirrors
+    override def postOutFilterMirrors = cfg.postOutFilterMirrors
 
     override def isValidEthertype(ether: Short) =
         ether == IPv4.ETHERTYPE || ether == ARP.ETHERTYPE

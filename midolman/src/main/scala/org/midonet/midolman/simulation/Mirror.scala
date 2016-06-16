@@ -26,11 +26,14 @@ import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.sdn.flows.FlowTagger
 
 trait MirroringDevice extends SimDevice {
-    def inboundMirrors: JList[UUID]
-    def outboundMirrors: JList[UUID]
+    def preInFilterMirrors: JList[UUID]
+    def postOutFilterMirrors: JList[UUID]
+    def postInFilterMirrors: JList[UUID]
+    def preOutFilterMirrors: JList[UUID]
 
-    private final def mirror(mirrors: JList[UUID], context: PacketContext,
-                             next: SimulationResult): SimulationResult = {
+    protected[this] final def mirror(mirrors: JList[UUID],
+            context: PacketContext,
+            next: SimulationResult): SimulationResult = {
         var result: SimulationResult = next
 
         var i = 0
@@ -47,14 +50,24 @@ trait MirroringDevice extends SimDevice {
         result
     }
 
-    final def mirroringInbound(
+    final def mirroringPreInFilter(
             context: PacketContext, next: SimulationResult): SimulationResult = {
-        continue(context, mirror(inboundMirrors, context, next))
+        continue(context, mirror(preInFilterMirrors, context, next))
     }
 
-    final def mirroringOutbound(
+    final def mirroringPostOutFilter(
             context: PacketContext, next: SimulationResult): SimulationResult = {
-        continue(context, mirror(outboundMirrors, context, next))
+        continue(context, mirror(postOutFilterMirrors, context, next))
+    }
+
+    final def mirroringPostInFilter(
+            context: PacketContext, next: SimulationResult): SimulationResult = {
+        continue(context, mirror(postInFilterMirrors, context, next))
+    }
+
+    final def mirroringPreOutFilter(
+            context: PacketContext, next: SimulationResult): SimulationResult = {
+        continue(context, mirror(preOutFilterMirrors, context, next))
     }
 }
 

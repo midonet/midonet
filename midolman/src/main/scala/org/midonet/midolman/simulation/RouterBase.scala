@@ -63,7 +63,7 @@ abstract class RouterBase[IP <: IPAddr]()
 
     private val routeAndMirrorOut: ContinueWith = ContinueWith(context => {
         preRouting()(context) match {
-            case toPort: ToPortAction => mirroringOutbound(context, toPort)
+            case toPort: ToPortAction => mirroringPostOutFilter(context, toPort)
             case action => action
         }
     })
@@ -104,7 +104,7 @@ abstract class RouterBase[IP <: IPAddr]()
                         context.addFlowTag(deviceTag)
                         Drop
                     case inPort =>
-                        mirroringInbound(context, routeAndMirrorOut)
+                        mirroringPreInFilter(context, routeAndMirrorOut)
                 }
             }
         }

@@ -103,8 +103,10 @@ class Bridge(val id: UUID,
              val vlanToPort: VlanPortMap,
              val exteriorPorts: List[UUID],
              val subnetIds: List[UUID],
-             val inboundMirrors: JList[UUID] = new util.ArrayList[UUID](),
-             val outboundMirrors: JList[UUID] = new util.ArrayList[UUID]())
+             override val preInFilterMirrors: JList[UUID] =
+                new util.ArrayList[UUID](),
+             override val postOutFilterMirrors: JList[UUID] =
+                new util.ArrayList[UUID]())
         extends SimDevice
         with ForwardingDevice
         with InAndOutFilters
@@ -112,6 +114,9 @@ class Bridge(val id: UUID,
         with VirtualDevice {
 
     import org.midonet.midolman.simulation.Simulator._
+
+    override def postInFilterMirrors = throw new NotImplementedError()
+    override def preOutFilterMirrors = throw new NotImplementedError()
 
     val floodAction: Result =
         (exteriorPorts map ToPortAction).foldLeft(NoOp: Result) (ForkAction)
@@ -143,9 +148,9 @@ class Bridge(val id: UUID,
         // Some basic sanity checks
         if (context.wcmatch.getEthSrc.mcast) {
             context.log.info("Packet has multi/broadcast source, DROP")
-            mirroringInbound(context, Drop)
+            mirroringPreInFilter(context, Drop)
         } else if (adminStateUp) {
-            mirroringInbound(context, normalProcess)
+            mirroringPreInFilter(context, normalProcess)
         } else {
             context.log.debug("Bridge {} is down, DROP", id)
             Drop
@@ -489,7 +494,7 @@ class Bridge(val id: UUID,
 
         val result = filterOut(context, act.simStep)
         if (result eq act)
-            mirroringOutbound(context, result)
+            mirroringPostOutFilter(context, result)
         else
             result
     }
