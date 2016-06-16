@@ -73,7 +73,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
                 log.info(s"Successfully added address $ip to $iface bgpd-$bgpIndex")
             case err =>
                 logProcOutput(result, log.info)
-                throw new Exception(s"Failed to added address $ip to $iface bgpd-$bgpIndex")
+                log.info(s"Failed to added address $ip to $iface bgpd-$bgpIndex")
         }
     }
 
@@ -87,7 +87,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
                 log.info(s"Successfully removed address $ip from $iface bgpd-$bgpIndex")
             case err =>
                 logProcOutput(result, log.info)
-                throw new Exception(s"Failed to remove address $ip from $iface bgpd-$bgpIndex")
+                log.info(s"Failed to remove address $ip from $iface bgpd-$bgpIndex")
         }
     }
 
@@ -101,7 +101,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
                 log.info(s"Successfully added arp entry $ip -> $mac to $iface bgpd-$bgpIndex")
             case err =>
                 logProcOutput(result, log.info)
-                throw new Exception(s"Failed to add arp entry $ip -> $mac to $iface bgpd-$bgpIndex")
+                log.info(s"Failed to add arp entry $ip -> $mac to $iface bgpd-$bgpIndex")
         }
     }
 
@@ -115,7 +115,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
                 log.info(s"Successfully removed arp entry $ip from $iface bgpd-$bgpIndex")
             case err =>
                 logProcOutput(result, log.info)
-                throw new Exception(s"Failed to remove arp entry $ip from $iface bgpd-$bgpIndex")
+                log.info(s"Failed to remove arp entry $ip from $iface bgpd-$bgpIndex")
         }
     }
 
