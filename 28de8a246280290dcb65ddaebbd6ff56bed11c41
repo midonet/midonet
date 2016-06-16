@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_68627e18",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T10:41:01Z",
+      "side": 1,
+      "message": "Why did you use old style synchronization rather than an AtomicReference and compareAndSet?",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 33
+      },
+      "revId": "28de8a246280290dcb65ddaebbd6ff56bed11c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_286c7607",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T10:41:01Z",
+      "side": 1,
+      "message": "blocking call inside a synchronized block.",
+      "range": {
+        "startLine": 147,
+        "startChar": 25,
+        "endLine": 147,
+        "endChar": 45
+      },
+      "revId": "28de8a246280290dcb65ddaebbd6ff56bed11c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4867ba25",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T10:41:01Z",
+      "side": 1,
+      "message": "val currentState \u003d state.get\ncurrentState match {\n    case Binding(future) \u003d\u003e\n        future.cancel(true)\n    case Bound(channel) \u003d\u003e\n        // channel shutdown\n    case _ \u003d\u003e\n}\nif (!state.compareAndSet(currentState, ShutDown)) {\n    // warning or debug log maybe\n}",
+      "range": {
+        "startLine": 140,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 9
+      },
+      "revId": "28de8a246280290dcb65ddaebbd6ff56bed11c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0871b2e0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/server/StateProxyServer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-16T10:41:01Z",
+      "side": 1,
+      "message": "you can do CAS.\n\nval channelFuture \u003d bootstrap.bind(...)\nif (!state.compareAndSet(Init, Binding(channelFuture)) {\n    channelFuture.addListener({ channel.close() })\n    channelFuture.cancel()\n} else {\n    // add other callbacks\n}",
+      "range": {
+        "startLine": 256,
+        "startChar": 0,
+        "endLine": 264,
+        "endChar": 9
+      },
+      "revId": "28de8a246280290dcb65ddaebbd6ff56bed11c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
