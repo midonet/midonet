@@ -613,7 +613,7 @@ class PacketWorkflow(
         if (!isDhcp)
             return false
 
-        val port = VirtualTopology.tryGet[Port](context.inputPort)
+        val port = VirtualTopology.tryGet(classOf[Port], context.inputPort)
         val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
         dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
             processDhcp(context, port, dhcp,

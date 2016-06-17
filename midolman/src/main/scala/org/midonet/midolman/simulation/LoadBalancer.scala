@@ -61,7 +61,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                     val callerDevice = packetContext.currentDevice
                     packetContext.currentDevice = id
 
-                    val pool = tryGet[Pool](vip.poolId)
+                    val pool = tryGet(classOf[Pool], vip.poolId)
                     val result = if (pool.loadBalance(context, vip.isStickySourceIP))
                                      simpleAcceptRuleResult
                                  else
@@ -114,7 +114,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
 
                 // Choose a pool member and reverse DNAT if a valid pool member
                 // is found.
-                val pool = tryGet[Pool](vip.poolId)
+                val pool = tryGet(classOf[Pool], vip.poolId)
                 val validMember = pool.reverseLoadBalanceValid(packetContext,
                                                                backendIp,
                                                                backendPort,

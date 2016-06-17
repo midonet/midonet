@@ -53,7 +53,7 @@ object BgpPortMapper {
         private val mark = PublishSubject.create[BgpRouter]
 
         val observable = VirtualTopology
-            .observable[BgpRouter](routerId)
+            .observable(classOf[BgpRouter], routerId)
             .doOnNext(makeAction1(currentRouter = _))
             .doOnCompleted(makeAction0(routerCompleted()))
             .takeUntil(mark)
@@ -104,7 +104,7 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
         .onErrorResumeNext(Observable.empty)
 
     private lazy val portObservable = VirtualTopology
-        .observable[Port](portId)
+        .observable(classOf[Port], portId)
         .flatMap[RouterPort](makeFunc1(portUpdated))
         .doOnCompleted(makeAction0(portDeleted()))
         .doOnError(makeAction1(portError))

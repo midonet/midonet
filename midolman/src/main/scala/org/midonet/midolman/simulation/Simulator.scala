@@ -54,9 +54,9 @@ object Simulator {
         context.log.debug("Simulating a packet")
         reUpStashes()
         if (context.ingressed)
-            tryGet[Port](context.inputPort).ingress(context, as)
+            tryGet(classOf[Port], context.inputPort).ingress(context, as)
         else
-            tryGet[Port](context.egressPort).egress(context, as)
+            tryGet(classOf[Port], context.egressPort).egress(context, as)
     }
 
     private def reUpStashes(): Unit = {
@@ -174,7 +174,7 @@ trait SimDevice {
     final def continue(context: PacketContext, simRes: Result)
                       (implicit as: ActorSystem): Result = simRes match {
         case ToPortAction(port) =>
-            continue(context, tryGet[Port](port).egress(context, as))
+            continue(context, tryGet(classOf[Port], port).egress(context, as))
         case ContinueWith(step) =>
             continue(context, step(context, as))
         case f: ForkAction =>
@@ -274,7 +274,7 @@ trait InAndOutFilters extends SimDevice {
         while (i < filters.size()) {
             val filter = filters.get(i)
             context.log.debug(s"Applying filter $filter")
-            val ruleResult = tryGet[Chain](filter).process(context)
+            val ruleResult = tryGet(classOf[Chain], filter).process(context)
             if (ruleResult.action ne Action.ACCEPT)
                 return ruleResult
             i += 1
@@ -284,7 +284,7 @@ trait InAndOutFilters extends SimDevice {
 
     def redirect(context: PacketContext, ruleResult: RuleResult)
                 (implicit as: ActorSystem): Result = {
-        val targetPort = tryGet[Port](ruleResult.redirectPort)
+        val targetPort = tryGet(classOf[Port], ruleResult.redirectPort)
 
         this match {
             case p: Port =>

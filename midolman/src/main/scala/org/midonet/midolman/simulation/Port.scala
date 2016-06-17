@@ -182,7 +182,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     } else if (isInterior) {
         (context, as) =>
             implicit val actorSystem: ActorSystem = as
-            tryGet[Port](peerId).ingress(context, as)
+            tryGet(classOf[Port], peerId).ingress(context, as)
     } else {
         (context, as) =>
             context.log.warn("Port {} is unplugged", id)
@@ -285,7 +285,8 @@ class BridgePort(override val id: UUID,
 
     override def deviceId = networkId
 
-    protected def device(implicit as: ActorSystem) = tryGet[Bridge](networkId)
+    protected def device(implicit as: ActorSystem) =
+        tryGet(classOf[Bridge], networkId)
 
     override def egressCommon(context: PacketContext, as: ActorSystem,
                               next: SimStep): SimulationResult = {
@@ -392,7 +393,8 @@ case class RouterPort(override val id: UUID,
 
     override val servicePorts: JList[UUID] = new JArrayList(0)
 
-    protected def device(implicit as: ActorSystem) = tryGet[Router](routerId)
+    protected def device(implicit as: ActorSystem) =
+        tryGet(classOf[Router], routerId)
 
     override def toggleActive(active: Boolean) = copy(isActive = active)
 
@@ -404,7 +406,8 @@ case class RouterPort(override val id: UUID,
             if (context.inPortId eq id)
                 sendIcmpProhibited(this, context)
             else
-                sendIcmpProhibited(tryGet[RouterPort](context.inPortId), context)
+                sendIcmpProhibited(tryGet(classOf[RouterPort], context.inPortId),
+                                   context)
         }
     }
 
@@ -451,7 +454,8 @@ case class VxLanPort(override val id: UUID,
     override def isActive = true
     override def servicePorts: JList[UUID] = new JArrayList(0)
 
-    protected def device(implicit as: ActorSystem) = tryGet[Bridge](networkId)
+    protected def device(implicit as: ActorSystem) =
+        tryGet(classOf[Bridge], networkId)
 
     override def toggleActive(active: Boolean) = this
 

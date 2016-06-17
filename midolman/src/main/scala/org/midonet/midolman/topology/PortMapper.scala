@@ -52,8 +52,8 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc4
  *                       +-------------------+  +-------+  +---------+
  */
 final class PortMapper(id: UUID, vt: VirtualTopology,
-                       _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
-        extends VirtualDeviceMapper[SimulationPort](id, vt)
+                       override val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
+        extends VirtualDeviceMapper(classOf[SimulationPort], id, vt)
         with TraceRequestChainMapper[SimulationPort] {
 
     override def logSource = s"org.midonet.devices.port.port-$id"
@@ -62,16 +62,15 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private var prevAdminStateUp: Boolean = false
     private var prevActive: Boolean = false
 
-    override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
-        _traceChainMap
-
     private val portStateSubject = PublishSubject.create[String]
     private var portStateReady = false
 
-    private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
-    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
-    private val l2insertionsTracker = new StoreObjectReferenceTracker(
-        classOf[L2Insertion], vt)
+    private val chainsTracker =
+        new ObjectReferenceTracker(vt, classOf[Chain], log)
+    private val mirrorsTracker =
+        new ObjectReferenceTracker(vt, classOf[Mirror], log)
+    private val l2insertionsTracker =
+        new StoreObjectReferenceTracker(vt, classOf[L2Insertion], log)
 
     private lazy val combinator =
         makeFunc4[Boolean, Option[UUID], JList[UUID],

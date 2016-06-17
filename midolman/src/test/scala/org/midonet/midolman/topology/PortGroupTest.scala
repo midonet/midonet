@@ -19,7 +19,6 @@ import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -53,12 +52,13 @@ class PortGroupTest extends MidolmanSpec
     }
 
     private def interceptPortGroup(): SimPortGroup = {
-        VirtualTopology.tryGet[SimPortGroup](portGroup)
+        VirtualTopology.tryGet(classOf[SimPortGroup], portGroup)
     }
 
     feature("midolman tracks port groups in the cluster correctly") {
         scenario("VTA gets a port group and receives updates from its manager") {
-            Await.result(VirtualTopology.get[SimPortGroup](portGroup), timeout)
+            Await.result(VirtualTopology.get(classOf[SimPortGroup], portGroup),
+                         timeout)
 
             val pg = interceptPortGroup()
             pg.name should equal ("port-group-test")

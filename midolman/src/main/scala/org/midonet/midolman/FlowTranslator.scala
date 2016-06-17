@@ -28,7 +28,7 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 
 import org.midonet.midolman.simulation.{VxLanPort, PacketContext}
-import org.midonet.midolman.topology.{VxLanPortMappingService, VirtualToPhysicalMapper}
+import org.midonet.midolman.topology.VxLanPortMappingService
 import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology.devices.Host
@@ -43,7 +43,6 @@ object FlowTranslator {
 
 trait FlowTranslator {
     import FlowTranslator._
-    import VirtualActions._
 
     protected val dpState: DatapathState
     protected val hostId: UUID
@@ -160,7 +159,7 @@ trait FlowTranslator {
                 return
         }
 
-        val host = tryGet[Host](hostId)
+        val host = tryGet(classOf[Host], hostId)
         val tzMembership = host.tunnelZones.get(tunnel.tunnelZoneId)
 
         if (tzMembership eq None) {
@@ -181,7 +180,7 @@ trait FlowTranslator {
     private def expandPortAction(port: UUID, context: PacketContext): Unit =
         dpState.getDpPortNumberForVport(port) match {
             case null => // Translate to a remote port or a vtep peer.
-                tryGet[Port](port) match {
+                tryGet(classOf[Port], port) match {
                     case p: VxLanPort => // Always exterior
                         outputActionsToVtep(p.id, context)
                     case p: Port if p.isExterior =>

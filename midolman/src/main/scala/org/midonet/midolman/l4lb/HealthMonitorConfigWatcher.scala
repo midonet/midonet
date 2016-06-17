@@ -120,7 +120,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     override def logSource = "org.midonet.l4lb.health-monitor"
 
     override def preStart(): Unit = {
-        subscribe[PoolHealthMonitorMap](PoolHealthMonitorMapKey)
+        subscribe(classOf[PoolHealthMonitorMap], PoolHealthMonitorMapKey)
     }
 
     private  def handleDeletedMapping(poolId: UUID) {
@@ -153,11 +153,11 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
         val loadBalancerIds = convertedMap.values.map(_.loadBalancerId).toSet
         for (loadBalancerId <- loadBalancerIds
              if !lbIdToRouterIdMap.contains(loadBalancerId)) {
-            subscribe[SimLoadBalancer](loadBalancerId)
+            subscribe(classOf[SimLoadBalancer], loadBalancerId)
         }
         for (loadBalancerId <- lbIdToRouterIdMap.keySet
              if !loadBalancerIds.contains(loadBalancerId)) {
-            unsubscribe[SimLoadBalancer](loadBalancerId)
+            unsubscribe(classOf[SimLoadBalancer], loadBalancerId)
         }
 
         val oldPoolSet = this.poolIdtoConfigMap.keySet

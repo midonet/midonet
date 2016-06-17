@@ -16,12 +16,14 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+
 import javax.annotation.Nullable
 
 import scala.collection.mutable
-import scala.reflect.ClassTag
 
 import com.google.protobuf.Message
+import com.typesafe.scalalogging.Logger
+
 import rx.Observable.OnSubscribe
 import rx.observers.Subscribers
 import rx.subjects.{BehaviorSubject, PublishSubject}
@@ -29,6 +31,7 @@ import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.ZoomObject
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.DeviceMapper._
 import org.midonet.midolman.topology.VirtualTopology.{Device, Key}
@@ -38,6 +41,23 @@ object DeviceMapper {
 
     final val MapperClosedException =
         new IllegalStateException("Device mapper is closed")
+
+    /**
+      * Ignores the errors emitted by a device if the flag for a specific
+      * exception is set. Otherwise, the error is emitted.
+      */
+    final def handleException(id: UUID, ignoreNotFound: Boolean, log: Logger) = {
+        makeFunc1 { e: Throwable =>
+            e match {
+                case nfe: NotFoundException if ignoreNotFound =>
+                    log.debug("Device {} not found: ignoring", id)
+                    Observable.empty()
+                case _ =>
+                    log.warn("Device {} error", id, e)
+                    Observable.error(e)
+            }
+        }
+    }
 
     /** The state of the mapper subscription to the underlying storage
       * observables. */
@@ -109,13 +129,13 @@ object DeviceMapper {
  *  - the [[DeviceMapper]] observer can execute the custom actions before
  *    subscribers are notified.
  */
-abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
-                                        (implicit tag: ClassTag[D])
+abstract class DeviceMapper[D <: Device](val clazz: Class[D], val id: UUID,
+                                         val vt: VirtualTopology)
     extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 
     import DeviceMapper.MapperClosedException
 
-    private final val key = Key(tag, id)
+    private final val key = Key(clazz, id)
     private final var state = MapperState.Unsubscribed
     private final val cache = BehaviorSubject.create[D]()
     private final val subscriber = Subscribers.from(cache)
@@ -145,30 +165,33 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
 
     override final def onCompleted() = {
         assertThread()
-        log.debug("Device {}/{} deleted", tag, id)
+        log.debug("Device {}/{} deleted", clazz, id)
         state = MapperState.Completed
-        vt.devices.remove(id) match {
-            case device: D => onDeviceChanged(device)
-            case _ =>
-        }
+        val device = vt.devices.remove(id)
         vt.observables.remove(key)
+
+        if ((device ne null) && device.getClass == clazz) {
+            onDeviceChanged(device.asInstanceOf[D])
+        }
     }
 
     override final def onError(e: Throwable) = {
         assertThread()
-        log.error("Device {}/{} error", tag, id, e)
+        log.error("Device {}/{} error", clazz, id, e)
         error = e
         state = MapperState.Error
-        vt.devices.remove(id) match {
-            case device: D => onDeviceChanged(device)
-            case _ =>
-        }
+        val device = vt.devices.remove(id)
         vt.observables.remove(key)
+
+        if ((device ne null) && device.getClass == clazz) {
+            onDeviceChanged(device.asInstanceOf[D])
+        }
+
     }
 
     override final def onNext(device: D) = {
         assertThread()
-        log.debug("Device {}/{} notification: {}", tag, id, device)
+        log.debug("Device {}/{} notification: {}", clazz, id, device)
         vt.devices.put(id, device)
         onDeviceChanged(device)
     }
@@ -224,16 +247,16 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
      * observable.
      */
     protected def updateTopologyDeviceState[T >: Null <: Device](
+            clazz: Class[T],
             deviceIds: Set[UUID],
             devices: mutable.Map[UUID, DeviceState[T]],
             devicesObserver: Observer[Observable[T]],
             onCompleted: (UUID) => Unit = _ => { },
             onError: (UUID, Throwable) => Observable[T] =
-                (id: UUID, e: Throwable) => Observable.error[T](e))
-            (implicit tag: ClassTag[T]): Unit = {
+                (id: UUID, e: Throwable) => Observable.error[T](e)): Unit = {
         updateDeviceState(deviceIds, devices, devicesObserver) { id =>
             new DeviceState[T](id, VirtualTopology
-                .observable[T](id)
+                .observable[T](clazz, id)
                 .doOnCompleted(makeAction0 { onCompleted(id) })
                 .onErrorResumeNext(makeFunc1 { e: Throwable => onError(id, e) }))
         }
@@ -244,16 +267,15 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
      * store.
      */
     protected def updateZoomDeviceState[T >: Null <: ZoomObject, U <: Message](
+            tClass: Class[T], uClass: Class[U],
             deviceIds: Set[UUID], devices: mutable.Map[UUID, DeviceState[T]],
-            devicesObserver: Observer[Observable[T]], vt: VirtualTopology)
-            (implicit tTag: ClassTag[T], uTag: ClassTag[U]): Unit = {
+            devicesObserver: Observer[Observable[T]], vt: VirtualTopology): Unit = {
         updateDeviceState(deviceIds, devices, devicesObserver) { id =>
             new DeviceState[T](id, vt.store
-                .observable(uTag.runtimeClass.asInstanceOf[Class[U]], id)
+                .observable(uClass, id)
                 .distinctUntilChanged()
                 .observeOn(vt.vtScheduler)
-                .map[T](makeFunc1(
-                    fromProto[T, U](_, tTag.runtimeClass.asInstanceOf[Class[T]]))))
+                .map[T](makeFunc1(fromProto[T, U](_, tClass))))
         }
     }
 

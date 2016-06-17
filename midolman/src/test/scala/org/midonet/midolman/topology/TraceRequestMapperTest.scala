@@ -22,7 +22,6 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.reflect.ClassTag
 
 import org.junit.runner.RunWith
 
@@ -68,7 +67,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build())
 
             val subscriber = new TestObserver[Option[UUID]]
-            val mapper = new TraceRequestTestMapper(bridge, vt, chainMap)
+            val mapper = new TraceRequestTestMapper(classOf[SimBridge], bridge,
+                                                    vt, chainMap)
             mapper.subscribe(subscriber)
             mapper.requestForBridge()
 
@@ -108,7 +108,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
             vt.store.create(tr)
 
             val subscriber = new TestObserver[Option[UUID]]
-            val mapper = new TraceRequestTestMapper(bridge, vt, chainMap)
+            val mapper = new TraceRequestTestMapper(classOf[SimBridge], bridge,
+                                                    vt, chainMap)
             mapper.subscribe(subscriber)
 
             mapper.requestForBridge()
@@ -331,7 +332,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                                   .setNwProto(123))
                                 .build())
 
-            val mapper = new TraceRequestTestMapper(bridge, vt, chainMap)
+            val mapper = new TraceRequestTestMapper(classOf[SimBridge], bridge,
+                                                    vt, chainMap)
             val subscriber = new TestObserver[Option[UUID]]
             mapper.subscribe(subscriber)
             mapper.requestForBridge()
@@ -360,7 +362,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build()
             vt.store.create(tr)
 
-            val mapper = new TraceRequestTestMapper(bridge, vt, chainMap)
+            val mapper = new TraceRequestTestMapper(classOf[SimBridge], bridge,
+                                                    vt, chainMap)
             val subscriber = new TestObserver[Option[UUID]]()
             mapper.subscribe(subscriber)
             mapper.requestForBridge()
@@ -399,7 +402,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build()
             vt.store.create(tr)
 
-            val mapper = new TraceRequestTestMapper(bridge, vt, chainMap)
+            val mapper = new TraceRequestTestMapper(classOf[SimBridge], bridge,
+                                                    vt, chainMap)
             val subscriber = new TestObserver[Option[UUID]]()
             mapper.subscribe(subscriber)
             mapper.requestForBridge()
@@ -494,7 +498,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
             vt.store.create(tr1)
             vt.store.create(tr2)
 
-            val mapper = new TraceRequestTestMapper(bridge, vt, chainMap)
+            val mapper = new TraceRequestTestMapper(classOf[SimBridge], bridge,
+                                                    vt, chainMap)
             val subscriber = new TestObserver[Option[UUID]]()
             mapper.subscribe(subscriber)
             mapper.requestForBridge()
@@ -536,11 +541,10 @@ class TraceRequestMapperTest extends MidolmanSpec {
     }
 }
 
-class TraceRequestTestMapper[D <: VirtualDevice](deviceId: UUID,
+class TraceRequestTestMapper[D <: VirtualDevice](clazz: Class[D], deviceId: UUID,
                                                  vt: VirtualTopology,
                                                  _traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]])
-                            (implicit tag: ClassTag[D])
-        extends VirtualDeviceMapper[D](deviceId, vt)
+        extends VirtualDeviceMapper[D](clazz, deviceId, vt)
         with TraceRequestChainMapper[D] {
 
     override def traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]] = _traceChainMap

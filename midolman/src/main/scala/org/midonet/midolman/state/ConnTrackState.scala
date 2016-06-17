@@ -161,6 +161,6 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
 
     protected def fetchIngressDevice(): UUID = {
         implicit val actorSystem: ActorSystem = null
-        VirtualTopology.tryGet[Port](inputPort).deviceId
+        VirtualTopology.tryGet(classOf[Port], inputPort).deviceId
     }
 }

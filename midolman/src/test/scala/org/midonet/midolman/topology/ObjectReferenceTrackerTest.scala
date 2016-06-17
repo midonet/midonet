@@ -63,9 +63,10 @@ class ObjectReferenceTrackerTest extends MidolmanSpec with TopologyBuilder
 
     class TestableMapper(id: UUID, obs: Observable[TestableDevice])
                         (implicit vt: VirtualTopology)
-        extends VirtualDeviceMapper[TestableDevice](id, vt) {
+        extends VirtualDeviceMapper(classOf[TestableDevice], id, vt) {
 
-        private val chainsTracker = new ObjectReferenceTracker[SimulationChain](vt)
+        private val chainsTracker =
+            new ObjectReferenceTracker(vt, classOf[SimulationChain], log)
 
         @volatile private var device: TestableDevice = null
         private lazy val deviceObservable = obs
@@ -332,11 +333,11 @@ class ObjectReferenceTrackerTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(chain1), CreateOp(chain2), CreateOp(chain3)))
 
             When("Requesting the chains to have them cached")
-            VirtualTopology.get[SimulationChain](chain1.getId)
+            VirtualTopology.get(classOf[SimulationChain], chain1.getId)
                            .await(timeout) shouldBeDeviceOf chain1
-            VirtualTopology.get[SimulationChain](chain2.getId)
+            VirtualTopology.get(classOf[SimulationChain], chain2.getId)
                            .await(timeout) shouldBeDeviceOf chain2
-            VirtualTopology.get[SimulationChain](chain3.getId)
+            VirtualTopology.get(classOf[SimulationChain], chain3.getId)
                            .await(timeout) shouldBeDeviceOf chain3
 
             And("A device observer subscribed to the observable")

@@ -140,7 +140,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                 // Subscribe to BGP port updates and add the subscription to
                 // the active ports.
                 activePorts += portId ->
-                               VirtualTopology.observable[BgpPort](portId)
+                               VirtualTopology.observable(classOf[BgpPort], portId)
                                               .subscribe(this)
             }
             portHandlers get portId match {

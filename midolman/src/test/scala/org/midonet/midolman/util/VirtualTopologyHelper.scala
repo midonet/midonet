@@ -15,15 +15,14 @@
  */
 package org.midonet.midolman.util
 
-import java.util.{LinkedList => JLinkedList, List => JList, Queue => JQueue, UUID}
+import java.util.{UUID, LinkedList => JLinkedList, List => JList, Queue => JQueue}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.reflect._
+import scala.reflect.ClassTag
 
 import akka.actor.{ActorSystem, Props}
-import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
@@ -35,20 +34,19 @@ import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman._
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.{FlowRecorder, FlowRecorderFactory}
-import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain, DhcpConfigFromNsdb, LoadBalancer, PacketContext, PacketEmitter, Pool, Port => SimPort, Router => SimRouter, _}
+import org.midonet.midolman.simulation.{DhcpConfigFromNsdb, PacketContext, PacketEmitter, Bridge => SimBridge, Chain => SimChain, Port => SimPort, Router => SimRouter, _}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
-
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.Host
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.InternalPort
 import org.midonet.packets.util.AddressConversions._
-import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, MAC, TCP, UDP}
+import org.midonet.packets._
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
 import org.midonet.util.UnixClock
 
@@ -69,7 +67,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         }
 
     def fetchDevice[T <: Device](id: UUID)(implicit tag: ClassTag[T]): T = {
-        Await.result(VirtualTopology.get[T](id), timeout.duration)
+        Await.result(VirtualTopology.get[T](tag.runtimeClass.asInstanceOf[Class[T]],
+                                            id), timeout.duration)
     }
 
     def fetchBridges(bridges: UUID*): Seq[SimBridge] =

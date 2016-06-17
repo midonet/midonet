@@ -17,8 +17,6 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import scala.reflect.ClassTag
-
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 
 /**
@@ -26,10 +24,9 @@ import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
  * and generates flow tag invalidations upon receiving notifications from the
  * underlying observable. Virtual devices extend this class.
  */
-abstract class VirtualDeviceMapper[D <: VirtualDevice](id: UUID,
+abstract class VirtualDeviceMapper[D <: VirtualDevice](clazz: Class[D], id: UUID,
                                                        vt: VirtualTopology)
-                                                      (implicit tag: ClassTag[D])
-        extends DeviceMapper[D](id, vt)(tag) {
+        extends DeviceMapper[D](clazz, id, vt) {
 
     override final protected def onDeviceChanged(device: D) = {
         vt.invalidate(device.deviceTag)

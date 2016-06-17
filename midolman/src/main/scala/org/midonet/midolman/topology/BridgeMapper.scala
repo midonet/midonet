@@ -73,7 +73,7 @@ object BridgeMapper {
         private var currentPeer: PortState[_ <: Port] = null
         private val mark = PublishSubject.create[Port]()
 
-        val observable = VirtualTopology.observable[Port](portId)
+        val observable = VirtualTopology.observable(classOf[Port], portId)
             .doOnNext(makeAction1(port => currentPort = port))
             .takeUntil(mark)
 
@@ -282,19 +282,17 @@ object BridgeMapper {
  * A class that implements the [[DeviceMapper]] for a [[SimulationBridge]].
  */
 final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopology,
-                         _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
+                         override val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
                         (implicit actorSystem: ActorSystem)
-        extends VirtualDeviceMapper[SimulationBridge](bridgeId, vt)
+        extends VirtualDeviceMapper(classOf[SimulationBridge], bridgeId, vt)
         with TraceRequestChainMapper[SimulationBridge] {
 
     import BridgeMapper._
 
     override def logSource = s"org.midonet.devices.bridge.bridge-$bridgeId"
-    override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
-        _traceChainMap
 
-    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
-    private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
+    private val mirrorsTracker = new ObjectReferenceTracker(vt, classOf[Mirror], log)
+    private val chainsTracker = new ObjectReferenceTracker(vt, classOf[Chain], log)
     private var bridge: TopologyBridge = null
     private val localPorts = new mutable.HashMap[UUID, LocalPortState]
     private val peerPorts = new mutable.HashMap[UUID, PeerPortState]

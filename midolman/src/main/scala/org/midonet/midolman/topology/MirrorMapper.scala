@@ -30,13 +30,14 @@ import org.midonet.midolman.simulation.{IPAddrGroup => SimIPAddrGroup, Mirror =>
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 final class MirrorMapper(id: UUID, vt: VirtualTopology)
-        extends VirtualDeviceMapper[SimMirror](id, vt) with MidolmanLogging {
+    extends VirtualDeviceMapper(classOf[SimMirror], id, vt) with MidolmanLogging {
 
     override def logSource = s"org.midonet.devices.mirror.mirror-$id"
 
     private var mirrorProto: TopologyMirror = TopologyMirror.newBuilder.build()
 
-    private val addressGroupsTracker = new ObjectReferenceTracker[SimIPAddrGroup](vt)
+    private val addressGroupsTracker =
+        new ObjectReferenceTracker(vt, classOf[SimIPAddrGroup], log)
 
     private def mirrorUpdated(mirror: TopologyMirror): TopologyMirror = {
         assertThread()

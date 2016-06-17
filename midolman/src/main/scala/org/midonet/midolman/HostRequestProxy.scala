@@ -128,7 +128,7 @@ class HostRequestProxy(val hostId: UUID,
         val bindings = host.portBindings.map {
             case (id, iface) =>
                 try {
-                    val port = VirtualTopology.tryGet[Port](id)
+                    val port = VirtualTopology.tryGet(classOf[Port], id)
                     if (iface ne null)
                         Some(PortBinding(id, port.tunnelKey, iface))
                     else

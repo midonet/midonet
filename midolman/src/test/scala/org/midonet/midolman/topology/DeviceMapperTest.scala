@@ -54,7 +54,7 @@ class DeviceMapperTest extends MidolmanSpec {
 
     class TestableMapper(id: UUID, obs: Observable[TestableDevice])
                         (implicit vt: VirtualTopology)
-            extends DeviceMapper[TestableDevice](id, vt) {
+            extends DeviceMapper(classOf[TestableDevice], id, vt) {
 
         private val subscribed = new AtomicBoolean(false)
         private val stream = BehaviorSubject.create[TestableDevice]()

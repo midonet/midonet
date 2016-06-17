@@ -27,7 +27,7 @@ import org.midonet.util.functors.{makeAction1, makeFunc1}
  * port group.
  */
 class PortGroupMapper(id: UUID, vt: VirtualTopology)
-    extends DeviceMapper[SimulationPortGroup](id, vt) {
+    extends DeviceMapper(classOf[SimulationPortGroup], id, vt) {
     import org.midonet.cluster.util.UUIDUtil.{fromProto, fromProtoList}
 
     override def logSource = s"org.midonet.devices.port-group.port-group-$id"

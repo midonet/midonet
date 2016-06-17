@@ -27,7 +27,7 @@ import org.midonet.midolman.simulation.{IPAddrGroup => SimIPAddrGroup}
 import org.midonet.util.functors.makeFunc1
 
 class IPAddrGroupMapper(addrGroupId: UUID, vt: VirtualTopology) extends
-    DeviceMapper[SimIPAddrGroup](addrGroupId, vt) {
+    DeviceMapper(classOf[SimIPAddrGroup], addrGroupId, vt) {
 
     private def toSimIPAddrGroup(ipAddGroup: TopologyIPAddrGroup)
     : SimIPAddrGroup = {

@@ -53,7 +53,7 @@ trait RoutingWorkflow {
         if (info eq null)
             return ErrorDrop
 
-        val port = VirtualTopology.tryGet[RouterPort](info.portId)
+        val port = VirtualTopology.tryGet(classOf[RouterPort], info.portId)
         if (context.wcmatch.getEtherType == ARP.ETHERTYPE ||
             matchBgp(context, info, port)) {
 

@@ -1319,9 +1319,9 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new BridgeMapper(bridge.getId, vt, mutable.Map())
 
             When("Requesting the ports to have them cached")
-            VirtualTopology.get[BridgePort](port1.getId)
+            VirtualTopology.get(classOf[BridgePort], port1.getId)
                            .await(timeout) shouldBeDeviceOf port1
-            VirtualTopology.get[BridgePort](port2.getId)
+            VirtualTopology.get(classOf[BridgePort], port2.getId)
                            .await(timeout) shouldBeDeviceOf port2
 
             And("The observer subscribes to an observable on the mapper")
@@ -1653,7 +1653,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device shouldBeDeviceOf bridge
 
             And("The virtual topology should have prefetched the chain")
-            VirtualTopology.tryGet[Chain](chain.getId) shouldBeDeviceOf chain
+            VirtualTopology.tryGet(classOf[Chain], chain.getId) shouldBeDeviceOf chain
         }
 
         scenario("The bridge updates when updating chain") {
@@ -1690,7 +1690,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device shouldBeDeviceOf bridge
 
             And("The virtual topology should have prefetched the chain")
-            VirtualTopology.tryGet[Chain](chain2.getId) shouldBeDeviceOf chain2
+            VirtualTopology.tryGet(classOf[Chain], chain2.getId) shouldBeDeviceOf chain2
         }
 
         scenario("The bridge updates when removing chain") {
@@ -1727,7 +1727,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device shouldBeDeviceOf bridge2
 
             And("The virtual topology should not have the chain")
-            VirtualTopology.tryGet[Chain](chain.getId)
+            VirtualTopology.tryGet(classOf[Chain], chain.getId)
         }
     }
 }
