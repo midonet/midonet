@@ -35,7 +35,11 @@ import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor
 
-class MidonetTestBackend extends MidonetBackend {
+class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend {
+
+    def this() = {
+        this(mock(classOf[CuratorFramework]))
+    }
 
     private val inMemoryZoom: InMemoryStorage = new InMemoryStorage()
     inMemoryZoom.registerTable(classOf[Topology.Network], classOf[MAC],
@@ -50,16 +54,14 @@ class MidonetTestBackend extends MidonetBackend {
     inMemoryZoom.registerTable(classOf[Topology.Port], classOf[MAC],
                                classOf[IPv4Addr], MidonetBackend.PeeringTable,
                                classOf[MacIp4StateTable])
-
-    private val mockCurator: CuratorFramework = mock(classOf[CuratorFramework])
     val connectionState =
         BehaviorSubject.create[ConnectionState](ConnectionState.CONNECTED)
 
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
     override def stateTableStore: StateTableStorage = inMemoryZoom
-    override def curator: CuratorFramework = mockCurator
-    override def failFastCurator: CuratorFramework = mockCurator
+    override def curator: CuratorFramework = curatorParam
+    override def failFastCurator: CuratorFramework = curatorParam
     override def reactor: Reactor = null
     override def connection: ZkConnection = null
     override def connectionWatcher: ZkConnectionAwareWatcher = null
