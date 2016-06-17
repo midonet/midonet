@@ -20,9 +20,10 @@ import scala.collection.JavaConversions._
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronBgpPeer, NeutronBgpSpeaker, NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.{NeutronBgpPeer, NeutronBgpSpeaker, NeutronPort, NeutronRoute, NeutronRouter, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.translators.RouteManager.extraRouteId
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
 import org.midonet.containers
@@ -47,6 +48,7 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
 
         val ops = new OperationListBuffer
         ops ++= ensureContainer(router, speaker)
+        ops ++= ensureExtraRouteBgpNetworks(router.getId)
         ops ++= chainOps
         ops += createBgpPeer(router.getId, bgpPeer)
         ops += createPeerRedirectRule(
@@ -76,6 +78,7 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
 
         val ops = new OperationListBuffer
         ops ++= deleteBgpPeer(router, bgpPeer.getId)
+        ops ++= cleanUpBgpNetworkExtraRoutes(router.getId)
         ops.toList
     }
 
@@ -110,6 +113,13 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
             condBldr.setTpDst(bgpPortRange)
 
         Create(peerRuleBldr.build())
+    }
+
+    private def ensureExtraRouteBgpNetworks(rId: UUID) = {
+        val nrouter = storage.get(classOf[NeutronRouter], rId).await()
+        val routes = nrouter.getRoutesList
+
+        routes map (makeBgpNetworkFromRoute(rId, _))
     }
 
     private def ensureContainer(router: Router, bgpSpeaker: NeutronBgpSpeaker)
@@ -171,6 +181,14 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
         assignTunnelKey(pbuilder, sequenceDispenser)
         Create(pbuilder.build)
     }
+
+    def cleanUpBgpNetworkExtraRoutes(routerId: UUID) = {
+        val nrouter = storage.get(classOf[NeutronRouter], routerId).await()
+        nrouter.getRoutesList map {route =>
+            val routeId = bgpNetworkId(extraRouteId(routerId, route))
+            Delete(classOf[BgpNetwork], routeId)
+        }
+    }
 }
 
 object BgpPeerTranslator {
@@ -183,8 +201,8 @@ object BgpPeerTranslator {
     def quaggaPortId(deviceId: UUID): UUID =
         deviceId.xorWith(0xff498a4c22390ae3L, 0x3e3ec848baff217dL)
 
-    def bgpNetworkId(rifPortId: UUID): UUID =
-        rifPortId.xorWith(0x39c62a620c7049a9L, 0xbc9c1acb80e516fcL)
+    def bgpNetworkId(sourceId: UUID): UUID =
+        sourceId.xorWith(0x39c62a620c7049a9L, 0xbc9c1acb80e516fcL)
 
     def redirectRuleId(peerId: UUID): UUID =
         peerId.xorWith(0x12d34babf7d84902L, 0xaa840971afc3307fL)
@@ -201,10 +219,21 @@ object BgpPeerTranslator {
              Delete(classOf[Rule], inverseRedirectRuleId(bgpPeerId)))
     }
 
-    def makeBgpNetwork(routerId: UUID, subnet: IPSubnet, rifPortId: UUID)
+
+    def makeBgpNetworkFromRoute(rId: UUID, route: NeutronRoute) = {
+        val routeId = extraRouteId(rId, route)
+        Create(makeBgpNetwork(rId, route.getDestination, routeId))
+    }
+
+    def isBgpSpeakerConfigured(storage: ReadOnlyStorage, routerId: UUID) = {
+        val peers = storage.getAll(classOf[NeutronBgpPeer]).await()
+        peers.exists(peer => peer.getBgpSpeaker.getLogicalRouter == routerId)
+    }
+
+    def makeBgpNetwork(routerId: UUID, subnet: IPSubnet, id: UUID)
     : BgpNetwork = {
         BgpNetwork.newBuilder()
-            .setId(bgpNetworkId(rifPortId))
+            .setId(bgpNetworkId(id))
             .setRouterId(routerId)
             .setSubnet(subnet)
             .build()
