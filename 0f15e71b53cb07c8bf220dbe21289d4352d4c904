@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_82991a22",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/RingBuffer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-17T09:18:23Z",
+      "side": 1,
+      "message": "This is strange. It looks strange when it\u0027s called. There will only ever be one factory per ring buffer. I\u0027d remove this method, create a subclass of RingBuffer called something like RingBufferWithFactory and create a method on that \"def allocateAndPut(): T\"",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "0f15e71b53cb07c8bf220dbe21289d4352d4c904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_42d552b7",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/RingBuffer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-17T09:18:23Z",
+      "side": 1,
+      "message": "safe",
+      "range": {
+        "startLine": 81,
+        "startChar": 36,
+        "endLine": 81,
+        "endChar": 40
+      },
+      "revId": "0f15e71b53cb07c8bf220dbe21289d4352d4c904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_02ff4a35",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlock.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-17T09:18:23Z",
+      "side": 1,
+      "message": "what is the purpose of this trait? Does any class use both a ByteBufferBlockWriter and a ByteBufferBlockReader? I would just get rid of the trait and put these members directly in the class.",
+      "range": {
+        "startLine": 82,
+        "startChar": 6,
+        "endLine": 82,
+        "endChar": 21
+      },
+      "revId": "0f15e71b53cb07c8bf220dbe21289d4352d4c904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e2a90626",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockReader.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-17T09:18:23Z",
+      "side": 1,
+      "message": "does it need to be an input stream?",
+      "range": {
+        "startLine": 92,
+        "startChar": 17,
+        "endLine": 92,
+        "endChar": 21
+      },
+      "revId": "0f15e71b53cb07c8bf220dbe21289d4352d4c904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bc47a54a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockWriter.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-17T09:18:23Z",
+      "side": 1,
+      "message": "this line looks weird, as if you are pushing the blockFactory into the list. Add () to blockFactory, since it does mutate something anyhow.",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 37
+      },
+      "revId": "0f15e71b53cb07c8bf220dbe21289d4352d4c904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_827d9ae9",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferExpirationStream.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-17T09:18:23Z",
+      "side": 1,
+      "message": "commented out code.",
+      "range": {
+        "startLine": 50,
+        "startChar": 15,
+        "endLine": 50,
+        "endChar": 43
+      },
+      "revId": "0f15e71b53cb07c8bf220dbe21289d4352d4c904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
