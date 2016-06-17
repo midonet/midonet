@@ -429,10 +429,19 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             val port = createBridgePort(id = id, bridgeId = Some(bridgeId))
             store.create(port)
 
-            And("Requesting the port to update the VT cache")
+            When("Requesting the port to update the VT cache")
             ready(intercept[NotYetException] {
                 VirtualTopology.tryGet[SimulationPort](id)
             }.waitFor, timeout)
+
+            Then("The metrics should be updated")
+            vt.metrics.devicesGauge.getValue shouldBe 1
+            vt.metrics.observablesGauge.getValue shouldBe 1
+            vt.metrics.cacheHitGauge.getValue shouldBe 0
+            vt.metrics.cacheMissGauge.getValue shouldBe 1
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 1
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 1
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
 
             When("Creating an observer to the VT observable")
             val observer = new DeviceObserver[SimulationPort](vt)
@@ -441,9 +450,24 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
                 .subscribe(observer)
             observer.awaitOnNext(1, timeout)
 
-            Then("The gauges should be increased.")
-            vt.devicesGauge.getValue shouldBe 1
-            vt.observablesGauge.getValue shouldBe 1
+            And("Updating the device")
+            store.update(port.toBuilder.setTunnelKey(1L).build())
+            observer.awaitOnNext(2, timeout)
+
+            Then("The metrics should be updated")
+            vt.metrics.devicesGauge.getValue shouldBe 1
+            vt.metrics.observablesGauge.getValue shouldBe 1
+            vt.metrics.cacheHitGauge.getValue shouldBe 0
+            vt.metrics.cacheMissGauge.getValue shouldBe 1
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 2
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 2
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
+
+            When("Requesting the port")
+            VirtualTopology.tryGet[SimulationPort](id)
+
+            Then("The metrics should be updated")
+            vt.metrics.cacheHitGauge.getValue shouldBe 1
 
             And("Deleting the port")
             store.delete(classOf[TopologyPort], id)
@@ -451,9 +475,15 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             And("Waiting for the notifications")
             observer.awaitCompletion(timeout)
 
-            Then("The gauges should be decreased.")
-            vt.devicesGauge.getValue shouldBe 0
-            vt.observablesGauge.getValue shouldBe 0
+            Then("The metrics should be updated")
+            vt.metrics.devicesGauge.getValue shouldBe 0
+            vt.metrics.observablesGauge.getValue shouldBe 0
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 2
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 2
+            vt.metrics.deviceCompleteCounter.getCount shouldBe 1
+            vt.metrics.deviceCompleteMeter.getCount shouldBe 1
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
+            vt.metrics.deviceLifetimeHistogram.getCount shouldBe 1
       }
     }
 }

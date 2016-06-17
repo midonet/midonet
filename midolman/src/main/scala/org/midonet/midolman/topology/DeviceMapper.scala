@@ -22,7 +22,6 @@ import javax.annotation.Nullable
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.Message
 import com.typesafe.scalalogging.Logger
 
@@ -35,7 +34,6 @@ import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.ZoomObject
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.monitoring.metrics.{BlackHoleDeviceMapperMetrics, JmxDeviceMapperMetrics}
 import org.midonet.midolman.topology.DeviceMapper._
 import org.midonet.midolman.topology.VirtualTopology.{Device, Key}
 import org.midonet.util.functors._
@@ -147,13 +145,8 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
 
     @volatile private var error: Throwable = null
 
-    /* Functions and variables to expose metrics using JMX in class
-       DeviceMapperMetrics. */
-    @VisibleForTesting
-    private[topology] val metrics = vt.metricRegistry match {
-        case null => BlackHoleDeviceMapperMetrics
-        case registry => new JmxDeviceMapperMetrics(this, registry)
-    }
+    private val timestamp = System.nanoTime()
+    private var initialized = false
 
     /**
      * An implementing class must override this method, which is called
@@ -185,12 +178,14 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
             case _ =>
         }
         vt.observables.remove(key)
+        vt.metrics.deviceComplete(tag.runtimeClass)
+        vt.metrics.deviceLifetime(tag.runtimeClass,
+                                  System.nanoTime() - timestamp)
     }
 
     override final def onError(e: Throwable) = {
         assertThread()
         log.error("Device {}/{} error", tag, id, e)
-        metrics.deviceErrorTriggered()
         error = e
         state = MapperState.Error
         vt.devices.remove(id) match {
@@ -198,13 +193,21 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
             case _ =>
         }
         vt.observables.remove(key)
+        vt.metrics.deviceError(tag.runtimeClass)
+        vt.metrics.deviceLifetime(tag.runtimeClass,
+                                  System.nanoTime() - timestamp)
     }
 
     override final def onNext(device: D) = {
         assertThread()
         log.debug("Device {}/{} notification: {}", tag, id, device)
-        metrics.deviceUpdated()
         vt.devices.put(id, device)
+        vt.metrics.deviceUpdate(tag.runtimeClass)
+        if (!initialized) {
+            initialized = true
+            vt.metrics.deviceLatency(tag.runtimeClass,
+                                     System.nanoTime() - timestamp)
+        }
         onDeviceChanged(device)
     }
 

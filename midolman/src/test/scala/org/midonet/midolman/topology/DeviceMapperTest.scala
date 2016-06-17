@@ -24,7 +24,6 @@ import rx.Observable
 import rx.observers.TestObserver
 import rx.subjects.BehaviorSubject
 
-import org.midonet.midolman.monitoring.metrics.JmxDeviceMapperMetrics
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
@@ -668,17 +667,21 @@ class DeviceMapperTest extends MidolmanSpec {
             val observer = new TestableObserver()
 
             When("Creating a device observable for this stream")
-            val mapper = new TestableMapper(
-                UUID.randomUUID, stream.out)
+            val mapper = new TestableMapper(UUID.randomUUID, stream.out)
             val observable = Observable.create(mapper)
 
             When("An observer subscribes")
             observable.subscribe(observer)
 
-            Then("The metrics should not change.")
-            val metrics = mapper.metrics.asInstanceOf[JmxDeviceMapperMetrics[Device]]
-            metrics.deviceUpdatedMeter.getCount shouldBe 0
-            metrics.deviceErrors.getCount shouldBe 0
+            Then("The metrics should not change")
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 0
+            vt.metrics.deviceErrorCounter.getCount shouldBe 0
+            vt.metrics.deviceCompleteCounter.getCount shouldBe 0
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 0
+            vt.metrics.deviceErrorMeter.getCount shouldBe 0
+            vt.metrics.deviceCompleteMeter.getCount shouldBe 0
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 0
+            vt.metrics.deviceLifetimeHistogram.getCount shouldBe 0
         }
 
         scenario("An observer receives a device") {
@@ -687,8 +690,7 @@ class DeviceMapperTest extends MidolmanSpec {
             val observer = new TestableObserver()
 
             When("Creating a device observable for this stream")
-            val mapper = new TestableMapper(
-              UUID.randomUUID, stream.out)
+            val mapper = new TestableMapper(UUID.randomUUID, stream.out)
             val observable = Observable.create(mapper)
 
             And("And emitting an initial device")
@@ -699,9 +701,14 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(observer)
 
             Then("Only the updated meter should be changed.")
-            val metrics = mapper.metrics.asInstanceOf[JmxDeviceMapperMetrics[Device]]
-            metrics.deviceUpdatedMeter.getCount shouldBe 1
-            metrics.deviceErrors.getCount shouldBe 0
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 1
+            vt.metrics.deviceErrorCounter.getCount shouldBe 0
+            vt.metrics.deviceCompleteCounter.getCount shouldBe 0
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 1
+            vt.metrics.deviceErrorMeter.getCount shouldBe 0
+            vt.metrics.deviceCompleteMeter.getCount shouldBe 0
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 1
+            vt.metrics.deviceLifetimeHistogram.getCount shouldBe 0
         }
 
         scenario("An observer receives an error") {
@@ -710,8 +717,7 @@ class DeviceMapperTest extends MidolmanSpec {
             val observer = new TestableObserver()
 
             When("Creating a device observable for this stream")
-            val mapper = new TestableMapper(
-              UUID.randomUUID, stream.out)
+            val mapper = new TestableMapper(UUID.randomUUID, stream.out)
             val observable = Observable.create(mapper)
 
             And("The stream emits an error")
@@ -719,12 +725,17 @@ class DeviceMapperTest extends MidolmanSpec {
             stream.in.onError(e)
 
             And("The observer subscribes")
-            val subscription = observable.subscribe(observer)
+            observable.subscribe(observer)
 
             Then("Only the error metric should be increased.")
-            val metrics = mapper.metrics.asInstanceOf[JmxDeviceMapperMetrics[Device]]
-            metrics.deviceUpdatedMeter.getCount shouldBe 0
-            metrics.deviceErrors.getCount shouldBe 1
+            vt.metrics.deviceUpdateCounter.getCount shouldBe 0
+            vt.metrics.deviceErrorCounter.getCount shouldBe 1
+            vt.metrics.deviceCompleteCounter.getCount shouldBe 0
+            vt.metrics.deviceUpdateMeter.getCount shouldBe 0
+            vt.metrics.deviceErrorMeter.getCount shouldBe 1
+            vt.metrics.deviceCompleteMeter.getCount shouldBe 0
+            vt.metrics.deviceLatencyHistogram.getCount shouldBe 0
+            vt.metrics.deviceLifetimeHistogram.getCount shouldBe 1
     }
   }
 }
