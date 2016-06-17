@@ -21,12 +21,15 @@ import java.util.UUID
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import scala.collection.JavaConverters._
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{BgpPeer => BgpPeerType, BgpSpeaker => BgpSpeakerType, Port => PortType, Router => RouterType}
-import org.midonet.cluster.models.Neutron.NeutronBgpPeer
+import org.midonet.cluster.models.Neutron.{NeutronBgpPeer, NeutronRoute, NeutronRouter}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
+import org.midonet.cluster.services.c3po.translators.RouteManager.extraRouteId
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.packets.{IPv4Subnet, TCP}
@@ -295,6 +298,53 @@ class BgpTranslationIT extends C3POMinionTestBase {
         }
     }
 
+    "RouterTranslator" should "update bgp networks on the router according" +
+                              "to the extra routes that exist on the router" in {
+        val sub1 = "10.0.0.0/24"
+        val rId = createRouter(10)
+        val rifPortId = createNetworkAndRouterInterface(
+            20, rId, sub1, "10.0.0.1")
+
+        val peerId = createBgpPeer(30, rId, "10.0.0.2")
+
+        eventually {
+            checkBgpNetwork(rId, rifPortId, sub1)
+        }
+
+        val route1 = NeutronRoute.newBuilder()
+          .setDestination(IPSubnetUtil.toProto("10.0.2.0/24"))
+          .setNexthop(IPAddressUtil.toProto("10.0.0.3")).build
+        val route2 = NeutronRoute.newBuilder()
+          .setDestination(IPSubnetUtil.toProto("10.0.1.0/24"))
+          .setNexthop(IPAddressUtil.toProto("10.0.0.3")).build
+        val rtrWithRoutes = routerJson(rId, routes = List(route1, route2))
+
+        insertUpdateTask(40, RouterType, rtrWithRoutes, rId)
+
+        eventually {
+            val nr = storage.get(classOf[NeutronRouter], rId).await()
+            val routes = nr.getRoutesList.asScala
+            routes.size shouldBe 2
+            routes foreach { route =>
+                checkBgpNetwork(rId, route)
+            }
+        }
+
+        val nr = storage.get(classOf[NeutronRouter], rId).await()
+        val routes = nr.getRoutesList.asScala
+
+        insertUpdateTask(50, RouterType, routerJson(rId), rId)
+
+        eventually {
+            val nr = storage.get(classOf[NeutronRouter], rId).await()
+            val routes = nr.getRoutesList.asScala
+            routes.size shouldBe 0
+            routes foreach { route =>
+                checkNoBgpNetwork(rId, route)
+            }
+        }
+    }
+
     private def createNetworkAndRouterInterface(firstTaskId: Int, rtrId: UUID,
                                                 cidr: String, ipAddr: String)
     : UUID = {
@@ -382,6 +432,16 @@ class BgpTranslationIT extends C3POMinionTestBase {
         } else {
             cond.getTpDst shouldBe bgpPortRange
         }
+    }
+
+    private def checkBgpNetwork(rId: UUID, route: NeutronRoute): Unit = {
+        val erId = bgpNetworkId(extraRouteId(UUIDUtil.toProto(rId), route))
+        storage.exists(classOf[BgpNetwork], erId).await() shouldBe true
+    }
+
+    private def checkNoBgpNetwork(rId: UUID, route: NeutronRoute): Unit = {
+        val erId = bgpNetworkId(extraRouteId(UUIDUtil.toProto(rId), route))
+        storage.exists(classOf[BgpNetwork], erId).await() shouldBe false
     }
 
     private def checkBgpNetwork(rtrId: UUID, rifPortId: UUID,

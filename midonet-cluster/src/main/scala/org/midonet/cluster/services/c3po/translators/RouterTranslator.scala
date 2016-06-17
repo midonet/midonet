@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSu
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.translators.BgpPeerTranslator.quaggaContainerGroupId
+import org.midonet.cluster.services.c3po.translators.BgpPeerTranslator._
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
@@ -188,7 +188,14 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 
         // Process deletion
         val delRouteIds = oldNRouteIds -- routes.keys
-        delRouteIds foreach (ops +=  Delete(classOf[Route], _))
+        delRouteIds foreach { routeId =>
+            ops +=  Delete(classOf[Route], routeId)
+
+            val bgpNetId = bgpNetworkId(routeId)
+            if (storage.exists(classOf[BgpNetwork], bgpNetId).await()) {
+                ops += Delete(classOf[BgpNetwork], bgpNetId)
+            }
+        }
 
         // Determine routes to add
         val newRoutes = routes -- oldNRouteIds
@@ -196,6 +203,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         // Get the ports on this router
         val portIds = oldRouterFtr.await().getPortIdsList.asScala
         val ports = storage.getAll(classOf[Port], portIds).await()
+        val bgpConfigured = isBgpSpeakerConfigured(storage, nr.getId)
         newRoutes foreach { case (rId, r) =>
 
             if (r.getDestination.getVersion == IPVersion.V6 ||
@@ -212,6 +220,9 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
             val newRt = newNextHopPortRoute(nextHopPort.getId, id = rId,
                                             dstSubnet = r.getDestination,
                                             nextHopGwIpAddr = r.getNexthop)
+            if (bgpConfigured) {
+                ops += makeBgpNetworkFromRoute(nr.getId, r)
+            }
             ops += Create(newRt)
         }
 
