@@ -16,18 +16,22 @@
 
 package org.midonet.cluster.services
 
+import java.net.URI
 import java.util.UUID
+import java.util.concurrent.ExecutorService
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.AbstractService
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.apache.curator.framework.state.ConnectionState
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory.getLogger
+
 import rx.Observable
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
@@ -38,9 +42,11 @@ import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryClient, MidonetDiscoveryImpl, MidonetServiceURI}
 import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
 import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.conf.HostIdGenerator
+import org.midonet.util.concurrent.Executors
 import org.midonet.util.eventloop.{Reactor, TryCatchReactor}
 
 object MidonetBackend {
@@ -310,7 +316,6 @@ object MidonetBackend {
             }
         }
     }
-
 }
 
 /** The trait that models the new Midonet Backend, managing all relevant
@@ -358,6 +363,11 @@ class MidonetBackendService(config: MidonetBackendConfig,
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
         else HostIdGenerator.getHostId
 
+    private var discoveryServiceExecutor: ExecutorService = null
+    private var discoveryService: MidonetDiscovery = null
+    private var stateProxyDiscoveryClient:
+        MidonetDiscoveryClient[MidonetServiceURI] = null
+
     override val reactor = new TryCatchReactor("nsdb", 1)
     override val connection = new CuratorZkConnection(curator, reactor)
     override val connectionWatcher =
@@ -385,6 +395,14 @@ class MidonetBackendService(config: MidonetBackendConfig,
             if (failFastCurator.getState != CuratorFrameworkState.STARTED) {
                 failFastCurator.start()
             }
+            discoveryServiceExecutor = Executors.singleThreadScheduledExecutor(
+                "discovery-service", isDaemon = true, Executors.CallerRunsPolicy)
+            discoveryService = new MidonetDiscoveryImpl(curator,
+                                                        discoveryServiceExecutor,
+                                                        config)
+            stateProxyDiscoveryClient =
+                discoveryService.getClient[MidonetServiceURI]("stateProxy")
+
             notifyStarted()
             log.info("Setting up storage bindings")
             MidonetBackend.setupBindings(zoom, zoom, () => {
@@ -404,5 +422,16 @@ class MidonetBackendService(config: MidonetBackendConfig,
         curator.close()
         failFastCurator.close()
         notifyStopped()
+        stateProxyDiscoveryClient.stop()
+        discoveryService.stop()
+        discoveryServiceExecutor.shutdown()
+    }
+
+    private def getStateProxyServiceInstanceUri(): URI = {
+        if(isRunning) {
+            stateProxyDiscoveryClient.instances.get(0).uri
+        } else {
+            throw new IllegalStateException("The service is not running")
+        }
     }
 }

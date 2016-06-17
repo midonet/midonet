@@ -22,35 +22,38 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config.ConfigFactory
 
 import org.junit.runner.RunWith
-import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetTestBackend
+import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.minion.Context
 
 @RunWith(classOf[JUnitRunner])
 class StateProxyTest extends FeatureSpec with GivenWhenThen with Matchers
-                     with BeforeAndAfter {
+                                         with CuratorTestFramework {
 
-    private val config = ClusterConfig.forTests(ConfigFactory.parseString(
+    private val stateProxyConfig = ClusterConfig.forTests(ConfigFactory.parseString(
         """
           |cluster.state_proxy.enabled : true
         """.stripMargin))
     private var backend: MidonetBackend = _
 
-    before {
-        backend = new MidonetTestBackend()
+    override def beforeEach(): Unit = {
+        super.beforeEach()
+        backend = new MidonetTestBackend(curator)
         backend.startAsync().awaitRunning()
     }
 
-    after {
+    override def afterEach(): Unit = {
         backend.stopAsync().awaitTerminated()
+        super.afterEach()
     }
 
     private def newService(): StateProxy = {
-        new StateProxy(new Context(UUID.randomUUID()), config, backend)
+        new StateProxy(new Context(UUID.randomUUID()), stateProxyConfig, backend)
     }
 
     feature("Test service lifecycle") {

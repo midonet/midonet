@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.state
 
+import java.net.URI
+
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
@@ -23,9 +25,12 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster._
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.discovery.{MidonetDiscoveryImpl, MidonetServiceHandler}
 import org.midonet.cluster.services.state.server.StateProxyServer
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
+import org.midonet.util.concurrent.Executors
 
 /**
   * The State Proxy service.
@@ -40,6 +45,7 @@ class StateProxy @Inject()(context: Context,
 
     private val log = Logger(LoggerFactory.getLogger(stateProxyLog))
     private var server: StateProxyServer = null
+    private var serviceHandler: MidonetServiceHandler = null
 
     override def isEnabled = config.stateProxy.isEnabled
 
@@ -49,6 +55,7 @@ class StateProxy @Inject()(context: Context,
         server = new StateProxyServer(config.stateProxy)
 
         notifyStarted()
+        registerServiceInstanceIntoMidonetDiscovery()
     }
 
     override def doStop(): Unit = {
@@ -57,7 +64,27 @@ class StateProxy @Inject()(context: Context,
         server.close()
         server = null
 
+        unregisterServiceInstanceFromMidonetDiscovery()
         notifyStopped()
     }
 
+    private def registerServiceInstanceIntoMidonetDiscovery(): Unit = {
+        val curator = backend.curator
+        val executor = Executors.singleThreadScheduledExecutor(
+            "discovery-service", isDaemon = true, Executors.CallerRunsPolicy)
+        val backendConfig = new MidonetBackendConfig(config.conf)
+        val discoveryService = new MidonetDiscoveryImpl(curator,
+                                                        executor,
+                                                        backendConfig)
+        val serviceName = getClass.getAnnotation(classOf[MinionService]).name()
+        val serviceAddress = config.stateProxy.serverAddress
+        val servicePort = config.stateProxy.serverPort
+        val serviceUri = new URI("udp://" + serviceAddress + ":" + servicePort)
+        serviceHandler = discoveryService.registerServiceInstance(serviceName,
+                                                                  serviceUri)
+    }
+
+    private def unregisterServiceInstanceFromMidonetDiscovery(): Unit = {
+        serviceHandler.unregister()
+    }
 }
