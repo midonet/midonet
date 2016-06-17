@@ -210,7 +210,7 @@ trait FlowTranslator {
                 return
         }
 
-        val host = vt.tryGet[Host](hostId)
+        val host = vt.tryGet(classOf[Host], hostId)
         val tzMembership = host.tunnelZones.get(tunnel.tunnelZoneId)
 
         if (tzMembership eq None) {
@@ -234,7 +234,7 @@ trait FlowTranslator {
             addFlowAndPacketAction: AddFlowAction): Unit =
         dpState.getDpPortNumberForVport(port) match {
             case null => // Translate to a remote port or a vtep peer.
-                vt.tryGet[Port](port) match {
+                vt.tryGet(classOf[Port], port) match {
                     case p: VxLanPort => // Always exterior
                         outputActionsToVtep(
                             p.id, context, addFlowAndPacketAction)

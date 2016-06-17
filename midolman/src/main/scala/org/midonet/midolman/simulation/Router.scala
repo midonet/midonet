@@ -293,7 +293,7 @@ class Router(override val id: UUID,
     private def peekBridge(port: BridgePort, ipDest: IPv4Addr): MAC = {
         // Fetch the MAC address associated with ipDest in case it
         // belongs to a router port connected to the bridge or was pre-seeded.
-        val bridge = tryGet[Bridge](port.deviceId)
+        val bridge = tryGet(classOf[Bridge], port.deviceId)
         bridge.ipToMac.getOrElse(ipDest, bridge.ip4MacMap.get(ipDest))
     }
 
@@ -328,7 +328,8 @@ class Router(override val id: UUID,
 
         val hasNextHop = rt.nextHopGateway != 0 && rt.nextHopGateway != -1
         val ip = if (hasNextHop) IPv4Addr(rt.nextHopGateway) else ipDest
-        val peer = if (outPort.isInterior) tryGet[Port](outPort.peerId) else null
+        val peer = if (outPort.isInterior) tryGet(classOf[Port], outPort.peerId)
+                   else null
         var mac = getPeerMac(peer, ip)
 
         if (mac eq null) {
@@ -444,7 +445,7 @@ class Router(override val id: UUID,
         if (rt.nextHopPort == null)
             return false
 
-        _sendIPPacket(tryGet[RouterPort](rt.nextHopPort), rt)
+        _sendIPPacket(tryGet(classOf[RouterPort], rt.nextHopPort), rt)
     }
 
     override def toString =

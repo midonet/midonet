@@ -15,12 +15,12 @@
  */
 package org.midonet.midolman.util
 
-import java.util.{LinkedList => JLinkedList, List => JList, Queue => JQueue, UUID}
+import java.util.{UUID, LinkedList => JLinkedList, List => JList, Queue => JQueue}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
-import scala.reflect._
+import scala.reflect.ClassTag
 
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.TestActorRef
@@ -33,8 +33,8 @@ import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman._
 import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.monitoring.{NullFlowRecorder, FlowRecorder}
-import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain, DhcpConfigFromNsdb, PacketContext, Port => SimPort, Router => SimRouter, _}
+import org.midonet.midolman.monitoring.{FlowRecorder, NullFlowRecorder}
+import org.midonet.midolman.simulation.{DhcpConfigFromNsdb, PacketContext, Bridge => SimBridge, Chain => SimChain, Port => SimPort, Router => SimRouter, _}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -44,7 +44,7 @@ import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
-import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort, InternalPort}
+import org.midonet.odp.ports.{InternalPort, NetDevPort, VxLanTunnelPort}
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
@@ -68,7 +68,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         }
 
     def fetchDevice[T <: Device](id: UUID)(implicit tag: ClassTag[T]): T = {
-        Await.result(VirtualTopology.get[T](id), timeout.duration)
+        Await.result(VirtualTopology.get[T](tag.runtimeClass.asInstanceOf[Class[T]],
+                                            id), timeout.duration)
     }
 
     def fetchBridges(bridges: UUID*): Seq[SimBridge] =

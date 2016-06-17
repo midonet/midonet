@@ -45,7 +45,7 @@ trait MtuIncreaser {
     def increaseMtu(portId: UUID)
                    (implicit actorSystem: ActorSystem): Unit =
         try {
-            val port = VirtualTopology.tryGet[Port](portId)
+            val port = VirtualTopology.tryGet(classOf[Port], portId)
             if (port.isInstanceOf[BridgePort]) {
                 val itfName = port.interfaceName
                 s"ip link set mtu $BOUND_INTERFACE_MTU dev $itfName".! match {

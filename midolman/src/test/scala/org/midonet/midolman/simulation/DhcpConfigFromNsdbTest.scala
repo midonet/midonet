@@ -71,7 +71,7 @@ class DhcpConfigFromNsdbTest extends MidolmanSpec
 
             And("The VTA has the bridge in its cache")
             eventually {
-                VirtualTopology.tryGet[Bridge](id).id shouldBe id
+                VirtualTopology.tryGet(classOf[Bridge], id).id shouldBe id
             }
 
             When("Requesting subnets for the bridge")
@@ -89,7 +89,7 @@ class DhcpConfigFromNsdbTest extends MidolmanSpec
 
             And("The VTA has the bridge in its cache")
             eventually {
-                val _b = VirtualTopology.tryGet[Bridge](id)
+                val _b = VirtualTopology.tryGet(classOf[Bridge], id)
                 _b.id shouldBe id
                 _b.subnetIds shouldBe empty
             }
@@ -120,7 +120,7 @@ class DhcpConfigFromNsdbTest extends MidolmanSpec
 
             And("The VTA has the bridge in its cache")
             eventually {
-                val _b = VirtualTopology.tryGet[Bridge](bId)
+                val _b = VirtualTopology.tryGet(classOf[Bridge], bId)
                 _b.id shouldBe bId
                 _b.subnetIds should have size dhcps.size
             }
