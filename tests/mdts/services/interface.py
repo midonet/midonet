@@ -134,6 +134,7 @@ class Interface(object):
                 result += log_line
                 self._tcpdump_output.append(log_line)
                 LOG.debug('Result is: %s' % log_line.rstrip())
+            LOG.debug('Result output is : %s' % result)
         except StopIteration:
             LOG.debug("Stream didn't block, command %s " % cmdline +
                       " timed out before pulling results.")
@@ -409,7 +410,8 @@ class Interface(object):
     def get_cidr(self, update=False):
         if not self.cidr or update:
             self.cidr = self.execute(
-                "sh -c \"ip addr ls dev %s | grep inet | awk '{print $2}'\"" %
+                ("sh -c \"ip addr ls dev %s | grep inet | "
+                 "sed -e 's/[ \\t]\+/\\t/g' -e 's/^\\t//' | cut -f2\"") %
                 self.get_ifname(),
                 sync=True)
             LOG.debug("Infered cidr = %s" % self.cidr)
@@ -424,13 +426,13 @@ class Interface(object):
 
     def get_default_gateway_ip(self):
         return self.execute(
-            """sh -c "ip r | awk '/default via/ { print $3 }'" """,
+            "sh -c \"ip r | grep 'default via' | cut -d' ' -f3\"",
             sync=True)
 
     def get_mac_addr(self, update=False):
         if not self.hw_addr or update:
             self.hw_addr = self.execute(
-                "sh -c \"ip addr ls dev %s | grep link | awk '{print $2}'\"" %
+                "sh -c \"ip addr ls dev %s | grep link | cut -d' ' -f2\"" %
                 self.get_ifname(),
                 sync=True)
             LOG.debug("Infered mac_addr = %s" % self.hw_addr)

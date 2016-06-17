@@ -23,6 +23,8 @@ from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.utils import failures
 from mdts.tests.utils.utils import wait_on_futures
 
+from hamcrest import *
+
 import logging
 import time
 import os
@@ -161,13 +163,16 @@ def test_dhcp():
         LOG.debug('dhclient got response: %s' % result)
 
         # Assert that the interface gets ip address
-        assert iface.get_cidr(update=True) == '172.16.1.101/24'
+        assert_that(iface.get_cidr(update=True), equal_to('172.16.1.101/24'),
+                    "Wrong CIDR")
 
         # TODO(tomoe): assert for default gw and static routes with opt 121
-        assert iface.get_num_routes(update=True) > 0
+        assert_that(iface.get_num_routes(update=True), greater_than(0),
+                    "No routes found")
 
         # MTU should be 1450 (interface mtu minus 50B, max of gre/vxlan overhead)
-        assert iface.get_mtu(update=True) == 1450
+        assert_that(iface.get_mtu(update=True), equal_to(1450),
+                    "Wrong MTU")
 
         # MI-536 regression test
         # Check that the 2nd vm using an incorrect lease file, receives a nack
