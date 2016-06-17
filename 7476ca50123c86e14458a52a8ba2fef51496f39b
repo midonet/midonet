@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2572587d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferBlockWriter.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-17T10:55:49Z",
+      "side": 1,
+      "message": "it\u0027s strange that we call out to a method to modify a member, and then use that member. Doesn\u0027t need to be fixed in this patch though. Gets close to action at a distance antipattern.",
+      "revId": "7476ca50123c86e14458a52a8ba2fef51496f39b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
