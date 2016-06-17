@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_626cd608",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/ByteBufferExpirationStream.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-17T09:21:25Z",
+      "side": 1,
+      "message": "instead of extending bytebufferblock, just do the\n\"this: ByteBufferBlockWriter \u003d\u003e\" trick",
+      "range": {
+        "startLine": 34,
+        "startChar": 12,
+        "endLine": 34,
+        "endChar": 27
+      },
+      "revId": "2b5b61f4f17affe19e0e4284efc1a77ad4472ef6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
