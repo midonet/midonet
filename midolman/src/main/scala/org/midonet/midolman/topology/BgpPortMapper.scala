@@ -23,7 +23,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.typesafe.scalalogging.Logger
 
 import rx.Observable.OnSubscribe
-import rx.{Observable, Subscription, Subscriber}
+import rx.{Observable, Subscriber, Subscription}
 import rx.subjects.{BehaviorSubject, PublishSubject}
 import rx.subscriptions.Subscriptions
 
@@ -31,6 +31,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.topology.BgpPortMapper.RouterState
 import org.midonet.midolman.topology.DeviceMapper.MapperState
+import org.midonet.midolman.topology.VirtualTopology.Key
 import org.midonet.midolman.topology.devices._
 import org.midonet.packets.IPv4Addr
 import org.midonet.quagga.BgpdConfiguration.{BgpRouter => BgpConfig}
@@ -88,6 +89,7 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
 
     override def logSource = s"org.midonet.routing.bgp.bgp-port-$portId"
 
+    private val key = Key(classOf[devices.BgpPort], portId)
     private val state = new AtomicReference(MapperState.Unsubscribed)
 
     private lazy val unsubscribeAction = makeAction0(onUnsubscribe())
@@ -260,6 +262,8 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
         bgpSubject.onCompleted()
         routerSubject.onCompleted()
 
+        vt.observables.remove(key)
+
         // Unsubscribe from the underlying observables.
         val subscription = bgpSubscription
         if (subscription ne null) {
@@ -287,6 +291,8 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
 
         bgpSubject onError e
         routerSubject.onCompleted()
+
+        vt.observables.remove(key)
 
         // Unsubscribe from the underlying observables.
         val subscription = bgpSubscription

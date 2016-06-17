@@ -26,14 +26,16 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.{Notification, Observable}
 
-import org.midonet.cluster.data.storage.{NotFoundException, Storage}
-import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
+import org.midonet.cluster.models.Topology.{Router, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.VirtualTopology.Key
 import org.midonet.midolman.simulation.{Port => SimulationPort}
+import org.midonet.midolman.topology.devices.{BgpPort, BgpRouter}
 import org.midonet.midolman.util.MidolmanSpec
 
 @RunWith(classOf[JUnitRunner])
@@ -422,6 +424,108 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             observer.getOnNextEvents should contain only device1
             observer.getOnCompletedEvents should contain only Notification
                 .createOnCompleted()
+        }
+    }
+
+    feature("Topology clears devices and observables") {
+        scenario("BGP router on delete") {
+            Given("A router")
+            val router = createRouter()
+            store.create(router)
+
+            And("A BGP router observer")
+            val observer = new DeviceObserver[BgpRouter](vt)
+
+            When("The observer subscribes")
+            VirtualTopology.observable(classOf[BgpRouter], router.getId)
+                .subscribe(observer)
+
+            Then("The observer should receive the device")
+            observer.awaitOnNext(1, timeout)
+            observer.getOnNextEvents should have size 1
+
+            And("The topology cache should contain an observable")
+            vt.observables.containsKey(Key(classOf[BgpRouter], router.getId)) shouldBe true
+
+            When("The router is deleted")
+            store.delete(classOf[Router], router.getId)
+
+            Then("The observable should complete")
+            observer.awaitCompletion(timeout)
+            observer.getOnCompletedEvents should have size 1
+
+            And("The topology cache should not contain the observable")
+            vt.observables.containsKey(Key(classOf[BgpRouter], router.getId)) shouldBe false
+        }
+
+        scenario("BGP router on error") {
+            Given("A random router identifier")
+            val routerId = UUID.randomUUID()
+
+            And("A BGP router observer")
+            val observer = new DeviceObserver[BgpRouter](vt)
+
+            When("The observer subscribes")
+            VirtualTopology.observable(classOf[BgpRouter], routerId)
+                .subscribe(observer)
+
+            Then("The observer should receive the device")
+            observer.awaitCompletion(timeout)
+            observer.getOnErrorEvents should have size 1
+
+            And("The topology cache should not contain an observable")
+            vt.observables.containsKey(Key(classOf[BgpRouter], routerId)) shouldBe false
+        }
+
+        scenario("BGP port on non-router ports") {
+            Given("A bridge port")
+            val port = createBridgePort(bridgeId = Some(bridgeId))
+            store.create(port)
+
+            And("A BGP port observer")
+            val observer = new DeviceObserver[BgpPort](vt)
+
+            When("The observer subscribes")
+            VirtualTopology.observable(classOf[BgpPort], port.getId)
+                .subscribe(observer)
+
+            Then("The observable should complete")
+            observer.awaitCompletion(timeout)
+            observer.getOnCompletedEvents should have size 1
+
+            And("The topology cache should not contain the observable")
+            vt.observables.containsKey(Key(classOf[BgpPort], port.getId)) shouldBe false
+        }
+
+        scenario("BGP port on error") {
+            Given("A router port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId))
+            store.multi(Seq(CreateOp(router), CreateOp(port)))
+
+            And("A BGP port observer")
+            val observer = new DeviceObserver[BgpPort](vt)
+
+            When("The observer subscribes")
+            VirtualTopology.observable(classOf[BgpPort], port.getId)
+                .subscribe(observer)
+
+            Then("The observer should receive the device")
+            observer.awaitOnNext(1, timeout)
+            observer.getOnNextEvents should have size 1
+
+            And("The topology cache should contain an observable")
+            vt.observables.containsKey(Key(classOf[BgpPort], port.getId)) shouldBe true
+
+            When("The port is deleted")
+            store.delete(classOf[TopologyPort], port.getId)
+
+            Then("The observable should error with BgpPortDeleted")
+            observer.awaitCompletion(timeout)
+            observer.getOnErrorEvents should have size 1
+
+            And("The topology cache should not contain the observable")
+            vt.observables.containsKey(Key(classOf[BgpPort], port.getId)) shouldBe false
         }
     }
 }

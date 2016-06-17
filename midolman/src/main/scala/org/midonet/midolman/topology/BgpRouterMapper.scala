@@ -26,16 +26,17 @@ import com.google.common.annotations.VisibleForTesting
 import com.typesafe.scalalogging.Logger
 
 import rx.subscriptions.Subscriptions
-import rx.{Subscriber, Subscription, Observable}
+import rx.{Observable, Subscriber, Subscription}
 import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
-import org.midonet.cluster.models.Topology.{Router, BgpPeer, BgpNetwork}
+import org.midonet.cluster.models.Topology.{BgpNetwork, BgpPeer, Router}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.topology.BgpRouterMapper.{PeerState, NetworkState}
+import org.midonet.midolman.topology.BgpRouterMapper.{NetworkState, PeerState}
 import org.midonet.midolman.topology.DeviceMapper.MapperState
+import org.midonet.midolman.topology.VirtualTopology.Key
 import org.midonet.midolman.topology.devices.{BgpNeighbor, BgpRouter}
 import org.midonet.packets.IPv4Addr
 import org.midonet.quagga.BgpdConfiguration.{Neighbor, Network}
@@ -208,6 +209,7 @@ final class BgpRouterMapper(routerId: UUID,
 
     override def logSource = s"org.midonet.routing.bgp.bgp-router-$routerId"
 
+    private val key = Key(classOf[BgpRouter], routerId)
     private val state = new AtomicReference(MapperState.Unsubscribed)
 
     private lazy val unsubscribeAction = makeAction0(onUnsubscribe())
@@ -372,6 +374,8 @@ final class BgpRouterMapper(routerId: UUID,
         log.debug("Router deleted")
         state.set(MapperState.Completed)
 
+        vt.observables.remove(key)
+
         bgpSubject.onCompleted()
         networksSubject.onCompleted()
         peersSubject.onCompleted()
@@ -393,6 +397,8 @@ final class BgpRouterMapper(routerId: UUID,
         log.debug("Router error", e)
         error = e
         state.set(MapperState.Error)
+
+        vt.observables.remove(key)
 
         bgpSubject onError e
         networksSubject.onCompleted()
