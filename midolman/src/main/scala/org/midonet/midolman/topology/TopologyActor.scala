@@ -20,7 +20,6 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConverters._
-import scala.reflect.ClassTag
 
 import rx.Subscription
 
@@ -47,18 +46,18 @@ trait TopologyActor extends ReactiveActor[AnyRef] {
     /**
      * Subscribes to notifications for the specified device.
      */
-    protected def subscribe[D <: Device](id: UUID)(implicit tag: ClassTag[D])
+    protected def subscribe[D <: Device](clazz: Class[D], id: UUID)
     : Unit = {
-        val key = Key(tag, id)
+        val key = Key(clazz, id)
         subscriptions.get(key) match {
             case null =>
                 subscriptions.put(key,
-                                  VirtualTopology.observable[D](id)(tag)
+                                  VirtualTopology.observable[D](clazz, id)
                                                  .subscribe(this))
             case subscription if subscription.isUnsubscribed =>
                 subscriptions.put(key,
-                                  VirtualTopology.observable[D](id)(tag)
-                                      .subscribe(this))
+                                  VirtualTopology.observable[D](clazz, id)
+                                                 .subscribe(this))
             case _ =>
         }
 
@@ -69,9 +68,9 @@ trait TopologyActor extends ReactiveActor[AnyRef] {
      * returns `true` if the actor was subscribed to the device, `false`
      * otherwise.
      */
-    protected def unsubscribe[D <: Device](id: UUID)(implicit tag: ClassTag[D])
+    protected def unsubscribe[D <: Device](clazz: Class[D], id: UUID)
     : Boolean = {
-        subscriptions.get(Key(tag, id)) match {
+        subscriptions.get(Key(clazz, id)) match {
             case null => false
             case subscription =>
                 subscription.unsubscribe()

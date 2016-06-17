@@ -22,7 +22,6 @@ import javax.annotation.Nullable
 import javax.annotation.concurrent.NotThreadSafe
 
 import scala.collection.mutable
-import scala.reflect.ClassTag
 
 import com.typesafe.scalalogging.Logger
 
@@ -53,8 +52,7 @@ trait ObjectStateBase[D >: Null] {
 }
 
 abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBase[D]]
-                                         (log: Logger)
-                                         (implicit tag: ClassTag[D]) {
+                                         (clazz: Class[D], log: Logger) {
 
     val vt: VirtualTopology
     protected def newState(id: UUID): StateType
@@ -67,7 +65,7 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
 
     @NotThreadSafe
     final def requestRefs(ids: Set[UUID]): Unit = {
-        log.debug(s"Updating references ${tag.runtimeClass.getSimpleName}: $ids")
+        log.debug(s"Updating references $clazz: $ids")
 
         // Remove the refs that are no longer used.
         for ((id, state) <- refs if !ids.contains(id)) {
@@ -121,8 +119,7 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
     final def areRefsReady: Boolean = {
         assertThread()
         val ready = refs.forall(_._2.isReady)
-        log.debug("References {} ready: {}", tag.runtimeClass.getSimpleName,
-                  Boolean.box(ready))
+        log.debug("References {} ready: {}", clazz, Boolean.box(ready))
         ready
     }
 
@@ -143,21 +140,19 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
     final val refsObservable: Observable[D] = Observable.merge(refsSubject)
 }
 
-class TopologyObjectState[D >: Null <: Device](val id: UUID)
-                         (implicit tag: ClassTag[D])
+class TopologyObjectState[D >: Null <: Device](val clazz: Class[D], val id: UUID)
         extends ObjectStateBase[D] {
-    override val observable = VirtualTopology.observable[D](id)
-        .doOnNext(makeAction1(currentObj = _:D))
+    override val observable = VirtualTopology.observable(clazz, id)
+        .doOnNext(makeAction1(currentObj = _))
         .takeUntil(mark)
 }
 
 
 class ObjectReferenceTracker[D >: Null <: Device](override val vt: VirtualTopology,
-                                                  log: Logger)
-                                                 (implicit tag: ClassTag[D])
-        extends ObjectReferenceTrackerBase[D, TopologyObjectState[D]](log)(tag) {
+                                                  clazz: Class[D], log: Logger)
+        extends ObjectReferenceTrackerBase[D, TopologyObjectState[D]](clazz, log) {
 
-    override def newState(id: UUID) = new TopologyObjectState[D](id)
+    override def newState(id: UUID) = new TopologyObjectState(clazz, id)
 }
 
 class StoreObjectState[D >: Null](val clazz: Class[D],
@@ -171,10 +166,9 @@ class StoreObjectState[D >: Null](val clazz: Class[D],
 }
 
 class StoreObjectReferenceTracker[D >: Null](val vt: VirtualTopology,
-                                             log: Logger)
-                                            (implicit tag: ClassTag[D])
-        extends ObjectReferenceTrackerBase[D, StoreObjectState[D]](log)(tag) {
+                                             clazz: Class[D], log: Logger)
+        extends ObjectReferenceTrackerBase[D, StoreObjectState[D]](clazz, log) {
 
     override def newState(id: UUID) =
-        new StoreObjectState[D](tag.runtimeClass.asInstanceOf[Class[D]], id, vt)
+        new StoreObjectState[D](clazz, id, vt)
 }

@@ -18,8 +18,6 @@ package org.midonet.midolman.state
 
 import java.util.{Collection, Set, UUID}
 
-import scala.reflect.ClassTag
-
 import com.google.inject.Inject
 
 import org.midonet.cluster.services.MidonetBackend
@@ -29,16 +27,10 @@ import org.midonet.midolman.simulation.{VxLanPort, PortGroup, Port}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
-object PeerResolver {
-    private val portCtag = implicitly[ClassTag[Port]]
-    private val portGroupCtag = implicitly[ClassTag[PortGroup]]
-}
-
 class PeerResolver @Inject() (
         hostId: UUID,
         backend: MidonetBackend,
         virtualTopology: VirtualTopology) {
-    import PeerResolver._
 
     private var fpHerald: FloodingProxyHerald = _
 
@@ -53,12 +45,12 @@ class PeerResolver @Inject() (
             hosts: Set[UUID],
             portsInGroup: Set[UUID],
             tags: Collection[FlowTag]) {
-        val port = virtualTopology.tryGet(portId)(portCtag)
+        val port = virtualTopology.tryGet(classOf[Port], portId)
         addPeerFor(port, hosts, tags)
         var i = 0
         val groupIds = port.portGroups
         while (i < groupIds.size()) {
-            val group = virtualTopology.tryGet(groupIds.get(i))(portGroupCtag)
+            val group = virtualTopology.tryGet(classOf[PortGroup], groupIds.get(i))
             if (group.stateful) {
                 tags.add(group.flowStateTag)
                 collectPortGroupPeers(portId, hosts, portsInGroup, tags, group)
@@ -79,7 +71,7 @@ class PeerResolver @Inject() (
             val portId = members.get(i)
             if (portId != skip) {
                 ports.add(portId)
-                addPeerFor(virtualTopology.tryGet(portId)(portCtag), hosts, tags)
+                addPeerFor(virtualTopology.tryGet(classOf[Port], portId), hosts, tags)
             }
             i += 1
         }

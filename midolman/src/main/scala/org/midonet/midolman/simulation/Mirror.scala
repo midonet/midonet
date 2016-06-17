@@ -38,7 +38,7 @@ trait MirroringDevice extends SimDevice {
 
         var i = 0
         while (i < mirrors.size) {
-            val mirror = tryGet[Mirror](mirrors.get(i))
+            val mirror = tryGet(classOf[Mirror], mirrors.get(i))
             i += 1
             mirror process context match {
                 case toPort: ToPortAction =>
@@ -80,7 +80,7 @@ case class Mirror(id: UUID, conditions: JList[Condition], toPort: UUID) extends 
         var i = 0
         while (i < conditions.size()) {
             if (conditions.get(i) matches context)
-                return tryGet[Port](toPort).action
+                return tryGet(classOf[Port], toPort).action
             i += 1
         }
         NoOp

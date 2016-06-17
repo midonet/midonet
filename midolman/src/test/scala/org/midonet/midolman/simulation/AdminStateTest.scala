@@ -238,7 +238,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Given("an exterior bridge port that is flooded")
 
-            val f = VirtualTopology.get[Bridge](bridge)
+            val f = VirtualTopology.get(classOf[Bridge], bridge)
             val simBridge = Await.result(f, Duration.Inf).asInstanceOf[Bridge]
             clearMacTable(simBridge, macBridgeSide, exteriorBridgePort)
 

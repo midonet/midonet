@@ -40,7 +40,7 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
  * A class that implements the [[DeviceMapper]] for a [[SimulationHost]].
  */
 final class HostMapper(hostId: UUID, vt: VirtualTopology)
-    extends DeviceMapper[SimulationHost](hostId, vt) {
+    extends DeviceMapper(classOf[SimulationHost], hostId, vt) {
 
     override def logSource = s"org.midonet.devices.host.host-$hostId"
 
@@ -99,6 +99,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                           tunnelZoneIds, portIds)
 
                 updateTopologyDeviceState(
+                    classOf[TunnelZone],
                     tunnelZoneIds, tunnelZones, tunnelZonesSubject,
                     (id: UUID) => {
                         log.debug("Tunnel-zone {} deleted", id)
@@ -111,6 +112,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                         Observable.just[TunnelZone](null)
                     })
                 updateTopologyDeviceState(
+                    classOf[Port],
                     portIds, ports, portsSubject,
                     (id: UUID) => {
                         log.debug("Port {} deleted", id)

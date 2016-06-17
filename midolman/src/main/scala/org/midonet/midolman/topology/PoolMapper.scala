@@ -38,7 +38,7 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
  * from both the topology pool object and the pool members.
  */
 final class PoolMapper(poolId: UUID, vt: VirtualTopology)
-    extends VirtualDeviceMapper[SimulationPool](poolId, vt) {
+    extends VirtualDeviceMapper(classOf[SimulationPool], poolId, vt) {
 
     override def logSource = s"org.midonet.devices.pool.pool-$poolId"
 
@@ -132,11 +132,13 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
         log.debug("Pool updated with members {} VIPs {}", memberIds, vipIds)
 
         // Update the device state for pool members.
-        updateZoomDeviceState[SimulationPoolMember, TopologyPoolMember](
+        updateZoomDeviceState(
+            classOf[SimulationPoolMember], classOf[TopologyPoolMember],
             memberIds.toSet, members, membersSubject, vt)
 
         // Update the device state for VIPs.
-        updateZoomDeviceState[SimulationVip, TopologyVip](
+        updateZoomDeviceState(
+            classOf[SimulationVip], classOf[TopologyVip],
             vipIds.toSet, vips, vipsSubject, vt)
     }
 

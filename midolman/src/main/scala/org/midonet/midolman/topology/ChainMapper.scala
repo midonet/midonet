@@ -114,7 +114,7 @@ object ChainMapper {
 
         /** The observable emitting IP address group updates. */
         val observable = VirtualTopology
-            .observable[SimIPAddrGroup](ipAddrGroupId)
+            .observable(classOf[SimIPAddrGroup], ipAddrGroupId)
             .doOnNext(makeAction1(currentIpAddrGroup = _))
             .takeUntil(mark)
 
@@ -133,12 +133,12 @@ object ChainMapper {
 
 final class ChainMapper(chainId: UUID, vt: VirtualTopology,
                         traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]])
-    extends VirtualDeviceMapper[SimChain](chainId, vt) with MidolmanLogging {
+    extends VirtualDeviceMapper(classOf[SimChain], chainId, vt) with MidolmanLogging {
 
     override def logSource = s"org.midonet.devices.chain.chain-$chainId"
 
     private var chainProto: TopologyChain = TopologyChain.newBuilder.build()
-    private val refTracker = new ObjectReferenceTracker[SimChain](vt, log)
+    private val refTracker = new ObjectReferenceTracker(vt, classOf[SimChain], log)
 
     // The stream of rules that belong to this chain
     private val ruleStream = PublishSubject.create[Observable[RuleState]]()
