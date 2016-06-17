@@ -126,12 +126,12 @@ object BridgeMapper {
         /** Adds a new MAC-port mapping to the MAC learning table. */
         override def add(mac: MAC, portId: UUID): Unit = {
             try {
-                log.info("Mapping MAC {}, VLAN {} to port {}",
+                log.debug("Mapping MAC {}, VLAN {} to port {}",
                          mac, Short.box(vlanId), portId)
                 table.add(mac, portId)
             } catch {
                 case NonFatal(e) =>
-                    log.error(s"Failed to map MAC {}, VLAN {} to port {}",
+                    log.warn(s"Failed to map MAC {}, VLAN {} to port {}",
                               mac, Short.box(vlanId), portId)
             }
         }
@@ -146,7 +146,7 @@ object BridgeMapper {
                               "owned by this node.", mac, vlanIdObj, portId)
             } catch {
                 case NonFatal(t) =>
-                    log.error("Failed to remove mapping from MAC {}, VLAN {} " +
+                    log.warn("Failed to remove mapping from MAC {}, VLAN {} " +
                               "to port {}", mac, vlanIdObj, portId, t)
             }
         }
