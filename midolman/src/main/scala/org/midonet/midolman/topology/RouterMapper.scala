@@ -89,7 +89,7 @@ object RouterMapper {
         private var portStateReady = false
 
         private val portObservable = VirtualTopology
-            .observable[RouterPort](portId)
+            .observable(classOf[RouterPort], portId)
             .map[RouteUpdates](makeFunc1(portUpdated))
         private val routesObservable = Observable
             .merge(routesSubject)
@@ -336,7 +336,8 @@ object RouterMapper {
         private var currentLoadBalancer: LoadBalancer = null
         private val mark = PublishSubject.create[LoadBalancer]
 
-        val observable = VirtualTopology.observable[LoadBalancer](loadBalancerId)
+        val observable = VirtualTopology
+            .observable(classOf[LoadBalancer], loadBalancerId)
             .onErrorResumeNext(DeviceMapper.handleException(loadBalancerId,
                                                             !isReady, log))
             .doOnNext(makeAction1(currentLoadBalancer = _))
@@ -392,7 +393,7 @@ object RouterMapper {
  */
 final class RouterMapper(routerId: UUID, vt: VirtualTopology,
                          val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
-        extends VirtualDeviceMapper[SimulationRouter](routerId, vt)
+        extends VirtualDeviceMapper(classOf[SimulationRouter], routerId, vt)
         with TraceRequestChainMapper[SimulationRouter] {
 
     override def logSource = s"org.midonet.devices.router.router-$routerId"
@@ -428,8 +429,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         }
     }
 
-    private val chainsTracker = new ObjectReferenceTracker[Chain](vt, log)
-    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt, log)
+    private val chainsTracker = new ObjectReferenceTracker(vt, classOf[Chain], log)
+    private val mirrorsTracker = new ObjectReferenceTracker(vt, classOf[Mirror], log)
 
     private lazy val mark =
         PublishSubject.create[Config]

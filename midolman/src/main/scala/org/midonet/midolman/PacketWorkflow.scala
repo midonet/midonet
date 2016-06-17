@@ -655,7 +655,7 @@ class PacketWorkflow(
         if (!isDhcp)
             return false
 
-        val port = vt.tryGet[Port](context.inputPort)
+        val port = vt.tryGet(classOf[Port], context.inputPort)
         val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
         dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
             processDhcp(context, port, dhcp,

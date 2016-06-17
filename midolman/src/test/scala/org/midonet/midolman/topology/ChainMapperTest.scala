@@ -130,7 +130,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                                 ProtoRule.Action.ACCEPT)
 
             When("We ask for the chain with a get")
-            val future = VirtualTopology.get[SimChain](chainId)
+            val future = VirtualTopology.get(classOf[SimChain], chainId)
 
             Then("We obtain the chain with its rule")
             val simChain = Await.result[SimChain](future, timeout)
@@ -146,7 +146,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             When("We ask for the chain with tryGet")
             val nye = intercept[NotYetException] {
-                VirtualTopology.tryGet[SimChain](chainId)
+                VirtualTopology.tryGet(classOf[SimChain], chainId)
             }
             val simChain = Await.result(nye.waitFor, timeout).asInstanceOf[SimChain]
             assertEquals(chain, simChain, List(rule), null)
@@ -159,7 +159,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             When("We we ask for a non-existing chain")
             intercept[NotFoundException] {
                 Then("A NotFoundException is raised")
-                val future = VirtualTopology.get[SimChain](chainId)
+                val future = VirtualTopology.get(classOf[SimChain], chainId)
                 Await.result(future, timeout)
             }
         }

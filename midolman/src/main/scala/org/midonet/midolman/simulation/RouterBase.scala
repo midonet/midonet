@@ -95,7 +95,7 @@ abstract class RouterBase[IP <: IPAddr]()
                 context.log.debug(s"Dropping unsupported EtherType ${context.wcmatch.getEtherType}")
                 Drop
             } else {
-                tryGet[RouterPort](context.inPortId) match {
+                tryGet(classOf[RouterPort], context.inPortId) match {
                     case inPort if !cfg.adminStateUp =>
                         context.log.debug("Router {} state is down, DROP", id)
                         sendAnswer(inPort.id,
@@ -116,7 +116,7 @@ abstract class RouterBase[IP <: IPAddr]()
             if (context.wcmatch.getIpFragmentType == IPFragmentType.First) {
                 sendAnswer(context.inPortId,
                     icmpErrors.unreachableFragNeededIcmp(
-                        tryGet[RouterPort](context.inPortId), context,
+                        tryGet(classOf[RouterPort], context.inPortId), context,
                         context.preRoutingMatch))
                 ErrorDrop
             } else {
@@ -129,7 +129,7 @@ abstract class RouterBase[IP <: IPAddr]()
 
     @throws[NotYetException]
     private def preRouting()(implicit context: PacketContext): SimulationResult = {
-        val inPort = tryGet[RouterPort](context.inPortId)
+        val inPort = tryGet(classOf[RouterPort], context.inPortId)
         val fmatch = context.wcmatch
 
         val hwDst = fmatch.getEthDst
@@ -234,7 +234,7 @@ abstract class RouterBase[IP <: IPAddr]()
         if (l2port eq null)
             return null
 
-        val outPort = tryGet[RouterPort](l2port)
+        val outPort = tryGet(classOf[RouterPort], l2port)
         if (outPort.tunnelIp != context.wcmatch.getNetworkDstIP)
             return null
 
@@ -260,7 +260,7 @@ abstract class RouterBase[IP <: IPAddr]()
         if (cfg.loadBalancer == null)
             new RuleResult(RuleResult.Action.CONTINUE)
         else
-            tryGet[LoadBalancer](cfg.loadBalancer).processInbound(context)
+            tryGet(classOf[LoadBalancer], cfg.loadBalancer).processInbound(context)
     }
 
 
@@ -268,7 +268,7 @@ abstract class RouterBase[IP <: IPAddr]()
         implicit val c: PacketContext = context
         val fmatch = context.wcmatch
         val dstIP = context.wcmatch.getNetworkDstIP
-        val inPort = tryGet[RouterPort](context.inPortId)
+        val inPort = tryGet(classOf[RouterPort], context.inPortId)
 
         def applyTimeToLive(): SimulationResult = {
             if (fmatch.isUsed(Field.NetworkTTL)) {
@@ -341,7 +341,7 @@ abstract class RouterBase[IP <: IPAddr]()
 
                 case Route.NextHop.PORT =>
                     applyTimeToLive() match {
-                        case NoOp => tryGet[Port](rt.nextHopPort).action
+                        case NoOp => tryGet(classOf[Port], rt.nextHopPort).action
                         case simRes => simRes
                     }
                 case _ =>
@@ -360,7 +360,7 @@ abstract class RouterBase[IP <: IPAddr]()
 
         action match {
             case ToPortAction(outPortId) =>
-                val outPort = tryGet[RouterPort](outPortId)
+                val outPort = tryGet(classOf[RouterPort], outPortId)
                 postRouting(outPort, rt, context)
             case _ => action
         }
@@ -397,7 +397,7 @@ abstract class RouterBase[IP <: IPAddr]()
     override protected def reject(context: PacketContext): Unit = {
         sendAnswer(context.inPortId,
             icmpErrors.unreachableProhibitedIcmp(
-                tryGet[RouterPort](context.inPortId), context,
+                tryGet(classOf[RouterPort], context.inPortId), context,
                 context.preRoutingMatch))(context)
     }
 
@@ -406,7 +406,7 @@ abstract class RouterBase[IP <: IPAddr]()
         val rt = context.routeTo
         context.routeTo = null
 
-        val outPort = tryGet[RouterPort](context.outPortId)
+        val outPort = tryGet(classOf[RouterPort], context.outPortId)
 
         val mac = getNextHopMac(outPort, rt,
                                 context.wcmatch.getNetworkDstIP.asInstanceOf[IP],
@@ -416,14 +416,14 @@ abstract class RouterBase[IP <: IPAddr]()
                 context.log.debug("icmp host unreachable, host mac unknown")
                 sendAnswer(context.inPortId,
                     icmpErrors.unreachableHostIcmp(
-                        tryGet[RouterPort](context.inPortId), context,
+                        tryGet(classOf[RouterPort], context.inPortId), context,
                         context.preRoutingMatch))
                 ErrorDrop
             case null =>
                 context.log.debug("icmp net unreachable, gw mac unknown")
                 sendAnswer(context.inPortId,
                     icmpErrors.unreachableNetIcmp(
-                        tryGet[RouterPort](context.inPortId), context,
+                        tryGet(classOf[RouterPort], context.inPortId), context,
                         context.preRoutingMatch))
                 ErrorDrop
             case nextHopMac =>
@@ -451,7 +451,8 @@ abstract class RouterBase[IP <: IPAddr]()
         if (cfg.loadBalancer == null) {
             new RuleResult(RuleResult.Action.CONTINUE)
         } else {
-            tryGet[LoadBalancer](cfg.loadBalancer).processOutbound(context)
+            tryGet(classOf[LoadBalancer], cfg.loadBalancer)
+                .processOutbound(context)
         }
 
     // Auxiliary, IP version specific abstract methods.

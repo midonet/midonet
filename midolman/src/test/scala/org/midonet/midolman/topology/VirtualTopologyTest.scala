@@ -20,7 +20,6 @@ import java.util.UUID
 import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.reflect._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -59,7 +58,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Requesting the port")
             val e1 = intercept[NotYetException] {
-                VirtualTopology.tryGet[SimulationPort](id)
+                VirtualTopology.tryGet(classOf[SimulationPort], id)
             }
 
             Then("The request throws a NotYetException with a future")
@@ -84,7 +83,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             When("Requesting the port")
             // The port is not cached, the VT throws a not yet exception
             val e = intercept[NotYetException] {
-                VirtualTopology.tryGet[SimulationPort](id)
+                VirtualTopology.tryGet(classOf[SimulationPort], id)
             }
 
             Then("The request throws a NotYetException with a future")
@@ -106,12 +105,12 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             And("Requesting the port to update the VT cache")
             // Try get the port, and wait for the port to be cached.
             ready(intercept[NotYetException] {
-                VirtualTopology.tryGet[SimulationPort](id)
+                VirtualTopology.tryGet(classOf[SimulationPort], id)
             }.waitFor, timeout)
 
             And("Creating an observer to the VT observable")
             val observer = new DeviceObserver[SimulationPort](vt)
-            vt.observables.get(Key(classTag[SimulationPort], id))
+            vt.observables.get(Key(classOf[SimulationPort], id))
                 .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(observer)
 
@@ -120,7 +119,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Requesting the port a second time")
             // Get the port again, this time from cache.
-            val device = VirtualTopology.tryGet[SimulationPort](id)
+            val device = VirtualTopology.tryGet(classOf[SimulationPort], id)
 
             Then("The request should return the port")
             device should not be null
@@ -137,7 +136,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             When("Requesting the port")
             // Try get the port, and wait for the port to be cached.
             val future = intercept[NotYetException] {
-                VirtualTopology.tryGet[SimulationPort](id)
+                VirtualTopology.tryGet(classOf[SimulationPort], id)
             }.waitFor.asInstanceOf[Future[SimulationPort]]
             ready(future, timeout)
 
@@ -149,7 +148,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Creating an observer to the VT observable")
             val observer = new DeviceObserver[SimulationPort](vt)
-            vt.observables.get(Key(classTag[SimulationPort], id))
+            vt.observables.get(Key(classOf[SimulationPort], id))
                 .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(observer)
 
@@ -162,7 +161,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             observer.awaitOnNext(2, timeout) shouldBe true
 
             And("Requesting the port")
-            val device = VirtualTopology.tryGet[SimulationPort](id)
+            val device = VirtualTopology.tryGet(classOf[SimulationPort], id)
 
             Then("The request should return the updated port")
             device should not be null
@@ -178,12 +177,12 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             And("Requesting the port to update the VT cache")
             ready(intercept[NotYetException] {
-                VirtualTopology.tryGet[SimulationPort](id)
+                VirtualTopology.tryGet(classOf[SimulationPort], id)
             }.waitFor, timeout)
 
             When("Creating an observer to the VT observable")
             val observer = new DeviceObserver[SimulationPort](vt)
-            vt.observables.get(Key(classTag[SimulationPort], id))
+            vt.observables.get(Key(classOf[SimulationPort], id))
                 .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(observer)
             observer.awaitOnNext(1, timeout)
@@ -196,7 +195,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             And("Requesting the port a second time")
             val e1 = intercept[NotYetException] {
-                VirtualTopology.tryGet[SimulationPort](id)
+                VirtualTopology.tryGet(classOf[SimulationPort], id)
             }
 
             Then("The request throws a NotYetException with a future")
@@ -222,7 +221,8 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             val observer = new DeviceObserver[SimulationPort](vt)
 
             When("Subscribing to the port")
-            VirtualTopology.observable[SimulationPort](id).subscribe(observer)
+            VirtualTopology.observable(classOf[SimulationPort], id)
+                           .subscribe(observer)
 
             Then("The observer should receive an error")
             observer.awaitCompletion(timeout)
@@ -245,12 +245,13 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             val observer = new DeviceObserver[SimulationPort](vt)
 
             When("Subscribing to the port")
-            VirtualTopology.observable[SimulationPort](id).subscribe(observer)
+            VirtualTopology.observable(classOf[SimulationPort], id)
+                           .subscribe(observer)
 
             Then("The observer should received one onNext notification")
             observer.awaitOnNext(1, timeout) shouldBe true
             observer.getOnNextEvents should contain only VirtualTopology
-                .get(id).value.get.get
+                .get(classOf[SimulationPort], id).value.get.get
 
             And("The simulation device should have the same identifier")
             observer.getOnNextEvents.get(0).id shouldBe id
@@ -267,7 +268,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Requesting the port")
             val future = intercept[NotYetException] {
-                VirtualTopology.tryGet[SimulationPort](id)
+                VirtualTopology.tryGet(classOf[SimulationPort], id)
             }.waitFor.asInstanceOf[Future[SimulationPort]]
             ready(future, timeout)
 
@@ -276,7 +277,8 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             device.id shouldBe id
 
             When("Subscribing to the port")
-            VirtualTopology.observable[SimulationPort](id).subscribe(observer)
+            VirtualTopology.observable(classOf[SimulationPort], id)
+                           .subscribe(observer)
 
             Then("The observer should received one onNext notification")
             observer.awaitOnNext(1, timeout) shouldBe true
@@ -294,11 +296,12 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             val observer = new DeviceObserver[SimulationPort](vt)
 
             When("Subscribing to the port")
-            VirtualTopology.observable[SimulationPort](id).subscribe(observer)
+            VirtualTopology.observable(classOf[SimulationPort], id)
+                           .subscribe(observer)
 
             Then("The observer should receive one onNext notification")
             observer.awaitOnNext(1, timeout) shouldBe true
-            val device1 = VirtualTopology.get[SimulationPort](id).value.get.get
+            val device1 = VirtualTopology.get(classOf[SimulationPort], id).value.get.get
             observer.getOnNextEvents should contain only device1
 
             When("The port is updated")
@@ -308,7 +311,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer should receive a second onNext notification")
             observer.awaitOnNext(2, timeout) shouldBe true
-            val device2 = VirtualTopology.get[SimulationPort](id).value.get.get
+            val device2 = VirtualTopology.get(classOf[SimulationPort], id).value.get.get
             observer.getOnNextEvents should contain inOrder (device1, device2)
         }
 
@@ -324,12 +327,12 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Subscribing to the port")
             val subscription = VirtualTopology
-                .observable[SimulationPort](id)
+                .observable(classOf[SimulationPort], id)
                 .subscribe(observer)
 
             Then("The observer should receive one onNext notification")
             observer.awaitOnNext(1, timeout) shouldBe true
-            val device1 = VirtualTopology.get[SimulationPort](id).value.get.get
+            val device1 = VirtualTopology.get(classOf[SimulationPort], id).value.get.get
             observer.getOnNextEvents should contain only device1
 
             When("Unsubscribing")
@@ -357,17 +360,17 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Subscribing to the port by observer 1")
             val subscription = VirtualTopology
-                .observable[SimulationPort](id)
+                .observable(classOf[SimulationPort], id)
                 .subscribe(observer1)
 
             Then("The observer 1 should receive one onNext notification")
             observer1.awaitOnNext(1, timeout) shouldBe true
-            val device1 = VirtualTopology.get[SimulationPort](id).value.get.get
+            val device1 = VirtualTopology.get(classOf[SimulationPort], id).value.get.get
             observer1.getOnNextEvents should contain only device1
 
             When("Subscribing to the port by observer 2")
             VirtualTopology
-                .observable[SimulationPort](id)
+                .observable(classOf[SimulationPort], id)
                 .subscribe(observer2)
 
             Then("The observer 2 should receive one onNext notification")
@@ -387,7 +390,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             Then("The observer 2 should receive a second onNext notification")
             observer2.awaitOnNext(2, timeout) shouldBe true
-            val device2 = VirtualTopology.get[SimulationPort](id).value.get.get
+            val device2 = VirtualTopology.get(classOf[SimulationPort], id).value.get.get
             observer2.getOnNextEvents should contain inOrder(device1, device2)
         }
 
@@ -403,12 +406,12 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Subscribing to the port")
             VirtualTopology
-                .observable[SimulationPort](id)
+                .observable(classOf[SimulationPort], id)
                 .subscribe(observer)
 
             Then("The observer should receive one onNext notification")
             observer.awaitOnNext(1, timeout) shouldBe true
-            val device1 = VirtualTopology.get[SimulationPort](id).value.get.get
+            val device1 = VirtualTopology.get(classOf[SimulationPort], id).value.get.get
             observer.getOnNextEvents should contain only device1
 
             When("The port is deleted")
@@ -431,12 +434,12 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             And("Requesting the port to update the VT cache")
             ready(intercept[NotYetException] {
-                VirtualTopology.tryGet[SimulationPort](id)
+                VirtualTopology.tryGet(classOf[SimulationPort], id)
             }.waitFor, timeout)
 
             When("Creating an observer to the VT observable")
             val observer = new DeviceObserver[SimulationPort](vt)
-            vt.observables.get(Key(classTag[SimulationPort], id))
+            vt.observables.get(Key(classOf[SimulationPort], id))
                 .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(observer)
             observer.awaitOnNext(1, timeout)

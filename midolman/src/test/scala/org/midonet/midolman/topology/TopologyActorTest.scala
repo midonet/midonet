@@ -20,7 +20,6 @@ import java.util.UUID
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.reflect.{ClassTag, classTag}
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern.gracefulStop
@@ -50,14 +49,14 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
     private var actor: ActorRef = _
     private var store: Storage = _
 
-    private case class Subscribe(id: UUID, tag: ClassTag[_ <: Device])
-    private case class Unsubscribe(id: UUID, tag: ClassTag[_ <: Device])
+    private case class Subscribe(id: UUID, clazz: Class[_ <: Device])
+    private case class Unsubscribe(id: UUID, clazz: Class[_ <: Device])
 
     private class TestableTopologyActor(obs: TestObserver[Device])
         extends TopologyActor {
         override def receive = {
-            case Subscribe(id, tag) => subscribe(id)(tag)
-            case Unsubscribe(id, tag) => unsubscribe(id)(tag)
+            case Subscribe(id, clazz) => subscribe(clazz, id)
+            case Unsubscribe(id, clazz) => unsubscribe(clazz, id)
             case d: Device => obs onNext d
             case OnCompleted => obs.onCompleted()
             case OnError(e) => obs onError e
@@ -80,7 +79,7 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
             val poolId = UUID.randomUUID()
 
             When("Subscribing to the pool via the actor")
-            actor ! Subscribe(poolId, classTag[Pool])
+            actor ! Subscribe(poolId, classOf[Pool])
 
             Then("The actor should receive an error")
             observer.getOnErrorEvents.get(0)
@@ -96,7 +95,7 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
             store create pool
 
             When("Subscribing to the pool via the actor")
-            actor ! Subscribe(pool.getId, classTag[Pool])
+            actor ! Subscribe(pool.getId, classOf[Pool])
 
             Then("The actor should receive the pool")
             observer.getOnNextEvents.get(0)
@@ -109,7 +108,7 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
             store create pool1
 
             When("Subscribing to the pool via the actor")
-            actor ! Subscribe(pool1.getId, classTag[Pool])
+            actor ! Subscribe(pool1.getId, classOf[Pool])
 
             And("Updating the pool")
             val pool2 = pool1.setAdminStateUp(true)
@@ -128,7 +127,7 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
             store create pool
 
             When("Subscribing to the pool via the actor")
-            actor ! Subscribe(pool.getId, classTag[Pool])
+            actor ! Subscribe(pool.getId, classOf[Pool])
 
             And("The pool is deleted")
             store.delete(classOf[Topology.Pool], pool.getId)
@@ -146,10 +145,10 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool1), CreateOp(pool2)))
 
             When("Subscribing to the first pool via the actor")
-            actor ! Subscribe(pool1.getId, classTag[Pool])
+            actor ! Subscribe(pool1.getId, classOf[Pool])
 
             And("Subscribing to the second pool via the actor")
-            actor ! Subscribe(pool2.getId, classTag[Pool])
+            actor ! Subscribe(pool2.getId, classOf[Pool])
 
             Then("The actor should receive both updates")
             observer.getOnNextEvents.get(0)
@@ -180,10 +179,10 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
             store create pool1
 
             When("Subscribing to the pool via the actor")
-            actor ! Subscribe(pool1.getId, classTag[Pool])
+            actor ! Subscribe(pool1.getId, classOf[Pool])
 
             And("Unsubscribing from the pool")
-            actor ! Unsubscribe(pool1.getId, classTag[Pool])
+            actor ! Unsubscribe(pool1.getId, classOf[Pool])
 
             And("Updating the pool")
             val pool2 = pool1.setAdminStateUp(true)
@@ -202,11 +201,11 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool1), CreateOp(pool2)))
 
             When("Subscribing to the pools via the actor")
-            actor ! Subscribe(pool1.getId, classTag[Pool])
-            actor ! Subscribe(pool2.getId, classTag[Pool])
+            actor ! Subscribe(pool1.getId, classOf[Pool])
+            actor ! Subscribe(pool2.getId, classOf[Pool])
 
             And("Unsubscribing from the first pool")
-            actor ! Unsubscribe(pool1.getId, classTag[Pool])
+            actor ! Unsubscribe(pool1.getId, classOf[Pool])
 
             And("Updating both pools")
             val pool3 = pool1.setAdminStateUp(true)
@@ -229,7 +228,7 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
             store create pool1
 
             When("Subscribing to the pool via the actor")
-            actor ! Subscribe(pool1.getId, classTag[Pool])
+            actor ! Subscribe(pool1.getId, classOf[Pool])
 
             And("The actor is stopped")
             Await.result(gracefulStop(actor, 5 seconds), 5 seconds)

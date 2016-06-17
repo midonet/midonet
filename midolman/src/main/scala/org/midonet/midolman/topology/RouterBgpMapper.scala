@@ -42,10 +42,12 @@ class RouterBgpMapper(id: UUID, vt: VirtualTopology) extends MidolmanLogging {
         "org.midonet.routing.bgp.router-ip-mapper-" + id
 
     private var portIds: Set[UUID] = _
-    private val portTracker = new StoreObjectReferenceTracker[Port](vt, log)
+    private val portTracker =
+        new StoreObjectReferenceTracker(vt, classOf[Port], log)
 
     private var bgpIds: Set[UUID] = _
-    private val bgpTracker = new StoreObjectReferenceTracker[BgpPeer](vt, log)
+    private val bgpTracker =
+        new StoreObjectReferenceTracker(vt, classOf[BgpPeer], log)
 
     private val routerObservable = vt.store.observable(classOf[Router], id)
         .observeOn(vt.vtScheduler)

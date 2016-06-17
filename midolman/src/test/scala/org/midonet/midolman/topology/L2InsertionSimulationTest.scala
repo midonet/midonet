@@ -269,9 +269,9 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             vm1ins1 = vm1ins1.toBuilder.setVlan(30).build
             translateInsertionUpdate(store, vm1ins1)
             eventually (timeout(Span(2, Seconds))) {
-                val port = VirtualTopology.tryGet[SimPort](vm1ins1.getPortId)
+                val port = VirtualTopology.tryGet(classOf[SimPort], vm1ins1.getPortId)
                 val chain = VirtualTopology
-                    .tryGet[SimChain](port.inboundFilters.get(0))
+                    .tryGet(classOf[SimChain], port.inboundFilters.get(0))
                 chain.rules.get(3) match {
                     case r: L2TransformRule => r.pushVlan should be(30 | 1 << 13)
                     case _ => fail("wrong rule type")
@@ -285,9 +285,9 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             vm1ins1 = vm1ins1.toBuilder.setVlan(0).build
             translateInsertionUpdate(store, vm1ins1)
             eventually (timeout(Span(2, Seconds))) {
-                val port = VirtualTopology.tryGet[SimPort](vm1ins1.getPortId)
+                val port = VirtualTopology.tryGet(classOf[SimPort], vm1ins1.getPortId)
                 val chain = VirtualTopology
-                    .tryGet[SimChain](port.inboundFilters.get(0))
+                    .tryGet(classOf[SimChain], port.inboundFilters.get(0))
                 chain.rules.get(3) match {
                     case r: L2TransformRule => r.pushVlan shouldBe 0
                     case _ => fail("wrong rule type")

@@ -28,7 +28,7 @@ import org.midonet.util.functors.makeFunc1
  * and converted into the corresponding simulation object using ZoomConvert.
  */
 final class TunnelZoneMapper(id: UUID, vt: VirtualTopology)
-    extends DeviceMapper[SimTunnelZone](id, vt) {
+    extends DeviceMapper(classOf[SimTunnelZone], id, vt) {
 
     override def logSource = s"org.midonet.devices.tunnelzone.tunnelzone-$id"
 

@@ -187,7 +187,8 @@ object RoutingHandler {
                 super.preStart()
 
                 // Subscribe to the BGP port mapper for BGP updates.
-                bgpSubscription = VirtualTopology.observable[BgpPort](rport.id)
+                bgpSubscription = VirtualTopology.observable(classOf[BgpPort],
+                                                             rport.id)
                                                  .subscribe(this)
 
                 if (isQuagga) {

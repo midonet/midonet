@@ -47,7 +47,7 @@ class DhcpConfigFromNsdb(vt: VirtualTopology)
 
     override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = {
         val f = Future.sequence (
-            tryGet[Bridge](deviceId).subnetIds.map {
+            tryGet(classOf[Bridge], deviceId).subnetIds.map {
                 vt.store.get(classOf[Topology.Dhcp], _) map toSubnet
             }
         ) recover { case _ => Seq.empty[Subnet] }
