@@ -21,7 +21,7 @@ import java.util.UUID
 
 import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.util.collection.ObjectPool
-import org.midonet.util.io.stream.{ByteBufferBlockInputStream, ByteBufferBlockOutputStream}
+import org.midonet.util.io.stream.{BlockHeader, ByteBufferBlockInputStream, ByteBufferBlockOutputStream}
 
 package object stream {
 
@@ -59,7 +59,7 @@ package object stream {
     object ByteBufferBlockOutputStream {
 
         def apply(config: FlowStateConfig,
-                  portId: UUID): ByteBufferBlockOutputStream = {
+                  portId: UUID): ByteBufferBlockOutputStream[BlockHeader] = {
             ???
         }
     }
@@ -67,7 +67,7 @@ package object stream {
     object ByteBufferBlockInputStream {
 
         def apply(config: FlowStateConfig,
-                  portID: UUID): ByteBufferBlockInputStream = {
+                  portID: UUID): ByteBufferBlockInputStream[BlockHeader] = {
             ???
         }
 

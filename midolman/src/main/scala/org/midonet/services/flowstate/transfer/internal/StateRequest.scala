@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.topology.rcu
+package org.midonet.services.flowstate.transfer.internal
 
 import java.util.UUID
 
-import scala.collection.immutable
+abstract class StateRequest
 
-import org.midonet.packets.IPAddr
+case class StateRequestInternal(portId: UUID)
+    extends StateRequest
 
-case class PortBinding(portId: UUID, previousHostIp: UUID,
-                       tunnelKey: Long, iface: String)
+case class StateRequestRemote(portId: UUID, host: String)
+    extends StateRequest
 
-case class ResolvedHost(id: UUID, alive: Boolean,
-                        ports: immutable.Map[UUID, PortBinding],
-                        zones: immutable.Map[UUID, IPAddr])
+case class StateRequestRaw(portId: UUID)
+    extends StateRequest
 
+case class InvalidStateRequest(e: Throwable)
+    extends StateRequest

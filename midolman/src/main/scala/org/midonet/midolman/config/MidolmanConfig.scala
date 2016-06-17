@@ -233,10 +233,15 @@ class FlowStateConfig(val conf: Config, val schema: Config)
     extends TypeFailureFallback with MinionConfig[FlowStateService] {
     val prefix = "agent.minions.flow_state"
 
-    override def isEnabled: Boolean = getBoolean(s"$prefix.enabled")
-    def port: Int = getInt(s"$prefix.port")
+    override def isEnabled = getBoolean(s"$prefix.enabled")
+    def legacyPushState = getBoolean(s"$prefix.legacy_push_state")
+    def legacyReadState = getBoolean(s"$prefix.legacy_read_state")
+    def udpPort = getInt(s"$prefix.udp_port")
+    def tcpPort = getInt(s"$prefix.tcp_port")
+    def tcpTimeout = getDuration(s"$prefix.tcp_timeout",
+                                 TimeUnit.MILLISECONDS).toInt
     def blockSize: Int = Math.max(getInt(s"$prefix.block_size"), 1024)
     def blocksPerPort: Int = getInt(s"$prefix.blocks_per_port")
-    def expirationTime: Duration = getDuration(s"$prefix.expiration_time",
-                                               TimeUnit.MILLISECONDS) millis
+    def expirationTime = getDuration(s"$prefix.expiration_time",
+                                     TimeUnit.MILLISECONDS) millis
 }

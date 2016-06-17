@@ -16,7 +16,6 @@
 
 package org.midonet.services.flowstate
 
-import java.io.File
 import java.nio.ByteBuffer
 import java.util.UUID
 
@@ -40,12 +39,11 @@ import org.midonet.util.collection.{ObjectPool, OnDemandArrayObjectPool}
 class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
     private var config: FlowStateConfig = _
-    private var tmpFile: File = _
     private var buffers: mutable.Queue[ByteBuffer] = _
     private var pool: ObjectPool[ByteBuffer] = _
     private var portId: UUID = _
     implicit val patience: PatienceConfig = new PatienceConfig(Span(15, Seconds),
-                                                               Span(100, Millis))
+        Span(100, Millis))
 
     before {
         val tmpDir = Files.createTempDir()
@@ -81,8 +79,8 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val outStream = FlowStateOutputStream(config, buffers, pool)
 
             And("A message to store")
-            val writeEncoder = validFlowStateMessage(numNats = 2,
-                                                     numEgressPorts = 3)._3
+            val writeEncoder = validFlowStateInternalMessage(numNats = 2,
+                numEgressPorts = 3)._3
 
             When("Writing to the stream")
             outStream.write(writeEncoder)
@@ -107,7 +105,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             When("Writing to the stream indefinitely")
             while (outStream.buffers.length < 2) {
                 val encoder =
-                    validFlowStateMessage(numNats = 2, numEgressPorts = 3)._3
+                    validFlowStateInternalMessage(numNats = 2, numEgressPorts = 3)._3
                 outStream.write(encoder)
             }
 
@@ -147,10 +145,10 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
             And("Some messages to store")
             val writeMsgs = for (i <- 1 until 5)
-                yield validFlowStateMessage(numNats = 2,
-                                            numEgressPorts = 3)._3
+                yield validFlowStateInternalMessage(numNats = 2,
+                    numEgressPorts = 3)._3
 
-            When("Writting to the stream")
+            When("Writing to the stream")
             for (msg <- writeMsgs)
                 outStream.write(msg)
 
@@ -168,9 +166,9 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             Then("Read and writen buffers are the same")
             for ((writeMsg, readMsg) <- writeMsgs zip readMsgs) {
                 val writeBuff = ByteBuffer.wrap(writeMsg.flowStateBuffer.array(),
-                                                0, writeMsg.encodedLength())
+                    0, writeMsg.encodedLength())
                 val readBuff = ByteBuffer.wrap(readMsg.flowStateBuffer.array(),
-                                               0, readMsg.encodedLength())
+                    0, readMsg.encodedLength())
                 readBuff.clear()
                 writeBuff shouldBe readBuff
             }
@@ -186,7 +184,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val numBlocks = 3
             while (outStream.buffers.length < numBlocks) {
                 val encoder =
-                    validFlowStateMessage(numNats = 2, numEgressPorts = 3)._3
+                    validFlowStateInternalMessage(numNats = 2, numEgressPorts = 3)._3
                 writeMsgs += encoder
                 outStream.write(encoder)
             }
@@ -205,18 +203,18 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             readMsgs.length shouldBe writeMsgs.length
             for ((writeMsg, readMsg) <- writeMsgs zip readMsgs) {
                 val writeBuff = ByteBuffer.wrap(writeMsg.flowStateBuffer.array(),
-                                                0, writeMsg.encodedLength())
+                    0, writeMsg.encodedLength())
                 val readBuff = ByteBuffer.wrap(readMsg.flowStateBuffer.array(),
-                                               0, readMsg.encodedLength())
+                    0, readMsg.encodedLength())
                 readBuff.clear()
                 val readString =
                     FlowStateStorePackets.toString(readMsg.flowStateMessage,
-                                                   ConnTrackKeyStore,
-                                                   NatKeyStore)
+                        ConnTrackKeyStore,
+                        NatKeyStore)
                 val writeString =
                     FlowStateStorePackets.toString(writeMsg.flowStateMessage,
-                                                   ConnTrackKeyStore,
-                                                   NatKeyStore)
+                        ConnTrackKeyStore,
+                        NatKeyStore)
                 log.debug(s"Msg written: $writeString")
                 log.debug(s"Msg read: $readString")
                 writeBuff shouldBe readBuff
@@ -232,7 +230,8 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val timeout = config.expirationTime.toMillis
 
             And("A stream of messages until we have two blocks")
-            val writeMsg = validFlowStateMessage(numNats = 2, numEgressPorts = 3)
+            val writeMsg = validFlowStateInternalMessage(numNats = 2,
+                numEgressPorts = 3)
             val writeEncoder = writeMsg._3
 
             while (buffers.length < 2) {
@@ -275,18 +274,18 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             readMsg should not be None
             val readEncoder = readMsg.get
             val writeBuff = ByteBuffer.wrap(writeEncoder.flowStateBuffer.array(),
-                                            0, writeEncoder.encodedLength())
+                0, writeEncoder.encodedLength())
             val readBuff = ByteBuffer.wrap(readEncoder.flowStateBuffer.array(),
-                                           0, readEncoder.encodedLength())
+                0, readEncoder.encodedLength())
             readBuff.clear()
             val readString =
                 FlowStateStorePackets.toString(readEncoder.flowStateMessage,
-                                               ConnTrackKeyStore,
-                                               NatKeyStore)
+                    ConnTrackKeyStore,
+                    NatKeyStore)
             val writeString =
                 FlowStateStorePackets.toString(writeEncoder.flowStateMessage,
-                                               ConnTrackKeyStore,
-                                               NatKeyStore)
+                    ConnTrackKeyStore,
+                    NatKeyStore)
             log.debug(s"Msg written: $writeString")
             log.debug(s"Msg read: $readString")
             writeBuff shouldBe readBuff
@@ -294,5 +293,3 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
         }
     }
 }
-
-

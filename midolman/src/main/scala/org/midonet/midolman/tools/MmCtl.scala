@@ -21,15 +21,13 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-
 import com.google.inject.{Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
 import org.apache.commons.cli._
 import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZookeeperConnectionWatcher}
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{SingleValueKey, StateKey, StateStorage, Storage}
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Port
@@ -41,6 +39,8 @@ import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
 import org.midonet.util.concurrent.toFutureOps
+import org.midonet.util.functors._
+import org.midonet.util.reactivex.richObservable
 
 object MmCtlResult {
 
@@ -77,7 +77,7 @@ trait PortBinder {
     }
 }
 
-class ZoomPortBinder(storage: Storage,
+class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
                      lockFactory: ZookeeperLockFactory) extends PortBinder {
 
     private val log = LoggerFactory.getLogger("org.midonet.MmCtl")
@@ -119,6 +119,17 @@ class ZoomPortBinder(storage: Storage,
 
         tryWrite {
             val p = storage.get(classOf[Port], portId).await()
+            val up = stateStorage.getKey(hostId.toString, classOf[Port], portId,
+                                         MidonetBackend.ActiveKey)
+                                 .map[Boolean](makeFunc1 {
+                                     case SingleValueKey(_, Some(_), _) => true
+                                     case _ => false
+                                 })
+                                 .asFuture.await()
+
+            // If it is not up, then the current flow state is still in the
+            // previous owner
+            val previousHost = if (up) p.getHostId else p.getPreviousHostId
 
             // Unbind only if the port is currently bound to an interface on
             // the same host.  This is necessary since in Nova, bind on the
@@ -127,6 +138,7 @@ class ZoomPortBinder(storage: Storage,
             if (p.hasHostId && pHostId == p.getHostId) {
                 storage.update(p.toBuilder
                                 .clearHostId()
+                                .setPreviousHostId(previousHost)
                                 .clearInterfaceName()
                                 .build())
             }
@@ -164,7 +176,7 @@ class MmCtl(injector: Injector) {
         MidonetBackend.setupBindings(backend.store, backend.stateStore)
 
         val lockFactory = injector.getInstance(classOf[ZookeeperLockFactory])
-        new ZoomPortBinder(backend.store, lockFactory)
+        new ZoomPortBinder(backend.store, backend.stateStore, lockFactory)
     }
 
     def bindPort(portId: UUID, deviceName: String): MmCtlRetCode = {

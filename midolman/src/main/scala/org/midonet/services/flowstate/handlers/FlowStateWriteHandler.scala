@@ -13,36 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.services.flowstate
+package org.midonet.services.flowstate.handlers
 
-import scala.collection.mutable
-import scala.util.control.NonFatal
+import java.util.UUID
+import java.util.{List => JList}
 
 import com.datastax.driver.core.Session
 import com.google.common.annotations.VisibleForTesting
-
-import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
-import org.midonet.cluster.storage.{FlowStateStorage, FlowStateStorageWriter}
-import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
-import org.midonet.packets.FlowStateStorePackets._
-import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
-import org.midonet.packets._
-import org.midonet.services.flowstate.FlowStateService._
-
 import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.socket.DatagramPacket
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
+import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
+import org.midonet.cluster.storage.{FlowStateStorage, FlowStateStorageWriter}
+import org.midonet.midolman.config.FlowStateConfig
+import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
+import org.midonet.packets.FlowStateStorePackets._
+import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
+import org.midonet.packets.SbeEncoder
+import org.midonet.services.flowstate.FlowStateService._
+import org.midonet.services.flowstate.stream.FlowStateOutputStream
+
+import scala.collection.mutable.MutableList
+import scala.util.control.NonFatal
 
 trait FlowStateOp
-case class PushState(msg: FlowStateSbe) extends FlowStateOp
+case class PushState(msg: FlowStateSbe, encoder: SbeEncoder) extends FlowStateOp
 case class InvalidOp(e: Throwable) extends FlowStateOp
 
-/** Handler used to receive, parse and submit flow state messages from
-  * agents to the Cassandra cluster. We reuse this handler for each incomming
-  * connection to avoid garbage collection. */
+/** Handler used to receive, parse and submit flow state messages from agents
+  * to a local file and, if a legacy flag is active, also to the Cassandra
+  * cluster. We reuse this handler for each incoming connection to avoid
+  * garbage collection. */
 @Sharable
-class FlowStateMessageHandler(session: Session)
+class FlowStateWriteHandler(config: FlowStateConfig,
+                            session: Session)
     extends SimpleChannelInboundHandler[DatagramPacket] {
+
+    private val legacyPushState = config.legacyPushState
 
     /**
       * Flow state storage provider for the calling thread. Necessary as
@@ -51,23 +58,28 @@ class FlowStateMessageHandler(session: Session)
       * of the FlowStateStorageImpl object.
       *
       * WARNING: This object assumes that the session parameter is
-      * initialized.
+      * initialized if the legacyPushState flag is true.
       */
-    protected val storageProvider: ThreadLocal[FlowStateStorageWriter] =
-        new ThreadLocal[FlowStateStorageWriter] {
-            override def initialValue(): FlowStateStorageWriter = {
-                Log debug "Getting the initial value for the flow state storage."
-                FlowStateStorage[ConnTrackKeyStore, NatKeyStore] (
-                    session, NatKeyStore, ConnTrackKeyStore)
+    protected val storageProvider: ThreadLocal[FlowStateStorageWriter] = {
+        if (legacyPushState) {
+            new ThreadLocal[FlowStateStorageWriter] {
+                override def initialValue(): FlowStateStorageWriter = {
+                    Log debug "Getting the initial value for the flow state storage."
+                    FlowStateStorage[ConnTrackKeyStore, NatKeyStore](
+                        session, NatKeyStore, ConnTrackKeyStore)
+                }
             }
+        } else {
+            null
         }
+    }
 
     override def channelRead0(ctx: ChannelHandlerContext,
                               msg: DatagramPacket): Unit = {
         Log debug s"Datagram packet received: $msg"
         parseDatagram(msg) match {
-            case PushState(sbe) => // push state to storage
-                pushNewState(sbe)
+            case PushState(sbe, encoder) =>
+                 pushNewState(sbe, encoder)
             case InvalidOp(e) =>
                 Log warn s"Invalid flow state message, ignoring: $e"
         }
@@ -82,7 +94,7 @@ class FlowStateMessageHandler(session: Session)
             bb.get(data)
             val flowStateMessage = encoder.decodeFrom(data)
             Log debug s"Flow state message decoded: $flowStateMessage"
-            PushState(flowStateMessage)
+            PushState(flowStateMessage, encoder)
         } catch {
             case NonFatal(e) =>
                 InvalidOp(e)
@@ -90,14 +102,16 @@ class FlowStateMessageHandler(session: Session)
     }
 
     @VisibleForTesting
-    protected[flowstate] def getStorage = storageProvider.get
+    protected[flowstate] def getLegacyStorage = storageProvider.get
 
-    protected[flowstate] def pushNewState(msg: FlowStateSbe): Unit = {
-        val storage = getStorage
-
+    /*
+     * TODO: When we finally remove Cassandra we can bypass conntrackKeys and
+     * natKeys, just like we are doing with traces
+     */
+    private def pushNewState(msg: FlowStateSbe, encoder: SbeEncoder): Unit = {
         uuidFromSbe(msg.sender)
 
-        val conntrackKeys = mutable.MutableList.empty[ConnTrackKeyStore]
+        val conntrackKeys = MutableList.empty[ConnTrackKeyStore]
         val conntrackIter = msg.conntrack
         while (conntrackIter.hasNext) {
             val k = connTrackKeyFromSbe(conntrackIter.next(), ConnTrackKeyStore)
@@ -105,7 +119,7 @@ class FlowStateMessageHandler(session: Session)
             Log debug s"Got new ConnTrack key: $k"
         }
 
-        val natKeys = mutable.MutableList.empty[(NatKeyStore, NatBinding)]
+        val natKeys = MutableList.empty[(NatKeyStore, NatBinding)]
         val natIter = msg.nat
         while (natIter.hasNext) {
             val nat = natIter.next()
@@ -126,16 +140,36 @@ class FlowStateMessageHandler(session: Session)
         if (portsIter.count == 1) {
             val (ingressPortId, egressPortIds) = portIdsFromSbe(portsIter.next)
 
-            for (k <- conntrackKeys) {
-                storage.touchConnTrackKey(k, ingressPortId, egressPortIds.iterator)
+            writeInLocalStorage(ingressPortId, encoder)
+            if (legacyPushState) {
+                legacyPushNewState(ingressPortId, egressPortIds,
+                    conntrackKeys, natKeys)
             }
-            for ((k, v) <- natKeys) {
-                storage.touchNatKey(k, v, ingressPortId, egressPortIds.iterator)
-            }
-            storage.submit()
         } else {
             Log.warn(s"Unexpected number (${portsIter.count}) of ingress/egress " +
                      s"port id groups in the flow state message.")
         }
+    }
+
+    @VisibleForTesting
+    protected[flowstate] def writeInLocalStorage(portId: UUID,
+                                                 encoder: SbeEncoder): Unit =
+        FlowStateOutputStream(config, portId).write(encoder)
+
+    private def legacyPushNewState(ingressPortId: UUID,
+                         egressPortIds: JList[UUID],
+                         conntrackKeys: MutableList[ConnTrackKeyStore],
+                         natKeys: MutableList[(NatKeyStore, NatBinding)]) {
+        val legacyStorage = getLegacyStorage
+
+        for (k <- conntrackKeys) {
+            legacyStorage.touchConnTrackKey(k, ingressPortId, egressPortIds.iterator)
+        }
+
+        for ((k, v) <- natKeys) {
+            legacyStorage.touchNatKey(k, v, ingressPortId, egressPortIds.iterator)
+        }
+
+        legacyStorage.submit()
     }
 }
