@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_39a4bc06",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/io/stream/package.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-20T09:03:52Z",
+      "side": 1,
+      "message": "Nit: Capitalize but leave it for a next patch.",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 9
+      },
+      "revId": "fac463b6b86efd3cd9ed3811b7b5d482ff6f653e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
