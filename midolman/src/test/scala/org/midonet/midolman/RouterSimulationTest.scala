@@ -64,7 +64,8 @@ class RouterSimulationTest extends MidolmanSpec {
     }
 
     private def makePort(portNum: Int,
-                         containerId: Option[UUID] = None): UUID = {
+                         containerId: Option[UUID] = None,
+                         prefixLen: Int = 30): UUID = {
         // Nw address is 10.0.<i>.0/24
         val nwAddr = 0x0a000000 + (portNum << 8)
         val macAddr = MAC.fromString("0a:0b:0c:0d:0e:0" + portNum)
@@ -77,7 +78,7 @@ class RouterSimulationTest extends MidolmanSpec {
                                  containerId = containerId)
         materializePort(port, hostId, portName)
         // Default route to port based on destination only.  Weight 2.
-        newRoute(router, "10.0.0.0", 16, segmentAddr.toString, 30,
+        newRoute(router, "10.0.0.0", 16, segmentAddr.toString, prefixLen,
             NextHop.PORT, port, new IPv4Addr(NO_GATEWAY).toString,
             2)
         // Anything from 10.0.0.0/16 is allowed through.  Weight 1.
@@ -154,10 +155,10 @@ class RouterSimulationTest extends MidolmanSpec {
         val containerId = newServiceContainer()
 
         // Create container port.
-        val cpId = makePort(3, containerId = Some(containerId))
+        val cpId = makePort(3, containerId = Some(containerId), prefixLen = 24)
         val cp = fetchDevice[RouterPort](cpId)
 
-        val ttl = 8.toByte
+        val ttl = 1.toByte
         val pkt = { eth src MAC.random() dst cp.portMac } <<
                   { ip4 src cp.portAddress.next dst "45.44.33.22" ttl ttl } <<
                   { udp src 10 dst 11 }
@@ -176,6 +177,35 @@ class RouterSimulationTest extends MidolmanSpec {
         pktCtx.virtualFlowActions.get(1) should be (ToPortAction(uplinkPort))
 
         // Note: No FlowKeyIPv4 to decrement TTL.
+    }
+
+    scenario("Forward to container port, TTL not decremented.") {
+        // Create service container.
+        val containerId = newServiceContainer()
+
+        // Create container port.
+        val cpId = makePort(5, containerId = Some(containerId))
+        val cp = fetchDevice[RouterPort](cpId)
+
+        val gwMac = MAC.fromString("aa:bb:aa:cc:dd:cc")
+        val addr = addressInSegment(cpId)
+        val ttl = 1.toByte
+        val pkt = { eth src MAC.random() dst fetchDevice[RouterPort](port1).portMac } <<
+          { ip4 src addressInSegment(port1) dst addr ttl ttl } <<
+          { udp src 10 dst 11 }
+
+        val mac = MAC.random()
+        feedArpTable(simRouter, addr, mac)
+
+        val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
+        simRes should not be Drop
+
+        pktCtx.virtualFlowActions should have size 2
+        val ethKey = setKey[FlowKeyEthernet](pktCtx.virtualFlowActions.get(0))
+        ethKey.eth_dst should be (mac.getAddress)
+        ethKey.eth_src should be (cp.portMac.getAddress)
+
+        pktCtx.virtualFlowActions.get(1) should be (ToPortAction(cpId))
     }
 
     scenario("Blackhole route") {

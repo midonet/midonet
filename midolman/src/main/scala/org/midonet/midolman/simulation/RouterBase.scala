@@ -270,10 +270,10 @@ abstract class RouterBase[IP <: IPAddr]()
         val dstIP = context.wcmatch.getNetworkDstIP
         val inPort = tryGet[RouterPort](context.inPortId)
 
-        def applyTimeToLive(): SimulationResult = {
+        def applyTimeToLive(outPort: RouterPort): SimulationResult = {
             if (fmatch.isUsed(Field.NetworkTTL)) {
                 val ttl = Unsigned.unsign(fmatch.getNetworkTTL)
-                if (inPort.containerId != null) {
+                if (inPort.containerId != null || outPort.containerId != null) {
                     /* If this is a container port, then we need to act like
                        the packet came from this router, and therefore not
                        decrement the TTL.
@@ -340,8 +340,9 @@ abstract class RouterBase[IP <: IPAddr]()
                     ErrorDrop
 
                 case Route.NextHop.PORT =>
-                    applyTimeToLive() match {
-                        case NoOp => tryGet[Port](rt.nextHopPort).action
+                    val outPort = tryGet[RouterPort](rt.nextHopPort)
+                    applyTimeToLive(outPort) match {
+                        case NoOp => outPort.action
                         case simRes => simRes
                     }
                 case _ =>
