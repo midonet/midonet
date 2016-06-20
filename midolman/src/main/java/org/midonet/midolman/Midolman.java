@@ -102,9 +102,9 @@ public class Midolman {
      *
      * @param configFilePath A path for the Midolman config file.
      */
-    static void exitsMissingConfigFile(String configFilePath) {
-        log.error("Midolman config file missing: " + configFilePath);
-        log.error("Midolman exiting.");
+    private static void exitsMissingConfigFile(String configFilePath) {
+        log.error("MidoNet Agent config file \'" + configFilePath + "\' "
+                  + "missing: exiting");
         System.exit(MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE);
     }
 
@@ -129,7 +129,7 @@ public class Midolman {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
-                log.error("Uncaught exception: ", e);
+                log.error("Unhandled exception: ", e);
                 dumpStacks();
                 System.exit(-1);
             }
@@ -145,7 +145,7 @@ public class Midolman {
         Properties properties = new Properties();
         properties.load(
             getClass().getClassLoader().getResourceAsStream("git.properties"));
-        log.info("main start -------------------------");
+        log.info("MidoNet Agent main start... ---------");
         log.info("branch: {}", properties.get("git.branch"));
         log.info("commit.time: {}", properties.get("git.commit.time"));
         log.info("commit.id: {}", properties.get("git.commit.id"));
@@ -155,7 +155,7 @@ public class Midolman {
         log.info("-------------------------------------");
 
         // log cmdline and JVM info
-        log.info("cmdline args: {}", Arrays.toString(args));
+        log.info("Command-line arguments: {}", Arrays.toString(args));
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
         log.info("JVM options: ");
@@ -164,7 +164,7 @@ public class Midolman {
         }
         log.info("-------------------------------------");
 
-        log.info("Adding shutdownHook");
+        log.info("Adding shutdown hook");
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -208,6 +208,14 @@ public class Midolman {
         injector = injector.createChildInjector(
             new MidolmanModule(injector, config, metricRegistry, reflections));
 
+        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults().
+            setComments(false).
+            setOriginComments(false).
+            setFormatted(true);
+        Config conf = injector.getInstance(MidolmanConfig.class).conf();
+        log.info("Loaded configuration: {}",
+                 configurator.dropSchema(conf).root().render(renderOpts));
+
         // start the services
         injector.getInstance(MidonetBackend.class)
             .startAsync()
@@ -216,14 +224,6 @@ public class Midolman {
             .startAsync()
             .awaitRunning();
 
-        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults().
-                    setComments(false).
-                    setOriginComments(false).
-                    setFormatted(true);
-        Config conf = injector.getInstance(MidolmanConfig.class).conf();
-        log.info("Loaded configuration: {}",
-                 configurator.dropSchema(conf).root().render(renderOpts));
-
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
 
@@ -231,27 +231,27 @@ public class Midolman {
             .newDemonProcess("/usr/share/midolman/minions-start", log,
                              "org.midonet.services")
             .run();
-        log.info("Starting Agent minions on process " +
+        log.info("Starting Agent minions in process " +
                  ProcessHelper.getProcessPid(minionProcess));
 
-        log.info("Running manual GC to tenure preallocated objects");
+        log.info("Running manual GC to tenure pre-allocated objects");
         System.gc();
 
         if (config.lockMemory())
             lockMemory();
 
         initializationPromise.success(true);
-        log.info("main finish");
+        log.info("MidoNet Agent started");
 
         injector.getInstance(MidolmanService.class).awaitTerminated();
     }
 
     private void doServicesCleanup() {
-        log.info("SHUTTING DOWN");
+        log.info("MidoNet Agent shutting down...");
 
         if (minionProcess != null) {
             minionProcess.destroy();
-            log.info("Agent minion process stopped.");
+            log.info("Agent minion process stopped");
         }
 
         if (injector == null)
@@ -266,9 +266,9 @@ public class Midolman {
         try {
             instance.stopAsync().awaitTerminated();
         } catch (Exception e) {
-            log.error("Exception ", e);
+            log.error("Agent service failed while stopping", e);
         } finally {
-            log.info("Exiting. BYE (signal)!");
+            log.info("MidoNet Agent exiting. Bye!");
         }
     }
 
@@ -328,7 +328,7 @@ public class Midolman {
             Midolman midolman = getInstance();
             midolman.run(args);
         } catch (Throwable e) {
-            log.error("main caught", e);
+            log.error("Unhandled exception in main method", e);
             dumpStacks();
             System.exit(-1);
         }
