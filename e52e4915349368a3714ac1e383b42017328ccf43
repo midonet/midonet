@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_26249bad",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-20T01:03:54Z",
+      "side": 1,
+      "message": "Could this be replaced by the same thing we do for \u0027ensureContainer\u0027 to have one way to check the same thing (is it the same thing)?  \n\nstorage.exists(classOf[Port], quaggaPortId(routerId).await()\n\nThis way, we have less reliance on Neutron* data which is preferable.",
+      "revId": "e52e4915349368a3714ac1e383b42017328ccf43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a619cb7b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-20T01:03:54Z",
+      "side": 1,
+      "message": "I don\u0027t think this check is necessary since deleting a non-existent object does not throw an error.",
+      "revId": "e52e4915349368a3714ac1e383b42017328ccf43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
