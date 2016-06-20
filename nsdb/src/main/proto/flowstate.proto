@@ -1,0 +1,141 @@
+//
+// Copyright 2016 Midokura SARL
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+import "commons.proto";
+
+package org.midonet.cluster.models;
+option java_package = "org.midonet.cluster.flowstate";
+option java_outer_classname = "FlowStateTransfer";
+
+// -------------------- MIDONET FLOWSTATE TRANSFER API --------------------
+
+// Messages
+// ========
+// The MidoNet FlowState Transfer API protocol defines the messages between a
+// MidoNet agent client requesting the flow state and another MidoNet agent
+// serving this information (The agent that previously owned it).
+// These are encoded as binary Prococol Buffer messages and are of two types:
+// (i) requests and (ii) responses.
+//
+// There are two types of request flows depending on who owns the current Flow
+// State.
+//
+// Internal request flow
+// =====================
+// If the current agent needs the Flow State for one of its current ports, then
+// it will send an Internal request to the Flow State Minion asking for a
+// particular port.
+//
+//    +----------------------+
+//    |                      |
+//    |    MidoNet Agent     |
+//    |                      |
+//    |                |     |
+//    |    (Internal)  |     |
+//    |                |     |
+//    |                V     |
+//    |         +-------------+
+//    |         | Flow State  |
+//    |         | Minion      |
+//    +---------|             |
+//              |             |
+//              |             |
+//              +-------------+
+//
+// External request flow
+// =====================
+// Otherwise, if the port was previously owned by a different agent, the agent
+// will send the Flow State Minion an Remote request. When the minion receives
+// this kind of request, it will send a Raw request to the minion in the agent
+// that used to own the flow state. When the raw data is received, the minion
+// will save it in the local storage and send it back parsed to the agent.
+//
+//    +----------------------+          +----------------------+
+//    |                      |          |                      |
+//    |    MidoNet Agent     |          |    MidoNet Agent     |
+//    |                      |          |                      |
+//    |               |      |          |                      |
+//    |    (Remote)   |      |          |                      |
+//    |               |      |          |                      |
+//    |               V      |          |                      |
+//    |         +-------------+         |         +-------------+
+//    |         | Flow State  |         |         | Flow State  |
+//    |         | Minion      |         |         | Minion      |
+//    +---------|             |         +---------|             |
+//              |             | --------------->  |             |
+//              |             |      (Raw)        |             |
+//              +-------------+                   +-------------+
+//
+//
+// Request Types
+// =============
+// * 'Internal': For an Internal request, the portId will be read form local
+// storage, and decoded for the Agent.
+// Agent -> Minion -> Local storage
+//
+// * 'Remote': For a Remote transfer request, the portId will be requested by the
+// flow state minion to the flow state minion of the MidoNet agent that
+// currently owns this flow state
+// Agent -> Minion -> Minion[remote]
+//
+// * 'Raw': A Raw request happens after a Minion receives a Remote request, and
+// the minion itself sends a Raw request to a remote flow state minion that
+// currently holds the flow state for that port
+message StateRequest {
+
+    message Internal {
+        optional UUID port_id = 1;
+    }
+
+    message Remote {
+        optional UUID port_id = 1;
+        optional IPAddress remote_ip = 2;
+    }
+
+    message Raw {
+        optional UUID port_id = 1;
+    }
+
+    oneof type {
+        Internal internal = 1;
+        Remote remote = 2;
+        Raw raw = 3;
+    }
+}
+
+message StateResponse {
+
+    // ERROR sent when the server Agent was unable to complete the request
+    message Error {
+        enum Code {
+            GENERIC = 1;
+            BAD_REQUEST = 2; // Corrupted or incorrect object received
+            STORAGE_ERROR = 3; // Error reading flowstate from internal storage
+        }
+
+        optional Code code = 1;
+        optional string description = 2;
+    }
+
+    message Ack {
+        optional UUID port_id = 1;
+    }
+
+    oneof type {
+        Error error = 1;
+        Ack ack = 2;
+    }
+}
