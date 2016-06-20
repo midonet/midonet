@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_664e2398",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpTranslationIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-06-20T08:22:43Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "baa041b7_2686db13",
+      "range": {
+        "startLine": 321,
+        "startChar": 0,
+        "endLine": 328,
+        "endChar": 9
+      },
+      "revId": "2b92c35eb7c2834e20ae41a0d72a60fb07ae2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_668ce335",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpTranslationIT.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-20T06:05:42Z",
       "side": 1,
       "message": "Since all you\u0027re doing is checking existence, these could be combined into a single checkBgpNetwork(rId: UUID, route: NeutronRoute, exists: Boolean \u003d true) function.",
+      "range": {
+        "startLine": 481,
+        "startChar": 0,
+        "endLine": 489,
+        "endChar": 5
+      },
+      "revId": "2b92c35eb7c2834e20ae41a0d72a60fb07ae2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_46431f6d",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpTranslationIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-06-20T08:22:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_668ce335",
       "range": {
         "startLine": 481,
         "startChar": 0,
