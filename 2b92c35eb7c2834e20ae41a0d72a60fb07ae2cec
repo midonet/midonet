@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2686db13",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpTranslationIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-20T06:05:42Z",
+      "side": 1,
+      "message": "You do this four times, so why not factor it out?\n\n  def checkRoutesAndNetworks(rId: UUID, numRoutes: Int): Unit \u003d {\n      val nr \u003d storage.get(classOf[NeutronRouter], rId).await()\n      val routes \u003d nr.getRoutesList.asScala\n      routes.size shouldBe numRoutes\n      for (rt \u003c- routes)\n          checkBgpNetwork(rId, rt, exists \u003d (numRoutes \u003e 0)))\n  }",
+      "range": {
+        "startLine": 321,
+        "startChar": 0,
+        "endLine": 328,
+        "endChar": 9
+      },
+      "revId": "2b92c35eb7c2834e20ae41a0d72a60fb07ae2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_668ce335",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpTranslationIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-20T06:05:42Z",
+      "side": 1,
+      "message": "Since all you\u0027re doing is checking existence, these could be combined into a single checkBgpNetwork(rId: UUID, route: NeutronRoute, exists: Boolean \u003d true) function.",
+      "range": {
+        "startLine": 481,
+        "startChar": 0,
+        "endLine": 489,
+        "endChar": 5
+      },
+      "revId": "2b92c35eb7c2834e20ae41a0d72a60fb07ae2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
