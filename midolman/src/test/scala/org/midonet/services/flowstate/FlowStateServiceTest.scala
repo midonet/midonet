@@ -84,7 +84,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             s"""
                |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
                |agent.minions.flow_state.enabled : true
-               |agent.minions.flow_state.port : 1234
+               |agent.minions.flow_state.udp_port : 1234
                |cassandra.servers : "127.0.0.1:9142"
                |cassandra.cluster : "midonet"
                |cassandra.replication_factor : 1
@@ -144,14 +144,14 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
             Then("The socket is bound on configured port")
             intercept[BindException] {
-                new DatagramSocket(midolmanConfig.flowState.port)
+                new DatagramSocket(midolmanConfig.flowState.udpPort)
             }
 
             When("The service is stopped")
             service.stopAsync().awaitTerminated(10, TimeUnit.SECONDS)
 
             Then("The port is unbound")
-            new DatagramSocket(midolmanConfig.flowState.port).close()
+            new DatagramSocket(midolmanConfig.flowState.udpPort).close()
         }
 
         scenario("Service is enabled in the default configuration schema") {

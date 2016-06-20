@@ -107,7 +107,7 @@ class FlowStateReplicator(
     private val flowStateSocket = new DatagramSocket()
     private val flowStatePacket =
         new DatagramPacket(Array.emptyByteArray, 0,
-                           InetAddress.getLoopbackAddress, config.flowState.port)
+                           InetAddress.getLoopbackAddress, config.flowState.udpPort)
 
     /* Used for message building */
     private[this] var txIngressPort: UUID = _
