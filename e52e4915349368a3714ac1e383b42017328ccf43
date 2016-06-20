@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a65e6b10",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-06-20T03:03:44Z",
+      "side": 1,
+      "message": "Unfortunately, since we do not delete the quagga port until we delete the router, we can\u0027t use it as an indicator that peers are configured. I can\u0027t think of another way to efficiently check this. Maybe a backref on router? we only have one speaker per router, max, correct?",
+      "parentUuid": "baa041b7_26249bad",
+      "revId": "e52e4915349368a3714ac1e383b42017328ccf43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a619cb7b",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-06-20T01:03:54Z",
       "side": 1,
       "message": "I don\u0027t think this check is necessary since deleting a non-existent object does not throw an error.",
+      "revId": "e52e4915349368a3714ac1e383b42017328ccf43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_869a47c4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-06-20T03:03:44Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "baa041b7_a619cb7b",
       "revId": "e52e4915349368a3714ac1e383b42017328ccf43",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
