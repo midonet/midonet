@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7203790e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-20T16:35:07Z",
+      "side": 1,
+      "message": "Nit: make the name short, e.g. registerServiceDiscovery(), unregisterServiceDiscovery()",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 59
+      },
+      "revId": "92c7bf35199aed9fa23ff73fc1ae3829bf3cf33a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b702130a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-20T16:35:07Z",
+      "side": 1,
+      "message": "The executor is not needed because we don\u0027t use a client.",
+      "range": {
+        "startLine": 73,
+        "startChar": 8,
+        "endLine": 74,
+        "endChar": 77
+      },
+      "revId": "92c7bf35199aed9fa23ff73fc1ae3829bf3cf33a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_92fefd03",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-20T16:35:07Z",
+      "side": 1,
+      "message": "Use: config.backend",
+      "range": {
+        "startLine": 75,
+        "startChar": 8,
+        "endLine": 75,
+        "endChar": 65
+      },
+      "revId": "92c7bf35199aed9fa23ff73fc1ae3829bf3cf33a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
