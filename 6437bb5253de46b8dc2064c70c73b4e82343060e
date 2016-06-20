@@ -187,6 +187,30 @@
       "revId": "6437bb5253de46b8dc2064c70c73b4e82343060e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d71c776c",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/snappy/SnappyBlockWriter.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-20T14:19:07Z",
+      "side": 1,
+      "message": "If it\u0027s included I think it\u0027s fine, I didn\u0027t dig too much in that library so that\u0027s why I asked.",
+      "parentUuid": "baa041b7_77036b0e",
+      "range": {
+        "startLine": 85,
+        "startChar": 42,
+        "endLine": 85,
+        "endChar": 52
+      },
+      "revId": "6437bb5253de46b8dc2064c70c73b4e82343060e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
