@@ -16,8 +16,8 @@
 
 package org.midonet.services.flowstate
 
-import java.io.File
 import java.net.InetSocketAddress
+import java.nio.ByteBuffer
 import java.util
 import java.util.UUID
 import java.util.UUID.randomUUID
@@ -25,16 +25,11 @@ import java.util.UUID.randomUUID
 import scala.collection.mutable
 import scala.util.Random
 
-import com.google.common.io.Files
-import com.typesafe.config.ConfigFactory
-
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
-import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.cluster.util.UUIDUtil.toProto
-import org.midonet.midolman.config.{FlowStateConfig, MidolmanConfig}
+import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
@@ -80,6 +75,23 @@ trait FlowStateBaseTest extends FeatureSpec
                                natKeys: Seq[(NatKeyStore, NatBinding)])
 
 
+    protected def validOwnedPortsMessage(portIds: Set[UUID], port: Short = 6688)
+    : DatagramPacket = {
+        val udpBuffer = ByteBuffer.allocate(MaxMessageSize)
+        udpBuffer.putInt(FlowStateInternalMessageType.OwnedPortsUpdate)
+        udpBuffer.putInt(portIds.size * 16) // UUID size = 16 bytes
+        for (portId <- portIds) {
+            udpBuffer.putLong(portId.getMostSignificantBits)
+            udpBuffer.putLong(portId.getLeastSignificantBits)
+        }
+        udpBuffer.flip()
+
+        new DatagramPacket(
+            Unpooled.wrappedBuffer(
+                udpBuffer.array, 0,
+                FlowStateInternalMessageHeaderSize + portIds.size * 16),
+            new InetSocketAddress(port))
+    }
 
     protected def validFlowStateInternalMessage(numConntracks: Int = 1,
                                                 numNats: Int = 1,
@@ -95,6 +107,8 @@ trait FlowStateBaseTest extends FeatureSpec
 
         // Prepare UDP shell
         val buffer = new Array[Byte](
+            FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
+        val udpBuffer = ByteBuffer.allocate(
             FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
 
         // Encode flow state message into buffer
@@ -145,8 +159,13 @@ trait FlowStateBaseTest extends FeatureSpec
             flowStateMessage.portIdsCount(0)
         }
 
+        udpBuffer.putInt(FlowStateInternalMessageType.FlowStateMessage)
+        udpBuffer.putInt(encoder.encodedLength())
+        udpBuffer.put(encoder.flowStateBuffer.array, 0, encoder.encodedLength())
+        udpBuffer.flip()
+
         val udp = new DatagramPacket(
-            Unpooled.wrappedBuffer(buffer),
+            Unpooled.wrappedBuffer(udpBuffer),
             new InetSocketAddress(port))
 
         val protos = FlowStateProtos(ingressPort, egressPorts, conntrackKeys, natKeys)
