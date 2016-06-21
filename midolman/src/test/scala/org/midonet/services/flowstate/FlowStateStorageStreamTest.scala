@@ -180,7 +180,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val buffers = outStream.out.out.buffers
 
             And("A message to store")
-            val writeEncoder = validFlowStateMessage(numNats = 2,
+            val writeEncoder = validFlowStateInternalMessage(numNats = 2,
                                                      numEgressPorts = 3)._3
 
             When("Writing to the stream")
@@ -207,7 +207,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             When("Writing to the stream indefinitely")
             while (buffers.length < 2) {
                 val encoder =
-                    validFlowStateMessage(numNats = 2, numEgressPorts = 3)._3
+                    validFlowStateInternalMessage(numNats = 2, numEgressPorts = 3)._3
                 outStream.write(encoder)
             }
 
@@ -252,7 +252,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
             And("Some messages to store")
             val writeMsgs = for (i <- 1 until 2)
-                yield validFlowStateMessage(numNats = 2,
+                yield validFlowStateInternalMessage(numNats = 2,
                                             numEgressPorts = 3)._3
 
             When("Writting to the stream")
@@ -300,7 +300,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val numBlocks = 3
             while (buffers.length < numBlocks) {
                 val encoder =
-                    validFlowStateMessage(numNats = 2, numEgressPorts = 3)._3
+                    validFlowStateInternalMessage(numNats = 2, numEgressPorts = 3)._3
                 writeMsgs += encoder
                 outStream.write(encoder)
             }
@@ -333,7 +333,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val timeout = config.expirationTime.toMillis
 
             And("A stream of messages until we have two blocks")
-            val writeMsg = validFlowStateMessage(numNats = 2,
+            val writeMsg = validFlowStateInternalMessage(numNats = 2,
                                                  numEgressPorts = 3)
             val writeEncoder = writeMsg._3
 
@@ -394,7 +394,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             And("A stream of messages until we have two blocks")
             val writeMsgs = mutable.MutableList.empty[SbeEncoder]
             while (buffers.length < 2) {
-                val writeMsg = validFlowStateMessage(numNats = 2,
+                val writeMsg = validFlowStateInternalMessage(numNats = 2,
                                                      numEgressPorts = 3)
                 val writeEncoder = writeMsg._3
                 outStream.write(writeEncoder)
@@ -430,7 +430,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val outStream = new FlowStateWriterImpl(config, snappyWriter)
 
             When("Writting 4 messages")
-            val writeEncoder = validFlowStateMessage(numNats = 2,
+            val writeEncoder = validFlowStateInternalMessage(numNats = 2,
                                                      numEgressPorts = 3)._3
             outStream.write(writeEncoder)
             outStream.flush()
@@ -465,7 +465,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             JFiles.size(filePath) shouldBe 0
 
             When("Writting a single entry")
-            val writeMsg = validFlowStateMessage(numNats = 2,
+            val writeMsg = validFlowStateInternalMessage(numNats = 2,
                                                  numEgressPorts = 3)
             val writeEncoder = writeMsg._3
             outStream.write(writeEncoder)
@@ -508,7 +508,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
         scenario("Clearing the buffers in input stream") {
             Given("A pre-populated file for a given portId")
             val outStream = FlowStateWriter(config, portId)
-            val writeMsg1 = validFlowStateMessage(numNats = 2,
+            val writeMsg1 = validFlowStateInternalMessage(numNats = 2,
                                                   numEgressPorts = 3)
             val writeEncoder1 = writeMsg1._3
             outStream.write(writeEncoder1)
@@ -531,7 +531,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
         scenario("Reboot (opening an already existing file for reading/writting)") {
             Given("A pre-populated file for a given portId")
             val outStream = FlowStateWriter(config, portId)
-            val writeMsg1 = validFlowStateMessage(numNats = 2,
+            val writeMsg1 = validFlowStateInternalMessage(numNats = 2,
                                                   numEgressPorts = 3)
             val writeEncoder1 = writeMsg1._3
             outStream.write(writeEncoder1)
@@ -547,7 +547,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
             When("Writing on a new output stream")
             val newOutStream = FlowStateWriter(config, portId)
-            val writeMsg2 = validFlowStateMessage(numNats = 2,
+            val writeMsg2 = validFlowStateInternalMessage(numNats = 2,
                                                   numEgressPorts = 3)
             val writeEncoder2 = writeMsg2._3
             newOutStream.out.out.buffers.length shouldBe 1
@@ -567,7 +567,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
         scenario("Port migration (request for existing raw flow state)") {
             Given("A pre-populated file for a given portId")
             val outStream = FlowStateWriter(config, portId)
-            val writeMsg1 = validFlowStateMessage(numNats = 2,
+            val writeMsg1 = validFlowStateInternalMessage(numNats = 2,
                                                   numEgressPorts = 3)
             val writeEncoder1 = writeMsg1._3
             outStream.write(writeEncoder1)
