@@ -59,7 +59,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         extends VirtualDeviceMapper[SimulationPort](id, vt)
         with TraceRequestChainMapper[SimulationPort] {
 
-    override def logSource = s"org.midonet.devices.port.port-$id"
+    override def logSource = "org.midonet.devices.port"
+    override def logMark = s"port:$id"
 
     private var currentPort: SimulationPort = null
     private var prevAdminStateUp: Boolean = false

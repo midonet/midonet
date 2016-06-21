@@ -35,7 +35,8 @@ import org.midonet.util.functors._
 final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology)
     extends VirtualDeviceMapper[SimulationLb](loadBalancerId, vt) {
 
-    override def logSource = s"org.midonet.devices.l4lb.l4lb-$loadBalancerId"
+    override def logSource = "org.midonet.devices.l4lb"
+    override def logMark = s"l4lb:$loadBalancerId"
 
     private var loadBalancer: TopologyLb = null
     private var device: SimulationLb = null
