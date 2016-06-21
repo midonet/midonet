@@ -95,6 +95,9 @@ object ZebraProtocol {
     // Ipv4MaxBytelen + Int * 2 + Byte * 3
     final val ZebraInterfaceAddressAddSize = (Ipv4MaxBytelen +
         4 * 2 + 1 * 3).toByte
+    // Ipv4MaxBytelen + Int + Int + Byte + Byte + Ipv4MaxByteLen
+    final val ZebraIpv4NextHopLookupSize = (Ipv4MaxBytelen +
+        4 + 1 + 1 + Ipv4MaxBytelen).toByte
 
     // c.f. /usr/include/net/if.h
     final val IFF_UP          = 1 << 0
