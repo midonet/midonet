@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a2088c29",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/state/StateProxyTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-21T18:10:46Z",
+      "side": 1,
+      "message": "Unit test for service discovery?",
+      "range": {
+        "startLine": 35,
+        "startChar": 6,
+        "endLine": 35,
+        "endChar": 20
+      },
+      "revId": "35705fd6fbf76258014ac05532bf2936edd78abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c203900c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-21T18:10:46Z",
+      "side": 1,
+      "message": "Maybe we can move this to the state proxy client to reduce clutter, but let\u0027s leave it here for now.",
+      "range": {
+        "startLine": 398,
+        "startChar": 12,
+        "endLine": 404,
+        "endChar": 75
+      },
+      "revId": "35705fd6fbf76258014ac05532bf2936edd78abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
