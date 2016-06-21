@@ -19,16 +19,19 @@ package org.midonet.services.rest_api
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
-import scala.util.control.NonFatal
-
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{SingleValueKey, StateStorage, Storage}
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.conf.HostIdGenerator
 import org.midonet.util.concurrent.toFutureOps
+import org.midonet.util.functors._
+import org.midonet.util.reactivex.richObservable
+
+import scala.util.control.NonFatal
 
 trait PortBinder {
 
@@ -44,7 +47,7 @@ trait PortBinder {
     }
 }
 
-class ZoomPortBinder(storage: Storage,
+class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
                      lockFactory: ZookeeperLockFactory) extends PortBinder {
 
     import RestApiService.Log
@@ -85,7 +88,18 @@ class ZoomPortBinder(storage: Storage,
         val pHostId = UUIDUtil.toProto(hostId)
 
         tryWrite {
+            val up = stateStorage.getKey(hostId.toString, classOf[Port], portId,
+                                         MidonetBackend.ActiveKey)
+                                 .map[Boolean](makeFunc1 {
+                                    case SingleValueKey(_, Some(_), _) => true
+                                    case _ => false
+                                 })
+                                 .asFuture.await()
+
             val p = storage.get(classOf[Port], portId).await()
+            // If it is not up, then the current flow state is still in the
+            // previous owner
+            val previousHost = if (up) p.getHostId else p.getPreviousHostId
 
             // Unbind only if the port is currently bound to an interface on
             // the same host.  This is necessary since in Nova, bind on the
@@ -94,6 +108,7 @@ class ZoomPortBinder(storage: Storage,
             if (p.hasHostId && pHostId == p.getHostId) {
                 storage.update(p.toBuilder
                                 .clearHostId()
+                                .setPreviousHostId(previousHost)
                                 .clearInterfaceName()
                                 .build())
             }

@@ -16,21 +16,26 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.{UUID, List => JList}
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 
-import scala.collection.JavaConverters._
-
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-
+import org.midonet.cluster.data.storage.SingleValueKey
+import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
 import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_INTERFACE_IS_USED, HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, PORT_ALREADY_BOUND, getMessage}
 import org.midonet.cluster.rest_api.{ConflictHttpException, NotFoundHttpException}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.util.concurrent.{toFutureOps => toUtilFutureOps}
+import org.midonet.util.functors._
+import org.midonet.util.reactivex.richObservable
+
+import scala.collection.JavaConverters._
 
 @RequestScoped
 class HostInterfacePortResource @Inject()(hostId: UUID,
@@ -98,8 +103,24 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = tryTx { tx =>
         val port = tx.get(classOf[Port], id)
+
+        val upFuture = stateStore.getKey(hostId.toString,
+                                           classOf[TopologyPort],
+                                           UUID.fromString(id),
+                                           MidonetBackend.ActiveKey)
+                                   .map[Boolean](makeFunc1 {
+                                        case SingleValueKey(_, Some(_), _) => true
+                                        case _ => false
+                                   }).asFuture
+        val up = toUtilFutureOps(upFuture).await()
+
+        // If it is not up, then the current flow state is still in the
+        // previous owner
+        val previousHostId = if (up) port.hostId else port.previousHostId
+
         port.hostId = null
         port.interfaceName = null
+        port.previousHostId = previousHostId
         tx.update(port)
         MidonetResource.OkNoContentResponse
     }
