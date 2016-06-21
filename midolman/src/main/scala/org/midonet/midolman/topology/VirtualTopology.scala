@@ -16,15 +16,17 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
 import scala.collection.mutable
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Future
 import scala.reflect._
 import scala.util.control.NonFatal
 
-import com.codahale.metrics.{Gauge, MetricRegistry}
+import com.codahale.metrics.MetricRegistry
 import com.google.common.annotations.VisibleForTesting
+
 import rx.Observable
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
@@ -36,6 +38,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
+import org.midonet.midolman.monitoring.metrics.VirtualTopologyMetrics
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -74,12 +77,7 @@ object VirtualTopology extends MidolmanLogging {
      */
     def get[D <: Device](id: UUID)
                         (implicit tag: ClassTag[D]): Future[D] = {
-        val device = self.devices.get(id).asInstanceOf[D]
-        if (device eq null) {
-            self.observableOf(tag, id).asFuture
-        } else {
-            Promise[D]().success(device).future
-        }
+        self.get(id)(tag)
     }
 
     /**
@@ -183,17 +181,14 @@ class VirtualTopology(val backend: MidonetBackend,
     private[topology] val observables =
         new ConcurrentHashMap[Key, Observable[_]]()
 
-    @VisibleForTesting
-    private[topology] val devicesGauge = metricRegistry.register(
-        MetricRegistry.name(this.getClass.getName, "devices"),
-        new Gauge[Int] { override def getValue: Int = devices.size })
+    private val cacheHits = new AtomicLong(0L)
+    private val cacheMisses = new AtomicLong(0L)
 
-    @VisibleForTesting
-    private[topology] val observablesGauge = metricRegistry.register(
-        MetricRegistry.name(this.getClass.getName, "observables"),
-        new Gauge[Int] { override def getValue: Int = observables.size })
+    private[topology] val metrics = new VirtualTopologyMetrics(
+        metricRegistry, { devices.size() }, { observables.size() },
+        { cacheHits.get() }, {  cacheMisses.get() })
 
-    private val traceChains = mutable.Map[UUID,Subject[Chain,Chain]]()
+    private val traceChains = mutable.Map[UUID, Subject[Chain, Chain]]()
 
     private val factories = Map[ClassTag[_], DeviceFactory](
         classTag[BgpPort] -> DeviceFactory(
@@ -310,6 +305,18 @@ class VirtualTopology(val backend: MidonetBackend,
         }
     }
 
+    def get[D <: Device](id: UUID)
+                        (implicit tag: ClassTag[D]): Future[D] = {
+        val device = devices.get(id).asInstanceOf[D]
+        if (device eq null) {
+            cacheMisses.incrementAndGet()
+            observableOf(tag, id).asFuture
+        } else {
+            cacheHits.incrementAndGet()
+            Future.successful(device)
+        }
+    }
+
     /**
      * Tries to get the virtual device with the specified identifier.
      * @return The topology device if it is found in the cache of the virtual
@@ -323,9 +330,11 @@ class VirtualTopology(val backend: MidonetBackend,
                            (implicit tag: ClassTag[D]): D = {
         val device = devices.get(id).asInstanceOf[D]
         if (device eq null) {
+            cacheMisses.incrementAndGet()
             throw new NotYetException(observableOf(tag, id).asFuture,
                                       s"Device $id not yet available")
         }
+        cacheHits.incrementAndGet()
         device
     }
 }
