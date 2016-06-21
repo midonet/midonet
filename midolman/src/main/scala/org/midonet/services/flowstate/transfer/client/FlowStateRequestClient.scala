@@ -27,10 +27,9 @@ import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser._
 import org.midonet.services.flowstate.transfer.internal._
 import org.midonet.util.io.stream.ByteBufferBlockWriter
+import org.midonet.util.ClosingRetriable
 
-import scala.util.control.NonFatal
-
-trait FlowStateRequestClient {
+trait FlowStateRequestClient extends ClosingRetriable {
 
     private val Retries = 3
 
@@ -67,23 +66,9 @@ trait FlowStateRequestClient {
         buffer
     }
 
-    protected def retryClosing(closeable: Closeable) (retriable: => Unit): Unit = {
-        try {
-            retry(Retries) { retriable }
-        } finally {
-            if (closeable ne null) closeable.close()
-        }
-    }
+    protected def retryClosing(closeable: Closeable) (retriable: => Unit): Unit =
+        retryClosing(Retries)(closeable)(retriable)
 
-    private def retry(retries: Int) (retriable: => Unit): Unit = {
-        try {
-            retriable
-        } catch {
-            case NonFatal(e) if retries > 1 => retry (retries - 1) (retriable)
-            case NonFatal(_) => // Won't have the requested flow state, but we
-            // shouldn't stop
-        }
-    }
 }
 
 /*

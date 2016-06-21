@@ -17,18 +17,13 @@
 package org.midonet.services.rest_api
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
-
-import scala.util.control.NonFatal
 
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.data.util.ZkOpLock
-import org.midonet.cluster.models.Topology
+import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.conf.HostIdGenerator
-import org.midonet.util.concurrent.toFutureOps
+import org.midonet.util.Retriable
 
 trait PortBinder {
 
@@ -44,59 +39,56 @@ trait PortBinder {
     }
 }
 
-class ZoomPortBinder(storage: Storage,
-                     lockFactory: ZookeeperLockFactory) extends PortBinder {
+class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
+                     lockFactory: ZookeeperLockFactory) extends PortBinder
+                                                        with Retriable {
 
     import RestApiService.Log
-    private val lockOpNumber = new AtomicInteger(0)
-
-    private def getPortBuilder(portId: UUID): Topology.Port.Builder =
-        storage.get(classOf[Topology.Port], portId).await().toBuilder
-
-    def tryWrite(f: => Unit): Unit = {
-        val lock = new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
-                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
-        try lock.acquire() catch {
-            case NonFatal(e) =>
-                Log.info("Could not acquire exclusive write access to " +
-                         "storage.", e)
-                throw e
-        }
-        try {
-            f
-        }
-        finally {
-            lock.release()
-        }
-    }
+    private val UpdateBindingRetries = 3
 
     override def bindPort(portId: UUID, hostId: UUID,
                           deviceName: String): Unit = {
-        tryWrite {
-            val p = getPortBuilder(portId)
-                        .setHostId(UUIDUtil.toProto(hostId))
-                        .setInterfaceName(deviceName)
-                        .build()
-            storage.update(p)
+        val tx = storage.transaction()
+        val oldPort = tx.get(classOf[Port], portId)
+        val newPort = oldPort.toBuilder
+                             .setHostId(UUIDUtil.toProto(hostId))
+                             .setInterfaceName(deviceName)
+                             .build()
+        tx.update(newPort)
+        val update = retry(UpdateBindingRetries) { tx.commit() }
+
+        if (update.isLeft) {
+            val e = update.left.get
+            Log.error(s"Unable to bind port ${portId} to host ${hostId}", e)
+            throw e
         }
     }
 
     override def unbindPort(portId: UUID, hostId: UUID): Unit = {
         val pHostId = UUIDUtil.toProto(hostId)
 
-        tryWrite {
-            val p = storage.get(classOf[Port], portId).await()
+        val tx = storage.transaction()
+        val oldPort = tx.get(classOf[Port], portId)
 
-            // Unbind only if the port is currently bound to an interface on
-            // the same host.  This is necessary since in Nova, bind on the
-            // new host happens before unbind on live migration, and we don't
-            // want remove the existing binding on the new host.
-            if (p.hasHostId && pHostId == p.getHostId) {
-                storage.update(p.toBuilder
-                                .clearHostId()
-                                .clearInterfaceName()
-                                .build())
+        // Unbind only if the port is currently bound to an interface on
+        // the same host.  This is necessary since in Nova, bind on the
+        // new host happens before unbind on live migration, and we don't
+        // want remove the existing binding on the new host.
+        if (oldPort.hasHostId && oldPort.getHostId == pHostId) {
+            val newPort = oldPort.toBuilder
+                                 .clearHostId()
+                                 .clearInterfaceName()
+                                 .setPreviousHostId(pHostId)
+                                 .build()
+            tx.update(newPort)
+            val update = retry(UpdateBindingRetries) { tx.commit() }
+
+            if (update.isLeft) {
+                val e = update.left.get
+                Log.error(s"Unable to unbind port ${portId} from host ${hostId}", e)
+                throw e
             }
         }
     }
+
 }
