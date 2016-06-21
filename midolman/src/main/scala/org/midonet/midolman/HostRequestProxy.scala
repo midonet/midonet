@@ -15,13 +15,13 @@
  */
 package org.midonet.midolman
 
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.{UUID, HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet}
 
 import scala.collection.mutable
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 import akka.actor.ActorRef
-import rx.Subscription
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.Port
@@ -29,13 +29,15 @@ import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast
 import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
-import org.midonet.packets.NatState.NatBinding
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.midolman.topology.{VirtualTopology, VirtualToPhysicalMapper => VTPM}
 import org.midonet.packets.IPv4Addr
+import org.midonet.packets.NatState.NatBinding
+import org.midonet.services.flowstate.transfer.client.FlowStateInternalClient
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent._
+import rx.Subscription
 
 object HostRequestProxy {
 
@@ -94,6 +96,10 @@ class HostRequestProxy(hostId: UUID,
     val belt = new ConveyorBelt(_ => {})
     private var subscription: Subscription = null
 
+    private val tcpClientExecutionContext =
+        ExecutionContext.fromExecutor(newSingleThreadExecutor)
+    private val tcpClient = new FlowStateInternalClient(flowStateConfig)
+
     override def preStart(): Unit = {
         VTPM.hosts(hostId).subscribe(this)
     }
@@ -109,14 +115,51 @@ class HostRequestProxy(hostId: UUID,
                              portInfo: (UUID, UUID)): Future[FlowStateBatch] = {
         val (portId, previousOwnerId) = portInfo
 
-        val scf = storage.fetchStrongConnTrackRefs(portId)
-        val wcf = storage.fetchWeakConnTrackRefs(portId)
-        val snf = storage.fetchStrongNatRefs(portId)
-        val wnf = storage.fetchWeakNatRefs(portId)
+        if (flowStateConfig.legacyReadState) {
+            legacyStateRequestForPort(storage, portId)
+        } else if (flowStateConfig.localReadState) {
+            stateRequestForPort(portId, previousOwnerId)
+        } else {
+            log warn "Flow state not being recovered from local nor legacy " +
+                "storage. Check the agent's configuration to turn on one of " +
+                "the flags for flow state recovery"
+            Future.successful(EmptyFlowStateBatch())
+        }
+    }
+
+    private def legacyStateRequestForPort(storage: FlowStateStorage[ConnTrackKey, NatKey],
+                                  port: UUID): Future[FlowStateBatch] = {
+        val scf = storage.fetchStrongConnTrackRefs(port)
+        val wcf = storage.fetchWeakConnTrackRefs(port)
+        val snf = storage.fetchStrongNatRefs(port)
+        val wnf = storage.fetchWeakNatRefs(port)
 
         ((scf zip wcf) zip (snf zip wnf)) map {
-            case ((sc, wc) , (sn, wn)) => FlowStateBatch(sc, wc, sn, wn)
+            case ((sc, wc), (sn, wn)) => FlowStateBatch(sc, wc, sn, wn)
         }
+    }
+
+    private def stateRequestForPort(port: UUID, previousOwnerId: UUID): Future[FlowStateBatch] = {
+        Future {
+            if (previousOwnerId eq null) {
+                EmptyFlowStateBatch() // First binding -> no flow state to recover
+            } else if (previousOwnerId == hostId) {
+                log debug s"Requesting local flow state for port: $port"
+                tcpClient.internalFlowStateFrom(port)
+            } else {
+                log debug s"Requesting remote flow state for port: $port"
+                val ip = resolveHostIp(previousOwnerId)
+
+                ip match {
+                    case Some(hostIp) =>
+                        tcpClient.remoteFlowStateFrom(hostIp, port)
+                    case None =>
+                        log.debug(s"Host $previousOwnerId is not registered in" +
+                            " any tunnel zone when trying to fetch flow state from it.")
+                        EmptyFlowStateBatch()
+                }
+            }
+        } (tcpClientExecutionContext)
     }
 
     private def stateForPorts(storage: FlowStateStorage[ConnTrackKey, NatKey],
@@ -125,10 +168,9 @@ class HostRequestProxy(hostId: UUID,
             (batch: FlowStateBatch, v: FlowStateBatch) => batch.merge(v)
         }
 
-
     private def resolveHostIp(id: UUID) =
         underlayResolver.peerTunnelInfo(id)
-            .map(route => IPv4Addr.intToString(route.dstIp))
+                        .map(route => IPv4Addr.intToString(route.dstIp))
 
     /* Resolve all ports into UUIDs, creating a ResolvedHost object.
      *
