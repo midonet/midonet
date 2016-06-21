@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_77e7e412",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-21T16:11:31Z",
+      "side": 1,
+      "message": "I may be missing something.\n\nWhat is this metric? It looks like on every update we\u0027re registering an increasing value which doesn\u0027t make much sense on an histogram. \n\nIs it rate of updates? then the last timestamp should be recorded and store the diff.",
+      "range": {
+        "startLine": 208,
+        "startChar": 12,
+        "endLine": 209,
+        "endChar": 67
+      },
+      "revId": "0f0a9410dcdea36c0ee23965aef8647f8f537508",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
