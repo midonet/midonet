@@ -36,10 +36,10 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
 /** Given a router ID, produces an observable that publishes the CIDR, MAC, port
   * ID, BGP peer IP, and  for all of the router's ports that have a BGP peer.
   */
-class RouterBgpMapper(id: UUID, vt: VirtualTopology) extends MidolmanLogging {
+class RouterBgpMapper(routerId: UUID, vt: VirtualTopology) extends MidolmanLogging {
 
-    override def logSource: String =
-        "org.midonet.routing.bgp.router-ip-mapper-" + id
+    override def logSource = "org.midonet.routing.bgp"
+    override def logMark = s"router-ip:$routerId"
 
     private var portIds: Set[UUID] = _
     private val portTracker = new StoreObjectReferenceTracker[Port](vt, log)
@@ -47,7 +47,7 @@ class RouterBgpMapper(id: UUID, vt: VirtualTopology) extends MidolmanLogging {
     private var bgpIds: Set[UUID] = _
     private val bgpTracker = new StoreObjectReferenceTracker[BgpPeer](vt, log)
 
-    private val routerObservable = vt.store.observable(classOf[Router], id)
+    private val routerObservable = vt.store.observable(classOf[Router], routerId)
         .observeOn(vt.vtScheduler)
         .doOnCompleted(makeAction0(routerDeleted()))
         .filter(makeFunc1(routerUpdated))

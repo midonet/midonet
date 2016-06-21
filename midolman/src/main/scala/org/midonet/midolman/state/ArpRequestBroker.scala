@@ -33,6 +33,7 @@ import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.midolman.{NotYetException, SimulationBackChannel}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.PacketWorkflow.GeneratedLogicalPacket
+import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
@@ -82,9 +83,10 @@ object ArpRequestBroker {
 class ArpRequestBroker(config: MidolmanConfig,
                        backChannel: SimulationBackChannel,
                        triggerBackChannel: () => Unit,
-                       clock: UnixClock = UnixClock()) {
+                       clock: UnixClock = UnixClock())
+    extends MidolmanLogging {
 
-    val log = Logger(LoggerFactory.getLogger(s"org.midonet.devices.router.arptable"))
+    override def logSource = "org.midonet.devices.router.arptable"
 
     private val brokers = new util.HashMap[UUID, SingleRouterArpRequestBroker]()
 
@@ -156,10 +158,13 @@ class SingleRouterArpRequestBroker(id: UUID,
                                    config: MidolmanConfig,
                                    backChannel: SimulationBackChannel,
                                    triggerBackChannel: () => Unit,
-                                   clock: UnixClock = UnixClock()) {
+                                   clock: UnixClock = UnixClock())
+    extends MidolmanLogging {
+
     import ArpRequestBroker._
 
-    val log = Logger(LoggerFactory.getLogger(s"org.midonet.devices.router.arptable-$id"))
+    override def logSource = "org.midonet.devices.router.arptable"
+    override def logMark = s"router:$id"
 
     private val random = new Random()
 

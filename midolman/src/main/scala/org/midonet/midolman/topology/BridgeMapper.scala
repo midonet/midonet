@@ -36,7 +36,6 @@ import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.Bridge.{MacFlowCount, RemoveFlowCallbackGenerator, UntaggedVlanId}
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, _}
 import org.midonet.midolman.state.ReplicatedMap
@@ -104,11 +103,8 @@ object BridgeMapper {
      */
     @throws[StateAccessException]
     private class BridgeMacLearningTable(vt: VirtualTopology, bridgeId: UUID,
-                                         vlanId: Short)
-        extends MacLearningTable with MidolmanLogging {
-
-        override def logSource =
-            s"org.midonet.devices.bridge.bridge-$bridgeId.mac-learning-table"
+                                         vlanId: Short, log: Logger)
+        extends MacLearningTable {
 
         private val mark = PublishSubject.create[MacTableUpdate]
         private val table = vt.stateTables.bridgeMacTable(bridgeId, vlanId)
@@ -275,7 +271,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
 
     import BridgeMapper._
 
-    override def logSource = s"org.midonet.devices.bridge.bridge-$bridgeId"
+    override def logSource = "org.midonet.devices.bridge"
+    override def logMark = s"bridge:$bridgeId"
 
     private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt, log)
     private val chainsTracker = new ObjectReferenceTracker[Chain](vt, log)
@@ -809,7 +806,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     private def createMacLearningTable(vlanId: Short): Unit = {
         log.debug("Create MAC learning table for VLAN {}", Short.box(vlanId))
         try {
-            val table = new BridgeMacLearningTable(vt, bridgeId, vlanId)
+            val table = new BridgeMacLearningTable(vt, bridgeId, vlanId, log)
             macLearningTables += vlanId -> table
             macUpdatesSubject onNext table.observable
         } catch {
