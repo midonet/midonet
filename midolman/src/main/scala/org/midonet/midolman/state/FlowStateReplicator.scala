@@ -98,7 +98,6 @@ class FlowStateReplicator(
         flowInvalidation: FlowTagIndexer,
         config: MidolmanConfig) {
     import FlowStateAgentPackets._
-
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     private val flowStateEncoder = new SbeEncoder
@@ -268,12 +267,20 @@ class FlowStateReplicator(
     }
 
     def touchState(context: PacketContext): Unit = {
-        log.debug("Sending flow state message to cluster.")
-        flowStatePacket.setData(context.stateMessage, 0, context.stateMessageLength)
+        sendState(context.stateMessage, context.stateMessageLength)
+    }
+
+    private def sendState(msg: Array[Byte], length: Int): Unit = {
+        log.debug("Sending flow state message to minion.")
+        flowStatePacket.setData(msg, 0, length)
         flowStateSocket.send(flowStatePacket)
     }
 
-    private def acceptNewState(msg: FlowStateSbe) {
+    private def acceptNewState(encoder: SbeEncoder) {
+        val msg = encoder.flowStateMessage
+        val sender = uuidFromSbe(msg.sender)
+        log.debug("Got state replication message from: {}", sender)
+
         val conntrackIter = msg.conntrack
         while (conntrackIter.hasNext()) {
             val k = connTrackKeyFromSbe(conntrackIter.next(), ConnTrackKey)
@@ -306,6 +313,21 @@ class FlowStateReplicator(
             log.debug("Got new trace state: {} -> {}", k, ctx)
             traceTable.touch(k, ctx)
         }
+
+        // TODO:
+        // add feature flag to know if we need to write flow state to minion
+        val portIter = msg.portIds
+        if (portIter.hasNext) {
+            // If we have such a block, we only have one.
+            val ports = portIter.next()
+            val (ingressPort, egressPorts) = portIdsFromSbe(ports)
+
+        }
+
+        // Find if we have one of these ports bound
+        // If store locally and we the port bound, send it to minion
+        sendState(encoder.flowStateBuffer.array, encoder.encodedLength())
+
     }
 
     /**
@@ -327,10 +349,7 @@ class FlowStateReplicator(
         } else {
             try {
                 val flowStateMessage = flowStateEncoder.decodeFrom(data.getData)
-                val sender = uuidFromSbe(flowStateMessage.sender)
-
-                log.debug("Got state replication message from: {}", sender)
-                acceptNewState(flowStateMessage)
+                acceptNewState(flowStateEncoder)
             } catch {
                 case e: IllegalArgumentException =>
                     log.error("Error decoding flow state", e)
