@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_68f26c71",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 545,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-21T07:14:54Z",
+      "side": 1,
+      "message": "Add two fields:\n\n\u0027firewall\u0027 and \u0027logging_resource\u0027",
+      "revId": "6405adda2e9cfc5f6f98a37a6de040b682872df9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
