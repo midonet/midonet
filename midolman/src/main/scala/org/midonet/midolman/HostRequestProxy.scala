@@ -15,27 +15,26 @@
  */
 package org.midonet.midolman
 
-import java.util.{HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet, UUID}
+import java.util.{UUID, HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet}
 
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-
 import akka.actor.ActorRef
-
 import rx.Subscription
-
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.Port
-import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
+import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopology}
-import org.midonet.util.concurrent.ReactiveActor.{OnError, OnCompleted}
+import org.midonet.midolman.topology.{VirtualTopology, VirtualToPhysicalMapper => VTPM}
+import org.midonet.packets.IPv4Addr
+import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent._
 
 object HostRequestProxy {
@@ -78,15 +77,16 @@ object HostRequestProxy {
 class HostRequestProxy(hostId: UUID,
                        backChannel: SimulationBackChannel,
                        storageFuture: Future[FlowStateStorage[ConnTrackKey, NatKey]],
-                       subscriber: ActorRef) extends ReactiveActor[DevicesHost]
-                                             with ActorLogWithoutPath
-                                             with SingleThreadExecutionContextProvider {
+                       subscriber: ActorRef,
+                       underlayResolver: UnderlayResolver,
+                       flowStateConfig: FlowStateConfig) extends ReactiveActor[DevicesHost]
+                                                         with ActorLogWithoutPath
+                                                         with SingleThreadExecutionContextProvider {
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
-    import org.midonet.midolman.HostRequestProxy._
-
     import context.{dispatcher, system}
+    import org.midonet.midolman.HostRequestProxy._
 
     case object ReSync
 
@@ -106,11 +106,13 @@ class HostRequestProxy(hostId: UUID,
     }
 
     private def stateForPort(storage: FlowStateStorage[ConnTrackKey, NatKey],
-                             port: UUID): Future[FlowStateBatch] = {
-        val scf = storage.fetchStrongConnTrackRefs(port)
-        val wcf = storage.fetchWeakConnTrackRefs(port)
-        val snf = storage.fetchStrongNatRefs(port)
-        val wnf = storage.fetchWeakNatRefs(port)
+                             portInfo: (UUID, UUID)): Future[FlowStateBatch] = {
+        val (portId, previousOwnerId) = portInfo
+
+        val scf = storage.fetchStrongConnTrackRefs(portId)
+        val wcf = storage.fetchWeakConnTrackRefs(portId)
+        val snf = storage.fetchStrongNatRefs(portId)
+        val wnf = storage.fetchWeakNatRefs(portId)
 
         ((scf zip wcf) zip (snf zip wnf)) map {
             case ((sc, wc) , (sn, wn)) => FlowStateBatch(sc, wc, sn, wn)
@@ -118,10 +120,15 @@ class HostRequestProxy(hostId: UUID,
     }
 
     private def stateForPorts(storage: FlowStateStorage[ConnTrackKey, NatKey],
-                              ports: Iterable[UUID]): Future[FlowStateBatch] =
-        Future.fold(ports map (stateForPort(storage, _)))(EmptyFlowStateBatch()) {
+                              bindings: Map[UUID, UUID]): Future[FlowStateBatch] =
+        Future.fold(bindings map (stateForPort(storage, _)))(EmptyFlowStateBatch()) {
             (batch: FlowStateBatch, v: FlowStateBatch) => batch.merge(v)
         }
+
+
+    private def resolveHostIp(id: UUID) =
+        underlayResolver.peerTunnelInfo(id)
+            .map(route => IPv4Addr.intToString(route.dstIp))
 
     /* Resolve all ports into UUIDs, creating a ResolvedHost object.
      *
@@ -133,11 +140,11 @@ class HostRequestProxy(hostId: UUID,
     private def resolvePorts(host: DevicesHost): ResolvedHost = {
         val futures = mutable.ArrayBuffer[Future[Any]]()
         val bindings = host.portBindings.map {
-            case (id, iface) =>
+            case (id, (iface, previousHost)) =>
                 try {
                     val port = VirtualTopology.tryGet(classOf[Port], id)
                     if (iface ne null)
-                        Some(PortBinding(id, port.tunnelKey, iface))
+                        Some(PortBinding(id, previousHost, port.tunnelKey, iface))
                     else
                         None
                 } catch {
@@ -171,12 +178,15 @@ class HostRequestProxy(hostId: UUID,
             log.debug(s"Resolved host bindings to ${resolved.ports}")
             subscriber ! resolved
             belt.handle(() => {
-                val ps = h.portBindings.keySet -- lastPorts
+                val ports = for ((id, (_, previousHost)) <- h.portBindings if !lastPorts.contains(id))
+                    yield id -> previousHost
+
                 lastPorts = h.portBindings.keySet
-                storageFuture.flatMap(stateForPorts(_, ps)).andThen {
+
+                storageFuture.flatMap(stateForPorts(_, ports)).andThen {
                     case Success(stateBatch) =>
                         log.debug(s"Fetched ${stateBatch.size()} pieces of " +
-                                  s"flow state for ports $ps")
+                                  s"flow state for ports ${ports.keySet}")
                         backChannel tell stateBatch
                     case Failure(e) =>
                         log.warn("Failed to fetch state", e)

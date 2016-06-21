@@ -156,6 +156,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     def tunnelKey: Long
     def peerId: UUID
     def hostId: UUID
+    def previousHostId: UUID
     def interfaceName: String
     def adminStateUp: Boolean
     def portGroups: JList[UUID] = emptyList()
@@ -278,6 +279,7 @@ class BridgePort(override val id: UUID,
                  override val tunnelKey: Long = 0,
                  override val peerId: UUID = null,
                  override val hostId: UUID = null,
+                 override val previousHostId: UUID = null,
                  override val interfaceName: String = null,
                  override val adminStateUp: Boolean = true,
                  override val portGroups: JList[UUID] = emptyList(),
@@ -315,6 +317,7 @@ class ServicePort(override val id: UUID,
                   override val tunnelKey: Long = 0,
                   override val peerId: UUID = null,
                   override val hostId: UUID = null,
+                  override val previousHostId: UUID = null,
                   override val interfaceName: String = null,
                   val realAdminStateUp: Boolean,
                   override val portGroups: JList[UUID] = emptyList(),
@@ -326,9 +329,9 @@ class ServicePort(override val id: UUID,
                   override val postInFilterMirrors: JList[UUID] = emptyList(),
                   override val preOutFilterMirrors: JList[UUID] = emptyList())
         extends BridgePort(id, inboundFilters, emptyList(),
-                           tunnelKey, peerId, hostId, interfaceName, true,
-                           portGroups, isActive, vlanId, networkId,
-                           preInFilterMirrors, postOutFilterMirrors,
+                           tunnelKey, peerId, hostId, previousHostId,
+                           interfaceName, true, portGroups, isActive, vlanId,
+                           networkId, preInFilterMirrors, postOutFilterMirrors,
                            postInFilterMirrors, preOutFilterMirrors) {
 
     override def toString =
@@ -385,6 +388,7 @@ case class RouterPort(override val id: UUID,
                       override val tunnelKey: Long = 0,
                       override val peerId: UUID = null,
                       override val hostId: UUID = null,
+                      override val previousHostId: UUID = null,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
                       override val portGroups: JList[UUID] = emptyList(),
@@ -467,6 +471,7 @@ case class VxLanPort(override val id: UUID,
     extends Port {
 
     override def hostId = null
+    override def previousHostId = null
     override def interfaceName = null
     override def deviceId = networkId
     override def isExterior = true

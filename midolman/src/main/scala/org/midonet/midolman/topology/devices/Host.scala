@@ -35,7 +35,9 @@ class Host extends ZoomObject with Device {
         alive = host.alive
     }
 
-    def this(hostId: UUID, alive: Boolean, portBindings: Map[UUID, String],
+    def this(hostId: UUID,
+             alive: Boolean,
+             portBindings: Map[UUID, (String, UUID)],
              tunnelZones: Map[UUID, IPAddr]) = {
         this()
         id = hostId
@@ -58,8 +60,9 @@ class Host extends ZoomObject with Device {
     var tunnelZones = Map.empty[UUID, IPAddr]
 
     // To be filled by the HostMapper.
-    // The interface to which each port is bound.
-    var portBindings = Map.empty[UUID, String]
+    // The interface to which each port is bound, and the previous owner of the
+    // flowstate for the port
+    var portBindings = Map.empty[UUID, (String, UUID)]
 
     // The alive status of the host is stored outside of the host proto.
     var alive: Boolean = false
