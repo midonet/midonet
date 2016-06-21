@@ -15,29 +15,35 @@
  */
 package org.midonet.midolman
 
+import java.net.{DatagramPacket, DatagramSocket, InetAddress}
+import java.nio.ByteBuffer
 import java.util.concurrent.Executors.newSingleThreadExecutor
-import java.util.{UUID, HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet}
+import java.util.{HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet, UUID}
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+
 import akka.actor.ActorRef
+
+import rx.Subscription
+
 import org.midonet.cluster.storage.FlowStateStorage
-import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.config.FlowStateConfig
+import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
-import org.midonet.midolman.topology.{VirtualTopology, VirtualToPhysicalMapper => VTPM}
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopology}
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.services.flowstate.transfer.client.FlowStateInternalClient
+import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType, MaxMessageSize, MaxPortIds}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent._
-import rx.Subscription
 
 object HostRequestProxy {
 
@@ -87,8 +93,9 @@ class HostRequestProxy(hostId: UUID,
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
-    import context.{dispatcher, system}
     import org.midonet.midolman.HostRequestProxy._
+
+    import context.{dispatcher, system}
 
     case object ReSync
 
@@ -110,6 +117,15 @@ class HostRequestProxy(hostId: UUID,
             subscription = null
         }
     }
+
+    /* Used for sending flow state messages to minion. TODO: do a common
+       frontend for udp and tcp messages sent to the minion */
+    private val flowStateSocket = new DatagramSocket()
+    private val flowStatePacket =
+        new DatagramPacket(Array.emptyByteArray, 0,
+                           InetAddress.getLoopbackAddress, flowStateConfig.port)
+    private val flowStateBuffer = ByteBuffer.allocate(MaxMessageSize)
+
 
     private def stateForPort(storage: FlowStateStorage[ConnTrackKey, NatKey],
                              portInfo: (UUID, UUID)): Future[FlowStateBatch] = {
@@ -206,6 +222,22 @@ class HostRequestProxy(hostId: UUID,
         ResolvedHost(host.id, host.alive, bindings.toMap, host.tunnelZones)
     }
 
+    def updateOwnedPorts(portIds: Set[UUID]): Unit = {
+        log.debug("Sending updated set of owned ports to minion.")
+        flowStateBuffer.clear()
+        val size = Math.min(MaxPortIds, portIds.size)
+        flowStateBuffer.putInt(FlowStateInternalMessageType.OwnedPortsUpdate)
+        flowStateBuffer.putInt(size * 16) // UUID size = 16 bytes
+        for (portId <- portIds) {
+            flowStateBuffer.putLong(portId.getMostSignificantBits)
+            flowStateBuffer.putLong(portId.getLeastSignificantBits)
+        }
+        flowStatePacket.setData(flowStateBuffer.array,
+                                0,
+                                size * 16 + FlowStateInternalMessageHeaderSize)
+        flowStateSocket.send(flowStatePacket)
+    }
+
     override def receive = super.receive orElse {
         case ReSync =>
             log.debug("Re-syncing port bindings")
@@ -219,6 +251,7 @@ class HostRequestProxy(hostId: UUID,
             val resolved = resolvePorts(h)
             log.debug(s"Resolved host bindings to ${resolved.ports}")
             subscriber ! resolved
+            updateOwnedPorts(h.portBindings.keySet)
             belt.handle(() => {
                 val ports = for ((id, (_, previousHost)) <- h.portBindings if !lastPorts.contains(id))
                     yield id -> previousHost
