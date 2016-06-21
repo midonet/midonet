@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4e6fb192",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-21T08:39:27Z",
+      "side": 1,
+      "message": "I will go with StateSubscriptionKey for now",
+      "parentUuid": "baa041b7_2e346ddc",
+      "range": {
+        "startLine": 24,
+        "startChar": 6,
+        "endLine": 24,
+        "endChar": 16
+      },
+      "revId": "a7050fc781ce8b0fd27e46eb53113d57d3860043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ae1f5d5a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateTable.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-21T07:52:30Z",
       "side": 1,
       "message": "These don\u0027t have to be options, they\u0027re all mandatory to identify a table.",
+      "range": {
+        "startLine": 24,
+        "startChar": 17,
+        "endLine": 28,
+        "endChar": 54
+      },
+      "revId": "a7050fc781ce8b0fd27e46eb53113d57d3860043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8e2a592b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-21T08:39:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ae1f5d5a",
       "range": {
         "startLine": 24,
         "startChar": 17,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ce8ce137",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-21T08:39:27Z",
+      "side": 1,
+      "message": "it will, I just need state_api.proto to be updated with table_arguments as a repeated string",
+      "parentUuid": "baa041b7_ae563d04",
+      "range": {
+        "startLine": 49,
+        "startChar": 51,
+        "endLine": 49,
+        "endChar": 68
+      },
+      "revId": "a7050fc781ce8b0fd27e46eb53113d57d3860043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0e48895a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateTable.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-21T07:52:30Z",
       "side": 1,
       "message": "I think a simpler if (lastVersion.isDefined) ... is less expensive.",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 73
+      },
+      "revId": "a7050fc781ce8b0fd27e46eb53113d57d3860043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_aeaabd83",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-21T08:39:27Z",
+      "side": 1,
+      "message": "thanks",
+      "parentUuid": "baa041b7_0e48895a",
       "range": {
         "startLine": 50,
         "startChar": 8,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_cea501b6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateTableClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-21T08:39:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4e10d14e",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 22
+      },
+      "revId": "a7050fc781ce8b0fd27e46eb53113d57d3860043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6e13955d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Update.scala",
         "patchSetId": 1
@@ -128,6 +248,30 @@
       "writtenOn": "2016-06-21T07:52:30Z",
       "side": 1,
       "message": "Can we use the protobuf message instead of creating another instance? That would reduce the garbage we generate at the agent.",
+      "range": {
+        "startLine": 27,
+        "startChar": 22,
+        "endLine": 27,
+        "endChar": 28
+      },
+      "revId": "a7050fc781ce8b0fd27e46eb53113d57d3860043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ae819dfd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/Update.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-21T08:39:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6e13955d",
       "range": {
         "startLine": 27,
         "startChar": 22,
