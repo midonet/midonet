@@ -155,11 +155,11 @@ class FlowStateWriteHandler(config: FlowStateConfig,
         }
     }
 
-    private def writeInLocalStorage(portId: UUID, encoder: SbeEncoder): Unit =
+    @VisibleForTesting
+    protected def writeInLocalStorage(portId: UUID, encoder: SbeEncoder): Unit =
         getFlowStateWriter(portId).write(encoder)
 
-    @VisibleForTesting
-    protected def getFlowStateWriter(portId: UUID) = portWriters.synchronized {
+    private def getFlowStateWriter(portId: UUID) = portWriters.synchronized {
         if (portWriters.containsKey(portId)) {
             portWriters.get(portId)
         } else {
