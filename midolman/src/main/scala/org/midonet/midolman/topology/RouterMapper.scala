@@ -375,7 +375,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         extends VirtualDeviceMapper(classOf[SimulationRouter], routerId, vt)
         with TraceRequestChainMapper[SimulationRouter] {
 
-    override def logSource = s"org.midonet.devices.router.router-$routerId"
+    override def logSource = "org.midonet.devices.router"
+    override def logMark = s"router:$routerId"
 
     private class RemoveTagCallback(dst: IPv4Addr) extends Callback0 {
         override def call(): Unit = {
@@ -437,7 +438,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         .merge(routesSubject)
         .map[Config](makeFunc1(routingTableUpdated))
     private lazy val arpTableObservable = ArpCache
-        .createAsObservable(vt, routerId)
+        .createAsObservable(vt, routerId, log)
         .map[Config](makeFunc1(arpCacheCreated))
     private lazy val loadBalancerObservable = Observable
         .merge(loadBalancerSubject)

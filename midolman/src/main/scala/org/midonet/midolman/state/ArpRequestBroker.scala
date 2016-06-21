@@ -24,14 +24,13 @@ import scala.concurrent.{Future, Promise}
 import scala.util.Random
 
 import com.google.common.collect.ArrayListMultimap
-import com.typesafe.scalalogging.Logger
 import org.jctools.queues.SpscGrowableArrayQueue
-import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.{SimulationBackChannel, NotYetException}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
+import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.UnixClock
@@ -81,9 +80,10 @@ class ArpRequestBroker(emitter: PacketEmitter,
                        config: MidolmanConfig,
                        invalidator: SimulationBackChannel,
                        triggerBackChannel: () => Unit,
-                       clock: UnixClock = UnixClock()) {
+                       clock: UnixClock = UnixClock())
+    extends MidolmanLogging {
 
-    val log = Logger(LoggerFactory.getLogger(s"org.midonet.devices.router.arptable"))
+    override def logSource = "org.midonet.devices.router.arptable"
 
     private val brokers = new util.HashMap[UUID, SingleRouterArpRequestBroker]()
 
@@ -156,10 +156,13 @@ class SingleRouterArpRequestBroker(id: UUID,
                                    config: MidolmanConfig,
                                    invalidator: SimulationBackChannel,
                                    triggerBackChannel: () => Unit,
-                                   clock: UnixClock = UnixClock()) {
+                                   clock: UnixClock = UnixClock())
+    extends MidolmanLogging {
+
     import ArpRequestBroker._
 
-    val log = Logger(LoggerFactory.getLogger(s"org.midonet.devices.router.arptable-$id"))
+    override def logSource = "org.midonet.devices.router.arptable"
+    override def logMark = s"router:$id"
 
     private val random = new Random()
 

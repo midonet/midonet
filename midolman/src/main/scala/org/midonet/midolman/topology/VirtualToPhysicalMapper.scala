@@ -45,7 +45,7 @@ import org.midonet.util.concurrent._
 import org.midonet.util.functors.{makeAction1, makeFunc1}
 import org.midonet.util.reactivex._
 
-object VirtualToPhysicalMapper extends MidolmanLogging {
+object VirtualToPhysicalMapper {
 
     object TunnelZoneMemberOp extends Enumeration {
         val Added, Deleted = Value

@@ -42,7 +42,8 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
 final class HostMapper(hostId: UUID, vt: VirtualTopology)
     extends DeviceMapper(classOf[SimulationHost], hostId, vt) {
 
-    override def logSource = s"org.midonet.devices.host.host-$hostId"
+    override def logSource = "org.midonet.devices.host"
+    override def logMark = s"host:$hostId"
 
     private var currentHost: TopologyHost = null
     private var alive: Option[Boolean] = None
