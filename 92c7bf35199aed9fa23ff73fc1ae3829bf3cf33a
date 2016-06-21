@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d78c7037",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-06-21T16:31:23Z",
+      "side": 1,
+      "message": "I also think that shorter names are desirable in general, but in this case is a private method called from only one place and no arguments, so maybe the extra long name helps to understand better what it does if you just read the doStart() implementation. Anyway I am not strongly defending it, no problem about changing it.",
+      "parentUuid": "baa041b7_7203790e",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 59
+      },
+      "revId": "92c7bf35199aed9fa23ff73fc1ae3829bf3cf33a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b702130a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9786e811",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-06-21T16:31:23Z",
+      "side": 1,
+      "message": "Ok, I will remove it.",
+      "parentUuid": "baa041b7_b702130a",
+      "range": {
+        "startLine": 73,
+        "startChar": 8,
+        "endLine": 74,
+        "endChar": 77
+      },
+      "revId": "92c7bf35199aed9fa23ff73fc1ae3829bf3cf33a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_92fefd03",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-06-20T16:35:07Z",
       "side": 1,
       "message": "Use: config.backend",
+      "range": {
+        "startLine": 75,
+        "startChar": 8,
+        "endLine": 75,
+        "endChar": 65
+      },
+      "revId": "92c7bf35199aed9fa23ff73fc1ae3829bf3cf33a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d708f093",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-06-21T16:31:23Z",
+      "side": 1,
+      "message": "Ok, true.",
+      "parentUuid": "baa041b7_92fefd03",
       "range": {
         "startLine": 75,
         "startChar": 8,
