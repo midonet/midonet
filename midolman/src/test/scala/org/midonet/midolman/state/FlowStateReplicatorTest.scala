@@ -579,7 +579,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         scenario("Invalidates flows") {
             Given("A flow state batch")
 
-            val flowState = HostRequestProxy.EmptyFlowStateBatch()
+            val flowState = HostRequestProxy.EmptyFlowStateBatch
             flowState.strongConnTrack.add(connTrackKeys.head)
 
             When("Importing it")
