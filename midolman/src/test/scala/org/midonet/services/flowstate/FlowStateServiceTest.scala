@@ -15,25 +15,19 @@
  */
 package org.midonet.services.flowstate
 
-
 import java.io.File
 import java.net.{BindException, DatagramSocket, ServerSocket}
 import java.nio.ByteBuffer
 import java.util.UUID
 import java.util.concurrent.{ExecutorService, TimeUnit}
 
-import scala.collection.JavaConverters._
-
 import com.google.common.io.Files
 import com.typesafe.config.ConfigFactory
-
+import io.netty.buffer.ByteBuf
+import io.netty.channel.ChannelHandlerContext
 import org.apache.curator.framework.CuratorFramework
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{atLeastOnce, mock, times, verify}
-import org.mockito.{ArgumentCaptor, Matchers => mockito}
-import org.scalatest.junit.JUnitRunner
-
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateResponse
 import org.midonet.cluster.storage.FlowStateStorageWriter
 import org.midonet.cluster.topology.TopologyBuilder
@@ -43,16 +37,18 @@ import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.minion.Context
 import org.midonet.services.flowstate.handlers._
-import org.midonet.services.flowstate.stream.{ByteBufferBlockReader, FlowStateBlock, FlowStateReader}
+import org.midonet.services.flowstate.stream.{ByteBufferBlockReader, FlowStateBlock}
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser.parseStateResponse
 import org.midonet.services.flowstate.transfer.client._
 import org.midonet.services.flowstate.transfer.internal._
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.io.stream.{ByteBufferBlockWriter, TimedBlockHeader}
 import org.midonet.util.netty.ServerFrontEnd
+import org.mockito.Mockito.{atLeastOnce, mock, times, verify}
+import org.mockito.{ArgumentCaptor, Matchers => mockito}
+import org.scalatest.junit.JUnitRunner
 
-import io.netty.buffer.ByteBuf
-import io.netty.channel.ChannelHandlerContext
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class FlowStateServiceTest extends FlowStateBaseTest
@@ -137,6 +133,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
         val config: String =
             s"""
                |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
+               |agent.minions.flow_state.log_directory: ${tmpDir.getName}
                |agent.minions.flow_state.enabled : true
                |agent.minions.flow_state.legacy_push_state : true
                |agent.minions.flow_state.legacy_read_state : true
@@ -622,6 +619,98 @@ class FlowStateServiceTest extends FlowStateBaseTest
             } finally {
                 server.stopAsync().awaitTerminated(20, TimeUnit.SECONDS)
             }
+        }
+    }
+
+    feature("Local storage message handling and configuration") {
+        scenario("Flow state not sent to cassandra when legacy storage disabled") {
+            Given("A storage handler with legacy writes disabled")
+            val flowStateConfig = ConfigFactory.parseString(
+            s"""
+               |agent.minions.flow_state.legacy_push_state : false
+               |agent.minions.flow_state.legacy_read_state : false
+               |agent.minions.flow_state.local_push_state : true
+               |agent.minions.flow_state.local_read_state : true
+               |""".stripMargin)
+            midolmanConfig = MidolmanConfig.forTests(flowStateConfig)
+            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val (datagram, protos, _) = validFlowStateInternalMessage(
+                numConntracks = 1,
+                numNats = 2,
+                numIngressPorts = 1,
+                numEgressPorts = 3)
+
+            When("The message is handled")
+            handler.channelRead0(null, datagram)
+
+            Then("The handler does not send state to cassandra")
+            val mockedStorage = handler.getLegacyStorage
+            verify(mockedStorage, times(0)).touchConnTrackKey(mockito.any(),
+                                                              mockito.any(),
+                                                              mockito.any())
+            verify(mockedStorage, times(0)).touchNatKey(mockito.any(),
+                                                        mockito.any(),
+                                                        mockito.any(),
+                                                        mockito.any())
+            verify(mockedStorage, times(0)).submit()
+
+        }
+
+        scenario("Flow state not sent to local storage by default") {
+            Given("A storage handler with default configuration")
+            midolmanConfig = MidolmanConfig.forTests(ConfigFactory.empty())
+            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val (datagram, protos, _) = validFlowStateInternalMessage(
+                numConntracks = 1,
+                numNats = 2,
+                numIngressPorts = 1,
+                numEgressPorts = 3)
+
+            When("The message is handled")
+            handler.channelRead0(null, datagram)
+
+            Then("The handler does not write the message to the local storage")
+            handler.getWrites shouldBe 0
+        }
+
+        scenario("Flow state sent to local storage when local storage enabled") {
+            val flowStateConfig = ConfigFactory.parseString(
+            s"""
+               |agent.minions.flow_state.log_directory: ${tmpDir.getName}
+               |agent.minions.flow_state.local_push_state : true
+               |""".stripMargin)
+            midolmanConfig = MidolmanConfig.forTests(flowStateConfig)
+            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val (datagram, protos, _) = validFlowStateInternalMessage(
+                numConntracks = 1,
+                numNats = 2,
+                numIngressPorts = 1,
+                numEgressPorts = 3)
+
+            When("The message is handled")
+            handler.channelRead0(null, datagram)
+
+            Then("The handler does not write to local storage (no owned ports)")
+            handler.getWrites shouldBe 1
+            handler.portWriters.keySet() should have size 0
+
+            And("Updating the owned ports")
+            val portsSet = Set(protos.ingressPort)
+            val ownedMsg = validOwnedPortsMessage(portsSet)
+
+            When("The message is handled and the owned ports updated")
+            handler.channelRead0(null, ownedMsg)
+            handler.cachedOwnedPortIds shouldBe portsSet
+
+            And("Sending the flow state message again")
+            handler.channelRead0(null, datagram)
+
+            Then("The handler writes to local storage (1 owned port)")
+            handler.getWrites shouldBe 2
+            handler.portWriters.keySet() should have size 1
+            handler.portWriters.keySet() shouldBe portsSet
+            val mockedWriter = handler.portWriters.get(protos.ingressPort)
+            verify(mockedWriter, times(1)).write(mockito.any())
         }
     }
 }

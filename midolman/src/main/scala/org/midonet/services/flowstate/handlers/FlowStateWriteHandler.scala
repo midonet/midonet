@@ -15,9 +15,13 @@
  */
 package org.midonet.services.flowstate.handlers
 
+import java.nio.ByteBuffer
+import java.util
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{UUID, List => JList}
+import java.util.{List => JList, UUID}
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.collection.mutable.MutableList
 import scala.util.control.NonFatal
 
@@ -32,14 +36,16 @@ import org.midonet.packets.FlowStateStorePackets._
 import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
 import org.midonet.packets.SbeEncoder
 import org.midonet.services.flowstate.FlowStateService._
-import org.midonet.services.flowstate.stream._
+import org.midonet.services.flowstate.stream.FlowStateWriter
+import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType}
 
 import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.socket.DatagramPacket
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 
 trait FlowStateOp
-case class PushState(msg: FlowStateSbe, encoder: SbeEncoder) extends FlowStateOp
+case class PushState(encoder: SbeEncoder) extends FlowStateOp
+case class UpdateOwnedPorts(portIds: Set[UUID]) extends FlowStateOp
 case class InvalidOp(e: Throwable) extends FlowStateOp
 
 /** Handler used to receive, parse and submit flow state messages from agents
@@ -50,8 +56,6 @@ case class InvalidOp(e: Throwable) extends FlowStateOp
 class FlowStateWriteHandler(config: FlowStateConfig,
                             session: Session)
     extends SimpleChannelInboundHandler[DatagramPacket] {
-
-    protected val portWriters = new ConcurrentHashMap[UUID, FlowStateWriter]()
 
     /**
       * Flow state storage provider for the calling thread. Necessary as
@@ -76,12 +80,20 @@ class FlowStateWriteHandler(config: FlowStateConfig,
         }
     }
 
+    @VisibleForTesting
+    protected[flowstate] val portWriters = new ConcurrentHashMap[UUID, FlowStateWriter]()
+
+    @volatile
+    protected[flowstate] var cachedOwnedPortIds: Set[UUID] = Set.empty[UUID]
+
     override def channelRead0(ctx: ChannelHandlerContext,
                               msg: DatagramPacket): Unit = {
         Log debug s"Datagram packet received: $msg"
         parseDatagram(msg) match {
-            case PushState(sbe, encoder) =>
-                 pushNewState(sbe, encoder)
+            case PushState(sbe) => // push state to storage
+                pushNewState(sbe)
+            case UpdateOwnedPorts(portIds) =>
+                cachedOwnedPortIds = portIds
             case InvalidOp(e) =>
                 Log warn s"Invalid flow state message, ignoring: $e"
         }
@@ -90,27 +102,55 @@ class FlowStateWriteHandler(config: FlowStateConfig,
     @VisibleForTesting
     protected[flowstate] def parseDatagram(msg: DatagramPacket): FlowStateOp = {
         try {
-            val bb = msg.content().nioBuffer(0, msg.content().capacity())
-            val encoder = new SbeEncoder()
-            val data = new Array[Byte](bb.remaining())
-            bb.get(data)
-            val flowStateMessage = encoder.decodeFrom(data)
-            Log debug s"Flow state message decoded: $flowStateMessage"
-            PushState(flowStateMessage, encoder)
+            val bb = msg.content().nioBuffer(0, FlowStateInternalMessageHeaderSize)
+            val messageType = bb.getInt
+            val messageSize = bb.getInt
+            val messageData = msg.content().nioBuffer(FlowStateInternalMessageHeaderSize, messageSize)
+            messageType match {
+                case FlowStateInternalMessageType.FlowStateMessage =>
+                    handleFlowStateMessage(messageData)
+                case FlowStateInternalMessageType.OwnedPortsUpdate =>
+                    handleUpdateOwnedPorts(messageData)
+            }
         } catch {
             case NonFatal(e) =>
                 InvalidOp(e)
         }
     }
 
+    private def handleFlowStateMessage(buffer: ByteBuffer): FlowStateOp = {
+        val encoder = new SbeEncoder()
+        val data = new Array[Byte](buffer.capacity())
+        buffer.get(data)
+        val flowStateMessage = encoder.decodeFrom(data)
+        Log debug s"Flow state message decoded: $flowStateMessage"
+        PushState(encoder)
+    }
+
+    private def handleUpdateOwnedPorts(buffer: ByteBuffer): FlowStateOp = {
+        var ownedPorts = Set.empty[UUID]
+        while (buffer.position < buffer.limit()) {
+            ownedPorts += new UUID(buffer.getLong, buffer.getLong)
+        }
+        UpdateOwnedPorts(ownedPorts)
+    }
+
     @VisibleForTesting
     protected[flowstate] def getLegacyStorage = storageProvider.get
 
-    /*
-     * TODO: When we finally remove Cassandra we can bypass conntrackKeys and
-     * natKeys, just like we are doing with traces
-     */
-    private def pushNewState(msg: FlowStateSbe, encoder: SbeEncoder): Unit = {
+    protected[flowstate] def getFlowStateWriter(portId: UUID) =
+        portWriters.synchronized {
+            if (portWriters.containsKey(portId)) {
+                portWriters.get(portId)
+            } else {
+                val writer = FlowStateWriter(config, portId)
+                portWriters.put(portId, writer)
+                writer
+            }
+    }
+
+    protected[flowstate] def pushNewState(encoder: SbeEncoder): Unit = {
+        val msg = encoder.flowStateMessage
         uuidFromSbe(msg.sender)
 
         val conntrackKeys = MutableList.empty[ConnTrackKeyStore]
@@ -141,39 +181,24 @@ class FlowStateWriteHandler(config: FlowStateConfig,
         val portsIter = msg.portIds
         if (portsIter.count == 1) {
             val (ingressPortId, egressPortIds) = portIdsFromSbe(portsIter.next)
-
-            if (config.localPushState) {
-                writeInLocalStorage(ingressPortId, encoder)
-            }
-
             if (config.legacyPushState) {
-                legacyPushNewState(ingressPortId, egressPortIds,
-                    conntrackKeys, natKeys)
+                writeInLegacyStorage(
+                    ingressPortId, egressPortIds, conntrackKeys, natKeys)
+            }
+            if (config.localPushState) {
+                writeInLocalStorage(ingressPortId, egressPortIds, encoder)
             }
         } else {
             Log.warn(s"Unexpected number (${portsIter.count}) of ingress/egress " +
-                     s"port id groups in the flow state message.")
+                     s"port id groups in the flow state message. Ignoring.")
         }
     }
 
-    @VisibleForTesting
-    protected def writeInLocalStorage(portId: UUID, encoder: SbeEncoder): Unit =
-        getFlowStateWriter(portId).write(encoder)
+    protected[flowstate] def writeInLegacyStorage(ingressPortId: UUID,
+        egressPortIds: util.ArrayList[UUID],
+        conntrackKeys: mutable.MutableList[ConnTrackKeyStore],
+        natKeys: mutable.MutableList[(NatKeyStore, NatBinding)]) = {
 
-    private def getFlowStateWriter(portId: UUID) = portWriters.synchronized {
-        if (portWriters.containsKey(portId)) {
-            portWriters.get(portId)
-        } else {
-            val writer = FlowStateWriter(config, portId)
-            portWriters.put(portId, writer)
-            writer
-        }
-    }
-
-    private def legacyPushNewState(ingressPortId: UUID,
-                                   egressPortIds: JList[UUID],
-                                   conntrackKeys: MutableList[ConnTrackKeyStore],
-                                   natKeys: MutableList[(NatKeyStore, NatBinding)]) {
         val legacyStorage = getLegacyStorage
 
         for (k <- conntrackKeys) {
@@ -186,4 +211,27 @@ class FlowStateWriteHandler(config: FlowStateConfig,
 
         legacyStorage.submit()
     }
+
+    protected[flowstate] def writeInLocalStorage(ingressPortId: UUID,
+                                                 egressPortIds: util.ArrayList[UUID],
+                                                 encoder: SbeEncoder): Unit = {
+        val matchingPorts = mutable.Set.empty[UUID]
+        if (cachedOwnedPortIds.contains(ingressPortId)) {
+            matchingPorts += ingressPortId
+        }
+        for (egressPortId <- egressPortIds) {
+            if (cachedOwnedPortIds.contains(egressPortId)) {
+                matchingPorts += ingressPortId
+            }
+        }
+
+        for (portId <- matchingPorts) {
+            val writer = getFlowStateWriter(portId)
+            writer.synchronized {
+                writer.write(encoder)
+            }
+        }
+    }
+
+
 }
