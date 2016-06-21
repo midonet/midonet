@@ -22,6 +22,30 @@
       "revId": "0f0a9410dcdea36c0ee23965aef8647f8f537508",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7795a43e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-21T16:16:02Z",
+      "side": 1,
+      "message": "But it\u0027s not on every update: just the first update. The metric is the latency of loading a device from storage.",
+      "parentUuid": "baa041b7_77e7e412",
+      "range": {
+        "startLine": 208,
+        "startChar": 12,
+        "endLine": 209,
+        "endChar": 67
+      },
+      "revId": "0f0a9410dcdea36c0ee23965aef8647f8f537508",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
