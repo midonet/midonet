@@ -17,6 +17,7 @@
 package org.midonet.midolman.state
 
 import java.net.{DatagramPacket, DatagramSocket, InetAddress}
+import java.nio.ByteBuffer
 import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JIterator, Set => JSet, UUID}
 
 import com.typesafe.scalalogging.Logger
@@ -36,9 +37,10 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.packets.NatState.NatBinding
-import org.midonet.packets.{Ethernet, SbeEncoder}
+import org.midonet.packets.{FlowStateEthernet, Ethernet, SbeEncoder}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
+import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType}
 import org.midonet.util.collection.Reducer
 import org.midonet.util.functors.Callback0
 
@@ -98,16 +100,17 @@ class FlowStateReplicator(
         flowInvalidation: FlowTagIndexer,
         config: MidolmanConfig) {
     import FlowStateAgentPackets._
-
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     private val flowStateEncoder = new SbeEncoder
 
     /* Used for sending flow state messages to minion */
-    private val flowStateSocket = new DatagramSocket()
+    protected[state] val flowStateSocket = new DatagramSocket()
     private val flowStatePacket =
         new DatagramPacket(Array.emptyByteArray, 0,
                            InetAddress.getLoopbackAddress, config.flowState.port)
+    private val flowStateBuffer =
+        ByteBuffer.allocate(FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
 
     /* Used for message building */
     private[this] var txIngressPort: UUID = _
@@ -268,12 +271,26 @@ class FlowStateReplicator(
     }
 
     def touchState(context: PacketContext): Unit = {
-        log.debug("Sending flow state message to cluster.")
-        flowStatePacket.setData(context.stateMessage, 0, context.stateMessageLength)
+        sendState(context.stateMessage, context.stateMessageLength)
+    }
+
+
+    private def sendState(msg: Array[Byte], length: Int): Unit = {
+        flowStateBuffer.clear()
+        flowStateBuffer.putInt(FlowStateInternalMessageType.FlowStateMessage)
+        flowStateBuffer.putInt(length)
+        flowStateBuffer.put(msg, 0, length)
+        flowStatePacket.setData(flowStateBuffer.array,
+                                0,
+                                length + FlowStateInternalMessageHeaderSize)
         flowStateSocket.send(flowStatePacket)
     }
 
-    private def acceptNewState(msg: FlowStateSbe) {
+    private def acceptNewState(encoder: SbeEncoder) {
+        val msg = encoder.flowStateMessage
+        val sender = uuidFromSbe(msg.sender)
+        log.debug("Got state replication message from: {}", sender)
+
         val conntrackIter = msg.conntrack
         while (conntrackIter.hasNext()) {
             val k = connTrackKeyFromSbe(conntrackIter.next(), ConnTrackKey)
@@ -306,6 +323,8 @@ class FlowStateReplicator(
             log.debug("Got new trace state: {} -> {}", k, ctx)
             traceTable.touch(k, ctx)
         }
+
+        sendState(encoder.flowStateBuffer.array, encoder.encodedLength())
     }
 
     /**
@@ -327,10 +346,7 @@ class FlowStateReplicator(
         } else {
             try {
                 val flowStateMessage = flowStateEncoder.decodeFrom(data.getData)
-                val sender = uuidFromSbe(flowStateMessage.sender)
-
-                log.debug("Got state replication message from: {}", sender)
-                acceptNewState(flowStateMessage)
+                acceptNewState(flowStateEncoder)
             } catch {
                 case e: IllegalArgumentException =>
                     log.error("Error decoding flow state", e)

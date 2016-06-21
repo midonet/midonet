@@ -23,6 +23,9 @@ import java.util.concurrent.{ExecutorService, TimeUnit}
 import scala.concurrent.Future
 
 import com.datastax.driver.core.Session
+import scala.collection.JavaConverters._
+
+import com.typesafe.config.ConfigFactory
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito.{atLeastOnce, mock, times, verify, when => mockWhen}
@@ -444,5 +447,96 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
     }
 
+    feature("Local storage message handling and configuration") {
+        scenario("Flow state not sent to cassandra when legacy storage disabled") {
+            Given("A storage handler with legacy writes disabled")
+            val flowStateConfig = ConfigFactory.parseString(
+            s"""
+               |agent.minions.flow_state.legacy_push_state : false
+               |agent.minions.flow_state.legacy_read_state : false
+               |agent.minions.flow_state.local_push_state : true
+               |agent.minions.flow_state.local_read_state : true
+               |""".stripMargin)
+            midolmanConfig = MidolmanConfig.forTests(flowStateConfig)
+            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val (datagram, protos, _) = validFlowStateInternalMessage(
+                numConntracks = 1,
+                numNats = 2,
+                numIngressPorts = 1,
+                numEgressPorts = 3)
+
+            When("The message is handled")
+            handler.channelRead0(null, datagram)
+
+            Then("The handler does not send state to cassandra")
+            val mockedStorage = handler.getLegacyStorage
+            verify(mockedStorage, times(0)).touchConnTrackKey(mockito.any(),
+                                                              mockito.any(),
+                                                              mockito.any())
+            verify(mockedStorage, times(0)).touchNatKey(mockito.any(),
+                                                        mockito.any(),
+                                                        mockito.any(),
+                                                        mockito.any())
+            verify(mockedStorage, times(0)).submit()
+
+        }
+
+        scenario("Flow state not sent to local storage by default") {
+            Given("A storage handler with default configuration")
+            midolmanConfig = MidolmanConfig.forTests(ConfigFactory.empty())
+            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val (datagram, protos, _) = validFlowStateInternalMessage(
+                numConntracks = 1,
+                numNats = 2,
+                numIngressPorts = 1,
+                numEgressPorts = 3)
+
+            When("The message is handled")
+            handler.channelRead0(null, datagram)
+
+            Then("The handler does not write the message to the local storage")
+            handler.getWrites shouldBe 0
+        }
+
+        scenario("Flow state sent to local storage when local storage enabled") {
+            val flowStateConfig = ConfigFactory.parseString(
+            s"""
+               |agent.minions.flow_state.log_directory: ${tmpDir.getName}
+               |agent.minions.flow_state.local_push_state : true
+               |""".stripMargin)
+            midolmanConfig = MidolmanConfig.forTests(flowStateConfig)
+            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val (datagram, protos, _) = validFlowStateInternalMessage(
+                numConntracks = 1,
+                numNats = 2,
+                numIngressPorts = 1,
+                numEgressPorts = 3)
+
+            When("The message is handled")
+            handler.channelRead0(null, datagram)
+
+            Then("The handler does not write to local storage (no owned ports)")
+            handler.getWrites shouldBe 1
+            handler.portWriters.keySet() should have size 0
+
+            And("Updating the owned ports")
+            val portsSet = Set(protos.ingressPort)
+            val ownedMsg = validOwnedPortsMessage(portsSet)
+
+            When("The message is handled and the owned ports updated")
+            handler.channelRead0(null, ownedMsg)
+            handler.cachedOwnedPortIds shouldBe portsSet
+
+            And("Sending the flow state message again")
+            handler.channelRead0(null, datagram)
+
+            Then("The handler writes to local storage (1 owned port)")
+            handler.getWrites shouldBe 2
+            handler.portWriters.keySet() should have size 1
+            handler.portWriters.keySet().asScala shouldBe portsSet
+            val mockedWriter = handler.portWriters.get(protos.ingressPort)
+            verify(mockedWriter, times(1)).write(mockito.any())
+        }
+    }
 }
 
