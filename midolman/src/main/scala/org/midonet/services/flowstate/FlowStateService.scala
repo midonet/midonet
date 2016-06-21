@@ -38,6 +38,7 @@ import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.services.FlowStateLog
 import org.midonet.services.flowstate.FlowStateService._
+import org.midonet.services.flowstate.handlers.{FlowStateWriteHandler, FlowStateReadHandler}
 import org.midonet.util.netty.ServerFrontEnd
 
 object FlowStateService {
@@ -65,28 +66,41 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
 
     private implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
 
-    private var frontend: ServerFrontEnd = _
+    private var tcpFrontend: ServerFrontEnd = _
+    private var udpFrontend: ServerFrontEnd = _
+
+    private val legacyPushState = config.flowState.legacyPushState
+
+    private var cassandraSession: Session = _
 
     @VisibleForTesting
-    protected var cassandraSession: Session = _
-
+    protected var readMessageHandler: FlowStateReadHandler = _
     @VisibleForTesting
-    protected var messageHandler: FlowStateMessageHandler = _
+    protected var writeMessageHandler: FlowStateWriteHandler = _
 
     @VisibleForTesting
     protected val port = config.flowState.port
 
     @VisibleForTesting
-    /** Initialize the UDP server frontend. Cassandra session MUST be
-      * previsouly initialized. */
-    private[flowstate] def startServerFrontEnd() = {
-        messageHandler = new FlowStateMessageHandler(cassandraSession)
-        frontend = ServerFrontEnd.udp(messageHandler, port)
+    /** Initialize the UDP and TCP server frontends. Cassandra session MUST be
+      * previously initialized. */
+    private[flowstate] def startServerFrontEnds() = {
+        writeMessageHandler = new FlowStateWriteHandler(config.flowState,
+            cassandraSession)
+        udpFrontend = ServerFrontEnd.udp(writeMessageHandler, port)
+
+        readMessageHandler = new FlowStateReadHandler(config.flowState)
+        tcpFrontend = ServerFrontEnd.tcp(readMessageHandler, port)
+
         try {
-            frontend.startAsync().awaitRunning(FrontEndTimeout, FrontEndTimeoutUnit)
+            udpFrontend.startAsync()
+            tcpFrontend.startAsync()
+
+            udpFrontend.awaitRunning(FrontEndTimeout, FrontEndTimeoutUnit)
+            tcpFrontend.awaitRunning(FrontEndTimeout, FrontEndTimeoutUnit)
         } catch {
             case NonFatal(e) =>
-                cassandraSession.close()
+                if (cassandraSession ne null) cassandraSession.close()
                 notifyFailed(e)
         }
     }
@@ -94,36 +108,49 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
     protected override def doStart(): Unit = {
         Log info "Starting flow state service"
 
-        val client = new CassandraClient(
-            config.zookeeper,
-            config.cassandra,
-            FlowStateStorage.KEYSPACE_NAME,
-            FlowStateStorage.SCHEMA,
-            FlowStateStorage.SCHEMA_TABLE_NAMES)
+        if (legacyPushState) {
+            val client = new CassandraClient(
+                config.zookeeper,
+                config.cassandra,
+                FlowStateStorage.KEYSPACE_NAME,
+                FlowStateStorage.SCHEMA,
+                FlowStateStorage.SCHEMA_TABLE_NAMES)
 
-        client.connect() onComplete {
-            case Success(session) =>
-                this.synchronized {
-                    cassandraSession = session
-
-                    startServerFrontEnd()
-
-                    Log info "Flow state service registered and listening " +
-                             s"on 0.0.0.0:$port"
-                    notifyStarted()
-                }
-            case Failure(e) =>
-                notifyFailed(e)
+            client.connect() onComplete {
+                case Success(session) =>
+                    this.synchronized {
+                        cassandraSession = session
+                        startAndNotify()
+                    }
+                case Failure(e) =>
+                    notifyFailed(e)
+            }
+        } else {
+            this.synchronized {
+                startAndNotify()
+            }
         }
     }
 
     protected override def doStop(): Unit = {
         this.synchronized {
             Log info "Stopping flow state service"
-            frontend.stopAsync().awaitTerminated(FrontEndTimeout, FrontEndTimeoutUnit)
-            cassandraSession.close()
+            tcpFrontend.stopAsync()
+            udpFrontend.stopAsync()
+
+            tcpFrontend.awaitTerminated(FrontEndTimeout, FrontEndTimeoutUnit)
+            udpFrontend.awaitTerminated(FrontEndTimeout, FrontEndTimeoutUnit)
+
+            if (cassandraSession ne null) cassandraSession.close()
             notifyStopped()
         }
+    }
+
+    private def startAndNotify(): Unit = {
+        startServerFrontEnds()
+        Log info "Flow state service registered and listening" +
+            s"for TCP and UDP connections on 0.0.0.0:$port"
+        notifyStarted()
     }
 }
 
