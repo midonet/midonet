@@ -246,7 +246,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     case class VportBindingAdded(port: String, uuid: UUID, internal: Boolean = false) extends DatapathOperation {
 
         override def act(): Unit = {
-            entangler.updateVportInterfaceBindings(Map(uuid -> PortBinding(uuid, 1L, port)))
+            entangler.updateVportInterfaceBindings(Map(uuid -> PortBinding(uuid, null, 1L, port)))
         }
 
         override def validate(prevInterfaceToTriad: Map[String, DpTriad]): Unit = {
@@ -446,7 +446,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         }
 
         val id = UUID.randomUUID()
-        val binding = new PortBinding(id, 1, "eth1")
+        val binding = new PortBinding(id, null, 1, "eth1")
         val desc = new InterfaceDescription("eth1")
         desc.setUp(true)
         entangler.updateVportInterfaceBindings(Map(id -> binding))

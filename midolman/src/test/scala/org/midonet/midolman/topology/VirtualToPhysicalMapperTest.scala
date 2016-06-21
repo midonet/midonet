@@ -121,7 +121,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec with TopologyBuilder
             obs.getOnNextEvents should have size 2
             obs.getOnNextEvents.get(1) shouldBeDeviceOf host.addPortId(port1.getId)
             obs.getOnNextEvents.get(1).portBindings shouldBe Map(
-                port1.getId.asJava -> "eth0")
+                port1.getId.asJava -> ("eth0", null))
 
             When("Adding a second port binding to this host")
             val port2 = createBridgePort(bridgeId = Some(bridge.getId),
@@ -134,7 +134,8 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec with TopologyBuilder
             obs.getOnNextEvents.get(2) shouldBeDeviceOf host.addPortId(port1.getId)
                                                             .addPortId(port2.getId)
             obs.getOnNextEvents.get(2).portBindings shouldBe Map(
-                port1.getId.asJava -> "eth0", port2.getId.asJava -> "eth1")
+                port1.getId.asJava -> ("eth0", null),
+                port2.getId.asJava -> ("eth1", null))
 
             When("Deleting the first port binding")
             store.delete(classOf[Topology.Port], port1.getId)
@@ -143,7 +144,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec with TopologyBuilder
             obs.getOnNextEvents should have size 4
             obs.getOnNextEvents.get(3) shouldBeDeviceOf host.addPortId(port2.getId)
             obs.getOnNextEvents.get(3).portBindings shouldBe Map(
-                port2.getId.asJava -> "eth1")
+                port2.getId.asJava -> ("eth1", null))
 
             When("Deleting the second port binding")
             store.delete(classOf[Topology.Port], port2.getId)

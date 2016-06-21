@@ -21,7 +21,8 @@ import scala.collection.immutable
 
 import org.midonet.packets.IPAddr
 
-case class PortBinding(portId: UUID, tunnelKey: Long, iface: String)
+case class PortBinding(portId: UUID, previousHostId: UUID,
+                       tunnelKey: Long, iface: String)
 
 case class ResolvedHost(id: UUID, alive: Boolean,
                         ports: immutable.Map[UUID, PortBinding],
