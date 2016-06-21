@@ -16,16 +16,15 @@
 
 package org.midonet.util.concurrent
 
-import java.util.concurrent.{ConcurrentLinkedQueue, ConcurrentHashMap}
+import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue}
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.annotation.tailrec
 import scala.concurrent.duration.Duration
 
-import com.typesafe.scalalogging.Logger
-
 import org.midonet.util.PaddedAtomicInteger
 import org.midonet.util.collection.Reducer
+import org.midonet.util.logging.Logger
 
 /**
  * A concurrent map where each entry has an associated reference counter, with
@@ -82,7 +81,7 @@ import org.midonet.util.collection.Reducer
  *            guaranteeing the happens-before relationship described above.
  */
 final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
-                                             expirationFor: K => Duration) {
+                                                       expirationFor: K => Duration) {
 
     case class Metadata(var value: V, refCount: AtomicInteger, var expiration: Long)
 

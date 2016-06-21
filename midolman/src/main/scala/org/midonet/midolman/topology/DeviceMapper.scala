@@ -24,7 +24,6 @@ import scala.reflect.ClassTag
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.Message
-import com.typesafe.scalalogging.Logger
 
 import rx.Observable.OnSubscribe
 import rx.observers.Subscribers
@@ -39,6 +38,7 @@ import org.midonet.midolman.monitoring.metrics.{BlackHoleDeviceMapperMetrics, Jm
 import org.midonet.midolman.topology.DeviceMapper._
 import org.midonet.midolman.topology.VirtualTopology.{Device, Key}
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logger
 
 object DeviceMapper {
 

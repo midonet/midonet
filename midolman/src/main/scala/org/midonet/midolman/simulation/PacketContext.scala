@@ -18,19 +18,18 @@ package org.midonet.midolman.simulation
 
 import java.lang.{Integer => JInteger}
 import java.util
-import java.util.{Arrays, ArrayList, UUID}
+import java.util.{ArrayList, Arrays, UUID}
 import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.collection.JavaConversions._
 
-import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
 import org.midonet.midolman.flows.ManagedFlow
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.PacketWorkflow.{GeneratedPhysicalPacket, GeneratedLogicalPacket}
-import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets, ArpRequestBroker}
+import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, GeneratedPhysicalPacket}
+import org.midonet.midolman.state.{ArpRequestBroker, FlowStateAgentPackets => FlowStatePackets}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
@@ -42,6 +41,7 @@ import org.midonet.sdn.flows.VirtualActions.{Decap, Encap}
 import org.midonet.util.Clearable
 import org.midonet.util.collection.ArrayListUtil
 import org.midonet.util.functors.Callback0
+import org.midonet.util.logging.Logger
 
 object PacketContext {
     val defaultLog =

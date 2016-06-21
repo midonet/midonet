@@ -141,9 +141,9 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private val containerObservable = Observable.create(containerMapper)
 
     private val provider =
-        new ContainerHandlerProvider(reflections, vt, ioExecutor, log)
+        new ContainerHandlerProvider(reflections, vt, ioExecutor, log.wrapper)
 
-    private val logger = new ContainerLogger(vt.config.containers, log)
+    private val logger = new ContainerLogger(vt.config.containers, log.wrapper)
 
     // The instances map is concurrent because reads may be performed from the
     // containers threads, while writes are always from the service thread.

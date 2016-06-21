@@ -17,17 +17,15 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean}
-import java.util.{ArrayList => JArrayList, UUID}
+import java.util.{UUID, ArrayList => JArrayList}
 
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-import com.typesafe.scalalogging.Logger
-
 import rx.Observable
-import rx.subjects.{PublishSubject,Subject}
+import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute, Router => TopologyRouter}
@@ -35,14 +33,15 @@ import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
-import org.midonet.midolman.simulation.{Router => SimulationRouter, Mirror, RouterPort, Chain, LoadBalancer}
-import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
+import org.midonet.midolman.simulation.{Chain, LoadBalancer, Mirror, RouterPort, Router => SimulationRouter}
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterMapper._
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.collection.IPv4InvalidationArray
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logger
 
 object RouterMapper {
 
