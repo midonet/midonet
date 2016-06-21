@@ -27,7 +27,6 @@ import scala.concurrent.{Future, Promise}
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.MoreObjects
-import com.typesafe.scalalogging.Logger
 
 import rx.Observable.OnSubscribe
 import rx.subjects.PublishSubject
@@ -43,6 +42,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.ContainerMapper.{BindingState, Notification}
 import org.midonet.midolman.topology.DeviceMapper.MapperState
 import org.midonet.util.functors.{makeAction0, makeFunc1}
+import org.midonet.util.logging.Logger
 
 object ContainerMapper {
 

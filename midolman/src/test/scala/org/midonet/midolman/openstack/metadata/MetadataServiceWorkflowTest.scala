@@ -17,13 +17,11 @@
 package org.midonet.midolman.openstack.metadata
 
 import akka.actor.ActorSystem
-
 import java.util.UUID
 
 import org.junit.runner.RunWith
 import org.mockito.Matchers.any
 import org.mockito.Matchers.{eq => mockEq}
-import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfter
@@ -31,8 +29,6 @@ import org.scalatest.FeatureSpecLike
 import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
-
-import com.typesafe.scalalogging.Logger
 import org.slf4j.helpers.NOPLogger
 
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
@@ -49,6 +45,7 @@ import org.midonet.packets.IPv4Addr
 import org.midonet.packets.MAC
 import org.midonet.packets.TCP
 import org.midonet.packets.UDP
+import org.midonet.util.logging.Logger
 
 
 @RunWith(classOf[JUnitRunner])

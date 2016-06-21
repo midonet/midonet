@@ -27,8 +27,6 @@ import scala.util.Failure
 
 import akka.actor._
 
-import com.typesafe.scalalogging.Logger
-
 import org.slf4j.{LoggerFactory, MDC}
 
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -43,7 +41,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.{Port, _}
-import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatKey, releaseBinding}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -60,6 +58,7 @@ import org.midonet.sdn.flows.FlowTagger._
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.{IPv4InvalidationArray, Reducer}
 import org.midonet.util.concurrent._
+import org.midonet.util.logging.Logger
 
 object PacketWorkflow {
     case class HandlePackets(packet: Array[Packet])
