@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f18e6426",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-06-21T11:31:15Z",
+      "side": 1,
+      "message": "\u0027firewall\u0027 and \u0027logging_resource\u0027 missing",
+      "revId": "8425606be448d9681b33d0e070541d4a498f40f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
