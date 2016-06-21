@@ -15,12 +15,15 @@
  */
 package org.midonet.services.flowstate.handlers
 
+import java.util
 import java.util.UUID
 
 import org.midonet.cluster.storage.FlowStateStorageWriter
 import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.packets.SbeEncoder
 import org.mockito.Mockito._
+
+import org.midonet.services.flowstate.stream.FlowStateWriter
 
 class TestableWriteHandler (config: FlowStateConfig)
     extends FlowStateWriteHandler(config, null) {
@@ -37,8 +40,22 @@ class TestableWriteHandler (config: FlowStateConfig)
         legacyStorage
     }
 
-    override def writeInLocalStorage(portId: UUID, encoder: SbeEncoder): Unit = {
-        super.writeInLocalStorage(portId, encoder)
+    override def getFlowStateWriter(portId: UUID): FlowStateWriter =
+        portWriters.synchronized {
+            if (portWriters.containsKey(portId)) {
+                portWriters.get(portId)
+            } else {
+                val writer = mock(classOf[FlowStateWriter])
+                portWriters.put(portId, writer)
+                writer
+            }
+        }
+
+
+    override def writeInLocalStorage(ingressPortId: UUID,
+                                     egressPortIds: util.ArrayList[UUID],
+                                     encoder: SbeEncoder): Unit = {
+        super.writeInLocalStorage(ingressPortId, egressPortIds, encoder)
         writes += 1
     }
 
