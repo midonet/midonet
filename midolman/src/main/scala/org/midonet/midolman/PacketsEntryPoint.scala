@@ -21,8 +21,9 @@ import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorRef, Props, _}
 import akka.event.LoggingReceive
+
 import com.google.inject.Inject
-import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -37,12 +38,13 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
-import org.midonet.midolman.state.{PeerResolver, FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
+import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser, PeerResolver}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
+import org.midonet.util.logging.Logger
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
