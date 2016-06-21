@@ -20,10 +20,9 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 
 import com.google.common.annotations.VisibleForTesting
-import com.typesafe.scalalogging.Logger
 
 import rx.Observable.OnSubscribe
-import rx.{Observable, Subscription, Subscriber}
+import rx.{Observable, Subscriber, Subscription}
 import rx.subjects.{BehaviorSubject, PublishSubject}
 import rx.subscriptions.Subscriptions
 
@@ -35,6 +34,7 @@ import org.midonet.midolman.topology.devices._
 import org.midonet.packets.IPv4Addr
 import org.midonet.quagga.BgpdConfiguration.{BgpRouter => BgpConfig}
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logger
 
 object BgpPortMapper {
 

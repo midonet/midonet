@@ -19,7 +19,6 @@ package org.midonet.midolman.state
 import java.util.UUID
 
 import org.midonet.midolman.state.NatBlockAllocator.NoFreeNatBlocksException
-
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -27,7 +26,6 @@ import scala.concurrent.duration._
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
-import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 
 import org.midonet.midolman.NotYetException
@@ -35,6 +33,7 @@ import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.NatLeaser.{NoNatBindingException, blockOf}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.MockClock
+import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
 class NatLeaserTest extends FeatureSpec

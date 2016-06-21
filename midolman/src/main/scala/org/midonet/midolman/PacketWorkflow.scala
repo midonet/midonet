@@ -26,8 +26,6 @@ import scala.util.{Failure, Success}
 
 import akka.actor._
 
-import com.typesafe.scalalogging.Logger
-
 import org.jctools.queues.MpscArrayQueue
 import org.slf4j.{LoggerFactory, MDC}
 
@@ -59,6 +57,7 @@ import org.midonet.sdn.flows.FlowTagger._
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.{IPv4InvalidationArray, Reducer}
 import org.midonet.util.concurrent._
+import org.midonet.util.logging.Logger
 
 object PacketWorkflow {
     case class HandlePackets(packet: Array[Packet])

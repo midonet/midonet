@@ -16,18 +16,18 @@
 
 package org.midonet.util.concurrent
 
-import java.util.concurrent.{ThreadLocalRandom, CountDownLatch}
+import java.util.concurrent.{CountDownLatch, ThreadLocalRandom}
 
 import scala.concurrent.duration._
 
-import com.typesafe.scalalogging.Logger
 import org.slf4j.helpers.NOPLogger
 
 import org.junit.runner.RunWith
-import org.scalatest.{OneInstancePerTest, Matchers, FeatureSpec}
+import org.scalatest.{FeatureSpec, Matchers, OneInstancePerTest}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.util.collection.Reducer
+import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
 class TimedExpirationMapTest extends FeatureSpec

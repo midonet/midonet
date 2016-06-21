@@ -23,23 +23,23 @@ import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 import com.google.common.annotations.VisibleForTesting
-import com.typesafe.scalalogging.Logger
 
 import rx.subscriptions.Subscriptions
-import rx.{Subscriber, Subscription, Observable}
+import rx.{Observable, Subscriber, Subscription}
 import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
-import org.midonet.cluster.models.Topology.{Router, BgpPeer, BgpNetwork}
+import org.midonet.cluster.models.Topology.{BgpNetwork, BgpPeer, Router}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.topology.BgpRouterMapper.{PeerState, NetworkState}
+import org.midonet.midolman.topology.BgpRouterMapper.{NetworkState, PeerState}
 import org.midonet.midolman.topology.DeviceMapper.MapperState
 import org.midonet.midolman.topology.devices.{BgpNeighbor, BgpRouter}
 import org.midonet.packets.IPv4Addr
 import org.midonet.quagga.BgpdConfiguration.{Neighbor, Network}
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logger
 
 object BgpRouterMapper {
 

@@ -22,12 +22,9 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import com.typesafe.scalalogging.Logger$;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.helpers.NOPLogger;
 
@@ -50,6 +47,7 @@ import org.midonet.sdn.state.FlowStateTable;
 import org.midonet.sdn.state.FlowStateTransaction;
 import org.midonet.sdn.state.ShardedFlowStateTable;
 import org.midonet.util.Range;
+import org.midonet.util.logging.Logger$;
 
 public class TestRules {
 

@@ -24,10 +24,10 @@ import scala.concurrent.duration.FiniteDuration;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.helpers.NOPLogger;
-import com.typesafe.scalalogging.Logger$;
 
 import org.midonet.util.collection.Reducer;
 import org.midonet.util.concurrent.MockClock;
+import org.midonet.util.logging.Logger$;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;

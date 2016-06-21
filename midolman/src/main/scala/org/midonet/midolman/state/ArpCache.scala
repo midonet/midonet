@@ -20,16 +20,15 @@ import java.util.UUID
 
 import javax.annotation.concurrent.ThreadSafe
 
-import com.typesafe.scalalogging.Logger
-
 import rx.subjects.PublishSubject
-import rx.{Subscriber, Observable}
+import rx.{Observable, Subscriber}
 import rx.Observable.OnSubscribe
 
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.packets.{MAC, IPv4Addr}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.makeRunnable
+import org.midonet.util.logging.Logger
 
 /** An ARP cache update. */
 case class ArpCacheUpdate(ipAddr: IPv4Addr, oldMac: MAC, newMac: MAC)

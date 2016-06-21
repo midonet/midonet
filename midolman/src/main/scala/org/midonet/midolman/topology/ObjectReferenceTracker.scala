@@ -22,13 +22,12 @@ import javax.annotation.concurrent.NotThreadSafe
 
 import scala.collection.mutable
 
-import com.typesafe.scalalogging.Logger
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.util.functors.makeAction1
+import org.midonet.util.logging.Logger
 
 /**
  * Stores the state for an object, and exposes an [[Observable]] that emits

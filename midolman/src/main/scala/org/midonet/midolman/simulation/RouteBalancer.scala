@@ -18,12 +18,11 @@ package org.midonet.midolman.simulation
 
 import java.util.concurrent.atomic.AtomicLong
 
-import com.typesafe.scalalogging.Logger
-
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.simulation.Router.RoutingTable
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.IPAddr
+import org.midonet.util.logging.Logger
 
 /**
  * Handles lookups on the routing table. If multiple routes match, chooses

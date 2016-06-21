@@ -22,7 +22,6 @@ import javax.annotation.Nullable
 import scala.collection.mutable
 
 import com.google.protobuf.Message
-import com.typesafe.scalalogging.Logger
 
 import rx.Observable.OnSubscribe
 import rx.observers.Subscribers
@@ -36,6 +35,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.DeviceMapper._
 import org.midonet.midolman.topology.VirtualTopology.{Device, Key}
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logger
 
 object DeviceMapper {
 

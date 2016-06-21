@@ -20,10 +20,10 @@ import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
 import org.slf4j.LoggerFactory
-import com.typesafe.scalalogging.Logger
 
 import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
+import org.midonet.util.logging.Logger
 
 object ShardedFlowStateTable {
     def create[K <: IdleExpiration, V >: Null](): ShardedFlowStateTable[K, V] =

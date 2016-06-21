@@ -17,7 +17,7 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean}
-import java.util.{ArrayList => JArrayList, UUID}
+import java.util.{UUID, ArrayList => JArrayList}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -25,10 +25,8 @@ import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 
-import com.typesafe.scalalogging.Logger
-
 import rx.Observable
-import rx.subjects.{PublishSubject,Subject}
+import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute, Router => TopologyRouter}
@@ -44,6 +42,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.collection.IPv4InvalidationArray
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logger
 
 object RouterMapper {
 
