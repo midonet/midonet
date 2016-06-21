@@ -236,7 +236,6 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
 
     override def addPeerBgpIpOpts(as: Int, peer: IPAddr): Unit = {
         exec(SetAs(as){ List(
-            s"neighbor $peer next-hop-self",
             s"neighbor $peer ebgp-multihop")
         })
     }

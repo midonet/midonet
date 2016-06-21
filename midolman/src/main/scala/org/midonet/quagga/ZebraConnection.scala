@@ -180,6 +180,17 @@ class ZebraConnection(val dispatcher: ActorRef,
         log.debug("ZebraRouterIdUpdate: %s".format(ia.getHostAddress))
     }
 
+    def nextHopLookup(): Unit = {
+        val addr = in.readInt
+        log.info(s"ZebraIpv4NextHopLookup for addr ${IPv4Addr.fromInt(addr)}")
+        sendHeader(out, ZebraIpv4NextHopLookup, ZebraIpv4NextHopLookupSize)
+        out.writeInt(addr) // next hop addr
+        out.writeInt(1) // metric (unused)
+        out.writeByte(1) // number of next hops
+        out.writeByte(ZebraNextHopIpv4) // next hop type
+        out.writeInt(addr) // gw addr
+    }
+
     private def readPrefix(): IPv4Subnet = {
         val prefixLen = in.readByte
         log.trace(s"prefixLen: $prefixLen")
@@ -268,6 +279,7 @@ class ZebraConnection(val dispatcher: ActorRef,
             case ZebraIpv4RouteAdd => ipv4RouteAdd()
             case ZebraIpv4RouteDelete => ipv4RouteDelete()
             case ZebraRouterIdAdd => routerIdUpdate()
+            case ZebraIpv4NextHopLookup => nextHopLookup()
             case ZebraHello => hello()
 
             case _ => unsupported()

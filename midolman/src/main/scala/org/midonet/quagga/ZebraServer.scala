@@ -45,8 +45,6 @@ import org.midonet.util.eventloop.{SelectListener, SelectLoop}
 sealed trait ZebraServerMessage
 case class SpawnConnection(channel: ByteChannel) extends ZebraServerMessage
 case class ConnectionClosed(reqId: Int) extends ZebraServerMessage
-case object ZebraStart extends ZebraServerMessage
-case object ZebraStop extends ZebraServerMessage
 
 object ZebraServer {
     def apply(address: AfUnix.Address, handler: ZebraProtocolHandler,
@@ -150,10 +148,6 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
             zebraConnections -= sender
             zebraConnMap -= sender
             context.system.stop(sender)
-
-        // restart the zebra server without restarting the actor
-        case ZebraStart => preStart()
-        case ZebraStop => postStop()
 
         case m: AnyRef => log.error("Unknown message received - {}", m)
     }
