@@ -19,6 +19,7 @@ package org.midonet.util.io.stream
 import java.io.InputStream
 import java.nio.ByteBuffer
 
+import org.midonet.util.Clearable
 import org.midonet.util.collection.RingBuffer
 
 /**
@@ -35,7 +36,7 @@ import org.midonet.util.collection.RingBuffer
   */
 class ByteBufferBlockReader[H <: BlockHeader]
     (val blockBuilder: BlockHeaderBuilder[H],
-     val buffers: RingBuffer[ByteBuffer]) extends InputStream {
+     val buffers: RingBuffer[ByteBuffer]) extends InputStream with Clearable {
 
     private var blockIter: Iterator[ByteBuffer] = _
     private var block: ByteBuffer = _
@@ -98,6 +99,12 @@ class ByteBufferBlockReader[H <: BlockHeader]
     override def reset(): Unit = {
         blockIter = buffers.iterator
         nextBlock()
+    }
+
+    override def clear(): Unit = {
+        while (!buffers.isEmpty) {
+            buffers.take()
+        }
     }
 
     @inline private def eob = {

@@ -19,6 +19,8 @@ package org.midonet.util.io.stream
 import java.io.IOException
 import java.nio.ByteBuffer
 
+import com.google.common.annotations.VisibleForTesting
+
 import org.midonet.util.collection.RingBufferWithFactory
 
 /**
@@ -86,6 +88,16 @@ class ByteBufferBlockWriter[H <: TimedBlockHeader]
         }
     }
 
+    /**
+      * Removes from the ring buffer the reference to the byte buffer so it's
+      * garbage collected accordingly.
+      */
+    def clear(): Unit = {
+        while (!buffers.isEmpty) {
+            buffers.take()
+        }
+    }
+
     /** Allocates a new block from buffer pool and updates the output stream. */
     private def allocateNewBlock(): ByteBuffer = {
         if (buffers.isFull) {
@@ -106,7 +118,8 @@ class ByteBufferBlockWriter[H <: TimedBlockHeader]
       *
       * @return The amount of bytes that can be written to this buffer
       */
-    private def checkRemainingBuffer(): (Int, ByteBuffer) = {
+    @VisibleForTesting
+    protected def checkRemainingBuffer(): (Int, ByteBuffer) = {
         buffers.head match {
             case Some(value) if value.remaining > 0 =>
                 (value.remaining, value)
