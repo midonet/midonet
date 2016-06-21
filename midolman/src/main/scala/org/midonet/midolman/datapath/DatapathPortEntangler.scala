@@ -147,7 +147,7 @@ trait DatapathPortEntangler {
     def updateVportInterfaceBindings(bindings: Map[UUID, PortBinding]): Unit = {
         log.debug(s"Updating port to interface bindings: $bindings")
 
-        for ((vportId, PortBinding(_, tunnelKey, ifname)) <- bindings) {
+        for ((vportId, PortBinding(_, _, tunnelKey, ifname)) <- bindings) {
             if (!vportToTriad.containsKey(vportId)) {
                 conveyor handle (ifname, () =>
                     newInterfaceVportBinding(vportId, bindings(vportId).tunnelKey, ifname))

@@ -33,7 +33,7 @@ import org.midonet.cluster.services.MidonetBackend.AliveKey
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
-import org.midonet.midolman.topology.devices.{Host => SimulationHost, TunnelZone}
+import org.midonet.midolman.topology.devices.{TunnelZone, Host => SimulationHost}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /**
@@ -158,8 +158,8 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
             yield tunnelZoneId -> addr
 
         // Compute the port bindings for this host.
-        val portBdgs = for ((id, state) <- ports)
-            yield id -> state.device.interfaceName
+        def portBdgs = for ((id, state) <- ports)
+            yield id -> (state.device.interfaceName, state.device.previousHostId)
 
         val host = ZoomConvert.fromProto(currentHost, classOf[SimulationHost])
         host.alive = alive.get
