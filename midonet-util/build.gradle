@@ -22,9 +22,9 @@ dependencies {
             libraries.findbugs, libraries.guava,
             libraries.infinispan, libraries.jackson_core,
             libraries.jackson_databind, libraries.jackson_annotations,
-            libraries.jsch, libraries.netty, libraries.protobuf, libraries.rx,
-            libraries.scala, libraries.sun_tools, libraries.scala_logging,
-            libraries.jna
+            libraries.jsch, libraries.logback_logstash, libraries.netty,
+            libraries.protobuf, libraries.rx, libraries.scala,
+            libraries.sun_tools, libraries.scala_logging, libraries.jna
 
     testCompile libraries.scalatest, libraries.scalacheck,
                 libraries.hamcrest_lib, libraries.hamcrest_integration,
