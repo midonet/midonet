@@ -19,18 +19,24 @@ package org.midonet.services.flowstate
 import java.net.InetSocketAddress
 import java.util
 import java.util.UUID
+import java.util.UUID.randomUUID
 
 import scala.collection.mutable
 import scala.util.Random
 
-import org.scalatest.{BeforeAndAfter, GivenWhenThen, Matchers, FeatureSpec}
+import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
+import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
+import org.midonet.cluster.util.UUIDUtil.toProto
+import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
 import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
 import org.midonet.packets.TraceState.TraceKeyStore
 import org.midonet.packets._
+import org.midonet.services.flowstate.stream.FlowStateWriter
+import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
 import org.midonet.util.MidonetEventually
 
 import io.netty.buffer.Unpooled
@@ -40,7 +46,6 @@ trait FlowStateBaseTest extends FeatureSpec
                                 with GivenWhenThen with Matchers
                                 with BeforeAndAfter with MidonetEventually
                                 with MidolmanLogging {
-
 
     protected def randomPort: Int = Random.nextInt(Short.MaxValue + 1)
 
@@ -70,12 +75,12 @@ trait FlowStateBaseTest extends FeatureSpec
 
 
 
-    protected def validFlowStateMessage(numConntracks: Int = 1,
-                                        numNats: Int = 1,
-                                        numTraces: Int = 0,
-                                        numIngressPorts: Int = 1,
-                                        numEgressPorts: Int = 1,
-                                        port: Short = 6688)
+    protected def validFlowStateInternalMessage(numConntracks: Int = 1,
+                                                numNats: Int = 1,
+                                                numTraces: Int = 0,
+                                                numIngressPorts: Int = 1,
+                                                numEgressPorts: Int = 1,
+                                                port: Short = 6688)
     : (DatagramPacket, FlowStateProtos, SbeEncoder) = {
         var ingressPort: UUID = null
         val egressPorts = new util.ArrayList[UUID]()
@@ -143,6 +148,21 @@ trait FlowStateBaseTest extends FeatureSpec
         (udp, protos, encoder)
     }
 
+    protected def createValidFlowStatePorts(flowStateConfig: FlowStateConfig) = {
+        val validPorts = (1 to 3) map { _ => randomUUID }
+
+        validPorts foreach { port =>
+            val flowstate = validFlowStateInternalMessage(numNats = 2,
+                numEgressPorts = 3)._3
+
+            val writer: FlowStateWriter = FlowStateWriter(flowStateConfig, port)
+            writer.write(flowstate)
+            writer.flush()
+        }
+
+        validPorts map toProto
+    }
+
     protected def invalidFlowStateMessage(port: Int = 6688): DatagramPacket = {
         val buffer = new Array[Byte](
             FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
@@ -150,6 +170,32 @@ trait FlowStateBaseTest extends FeatureSpec
         Random.nextBytes(buffer)
         new DatagramPacket(Unpooled.wrappedBuffer(buffer),
                            new InetSocketAddress(port))
+    }
+
+    protected def rawStateRequest(port: UUID = randomUUID) = {
+        val request = buildStateRequestRaw(port)
+        Unpooled.wrappedBuffer(request.toByteArray)
+    }
+
+    protected def internalStateRequest(port: UUID = randomUUID) = {
+        val request = buildStateRequestInternal(port)
+        Unpooled.wrappedBuffer(request.toByteArray)
+    }
+
+    protected def remoteStateRequest(port: UUID = randomUUID) = {
+        val request = buildStateRequestRemote(port, "127.0.0.1")
+        Unpooled.wrappedBuffer(request.toByteArray)
+    }
+
+    protected def invalidStateTransferRequest = {
+        val invalidRequest = StateRequest.newBuilder().build()
+        Unpooled.wrappedBuffer(invalidRequest.toByteArray)
+    }
+
+    protected def malformedStateTransferRequest = {
+        val buffer = new Array[Byte](100)
+        Random.nextBytes(buffer)
+        Unpooled.wrappedBuffer(buffer)
     }
 
 }
