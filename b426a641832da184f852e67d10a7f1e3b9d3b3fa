@@ -22,6 +22,30 @@
       "revId": "b426a641832da184f852e67d10a7f1e3b9d3b3fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ce93c14e",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/ZebraConnection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-06-21T08:43:10Z",
+      "side": 1,
+      "message": "I have found in debugging RoutingHandler and its related ecosystem of actors that these messages are very valuable to find out whats going on, but actually happen very infrequently so we don\u0027t have to worry about it taking up space in the logs. So I think an info is best here. I can change it to debug though if you disagree.",
+      "parentUuid": "baa041b7_0e5f690f",
+      "range": {
+        "startLine": 185,
+        "startChar": 12,
+        "endLine": 185,
+        "endChar": 16
+      },
+      "revId": "b426a641832da184f852e67d10a7f1e3b9d3b3fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
