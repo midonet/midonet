@@ -281,23 +281,22 @@ rpm.doFirst {
         '-d', 'quagga >= 0.99.23',
         '-d', 'libreswan >= 1.15.0',
         '-d', 'iproute',
-        '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
-    if (project.rhelTarget == "el7") {
-        project.packaging.fpmOpts.addAll([
-            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
-            '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
-            '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
-            '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
-            '--depends', 'python-setproctitle',
-            '--depends', 'java-1.8.0-openjdk-headless'])
-    } else { // (project.rhelTarget == "sles12")
-        project.packaging.fpmOpts.addAll([
-            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
-            '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
-            '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
-            '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
-            '--depends', 'iproute2',
-            '--depends', 'java >= 1.8.0'])
+        '-d', 'java-openjdk-headless >= 1.8.0',
+        '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
+        '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
+        '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
+        '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
+    ])
+    switch(project.rhelTarget) {
+      case "el7":
+        project.packaging.fpmOpts.addAll(['--depends', 'python-setproctitle'])
+        break
+      case "sles12":
+        project.packaging.fpmOpts.addAll(['--depends', 'iproute2'])
+        break
+      default:
+        logger.warn("Invalid project-rhelTarget: " + project.rhelTarget +
+                    ". Must be either 'el7' or 'sles12'")
     }
 }
 
