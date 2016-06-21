@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0e5f690f",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/ZebraConnection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-21T08:27:57Z",
+      "side": 1,
+      "message": "Should this be debug?",
+      "range": {
+        "startLine": 185,
+        "startChar": 12,
+        "endLine": 185,
+        "endChar": 16
+      },
+      "revId": "b426a641832da184f852e67d10a7f1e3b9d3b3fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
