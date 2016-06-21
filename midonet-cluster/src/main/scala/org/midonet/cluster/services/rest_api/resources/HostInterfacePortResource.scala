@@ -16,7 +16,8 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.{UUID, List => JList}
+
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -100,6 +101,7 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
         val port = tx.get(classOf[Port], id)
         port.hostId = null
         port.interfaceName = null
+        port.previousHostId = port.hostId
         tx.update(port)
         MidonetResource.OkNoContentResponse
     }

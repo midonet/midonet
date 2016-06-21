@@ -76,6 +76,10 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "host_id")
     public UUID hostId;
 
+    @JsonIgnore
+    @ZoomField(name = "previous_host_id")
+    public UUID previousHostId;
+
     @ZoomField(name = "interface_name")
     public String interfaceName;
 
@@ -183,6 +187,9 @@ public abstract class Port extends UriResource {
         if (null != from.hostId) {
             hostId = from.hostId;
         }
+        if (null != from.previousHostId) {
+            previousHostId = from.previousHostId;
+        }
         if (null != from.interfaceName) {
             interfaceName = from.interfaceName;
         }
@@ -207,6 +214,7 @@ public abstract class Port extends UriResource {
             .add("tunnelKey", tunnelKey)
             .add("vifId", vifId)
             .add("hostId", hostId)
+            .add("previousHostId", previousHostId)
             .add("interfaceName", interfaceName)
             .add("peerId", peerId)
             .add("portGroupIds", portGroupIds)
