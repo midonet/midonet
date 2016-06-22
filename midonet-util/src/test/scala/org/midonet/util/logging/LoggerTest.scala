@@ -153,4 +153,42 @@ class LoggerTest extends FlatSpec with Matchers with GivenWhenThen {
         Mockito.verify(underlying).trace(log.marker, message, throwable)
         Mockito.verify(underlying).trace(log.marker, message, any)
     }
+
+    "Logger arguments" should "evaluate if logging level" in {
+        Given("An underlying logger")
+        val underlying = Mockito.mock(classOf[Underlying])
+
+        Mockito.when(underlying.isTraceEnabled).thenReturn(true)
+
+        And("A logger wrapper")
+        val mark = "mark"
+        val log = Logger(underlying, mark)
+
+        When("Logging a message")
+        var evaluated = false
+        def function(): Unit = { evaluated = true }
+        log.trace(s"Call some function: ${function()}")
+
+        Then("The arguments should evaluate")
+        evaluated shouldBe true
+    }
+
+    "Logger arguments" should "not evaluate if not logging level" in {
+        Given("An underlying logger")
+        val underlying = Mockito.mock(classOf[Underlying])
+
+        Mockito.when(underlying.isTraceEnabled).thenReturn(false)
+
+        And("A logger wrapper")
+        val mark = "mark"
+        val log = Logger(underlying, mark)
+
+        When("Logging a message")
+        var evaluated = false
+        def function(): Unit = { evaluated = true }
+        log.trace(s"Call some function: ${function()}")
+
+        Then("The arguments should not evaluate")
+        evaluated shouldBe false
+    }
 }
