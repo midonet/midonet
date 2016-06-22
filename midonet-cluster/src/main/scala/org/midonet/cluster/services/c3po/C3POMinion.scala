@@ -198,6 +198,7 @@ object C3POMinion {
                         pathBldr: PathBuilder): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
+             classOf[FirewallLog] -> new FirewallLogTranslator(storage),
              classOf[FloatingIp] ->
                 new FloatingIpTranslator(storage, stateTableStorage, pathBldr),
              classOf[GatewayDevice] ->
@@ -216,6 +217,8 @@ object C3POMinion {
                 new HealthMonitorTranslator(storage),
              classOf[NeutronLoadBalancerPool] ->
                 new LoadBalancerPoolTranslator(storage),
+             classOf[NeutronLoggingResource] ->
+                new LoggingResourceTranslator(storage),
              classOf[NeutronLoadBalancerPoolMember] ->
                 new LoadBalancerPoolMemberTranslator(storage),
              classOf[NeutronNetwork] ->
