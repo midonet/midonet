@@ -69,6 +69,7 @@ object NeutronResourceType extends Enumeration {
     val BgpSpeaker = NeutronResourceType("BGPSPEAKER", classOf[NeutronBgpSpeaker])
     val Config = NeutronResourceType("CONFIG", classOf[NeutronConfig])
     val Firewall = NeutronResourceType("FIREWALL", classOf[NeutronFirewall])
+    val FirewallLog = NeutronResourceType("FIREWALLLOG", classOf[FirewallLog])
     val FloatingIp = NeutronResourceType("FLOATINGIP",
                                          classOf[Neutron.FloatingIp])
     val GatewayDevice = NeutronResourceType("GATEWAYDEVICE",
@@ -79,6 +80,8 @@ object NeutronResourceType extends Enumeration {
         NeutronResourceType("IPSECSITECON", classOf[IPSecSiteConnection])
     val L2GatewayConnection = NeutronResourceType("L2GATEWAYCONNECTION",
                                                   classOf[L2GatewayConnection])
+    val LoggingResource = NeutronResourceType("LOGGINGRESOURCE",
+                                              classOf[NeutronLoggingResource])
     val Network = NeutronResourceType("NETWORK", classOf[NeutronNetwork])
     val Pool = NeutronResourceType("POOL", classOf[NeutronLoadBalancerPool])
     val PoolMember = NeutronResourceType("MEMBER",
@@ -107,11 +110,13 @@ object NeutronResourceType extends Enumeration {
         BgpSpeaker.id -> BgpSpeaker,
         Config.id -> Config,
         Firewall.id -> Firewall,
+        FirewallLog.id -> FirewallLog,
         FloatingIp.id -> FloatingIp,
         GatewayDevice.id -> GatewayDevice,
         HealthMonitor.id -> HealthMonitor,
         IPSecSiteConnection.id -> IPSecSiteConnection,
         L2GatewayConnection.id -> L2GatewayConnection,
+        LoggingResource.id -> LoggingResource,
         Network.id -> Network,
         Pool.id -> Pool,
         PoolMember.id -> PoolMember,

@@ -52,6 +52,8 @@ public class NeutronUriBuilder {
     public static final String BGP_PEERS = "/bgp_peers";
     public static final String TAP_SERVICES = "/tap_services";
     public static final String TAP_FLOWS = "/tap_flows";
+    public static final String FIREWALL_LOGS = "/firewall_logs";
+    public static final String LOGGING_RESOURCE= "/logging_resource";
 
 
     public static URI getRoot(URI baseUri) {
@@ -275,6 +277,35 @@ public class NeutronUriBuilder {
 
     public static String getBgpPeerTemplate(URI baseUri) {
         return buildIdTemplateUri(getBgpPeers(baseUri));
+    }
+
+    // Firewall Logging
+    public static URI getFirewallLogs(URI baseUri) {
+        return UriBuilder.fromUri(getFirewallLogs(baseUri))
+            .path(FIREWALL_LOGS).build();
+    }
+
+    public static URI getFirewallLog(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getFirewallLogs(baseUri)).path(
+                id.toString()).build();
+    }
+
+    public static String getFirewallLogTemplate(URI baseUri) {
+        return buildIdTemplateUri(getFirewallLogs(baseUri));
+    }
+
+    public static URI getLoggingResource(URI baseUri) {
+        return UriBuilder.fromUri(getLoggingResource(baseUri))
+                .path(LOGGING_RESOURCE).build();
+    }
+
+    public static URI getLoggingResource(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getLoggingResource(baseUri)).path(
+                id.toString()).build();
+    }
+
+    public static String getLoggingResourceTemplate(URI baseUri) {
+        return buildIdTemplateUri(getLoggingResource(baseUri));
     }
 
     // Firewalls
