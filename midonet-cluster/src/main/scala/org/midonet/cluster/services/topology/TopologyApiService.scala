@@ -24,7 +24,7 @@ import org.midonet.cluster.rpc.Commands
 import org.midonet.cluster.services.topology.common.{ApiServerHandler, ConnectionManager}
 import org.midonet.cluster.services.topology.server.{RequestHandler, _}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.{ClusterConfig, TopologyApiConfig, topologyApiLog}
+import org.midonet.cluster.{ClusterConfig, TopologyApiConfig, TopologyApiLog}
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{MinionService, Context, Minion}
 import org.midonet.util.netty.{ProtoBufSocketAdapter, ProtoBufWebSocketServerAdapter, ServerFrontEnd}
@@ -37,7 +37,7 @@ class TopologyApiService @Inject()(val nodeContext: Context,
                                    val backend: MidonetBackend,
                                    val cfg: ClusterConfig)
     extends Minion(nodeContext) {
-    private val log = LoggerFactory.getLogger(topologyApiLog)
+    private val log = LoggerFactory.getLogger(TopologyApiLog)
 
     // Frontend frameworks
     private var plainSrv: ServerFrontEnd = null

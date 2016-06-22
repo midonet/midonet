@@ -41,7 +41,7 @@ import org.midonet.cluster.services.vxgw.FloodingProxyManager.{HostFpState, MaxF
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.logging.ProtoTextPrettifier.makeReadable
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil, selfHealingEntityObservable, selfHealingTypeObservable}
-import org.midonet.cluster.vxgwLog
+import org.midonet.cluster.VxgwLog
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
 
@@ -91,7 +91,7 @@ object FloodingProxyManager {
   */
 class FloodingProxyManager(backend: MidonetBackend) {
 
-    private val log = LoggerFactory.getLogger(vxgwLog)
+    private val log = LoggerFactory.getLogger(VxgwLog)
 
     private val store = backend.store
     private val stateStore = backend.stateStore

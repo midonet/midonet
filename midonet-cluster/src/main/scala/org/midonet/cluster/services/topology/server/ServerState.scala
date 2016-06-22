@@ -22,7 +22,7 @@ import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 import rx.{Observer, Subscription}
 
-import org.midonet.cluster.topologyApiServerProtocolFactoryLog
+import org.midonet.cluster.TopologyApiServerProtocolFactoryLog
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rpc.Commands._
 import org.midonet.cluster.services.topology.common.{ProtocolFactory, Interruption}
@@ -167,16 +167,19 @@ final case class Closed(s: SessionInfo) extends State {
 /**
  * This factory sets up the protocol handling the server-side communication,
  * and implements the method returning the initial state of the protocol
+ *
  * @param sMgr is the session inventory manager, responsible to maintain
  *             the backend zoom subscriptions for each client.
  */
 class ServerProtocolFactory(private val sMgr: SessionInventory)
     extends ProtocolFactory {
-    private val log = LoggerFactory.getLogger(topologyApiServerProtocolFactoryLog)
+    private val log = LoggerFactory.getLogger(
+        TopologyApiServerProtocolFactoryLog)
 
     /**
      * Return the initial state and the future subscription to the client's
      * session.
+ *
      * @param out is the stream of messages to be sent to the client
      */
     override def start(out: Observer[Message]): State = {

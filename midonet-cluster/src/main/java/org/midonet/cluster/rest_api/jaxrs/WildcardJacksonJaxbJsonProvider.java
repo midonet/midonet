@@ -56,7 +56,7 @@ public class WildcardJacksonJaxbJsonProvider
     }
 
     private final static Logger log =
-        LoggerFactory.getLogger(package$.MODULE$.restApiJaxrsLog());
+        LoggerFactory.getLogger(package$.MODULE$.RestApiJaxrsLog());
 
     private final VersionParser versionParser = new VersionParser();
     private final ObjectMapperProvider objectMapperProvider;

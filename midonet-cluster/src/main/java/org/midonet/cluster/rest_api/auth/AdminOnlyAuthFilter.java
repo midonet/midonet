@@ -43,7 +43,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Singleton
 public final class AdminOnlyAuthFilter implements Filter {
 
-    private final static Logger log = getLogger(package$.MODULE$.authLog());
+    private final static Logger log = getLogger(package$.MODULE$.AuthLog());
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {

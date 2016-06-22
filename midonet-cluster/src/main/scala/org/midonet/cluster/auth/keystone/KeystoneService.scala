@@ -29,12 +29,12 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth
 import org.midonet.cluster.auth._
-import org.midonet.cluster.keystoneLog
+import org.midonet.cluster.KeystoneLog
 import org.midonet.cluster.rest_api.models.Tenant
 
 class KeystoneService @Inject()(config: Config) extends AuthService {
 
-    private val log = Logger(LoggerFactory.getLogger(keystoneLog))
+    private val log = Logger(LoggerFactory.getLogger(KeystoneLog))
     private val keystoneConfig = new KeystoneConfig(config)
     private val keystoneClient = new KeystoneClient(keystoneConfig)
 

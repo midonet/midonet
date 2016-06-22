@@ -34,7 +34,7 @@ import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber}
 
-import org.midonet.cluster.vxgwVtepLog
+import org.midonet.cluster.VxgwVtepLog
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.vtep.{VtepConfigException, VtepStateException}
 import org.midonet.packets.IPv4Addr
@@ -51,6 +51,7 @@ object OvsdbVtepData {
 
     private[vtep] final val NamedLocatorId = "locator_id"
     private[vtep] final val NamedLocatorSetId = "locator_set_id"
+    private val MaxBackpressureBuffer = 100000
 
 }
 
@@ -61,12 +62,10 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
                     val vtepExecutor: Executor, val eventExecutor: Executor)
     extends VtepData with Logging {
 
-    override def logSource = vxgwVtepLog
+    override def logSource = VxgwVtepLog
     override def logMark = s"vtep:${endPoint.mgmtIp}:${endPoint.mgmtPort}"
 
-    private val endPoint = OvsdbTools.endPointFromOvsdbClient(client)
-
-    private val MaxBackpressureBuffer = 100000
+    private lazy val endPoint = OvsdbTools.endPointFromOvsdbClient(client)
 
     private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
     private val vtepScheduler = Schedulers.from(vtepExecutor)
