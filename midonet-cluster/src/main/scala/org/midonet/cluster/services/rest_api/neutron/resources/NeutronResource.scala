@@ -103,6 +103,14 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def tapServicesResoource: TapServiceResource =
         new TapServiceResource(uriInfo, api)
 
+    @Path("firewall_logs")
+    def firewallLogResource: FirewallLogResource =
+        new FirewallLogResource(uriInfo, api)
+
+    @Path("logging_resources")
+    def loggingResourceResource: LoggingResourceResource=
+        new LoggingResourceResource(uriInfo, api)
+
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
         val neutron: Neutron = new Neutron
@@ -149,6 +157,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.tapFlowTemplate = getTapFlowTemplate(baseUri)
         neutron.tapServices = getTapServices(baseUri)
         neutron.tapServiceTemplate = getTapServiceTemplate(baseUri)
+        neutron.firewallLogs = getFirewallLogs(baseUri)
+        neutron.firewallLogTemplate = getFirewallLogTemplate(baseUri)
+        neutron.loggingResources = getLoggingResource(baseUri)
+        neutron.loggingResourceTemplate= getLoggingResourceTemplate(baseUri)
         neutron
     }
 }
