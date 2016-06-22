@@ -45,6 +45,121 @@
       "revId": "a2c30db8075d44da9706b95beba15ed1e27ba86e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4879e12e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T12:41:14Z",
+      "side": 1,
+      "message": "This is only necessary for nested messages. Is FirewallLog ever nested in another message?",
+      "range": {
+        "startLine": 139,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 53
+      },
+      "revId": "a2c30db8075d44da9706b95beba15ed1e27ba86e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c84e1196",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallLogTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T12:41:14Z",
+      "side": 1,
+      "message": "There\u0027s a convenience method for this:\n\n  chainBldr.addMetadataBuilder()\n      .setKey(FIREWALL_ID)\n      .setValue(fwId.toString)\n\nThen when you call chainBldr.build() at the end of the function, it will build the metadata entries too.\n\nAlso, isn\u0027t fwId a Commons.UUID? If so, toString probably isn\u0027t what you want. You need to convert to java.util.UUID first, otherwise you get the weird protobuf serialization.",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 37
+      },
+      "revId": "a2c30db8075d44da9706b95beba15ed1e27ba86e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_087e39ae",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallLogTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T12:41:14Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 37
+      },
+      "revId": "a2c30db8075d44da9706b95beba15ed1e27ba86e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_88480989",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallLogTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T12:41:14Z",
+      "side": 1,
+      "message": "ensureLoggingResource",
+      "range": {
+        "startLine": 80,
+        "startChar": 8,
+        "endLine": 80,
+        "endChar": 28
+      },
+      "revId": "a2c30db8075d44da9706b95beba15ed1e27ba86e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0855191c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallLogTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T12:41:14Z",
+      "side": 1,
+      "message": "This should be on FirewallLog, not LoggingResource.",
+      "range": {
+        "startLine": 84,
+        "startChar": 28,
+        "endLine": 84,
+        "endChar": 80
+      },
+      "revId": "a2c30db8075d44da9706b95beba15ed1e27ba86e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
