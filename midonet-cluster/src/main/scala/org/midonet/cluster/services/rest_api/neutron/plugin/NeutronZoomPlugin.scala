@@ -69,7 +69,8 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
             with SecurityGroupApi
             with VpnServiceApi
             with BgpApi
-            with TapAsAServiceApi {
+            with TapAsAServiceApi
+            with FirewallLoggingApi {
 
     private val log = LoggerFactory.getLogger(restApiNeutronLog)
 
@@ -578,4 +579,27 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     override def getTapService(id: UUID): TapService = get[TapService](id)
     override def getTapServices: util.List[TapService] =
         listAll(classOf[TapService])
+
+    // FirewallLog
+    override def createFirewallLog(firewallLog: FirewallLog): Unit =
+        create(firewallLog)
+    override def updateFirewallLog(firewallLog: FirewallLog): Unit =
+        update(firewallLog)
+    override def deleteFirewallLog(id: UUID): Unit =
+        delete(id, classOf[FirewallLog])
+    override def getFirewallLog(id: UUID): FirewallLog = get[FirewallLog](id)
+    override def getFirewallLogs: util.List[FirewallLog] =
+        listAll(classOf[FirewallLog])
+
+    // LoggingResource
+    override def createLoggingResource(loggingResource: LoggingResource)
+    : Unit = create(loggingResource)
+    override def updateLoggingResource(loggingResource: LoggingResource)
+    : Unit = update(loggingResource)
+    override def deleteLoggingResource(id: UUID)
+    : Unit = delete(id, classOf[LoggingResource])
+    override def getLoggingResource(id: UUID): LoggingResource =
+        get[LoggingResource](id)
+    override def getLoggingResources: util.List[LoggingResource] =
+        listAll(classOf[LoggingResource])
 }

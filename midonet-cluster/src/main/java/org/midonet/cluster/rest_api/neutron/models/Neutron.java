@@ -132,6 +132,18 @@ public class Neutron {
     @JsonProperty("tap_service_template")
     public String tapServiceTemplate;
 
+    @JsonProperty("firewall_logs")
+    public URI firewallLogs;
+
+    @JsonProperty("firewall_log_template")
+    public String firewallLogTemplate;
+
+    @JsonProperty("logging_resources")
+    public URI loggingResources;
+
+    @JsonProperty("logging_resource_template")
+    public String loggingResourceTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -187,7 +199,11 @@ public class Neutron {
                && Objects.equal(tapFlows, other.tapFlows)
                && Objects.equal(tapFlowTemplate, other.tapFlowTemplate)
                && Objects.equal(tapServices, other.tapServices)
-               && Objects.equal(tapServiceTemplate, other.tapServiceTemplate);
+               && Objects.equal(tapServiceTemplate, other.tapServiceTemplate)
+               && Objects.equal(firewallLogs, other.firewallLogs)
+               && Objects.equal(firewallLogTemplate, other.firewallLogTemplate)
+               && Objects.equal(loggingResources, other.loggingResources)
+               && Objects.equal(loggingResourceTemplate, other.loggingResourceTemplate);
     }
 
     @Override
@@ -209,7 +225,9 @@ public class Neutron {
                                 bgpSpeakers, bgpSpeakerTemplate,
                                 bgpPeers, bgpPeerTemplate,
                                 tapFlows, tapFlowTemplate,
-                                tapServices, tapServiceTemplate);
+                                tapServices, tapServiceTemplate,
+                                firewallLogs, firewallLogTemplate,
+                                loggingResources, loggingResourceTemplate);
     }
 
     @Override
@@ -252,6 +270,10 @@ public class Neutron {
             .add("tapFlowTemplate", tapFlowTemplate)
             .add("tapServices", tapServices)
             .add("tapServiceTemplate", tapServiceTemplate)
+            .add("firewallLogs", firewallLogs)
+            .add("firewallLogTemplate", firewallLogTemplate)
+            .add("loggingResources", loggingResources)
+            .add("loggingResourceTemplate", loggingResourceTemplate)
             .toString();
     }
 }
