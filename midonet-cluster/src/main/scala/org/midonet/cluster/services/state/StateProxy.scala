@@ -43,7 +43,7 @@ class StateProxy @Inject()(context: Context,
                            backend: MidonetBackend)
     extends Minion(context) {
 
-    private val log = Logger(LoggerFactory.getLogger(stateProxyLog))
+    private val log = Logger(LoggerFactory.getLogger(StateProxyLog))
     private var server: StateProxyServer = null
     private var serviceHandler: MidonetServiceHandler = null
 

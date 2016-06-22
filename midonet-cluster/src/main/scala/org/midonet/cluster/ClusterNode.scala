@@ -63,7 +63,7 @@ class ClusterException(msg: String, cause: Throwable)
   * control functions. */
 object ClusterNode extends App {
 
-    private val log = Logger(LoggerFactory.getLogger(clusterLog))
+    private val log = Logger(LoggerFactory.getLogger(ClusterLog))
 
     private val metrics = new MetricRegistry()
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()

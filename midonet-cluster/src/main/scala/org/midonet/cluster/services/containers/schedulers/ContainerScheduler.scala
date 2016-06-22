@@ -44,7 +44,7 @@ import org.midonet.cluster.models.Topology.{Port, ServiceContainer, ServiceConta
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.containers.schedulers.ContainerScheduler._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.{ContainersConfig, containersLog}
+import org.midonet.cluster.{ContainersConfig, ContainersLog}
 import org.midonet.containers.{Context, ObjectTracker}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc5}
 import org.midonet.util.logging.Logging
@@ -154,7 +154,7 @@ class ContainerScheduler(containerId: UUID, context: Context,
                          selectorProvider: HostSelectorProvider)
     extends ObjectTracker[SchedulerEvent] with Logging {
 
-    override def logSource = containersLog
+    override def logSource = ContainersLog
     override def logMark = s"container:$containerId"
 
     private val random = new Random()

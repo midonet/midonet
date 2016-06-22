@@ -35,7 +35,7 @@ import rx.{Observer, Subscription}
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.containers.schedulers._
 import org.midonet.cluster.services._
-import org.midonet.cluster.{ClusterConfig, containersLog}
+import org.midonet.cluster.{ClusterConfig, ContainersLog}
 import org.midonet.containers
 import org.midonet.containers.ContainerDelegate
 import org.midonet.minion.MinionService.TargetNode
@@ -73,7 +73,7 @@ class ContainerService @Inject()(nodeContext: Context,
 
     import ContainerService._
 
-    private val log = Logger(LoggerFactory.getLogger(containersLog))
+    private val log = Logger(LoggerFactory.getLogger(ContainersLog))
 
     override def isEnabled = config.containers.isEnabled
 

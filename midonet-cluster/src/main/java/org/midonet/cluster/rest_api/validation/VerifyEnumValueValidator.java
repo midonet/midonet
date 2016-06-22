@@ -42,7 +42,7 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage
 public class VerifyEnumValueValidator
         implements ConstraintValidator<VerifyEnumValue, Object> {
 
-    private static Logger log = getLogger(package$.MODULE$.restApiValidationLog());
+    private static Logger log = getLogger(package$.MODULE$.RestApiValidationLog());
 
     Class<? extends Enum<?>> enumClass;
 

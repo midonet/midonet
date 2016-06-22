@@ -84,7 +84,7 @@ object StateProxyServer {
   */
 class StateProxyServer(config: StateProxyConfig) {
 
-    private val log = Logger(LoggerFactory.getLogger(stateProxyLog))
+    private val log = Logger(LoggerFactory.getLogger(StateProxyLog))
 
     private val mainExecutor = Executors.newSingleThreadScheduledExecutor(
         new ThreadFactory {

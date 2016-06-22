@@ -51,7 +51,7 @@ import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.cluster.{ClusterConfig, RestApiConfig, restApiLog}
+import org.midonet.cluster.{ClusterConfig, RestApiConfig, RestApiLog}
 import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.minion.MinionService.TargetNode
@@ -138,7 +138,7 @@ class Vladimir @Inject()(nodeContext: Context,
     import Vladimir._
 
     private var server: Server = _
-    private val log = Logger(LoggerFactory.getLogger(restApiLog))
+    private val log = Logger(LoggerFactory.getLogger(RestApiLog))
     private val executor = Executors.newCachedThreadPool(
         new NamedThreadFactory("rest-api", isDaemon = true))
     private val executionContext = ExecutionContext.fromExecutor(executor)

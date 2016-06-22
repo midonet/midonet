@@ -28,7 +28,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.containersLog
+import org.midonet.cluster.ContainersLog
 import org.midonet.cluster.data.storage.{NotFoundException, Transaction}
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer}
@@ -43,7 +43,7 @@ abstract class DatapathBoundContainerDelegate (backend: MidonetBackend)
     def name: String
     val MaxStorageAttempts = 10
 
-    private val log = Logger(LoggerFactory.getLogger(s"$containersLog.$name"))
+    private val log = Logger(LoggerFactory.getLogger(s"$ContainersLog.$name"))
 
     /** This method is called when the container is scheduled at a specified
       * host. It binds the container port to the host
