@@ -44,7 +44,7 @@ import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.vxgwLog
+import org.midonet.cluster.VxgwLog
 import org.midonet.midolman.state._
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.ConnectionState._
@@ -94,7 +94,7 @@ class VtepSynchronizer(vtepId: UUID,
                        ovsdbProvider: (IPv4Addr, Int) => OvsdbVtepDataClient)
     extends Subscriber[NsdbVtep] with Logging {
 
-    override def logSource = vxgwLog
+    override def logSource = VxgwLog
     override def logMark = s"vtep:$vtepId"
     private implicit val ec = VtepSynchronizer.ec
 

@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import rx.Observer
 import rx.functions.Action1
 
+import org.midonet.cluster.VxgwLog
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.models.Topology.{Port, TunnelZone}
@@ -36,7 +37,6 @@ import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.services.vxgw.VtepSynchronizer.NetworkInfo
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.vxgwLog
 import org.midonet.midolman.state.MapNotification
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.VtepConstants._
@@ -65,7 +65,7 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
     extends Logging {
 
     private implicit val ec = fromExecutor(directExecutor())
-    override def logSource = vxgwLog
+    override def logSource = VxgwLog
     override def logMark = s"vtep:${nsdbVtep.getId.asJava}"
 
     /** Build a handler to process changes that may need propagation from the

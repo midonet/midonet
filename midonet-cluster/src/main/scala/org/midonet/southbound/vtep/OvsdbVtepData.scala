@@ -34,7 +34,7 @@ import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber}
 
-import org.midonet.cluster.vxgwVtepLog
+import org.midonet.cluster.VxgwVtepLog
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.vtep.{VtepConfigException, VtepStateException}
 import org.midonet.packets.IPv4Addr
@@ -62,7 +62,7 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
                     val vtepExecutor: Executor, val eventExecutor: Executor)
     extends VtepData with Logging {
 
-    override def logSource = vxgwVtepLog
+    override def logSource = VxgwVtepLog
     override def logMark = s"vtep:${endPoint.mgmtIp}:${endPoint.mgmtPort}"
 
     private lazy val endPoint = OvsdbTools.endPointFromOvsdbClient(client)

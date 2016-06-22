@@ -67,7 +67,7 @@ class VxlanGatewayService @Inject()(
         metrics: MetricRegistry,
         conf: ClusterConfig) extends Minion(nodeCtx) {
 
-    private val log = LoggerFactory.getLogger(vxgwLog)
+    private val log = LoggerFactory.getLogger(VxgwLog)
 
     private var fpManager: FloodingProxyManager = _
     private val vtepSyncers = new util.HashMap[UUID, Subscriber[Vtep]]()

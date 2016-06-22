@@ -52,7 +52,7 @@ import rx.schedulers.Schedulers.from
 import rx.subjects.BehaviorSubject
 import rx.{Observable, Subscription}
 
-import org.midonet.cluster.vxgwVtepLog
+import org.midonet.cluster.VxgwVtepLog
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
 import org.midonet.cluster.data.vtep.{VtepNotConnectedException, VtepStateException}
 import org.midonet.packets.IPv4Addr
@@ -132,7 +132,7 @@ class OvsdbVtepConnection(mgmtIp: IPv4Addr, mgmtPort: Int,
 
     private type Handler = PartialFunction[ConnectionStatus, Future[Unit]]
 
-    override def logSource = vxgwVtepLog
+    override def logSource = VxgwVtepLog
     override def logMark = s"vtep:$mgmtIp:$mgmtPort"
 
     // We must have 1 thread per VTEP

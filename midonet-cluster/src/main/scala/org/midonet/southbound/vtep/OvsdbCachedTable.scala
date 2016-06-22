@@ -28,7 +28,7 @@ import org.opendaylight.ovsdb.lib.operations.OperationResult
 import rx.Observer
 import rx.schedulers.Schedulers
 
-import org.midonet.cluster.vxgwVtepLog
+import org.midonet.cluster.VxgwVtepLog
 import org.midonet.cluster.data.vtep.model.VtepEntry
 import org.midonet.southbound.vtep.OvsdbOperations.MaxBackpressureBuffer
 import org.midonet.southbound.vtep.OvsdbUtil._
@@ -46,7 +46,7 @@ class OvsdbCachedTable[E <: VtepEntry](val client: OvsdbClient,
                                        val eventExecutor: Executor)
     extends Logging {
 
-    override def logSource = vxgwVtepLog
+    override def logSource = VxgwVtepLog
     override def logMark = s"ovsdb-table:${table.getSchema.getName}"
 
     private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)

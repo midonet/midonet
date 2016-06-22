@@ -34,7 +34,7 @@ import rx.schedulers.Schedulers
 import rx.subscriptions.BooleanSubscription
 import rx.{Observable, Observer, Subscriber, Subscription}
 
-import org.midonet.cluster.topologyApiSessionInventoryLog
+import org.midonet.cluster.TopologyApiSessionInventoryLog
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology._
@@ -221,6 +221,7 @@ protected class StorageTransformer(val reqId: UUID)
 
     /** Convenient wrapper to convert observable completions into
       * explicit object deletion events, and wrap updates into responses
+ *
       * @param observer is the receiver of the processed messages
       * @param reqId the request originating the current stream
       */
@@ -255,6 +256,7 @@ protected class StorageTransformer(val reqId: UUID)
 /**
  * A class to buffer zoom updates, associating each one of them to a sequence
  * number.
+ *
  * @param minCapacity is the minimum size of the buffer
  */
 protected class Buffer(minCapacity: Int, reader: ExecutorService)
@@ -346,7 +348,7 @@ protected class Buffer(minCapacity: Int, reader: ExecutorService)
 class SessionInventory(private val store: Storage,
     private val gracePeriod: Long = SessionInventory.SESSION_GRACE_PERIOD,
     private val bufferSize: Int = SessionInventory.SESSION_BUFFER_SIZE) {
-    private val log = LoggerFactory.getLogger(topologyApiSessionInventoryLog)
+    private val log = LoggerFactory.getLogger(TopologyApiSessionInventoryLog)
 
     /** A class that encapsulates the funnel of a bunch of individual low
       * level subscriptions into a single channel, anend exposes an observable
