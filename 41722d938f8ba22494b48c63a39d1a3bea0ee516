@@ -1,0 +1,406 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_03485a5a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "Only needed if FirewallLog can be nested in another message.",
+      "range": {
+        "startLine": 139,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 53
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c3edd226",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallLogTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "Can replace with this:\n\n  chain.addMetadataEntryBuilder()\n      .setKey(FIREWALL_ID)\n      .setValue(fromProto(fwId).toString)\n  chain.addMetadataEntryBuilder()\n      .setKey(TENANT_ID)\n      .setValue(tenantId)\n\nNo need to call build() for the child builders, since chain.build() will recursively build all its child builders.",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 60
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a3f2ce04",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallLogTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "This property got moved to FirewallLog.",
+      "range": {
+        "startLine": 76,
+        "startChar": 28,
+        "endLine": 76,
+        "endChar": 80
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_835c6aee",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallLogTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "Should fileName be updatable, too?",
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_03e4da38",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallLogTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "Both for performance (await in parallel) and prettiness, I would arrange like this:\n\n  val rlFtr \u003d storage.get(classOf[RuleLogger], flId)\n  val lr \u003d storage.get(classOf[LoggingResource],\n                       rl.getLoggingResourceId).await()\n  val rl \u003d rlFtr.await()\n\n  val ops \u003d new OperationListBuffer\n  ops +\u003d Delete(classOf[RuleLogger], flId)\n  if (lr.getLoggerIdsCount \u003d\u003d 1)\n      ops +\u003d Delete(classOf[LoggingResource], lr.getId)\n  ops.toList",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 18
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_63c4c691",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallLogTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "How about:\n\n  case Update(_, ) | Create(_) | Delete(_, _) \u003d\u003e List()\n  case _ \u003d\u003e super.retainHighLevelModel(op)\n\nActually, the catch-all case should probably just throw an UnsupportedOperationException. It wouldn\u0027t make sense to pass a CreateNodeOperation here. And if in the future we add some new operation for high-level models, we probably won\u0027t want to do the default thing here, given that we\u0027re not storing the high-level model at all.",
+      "range": {
+        "startLine": 104,
+        "startChar": 24,
+        "endLine": 104,
+        "endChar": 29
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6372867e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoggingResourceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "The binding between LoggingResource and RuleLogger is set to delete all associated RuleLoggers when the LoggingResource is deleted, so this isn\u0027t necessary.",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 80
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_03697a8b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoggingResourceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "So you can just make this the whole definition.",
+      "range": {
+        "startLine": 52,
+        "startChar": 15,
+        "endLine": 52,
+        "endChar": 53
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e30456c7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoggingResourceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "Same comment as on FirewallLogTranslator.",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 52
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_63e72613",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 592,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "These won\u0027t work, since we don\u0027t store the Neutron objects, right? Ditto for getLoggingResource(s)",
+      "range": {
+        "startLine": 590,
+        "startChar": 0,
+        "endLine": 592,
+        "endChar": 37
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6320464a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 596,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "Given that the translator doesn\u0027t support create for LoggingResource, should the entry points exist at all?",
+      "range": {
+        "startLine": 595,
+        "startChar": 0,
+        "endLine": 596,
+        "endChar": 36
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c3bef2d3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/FirewallLogResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "Doesn\u0027t seem like these would work.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 58
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_43cb0273",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/FirewallLogResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "PUT?",
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_83b8eae6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/LoggingResourceResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "These either.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 66
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_23db5e1d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/LoggingResourceResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "Not supported in the translator. Also, Where\u0027s PUT?",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 5
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c393924e",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallLoggingTranslationIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "MedatData?",
+      "range": {
+        "startLine": 63,
+        "startChar": 12,
+        "endLine": 63,
+        "endChar": 27
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_63ca8651",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallLoggingTranslationIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "Doesn\u0027t verifyLoggingResource(lrId, 1) cover this?",
+      "range": {
+        "startLine": 77,
+        "startChar": 12,
+        "endLine": 77,
+        "endChar": 80
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_03aa9a70",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallLoggingTranslationIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-22T14:14:27Z",
+      "side": 1,
+      "message": "How about:\n\n  val mdMap \u003d md.map(e \u003d\u003e (e.getKey, e.getValue)).toMap\n  mdMap(\"firewall_id\") shouldBe fwId.toString\n  mdMap(\"tenant_id\") shouldBe tenantId\n\nShould probably make tenantId an optional argument to this function, and set it in at least some of the firewalls you create.",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 62
+      },
+      "revId": "41722d938f8ba22494b48c63a39d1a3bea0ee516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
