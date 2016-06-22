@@ -25,23 +25,24 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
-import org.slf4j.LoggerFactory.getLogger
+
 import rx.Observer
 import rx.functions.Action1
 
-import org.midonet.cluster.vxgwVtepControlLog
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.models.Topology.{Port, TunnelZone}
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.services.vxgw.VtepSynchronizer.NetworkInfo
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
-import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.vxgwLog
 import org.midonet.midolman.state.MapNotification
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.VtepConstants._
 import org.midonet.util.concurrent._
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logging
 
 /** This class is used by the VtepSynchronizer when updates are detected
   * in MidoNet and need to be pushed to a VTEP.
@@ -60,10 +61,12 @@ import org.midonet.util.functors._
 class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
                             nwInfos: java.util.Map[UUID, NetworkInfo],
                             store: Storage,
-                            macRemoteConsumer: Observer[MacLocation]) {
+                            macRemoteConsumer: Observer[MacLocation])
+    extends Logging {
 
     private implicit val ec = fromExecutor(directExecutor())
-    private val log = getLogger(vxgwVtepControlLog(fromProto(nsdbVtep.getId)))
+    override def logSource = vxgwLog
+    override def logMark = s"vtep:${nsdbVtep.getId.asJava}"
 
     /** Build a handler to process changes that may need propagation from the
       * given network in MidoNet to the VTEP.

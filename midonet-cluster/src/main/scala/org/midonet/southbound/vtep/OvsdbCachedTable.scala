@@ -22,18 +22,18 @@ import java.util.concurrent.{ConcurrentHashMap, Executor}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
-import com.typesafe.scalalogging.Logger
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.operations.OperationResult
-import org.slf4j.LoggerFactory
+
 import rx.Observer
 import rx.schedulers.Schedulers
 
+import org.midonet.cluster.vxgwVtepLog
 import org.midonet.cluster.data.vtep.model.VtepEntry
-import org.midonet.southbound.vtepTableLog
 import org.midonet.southbound.vtep.OvsdbOperations.MaxBackpressureBuffer
 import org.midonet.southbound.vtep.OvsdbUtil._
 import org.midonet.southbound.vtep.schema.Table
+import org.midonet.util.logging.Logging
 
 /**
  * A local mirror of a VTEP cache
@@ -43,11 +43,12 @@ import org.midonet.southbound.vtep.schema.Table
 class OvsdbCachedTable[E <: VtepEntry](val client: OvsdbClient,
                                        val table: Table[E],
                                        val vtepExecutor: Executor,
-                                       val eventExecutor: Executor) {
+                                       val eventExecutor: Executor)
+    extends Logging {
 
+    override def logSource = vxgwVtepLog
+    override def logMark = s"ovsdb-table:${table.getSchema.getName}"
 
-    private val log = Logger(LoggerFactory.getLogger(
-        vtepTableLog(table.getSchema.getName)))
     private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
     private val vtepScheduler = Schedulers.from(vtepExecutor)
     private val filled = Promise[Boolean]()

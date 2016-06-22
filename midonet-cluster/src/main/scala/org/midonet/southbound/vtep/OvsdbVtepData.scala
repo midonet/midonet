@@ -26,19 +26,18 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-import com.typesafe.scalalogging.Logger
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.operations.OperationResult
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
-import org.slf4j.LoggerFactory
+
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber}
 
+import org.midonet.cluster.vxgwVtepLog
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.vtep.{VtepConfigException, VtepStateException}
 import org.midonet.packets.IPv4Addr
-import org.midonet.southbound.vtepLog
 import org.midonet.southbound.vtep.OvsdbOperations._
 import org.midonet.southbound.vtep.OvsdbUtil.panicAlert
 import org.midonet.southbound.vtep.OvsdbVtepData.{NamedLocatorId, NamedLocatorSetId}
@@ -46,11 +45,13 @@ import org.midonet.southbound.vtep.schema.Table.OvsdbOperation
 import org.midonet.southbound.vtep.schema._
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.makeFunc1
+import org.midonet.util.logging.Logging
 
 object OvsdbVtepData {
 
     private[vtep] final val NamedLocatorId = "locator_id"
     private[vtep] final val NamedLocatorSetId = "locator_set_id"
+    private val MaxBackpressureBuffer = 100000
 
 }
 
@@ -59,14 +60,13 @@ object OvsdbVtepData {
  */
 class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
                     val vtepExecutor: Executor, val eventExecutor: Executor)
-    extends VtepData {
+    extends VtepData with Logging {
 
-    private val endPoint = OvsdbTools.endPointFromOvsdbClient(client)
+    override def logSource = vxgwVtepLog
+    override def logMark = s"vtep:${endPoint.mgmtIp}:${endPoint.mgmtPort}"
 
-    private val MaxBackpressureBuffer = 100000
+    private lazy val endPoint = OvsdbTools.endPointFromOvsdbClient(client)
 
-    private val log =
-        Logger(LoggerFactory.getLogger(vtepLog(endPoint.mgmtIp, endPoint.mgmtPort)))
     private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
     private val vtepScheduler = Schedulers.from(vtepExecutor)
 

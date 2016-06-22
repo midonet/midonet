@@ -26,10 +26,6 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
-import com.typesafe.scalalogging.Logger
-
-import org.slf4j.LoggerFactory.getLogger
-
 import rx.functions.Action1
 import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
@@ -47,7 +43,8 @@ import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.{DataClient, vxgwVtepControlLog}
+import org.midonet.cluster.DataClient
+import org.midonet.cluster.vxgwLog
 import org.midonet.midolman.state._
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.ConnectionState._
@@ -55,6 +52,7 @@ import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logging
 import org.midonet.util.reactivex._
 
 object VtepSynchronizer {
@@ -94,9 +92,10 @@ class VtepSynchronizer(vtepId: UUID,
                        // abstracting ReplicatedMaps from DataClient
                        fpHerald: FloodingProxyHerald,
                        ovsdbProvider: (IPv4Addr, Int) => OvsdbVtepDataClient)
-    extends Subscriber[NsdbVtep] {
+    extends Subscriber[NsdbVtep] with Logging {
 
-    private val log = Logger(getLogger(vxgwVtepControlLog(vtepId)))
+    override def logSource = vxgwLog
+    override def logMark = s"vtep:$vtepId"
     private implicit val ec = VtepSynchronizer.ec
 
     // The latest known VTEP instance, in the NSDB.  This variable is always

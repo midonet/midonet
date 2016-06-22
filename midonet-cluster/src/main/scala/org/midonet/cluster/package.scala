@@ -16,8 +16,6 @@
 
 package org.midonet
 
-import java.util.UUID
-
 package object cluster {
 
     final val clusterLog = "org.midonet.cluster"
@@ -61,9 +59,6 @@ package object cluster {
         "org.midonet.cluster.services.topology-api.server-protocol-factory"
 
     final val vxgwLog = "org.midonet.cluster.services.vxgw"
-    def vxgwVtepControlLog(vtepId: UUID): String =
-        s"org.midonet.cluster.services.vxgw.vxgw-vtep-$vtepId"
-    def vxgwMidonetLog(networkId: UUID): String =
-        s"org.midonet.cluster.services.vxgw.vxgw-midonet-$networkId"
+    final val vxgwVtepLog = "org.midonet.cluster.services.vxgw.vtep"
 
 }
