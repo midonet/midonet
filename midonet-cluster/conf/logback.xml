@@ -22,7 +22,7 @@
         <file>${midonet-cluster.log.dir}midonet-cluster.log</file>
         <append>true</append>
         <encoder>
-            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-4level [%thread] %logger{0} %m%n%rEx</pattern>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-4level [%thread] %logger{0} %marker%m%n%rEx</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${midonet-cluster.log.dir}midonet-cluster.%d{yyyy-MM-dd}.log</fileNamePattern>
