@@ -25,7 +25,7 @@ import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListener}
 import org.apache.zookeeper.KeeperException.{Code, NoNodeException}
 import org.apache.zookeeper.{WatchedEvent, Watcher}
-import org.slf4j.LoggerFactory.getLogger
+
 import rx.Observable.OnSubscribe
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
@@ -35,6 +35,7 @@ import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
 import org.midonet.cluster.util.NodeObservable.State
 import org.midonet.cluster.util.NodeObservable.State.State
 import org.midonet.util.functors.makeAction0
+import org.midonet.util.logging.Logging
 
 object NodeObservable {
 
@@ -83,9 +84,10 @@ private[util]
 class OnSubscribeToNode(curator: CuratorFramework, path: String,
                         onClose: => Unit, completeOnDelete: Boolean,
                         metrics: ZoomMetrics)
-    extends OnSubscribe[ChildData] {
+    extends OnSubscribe[ChildData] with Logging {
 
-    private val log = getLogger(s"org.midonet.cluster.zk-node-[$path]")
+    override def logSource = "org.midonet.nsdb.nsdb-node"
+    override def logMark = s"node:$path"
 
     final val none = new ChildData(path, null, null)
 

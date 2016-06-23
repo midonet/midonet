@@ -60,7 +60,7 @@ private[util]
 class OnSubscribeToConnection(curator: CuratorFramework)
     extends OnSubscribe[ConnectionState] {
 
-    private val log = getLogger(s"org.midonet.nsdb.zk-connection-state")
+    private val log = getLogger(s"org.midonet.nsdb.nsdb-connection")
 
     private val state = new AtomicReference[State](State.Stopped)
     private val subject = BehaviorSubject.create[ConnectionState]
