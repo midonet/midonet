@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_eec0ba2c",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/package.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-23T10:34:07Z",
+      "side": 1,
+      "message": "does this need to be closed? i.e. does it hold any resources?",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 85
+      },
+      "revId": "c428084a3519552ce671cbb583bb8b4f0a754b46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
