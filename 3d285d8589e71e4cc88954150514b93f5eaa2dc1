@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6e138a0e",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-23T10:25:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8b0b607d",
+      "range": {
+        "startLine": 435,
+        "startChar": 30,
+        "endLine": 435,
+        "endChar": 33
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6b101ca9",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-23T08:52:30Z",
       "side": 1,
       "message": "It\u0027d be better to have this in /var/db/midolman/ or /var/cache/midolman",
+      "range": {
+        "startLine": 440,
+        "startChar": 29,
+        "endLine": 440,
+        "endChar": 38
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0e03deb9",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-23T10:25:59Z",
+      "side": 1,
+      "message": "Changed on the packaging, now pointing to /var/db/midolman",
+      "parentUuid": "baa041b7_6b101ca9",
       "range": {
         "startLine": 440,
         "startChar": 29,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4e72067e",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateBlockHeader.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-23T10:25:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_eb1c2cc3",
+      "range": {
+        "startLine": 75,
+        "startChar": 42,
+        "endLine": 75,
+        "endChar": 47
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_cb7848fb",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateBlockHeader.scala",
         "patchSetId": 11
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6e5caaed",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateBlockHeader.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-23T10:25:59Z",
+      "side": 1,
+      "message": "When scanning/reading through the file after the reboot, we need the last block to point to the end of the block so we don\u0027t overwrite valid flow state when writing again to it. That\u0027s the reason for the init/reset duality. Maybe not the best naming.",
+      "parentUuid": "baa041b7_cb7848fb",
+      "range": {
+        "startLine": 83,
+        "startChar": 28,
+        "endLine": 83,
+        "endChar": 59
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_cbbba874",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateReader.scala",
         "patchSetId": 11
@@ -105,6 +201,30 @@
       "writtenOn": "2016-06-23T08:52:30Z",
       "side": 1,
       "message": "Would an observable make more sense here?",
+      "range": {
+        "startLine": 86,
+        "startChar": 16,
+        "endLine": 86,
+        "endChar": 22
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2ecb4274",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateReader.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-23T10:25:59Z",
+      "side": 1,
+      "message": "This method is called proactively (only after reboot and on port migration) not reactively. Not sure the benefit of being an observable.",
+      "parentUuid": "baa041b7_cbbba874",
       "range": {
         "startLine": 86,
         "startChar": 16,
