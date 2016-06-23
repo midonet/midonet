@@ -48,7 +48,7 @@ trait TimedBlockInvalidator[T <: TimedBlockHeader] { this: ByteBufferBlockWriter
             val bb = buffers.take().get
             // Reset the block to initial values to prepare them for reuse
             // and not confuse as a valid block when reading it.
-            blockBuilder.init(bb, reset = true)
+            blockBuilder.reset(bb)
         }
         numBlocks - buffers.length
     }

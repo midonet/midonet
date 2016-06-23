@@ -3,9 +3,10 @@
 NAME="midolman"
 LOGDIR=/var/log/$NAME
 DATADIR=/var/lib/$NAME
+DBDIR=/var/db/$NAME
 POST_DIR=/var/lib/dpkg/info
 
-install -d $LOGDIR $DATADIR
+install -d $LOGDIR $DATADIR $DBDIR
 
 mkdir -p /var/log/$NAME/minions
 

@@ -29,6 +29,10 @@ if [ -z "$MIDO_LOG_DIR" ]; then
     MIDO_LOG_DIR=/var/log/midolman/
 fi
 
+if [ -z "$MIDO_DB_DIR" ]; then
+    MIDO_DB_DIR=/var/db/midolman/
+fi
+
 if [ -z "$MIDO_JMX_PORT" ]; then
     JMX_PORT="7202"
 fi
@@ -68,7 +72,9 @@ JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 
 set -x
 
-JAVA_OPTS="$JVM_OPTS -Dminions.log.dir=$MIDO_LOG_DIR -Dlogback.configurationFile=$MIDO_CFG/logback-minions.xml"
+JAVA_OPTS="$JVM_OPTS -Dminions.log.dir=$MIDO_LOG_DIR \
+                     -Dminions.db.dir=$MIDO_DB_DIR \
+                     -Dlogback.configurationFile=$MIDO_CFG/logback-minions.xml"
 
 exec $JAVA $JAVA_LIBRARY_PATH \
             -cp $MIDO_JAR \

@@ -16,18 +16,37 @@
 
 package org.midonet.services.flowstate.stream
 
-import java.io.{Closeable, Flushable}
+import java.io._
+import java.nio.ByteBuffer
 import java.util.UUID
 
+import com.google.common.annotations.VisibleForTesting
+
 import org.midonet.midolman.config.FlowStateConfig
-import org.midonet.packets.SbeEncoder
+import org.midonet.packets.{FlowStateEthernet, SbeEncoder}
+import org.midonet.services.flowstate.stream.snappy.SnappyBlockWriter
+import org.midonet.util.Clearable
+import org.midonet.util.collection.RingBufferWithFactory
+import org.midonet.util.io.stream._
 
 object FlowStateWriter {
 
-    def apply(config: FlowStateConfig, portId: UUID): FlowStateWriter = {
-        ???
+    @VisibleForTesting
+    private[flowstate] def apply(config: FlowStateConfig,
+                                 buffers: RingBufferWithFactory[ByteBuffer])
+    : FlowStateWriter = {
+        val blockWriter = new ByteBufferBlockWriter(FlowStateBlock,
+                                                    buffers,
+                                                    config.expirationTime toNanos)
+        val snappyWriter = new SnappyBlockWriter(blockWriter, config.blockSize)
+        new FlowStateWriterImpl(config, snappyWriter)
     }
 
+    def apply(config: FlowStateConfig, portId: UUID): FlowStateWriter = {
+        val blockWriter = ByteBufferBlockWriter(config, portId)
+        val snappyWriter = new SnappyBlockWriter(blockWriter, config.blockSize)
+        new FlowStateWriterImpl(config, snappyWriter)
+    }
 }
 
 /**
@@ -35,12 +54,51 @@ object FlowStateWriter {
   * should have its own output stream. Use the [[FlowStateWriter#apply]]
   * constructors to create an output stream for a given port.
   */
-trait FlowStateWriter extends Closeable with Flushable {
+trait FlowStateWriter extends Closeable with Flushable with Clearable {
 
     /**
       * Write the flow state message encoded by the 'encoder' into the
       * data stream.
       */
     def write(encoder: SbeEncoder): Unit
+}
 
+protected[flowstate] class FlowStateWriterImpl(val config: FlowStateConfig,
+                                               val out: SnappyBlockWriter)
+    extends FlowStateWriter {
+
+    private[flowstate] val buff =
+        ByteBuffer.allocate(LengthSize +
+                            FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
+
+    def write(encoder: SbeEncoder): Unit = {
+        val msgSize = encoder.encodedLength()
+        buff.clear()
+        buff.putInt(msgSize)
+        buff.put(encoder.flowStateBuffer.array(), 0, msgSize)
+        out.write(buff.array(), 0, LengthSize + msgSize)
+    }
+
+    /**
+      * Refer to [[Flushable#flush]]
+      */
+    override def flush(): Unit = out.flush()
+
+
+    /**
+      * Closes this stream without freeing any resource used and leaves
+      * it ready for reading from it. This method flushes any buffered data.
+      */
+    @throws[IllegalStateException]
+    override def close(): Unit = {
+        out.close()
+    }
+
+    /**
+      * Closes and clears any resource used by the underlying block writer.
+      */
+    override def clear(): Unit = {
+        close()
+        out.clear()
+    }
 }

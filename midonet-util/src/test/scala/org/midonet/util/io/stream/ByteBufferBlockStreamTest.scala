@@ -67,15 +67,19 @@ class ByteBufferBlockStreamTest extends FeatureSpec
 
         override val headerSize: Int = 4 + 8 // length + timestamps
 
-        override def init(buffer: ByteBuffer, reset: Boolean): Unit = {
+        override def init(buffer: ByteBuffer): Unit = {
             val header = TestTimedBlockBuilder(buffer)
-            if (reset || !header.isValid) {
-                buffer.putInt(LengthOffset, 0)
-                buffer.putLong(LastTimeOffset, currentTime)
-                buffer.position(headerSize)
+            if (!header.isValid) {
+                reset(buffer)
             } else {
                 buffer.position(header.blockLength + headerSize)
             }
+        }
+
+        override def reset(buffer: ByteBuffer): Unit = {
+            buffer.putInt(LengthOffset, 0)
+            buffer.putLong(LastTimeOffset, currentTime)
+            buffer.position(headerSize)
         }
 
         override def update(buffer: ByteBuffer, params: AnyVal*): Unit = {
