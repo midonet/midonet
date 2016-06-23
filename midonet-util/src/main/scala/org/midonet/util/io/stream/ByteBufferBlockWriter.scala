@@ -101,7 +101,7 @@ class ByteBufferBlockWriter[H <: TimedBlockHeader]
     /** Allocates a new block from buffer pool and updates the output stream. */
     private def allocateNewBlock(): ByteBuffer = {
         if (buffers.isFull) {
-            log.warn("Ring buffer is full. Releasing the older byte buffer as " +
+            Log.warn("Ring buffer is full. Releasing the older byte buffer as " +
                      "it contains older flow state, potentially stale. This " +
                      "is an indication that the rate of flow state " +
                      "generation is too high for the allocated file. Try " +

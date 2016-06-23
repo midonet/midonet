@@ -22,8 +22,7 @@ import org.slf4j.LoggerFactory
 
 package object stream {
 
-    val log = Logger(
-        LoggerFactory.getLogger("org.midonet.util.io.stream.bytebuffer-blockIO"))
+    val Log = Logger(LoggerFactory.getLogger("org.midonet.io.stream"))
 
 }
 

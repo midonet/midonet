@@ -22,13 +22,10 @@ import java.nio.ByteBuffer
 import scala.concurrent.duration.Duration
 import scala.util.Random
 
-import com.typesafe.scalalogging.Logger
-
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.{Seconds, Span}
-import org.slf4j.LoggerFactory
 
 import org.midonet.util.MidonetEventually
 import org.midonet.util.collection.RingBufferWithFactory
@@ -39,9 +36,6 @@ class ByteBufferBlockStreamTest extends FeatureSpec
                                         with BeforeAndAfter
                                         with GivenWhenThen
                                         with MidonetEventually {
-
-    val log = Logger(LoggerFactory.getLogger(
-        "org.midonet.util.io.stream.bytebuffer-blockstream"))
 
     val blockSize: Int = 10
     val poolSize: Int = 10
