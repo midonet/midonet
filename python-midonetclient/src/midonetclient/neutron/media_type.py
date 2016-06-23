@@ -78,3 +78,11 @@ TAP_FLOW = ("application/vnd.org.midonet.neutron.TapFlow-v1+json")
 TAP_FLOWS = ("application/vnd.org.midonet.neutron.TapFlows-v1+json")
 TAP_SERVICE = ("application/vnd.org.midonet.neutron.TapService-v1+json")
 TAP_SERVICES = ("application/vnd.org.midonet.neutron.TapServices-v1+json")
+
+# FWaaS Logging
+FIREWALL_LOG = ("application/vnd.org.midonet.neutron.FirewallLog-v1+json")
+FIREWALL_LOGS = ("application/vnd.org.midonet.neutron.FirewallLogs-v1+json")
+LOGGING_RESOURCE = ("application/vnd.org.midonet.neutron"
+                    ".LoggingResource-v1+json")
+LOGGING_RESOURCES = ("application/vnd.org.midonet.neutron"
+                     ".LoggingResources-v1+json")
