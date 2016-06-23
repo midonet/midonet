@@ -151,7 +151,7 @@ class StateTableSubscriberList {
             val subscriber = oldState.get(key)
             if (subscriber ne null) {
                 if (newSubscriber ne null) {
-                    deleter(subscriber)
+                    deleter(newSubscriber)
                 }
                 onExisting(subscriber)
                 return subscriber
