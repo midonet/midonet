@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_64b849e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-23T16:40:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e4e33932",
+      "range": {
+        "startLine": 377,
+        "startChar": 4,
+        "endLine": 378,
+        "endChar": 64
+      },
+      "revId": "04b856c5ff1d3ebf5d3731b74ce3f07e59f16f77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_24da4179",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-23T14:38:22Z",
       "side": 1,
       "message": "Remove parentheses. Also see next comments on returning the MidonetServiceHostAndPort. Anyway is this method needed now? If not, just remove.",
+      "range": {
+        "startLine": 440,
+        "startChar": 47,
+        "endLine": 440,
+        "endChar": 49
+      },
+      "revId": "04b856c5ff1d3ebf5d3731b74ce3f07e59f16f77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_84b34d0a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-23T16:40:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_24da4179",
       "range": {
         "startLine": 440,
         "startChar": 47,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5f806e46",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-23T16:40:36Z",
+      "side": 1,
+      "message": "Ok. I\u0027ve converted it to an Option",
+      "parentUuid": "baa041b7_44dd456f",
+      "range": {
+        "startLine": 192,
+        "startChar": 29,
+        "endLine": 192,
+        "endChar": 45
+      },
+      "revId": "04b856c5ff1d3ebf5d3731b74ce3f07e59f16f77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_44966595",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bf81ba4f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-23T16:40:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_44966595",
+      "range": {
+        "startLine": 207,
+        "startChar": 45,
+        "endLine": 207,
+        "endChar": 58
+      },
+      "revId": "04b856c5ff1d3ebf5d3731b74ce3f07e59f16f77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a4ed3127",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2016-06-23T14:38:22Z",
       "side": 1,
       "message": "Maybe for a later patch, but we\u0027d have to add a retry loop if the service discovery finds no cluster nodes, e.g. all are down (in which case the line below will throw a NPE).",
+      "range": {
+        "startLine": 208,
+        "startChar": 7,
+        "endLine": 208,
+        "endChar": 55
+      },
+      "revId": "04b856c5ff1d3ebf5d3731b74ce3f07e59f16f77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1fac26ec",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-23T16:40:36Z",
+      "side": 1,
+      "message": "Done. For now I used the same retry mechanism that\u0027s already implemented.",
+      "parentUuid": "baa041b7_a4ed3127",
       "range": {
         "startLine": 208,
         "startChar": 7,
