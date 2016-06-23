@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory
 
 import rx.Observer
 
+import org.midonet.cluster.services.discovery.MidonetServiceHostAndPort
+
 /**
   * The PersistentConnection abstract class will maintain a persistent
   * connection to a remote server by means of the [[Connection]] class.
@@ -43,8 +45,6 @@ import rx.Observer
   * Type parameters S and R stand for Send and Receive types, respectively. See
   * [[Connection]].
   *
-  * @param host the remote server host
-  * @param port the remote port to connect to
   * @param executor ScheduledExecutorService used to schedule reconnects
   * @param retryTimeout the time to wait between reconnect attempts.
   *                     The default is 3 seconds.
@@ -64,8 +64,6 @@ import rx.Observer
   */
 abstract class PersistentConnection[S <: Message, R <: Message]
                                    (name: String,
-                                    host: String,
-                                    port: Int,
                                     executor: ScheduledExecutorService,
                                     retryTimeout: FiniteDuration
                                         = PersistentConnection.DefaultRetryDelay)
@@ -82,6 +80,8 @@ abstract class PersistentConnection[S <: Message, R <: Message]
     private val log = Logger(LoggerFactory.getLogger("PersistentConnection"))
     private val state = new AtomicReference(Init : State)
 
+    private var currentAddress: Option[MidonetServiceHostAndPort] = None
+
     def isConnected: Boolean = cond(state.get) { case Connected(_) => true }
     def isConnecting: Boolean = cond(state.get) {
         case AwaitingReconnect | Connecting => true
@@ -93,6 +93,14 @@ abstract class PersistentConnection[S <: Message, R <: Message]
       * @return The prototype message
       */
     protected def getMessagePrototype: R
+
+    /** This method allows to provide the target host and port to connect to.
+      * Will be called on every connect() so different values can be returned
+      * i.e. from service discovery
+      *
+      * @return host and port
+      */
+    protected def getRemoteAddress: Option[MidonetServiceHostAndPort]
 
     /**
       * Implement this method to add custom behavior when the connection
@@ -110,8 +118,8 @@ abstract class PersistentConnection[S <: Message, R <: Message]
       * Initiates the connection to the remote server. It will retry
       * indefinitely until successful
       *
-      * @throws StoppedException
-      * @throws AlreadyStartedException
+      * @throws StoppedException When already stopped
+      * @throws AlreadyStartedException When already started
       */
     @throws[StoppedException]
     @throws[AlreadyStartedException]
@@ -183,20 +191,31 @@ abstract class PersistentConnection[S <: Message, R <: Message]
         log.info(s"$this connecting")
 
         if (state.compareAndSet(AwaitingReconnect, Connecting)) {
-            val connection = new ConnectionType(host,
-                                                port,
-                                                this,
-                                                getMessagePrototype)
-            connection.connect() onComplete {
-                case Success(_)   =>
-                    if (state.compareAndSet(Connecting, Connected(connection))) {
-                        log.info(s"$this connection established")
-                        onConnect()
-                    } else {
-                        connection.close()
+            currentAddress = getRemoteAddress
+            currentAddress match {
+
+                case Some(address) =>
+                    val connection = new ConnectionType(address.address,
+                                                        address.port,
+                                                        this,
+                                                        getMessagePrototype)
+                    connection.connect() onComplete {
+                        case Success(_) =>
+                            if (state.compareAndSet(Connecting,
+                                                    Connected(connection))) {
+                                log.info(s"$this connection established")
+                                onConnect()
+                            } else {
+                                connection.close()
+                            }
+                        case Failure(err) => delayedStart(Connecting)
                     }
-                case Failure(err) => delayedStart(Connecting)
+
+                case None =>
+                    log error s"$this - no address available from discovery"
+                    delayedStart(Connecting)
             }
+
         } else {
             state.get match {
                 case Dead => throw new StoppedException(toString)
@@ -222,7 +241,14 @@ abstract class PersistentConnection[S <: Message, R <: Message]
         }
     }
 
-    override def toString: String = s"[$name to $host:$port]"
+    override def toString: String = {
+        if (currentAddress.isDefined) {
+            val addr = currentAddress.get
+            s"[$name to ${addr.address}:${addr.port}]"
+        } else {
+            s"[$name]"
+        }
+    }
 }
 
 object PersistentConnection {
