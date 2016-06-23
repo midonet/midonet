@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_ebc42c60",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-23T08:07:37Z",
+      "side": 1,
+      "message": "This is only used in tests right?",
+      "range": {
+        "startLine": 70,
+        "startChar": 8,
+        "endLine": 70,
+        "endChar": 19
+      },
+      "revId": "f4db196119d970cb113577c09d2863237f0cc43b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
