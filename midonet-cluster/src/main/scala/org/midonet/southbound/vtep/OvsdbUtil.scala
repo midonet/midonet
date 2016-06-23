@@ -17,17 +17,16 @@
 package org.midonet.southbound.vtep
 
 import java.lang.{Long => JLong}
-import java.util.{HashMap => JHashMap, HashSet => JHashSet, Set => JSet, Map => JMap}
+import java.util.{HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet}
 import java.util.UUID
 
 import scala.collection.JavaConverters._
-
-import com.typesafe.scalalogging.Logger
 
 import org.opendaylight.ovsdb.lib.notation.{UUID => OvsdbUUID}
 
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.makeAction0
+import org.midonet.util.logging.Logger
 
 /**
  * Type translations to and from ovsdb-specific data models

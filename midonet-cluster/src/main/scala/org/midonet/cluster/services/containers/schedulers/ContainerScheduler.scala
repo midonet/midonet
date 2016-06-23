@@ -28,28 +28,26 @@ import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.TextFormat
-import com.typesafe.scalalogging.Logger
-
-import org.slf4j.LoggerFactory
 
 import rx.Observable.{OnSubscribe, Operator}
 import rx.exceptions.Exceptions
 import rx.internal.producers.ProducerArbiter
 import rx.plugins.RxJavaPlugins
 import rx.subjects.{BehaviorSubject, PublishSubject}
-import rx.subscriptions.{Subscriptions, SerialSubscription}
+import rx.subscriptions.{SerialSubscription, Subscriptions}
 import rx.{Observable, Producer, Subscriber, Subscription}
 
 import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.cluster.models.Topology.{ServiceContainerPolicy, Port, ServiceContainer, ServiceContainerGroup}
+import org.midonet.cluster.models.Topology.{Port, ServiceContainer, ServiceContainerGroup, ServiceContainerPolicy}
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.containers.schedulers.ContainerScheduler._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.{ContainersConfig, containerLog}
+import org.midonet.cluster.{ContainersConfig, containersLog}
 import org.midonet.containers.{Context, ObjectTracker}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc5}
+import org.midonet.util.logging.Logging
 
 object ContainerScheduler {
 
@@ -154,9 +152,11 @@ object ContainerScheduler {
 class ContainerScheduler(containerId: UUID, context: Context,
                          config: ContainersConfig,
                          selectorProvider: HostSelectorProvider)
-    extends ObjectTracker[SchedulerEvent] {
+    extends ObjectTracker[SchedulerEvent] with Logging {
 
-    private val log = Logger(LoggerFactory.getLogger(containerLog(containerId)))
+    override def logSource = containersLog
+    override def logMark = s"container:$containerId"
+
     private val random = new Random()
 
     private val subscribed = new AtomicBoolean(false)
