@@ -141,7 +141,7 @@ class ReplicatedMapStateTableTest extends FlatSpec with GivenWhenThen
         table.getLocalByValue("value0") shouldBe Set.empty
 
         When("Removing the learned value")
-        table.remove("key0")
+        eventually { table.remove("key0") should not be null }
 
         Then("Eventually the snapshot should not contain the value")
         eventually { table.localSnapshot shouldBe empty }
