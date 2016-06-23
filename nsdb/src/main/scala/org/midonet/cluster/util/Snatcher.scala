@@ -21,11 +21,11 @@ import java.util.UUID
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
 
-import org.slf4j.LoggerFactory
 import rx.Observer
 import rx.subscriptions.CompositeSubscription
 
 import org.midonet.cluster.data.storage._
+import org.midonet.util.logging.Logging
 import org.midonet.util.reactivex._
 
 
@@ -65,9 +65,11 @@ sealed class Snatcher[D](val targetId: UUID,
                          stateKey: String,
                          onSnatched: () => Unit,
                          onLost: () => Unit)(implicit ct: ClassTag[D])
-    extends Observer[StateKey] {
+    extends Observer[StateKey] with Logging {
 
-    private val log = LoggerFactory.getLogger(s"org.midonet.cluster.snatcher-$nodeId")
+    override def logSource = "org.midonet.cluster.snatcher"
+    override def logMark = s"node:$nodeId"
+
     private val typeName = ct.runtimeClass.getSimpleName
 
     private val sub = new CompositeSubscription()

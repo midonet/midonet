@@ -21,22 +21,22 @@ import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.api.{CuratorEvent, BackgroundCallback}
+import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent}
 import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListener}
 import org.apache.zookeeper.KeeperException.Code
 import org.apache.zookeeper.Watcher.Event.EventType.NodeChildrenChanged
 import org.apache.zookeeper.{WatchedEvent, Watcher}
-import org.slf4j.LoggerFactory.getLogger
 
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
-import rx.{Subscriber, Observable}
+import rx.{Observable, Subscriber}
 import rx.Observable.OnSubscribe
 
 import org.midonet.cluster.data.storage.StorageMetrics
 import org.midonet.cluster.util.PathDirectoryObservable.State
 import org.midonet.cluster.util.PathDirectoryObservable.State.State
 import org.midonet.util.functors.makeAction0
+import org.midonet.util.logging.Logging
 
 object PathDirectoryObservable {
 
@@ -89,9 +89,10 @@ private[util]
 class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
                              onClose: => Unit, completeOnDelete: Boolean,
                              metrics: StorageMetrics)
-    extends OnSubscribe[Set[String]] {
+    extends OnSubscribe[Set[String]] with Logging {
 
-    private val log = getLogger(s"org.midonet.cluster.zk-directory-[$path]")
+    override def logSource = "org.midonet.nsdb.nsdb-directory"
+    override def logMark = s"node:$path"
 
     final val none = Set.empty[String]
 
@@ -205,7 +206,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
             log.debug("Connection lost")
             close(new DirectoryObservableDisconnectedException(path))
         } else {
-            log.error("Check node existence failed with {}", event.getResultCode)
+            log.error(s"Check node existence failed with ${event.getResultCode}")
             close(new DirectoryObservableDisconnectedException(path))
         }
     }
@@ -231,7 +232,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
             log.debug("Connection lost")
             close(new DirectoryObservableDisconnectedException(path))
         } else  {
-            log.error("Get children failed with {} ", event.getResultCode)
+            log.error(s"Get children failed with ${event.getResultCode}")
             close(new DirectoryObservableDisconnectedException(path))
         }
     }
