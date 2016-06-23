@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4bcaf850",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-23T08:27:00Z",
+      "side": 1,
+      "message": "Shouldn\u0027t you override logMark from MidolmanLogging here?",
+      "range": {
+        "startLine": 144,
+        "startChar": 66,
+        "endLine": 144,
+        "endChar": 69
+      },
+      "revId": "5488415165780b72e583a501942adfb2bd05a6a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ebc0ac2c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/MidolmanLogging.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-23T08:27:00Z",
+      "side": 1,
+      "message": "I wouldn\u0027t set to null and force all extending classing to override this? Not sure how it\u0027s being used though.",
+      "range": {
+        "startLine": 24,
+        "startChar": 26,
+        "endLine": 24,
+        "endChar": 30
+      },
+      "revId": "5488415165780b72e583a501942adfb2bd05a6a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
