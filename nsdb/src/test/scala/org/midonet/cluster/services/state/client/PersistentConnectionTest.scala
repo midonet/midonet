@@ -59,8 +59,6 @@ class PersistentConnectionTest  extends FeatureSpec
     class TestConnection(port: Int)
         extends PersistentConnection[ProxyRequest, ProxyResponse](
             "Test Connection",
-            "localhost",
-            port,
             executor,
             reconnectTimeout) {
 
@@ -70,6 +68,8 @@ class PersistentConnectionTest  extends FeatureSpec
 
         override protected def getMessagePrototype = ProxyResponse
             .getDefaultInstance
+
+        override protected def getRemoteAddress = ("localhost", port)
 
         override protected def onNext(msg: ProxyResponse): Unit = {
             numMessages += 1

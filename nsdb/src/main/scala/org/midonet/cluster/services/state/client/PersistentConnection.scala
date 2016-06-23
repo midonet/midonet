@@ -43,8 +43,6 @@ import rx.Observer
   * Type parameters S and R stand for Send and Receive types, respectively. See
   * [[Connection]].
   *
-  * @param host the remote server host
-  * @param port the remote port to connect to
   * @param executor ScheduledExecutorService used to schedule reconnects
   * @param retryTimeout the time to wait between reconnect attempts.
   *                     The default is 3 seconds.
@@ -64,8 +62,6 @@ import rx.Observer
   */
 abstract class PersistentConnection[S <: Message, R <: Message]
                                    (name: String,
-                                    host: String,
-                                    port: Int,
                                     executor: ScheduledExecutorService,
                                     retryTimeout: FiniteDuration
                                         = PersistentConnection.DefaultRetryDelay)
@@ -82,6 +78,8 @@ abstract class PersistentConnection[S <: Message, R <: Message]
     private val log = Logger(LoggerFactory.getLogger("PersistentConnection"))
     private val state = new AtomicReference(Init : State)
 
+    private var currentAddress: (String, Int) = null
+
     def isConnected: Boolean = cond(state.get) { case Connected(_) => true }
     def isConnecting: Boolean = cond(state.get) {
         case AwaitingReconnect | Connecting => true
@@ -93,6 +91,14 @@ abstract class PersistentConnection[S <: Message, R <: Message]
       * @return The prototype message
       */
     protected def getMessagePrototype: R
+
+    /** This method allows to provide the target host and port to connect to.
+      * Will be called on every connect() so different values can be returned
+      * i.e. from service discovery
+      *
+      * @return a pair of host and port
+      */
+    protected def getRemoteAddress: (String,Int)
 
     /**
       * Implement this method to add custom behavior when the connection
@@ -183,8 +189,9 @@ abstract class PersistentConnection[S <: Message, R <: Message]
         log.info(s"$this connecting")
 
         if (state.compareAndSet(AwaitingReconnect, Connecting)) {
-            val connection = new ConnectionType(host,
-                                                port,
+            currentAddress = getRemoteAddress
+            val connection = new ConnectionType(currentAddress._1,
+                                                currentAddress._2,
                                                 this,
                                                 getMessagePrototype)
             connection.connect() onComplete {
@@ -222,7 +229,14 @@ abstract class PersistentConnection[S <: Message, R <: Message]
         }
     }
 
-    override def toString: String = s"[$name to $host:$port]"
+    override def toString: String = {
+        val addr = currentAddress
+        if (addr != null) {
+            s"[$name to ${addr._1}:${addr._2}]"
+        } else {
+            s"[$name]"
+        }
+    }
 }
 
 object PersistentConnection {

@@ -16,7 +16,6 @@
 
 package org.midonet.cluster.services
 
-import java.net.URI
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 
@@ -42,7 +41,8 @@ import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
-import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryClient, MidonetDiscoveryImpl, MidonetServiceURI}
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryClient, MidonetDiscoveryImpl, MidonetServiceHostAndPort}
+import org.midonet.cluster.services.state.StateProxyService
 import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
 import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.conf.HostIdGenerator
@@ -375,7 +375,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
     private var discoveryServiceExecutor: ExecutorService = null
     private var discoveryService: MidonetDiscovery = null
     private var stateProxyDiscoveryClient:
-        MidonetDiscoveryClient[MidonetServiceURI] = null
+        MidonetDiscoveryClient[MidonetServiceHostAndPort] = null
 
     override val reactor = new TryCatchReactor("nsdb", 1)
     override val connection = new CuratorZkConnection(curator, reactor)
@@ -410,7 +410,8 @@ class MidonetBackendService(config: MidonetBackendConfig,
                                                         discoveryServiceExecutor,
                                                         config)
             stateProxyDiscoveryClient =
-                discoveryService.getClient[MidonetServiceURI]("stateProxy")
+                discoveryService.getClient[MidonetServiceHostAndPort](
+                    StateProxyService.Name)
 
             notifyStarted()
             log.info("Setting up storage bindings")
@@ -436,9 +437,10 @@ class MidonetBackendService(config: MidonetBackendConfig,
         discoveryServiceExecutor.shutdown()
     }
 
-    private def getStateProxyServiceInstanceUri(): URI = {
+    private def getStateProxyServiceHostAndPort(): (String,Int) = {
         if(isRunning) {
-            stateProxyDiscoveryClient.instances.get(0).uri
+            val instance = stateProxyDiscoveryClient.instances.head
+            (instance.address, instance.port)
         } else {
             throw new IllegalStateException("The service is not running")
         }
