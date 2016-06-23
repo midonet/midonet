@@ -40,7 +40,8 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 final class PoolMapper(poolId: UUID, vt: VirtualTopology)
     extends VirtualDeviceMapper(classOf[SimulationPool], poolId, vt) {
 
-    override def logSource = s"org.midonet.devices.pool.pool-$poolId"
+    override def logSource = "org.midonet.devices.pool"
+    override def logMark = s"pool:$poolId"
 
     private var pool: TopologyPool = null
     private var memberIds: Seq[UUID] = null

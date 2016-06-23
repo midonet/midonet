@@ -50,7 +50,7 @@ import org.midonet.util.reactivex._
  * create a single instance of the class, with references to the cluster/storage
  * and the agent actor system.
  */
-object VirtualTopology extends MidolmanLogging {
+object VirtualTopology {
     trait Device
 
     trait VirtualDevice extends Device {

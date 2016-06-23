@@ -135,7 +135,8 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
                         traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]])
     extends VirtualDeviceMapper(classOf[SimChain], chainId, vt) with MidolmanLogging {
 
-    override def logSource = s"org.midonet.devices.chain.chain-$chainId"
+    override def logSource = "org.midonet.devices.chain"
+    override def logMark = s"chain:$chainId"
 
     private var chainProto: TopologyChain = TopologyChain.newBuilder.build()
     private val refTracker = new ObjectReferenceTracker(vt, classOf[SimChain], log)

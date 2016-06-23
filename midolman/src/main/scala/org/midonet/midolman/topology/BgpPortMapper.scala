@@ -87,7 +87,8 @@ object BgpPortMapper {
 final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
     extends OnSubscribe[devices.BgpPort] with MidolmanLogging {
 
-    override def logSource = s"org.midonet.routing.bgp.bgp-port-$portId"
+    override def logSource = "org.midonet.routing.bgp"
+    override def logMark = s"port:$portId"
 
     private val key = Key(classOf[devices.BgpPort], portId)
     private val state = new AtomicReference(MapperState.Unsubscribed)
