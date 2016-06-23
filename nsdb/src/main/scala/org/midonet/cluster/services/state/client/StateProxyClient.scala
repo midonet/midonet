@@ -33,6 +33,8 @@ import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHostAndPort}
+import org.midonet.cluster.services.state.StateProxyService
 import org.midonet.util.UnixClock
 import org.midonet.util.functors.makeAction0
 
@@ -42,6 +44,8 @@ import org.midonet.util.functors.makeAction0
   * transparently so the callers only need to subscribe once.
   *
   * @param settings                    the configuration for the running service
+  * @param discoveryService            a MidonetDiscovery instance that will be
+  *                                    used for service discovery
   * @param executor                    a scheduled, single thread executor used
   *                                    to send subscription messages to the
   *                                    remote server and  schedule reconnection
@@ -58,14 +62,13 @@ import org.midonet.util.functors.makeAction0
   * Call [[stop()]] to stop the service and terminate all observables
   */
 class StateProxyClient(settings: StateProxyClientSettings,
+                       discoveryService: MidonetDiscovery,
                        executor: ScheduledExecutorService)
                       (implicit ec: ExecutionContext,
                        eventLoopGroup: NioEventLoopGroup)
 
         extends PersistentConnection[ProxyRequest, ProxyResponse] (
-                                     "State Proxy",
-                                     settings.host,
-                                     settings.port,
+                                     StateProxyService.Name,
                                      executor,
                                      settings.reconnectTimeout)
         with StateTableClient {
@@ -80,6 +83,9 @@ class StateProxyClient(settings: StateProxyClientSettings,
     private val outstandingPing = new AtomicReference[(RequestId, Long)](0, 0L)
 
     override def isConnected: Boolean = state.isConnected
+
+    private val discoveryClient = discoveryService.getClient[MidonetServiceHostAndPort](
+                                                           StateProxyService.Name)
 
     /**
       * Sets the State Proxy client in started mode. It will maintain
@@ -182,6 +188,9 @@ class StateProxyClient(settings: StateProxyClientSettings,
     def activeSubscriptionCount: Int = state.activeSubscriptionCount
 
     protected def getMessagePrototype = ProxyResponse.getDefaultInstance
+
+    override protected def getRemoteAddress: Option[MidonetServiceHostAndPort] =
+        discoveryClient.instances.headOption
 
     override protected def onNext(msg: ProxyResponse): Unit = {
 
