@@ -38,7 +38,7 @@ import org.midonet.cluster.services.c3po.translators._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
-import org.midonet.cluster.{C3POConfig, ClusterConfig, c3poLog}
+import org.midonet.cluster.{C3POConfig, ClusterConfig, C3poLog}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{MinionService, Context, ScheduledMinion}
@@ -63,7 +63,7 @@ class C3POMinion @Inject()(nodeContext: Context,
                            backendCfg: MidonetBackendConfig)
     extends ScheduledMinion(nodeContext, config.c3po) {
 
-    protected override val log = LoggerFactory.getLogger(c3poLog)
+    protected override val log = LoggerFactory.getLogger(C3poLog)
 
     private val neutronImporter = new SqlNeutronImporter(dataSrc)
     private val dataStateUpdater = new DataStateUpdater(dataSrc)

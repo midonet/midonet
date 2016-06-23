@@ -25,7 +25,7 @@ import com.google.inject.Inject
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.{ClusterConfig, heartbeatLog}
+import org.midonet.cluster.{ClusterConfig, HeartbeatLog}
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{MinionService, Context, ScheduledMinion}
 import org.midonet.util.functors.makeRunnable
@@ -38,7 +38,7 @@ class Heartbeat @Inject()(nodeContext: Context,
                           config: ClusterConfig, metrics: MetricRegistry)
     extends ScheduledMinion(nodeContext, config.heartbeat) {
 
-    protected override val log = LoggerFactory.getLogger(heartbeatLog)
+    protected override val log = LoggerFactory.getLogger(HeartbeatLog)
     private val counter = new Counter()
 
     protected override val runnable = makeRunnable(beat())

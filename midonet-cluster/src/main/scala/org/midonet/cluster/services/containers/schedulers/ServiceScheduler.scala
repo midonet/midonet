@@ -31,7 +31,7 @@ import rx.Observable.OnSubscribe
 
 import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.{ContainersConfig, containersLog}
+import org.midonet.cluster.{ContainersConfig, ContainersLog}
 import org.midonet.containers.{Context, ObjectTracker}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
@@ -55,7 +55,7 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
 class ServiceScheduler(context: Context, config: ContainersConfig)
     extends ObjectTracker[SchedulerEvent] {
 
-    private val log = Logger(getLogger(containersLog))
+    private val log = Logger(getLogger(ContainersLog))
 
     private val subscribed = new AtomicBoolean(false)
 

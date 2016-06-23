@@ -56,7 +56,7 @@ import org.midonet.util.reactivex._
 
 object MidonetResource {
 
-    private final val log = getLogger(restApiLog)
+    private final val log = getLogger(RestApiLog)
     private final val StorageAttempts = 3
 
     private final val lockOpNumber = new AtomicInteger(1)

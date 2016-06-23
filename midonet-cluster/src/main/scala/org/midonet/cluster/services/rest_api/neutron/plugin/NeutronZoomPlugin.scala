@@ -48,7 +48,7 @@ import org.midonet.cluster.services.c3po.translators.TranslationException
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin.MaxStorageAttempts
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.cluster.{ZookeeperLockFactory, restApiNeutronLog}
+import org.midonet.cluster.{ZookeeperLockFactory, RestApiNeutronLog}
 import org.midonet.util.concurrent.toFutureOps
 
 object NeutronZoomPlugin {
@@ -72,7 +72,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
             with TapAsAServiceApi
             with FirewallLoggingApi {
 
-    private val log = LoggerFactory.getLogger(restApiNeutronLog)
+    private val log = LoggerFactory.getLogger(RestApiNeutronLog)
 
     private implicit val ec = fromExecutor(MoreExecutors.directExecutor())
 
