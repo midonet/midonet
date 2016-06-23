@@ -164,11 +164,11 @@ class StateProxyClientTest extends FeatureSpec
             }
         }
 
-        val settings = new StateProxyClientSettings("localhost",
-                                                    server.port,
-                                                    reconnectTimeout)
+        val settings = new StateProxyClientSettings(reconnectTimeout)
 
+        val discoveryService = new DiscoveryMock("localhost",server.port)
         val client = new StateProxyClient(settings,
+                                          discoveryService,
                                           executor)(exctx,eventLoopGroup)
 
         def close(): Unit = {
