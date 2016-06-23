@@ -77,12 +77,12 @@ class StateProxy @Inject()(context: Context,
         val discoveryService = new MidonetDiscoveryImpl(backend.curator,
                                                         executor = null,
                                                         config.backend)
-        val serviceName = getClass.getAnnotation(classOf[MinionService]).name()
+        val serviceName = StateProxyService.Name
         val serviceAddress = config.stateProxy.serverAddress
         val servicePort = config.stateProxy.serverPort
-        val serviceUri = new URI("udp://" + serviceAddress + ":" + servicePort)
         discovery = discoveryService.registerServiceInstance(serviceName,
-                                                             serviceUri)
+                                                                  serviceAddress,
+                                                                  servicePort)
     }
 
     private def unregisterServiceDiscovery(): Unit = {
