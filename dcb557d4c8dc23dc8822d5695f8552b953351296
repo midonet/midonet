@@ -22,6 +22,30 @@
       "revId": "dcb557d4c8dc23dc8822d5695f8552b953351296",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_09c4f83d",
+        "filename": "midolman/src/deb/control/control",
+        "patchSetId": 3
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-06-23T13:00:43Z",
+      "side": 1,
+      "message": "I noticed it also, so I am removing it in this commit: https://review.gerrithub.io/#/c/281301/, but maybe we can create an specific commit for it.",
+      "parentUuid": "baa041b7_ae64f248",
+      "range": {
+        "startLine": 6,
+        "startChar": 251,
+        "endLine": 6,
+        "endChar": 290
+      },
+      "revId": "dcb557d4c8dc23dc8822d5695f8552b953351296",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
