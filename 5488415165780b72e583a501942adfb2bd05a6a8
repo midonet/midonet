@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6ea94adf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-23T09:48:24Z",
+      "side": 1,
+      "message": "So it\u0027s done in a later patch, to distinguish the changes easier. This patch only uses our Logger instead of the scalalogging one, without changing anything else. Since our logger is compatible (it\u0027s just a wrapper with some macros), then this shouldn\u0027t affect the logging in any way yet.",
+      "parentUuid": "baa041b7_4bcaf850",
+      "range": {
+        "startLine": 144,
+        "startChar": 66,
+        "endLine": 144,
+        "endChar": 69
+      },
+      "revId": "5488415165780b72e583a501942adfb2bd05a6a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ebc0ac2c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/logging/MidolmanLogging.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-23T08:27:00Z",
       "side": 1,
       "message": "I wouldn\u0027t set to null and force all extending classing to override this? Not sure how it\u0027s being used though.",
+      "range": {
+        "startLine": 24,
+        "startChar": 26,
+        "endLine": 24,
+        "endChar": 30
+      },
+      "revId": "5488415165780b72e583a501942adfb2bd05a6a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0eb99e2e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/MidolmanLogging.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-23T09:48:24Z",
+      "side": 1,
+      "message": "When logMark is not null, out logging wrapper adds a marker that will be written to the log as a prefix to each log message. However, not all classes using MidolmanLogging need it. This is mainly used in the mapper + some other small set of classes that were creating a new logger for each instance.\n\nBy leaving this to null, classes that don\u0027t need to set the marker (probably a majority of classes), won\u0027t need to override this. Here null is the default, meaning no marker.",
+      "parentUuid": "baa041b7_ebc0ac2c",
       "range": {
         "startLine": 24,
         "startChar": 26,
