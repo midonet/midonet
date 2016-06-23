@@ -21,7 +21,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor
 
 import scala.PartialFunction.cond
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 import com.typesafe.scalalogging.Logger
 
@@ -35,6 +35,8 @@ import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHostAndPort}
+import org.midonet.cluster.services.state.StateProxyService
 import org.midonet.util.UnixClock
 import org.midonet.util.functors.{makeAction0, makeRunnable}
 
@@ -44,6 +46,8 @@ import org.midonet.util.functors.{makeAction0, makeRunnable}
   * transparently so the callers only need to subscribe once.
   *
   * @param settings                    the configuration for the running service
+  * @param discoveryService            a MidonetDiscovery instance that will be
+  *                                    used for service discovery
   * @param executor                    a scheduled, single thread executor used
   *                                    to send subscription messages to the
   *                                    remote server and  schedule reconnection
@@ -60,14 +64,13 @@ import org.midonet.util.functors.{makeAction0, makeRunnable}
   * Call [[stop()]] to stop the service and terminate all observables
   */
 class StateProxyClient(settings: StateProxyClientSettings,
+                       discoveryService: MidonetDiscovery,
                        executor: ScheduledThreadPoolExecutor)
                       (implicit ec: ExecutionContext,
                        eventLoopGroup: NioEventLoopGroup)
 
         extends PersistentConnection[ProxyRequest, ProxyResponse] (
-                                     "State Proxy",
-                                     settings.host,
-                                     settings.port,
+                                     StateProxyService.Name,
                                      executor,
                                      settings.reconnectTimeout)
         with StateTableClient {
@@ -82,6 +85,9 @@ class StateProxyClient(settings: StateProxyClientSettings,
 
     private val state = new InternalState
     private val outstandingPing = new AtomicReference[(RequestId, Long)](0, 0L)
+
+    private val discoveryClient = discoveryService.getClient[MidonetServiceHostAndPort](
+                                                           StateProxyService.Name)
 
     override def isConnected: Boolean = cond(state.get) {
         case c: Connected => true
@@ -197,6 +203,9 @@ class StateProxyClient(settings: StateProxyClientSettings,
     }
 
     protected def getMessagePrototype = ProxyResponse.getDefaultInstance
+
+    override protected def getRemoteAddress: Option[MidonetServiceHostAndPort] =
+        discoveryClient.instances.headOption
 
     override protected def onNext(msg: ProxyResponse): Unit = {
         log.debug(s"$this - Received message:\n$msg")
