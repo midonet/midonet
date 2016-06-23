@@ -71,6 +71,7 @@ dependencies {
             libraries.jetty_server,
             libraries.jctools,
             libraries.reflections,
+            libraries.snappy,
             "com.fasterxml.jackson.core:jackson-databind:2.3.0"
 
     testCompile project(':midonet-cluster')
