@@ -31,7 +31,7 @@ import org.scalatest.time.{Seconds, Span}
 import org.slf4j.LoggerFactory
 
 import org.midonet.util.MidonetEventually
-import org.midonet.util.collection.{RingBufferWithFactory, RingBuffer}
+import org.midonet.util.collection.RingBufferWithFactory
 
 @RunWith(classOf[JUnitRunner])
 class ByteBufferBlockStreamTest extends FeatureSpec
@@ -54,7 +54,11 @@ class ByteBufferBlockStreamTest extends FeatureSpec
 
     case class TestTimedBlockHeader(override val blockLength: Int,
                                     override val lastEntryTime: Long)
-        extends TimedBlockHeader
+        extends TimedBlockHeader {
+
+        override def isValid: Boolean = lastEntryTime != -1
+
+    }
 
     object TestTimedBlockBuilder extends BlockHeaderBuilder[TimedBlockHeader] {
 
@@ -63,10 +67,15 @@ class ByteBufferBlockStreamTest extends FeatureSpec
 
         override val headerSize: Int = 4 + 8 // length + timestamps
 
-        override def init(buffer: ByteBuffer): Unit = {
-            buffer.putInt(LengthOffset, 0)
-            buffer.putLong(LastTimeOffset, currentTime)
-            buffer.position(headerSize)
+        override def init(buffer: ByteBuffer, reset: Boolean): Unit = {
+            val header = TestTimedBlockBuilder(buffer)
+            if (reset || !header.isValid) {
+                buffer.putInt(LengthOffset, 0)
+                buffer.putLong(LastTimeOffset, currentTime)
+                buffer.position(headerSize)
+            } else {
+                buffer.position(header.blockLength + headerSize)
+            }
         }
 
         override def update(buffer: ByteBuffer, params: AnyVal*): Unit = {
@@ -80,16 +89,24 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         }
     }
 
+    private class TestRingBufferWithFactory(
+            poolSize: Int, empty: ByteBuffer, factory: (Int) => ByteBuffer)
+        extends RingBufferWithFactory[ByteBuffer](poolSize, empty, factory) {
+
+        override val ring = new Array[ByteBuffer](capacity)
+
+    }
+
     private def getStreams(blockBuilder: BlockHeaderBuilder[TimedBlockHeader]): (
         ByteBufferBlockWriter[TimedBlockHeader] with TimedBlockInvalidator[TimedBlockHeader],
         ByteBufferBlockReader[TimedBlockHeader],
-        RingBuffer[ByteBuffer]) = {
+        TestRingBufferWithFactory) = {
         val testBlockSize = blockSize + blockBuilder.headerSize
 
         val blockFactory = new HeapBlockFactory[TimedBlockHeader](testBlockSize,
                                                                   blockBuilder)
 
-        val buffers = new RingBufferWithFactory[ByteBuffer](
+        val buffers = new TestRingBufferWithFactory(
             poolSize, null, blockFactory.allocate)
 
         val writer =
@@ -250,6 +267,7 @@ class ByteBufferBlockStreamTest extends FeatureSpec
             (1 to poolSize) foreach { _ =>
                 outStream.write(outBlock.array())
             }
+
             Then("The ring buffer is full")
             buffers.isFull shouldBe true
             val tailHeader = blockBuilder(buffers.peek.get)
@@ -261,7 +279,32 @@ class ByteBufferBlockStreamTest extends FeatureSpec
             buffers.isFull shouldBe true
             val newTailHeader = blockBuilder(buffers.peek.get)
             tailHeader should be !== newTailHeader
-            //CHECK FOR TIMESTAMPS
+        }
+
+        scenario("Clearing a stream releases references on the underlying buffers") {
+            Given("A byte buffer block stream")
+            val blockBuilder = TestTimedBlockBuilder
+            val (outStream, inStream, buffers) = getStreams(blockBuilder)
+
+            When("Filling up the capacity of the ring buffer")
+            val outBlock = ByteBuffer.allocate(blockSize)
+            Random.nextBytes(outBlock.array())
+            for (i <- 0 until poolSize) {
+                outStream.write(outBlock.array())
+            }
+
+            Then("The ring buffer is full")
+            buffers.isFull shouldBe true
+            buffers.isEmpty shouldBe false
+            val tailHeader = blockBuilder(buffers.peek.get)
+
+            When("Clearing the writer")
+            outStream.clear()
+            buffers.isEmpty shouldBe true
+            buffers.isFull shouldBe false
+            for (i <- 0 until poolSize) {
+                buffers.ring(i) shouldBe null
+            }
         }
 
     }

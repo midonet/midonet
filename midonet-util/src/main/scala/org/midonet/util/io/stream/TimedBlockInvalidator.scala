@@ -46,7 +46,9 @@ trait TimedBlockInvalidator[T <: TimedBlockHeader] { this: ByteBufferBlockWriter
         while (buffers.nonEmpty
                && isBlockStale(blockBuilder(buffers.peek.get), currentClock)) {
             val bb = buffers.take().get
-            blockBuilder.init(bb) // set the block as invalid
+            // Reset the block to initial values to prepare them for reuse
+            // and not confuse as a valid block when reading it.
+            blockBuilder.init(bb, reset = true)
         }
         numBlocks - buffers.length
     }

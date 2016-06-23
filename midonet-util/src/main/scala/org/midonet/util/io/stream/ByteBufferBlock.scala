@@ -31,6 +31,9 @@ trait BlockHeader {
       * for the header.
       */
     def blockLength: Int
+
+    /** Wether this block contains a valid header */
+    def isValid: Boolean
 }
 
 
@@ -44,13 +47,16 @@ trait BlockHeaderBuilder[T <: BlockHeader] {
     val headerSize: Int
 
     /**
-      * Initializes the meta data of the block and moves the position
-      * of this buffer to the header size, so subsequent writes to the
-      * stream does not override the header information.
+      * Moves the position of the byte buffer to the position specified by
+      * the header if it is valid. If the header is not valid, or the reset
+      * flag is set to true, this method initializes the meta data
+      * information of the block and moves the position of this buffer to the
+      * header size to not override the header information.
       *
       * @param buffer
+      * @param reset wether to discard the current values on the byte buffer
       */
-    def init(buffer: ByteBuffer): Unit
+    def init(buffer: ByteBuffer, reset: Boolean): Unit
 
     /**
       * Updates the metadata of the block. Shouldn't modify the buffer position.
@@ -93,19 +99,40 @@ trait BlockFactory[T <: BlockHeader]{
 
 /**
   * Factory object for memory mapped file byte buffers.
+  *
+  * @param fileChannel File channel where map the byte buffers to.
+  * @param blockSize Size of the block to map.
+  * @param blockBuilder Header builder and initilizer.
+  * @tparam T
   */
 class MemoryMappedBlockFactory[T <: BlockHeader](val fileChannel: FileChannel,
-                                                 val mode: FileChannel.MapMode,
                                                  override val blockSize: Int,
                                                  override val blockBuilder: BlockHeaderBuilder[T])
     extends BlockFactory[T] {
 
     def allocate(index: Int): ByteBuffer = {
-        val bb = fileChannel.map(mode, index * blockSize, blockSize)
-        blockBuilder.init(bb)
+        val offset = index * blockSize
+        val bb = fileChannel.map(FileChannel.MapMode.READ_WRITE, offset, blockSize)
+        blockBuilder.init(bb, reset = false)
         bb
     }
 
+}
+
+/**
+  * Factory object for READ ONLY memory mapped file byte buffers. This
+  * factory is usefull when trying to read the current header on a given
+  * buffer without initializing its fields.
+  */
+class ReadOnlyMemoryMappedBlockFactory[T <: BlockHeader](val fileChannel: FileChannel,
+                                                         override val blockSize: Int,
+                                                         override val blockBuilder: BlockHeaderBuilder[T])
+    extends BlockFactory[T] {
+
+    def allocate(index: Int): ByteBuffer = {
+        val offset = index * blockSize
+        fileChannel.map(FileChannel.MapMode.READ_ONLY, offset, blockSize)
+    }
 }
 
 /**
@@ -117,7 +144,7 @@ class HeapBlockFactory[T <: BlockHeader](override val blockSize: Int,
 
     def allocate(index: Int): ByteBuffer = {
         val bb = ByteBuffer.allocate(blockSize)
-        blockBuilder.init(bb)
+        blockBuilder.init(bb, reset = false)
         bb
     }
 
