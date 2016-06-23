@@ -707,9 +707,9 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new RouterMapper(router.getId, vt, mutable.Map())
 
             And("Requesting the ports to have them cached")
-            VirtualTopology.get[RouterPort](port1.getId)
+            VirtualTopology.get(classOf[RouterPort], port1.getId)
                            .await(timeout) shouldBeDeviceOf port1
-            VirtualTopology.get[RouterPort](port2.getId)
+            VirtualTopology.get(classOf[RouterPort], port2.getId)
                            .await(timeout) shouldBeDeviceOf port2
 
             And("The observer subscribes to an observable on the mapper")
@@ -1144,7 +1144,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             device shouldBeDeviceOf router
 
             And("The virtual topology should have prefetched the chain")
-            VirtualTopology.tryGet[Chain](chain.getId) shouldBeDeviceOf chain
+            VirtualTopology.tryGet(classOf[Chain], chain.getId) shouldBeDeviceOf chain
         }
 
         scenario("The router updates when updating chain") {
@@ -1181,7 +1181,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             device shouldBeDeviceOf router
 
             And("The virtual topology should have prefetched the chain")
-            VirtualTopology.tryGet[Chain](chain2.getId) shouldBeDeviceOf chain2
+            VirtualTopology.tryGet(classOf[Chain], chain2.getId) shouldBeDeviceOf chain2
         }
 
         scenario("The router updates when removing chain") {
@@ -1218,7 +1218,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             device shouldBeDeviceOf router2
 
             And("The virtual topology should not have the chain")
-            VirtualTopology.tryGet[Chain](chain.getId)
+            VirtualTopology.tryGet(classOf[Chain], chain.getId)
         }
 
         scenario("The router receives local redirect chain") {
@@ -1257,8 +1257,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             device.cfg.inboundFilters.get(1) shouldBe chain.getId.asJava
 
             And("The virtual topology should have prefetched both chains")
-            VirtualTopology.tryGet[Chain](chain.getId) shouldBeDeviceOf chain
-            VirtualTopology.tryGet[Chain](redirectChain.getId) shouldBeDeviceOf redirectChain
+            VirtualTopology.tryGet(classOf[Chain], chain.getId) shouldBeDeviceOf chain
+            VirtualTopology.tryGet(classOf[Chain], redirectChain.getId) shouldBeDeviceOf redirectChain
         }
 
     }

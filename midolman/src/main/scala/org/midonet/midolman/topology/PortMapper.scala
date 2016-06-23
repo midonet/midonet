@@ -56,7 +56,7 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc4
  */
 final class PortMapper(id: UUID, vt: VirtualTopology,
                        val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
-        extends VirtualDeviceMapper[SimulationPort](id, vt)
+        extends VirtualDeviceMapper(classOf[SimulationPort], id, vt)
         with TraceRequestChainMapper[SimulationPort] {
 
     override def logSource = s"org.midonet.devices.port.port-$id"
@@ -68,10 +68,12 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private val portStateSubject = PublishSubject.create[UUID]
     private var portStateReady = false
 
-    private val chainsTracker = new ObjectReferenceTracker[Chain](vt, log)
-    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt, log)
+    private val chainsTracker =
+        new ObjectReferenceTracker(vt, classOf[Chain], log)
+    private val mirrorsTracker =
+        new ObjectReferenceTracker(vt, classOf[Mirror], log)
     private val l2insertionsTracker =
-        new StoreObjectReferenceTracker[L2Insertion](vt, log)
+        new StoreObjectReferenceTracker(vt, classOf[L2Insertion], log)
     private var peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty
 
     private lazy val combinator =

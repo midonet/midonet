@@ -21,7 +21,6 @@ import java.util.concurrent.{TimeUnit, Executors, ConcurrentHashMap}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.{ThreadFactoryBuilder, AbstractService}
@@ -311,21 +310,19 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
         portsActiveSubject.asObservable()
     }
 
-    private def recoverableObservable[D <: Device](deviceId: UUID)
-                                                  (implicit t: ClassTag[D])
+    private def recoverableObservable[D <: Device](clazz: Class[D], deviceId: UUID)
     : Observable[D] = {
         VirtualTopology
-            .observable[D](deviceId)
+            .observable[D](clazz, deviceId)
             .onErrorResumeNext(makeFunc1 { e: Throwable => e match {
                 case nfe: NotFoundException
                     if TransactionManager.getIdString(nfe.id.getClass, nfe.id) ==
                        deviceId.toString =>
-                    log.info("Device {}/{} not found", t.runtimeClass,
-                             deviceId, e)
+                    log.info("Device {}/{} not found", clazz, deviceId, e)
                     Observable.error(e)
                 case _ =>
-                    log.error("Device {}/{} error", t.runtimeClass, deviceId, e)
-                    recoverableObservable[D](deviceId)
+                    log.error("Device {}/{} error", clazz, deviceId, e)
+                    recoverableObservable[D](clazz, deviceId)
             }})
     }
 
@@ -333,14 +330,14 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
       * An observable that emits updates for the specified host.
       */
     private def hosts(hostId: UUID): Observable[Host] = {
-        recoverableObservable[Host](hostId)
+        recoverableObservable(classOf[Host], hostId)
     }
 
     /**
       * An observable that emits updates for the specified tunnel zone.
       */
     private def tunnelZones(tunnelZoneId: UUID): Observable[TunnelZoneUpdate] = {
-        recoverableObservable[TunnelZone](tunnelZoneId)
+        recoverableObservable(classOf[TunnelZone], tunnelZoneId)
             .flatMap(new TunnelZoneDiff)
     }
 

@@ -61,8 +61,8 @@ object PoolHealthMonitorMapper {
  *   LoadBalancer (1 <-> *) Pool (1 <-> *) VIP (1 <-> *) PoolMember
  */
 class PoolHealthMonitorMapper(vt: VirtualTopology)
-    extends DeviceMapper[PoolHealthMonitorMap](
-        PoolHealthMonitorMapper.PoolHealthMonitorMapKey, vt) {
+    extends DeviceMapper(classOf[PoolHealthMonitorMap],
+                         PoolHealthMonitorMapper.PoolHealthMonitorMapKey, vt) {
 
     override def logSource = "org.midonet.devices.poolhealthmonitor"
 
@@ -121,7 +121,7 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
         /** The load balancer observable */
         val observable: Observable[LoadBalancer] =
             if (loadBalancerId == null) Observable.empty()
-            else VirtualTopology.observable[LoadBalancer](loadBalancerId)
+            else VirtualTopology.observable(classOf[LoadBalancer], loadBalancerId)
                 .onErrorResumeNext(Observable.empty)
                 .observeOn(vt.vtScheduler)
                 .doOnNext(updateLoadBalancer)
@@ -213,7 +213,7 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
         lazy val observable =
             Observable.merge[Any](
                 Observable.merge[Any](funnel),
-                VirtualTopology.observable[Pool](poolId)
+                VirtualTopology.observable(classOf[Pool], poolId)
                     .onErrorResumeNext(Observable.empty())
                     .doOnCompleted(completion)
             )

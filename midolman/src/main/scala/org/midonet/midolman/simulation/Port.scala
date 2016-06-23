@@ -193,7 +193,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
                 AddVirtualWildcardFlow
         } else if (isInterior) {
             context =>
-                tryGet[Port](peerId).ingress(context)
+                tryGet(classOf[Port], peerId).ingress(context)
         } else {
             context =>
                 context.log.warn("Port {} is unplugged", id)
@@ -296,7 +296,7 @@ class BridgePort(override val id: UUID,
 
     override def deviceId = networkId
 
-    protected def device = tryGet[Bridge](networkId)
+    protected def device = tryGet(classOf[Bridge], networkId)
 
     override def egressCommon(context: PacketContext,
                               next: SimStep): SimulationResult = {
@@ -412,7 +412,7 @@ case class RouterPort(override val id: UUID,
 
     def isL2 = vni != 0
 
-    protected def device = tryGet[Router](routerId)
+    protected def device = tryGet(classOf[Router], routerId)
 
     override def deviceId = routerId
 
@@ -421,7 +421,8 @@ case class RouterPort(override val id: UUID,
             if (context.inPortId eq id)
                 sendIcmpProhibited(this, context)
             else
-                sendIcmpProhibited(tryGet[RouterPort](context.inPortId), context)
+                sendIcmpProhibited(tryGet(classOf[RouterPort], context.inPortId),
+                                   context)
         }
     }
 
@@ -473,7 +474,7 @@ case class VxLanPort(override val id: UUID,
     override def isActive = true
     override def servicePorts: JList[UUID] = emptyList()
 
-    protected def device = tryGet[Bridge](networkId)
+    protected def device = tryGet(classOf[Bridge], networkId)
 
     override def toString =
         s"VxLanPort [${super.toString} networkId=$networkId vtepId=$vtepId]"

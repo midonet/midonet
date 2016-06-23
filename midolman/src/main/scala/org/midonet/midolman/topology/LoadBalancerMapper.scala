@@ -29,11 +29,10 @@ import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLb}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimulationLb, Pool => SimulationPool, Vip}
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
-import org.midonet.util.collection._
 import org.midonet.util.functors._
 
 final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology)
-    extends VirtualDeviceMapper[SimulationLb](loadBalancerId, vt) {
+    extends VirtualDeviceMapper(classOf[SimulationLb], loadBalancerId, vt) {
 
     override def logSource = s"org.midonet.devices.l4lb.l4lb-$loadBalancerId"
 
@@ -90,7 +89,8 @@ final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology)
         log.debug("Load-balancer updated with pools {}", poolIds)
 
         // Update the device state for the pools.
-        updateTopologyDeviceState(poolIds.toSet, pools, poolsSubject)
+        updateTopologyDeviceState(classOf[SimulationPool], poolIds.toSet, pools,
+                                  poolsSubject)
     }
 
     /** The method is called when the load-balancer is deleted. It triggers a
