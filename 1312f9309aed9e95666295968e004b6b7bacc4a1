@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_4ea3269f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-23T10:49:31Z",
+      "side": 1,
+      "message": "Nit: space after comma",
+      "range": {
+        "startLine": 41,
+        "startChar": 66,
+        "endLine": 41,
+        "endChar": 67
+      },
+      "revId": "1312f9309aed9e95666295968e004b6b7bacc4a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6e45ca15",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
         "patchSetId": 4
@@ -18,6 +41,29 @@
         "startChar": 0,
         "endLine": 45,
         "endChar": 5
+      },
+      "revId": "1312f9309aed9e95666295968e004b6b7bacc4a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ae7d12e9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-23T10:49:31Z",
+      "side": 1,
+      "message": "If you use the Observable.create suggestion, this can be the actual rx.Subscriber. This is nice because it also gives you access to the subscription.",
+      "range": {
+        "startLine": 50,
+        "startChar": 9,
+        "endLine": 50,
+        "endChar": 41
       },
       "revId": "1312f9309aed9e95666295968e004b6b7bacc4a1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -48,6 +94,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_eed79aeb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-23T10:49:31Z",
+      "side": 1,
+      "message": "nit: remove",
+      "range": {
+        "startLine": 93,
+        "startChar": 47,
+        "endLine": 93,
+        "endChar": 56
+      },
+      "revId": "1312f9309aed9e95666295968e004b6b7bacc4a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2e6582e0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
         "patchSetId": 4
@@ -63,6 +132,29 @@
         "startLine": 64,
         "startChar": 23,
         "endLine": 65,
+        "endChar": 80
+      },
+      "revId": "1312f9309aed9e95666295968e004b6b7bacc4a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2e234207",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-23T10:49:31Z",
+      "side": 1,
+      "message": "Here you don\u0027t have to create an additional subject. Instead you can use Observable.create, as follows:\n\noverride def observable(table: StateSubscriptionKey): Observable[Update] \u003d {\n  Observable.create(new OnSubscribe[Update]) {\n    override def call(subscriber: Subscriber[_ \u003e: Update]): Unit \u003d {\n      // This is called during subscribe: so here add subscriber to the\n      // subscription list.\n\n      subscriber.add(Subscriptions.create(makeAction0 {\n        // Add unsubscribe hook to remove subscriber from the\n        // subscription list.\n      }))\n    }\n  }\n}",
+      "range": {
+        "startLine": 134,
+        "startChar": 4,
+        "endLine": 134,
         "endChar": 80
       },
       "revId": "1312f9309aed9e95666295968e004b6b7bacc4a1",
