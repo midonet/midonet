@@ -16,6 +16,24 @@
       "revId": "119220f03b8b19fad2b241babe72adc42ec689a6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ae03d20c",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/logging/LoggerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-23T09:14:51Z",
+      "side": 1,
+      "message": "ah, i see it in a later patch.",
+      "parentUuid": "baa041b7_0b2f50a2",
+      "revId": "119220f03b8b19fad2b241babe72adc42ec689a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
