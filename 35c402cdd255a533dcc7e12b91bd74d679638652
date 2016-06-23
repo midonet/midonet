@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_245b6156",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-23T16:04:03Z",
+      "side": 1,
+      "message": "Done. Didn\u0027t know that, thanks!",
+      "parentUuid": "baa041b7_8456ad04",
+      "range": {
+        "startLine": 18,
+        "startChar": 20,
+        "endLine": 18,
+        "endChar": 22
+      },
+      "revId": "35c402cdd255a533dcc7e12b91bd74d679638652",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_645ba92f",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-23T14:07:41Z",
       "side": 1,
       "message": "flow state",
+      "range": {
+        "startLine": 420,
+        "startChar": 56,
+        "endLine": 420,
+        "endChar": 65
+      },
+      "revId": "35c402cdd255a533dcc7e12b91bd74d679638652",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_445e6546",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-23T16:04:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_645ba92f",
       "range": {
         "startLine": 420,
         "startChar": 56,
