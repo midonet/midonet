@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8b0b607d",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-23T08:52:30Z",
+      "side": 1,
+      "message": "should be 2 minutes.",
+      "range": {
+        "startLine": 435,
+        "startChar": 30,
+        "endLine": 435,
+        "endChar": 33
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6b101ca9",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-23T08:52:30Z",
+      "side": 1,
+      "message": "It\u0027d be better to have this in /var/db/midolman/ or /var/cache/midolman",
+      "range": {
+        "startLine": 440,
+        "startChar": 29,
+        "endLine": 440,
+        "endChar": 38
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_eb1c2cc3",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateBlockHeader.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-23T08:52:30Z",
+      "side": 1,
+      "message": "reset() should be it\u0027s own method and this method should be\n\nif (!header.isValid) {\n    reset()\n} else {\n    buffer.position(...)\n}",
+      "range": {
+        "startLine": 75,
+        "startChar": 42,
+        "endLine": 75,
+        "endChar": 47
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cb7848fb",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateBlockHeader.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-23T08:52:30Z",
+      "side": 1,
+      "message": "why not just buffer.position(headerSize)?",
+      "range": {
+        "startLine": 83,
+        "startChar": 28,
+        "endLine": 83,
+        "endChar": 59
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cbbba874",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateReader.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-23T08:52:30Z",
+      "side": 1,
+      "message": "Would an observable make more sense here?",
+      "range": {
+        "startLine": 86,
+        "startChar": 16,
+        "endLine": 86,
+        "endChar": 22
+      },
+      "revId": "3d285d8589e71e4cc88954150514b93f5eaa2dc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
