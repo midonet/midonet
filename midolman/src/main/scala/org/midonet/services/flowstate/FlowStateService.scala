@@ -74,14 +74,14 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
     protected var messageHandler: FlowStateMessageHandler = _
 
     @VisibleForTesting
-    protected val port = config.flowState.port
+    protected val udpPort = config.flowState.udpPort
 
     @VisibleForTesting
     /** Initialize the UDP server frontend. Cassandra session MUST be
       * previsouly initialized. */
     private[flowstate] def startServerFrontEnd() = {
         messageHandler = new FlowStateMessageHandler(cassandraSession)
-        frontend = ServerFrontEnd.udp(messageHandler, port)
+        frontend = ServerFrontEnd.udp(messageHandler, udpPort)
         try {
             frontend.startAsync().awaitRunning(FrontEndTimeout, FrontEndTimeoutUnit)
         } catch {
@@ -109,7 +109,7 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
                     startServerFrontEnd()
 
                     Log info "Flow state service registered and listening " +
-                             s"on 0.0.0.0:$port"
+                             s"on 0.0.0.0:$udpPort"
                     notifyStarted()
                 }
             case Failure(e) =>
