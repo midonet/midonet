@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7ff21208",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-23T16:46:36Z",
+      "side": 1,
+      "message": "Now that I think, should we also have flags to puh/read state to local storage? It looks like during a rolling upgrade we should store message on both storage types and when finished upgrading, just switch off the flag to store/read message on cassandra.",
+      "range": {
+        "startLine": 415,
+        "startChar": 12,
+        "endLine": 415,
+        "endChar": 36
+      },
+      "revId": "0204a787d47006e598f60de3c61e6e844bef7f29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
