@@ -22,6 +22,30 @@
       "revId": "f4db196119d970cb113577c09d2863237f0cc43b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ab8ce435",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-23T08:12:45Z",
+      "side": 1,
+      "message": "Yes, I didn\u0027t modify it for that reason and to save some changes.",
+      "parentUuid": "baa041b7_ebc42c60",
+      "range": {
+        "startLine": 70,
+        "startChar": 8,
+        "endLine": 70,
+        "endChar": 19
+      },
+      "revId": "f4db196119d970cb113577c09d2863237f0cc43b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
