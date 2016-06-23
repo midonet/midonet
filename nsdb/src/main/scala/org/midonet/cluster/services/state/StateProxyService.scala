@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services.state.client
+package org.midonet.cluster.services.state
 
-import scala.concurrent.duration._
+object StateProxyService {
 
-class StateProxyClientSettings(val reconnectTimeout: FiniteDuration
-                                    = StateProxyClientSettings.DefaultReconnectTimeout)
-
-object StateProxyClientSettings {
-    val DefaultReconnectTimeout = 3 seconds
+    /**
+      * Used for service discovery
+      */
+    val Name = "state-proxy"
 }
