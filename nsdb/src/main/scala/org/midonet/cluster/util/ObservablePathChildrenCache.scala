@@ -17,6 +17,7 @@ package org.midonet.cluster.util
 
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
+
 import javax.annotation.concurrent.GuardedBy
 
 import scala.collection.JavaConversions._
@@ -33,6 +34,7 @@ import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.WatchedEvent
 import org.apache.zookeeper.Watcher.Event.EventType._
 import org.slf4j.LoggerFactory.getLogger
+
 import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
 import rx.subscriptions.Subscriptions
@@ -41,6 +43,7 @@ import rx.{Observable, Subscriber}
 import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
 import org.midonet.util.concurrent.Locks._
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logging
 
 object ObservablePathChildrenCache {
 
@@ -81,10 +84,12 @@ object ObservablePathChildrenCache {
 
 class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
                                 zoomMetrics: ZoomMetrics)
-    extends OnSubscribe[Observable[ChildData]] {
+    extends OnSubscribe[Observable[ChildData]] with Logging {
 
     private type ChildMap = mutable.Map[String, Subject[ChildData, ChildData]]
-    private val log = getLogger(classOf[OnSubscribeToPathChildren])
+
+    override def logSource = "org.midonet.nsdb.nsdb-class"
+    override def logMark = s"node:$path"
 
     // All the streams of updates for each child
     // TODO: I believe this lock is not quite necessary, we have 1 thread with
