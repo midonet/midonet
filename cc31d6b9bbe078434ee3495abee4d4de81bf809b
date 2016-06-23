@@ -22,6 +22,30 @@
       "revId": "cc31d6b9bbe078434ee3495abee4d4de81bf809b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9f86f663",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-23T16:40:04Z",
+      "side": 1,
+      "message": "No problem! Done.",
+      "parentUuid": "baa041b7_7f1fb25b",
+      "range": {
+        "startLine": 416,
+        "startChar": 60,
+        "endLine": 416,
+        "endChar": 69
+      },
+      "revId": "cc31d6b9bbe078434ee3495abee4d4de81bf809b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
