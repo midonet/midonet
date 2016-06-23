@@ -23,7 +23,6 @@ import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 import com.google.common.annotations.VisibleForTesting
-import com.typesafe.scalalogging.Logger
 
 import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber, Subscription}
@@ -41,6 +40,7 @@ import org.midonet.midolman.topology.devices.{BgpNeighbor, BgpRouter}
 import org.midonet.packets.IPv4Addr
 import org.midonet.quagga.BgpdConfiguration.{Neighbor, Network}
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logger
 
 object BgpRouterMapper {
 

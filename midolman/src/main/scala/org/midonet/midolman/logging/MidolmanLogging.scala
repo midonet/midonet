@@ -15,11 +15,12 @@
  */
 package org.midonet.midolman.logging
 
-import com.typesafe.scalalogging.Logger
-
 import org.slf4j.LoggerFactory
+
+import org.midonet.util.logging.Logger
 
 trait MidolmanLogging {
     def logSource = getClass.getName
-    val log = Logger(LoggerFactory.getLogger(logSource))
+    def logMark: String = null
+    val log = Logger(LoggerFactory.getLogger(logSource), logMark)
 }

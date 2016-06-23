@@ -20,9 +20,8 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 
-import com.typesafe.scalalogging.Logger
-
 import org.junit.runner.RunWith
+
 import org.midonet.sdn.flows.FlowTagger.DeviceTag
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
@@ -31,12 +30,13 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
-import org.midonet.midolman.simulation.{RouteBalancer, Router => SimRouter, RouterPort}
+import org.midonet.midolman.simulation.{RouteBalancer, RouterPort, Router => SimRouter}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
+import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTest extends MidolmanSpec {
