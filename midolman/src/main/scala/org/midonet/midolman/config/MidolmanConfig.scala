@@ -234,9 +234,13 @@ class FlowStateConfig(val conf: Config, val schema: Config)
     val prefix = "agent.minions.flow_state"
 
     override def isEnabled: Boolean = getBoolean(s"$prefix.enabled")
-    def port: Int = getInt(s"$prefix.port")
-    def blockSize: Int = Math.max(getInt(s"$prefix.block_size"), 1024)
-    def blocksPerPort: Int = getInt(s"$prefix.blocks_per_port")
+    def legacyPushState = getBoolean(s"$prefix.legacy_push_state")
+    def legacyReadState = getBoolean(s"$prefix.legacy_read_state")
+    def localPushState = getBoolean(s"$prefix.local_push_state")
+    def localReadState = getBoolean(s"$prefix.local_read_state")
+    def port = getInt(s"$prefix.port")
+    def blockSize = Math.max(getInt(s"$prefix.block_size"), 1024)
+    def blocksPerPort = getInt(s"$prefix.blocks_per_port")
     def expirationTime: Duration = getDuration(s"$prefix.expiration_time",
                                                TimeUnit.MILLISECONDS) millis
     def logDirectory: String = getString(s"$prefix.log_directory")
