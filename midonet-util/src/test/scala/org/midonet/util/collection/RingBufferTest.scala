@@ -99,6 +99,27 @@ class RingBufferTest extends FeatureSpec with BeforeAndAfterEach with Matchers {
                 v shouldBe ((CAPACITY/2 + value) % CAPACITY).toString
             }
         }
+
+        scenario("creates elements during initialization") {
+            val head = CAPACITY/4 * 3
+            val tail = CAPACITY/4
+            val buffers = new RingBufferWithFactory[String](
+                CAPACITY, null, i => i.toString, head, tail) {
+                def buffers = ring
+            }
+            val iterator = buffers.iterator
+            for (value <- 0 until CAPACITY/2) {
+                val idx = CAPACITY/4 + value
+                iterator.next shouldBe idx.toString
+                buffers.buffers(idx) should not be null
+            }
+            for (i <- 0 until CAPACITY/4) {
+                buffers.buffers(i) shouldBe null
+            }
+            for (i <- CAPACITY/4 * 3 until CAPACITY) {
+                buffers.buffers(i) shouldBe null
+            }
+        }
     }
 
     feature("RingBuffer reads values") {

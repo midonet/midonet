@@ -109,8 +109,13 @@ class RingBufferWithFactory[T: Manifest](capacity: Int,
 
     def this(capacity: Int, emptyValue: T, factory: (Int) => T, head: Int, tail: Int) = {
         this(capacity, emptyValue, factory)
-        readIndex = head
-        writeIndex = tail
+        readIndex = tail
+        writeIndex = head
+        // Allocate existing items
+        for (i <- 0 until length) {
+            val idx = (readIndex + i) % capacity
+            ring(idx) = factory(idx)
+        }
     }
 
     /**
