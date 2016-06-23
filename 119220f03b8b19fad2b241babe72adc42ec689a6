@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0b2f50a2",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/logging/LoggerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-23T09:10:14Z",
+      "side": 1,
+      "message": "It would be good to have a test that verifies that string interpolation doesn\u0027t happen if the log level is not enabled. Can be a later patch though.",
+      "revId": "119220f03b8b19fad2b241babe72adc42ec689a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
