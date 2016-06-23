@@ -19,6 +19,7 @@ import logging
 from midonetclient import httpclient
 from midonetclient.neutron import bgp
 from midonetclient.neutron import firewall as fw
+from midonetclient.neutron import firewall_logging as fw_l
 from midonetclient.neutron import gateway_device as gd
 from midonetclient.neutron import l2gw
 from midonetclient.neutron import l3
@@ -39,6 +40,7 @@ class MidonetClient(net.NetworkClientMixin,
                     sg.SecurityGroupClientMixin,
                     lb.LoadBalancerClientMixin,
                     fw.FirewallClientMixin,
+                    fw_l.FirewallLoggingClientMixin,
                     taas.TaasClientMixin,
                     vpn.VPNClientMixin):
     """Main MidoNet client class
