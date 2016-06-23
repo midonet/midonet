@@ -19,7 +19,7 @@ package org.midonet.cluster.services.state.client
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
 
-import scala.util.{Success, Failure}
+import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -35,6 +35,7 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import rx.Observer
 
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
+import org.midonet.cluster.services.discovery.MidonetServiceHostAndPort
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
@@ -59,8 +60,6 @@ class PersistentConnectionTest  extends FeatureSpec
     class TestConnection(port: Int)
         extends PersistentConnection[ProxyRequest, ProxyResponse](
             "Test Connection",
-            "localhost",
-            port,
             executor,
             reconnectTimeout) {
 
@@ -70,6 +69,9 @@ class PersistentConnectionTest  extends FeatureSpec
 
         override protected def getMessagePrototype = ProxyResponse
             .getDefaultInstance
+
+        override protected def getRemoteAddress =
+            Some(MidonetServiceHostAndPort("localhost", port))
 
         override protected def onNext(msg: ProxyResponse): Unit = {
             numMessages += 1
