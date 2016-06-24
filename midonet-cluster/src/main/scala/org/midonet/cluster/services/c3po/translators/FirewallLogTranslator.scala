@@ -36,7 +36,7 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
         val ops = new OperationListBuffer
         ops ++= ensureLoggerResource(fl.getLoggingResource)
         ops ++= createRuleLogger(fl)
-        ops ++= ensureMetaData(fl.getFirewallId, fl.getTenantId)
+        ops ++= ensureMetaData(fl.getFirewallId, fl.getTenantId, fl.getId)
         ops.toList
     }
 
@@ -50,7 +50,7 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
                 .build()))
     }
 
-    def ensureMetaData(fwId: UUID, tenantId: String): OperationList = {
+    def ensureMetaData(fwId: UUID, tenantId: String, rlId: UUID): OperationList = {
         val chain = storage.get(classOf[Chain], fwdChainId(fwId)).await()
         val chainMetaData = chain.getMetadataList.asScala
         if (!chainMetaData.exists(_.getKey == FIREWALL_ID)) {
@@ -61,6 +61,7 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
             chainBldr.addMetadataBuilder()
               .setKey(TENANT_ID)
               .setValue(tenantId)
+            chainBldr.addLoggerIds(rlId)
             List(Update(chainBldr.build))
         } else {
             List()
