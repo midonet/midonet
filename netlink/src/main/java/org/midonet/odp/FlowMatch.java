@@ -803,6 +803,8 @@ public class FlowMatch {
 
     @Nullable
     public byte[] getIcmpData() {
+        if (getNetworkProto() != ICMP.PROTOCOL_NUMBER)
+            return null;
         fieldSeen(Field.IcmpData);
         return (icmpData == null) ? null
                                   : Arrays.copyOf(icmpData, icmpData.length);
