@@ -56,7 +56,7 @@ import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.NamedThreadFactory
 
-object Vladimir {
+object RestApi {
 
     final val ContainerResponseFiltersClass =
         "com.sun.jersey.spi.container.ContainerResponseFilters"
@@ -125,14 +125,14 @@ object Vladimir {
 }
 
 @ClusterService(name = "rest_api")
-class Vladimir @Inject()(nodeContext: ClusterNode.Context,
-                         backend: MidonetBackend,
-                         curator: CuratorFramework,
-                         authService: AuthService,
-                         config: ClusterConfig)
+class RestApi @Inject()(nodeContext: ClusterNode.Context,
+                        backend: MidonetBackend,
+                        curator: CuratorFramework,
+                        authService: AuthService,
+                        config: ClusterConfig)
     extends Minion(nodeContext) {
 
-    import Vladimir._
+    import RestApi._
 
     private var server: Server = _
     private val log = Logger(LoggerFactory.getLogger(RestApiLog))
