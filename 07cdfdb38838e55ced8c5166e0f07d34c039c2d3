@@ -117,6 +117,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b83f9124",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-24T09:07:20Z",
+      "side": 1,
+      "message": "There\u0027s actually no relationship between RuleLoggers and Rules. There\u0027s a many-to-one relationship between RuleLoggers and Chains. They\u0027re called RuleLoggers because they log the outcome of rule evaluation, and we plan to allow attaching them to individual rules at some point in the future. ChainAndRuleLogger would have been an awkward name.",
+      "parentUuid": "baa041b7_18d67d27",
+      "range": {
+        "startLine": 218,
+        "startChar": 7,
+        "endLine": 218,
+        "endChar": 45
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d8dff538",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 10
@@ -220,6 +244,30 @@
       "writtenOn": "2016-06-24T08:29:03Z",
       "side": 1,
       "message": "You don\u0027t have to expose the mapper observable: instead you can do:\n\nObservable.create(mapper).subscribe(obs)",
+      "range": {
+        "startLine": 89,
+        "startChar": 8,
+        "endLine": 89,
+        "endChar": 25
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d80ed58b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RuleLoggerMapperTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-06-24T09:07:20Z",
+      "side": 1,
+      "message": "Oh. Okay. The tests are still in progress. Note that the second one doesn\u0027t actually test anything.",
+      "parentUuid": "baa041b7_78c8e974",
       "range": {
         "startLine": 89,
         "startChar": 8,
