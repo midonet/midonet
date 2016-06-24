@@ -166,8 +166,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         insertUpdateTask(11, LoggingResourceType, json, lrId)
 
         eventually {
-            val lr = storage.get(classOf[LoggingResource], lrId).await()
-            lr.getEnabled shouldBe false
+            verifyLoggingResource(lrId, enabled = false)
         }
     }
 
@@ -221,9 +220,11 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         md map (_.getValue) contains fwId.toString shouldBe true
     }
 
-    def verifyLoggingResource(lrId: UUID, count: Int = 1) = {
+    def verifyLoggingResource(lrId: UUID, count: Int = 1,
+                              enabled: Boolean = true) = {
         val lr = storage.get(classOf[LoggingResource], lrId).await()
         lr.getLoggerIdsCount shouldBe count
+        lr.getEnabled shouldBe enabled
     }
 
     def verifyRuleLogger(fwId: UUID, rlId: UUID, event: LogEvent = LogEvent.ALL) = {

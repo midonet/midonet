@@ -72,6 +72,7 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
         if (!storage.exists(classOf[LoggingResource], lr.getId).await()) {
             List(Create(LoggingResource.newBuilder
                             .setId(lr.getId)
+                            .setEnabled(lr.getEnabled)
                             .setType(Type.FILE)
                             .build()))
         } else {
