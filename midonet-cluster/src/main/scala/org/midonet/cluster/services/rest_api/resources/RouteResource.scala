@@ -135,7 +135,11 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
 
     private def getLearnedRoutes(port: RouterPort,
                                  containerHostIds: Seq[UUID]): Seq[Route] = {
-        val hostIds = port.hostId +: containerHostIds
+        val hostIds = if (containerHostIds.contains(port.hostId)) {
+            containerHostIds
+        } else {
+            port.hostId +: containerHostIds
+        }
         hostIds.flatMap(getLearnedRoutesFromStateStore(port.id, _))
     }
 }
