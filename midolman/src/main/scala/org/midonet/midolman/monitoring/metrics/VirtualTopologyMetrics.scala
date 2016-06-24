@@ -67,7 +67,7 @@ class VirtualTopologyMetrics(registry: MetricRegistry,
         classOf[Bridge], classOf[Chain], classOf[Host], classOf[IPAddrGroup],
         classOf[LoadBalancer], classOf[Mirror], classOf[Pool],
         classOf[PoolHealthMonitorMap], classOf[Port], classOf[PortGroup],
-        classOf[Router], classOf[TunnelZone])
+        classOf[Router], classOf[RuleLogger], classOf[TunnelZone])
 
     val devicesGauge =
         registry.register(name(classOf[VirtualTopologyGauge], "devices"),

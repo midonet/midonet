@@ -42,7 +42,10 @@ object Chain {
 case class Chain(id: UUID,
                  rules: JList[Rule],
                  jumpTargets: JMap[UUID, Chain],
-                 name: String) extends VirtualDevice with SimDevice {
+                 name: String,
+                 metadata: String = "",
+                 ruleLoggers: Seq[RuleLogger] = Seq())
+    extends VirtualDevice with SimDevice {
     import Chain._
 
     override val deviceTag: FlowTagger.FlowTag = FlowTagger.tagForChain(id)
@@ -79,6 +82,22 @@ case class Chain(id: UUID,
             val rule = rules.get(i)
             i += 1
             res = rule.process(context)
+
+            res.action match {
+                case Action.ACCEPT | Action.RETURN =>
+                    var i = 0
+                    while (i < ruleLoggers.size) {
+                        ruleLoggers(i).logAccept(context, this, rule)
+                        i += 1
+                    }
+                case Action.DROP | Action.REJECT =>
+                    var i = 0
+                    while (i < ruleLoggers.size) {
+                        ruleLoggers(i).logDrop(context, this, rule)
+                        i += 1
+                    }
+                case _ =>
+            }
 
             if (rule.id == null) {
                 context.log.warn(
