@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b8ce7181",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T08:29:03Z",
+      "side": 1,
+      "message": "Unit test",
+      "range": {
+        "startLine": 86,
+        "startChar": 12,
+        "endLine": 100,
+        "endChar": 13
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f8b3d908",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T08:29:03Z",
+      "side": 1,
+      "message": "Unit test?",
+      "range": {
+        "startLine": 89,
+        "startChar": 11,
+        "endLine": 89,
+        "endChar": 25
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d8b6d5f8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T08:29:03Z",
+      "side": 1,
+      "message": "Unit test for these changes?",
+      "range": {
+        "startLine": 160,
+        "startChar": 4,
+        "endLine": 161,
+        "endChar": 64
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_18d67d27",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T08:29:03Z",
+      "side": 1,
+      "message": "What is the relationship between rule and rule-logger (1:1, many:1, etc). RuleLogger has different identifiers from rule, is that correct?",
+      "range": {
+        "startLine": 218,
+        "startChar": 7,
+        "endLine": 218,
+        "endChar": 45
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d8dff538",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T08:29:03Z",
+      "side": 1,
+      "message": "Add the RuleLogger class to VirtualTopologyMetrics.classes.",
+      "range": {
+        "startLine": 219,
+        "startChar": 20,
+        "endLine": 219,
+        "endChar": 30
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_38ba61e2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RuleLoggerMapperTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T08:29:03Z",
+      "side": 1,
+      "message": "Unused",
+      "range": {
+        "startLine": 27,
+        "startChar": 42,
+        "endLine": 27,
+        "endChar": 67
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_18bd5dd7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RuleLoggerMapperTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T08:29:03Z",
+      "side": 1,
+      "message": "Unused",
+      "range": {
+        "startLine": 32,
+        "startChar": 75,
+        "endLine": 32,
+        "endChar": 102
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_188b1d20",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RuleLoggerMapperTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T08:29:03Z",
+      "side": 1,
+      "message": "Add unit test for delete.",
+      "range": {
+        "startLine": 46,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 11
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_78c8e974",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RuleLoggerMapperTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T08:29:03Z",
+      "side": 1,
+      "message": "You don\u0027t have to expose the mapper observable: instead you can do:\n\nObservable.create(mapper).subscribe(obs)",
+      "range": {
+        "startLine": 89,
+        "startChar": 8,
+        "endLine": 89,
+        "endChar": 25
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
