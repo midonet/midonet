@@ -141,6 +141,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_38c70114",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T09:20:01Z",
+      "side": 1,
+      "message": "Got it.",
+      "parentUuid": "baa041b7_b83f9124",
+      "range": {
+        "startLine": 218,
+        "startChar": 7,
+        "endLine": 218,
+        "endChar": 45
+      },
+      "revId": "07cdfdb38838e55ced8c5166e0f07d34c039c2d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d8dff538",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 10
