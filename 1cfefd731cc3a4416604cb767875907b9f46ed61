@@ -95,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b8543154",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T09:20:01Z",
+      "side": 1,
+      "message": "I suggested this because of the abstract val comment below. Or leave it like this and add an override in the other class.",
+      "parentUuid": "baa041b7_584405b6",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 49,
+        "endChar": 16
+      },
+      "revId": "1cfefd731cc3a4416604cb767875907b9f46ed61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_383701b2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
         "patchSetId": 9
@@ -130,6 +154,30 @@
       "side": 1,
       "message": "Why? You can override vals, too.",
       "parentUuid": "baa041b7_383701b2",
+      "range": {
+        "startLine": 50,
+        "startChar": 14,
+        "endLine": 50,
+        "endChar": 17
+      },
+      "revId": "1cfefd731cc3a4416604cb767875907b9f46ed61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f859998f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T09:20:01Z",
+      "side": 1,
+      "message": "My understanding is that abstract val is less desirable, and it is recommended to use def for abstract members, it is allowed of course. I\u0027ve seen many arguments for why def is preferred (e.g. http://stackoverflow.com/questions/19642053/when-to-use-val-or-def-in-scala-traits).",
+      "parentUuid": "baa041b7_381261b5",
       "range": {
         "startLine": 50,
         "startChar": 14,
@@ -200,6 +248,30 @@
       "side": 1,
       "message": "I thought we just used that in Java because it doesn\u0027t have string interpolation.",
       "parentUuid": "baa041b7_f85759c8",
+      "range": {
+        "startLine": 127,
+        "startChar": 8,
+        "endLine": 128,
+        "endChar": 74
+      },
+      "revId": "1cfefd731cc3a4416604cb767875907b9f46ed61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d8d375d4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-24T09:20:01Z",
+      "side": 1,
+      "message": "Got it, it\u0027s fine then.",
+      "parentUuid": "baa041b7_18155d9a",
       "range": {
         "startLine": 127,
         "startChar": 8,
