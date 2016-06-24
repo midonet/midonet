@@ -40,7 +40,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         eventually {
             verifyMedatData(fwId)
             verifyLoggingResource(lrId)
-            verifyRuleLogger(flId)
+            verifyRuleLogger(fwId, flId)
         }
 
         insertDeleteTask(11, FirewallLogType, flId)
@@ -63,8 +63,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
             verifyMedatData(fwId)
             verifyMedatData(fwId2)
             verifyLoggingResource(lrId, 2)
-            verifyRuleLogger(flId)
-            verifyRuleLogger(flId2)
+            verifyRuleLogger(fwId, flId)
+            verifyRuleLogger(fwId2, flId2)
         }
 
         insertDeleteTask(12, FirewallLogType, flId)
@@ -73,7 +73,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
             verifyMedatData(fwId)
             verifyMedatData(fwId2)
             verifyLoggingResource(lrId, 1)
-            verifyRuleLogger(flId2)
+            verifyRuleLogger(fwId2, flId2)
             storage.exists(classOf[LoggingResource], lrId).await() shouldBe true
             storage.exists(classOf[RuleLogger], flId).await() shouldBe false
             storage.getAll(classOf[LoggingResource]).await().size shouldBe 1
@@ -104,8 +104,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
             verifyMedatData(fwId2)
             verifyLoggingResource(lrId, 1)
             verifyLoggingResource(lrId2, 1)
-            verifyRuleLogger(flId)
-            verifyRuleLogger(flId2)
+            verifyRuleLogger(fwId, flId)
+            verifyRuleLogger(fwId2, flId2)
         }
 
         insertDeleteTask(12, FirewallLogType, flId)
@@ -115,7 +115,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
             verifyMedatData(fwId2)
             verifyLoggingResource(lrId2, 1)
             storage.exists(classOf[LoggingResource], lrId).await() shouldBe false
-            verifyRuleLogger(flId2)
+            verifyRuleLogger(fwId2, flId2)
             storage.exists(classOf[RuleLogger], flId).await() shouldBe false
             storage.getAll(classOf[LoggingResource]).await().size shouldBe 1
         }
@@ -139,7 +139,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         eventually {
             verifyMedatData(fwId)
             verifyLoggingResource(lrId)
-            verifyRuleLogger(flId)
+            verifyRuleLogger(fwId, flId)
         }
 
         val json = firewallLogJson(fwId, lrId, fwEvent = "DROP", id = flId)
@@ -147,7 +147,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         insertUpdateTask(11, FirewallLogType, json, flId)
 
         eventually {
-            verifyRuleLogger(flId, LogEvent.DROP)
+            verifyRuleLogger(fwId, flId, LogEvent.DROP)
         }
     }
 
@@ -158,7 +158,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         eventually {
             verifyMedatData(fwId)
             verifyLoggingResource(lrId)
-            verifyRuleLogger(flId)
+            verifyRuleLogger(fwId, flId)
         }
 
         val json = loggingResourceJson(enabled = false, id = lrId)
@@ -178,7 +178,7 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         eventually {
             verifyMedatData(fwId)
             verifyLoggingResource(lrId)
-            verifyRuleLogger(flId)
+            verifyRuleLogger(fwId, flId)
         }
 
         insertDeleteTask(11, LoggingResourceType, lrId)
@@ -200,8 +200,8 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
             verifyMedatData(fwId)
             verifyMedatData(fwId2)
             verifyLoggingResource(lrId, 2)
-            verifyRuleLogger(flId)
-            verifyRuleLogger(flId2)
+            verifyRuleLogger(fwId, flId)
+            verifyRuleLogger(fwId2, flId2)
         }
 
         insertDeleteTask(12, LoggingResourceType, lrId)
@@ -226,8 +226,9 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
         lr.getLoggerIdsCount shouldBe count
     }
 
-    def verifyRuleLogger(rlId: UUID, event: LogEvent = LogEvent.ALL) = {
+    def verifyRuleLogger(fwId: UUID, rlId: UUID, event: LogEvent = LogEvent.ALL) = {
         val rl = storage.get(classOf[RuleLogger], rlId).await()
+        rl.getChainId shouldBe fwdChainId(fwId)
         rl.getFileName shouldBe s"firewall-$rlId.log"
         rl.getEvent shouldBe event
     }
