@@ -33,6 +33,7 @@ import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import com.typesafe.scalalogging.Logger
 
+import org.apache.commons.lang.StringUtils
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.http.HttpVersion._
 import org.eclipse.jetty.server._
@@ -55,7 +56,7 @@ import org.midonet.cluster.{ClusterConfig, RestApiConfig, RestApiLog}
 import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.minion.MinionService.TargetNode
-import org.midonet.minion.{MinionService, Context, Minion}
+import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.concurrent.NamedThreadFactory
 
 object RestApi {
@@ -146,11 +147,10 @@ class RestApi @Inject()(nodeContext: Context,
     override def isEnabled = config.restApi.isEnabled
 
     override def doStart(): Unit = {
-        log.info(s"Starting REST API service at ports: " +
-                 s"HTTP: ${config.restApi.httpPort} HTTPS: " +
-                 s"${config.restApi.httpsPort}, " +
-                 s"with root uri: ${config.restApi.rootUri} " +
-                 s"and auth service: ${authService.getClass.getName}")
+        log.info("Starting REST API service " +
+                 s"HTTP: ${config.restApi.httpHost}:${config.restApi.httpPort} " +
+                 s"HTTPS: ${config.restApi.httpsHost}:${config.restApi.httpsPort} " +
+                 s"root URI: ${config.restApi.rootUri}")
 
         server = new Server()
 
@@ -166,7 +166,6 @@ class RestApi @Inject()(nodeContext: Context,
         } finally {
             notifyStarted()
         }
-
     }
 
     override def doStop(): Unit = {
@@ -205,19 +204,20 @@ class RestApi @Inject()(nodeContext: Context,
     }
 
     /** Build a basic HTTP configuration. */
-    private def sampleHttpConfig(): HttpConfiguration = {
-        val c = new HttpConfiguration()
-        c.setSecureScheme("https")
-        c.setSecurePort(config.restApi.httpsPort)
-        c.addCustomizer(new ForwardedRequestCustomizer());
-        c.setOutputBufferSize(32768)
-        c
+    private def createHttpConfig(): HttpConfiguration = {
+        val httpConfig = new HttpConfiguration()
+        httpConfig.setSecureScheme("https")
+        httpConfig.setSecurePort(config.restApi.httpsPort)
+        httpConfig.addCustomizer(new ForwardedRequestCustomizer())
+        httpConfig.setOutputBufferSize(config.restApi.outputBufferSize)
+        httpConfig
     }
 
     /** Build and configure an HTTP connector. */
     private def httpConnector(): ServerConnector = {
-        val cfg = sampleHttpConfig()
+        val cfg = createHttpConfig()
         val http = new ServerConnector(server, new HttpConnectionFactory(cfg))
+        http.setHost(StringUtils.defaultIfBlank(config.restApi.httpHost, null))
         http.setPort(config.restApi.httpPort)
         http.setIdleTimeout(30000)
         http
@@ -235,19 +235,20 @@ class RestApi @Inject()(nodeContext: Context,
         // Following
         // https://www.eclipse.org/jetty/documentation/current/configuring-ssl.html
 
-        val keystoreFile = System.getProperty("midonet.keystore_path",
-                                              "/etc/midonet-cluster/ssl/midonet.jks")
+        val keystoreFile =
+            System.getProperty("midonet.keystore_path",
+                               "/etc/midonet-cluster/ssl/midonet.jks")
 
         if (config.restApi.httpsPort <= 0) {
-            log.info(s"Https explicitly disabled (https port is <= 0)")
+            log.info(s"HTTPS explicitly disabled (https port is <= 0)")
             return null
         }
 
         if (new File(keystoreFile).exists()) {
             log.info(s"Keystore file: $keystoreFile")
         } else {
-            log.info(s"Keystore file not found: $keystoreFile - HTTPS will be" +
-                     s" disabled")
+            log.info(s"Keystore file not found: $keystoreFile HTTPS will be " +
+                     "disabled")
             return null
         }
 
@@ -259,14 +260,17 @@ class RestApi @Inject()(nodeContext: Context,
 
         val sslCnxnFactory = new SslConnectionFactory(sslContextFactory,
                                                       HTTP_1_1.asString())
-        val httpsConfig = sampleHttpConfig()
+        val httpsConfig = createHttpConfig()
         httpsConfig.addCustomizer(new SecureRequestCustomizer())
         val cnxnFactory = new HttpConnectionFactory(httpsConfig)
         val https = new ServerConnector(server, sslCnxnFactory, cnxnFactory)
+        https.setHost(StringUtils.defaultIfBlank(config.restApi.httpsHost, null))
         https.setPort(config.restApi.httpsPort)
         https.setIdleTimeout(500000)
         https
     }
+
+
 
 }
 

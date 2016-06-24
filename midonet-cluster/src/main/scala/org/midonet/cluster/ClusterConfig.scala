@@ -103,90 +103,93 @@ class TranslatorsConfig(val conf: Config) {
 }
 
 class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
-    final val Prefix = "cluster.neutron_importer"
+    final val prefix = "cluster.neutron_importer"
 
-    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
-    override def numThreads = conf.getInt(s"$Prefix.threads")
-    override def delayMs = conf.getDuration(s"$Prefix.delay", TimeUnit.MILLISECONDS)
-    override def periodMs = conf.getDuration(s"$Prefix.period", TimeUnit.MILLISECONDS)
-    def connectionString = conf.getString(s"$Prefix.connection_string")
-    def jdbcDriver = conf.getString(s"$Prefix.jdbc_driver_class")
-    def user = conf.getString(s"$Prefix.user")
-    def password = conf.getString(s"$Prefix.password")
+    override def isEnabled = conf.getBoolean(s"$prefix.enabled")
+    override def numThreads = conf.getInt(s"$prefix.threads")
+    override def delayMs = conf.getDuration(s"$prefix.delay", TimeUnit.MILLISECONDS)
+    override def periodMs = conf.getDuration(s"$prefix.period", TimeUnit.MILLISECONDS)
+    def connectionString = conf.getString(s"$prefix.connection_string")
+    def jdbcDriver = conf.getString(s"$prefix.jdbc_driver_class")
+    def user = conf.getString(s"$prefix.user")
+    def password = conf.getString(s"$prefix.password")
 }
 
 class HeartbeatConfig(val conf: Config) extends ScheduledMinionConfig[Heartbeat] {
-    final val Prefix = "cluster.heartbeat"
+    final val prefix = "cluster.heartbeat"
 
-    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
-    override def numThreads = conf.getInt(s"$Prefix.threads")
-    override def delayMs = conf.getDuration(s"$Prefix.delay", TimeUnit.MILLISECONDS)
-    override def periodMs = conf.getDuration(s"$Prefix.period", TimeUnit.MILLISECONDS)
+    override def isEnabled = conf.getBoolean(s"$prefix.enabled")
+    override def numThreads = conf.getInt(s"$prefix.threads")
+    override def delayMs = conf.getDuration(s"$prefix.delay", TimeUnit.MILLISECONDS)
+    override def periodMs = conf.getDuration(s"$prefix.period", TimeUnit.MILLISECONDS)
 }
 
 class VxGwConfig(val conf: Config) extends MinionConfig[VxlanGatewayService] {
-    final val Prefix = "cluster.vxgw"
+    final val prefix = "cluster.vxgw"
 
-    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    override def isEnabled = conf.getBoolean(s"$prefix.enabled")
 }
 
 class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiService] {
-    final val Prefix = "cluster.topology_api"
+    final val prefix = "cluster.topology_api"
 
-    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    override def isEnabled = conf.getBoolean(s"$prefix.enabled")
 
-    def socketEnabled = conf.getBoolean(s"$Prefix.socket_enabled")
-    def port = conf.getInt(s"$Prefix.port")
-    def wsEnabled = conf.getBoolean(s"$Prefix.ws_enabled")
-    def wsPort = conf.getInt(s"$Prefix.ws_port")
-    def wsPath = conf.getString(s"$Prefix.ws_path")
-    def sessionGracePeriod = conf.getDuration(s"$Prefix.session_grace_period", TimeUnit.MILLISECONDS)
-    def sessionBufferSize = conf.getInt(s"$Prefix.session_buffer_size")
+    def socketEnabled = conf.getBoolean(s"$prefix.socket_enabled")
+    def port = conf.getInt(s"$prefix.port")
+    def wsEnabled = conf.getBoolean(s"$prefix.ws_enabled")
+    def wsPort = conf.getInt(s"$prefix.ws_port")
+    def wsPath = conf.getString(s"$prefix.ws_path")
+    def sessionGracePeriod = conf.getDuration(s"$prefix.session_grace_period", TimeUnit.MILLISECONDS)
+    def sessionBufferSize = conf.getInt(s"$prefix.session_buffer_size")
 }
 
 class RestApiConfig(val conf: Config) extends MinionConfig[RestApi] {
-    final val Prefix = "cluster.rest_api"
+    final val prefix = "cluster.rest_api"
 
     override def isEnabled = conf.getBoolean("cluster.rest_api.enabled")
 
-    def httpPort = conf.getInt(s"$Prefix.http_port")
-    def httpsPort = conf.getInt(s"$Prefix.https_port")
-    def rootUri = conf.getString(s"$Prefix.root_uri")
-    def nsdbLockTimeoutMs = conf.getDuration(s"$Prefix.nsdb_lock_timeout", TimeUnit.MILLISECONDS)
+    def httpHost = conf.getString(s"$prefix.http_host")
+    def httpPort = conf.getInt(s"$prefix.http_port")
+    def httpsHost = conf.getString(s"$prefix.https_host")
+    def httpsPort = conf.getInt(s"$prefix.https_port")
+    def rootUri = conf.getString(s"$prefix.root_uri")
+    def outputBufferSize = conf.getInt(s"$prefix.output_buffer_size")
+    def nsdbLockTimeoutMs = conf.getDuration(s"$prefix.nsdb_lock_timeout", TimeUnit.MILLISECONDS)
 }
 
 class ContainersConfig(val conf: Config) extends MinionConfig[ContainerService] {
-    final val Prefix = "cluster.containers"
+    final val prefix = "cluster.containers"
 
-    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
-    def schedulerTimeoutMs = conf.getDuration(s"$Prefix.scheduler_timeout", TimeUnit.MILLISECONDS)
-    def schedulerRetryMs = conf.getDuration(s"$Prefix.scheduler_retry", TimeUnit.MILLISECONDS)
-    def schedulerMaxRetries = conf.getInt(s"$Prefix.scheduler_max_retries")
-    def schedulerBadHostLifetimeMs = conf.getDuration(s"$Prefix.scheduler_bad_host_lifetime", TimeUnit.MILLISECONDS)
+    override def isEnabled = conf.getBoolean(s"$prefix.enabled")
+    def schedulerTimeoutMs = conf.getDuration(s"$prefix.scheduler_timeout", TimeUnit.MILLISECONDS)
+    def schedulerRetryMs = conf.getDuration(s"$prefix.scheduler_retry", TimeUnit.MILLISECONDS)
+    def schedulerMaxRetries = conf.getInt(s"$prefix.scheduler_max_retries")
+    def schedulerBadHostLifetimeMs = conf.getDuration(s"$prefix.scheduler_bad_host_lifetime", TimeUnit.MILLISECONDS)
 }
 
 class StateProxyConfig(val conf: Config) extends MinionConfig[StateProxy] {
-    final val Prefix = "cluster.state_proxy"
+    final val prefix = "cluster.state_proxy"
 
-    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    override def isEnabled = conf.getBoolean(s"$prefix.enabled")
     def initialSubscriberQueueSize =
-        conf.getInt(s"$Prefix.initial_subscriber_queue_size")
+        conf.getInt(s"$prefix.initial_subscriber_queue_size")
     def notifyBatchSize =
-        conf.getInt(s"$Prefix.notify_batch_size")
-    def serverAddress = conf.getString(s"$Prefix.server.address")
-    def serverPort = conf.getInt(s"$Prefix.server.port")
+        conf.getInt(s"$prefix.notify_batch_size")
+    def serverAddress = conf.getString(s"$prefix.server.address")
+    def serverPort = conf.getInt(s"$prefix.server.port")
     def serverSupervisorThreads =
-        conf.getInt(s"$Prefix.server.supervisor_threads")
+        conf.getInt(s"$prefix.server.supervisor_threads")
     def serverWorkerThreads =
-        conf.getInt(s"$Prefix.server.worker_threads")
+        conf.getInt(s"$prefix.server.worker_threads")
     def serverMaxPendingConnections =
-        conf.getInt(s"$Prefix.server.max_pending_connections")
+        conf.getInt(s"$prefix.server.max_pending_connections")
     def serverBindRetryInterval =
-        conf.getDuration(s"$Prefix.server.bind_retry_interval", TimeUnit.SECONDS) seconds
+        conf.getDuration(s"$prefix.server.bind_retry_interval", TimeUnit.SECONDS) seconds
     def serverChannelTimeout =
-        conf.getDuration(s"$Prefix.server.channel_timeout", TimeUnit.MILLISECONDS) millis
+        conf.getDuration(s"$prefix.server.channel_timeout", TimeUnit.MILLISECONDS) millis
     def serverShutdownQuietPeriod =
-        conf.getDuration(s"$Prefix.server.shutdown_quiet_period", TimeUnit.MILLISECONDS) millis
+        conf.getDuration(s"$prefix.server.shutdown_quiet_period", TimeUnit.MILLISECONDS) millis
     def serverShutdownTimeout =
-        conf.getDuration(s"$Prefix.server.shutdown_timeout", TimeUnit.MILLISECONDS) millis
+        conf.getDuration(s"$prefix.server.shutdown_timeout", TimeUnit.MILLISECONDS) millis
 }
