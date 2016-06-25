@@ -314,7 +314,9 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     protected[this] var bgpSubscription: Subscription = null
 
     def bgpdShouldRun = {
-        zookeeperConnected && portActive && bgpConfig.neighbors.nonEmpty
+        zookeeperConnected &&
+        portActive &&
+        (isQuagga || bgpConfig.neighbors.nonEmpty)
     }
 
     protected def createDpPort(port: String): Future[(DpPort, Int)]
@@ -657,7 +659,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             log.info(s"Set up BGP session with AS ${peer.as} at ${peer.address}")
         }
 
-        if (newPeers.isEmpty)
+        if (isQuagga && newPeers.isEmpty)
             stopBgpd()
         else
             bgpd.vty.setMaximumPaths(bgpConfig.as, newPeers.size)
