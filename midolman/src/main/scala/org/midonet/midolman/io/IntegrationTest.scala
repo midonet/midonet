@@ -17,6 +17,8 @@ package org.midonet.midolman.io
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import com.codahale.metrics.MetricRegistry
+
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.odp.OvsConnectionOps
@@ -36,13 +38,15 @@ object ConnectionFactory {
     def selectorBasedConnection(singleThreaded: Boolean = true) = {
         fromManager { () =>
             new SelectorBasedDatapathConnection("selector", conf, singleThreaded,
-                                                Bucket.BOTTOMLESS)
+                                                Bucket.BOTTOMLESS,
+                                                new MetricRegistry())
         }
     }
 
 
     def fromOneToOnePool(nConns: Int = 1) = {
-        val pool = new OneToOneConnectionPool("pool", nConns, conf)
+        val pool = new OneToOneConnectionPool("pool", nConns, conf,
+                                              new MetricRegistry())
         pool.start()
         pool
     }

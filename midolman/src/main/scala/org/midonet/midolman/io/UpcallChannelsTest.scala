@@ -21,6 +21,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 
 import org.midonet.midolman.NetlinkCallbackDispatcher
@@ -63,14 +65,15 @@ object UpcallChannelsTest {
 
         val conf = new MidolmanConfig(MidoTestConfigurator.forAgents)
 
+        val metrics = new MetricRegistry()
         val mngr1 =
-            new OneToOneDpConnManager(conf, tbPolicy(conf)) with TestMixin {
+            new OneToOneDpConnManager(conf, tbPolicy(conf), metrics) with TestMixin {
                 val dispatcher: ActorRef = nlDispatcher
                 val packetHandler: ActorRef = act
             }
 
         val mngr2 =
-            new OneToManyDpConnManager(conf, tbPolicy(conf)) with TestMixin {
+            new OneToManyDpConnManager(conf, tbPolicy(conf), metrics) with TestMixin {
                 val dispatcher: ActorRef = nlDispatcher
                 val packetHandler: ActorRef = act
             }

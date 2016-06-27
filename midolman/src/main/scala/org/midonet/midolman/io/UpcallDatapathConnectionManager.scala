@@ -25,6 +25,8 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 import org.slf4j.{Logger, LoggerFactory}
 
+import com.codahale.metrics.MetricRegistry
+
 import org.midonet.ErrorCode.{EBUSY, EEXIST, EADDRINUSE}
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
@@ -230,14 +232,16 @@ abstract class UpcallDatapathConnectionManagerBase(
  * channel gets its own thread and select loop.
  */
 class OneToOneDpConnManager(c: MidolmanConfig,
-                            tbPolicy: TokenBucketPolicy) extends
+                            tbPolicy: TokenBucketPolicy,
+                            metrics: MetricRegistry) extends
         UpcallDatapathConnectionManagerBase(c, tbPolicy) {
 
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
     override def makeConnection(name: String, bucket: Bucket,
                                 channelType: ChannelType) =
-        new SelectorBasedDatapathConnection(name, config, true, bucket, makeBufferPool())
+        new SelectorBasedDatapathConnection(name, config, true, bucket,
+                                            makeBufferPool(), metrics)
 
     override def stopConnection(conn: ManagedDatapathConnection) {
         conn.stop()
@@ -255,10 +259,11 @@ class OneToOneDpConnManager(c: MidolmanConfig,
  * thread and a single select loop is used for all the input channels.
  */
 class OneToManyDpConnManager(c: MidolmanConfig,
-                             tbPolicy: TokenBucketPolicy)
+                             tbPolicy: TokenBucketPolicy,
+                             metrics: MetricRegistry)
         extends UpcallDatapathConnectionManagerBase(c, tbPolicy) {
 
-    val threadPair = new SelectorThreadPair("upcall", config, false)
+    val threadPair = new SelectorThreadPair("upcall", config, false, metrics)
 
     private val lock = new ReentrantLock()
 
