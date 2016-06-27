@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b59e6f52",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-27T15:12:47Z",
+      "side": 1,
+      "message": "Should these be private to the client? Or do they have to be shared in any way? Or are they exposed for testing reasons?",
+      "range": {
+        "startLine": 423,
+        "startChar": 16,
+        "endLine": 430,
+        "endChar": 75
+      },
+      "revId": "ae62299da0cf5b10d16731aafdd05f0d91930bf7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
