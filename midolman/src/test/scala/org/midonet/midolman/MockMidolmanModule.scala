@@ -139,8 +139,7 @@ class MockMidolmanModule(override val hostId: UUID,
             flowProcessor: FlowProcessor,
             dpState: DatapathState,
             families: OvsNetlinkFamilies,
-            channelFactory: NetlinkChannelFactory,
-            metrics: PacketPipelineMetrics) =
+            channelFactory: NetlinkChannelFactory) =
         new MockDatapathChannel(flowsTable)
 
     protected override def bindActorService(): Unit =
