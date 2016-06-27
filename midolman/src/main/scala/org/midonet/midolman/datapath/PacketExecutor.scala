@@ -19,13 +19,14 @@ package org.midonet.midolman.datapath
 import java.nio.BufferOverflowException
 import java.nio.channels.AsynchronousCloseException
 import java.util.{ArrayList => JArrayList}
+import java.util.concurrent.TimeUnit
 
 import com.lmax.disruptor.{EventHandler, LifecycleAware}
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.DatapathState
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.monitoring.metrics.PacketExecutorMetrics
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink._
 import org.midonet.odp._
@@ -138,7 +139,7 @@ sealed class PacketExecutor(dpState: DatapathState,
                             families: OvsNetlinkFamilies,
                             numHandlers: Int, index: Int,
                             channelFactory: NetlinkChannelFactory,
-                            metrics: PacketPipelineMetrics)
+                            metrics: PacketExecutorMetrics)
     extends EventHandler[PacketContextHolder]
     with LifecycleAware with StatePacketExecutor {
     import PacketExecutor._
@@ -174,8 +175,8 @@ sealed class PacketExecutor(dpState: DatapathState,
                     maybeExecuteStatePacket(datapathId, context)
                     executePacket(datapathId, packet, actions)
                     val latency = NanoClock.DEFAULT.tick - packet.startTimeNanos
-                    metrics.packetSimulated(latency.toInt)
-                    metrics.packetsProcessed.mark()
+                    metrics.packetsExecuted.update(latency.toInt,
+                                                   TimeUnit.NANOSECONDS)
                     context.log.debug(s"Executed packet")
                 } catch { case t: Throwable =>
                     context.log.error(s"Failed to execute packet", t)
