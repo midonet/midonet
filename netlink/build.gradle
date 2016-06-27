@@ -43,7 +43,7 @@ dependencies {
     compile libraries.commons_cli, libraries.commons_exec,
             libraries.jna, libraries.scala, libraries.rx,
             libraries.scallop, libraries.commons_io,
-            libraries.guava
+            libraries.guava, libraries.metrics
 
     testCompile libraries.scalatest,
                 libraries.hamcrest_core,

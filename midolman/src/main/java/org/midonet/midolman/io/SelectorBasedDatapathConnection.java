@@ -22,9 +22,12 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.MetricRegistry;
+
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
+import org.midonet.netlink.NetlinkMetrics;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.Bucket;
 import org.midonet.util.eventloop.SelectListener;
@@ -47,31 +50,37 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
     private OvsDatapathConnection conn = null;
     private final boolean singleThreaded;
     private final Bucket bucket;
+    private final MetricRegistry metrics;
 
     public SelectorBasedDatapathConnection(String name,
                                            MidolmanConfig config,
                                            boolean singleThreaded,
                                            Bucket bucket,
-                                           BufferPool sendPool) {
+                                           BufferPool sendPool,
+                                           MetricRegistry metrics) {
         this.config = config;
         this.name = name;
         this.singleThreaded = singleThreaded;
         this.bucket = bucket;
         this.sendPool = sendPool;
+        this.metrics = metrics;
     }
 
     public SelectorBasedDatapathConnection(String name,
                                            MidolmanConfig config,
                                            boolean singleThreaded,
-                                           Bucket bucket) {
+                                           Bucket bucket,
+                                           MetricRegistry metrics) {
         this(name, config, singleThreaded, bucket,
              new BufferPool(config.datapath().sendBufferPoolInitialSize(),
                             config.datapath().sendBufferPoolMaxSize(),
-                            config.datapath().sendBufferPoolBufSizeKb() * 1024));
+                            config.datapath().sendBufferPoolBufSizeKb() * 1024),
+                metrics);
     }
 
-    public SelectorBasedDatapathConnection(String name, MidolmanConfig config) {
-        this(name, config, false, Bucket.BOTTOMLESS);
+    public SelectorBasedDatapathConnection(String name, MidolmanConfig config,
+                                           MetricRegistry metrics) {
+        this(name, config, false, Bucket.BOTTOMLESS, metrics);
     }
 
     public OvsDatapathConnection getConnection() {
@@ -104,7 +113,8 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
         writeThread = singleThreaded ? readThread :
                                        startLoop(writeLoop, name + ".write");
 
-        conn = OvsDatapathConnection.create(new Netlink.Address(0), sendPool);
+        conn = OvsDatapathConnection.create(new Netlink.Address(0), sendPool,
+                                            new NetlinkMetrics(metrics));
 
         conn.getChannel().configureBlocking(false);
         conn.setMaxBatchIoOps(200); // FIXME - deprecated

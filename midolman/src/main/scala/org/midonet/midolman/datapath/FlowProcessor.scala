@@ -34,6 +34,7 @@ import org.midonet.midolman.PacketWorkflow.DuplicateFlow
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.{DatapathState, SimulationBackChannel}
+import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
@@ -64,6 +65,7 @@ class FlowProcessor(dpState: DatapathState,
                     channelFactory: NetlinkChannelFactory,
                     selectorProvider: SelectorProvider,
                     backChannel: SimulationBackChannel,
+                    datapathMetrics: DatapathMetrics,
                     clock: NanoClock)
     extends EventPoller.Handler[PacketContextHolder]
     with DisruptorBackChannel
@@ -117,11 +119,13 @@ class FlowProcessor(dpState: DatapathState,
             val index = context.flow.mark
             try {
                 createFlow(context.origMatch, context.flowActions, context, index)
+                datapathMetrics.flowsCreated.mark()
                 if (context.isRecirc) {
                     // Note we created the after-recirc flow first, so new
                     // packets will still go to midolman before recirculation.
                     createFlow(
                         context.recircMatch, context.recircFlowActions, context, index)
+                    datapathMetrics.flowsCreated.mark()
                 }
             } catch { case t: Throwable =>
                 context.log.error("Failed to create datapath flow", t)
@@ -189,6 +193,7 @@ class FlowProcessor(dpState: DatapathState,
                     datapathId, flowMatch.getKeys, buffer)
                 sixwind.processFlow(buffer, buffer.limit())
                 broker.publishRequest(brokerSeq, obs)
+                datapathMetrics.flowsDeleted.mark()
             } catch { case e: Throwable =>
                 obs.onError(e)
             }
@@ -230,12 +235,15 @@ class FlowProcessor(dpState: DatapathState,
             log.warn("Unexpected reply to flow deletion; probably the late " +
                      "answer of a request that timed out")
 
-        override def onError(e: Throwable): Unit = e match {
-            case ne: NetlinkException =>
-                log.warn(s"Unexpected flow deletion error ${ne.getErrorCodeEnum}; " +
-                         "probably the late answer of a request that timed out")
-            case NonFatal(nf) =>
-                log.error("Unexpected error when deleting a flow", nf)
+        override def onError(e: Throwable): Unit = {
+            datapathMetrics.flowDeleteErrors.mark()
+            e match {
+                case ne: NetlinkException =>
+                    log.warn(s"Unexpected flow deletion error ${ne.getErrorCodeEnum}; " +
+                                 "probably the late answer of a request that timed out")
+                case NonFatal(nf) =>
+                    log.error("Unexpected error when deleting a flow", nf)
+            }
         }
 
         override def onNext(t: ByteBuffer): Unit = { }
@@ -246,11 +254,14 @@ class FlowProcessor(dpState: DatapathState,
             reader.read(buf)
         } catch {
             case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
+                datapathMetrics.flowCreateDupes.mark()
                 log.debug("Tried to add duplicate DP flow")
                 backChannel.tell(DuplicateFlow(ne.seq))
             case e: NetlinkException =>
+                datapathMetrics.flowCreateErrors.mark()
                 log.warn("Failed to create flow", e)
             case NonFatal(e) =>
+                datapathMetrics.flowCreateErrors.mark()
                 log.error("Unexpected error when creating a flow")
         } finally {
             buf.clear()
