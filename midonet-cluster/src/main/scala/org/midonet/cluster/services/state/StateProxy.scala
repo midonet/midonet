@@ -45,23 +45,28 @@ class StateProxy @Inject()(context: Context,
 
     private val log = Logger(LoggerFactory.getLogger(StateProxyLog))
     private var server: StateProxyServer = null
-    private var serviceHandler: MidonetServiceHandler = null
+    private var discovery: MidonetServiceHandler = null
+    private var manager: StateTableManager = null
 
     override def isEnabled = config.stateProxy.isEnabled
 
     override def doStart(): Unit = {
         log info s"Stating the state proxy service"
 
-        server = new StateProxyServer(config.stateProxy)
+        manager = new StateTableManager(config.stateProxy, backend)
+        server = new StateProxyServer(config.stateProxy, manager)
 
-        notifyStarted()
         registerServiceDiscovery()
+        notifyStarted()
     }
 
     override def doStop(): Unit = {
         log info s"Stopping the state proxy service"
 
+        manager.close()
         server.close()
+
+        manager = null
         server = null
 
         unregisterServiceDiscovery()
@@ -70,17 +75,18 @@ class StateProxy @Inject()(context: Context,
 
     private def registerServiceDiscovery(): Unit = {
         val discoveryService = new MidonetDiscoveryImpl(backend.curator,
-                                                        null, //executor unused
+                                                        executor = null,
                                                         config.backend)
         val serviceName = getClass.getAnnotation(classOf[MinionService]).name()
         val serviceAddress = config.stateProxy.serverAddress
         val servicePort = config.stateProxy.serverPort
         val serviceUri = new URI("udp://" + serviceAddress + ":" + servicePort)
-        serviceHandler = discoveryService.registerServiceInstance(serviceName,
-                                                                  serviceUri)
+        discovery = discoveryService.registerServiceInstance(serviceName,
+                                                             serviceUri)
     }
 
     private def unregisterServiceDiscovery(): Unit = {
-        serviceHandler.unregister()
+        discovery.unregister()
+        discovery = null
     }
 }
