@@ -123,6 +123,7 @@ project.ext {
         logback_logstash: "net.logstash.logback:logstash-logback-encoder:3.5",
         metrics: ["io.dropwizard.metrics:metrics-core:3.1.0",
                  "io.dropwizard.metrics:metrics-ganglia:3.1.0"],
+        hdrhistogram: "org.hdrhistogram:HdrHistogram:2.1.9",
         mockit: "org.jmockit:jmockit:1.12",
         mysql_jdbc: dependencies.create("org.mariadb.jdbc:mariadb-java-client:1.1.8") {
             exclude group: 'net.java.dev.jna'
