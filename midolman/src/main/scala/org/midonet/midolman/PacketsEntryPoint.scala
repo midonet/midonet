@@ -90,8 +90,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     @Inject
     var metricsRegistry: MetricRegistry = null
 
-    private var metrics: PacketPipelineMetrics = null
-
     protected var workers = immutable.IndexedSeq[ActorRef]()
 
     @Inject
@@ -123,7 +121,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     override def preStart(): Unit = {
         super.preStart()
         NUM_WORKERS = config.simulationThreads
-        metrics = new PacketPipelineMetrics(metricsRegistry, NUM_WORKERS)
 
         connTrackStateTable = new ShardedFlowStateTable(clock)
         natStateTable = new ShardedFlowStateTable(clock)
@@ -161,7 +158,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
             traceStateTable.addShard(log = shardLogger(traceStateTable)),
-            storageFactory.create(), natLeaser, metrics,
+            storageFactory.create(), natLeaser,
+            new PacketPipelineMetrics(metricsRegistry, index),
             flowRecorderFactory.newFlowRecorder(),
             counter.addAndGet(index, _: Int))
     }

@@ -17,6 +17,7 @@
 package org.midonet.midolman
 
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -344,10 +345,10 @@ class PacketWorkflow(
             waitingRoom leave pktCtx
         if (pktCtx.ingressed) {
             val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
-            metrics.packetsProcessed.mark()
             simRes match {
-                case StateMessage =>
-                case _ => metrics.packetSimulated(latency.toInt)
+                case StateMessage => metrics.statePacketsProcessed.mark()
+                case _ => metrics.packetsProcessed.update(latency.toInt,
+                                                          TimeUnit.NANOSECONDS)
             }
         }
 
