@@ -22,6 +22,7 @@ import scala.concurrent.duration._
 import akka.actor.{Actor, ActorRef, Props, _}
 import akka.event.LoggingReceive
 import com.google.inject.Inject
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
@@ -81,7 +82,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
-    var metrics: PacketPipelineMetrics = null
+    var metricsRegistry: MetricRegistry = null
 
     protected var workers = immutable.IndexedSeq[ActorRef]()
 
@@ -181,7 +182,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             peerResolver,
             storage,
             natLeaser,
-            metrics,
+            new PacketPipelineMetrics(metricsRegistry, index),
             flowRecorder,
             counter.addAndGet(index, _: Int)))
     }
