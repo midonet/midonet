@@ -32,6 +32,7 @@ import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolde
 import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
 import org.midonet.midolman.monitoring.metrics.DatapathMetrics
+import org.midonet.midolman.monitoring.metrics.PacketExecutorMetrics
 import org.midonet.midolman.util.{MockSelector, MockNetlinkChannelFactory, MidolmanSpec}
 import org.midonet.netlink.{BytesUtil, NLMessageType, NetlinkMessage}
 import org.midonet.odp._
@@ -83,8 +84,10 @@ class DatapathChannelTest extends MidolmanSpec {
             ringBuffer,
             new AggregateEventPollerHandler(
                 fp,
-                new EventPollerHandlerAdapter(new PacketExecutor(
-                    new DatapathStateDriver(datapath), ovsFamilies, 1, 0, factory, metrics))),
+                new EventPollerHandlerAdapter(
+                    new PacketExecutor(
+                        new DatapathStateDriver(datapath), ovsFamilies, 1, 0,
+                        factory, new PacketExecutorMetrics(metricRegistry, 0)))),
             fp)
         barrier = ringBuffer.newBarrier(processor.getSequence)
         dpChannel = new DisruptorDatapathChannel(ringBuffer, Array(processor))
