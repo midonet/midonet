@@ -62,16 +62,17 @@ import org.midonet.util.functors.makeAction0
   * that can be subscribed to.
   * Call [[stop()]] to stop the service and terminate all observables
   */
-class StateProxyClient(settings: StateProxyClientSettings,
+class StateProxyClient(settings: StateProxyClientConfig,
                        discoveryService: MidonetDiscovery,
-                       executor: ScheduledExecutorService)
-                      (implicit ec: ExecutionContext,
+                       executor: ScheduledExecutorService,
                        eventLoopGroup: NioEventLoopGroup)
+                      (implicit ec: ExecutionContext)
 
         extends PersistentConnection[ProxyRequest, ProxyResponse] (
                                      StateProxyService.Name,
                                      executor,
-                                     settings.reconnectTimeout)
+                                     settings.softReconnectDelay)(ec,
+                                                              eventLoopGroup)
         with StateTableClient {
 
     import StateProxyClient._
