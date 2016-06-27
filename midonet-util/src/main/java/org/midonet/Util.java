@@ -71,7 +71,16 @@ public final class Util {
         return 1 << (32 - Integer.numberOfLeadingZeros(value - 1));
     }
 
-    public static int highestBit(int i) {
+    public static long findPreviousPositivePowerOfTwo(final long value) {
+        if (value <= 1) {
+            return 1;
+        }
+        long ret = 1L << (63 - Long.numberOfLeadingZeros(value - 1));
+        assert(ret >= 0);
+        return ret;
+    }
+
+    public static int highestBit(long i) {
         int r = 0;
         while ((i >>= 1) != 0) {
             ++r;
