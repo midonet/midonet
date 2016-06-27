@@ -210,7 +210,7 @@ rpm.doFirst {
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
-            '--depends', 'java-1.8.0-openjdk-headless'])
+            '--depends', 'java-openjdk-headless >= 1.8.0'])
 }
 
 tar.doFirst {

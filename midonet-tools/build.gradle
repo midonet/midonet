@@ -75,7 +75,7 @@ rpm.doFirst {
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
-        '--depends', 'java-1.8.0-openjdk-headless'])
+        '--depends', 'java-openjdk-headless >= 1.8.0'])
 }
 
 tar.doFirst {
