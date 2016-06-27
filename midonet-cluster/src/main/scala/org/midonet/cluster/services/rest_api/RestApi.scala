@@ -25,6 +25,7 @@ import javax.validation.Validator
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 
 import com.google.inject.Guice._
 import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
@@ -39,6 +40,7 @@ import org.eclipse.jetty.http.HttpVersion._
 import org.eclipse.jetty.server._
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -152,19 +154,20 @@ class RestApi @Inject()(nodeContext: Context,
                  s"HTTPS: ${config.restApi.httpsHost}:${config.restApi.httpsPort} " +
                  s"root URI: ${config.restApi.rootUri}")
 
-        server = new Server()
+        server = new Server(createThreadPool())
 
         val http = httpConnector()
         val https = httpsConnector()
 
         server.setConnectors(if (https == null) Array(http)
-                             else Array (http, https))
+                             else Array(http, https))
 
         try {
             server.setHandler(prepareContext())
             server.start()
-        } finally {
             notifyStarted()
+        } catch {
+            case NonFatal(e) => notifyFailed(e)
         }
     }
 
@@ -201,6 +204,19 @@ class RestApi @Inject()(nodeContext: Context,
         context.addServlet(classOf[DefaultServlet], "/*")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
         context
+    }
+
+    /**
+      * @return The thread pool for the Jetty server.
+      */
+    private def createThreadPool(): QueuedThreadPool = {
+        val threadPool =
+            new QueuedThreadPool(config.restApi.maxThreadPoolSize,
+                                 config.restApi.minThreadPoolSize,
+                                 config.restApi.threadPoolIdleTimeoutMs.toInt)
+
+        threadPool.setName("rest-api-pool-")
+        threadPool
     }
 
     /** Build a basic HTTP configuration. */
