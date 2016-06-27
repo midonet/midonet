@@ -22,7 +22,7 @@ import java.util.concurrent.{CountDownLatch, TimeUnit}
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.state.ConnectionState
 import org.junit.runner.RunWith
-import org.mockito.Matchers.{anyObject, eq => Eq, same}
+import org.mockito.Matchers.{anyObject, same, eq => Eq}
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest._
@@ -31,12 +31,13 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.cluster.models.Topology.TunnelZone.Type
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.FloodingProxyKey
+import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -71,6 +72,7 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             override def stateStore: StateStorage = _stateStore
             override def store: Storage = _store
             override def stateTableStore: StateTableStorage = ???
+            override def stateTableClient: StateTableClient = ???
             override def curator: CuratorFramework = ???
             override def failFastCurator: CuratorFramework = ???
             override def reactor: Reactor = ???
