@@ -111,20 +111,24 @@ class StateTableSubscriber(val key: StateTableKey, handler: ClientHandler,
     /**
       * Unsubscribes from the current table cache and sends a NOTIFY to the
       * client indicating the server is shutting down.
-      * @return
       */
-    def close(): Future[AnyRef] = {
-        val notify = Notify.newBuilder()
-            .setSubscriptionId(id)
-            .setCompleted(Notify.Completed.newBuilder()
-                              .setCode(Notify.Completed.Code.SERVER_SHUTDOWN)
-                              .setDescription("Server shutting down"))
-        val response = ProxyResponse.newBuilder()
-            .setRequestId(requestId)
-            .setNotify(notify)
-            .build()
+    def close(serverInitiated: Boolean): Future[AnyRef] = {
+        unsubscribe()
+        if (serverInitiated) {
+            val notify = Notify.newBuilder()
+                .setSubscriptionId(id)
+                .setCompleted(Notify.Completed.newBuilder()
+                                  .setCode(Notify.Completed.Code.SERVER_SHUTDOWN)
+                                  .setDescription("Server shutting down"))
+            val response = ProxyResponse.newBuilder()
+                .setRequestId(requestId)
+                .setNotify(notify)
+                .build()
 
-        handler.send(response)
+            handler.send(response)
+        } else {
+            Future.successful(null)
+        }
     }
 
 }

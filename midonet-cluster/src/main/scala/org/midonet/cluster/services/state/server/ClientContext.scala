@@ -49,11 +49,11 @@ class ClientContext(handler: ClientHandler) {
       * returns a future that completes when all subscribers were notified
       * of the graceful shutdown and the underlying channel closed.
       */
-    def close(): Future[AnyRef] = {
+    def close(serverInitiated: Boolean): Future[AnyRef] = {
         val subscribers = subscriberList.close().asScala
 
         val futures = for (subscriber <- subscribers) yield {
-            subscriber.close()
+            subscriber.close(serverInitiated)
         }
 
         Future.sequence(futures)(breakOut, CallingThreadExecutionContext)
