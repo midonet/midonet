@@ -41,7 +41,7 @@ sourceSets {
 dependencies {
     compile project(":midonet-util"),
             project(":midonet-jdk-bootstrap")
-    compile libraries.jna, libraries.commons_io, libraries.guava, libraries.rx
+    compile libraries.jna, libraries.commons_io, libraries.guava, libraries.metrics, libraries.rx
 
     testCompile libraries.scalatest
 }

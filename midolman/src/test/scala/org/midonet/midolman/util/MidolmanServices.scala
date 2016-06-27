@@ -59,8 +59,10 @@ trait MidolmanServices {
     def stateStorage =
         injector.getInstance(classOf[StateStorage])
 
+    def metricRegistry = injector.getInstance(classOf[MetricRegistry])
+
     def metrics = {
-        val metricsReg = injector.getInstance(classOf[MetricRegistry])
+        val metricsReg = metricRegistry
         metricsReg.removeMatching(MetricFilter.ALL)
         new PacketPipelineMetrics(metricsReg, 1)
     }

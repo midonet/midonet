@@ -35,6 +35,7 @@ import org.midonet.netlink.Callback;
 import org.midonet.netlink.MockNetlinkChannel;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
+import org.midonet.netlink.NetlinkMetrics;
 import org.midonet.netlink.NetlinkProtocol;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.Datapath;
@@ -57,12 +58,14 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
 
     public final FuturesApi futures = new FuturesApi();
 
-    protected OvsDatapathConnection(NetlinkChannel channel, BufferPool sendPool) {
-        super(channel, sendPool);
+    protected OvsDatapathConnection(NetlinkChannel channel, BufferPool sendPool,
+                                    NetlinkMetrics metrics) {
+        super(channel, sendPool, metrics);
     }
 
     public static OvsDatapathConnection create(Netlink.Address address,
-                                               BufferPool sendPool) {
+                                               BufferPool sendPool,
+                                               NetlinkMetrics metrics) {
 
         NetlinkChannel channel;
         OvsNetlinkFamilies ovsNetlinkFamilies;
@@ -77,11 +80,13 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
             throw new RuntimeException(e);
         }
 
-        return new OvsDatapathConnectionImpl(channel, ovsNetlinkFamilies, sendPool);
+        return new OvsDatapathConnectionImpl(channel, ovsNetlinkFamilies,
+                                             sendPool, metrics);
     }
 
-    public static OvsDatapathConnection create(Netlink.Address address) throws Exception {
-        return create(address, new BufferPool(128, 512, 0x1000));
+    public static OvsDatapathConnection create(Netlink.Address address,
+                                               NetlinkMetrics metrics) throws Exception {
+        return create(address, new BufferPool(128, 512, 0x1000), metrics);
     }
 
     public static OvsDatapathConnection createMock() {

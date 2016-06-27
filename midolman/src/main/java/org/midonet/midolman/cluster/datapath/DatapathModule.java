@@ -22,6 +22,8 @@ import javax.inject.Singleton;
 import scala.collection.JavaConversions;
 import scala.collection.Seq$;
 
+import com.codahale.metrics.MetricRegistry;
+
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.PrivateModule;
@@ -49,6 +51,7 @@ import org.midonet.midolman.io.OneToOneDpConnManager;
 import org.midonet.midolman.io.OneToManyDpConnManager;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.io.TokenBucketPolicy;
+import org.midonet.midolman.monitoring.metrics.DatapathMetrics;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkChannelFactory;
@@ -179,6 +182,9 @@ public class DatapathModule extends PrivateModule {
                 @Inject
                 Injector injector;
 
+                @Inject
+                MetricRegistry registry;
+
                 @Override
                 public FlowProcessor get() {
                     return new FlowProcessor(
@@ -187,6 +193,7 @@ public class DatapathModule extends PrivateModule {
                         512, // Flow request size
                         injector.getInstance(NetlinkChannelFactory.class),
                         SelectorProvider.provider(),
+                        new DatapathMetrics(registry),
                         NanoClock$.MODULE$.DEFAULT());
                 }
             })
@@ -219,14 +226,19 @@ public class DatapathModule extends PrivateModule {
         @Inject
         TokenBucketPolicy tbPolicy;
 
+        @Inject
+        MetricRegistry registry;
+
         @Override
         public UpcallDatapathConnectionManager get() {
             String val = config.inputChannelThreading();
             switch (val) {
                 case "one_to_many":
-                    return new OneToManyDpConnManager(config, tbPolicy);
+                    return new OneToManyDpConnManager(config, tbPolicy,
+                                                      registry);
                 case "one_to_one":
-                    return new OneToOneDpConnManager(config, tbPolicy);
+                    return new OneToOneDpConnManager(config, tbPolicy,
+                                                     registry);
                 default:
                     throw new IllegalArgumentException(
                         "Unknown value for input_channel_threading: " + val);
@@ -240,11 +252,14 @@ public class DatapathModule extends PrivateModule {
         @Inject
         MidolmanConfig config;
 
+        @Inject
+        MetricRegistry registry;
+
         @Override
         public DatapathConnectionPool get() {
             return new OneToOneConnectionPool("netlink.requests",
                                               config.outputChannels(),
-                                              config);
+                                              config, registry);
         }
     }
 }

@@ -37,6 +37,7 @@ import org.midonet.netlink.NLMessageType;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NullNetlinkMetrics;
 import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.Bucket;
 
@@ -51,7 +52,7 @@ public abstract class AbstractNetlinkProtocolTest {
     protected void setConnection() throws Exception {
         OvsNetlinkFamilies ovsNetlinkFamilies = OvsNetlinkFamilies.discover(channel);
         connection = new OvsDatapathConnectionImpl(channel, ovsNetlinkFamilies,
-            new BufferPool(128, 512, 0x1000));
+                new BufferPool(128, 512, 0x1000), new NullNetlinkMetrics());
     }
 
     protected void setUp(final byte[][] responses) throws Exception {

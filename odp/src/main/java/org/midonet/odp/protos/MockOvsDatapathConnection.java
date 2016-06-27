@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
+import org.midonet.netlink.NullNetlinkMetrics;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.*;
 import org.midonet.odp.flows.*;
@@ -63,7 +64,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     public MockOvsDatapathConnection(NetlinkChannel channel,
                                      Map<FlowMatch, Flow> flowsTable) {
-        super(channel, new BufferPool(128, 512, 0x1000));
+        super(channel, new BufferPool(128, 512, 0x1000),
+              new NullNetlinkMetrics());
         this.datapaths = Collections.newSetFromMap(
                             new ConcurrentHashMap<Datapath,Boolean>());
         this.datapathPorts = new ConcurrentHashMap<Datapath, Set<DpPort>>();

@@ -30,6 +30,7 @@ import org.scalatest.concurrent.Eventually._
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.DatapathEvent
 import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
+import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.netlink.{MockNetlinkChannelFactory, NetlinkMessage}
 import org.midonet.odp._
@@ -70,7 +71,9 @@ class DatapathChannelTest extends MidolmanSpec {
         val ovsFamilies = new OvsNetlinkFamilies(new DatapathFamily(1), new PortFamily(2),
                                                  new FlowFamily(3), new PacketFamily(4), 5, 6)
         fp = new FlowProcessor(ovsFamilies, 1024, 2048, factory,
-                               SelectorProvider.provider(), clock)
+                               SelectorProvider.provider(),
+                               new DatapathMetrics(metricRegistry),
+                               clock)
         ringBuffer = RingBuffer.createSingleProducer[DatapathEvent](
             DisruptorDatapathChannel.eventFactory(config), capacity)
         val processors = Array(new BackchannelEventProcessor[DatapathEvent](

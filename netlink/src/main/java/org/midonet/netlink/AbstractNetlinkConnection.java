@@ -67,6 +67,7 @@ public abstract class AbstractNetlinkConnection {
         BytesUtil.instance.allocateDirect(NETLINK_READ_BUFSIZE);
 
     private final BufferPool requestPool;
+    private final NetlinkMetrics metrics;
     private final NetlinkChannel channel;
     protected BatchCollector<Runnable> dispatcher;
 
@@ -82,9 +83,12 @@ public abstract class AbstractNetlinkConnection {
      * is responsible for marking the ending notification batches. */
     private boolean usingSharedNotificationHandler = false;
 
-    public AbstractNetlinkConnection(NetlinkChannel channel, BufferPool sendPool) {
+    public AbstractNetlinkConnection(NetlinkChannel channel, BufferPool sendPool,
+                                     NetlinkMetrics metrics) {
         this.channel = channel;
         this.requestPool = sendPool;
+        this.metrics = metrics;
+
         expirationQueue = new PriorityQueue<>(512, NetlinkRequest.comparator);
 
         log = LoggerFactory.getLogger("org.midonet.netlink.netlink-conn-" + pid());
@@ -417,6 +421,7 @@ public abstract class AbstractNetlinkConnection {
                     if (error == 0) {
                         processSuccessfulRequest(removeRequest(seq));
                     } else {
+                        metrics.netlinkErrors().mark();
                         processFailedRequest(seq, error);
                     }
                     break;
@@ -432,6 +437,7 @@ public abstract class AbstractNetlinkConnection {
                     byte ver = reply.get();      // version
                     reply.getShort();            // reserved
 
+                    metrics.netlinkNotifications().mark();
                     if (seq == 0) {
                         // if the seq number is zero we are handling a PacketIn.
                         if (bucket.consumeToken()) {
@@ -442,6 +448,7 @@ public abstract class AbstractNetlinkConnection {
                                 throw e;
                             }
                         } else {
+                            metrics.htbDrops().mark();
                             log.debug("Failed to get token; dropping packet");
                         }
                     } else  {
