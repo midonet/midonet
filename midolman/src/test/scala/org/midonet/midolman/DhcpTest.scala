@@ -479,6 +479,6 @@ class DhcpTest extends MidolmanSpec {
         val dhcpReply = extractDhcpReply(returnPkt)
         val mtuValue = ByteBuffer.wrap(dhcpReply.getOptions.find(
             _.getCode == DHCPOption.Code.INTERFACE_MTU.value).get.getData).getShort
-        mtuValue should (be (DatapathController.minMtu) or (be (MidolmanConfig.DEFAULT_MTU)))
+        mtuValue shouldBe 1450
     }
 }
