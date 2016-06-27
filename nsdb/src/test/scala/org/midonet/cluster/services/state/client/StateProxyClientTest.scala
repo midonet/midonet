@@ -26,6 +26,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 import com.google.protobuf.{ByteString, Message}
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 
 import io.netty.channel.nio.NioEventLoopGroup
@@ -164,12 +165,23 @@ class StateProxyClientTest extends FeatureSpec
             }
         }
 
-        val settings = new StateProxyClientSettings(reconnectTimeout)
+        val STATE_PROXY_CFG_OBJECT = ConfigFactory.parseString(
+            s"""
+              |state_proxy.enabled=true
+              |state_proxy.network_threads=2
+              |state_proxy.soft_reconnect_delay=${reconnectTimeout.toMillis}ms
+              |state_proxy.max_soft_reconnect_attempts=30
+              |state_proxy.hard_reconnect_delay=5s
+            """.stripMargin
+        )
+
+        val settings = new StateProxyClientConfig(STATE_PROXY_CFG_OBJECT)
 
         val discoveryService = new DiscoveryMock("localhost",server.port)
         val client = new StateProxyClient(settings,
                                           discoveryService,
-                                          executor)(exctx,eventLoopGroup)
+                                          executor,
+                                          eventLoopGroup)(exctx)
 
         def close(): Unit = {
             if (server.hasClient) server.close()
