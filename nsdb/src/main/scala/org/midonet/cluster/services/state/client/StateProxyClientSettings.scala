@@ -16,11 +16,24 @@
 
 package org.midonet.cluster.services.state.client
 
+import java.util.concurrent.TimeUnit
+
 import scala.concurrent.duration._
 
-class StateProxyClientSettings(val reconnectTimeout: FiniteDuration
-                                    = StateProxyClientSettings.DefaultReconnectTimeout)
+import com.typesafe.config.Config
+
+class StateProxyClientSettings(val enabled: Boolean,
+                               val numNetworkThreads: Int,
+                               val reconnectTimeout: FiniteDuration)
 
 object StateProxyClientSettings {
-    val DefaultReconnectTimeout = 3 seconds
+
+    def from(conf: Config): StateProxyClientSettings = {
+        new StateProxyClientSettings(
+            enabled=conf.getBoolean("state_proxy.enabled"),
+            numNetworkThreads=conf.getInt("state_proxy.network_threads"),
+            reconnectTimeout=conf.getDuration("state_proxy.connection_retry_interval",
+                                              TimeUnit.MILLISECONDS) millis
+        )
+    }
 }
