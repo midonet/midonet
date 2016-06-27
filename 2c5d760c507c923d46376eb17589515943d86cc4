@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_78445eb6",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-27T18:56:41Z",
+      "side": 1,
+      "message": "val GENERIC, BAD_REQUEST, STORAGE_ERROR \u003d Value",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 46
+      },
+      "revId": "2c5d760c507c923d46376eb17589515943d86cc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b83ae632",
+        "filename": "nsdb/src/main/proto/flowstate_transfer.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-27T18:56:41Z",
+      "side": 1,
+      "message": "is this the ip of the remote host? I\u0027d change it by \"ipv4address\" or \"remote_ipv4\"",
+      "range": {
+        "startLine": 105,
+        "startChar": 17,
+        "endLine": 105,
+        "endChar": 28
+      },
+      "revId": "2c5d760c507c923d46376eb17589515943d86cc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
