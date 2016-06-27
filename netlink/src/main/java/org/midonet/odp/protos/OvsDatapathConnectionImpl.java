@@ -32,6 +32,7 @@ import org.midonet.netlink.Callback;
 import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkMetrics;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
@@ -64,8 +65,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     public OvsDatapathConnectionImpl(NetlinkChannel channel,
                                      OvsNetlinkFamilies ovsNetlinkFamilies,
-                                     BufferPool sendPool) {
-        super(channel, sendPool);
+                                     BufferPool sendPool,
+                                     NetlinkMetrics metrics) {
+        super(channel, sendPool, metrics);
         protocol = new OvsProtocol(channel.getLocalAddress().getPid(),
                                    ovsNetlinkFamilies);
         packetFamily = ovsNetlinkFamilies.packetFamily();
