@@ -76,8 +76,10 @@ trait MidolmanServices {
         override def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String): Option[Host] = None
     }
 
-    def metrics = {
-        val metricsReg = injector.getInstance(classOf[MetricRegistry])
+    def metricRegistry = injector.getInstance(classOf[MetricRegistry])
+
+    lazy val metrics = {
+        val metricsReg = metricRegistry
         metricsReg.removeMatching(MetricFilter.ALL)
         new PacketPipelineMetrics(metricsReg, 1)
     }

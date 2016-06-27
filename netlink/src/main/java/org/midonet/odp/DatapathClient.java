@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.netlink.Netlink;
+import org.midonet.netlink.NullNetlinkMetrics;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.eventloop.*;
 
@@ -39,7 +40,8 @@ public abstract class DatapathClient {
 
         log.info("Making the ovsConnection");
         final OvsDatapathConnection ovsConnection =
-            OvsDatapathConnection.create(new Netlink.Address(0));
+            OvsDatapathConnection.create(new Netlink.Address(0),
+                                         new NullNetlinkMetrics());
 
         ovsConnection.bypassSendQueue(true);
 

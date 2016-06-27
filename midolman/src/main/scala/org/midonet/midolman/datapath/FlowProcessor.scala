@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
+import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
@@ -58,6 +59,7 @@ class FlowProcessor(dpState: DatapathState,
                     maxRequestSize: Int,
                     channelFactory: NetlinkChannelFactory,
                     selectorProvider: SelectorProvider,
+                    datapathMetrics: DatapathMetrics,
                     clock: NanoClock)
     extends EventPoller.Handler[PacketContextHolder]
     with Backchannel
@@ -113,6 +115,7 @@ class FlowProcessor(dpState: DatapathState,
                 } else null
                 writeFlow(
                     datapathId, flowMatch.getKeys, context.flowActions, mask)
+                datapathMetrics.flowsCreated.mark()
                 context.log.debug("Created datapath flow")
             } catch { case t: Throwable =>
                 context.log.error("Failed to create datapath flow", t)
@@ -159,6 +162,7 @@ class FlowProcessor(dpState: DatapathState,
                 brokerProtocol.prepareFlowDelete(
                     datapathId, flowMatch.getKeys, broker.get(brokerSeq))
                 broker.publishRequest(brokerSeq, obs)
+                datapathMetrics.flowsDeleted.mark()
             } catch { case e: Throwable =>
                 obs.onError(e)
             }
@@ -200,12 +204,15 @@ class FlowProcessor(dpState: DatapathState,
             log.warn("Unexpected reply to flow deletion; probably the late " +
                      "answer of a request that timed out")
 
-        override def onError(e: Throwable): Unit = e match {
-            case ne: NetlinkException =>
-                log.warn(s"Unexpected flow deletion error ${ne.getErrorCodeEnum}; " +
-                         "probably the late answer of a request that timed out")
-            case NonFatal(nf) =>
-                log.error("Unexpected error when deleting a flow", nf)
+        override def onError(e: Throwable): Unit = {
+            datapathMetrics.flowDeleteErrors.mark()
+            e match {
+                case ne: NetlinkException =>
+                    log.warn(s"Unexpected flow deletion error ${ne.getErrorCodeEnum}; " +
+                                 "probably the late answer of a request that timed out")
+                case NonFatal(nf) =>
+                    log.error("Unexpected error when deleting a flow", nf)
+            }
         }
 
         override def onNext(t: ByteBuffer): Unit = { }
@@ -216,10 +223,13 @@ class FlowProcessor(dpState: DatapathState,
             reader.read(buf)
         } catch {
             case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
+                datapathMetrics.flowCreateDupes.mark()
                 log.debug("Tried to add duplicate DP flow")
             case e: NetlinkException =>
+                datapathMetrics.flowCreateErrors.mark()
                 log.warn("Failed to create flow", e)
             case NonFatal(e) =>
+                datapathMetrics.flowCreateErrors.mark()
                 log.error("Unexpected error when creating a flow")
         } finally {
             buf.clear()

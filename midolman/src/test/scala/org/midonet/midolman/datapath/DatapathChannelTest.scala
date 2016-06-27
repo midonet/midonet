@@ -21,6 +21,8 @@ import java.nio.channels.SelectionKey
 import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
 import java.util.{UUID, ArrayList}
 
+import com.codahale.metrics.MetricRegistry;
+
 import akka.testkit.TestProbe
 import com.lmax.disruptor.{SequenceBarrier, RingBuffer}
 import org.jctools.queues.SpscArrayQueue
@@ -31,6 +33,7 @@ import org.scalatest.concurrent.Eventually._
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
+import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.midolman.util.{MockSelector, MockNetlinkChannelFactory, MidolmanSpec}
 import org.midonet.netlink.{BytesUtil, NLMessageType, NetlinkMessage}
 import org.midonet.odp._
@@ -58,7 +61,7 @@ class DatapathChannelTest extends MidolmanSpec {
                                 new Stats(0, 0, 0, 0), new MegaflowStats(0, 0))
     private val fp = new FlowProcessor(
         new DatapathStateDriver(datapath), ovsFamilies, 1024, 2048, factory,
-        factory.selectorProvider, clock)
+        factory.selectorProvider, new DatapathMetrics(new MetricRegistry), clock)
     val ringBuffer = RingBuffer.createSingleProducer[PacketContextHolder](
         DisruptorDatapathChannel.Factory, capacity)
     var processor: BackchannelEventProcessor[PacketContextHolder] = _
