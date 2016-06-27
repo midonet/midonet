@@ -139,7 +139,10 @@ class HaproxyTest extends MidolmanSpec
     }
 
     protected val backendCfg = new MidonetBackendConfig(
-        ConfigFactory.parseString(""" zookeeper.root_key = '/' """))
+        ConfigFactory.parseString(
+            """ zookeeper.root_key = '/'
+              | state_proxy.enabled = false
+            """.stripMargin))
 
     def getRoute(routeId: UUID): Route = {
         backend.store.get(classOf[Route], routeId).value.get.get
