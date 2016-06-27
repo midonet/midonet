@@ -18,7 +18,6 @@ package org.midonet.cluster.services.rest_api
 
 import java.io.File
 import java.util
-import java.util.concurrent.Executors
 
 import javax.servlet.DispatcherType
 import javax.validation.Validator
@@ -59,7 +58,6 @@ import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
-import org.midonet.util.concurrent.NamedThreadFactory
 
 object RestApi {
 
@@ -142,8 +140,7 @@ class RestApi @Inject()(nodeContext: Context,
 
     private var server: Server = _
     private val log = Logger(LoggerFactory.getLogger(RestApiLog))
-    private val executor = Executors.newCachedThreadPool(
-        new NamedThreadFactory("rest-api", isDaemon = true))
+    private val executor = createThreadPool()
     private val executionContext = ExecutionContext.fromExecutor(executor)
 
     override def isEnabled = config.restApi.isEnabled
@@ -154,7 +151,7 @@ class RestApi @Inject()(nodeContext: Context,
                  s"HTTPS: ${config.restApi.httpsHost}:${config.restApi.httpsPort} " +
                  s"root URI: ${config.restApi.rootUri}")
 
-        server = new Server(createThreadPool())
+        server = new Server(executor)
         server.addBean(new ScheduledExecutorScheduler("rest-api-scheduler", false))
 
         val http = httpConnector()
@@ -174,13 +171,17 @@ class RestApi @Inject()(nodeContext: Context,
 
     override def doStop(): Unit = {
         try {
-            executor.shutdown()
             if (server ne null) {
                 server.stop()
+            }
+            executor.stop()
+            if (server ne null) {
                 server.join()
             }
         } finally {
-            server.destroy()
+            if (server ne null) {
+                server.destroy()
+            }
         }
         notifyStopped()
     }
@@ -216,7 +217,7 @@ class RestApi @Inject()(nodeContext: Context,
                                  config.restApi.minThreadPoolSize,
                                  config.restApi.threadPoolIdleTimeoutMs.toInt)
 
-        threadPool.setName("rest-api-pool")
+        threadPool.setName("rest-api")
         threadPool
     }
 
@@ -239,7 +240,7 @@ class RestApi @Inject()(nodeContext: Context,
             new HttpConnectionFactory(createHttpConfig()))
         http.setHost(StringUtils.defaultIfBlank(config.restApi.httpHost, null))
         http.setPort(config.restApi.httpPort)
-        http.setIdleTimeout(30000)
+        http.setIdleTimeout(config.restApi.httpIdleTimeoutMs)
         http
     }
 
@@ -291,7 +292,7 @@ class RestApi @Inject()(nodeContext: Context,
             sslConnectionFactory, httpConnectionFactory)
         https.setHost(StringUtils.defaultIfBlank(config.restApi.httpsHost, null))
         https.setPort(config.restApi.httpsPort)
-        https.setIdleTimeout(500000)
+        https.setIdleTimeout(config.restApi.httpsIdleTimeoutMs)
         https
     }
 
