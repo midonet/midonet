@@ -82,6 +82,7 @@ class StateTableManagerTest extends FeatureSpec with Matchers
         override def reactor: Reactor = ???
         override def doStop(): Unit = ???
         override def doStart(): Unit = ???
+        override def stateTableClient: StateTableClient = ???
     }
 
     private val config = new StateProxyConfig(ConfigFactory.parseString(
