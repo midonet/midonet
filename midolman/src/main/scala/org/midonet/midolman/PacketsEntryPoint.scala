@@ -24,6 +24,7 @@ import akka.event.LoggingReceive
 
 import com.google.inject.Inject
 
+import com.codahale.metrics.MetricRegistry
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -83,7 +84,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
-    var metrics: PacketPipelineMetrics = null
+    var metricsRegistry: MetricRegistry = null
 
     protected var workers = immutable.IndexedSeq[ActorRef]()
 
@@ -183,7 +184,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             peerResolver,
             storage,
             natLeaser,
-            metrics,
+            new PacketPipelineMetrics(metricsRegistry, index),
             flowRecorder,
             counter.addAndGet(index, _: Int)))
     }
