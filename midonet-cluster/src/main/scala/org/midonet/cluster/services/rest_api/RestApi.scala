@@ -40,7 +40,7 @@ import org.eclipse.jetty.http.HttpVersion._
 import org.eclipse.jetty.server._
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.eclipse.jetty.util.ssl.SslContextFactory
-import org.eclipse.jetty.util.thread.QueuedThreadPool
+import org.eclipse.jetty.util.thread.{QueuedThreadPool, ScheduledExecutorScheduler}
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -155,6 +155,7 @@ class RestApi @Inject()(nodeContext: Context,
                  s"root URI: ${config.restApi.rootUri}")
 
         server = new Server(createThreadPool())
+        server.addBean(new ScheduledExecutorScheduler("rest-api-scheduler", false))
 
         val http = httpConnector()
         val https = httpsConnector()
@@ -215,7 +216,7 @@ class RestApi @Inject()(nodeContext: Context,
                                  config.restApi.minThreadPoolSize,
                                  config.restApi.threadPoolIdleTimeoutMs.toInt)
 
-        threadPool.setName("rest-api-pool-")
+        threadPool.setName("rest-api-pool")
         threadPool
     }
 
@@ -231,8 +232,11 @@ class RestApi @Inject()(nodeContext: Context,
 
     /** Build and configure an HTTP connector. */
     private def httpConnector(): ServerConnector = {
-        val cfg = createHttpConfig()
-        val http = new ServerConnector(server, new HttpConnectionFactory(cfg))
+        val http = new ServerConnector(
+            server,
+            config.restApi.acceptorThreads,
+            config.restApi.selectorThreads,
+            new HttpConnectionFactory(createHttpConfig()))
         http.setHost(StringUtils.defaultIfBlank(config.restApi.httpHost, null))
         http.setPort(config.restApi.httpPort)
         http.setIdleTimeout(30000)
@@ -256,7 +260,7 @@ class RestApi @Inject()(nodeContext: Context,
                                "/etc/midonet-cluster/ssl/midonet.jks")
 
         if (config.restApi.httpsPort <= 0) {
-            log.info(s"HTTPS explicitly disabled (https port is <= 0)")
+            log.info("HTTPS explicitly disabled: port is not positive")
             return null
         }
 
@@ -274,12 +278,17 @@ class RestApi @Inject()(nodeContext: Context,
         sslContextFactory.setKeyStorePassword(keystorePass)
         sslContextFactory.setKeyManagerPassword(keystorePass)
 
-        val sslCnxnFactory = new SslConnectionFactory(sslContextFactory,
-                                                      HTTP_1_1.asString())
         val httpsConfig = createHttpConfig()
+        val httpConnectionFactory =
+            new HttpConnectionFactory(httpsConfig)
+        val sslConnectionFactory =
+            new SslConnectionFactory(sslContextFactory, HTTP_1_1.asString())
         httpsConfig.addCustomizer(new SecureRequestCustomizer())
-        val cnxnFactory = new HttpConnectionFactory(httpsConfig)
-        val https = new ServerConnector(server, sslCnxnFactory, cnxnFactory)
+        val https = new ServerConnector(
+            server,
+            config.restApi.acceptorThreads,
+            config.restApi.selectorThreads,
+            sslConnectionFactory, httpConnectionFactory)
         https.setHost(StringUtils.defaultIfBlank(config.restApi.httpsHost, null))
         https.setPort(config.restApi.httpsPort)
         https.setIdleTimeout(500000)

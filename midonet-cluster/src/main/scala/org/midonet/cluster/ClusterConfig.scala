@@ -159,6 +159,8 @@ class RestApiConfig(val conf: Config) extends MinionConfig[RestApi] {
     def maxThreadPoolSize = conf.getInt(s"$prefix.max_thread_pool_size")
     def threadPoolIdleTimeoutMs =
         conf.getDuration(s"$prefix.thread_pool_idle_timeout", TimeUnit.MILLISECONDS)
+    def acceptorThreads = conf.getInt(s"$prefix.acceptor_threads")
+    def selectorThreads = conf.getInt(s"$prefix.selector_threads")
     def nsdbLockTimeoutMs =
         conf.getDuration(s"$prefix.nsdb_lock_timeout", TimeUnit.MILLISECONDS)
 }
