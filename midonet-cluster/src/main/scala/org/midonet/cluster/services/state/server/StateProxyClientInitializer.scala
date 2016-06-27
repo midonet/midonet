@@ -21,6 +21,7 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.protobuf.{ProtobufDecoder, ProtobufEncoder, ProtobufVarint32FrameDecoder, ProtobufVarint32LengthFieldPrepender}
 
 import org.midonet.cluster.rpc.State.ProxyRequest
+import org.midonet.cluster.services.state.StateTableManager
 import org.midonet.cluster.services.state.server.StateProxyClientInitializer._
 
 object StateProxyClientInitializer {
@@ -42,7 +43,8 @@ object StateProxyClientInitializer {
   * - A [[StateProxyProtocolHandler]] that handles the request in the context
   *   of the server internal state machine.
   */
-class StateProxyClientInitializer extends ChannelInitializer[SocketChannel] {
+class StateProxyClientInitializer(manager: StateTableManager)
+    extends ChannelInitializer[SocketChannel] {
 
     @throws[Exception]
     override def initChannel(channel: SocketChannel): Unit = {
@@ -52,7 +54,7 @@ class StateProxyClientInitializer extends ChannelInitializer[SocketChannel] {
                 ProxyRequest.getDefaultInstance))
             .addLast(FrameEncoder, new ProtobufVarint32LengthFieldPrepender)
             .addLast(MessageEncoder, new ProtobufEncoder)
-            .addLast(ProtocolHandler, new StateProxyProtocolHandler)
+            .addLast(ProtocolHandler, new StateProxyProtocolHandler(manager))
     }
 
 }

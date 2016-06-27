@@ -34,6 +34,7 @@ import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster._
+import org.midonet.cluster.services.state.StateTableManager
 import org.midonet.cluster.services.state.server.ChannelUtil._
 import org.midonet.cluster.services.state.server.StateProxyServer._
 import org.midonet.util.concurrent.{CallingThreadExecutionContext, NamedThreadFactory}
@@ -82,7 +83,7 @@ object StateProxyServer {
 /**
   * Implements a Netty server for the State Proxy service.
   */
-class StateProxyServer(config: StateProxyConfig) {
+class StateProxyServer(config: StateProxyConfig, manager: StateTableManager) {
 
     private val log = Logger(LoggerFactory.getLogger(StateProxyLog))
 
@@ -133,7 +134,7 @@ class StateProxyServer(config: StateProxyConfig) {
     bootstrap.channel(classOf[NioServerSocketChannel])
 
     // Set the child handler.
-    bootstrap.childHandler(new StateProxyClientInitializer)
+    bootstrap.childHandler(new StateProxyClientInitializer(manager))
 
     bootstrap.validate()
 
