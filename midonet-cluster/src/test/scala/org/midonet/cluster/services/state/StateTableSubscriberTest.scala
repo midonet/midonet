@@ -235,7 +235,7 @@ class StateTableSubscriberTest extends FeatureSpec with Matchers
             Mockito.verify(subscription).refresh(Some(3L))
         }
 
-        scenario("Subscriber handles close") {
+        scenario("Subscriber handles close on shutdown") {
             Given("A cache and a handler")
             val cache = newCache()
             val handler = new TestHandler
@@ -250,8 +250,8 @@ class StateTableSubscriberTest extends FeatureSpec with Matchers
             And("A subscriber")
             val subscriber = newSubscriber(handler, cache, requestId = 1L)
 
-            When("Calling close")
-            subscriber.close()
+            When("Calling close for shutdown")
+            subscriber.close(serverInitiated = true)
 
             Then("The handler receives a completed notification")
             val notify = ProxyResponse.newBuilder()
@@ -264,6 +264,34 @@ class StateTableSubscriberTest extends FeatureSpec with Matchers
                 .build()
             handler.messages should have size 1
             handler.messages should contain only notify
+
+            And("The subscription should unsubscribe")
+            Mockito.verify(subscription).unsubscribe()
+        }
+
+        scenario("Subscriber handles close on connection closed") {
+            Given("A cache and a handler")
+            val cache = newCache()
+            val handler = new TestHandler
+
+            And("A cache subscription")
+            val subscriptionId = random.nextLong()
+            val subscription = Mockito.mock(classOf[StateTableSubscription])
+            Mockito.when(subscription.id).thenReturn(subscriptionId)
+            Mockito.when(cache.subscribe(MockMatchers.any(), MockMatchers.any()))
+                .thenReturn(subscription)
+
+            And("A subscriber")
+            val subscriber = newSubscriber(handler, cache, requestId = 1L)
+
+            When("Calling close for connection closed")
+            subscriber.close(serverInitiated = false)
+
+            Then("The handler does not receive any messages")
+            handler.messages shouldBe empty
+
+            And("The subscription should unsubscribe")
+            Mockito.verify(subscription).unsubscribe()
         }
     }
 
