@@ -17,13 +17,16 @@
 package org.midonet.cluster.services
 
 import java.util.UUID
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 
 import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.AbstractService
+
+import io.netty.channel.nio.NioEventLoopGroup
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
@@ -41,8 +44,9 @@ import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
-import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryClient, MidonetDiscoveryImpl, MidonetServiceHostAndPort}
+import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryImpl}
 import org.midonet.cluster.services.state.StateProxyService
+import org.midonet.cluster.services.state.client.{StateProxyClient, StateProxyClientConfig$, StateTableClient}
 import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
 import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.conf.HostIdGenerator
@@ -353,6 +357,8 @@ abstract class MidonetBackend extends AbstractService {
     /** Emits notifications with the current connection state for
       * [[failFastCurator]]. */
     def failFastConnectionState: Observable[ConnectionState]
+    /** Provides access to the state table client. */
+    def stateTableClient: StateTableClient
 }
 
 /** Class responsible for providing services to access to the new Storage
@@ -374,6 +380,9 @@ class MidonetBackendService(config: MidonetBackendConfig,
 
     private var discoveryServiceExecutor: ExecutorService = null
     private var discoveryService: MidonetDiscovery = null
+    private var stateProxyClientExecutor : ScheduledExecutorService = null
+    private var stateProxyClient: StateProxyClient = null
+
 
     override val reactor = new TryCatchReactor("nsdb", 1)
     override val connection = new CuratorZkConnection(curator, reactor)
@@ -391,6 +400,8 @@ class MidonetBackendService(config: MidonetBackendConfig,
     override def stateStore: StateStorage = zoom
     override def stateTableStore: StateTableStorage = zoom
 
+    override def stateTableClient: StateTableClient = stateProxyClient
+
     protected def setup(stateTableStorage: StateTableStorage): Unit = { }
 
     protected override def doStart(): Unit = {
@@ -407,6 +418,25 @@ class MidonetBackendService(config: MidonetBackendConfig,
             discoveryService = new MidonetDiscoveryImpl(curator,
                                                         discoveryServiceExecutor,
                                                         config)
+
+            if (config.stateClient.enabled) {
+                stateProxyClientExecutor = Executors
+                    .singleThreadScheduledExecutor(
+                        StateProxyService.Name,
+                        isDaemon = true,
+                        Executors.CallerRunsPolicy)
+                val ec = ExecutionContext.fromExecutor(stateProxyClientExecutor)
+                val numNettyThreads = config.stateClient.numNetworkThreads
+                val eventLoopGroup = new NioEventLoopGroup(numNettyThreads)
+
+                stateProxyClient = new StateProxyClient(
+                    config.stateClient,
+                    discoveryService,
+                    stateProxyClientExecutor,
+                    eventLoopGroup)(ec)
+
+                stateProxyClient.start()
+            }
 
             notifyStarted()
             log.info("Setting up storage bindings")
@@ -427,6 +457,10 @@ class MidonetBackendService(config: MidonetBackendConfig,
         curator.close()
         failFastCurator.close()
         notifyStopped()
+        if (config.stateClient.enabled) {
+            stateProxyClient.stop()
+            stateProxyClientExecutor.shutdown()
+        }
         discoveryService.stop()
         discoveryServiceExecutor.shutdown()
     }
