@@ -24,9 +24,12 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.MetricRegistry;
+
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
+import org.midonet.netlink.NetlinkMetrics;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.Bucket;
 import org.midonet.util.eventloop.SelectListener;
@@ -45,18 +48,21 @@ public class SelectorThreadPair {
     private SelectLoop readLoop;
     private SelectLoop writeLoop;
     private final boolean singleThreaded;
+    private final MetricRegistry metrics;
 
     private Set<ManagedDatapathConnection> conns = new HashSet<>();
 
     public SelectorThreadPair(String name, MidolmanConfig config,
-                              boolean singleThreaded) {
+                              boolean singleThreaded, MetricRegistry metrics) {
         this.config = config;
         this.name = name;
         this.singleThreaded = singleThreaded;
+        this.metrics = metrics;
     }
 
-    public SelectorThreadPair(String name, MidolmanConfig config) {
-        this(name, config, false);
+    public SelectorThreadPair(String name, MidolmanConfig config,
+                              MetricRegistry metrics) {
+        this(name, config, false, metrics);
     }
 
     public boolean isRunning() {
@@ -86,7 +92,8 @@ public class SelectorThreadPair {
             final BufferPool sendPool, SelectLoop.Priority priority) throws Exception {
 
         final OvsDatapathConnection conn =
-            OvsDatapathConnection.create(new Netlink.Address(0), sendPool);
+            OvsDatapathConnection.create(new Netlink.Address(0), sendPool,
+                                         new NetlinkMetrics(metrics));
 
         conn.getChannel().configureBlocking(false);
         conn.setMaxBatchIoOps(200); // FIXME - deprecated

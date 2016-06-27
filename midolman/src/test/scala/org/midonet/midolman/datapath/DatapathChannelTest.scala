@@ -31,6 +31,7 @@ import org.scalatest.concurrent.Eventually._
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
+import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.midolman.util.{MockSelector, MockNetlinkChannelFactory, MidolmanSpec}
 import org.midonet.netlink.{BytesUtil, NLMessageType, NetlinkMessage}
 import org.midonet.odp._
@@ -77,7 +78,7 @@ class DatapathChannelTest extends MidolmanSpec {
         fp = new FlowProcessor(
             new DatapathStateDriver(datapath), ovsFamilies, maxPendingRequests = 1024,
             maxRequestSize = 2048, factory, factory.selectorProvider,
-            simBackChannel, clock)
+            simBackChannel, new DatapathMetrics(metricRegistry), clock)
         processor = new BackChannelEventProcessor[PacketContextHolder](
             ringBuffer,
             new AggregateEventPollerHandler(
