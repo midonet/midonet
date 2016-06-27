@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.Config
 
+import org.midonet.cluster.services.state.client.StateProxyClientSettings
 import org.midonet.conf.MidoNodeConfigurator
 
 /**
@@ -35,6 +36,7 @@ class MidonetBackendConfig(val conf: Config) {
     def maxRetries = conf.getInt("zookeeper.max_retries")
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
     def bufferSize = conf.getInt("zookeeper.buffer_size")
+    def stateClient = StateProxyClientSettings.from(conf)
 }
 
 class CassandraConfig(val conf: Config) {

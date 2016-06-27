@@ -65,14 +65,15 @@ import org.midonet.util.functors.makeAction0
   */
 class StateProxyClient(settings: StateProxyClientSettings,
                        discoveryService: MidonetDiscovery,
-                       executor: ScheduledExecutorService)
-                      (implicit ec: ExecutionContext,
+                       executor: ScheduledExecutorService,
                        eventLoopGroup: NioEventLoopGroup)
+                      (implicit ec: ExecutionContext)
 
         extends PersistentConnection[ProxyRequest, ProxyResponse] (
                                      StateProxyService.Name,
                                      executor,
-                                     settings.reconnectTimeout)
+                                     settings.reconnectTimeout)(ec,
+                                                                eventLoopGroup)
         with StateTableClient {
 
     import StateProxyClient._
