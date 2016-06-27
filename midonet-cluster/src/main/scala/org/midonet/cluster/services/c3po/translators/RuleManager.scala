@@ -36,7 +36,8 @@ trait RuleManager {
         newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(ACCEPT)
-            .setCondition(Condition.newBuilder.setMatchReturnFlow(true))
+            .setCondition(Condition.newBuilder.setFragmentPolicy(FragmentPolicy.ANY)
+            .setMatchReturnFlow(true))
             .build()
 
     protected def dropRuleBuilder(chainId: UUID): Rule.Builder =
