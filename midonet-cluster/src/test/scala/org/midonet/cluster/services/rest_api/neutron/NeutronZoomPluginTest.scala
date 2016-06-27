@@ -60,6 +60,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         val backendConfig = new MidonetBackendConfig(ConfigFactory.parseString(s"""
            |zookeeper.zookeeper_hosts : "${zk.getConnectString}"
            |zookeeper.root_key : "$zkRoot"
+           |state_proxy.enabled : false
         """.stripMargin)
         )
         val apiConfig = new RestApiConfig(ConfigFactory.parseString(s"""
