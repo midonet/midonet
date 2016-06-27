@@ -79,6 +79,7 @@ project.ext {
         guice_multibind: "com.google.inject.extensions:guice-multibindings:${versions.guice}",
         metrics: ["io.dropwizard.metrics:metrics-core:3.1.0",
                  "io.dropwizard.metrics:metrics-ganglia:3.1.0"],
+        hdrhistogram: "org.hdrhistogram:HdrHistogram:2.1.9",
         mockit: "org.jmockit:jmockit:1.12",
         rx: "io.reactivex:rxjava:1.0.14",
         jackson_jaxrs: "org.codehaus.jackson:jackson-jaxrs:${versions.jackson}",
