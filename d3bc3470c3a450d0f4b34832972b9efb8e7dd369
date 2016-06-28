@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b0df9639",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T19:51:54Z",
+      "side": 1,
+      "message": "Ok. makes more sense now. In that case, I\u0027d make State itself a trait, and rename what you have as \"State\" now as \"Running\". Init extends Running. Closed is it\u0027s own State, that just extends State. There\u0027s no need for closed flag, it\u0027s redundant with the class itself.\n\nMaybe add a comment on what the state machine and possible transitions are also (basically what you replied to me).",
+      "parentUuid": "baa041b7_70358ed9",
+      "range": {
+        "startLine": 45,
+        "startChar": 34,
+        "endLine": 45,
+        "endChar": 46
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6d4ffbbe",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
         "patchSetId": 2
@@ -90,6 +114,92 @@
         "endLine": 79,
         "endChar": 5
       },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_70e22e03",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T19:51:54Z",
+      "side": 1,
+      "message": "if you change the hierarchy as I said above, this can turn to using a match, which i think would be cleaner.",
+      "range": {
+        "startLine": 146,
+        "startChar": 12,
+        "endLine": 149,
+        "endChar": 13
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_50f16acc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T19:51:54Z",
+      "side": 1,
+      "message": "what does shutdown mean in this context?",
+      "range": {
+        "startLine": 156,
+        "startChar": 37,
+        "endLine": 156,
+        "endChar": 45
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3015c6e4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T19:51:54Z",
+      "side": 1,
+      "message": "break",
+      "range": {
+        "startLine": 158,
+        "startChar": 16,
+        "endLine": 158,
+        "endChar": 22
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_30eca6f2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T19:51:54Z",
+      "side": 1,
+      "message": "this could get, null check and close could be encapsulated in the State itself.",
       "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
