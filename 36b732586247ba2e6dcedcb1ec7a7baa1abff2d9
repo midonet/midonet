@@ -140,6 +140,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6eddb813",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T08:05:06Z",
+      "side": 1,
+      "message": "This call is synchronous right? So the translator will be filled during this call. Looks like the pipeline is an implementation details of the client.\n\nI\u0027d instantiate the translator here and return the batch as a result of calling this method.",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 27
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2eab308b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
         "patchSetId": 1
@@ -156,6 +179,29 @@
         "startChar": 12,
         "endLine": 46,
         "endChar": 31
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0eeaacac",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T08:05:06Z",
+      "side": 1,
+      "message": "Same here. I\u0027d return the batch instead of passing the translator as a parameter.",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 29
       },
       "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
