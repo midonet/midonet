@@ -137,6 +137,30 @@
       "revId": "fee98ebd9d8c0f333610ade4cbf51ab124e30533",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6d913b9a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T15:45:03Z",
+      "side": 1,
+      "message": "I forgot from the previous patch sorry. Done",
+      "parentUuid": "baa041b7_69825254",
+      "range": {
+        "startLine": 101,
+        "startChar": 29,
+        "endLine": 101,
+        "endChar": 81
+      },
+      "revId": "fee98ebd9d8c0f333610ade4cbf51ab124e30533",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
