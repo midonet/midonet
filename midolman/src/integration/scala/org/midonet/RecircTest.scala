@@ -33,7 +33,8 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath.{PacketExecutor, FlowProcessor}
 import org.midonet.midolman.flows.ManagedFlow
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.monitoring.metrics.DatapathMetrics
+import org.midonet.midolman.monitoring.metrics.PacketExecutorMetrics
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.simulation.PacketContext
@@ -174,6 +175,7 @@ class RecircTest extends FeatureSpec
             channelFactory,
             SelectorProvider.provider(),
             new ShardedSimulationBackChannel(() => { }),
+            new DatapathMetrics(new MetricRegistry),
             NanoClock.DEFAULT)
         packetExecutor = new PacketExecutor(
             dpState,
@@ -181,7 +183,7 @@ class RecircTest extends FeatureSpec
             numHandlers = 1,
             index = 0,
             channelFactory,
-            new PacketPipelineMetrics(new MetricRegistry, 1))
+            new PacketExecutorMetrics(new MetricRegistry, 1))
     }
 
     override def afterAll(): Unit = {
