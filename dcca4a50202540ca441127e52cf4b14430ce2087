@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2d71f344",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T16:28:36Z",
+      "side": 1,
+      "message": "Not really. Done",
+      "parentUuid": "baa041b7_ce0e0432",
+      "range": {
+        "startLine": 432,
+        "startChar": 25,
+        "endLine": 432,
+        "endChar": 27
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4e50b40a",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 1
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0d8f4f24",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T16:28:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4e50b40a",
+      "range": {
+        "startLine": 437,
+        "startChar": 12,
+        "endLine": 437,
+        "endChar": 15
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8e18fc76",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 1
@@ -82,6 +130,30 @@
       "writtenOn": "2016-06-28T07:33:04Z",
       "side": 1,
       "message": "flow state",
+      "range": {
+        "startLine": 438,
+        "startChar": 74,
+        "endLine": 439,
+        "endChar": 17
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ed91cb47",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T16:28:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8e18fc76",
       "range": {
         "startLine": 438,
         "startChar": 74,
@@ -198,6 +270,30 @@
       "writtenOn": "2016-06-28T07:33:04Z",
       "side": 1,
       "message": "Should we do the batching here and send to the parent agent just the batch instead of message by message? I think it\u0027s safe to do it on a later patch after release as this is an internal comunication protocol.",
+      "range": {
+        "startLine": 149,
+        "startChar": 12,
+        "endLine": 150,
+        "endChar": 43
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2da8d376",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T16:28:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ee4b082a",
       "range": {
         "startLine": 149,
         "startChar": 12,
