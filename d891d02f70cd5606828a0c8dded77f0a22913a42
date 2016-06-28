@@ -22,6 +22,30 @@
       "revId": "d891d02f70cd5606828a0c8dded77f0a22913a42",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_89ec76f4",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T09:16:21Z",
+      "side": 1,
+      "message": "We\u0027ll do it in a later patch as we need to modify it anyway to include the previousHostId field.",
+      "parentUuid": "baa041b7_6937f2b0",
+      "range": {
+        "startLine": 75,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 9
+      },
+      "revId": "d891d02f70cd5606828a0c8dded77f0a22913a42",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
