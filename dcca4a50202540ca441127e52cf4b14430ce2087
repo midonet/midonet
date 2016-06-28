@@ -117,6 +117,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_848b3b68",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T16:25:04Z",
+      "side": 1,
+      "message": "Sorry, didn\u0027t know that, I thought it was a bit redundant given the function names. Done",
+      "parentUuid": "baa041b7_ee41c83a",
+      "range": {
+        "startLine": 237,
+        "startChar": 4,
+        "endLine": 252,
+        "endChar": 58
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2e6e90c9",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
         "patchSetId": 1
