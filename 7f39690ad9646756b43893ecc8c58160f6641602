@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a4587f57",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T17:16:00Z",
+      "side": 1,
+      "message": "I\u0027d move this out to another method, to make the flow of this method clearer",
+      "range": {
+        "startLine": 202,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 78
+      },
+      "revId": "7f39690ad9646756b43893ecc8c58160f6641602",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
