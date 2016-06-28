@@ -15,6 +15,7 @@
 #
 
 import importlib
+import base64
 import logging
 import os.path
 import time
@@ -314,6 +315,14 @@ class Service(object):
         LOG.debug('[%s] Receiving packets coming from %s. %s' \
                   % (self.get_hostname(), iface_name, result))
         time.sleep(wait_time)
+
+    def put_file(self, filename, contents):
+        self.exec_command(
+            "bash -c 'echo %s | base64 -d > %s'" % (base64.b64encode(contents),
+                                                    filename))
+
+    def delete_file(self, filename):
+        self.exec_command("rm -f %s" % filename)
 
 def load_from_id(container_id):
     container_info = cli.inspect_container(container_id)
