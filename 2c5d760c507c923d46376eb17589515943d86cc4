@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_d3846bb2",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T05:47:23Z",
+      "side": 1,
+      "message": "trait (akin to interface in scala)",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 14
+      },
+      "revId": "2c5d760c507c923d46376eb17589515943d86cc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_78445eb6",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
         "patchSetId": 1
