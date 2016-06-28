@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_70358ed9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T18:39:37Z",
+      "side": 1,
+      "message": "So, I\u0027m using the paradigm used in RxJava, where a State keeps an immutable set of objects, represented here by this java HashMap (I used java because it generates less garbage than the scala one). Any change in the set creates a new state, where the transition from one state to the other is atomic. This has the advantage of providing consistent O(1) snapshots, whereas iterating over a concurrenthashmap doesn\u0027t guarantee that the elements haven\u0027t been modified since the beginning of the iteration (afaik).\n\nHere the main reason is when closing the manager: with an compareAndSwap we can transition to Closed while the previous state returns all contexts (none can be modified in between).",
+      "parentUuid": "baa041b7_4d4e77c2",
+      "range": {
+        "startLine": 45,
+        "startChar": 34,
+        "endLine": 45,
+        "endChar": 46
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6d4ffbbe",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5034cadc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T18:39:37Z",
+      "side": 1,
+      "message": "These are just 2 singletons representing the initial and final states. Any state in between is just an instance of State with any number of contexts.",
+      "parentUuid": "baa041b7_6d4ffbbe",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 5
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4de557a6",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2016-06-28T17:16:00Z",
       "side": 1,
       "message": "since this only happens when the state is closed and closed is the terminal state, this here is an infinite loop.",
+      "range": {
+        "startLine": 251,
+        "startChar": 24,
+        "endLine": 251,
+        "endChar": 54
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9041323c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T18:39:37Z",
+      "side": 1,
+      "message": "this is thrown when the cache is closed, not the manager (i.e. handles a race to a table cache that is about to close because it\u0027s last subscribe has unsubscribed). the next iteration should create a new cache that doesn\u0027t throw (or it only does if it\u0027s subject to the same concurrent access)",
+      "parentUuid": "baa041b7_4de557a6",
       "range": {
         "startLine": 251,
         "startChar": 24,
