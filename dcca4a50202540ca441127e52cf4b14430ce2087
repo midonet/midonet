@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6e4db871",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:33:04Z",
+      "side": 1,
+      "message": "Sorry I didn\u0027t notice before, but do we really need two separate configuration options here? \n\nWe could just use a \"port\" option and use the same value for tcp/udp sockets.",
+      "range": {
+        "startLine": 432,
+        "startChar": 12,
+        "endLine": 432,
+        "endChar": 27
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ce0e0432",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:33:04Z",
+      "side": 1,
+      "message": "why not use the same as udp?",
+      "range": {
+        "startLine": 432,
+        "startChar": 25,
+        "endLine": 432,
+        "endChar": 27
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4e50b40a",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:33:04Z",
+      "side": 1,
+      "message": "connection?",
+      "range": {
+        "startLine": 437,
+        "startChar": 12,
+        "endLine": 437,
+        "endChar": 15
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8e18fc76",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:33:04Z",
+      "side": 1,
+      "message": "flow state",
+      "range": {
+        "startLine": 438,
+        "startChar": 74,
+        "endLine": 439,
+        "endChar": 17
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ee41c83a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:33:04Z",
+      "side": 1,
+      "message": "Nits about style:\n- do not remove the return types if they are already there.\n- do not change the order if it\u0027s not completely necessary (easier to review).",
+      "range": {
+        "startLine": 237,
+        "startChar": 4,
+        "endLine": 252,
+        "endChar": 58
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2e6e90c9",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:33:04Z",
+      "side": 1,
+      "message": "This handler is shared by several threads. We need to think here what\u0027s the impact of this. Let\u0027s do something that works and improve performance after release.",
+      "range": {
+        "startLine": 50,
+        "startChar": 6,
+        "endLine": 50,
+        "endChar": 26
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6ed01854",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:33:04Z",
+      "side": 1,
+      "message": "Here you are reading the whole block. Maybe better to read only the amount of valid bytes in the actual block by reading the header first.\n\nval headerBuff \u003d new Array[Byte](FlowStateBlock.headerSize)\nval blockBuff \u003d new Array[Byte](config.blockSize)\n\nin.read(headerBuff)\nval header \u003d FlowStateBlock(headerBuff)\nvar next \u003d in.read(blockBuff, 0, header.blockLength)\n\nThen writting both buffers as you do later:\n\nwhile (next \u003e 0) {\n    ctx.write(next + FlowStateBlock.headerSize)\n    ctx.write(copiedBuffer(headerBuff))\n    ctx.writeAndFlush(copeidBuffer(blockBuff))\n\n    in.read(headerBuff)\n    header \u003d FlowStateBlock(headerBuff)\n    next \u003d in.read(blockBuff, 0, header.blockLength)\n}\n\nMaybe add a todo comment and do it in a later patch if what you have already works.",
+      "range": {
+        "startLine": 104,
+        "startChar": 12,
+        "endLine": 104,
+        "endChar": 38
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ee4b082a",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:33:04Z",
+      "side": 1,
+      "message": "Should we do the batching here and send to the parent agent just the batch instead of message by message? I think it\u0027s safe to do it on a later patch after release as this is an internal comunication protocol.",
+      "range": {
+        "startLine": 149,
+        "startChar": 12,
+        "endLine": 150,
+        "endChar": 43
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
