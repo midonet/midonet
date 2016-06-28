@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4d1d5765",
+        "filename": "nsdb/src/main/proto/flowstate_transfer.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T16:17:49Z",
+      "side": 1,
+      "message": "To resolve the host which used to own the flow state for a given port, we are using the UnderlayResolver, which returns an IPv4 address. I will change it to use the IPAddress type (and for now just send v4 in the version field) and rename it to \"remote_ip\"",
+      "parentUuid": "baa041b7_0e3e2cda",
+      "range": {
+        "startLine": 105,
+        "startChar": 17,
+        "endLine": 105,
+        "endChar": 28
+      },
+      "revId": "2c5d760c507c923d46376eb17589515943d86cc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4e1b1481",
         "filename": "nsdb/src/main/proto/flowstate_transfer.proto",
         "patchSetId": 1
@@ -201,6 +225,30 @@
       "writtenOn": "2016-06-28T08:45:09Z",
       "side": 1,
       "message": "Do you need to match the response to a request?",
+      "range": {
+        "startLine": 120,
+        "startChar": 8,
+        "endLine": 120,
+        "endChar": 21
+      },
+      "revId": "2c5d760c507c923d46376eb17589515943d86cc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2d18d374",
+        "filename": "nsdb/src/main/proto/flowstate_transfer.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T16:17:49Z",
+      "side": 1,
+      "message": "At some point they were returning different values in the ACKs, but not really necessary to match them now, will keep only a generic Ack.",
+      "parentUuid": "baa041b7_4e1b1481",
       "range": {
         "startLine": 120,
         "startChar": 8,
