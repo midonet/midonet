@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e472077c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T11:49:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a9e73a3f",
+      "range": {
+        "startLine": 128,
+        "startChar": 12,
+        "endLine": 128,
+        "endChar": 52
+      },
+      "revId": "c52b6b1344b830d3bb3ec68b8e1b3c07f9a8b991",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a9be1afd",
         "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateBaseTest.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-28T09:17:33Z",
       "side": 1,
       "message": "Reorganize imports. These should be grouped together with the rest of midonet packages. In intellij, code -\u003e optimize imports.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 77
+      },
+      "revId": "c52b6b1344b830d3bb3ec68b8e1b3c07f9a8b991",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c4f4a3d0",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateBaseTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T11:49:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a9be1afd",
       "range": {
         "startLine": 35,
         "startChar": 0,
