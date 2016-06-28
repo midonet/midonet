@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6937f2b0",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T09:00:28Z",
+      "side": 1,
+      "message": "I would recommend to implement this using a transaction, just in case we ever want to get rid of the lock.\n\nval tx \u003d storage.transaction()\nval oldPort \u003d tx.get(....)\nval newPort \u003d ...\ntx.update(newPort)",
+      "range": {
+        "startLine": 75,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 9
+      },
+      "revId": "d891d02f70cd5606828a0c8dded77f0a22913a42",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
