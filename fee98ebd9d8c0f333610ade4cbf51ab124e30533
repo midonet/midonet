@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_cd40470a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T15:48:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6dd81b80",
+      "range": {
+        "startLine": 159,
+        "startChar": 4,
+        "endLine": 159,
+        "endChar": 28
+      },
+      "revId": "fee98ebd9d8c0f333610ade4cbf51ab124e30533",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4e079481",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
         "patchSetId": 1
