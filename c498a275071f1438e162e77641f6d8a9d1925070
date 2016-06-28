@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_ed978be9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T17:44:26Z",
+      "side": 1,
+      "message": "rename to StateProxyClientStates",
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_adad039d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
         "patchSetId": 10
@@ -87,6 +104,29 @@
         "startChar": 16,
         "endLine": 76,
         "endChar": 19
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8db0ff8c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T17:44:26Z",
+      "side": 1,
+      "message": "transitionToDead and transitionToConnected make the code harder to follow. For transitionToDead, where are the observers coming from?\n\nFor transitionToConnected what does the opt returned mean? It would be clearer to just put the code itself here, since both these methods are only called once. And the broken out code wouldn\u0027t be much more verbose (perhaps 1-2 more cases).",
+      "range": {
+        "startLine": 104,
+        "startChar": 14,
+        "endLine": 104,
+        "endChar": 30
       },
       "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -186,6 +226,29 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0dbcef6a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T17:44:26Z",
+      "side": 1,
+      "message": "rather than wrapping this in a single thread thing, you should use the observable observeOn method",
+      "range": {
+        "startLine": 160,
+        "startChar": 16,
+        "endLine": 160,
+        "endChar": 33
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6d1b7b1d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
         "patchSetId": 10
@@ -202,6 +265,29 @@
         "startChar": 8,
         "endLine": 228,
         "endChar": 14
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4daaf71a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClientSettings.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-28T17:44:26Z",
+      "side": 1,
+      "message": "We already have a set of classes for config (see MidolmanConfig). This should go there and match the same style to keep things consistent.",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 30
       },
       "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
