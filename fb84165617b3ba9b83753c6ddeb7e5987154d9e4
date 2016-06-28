@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c9f39e9e",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/StateTransferProtocolBuilder.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T09:52:16Z",
+      "side": 1,
+      "message": "Removed Java UUID here, but thanks for the pointer",
+      "parentUuid": "baa041b7_13b9b379",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 110,
+        "endChar": 5
+      },
+      "revId": "fb84165617b3ba9b83753c6ddeb7e5987154d9e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_133e53da",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/StateTransferProtocolParser.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_89ed96b9",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/StateTransferProtocolParser.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T09:52:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_133e53da",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 21
+      },
+      "revId": "fb84165617b3ba9b83753c6ddeb7e5987154d9e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_73635f1b",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/StateTransferProtocolParser.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-06-28T05:53:39Z",
       "side": 1,
       "message": "same. look at UUIDUtil if we really need it.",
+      "range": {
+        "startLine": 103,
+        "startChar": 16,
+        "endLine": 103,
+        "endChar": 26
+      },
+      "revId": "fb84165617b3ba9b83753c6ddeb7e5987154d9e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_692b72ec",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/StateTransferProtocolParser.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T09:52:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_73635f1b",
       "range": {
         "startLine": 103,
         "startChar": 16,
