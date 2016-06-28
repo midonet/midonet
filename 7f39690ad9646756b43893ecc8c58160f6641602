@@ -22,6 +22,30 @@
       "revId": "7f39690ad9646756b43893ecc8c58160f6641602",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b00b1624",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T18:39:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a4587f57",
+      "range": {
+        "startLine": 202,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 78
+      },
+      "revId": "7f39690ad9646756b43893ecc8c58160f6641602",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
