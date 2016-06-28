@@ -46,6 +46,30 @@
       "revId": "6b7cf1bfcbbcf8bb59124daa17805163e02e0188",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2d49f3b7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T17:09:43Z",
+      "side": 1,
+      "message": "I think that\u0027s because integration tests are excluded. But RecircTest calls this constructor at line 169 and the metrics argument is missing.",
+      "parentUuid": "baa041b7_6dcc9b61",
+      "range": {
+        "startLine": 68,
+        "startChar": 20,
+        "endLine": 68,
+        "endChar": 53
+      },
+      "revId": "6b7cf1bfcbbcf8bb59124daa17805163e02e0188",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
