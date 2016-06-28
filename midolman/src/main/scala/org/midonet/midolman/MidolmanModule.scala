@@ -47,6 +47,7 @@ import org.midonet.midolman.host.services.HostService
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
 import org.midonet.midolman.monitoring._
+import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
@@ -218,6 +219,7 @@ class MidolmanModule(injector: Injector,
             channelFactory,
             SelectorProvider.provider,
             backChannel,
+            new DatapathMetrics(metricRegistry),
             NanoClock.DEFAULT)
 
     protected def createProcessors(
@@ -275,9 +277,9 @@ class MidolmanModule(injector: Injector,
             tbPolicy: TokenBucketPolicy) =
         config.inputChannelThreading match {
             case "one_to_many" =>
-                new OneToManyDpConnManager(config, tbPolicy)
+                new OneToManyDpConnManager(config, tbPolicy, metricRegistry)
             case "one_to_one" =>
-                new OneToOneDpConnManager(config, tbPolicy)
+                new OneToOneDpConnManager(config, tbPolicy, metricRegistry)
             case s =>
                 throw new IllegalArgumentException(
                     "Unknown value for input_channel_threading: " + s)
@@ -299,7 +301,7 @@ class MidolmanModule(injector: Injector,
 
     protected def connectionPool(): DatapathConnectionPool =
         new OneToOneConnectionPool(
-            "netlink.requests", config.outputChannels, config)
+            "netlink.requests", config.outputChannels, config, metricRegistry)
 
     protected def interfaceScanner(channelFactory: NetlinkChannelFactory): InterfaceScanner =
         new DefaultInterfaceScanner(
