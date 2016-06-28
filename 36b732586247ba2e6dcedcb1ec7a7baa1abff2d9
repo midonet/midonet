@@ -71,6 +71,98 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ae76203c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:58:24Z",
+      "side": 1,
+      "message": "I\u0027d remove these members and use local vars. It\u0027s easier to reason about concurrency.",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 40
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4ea434b8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:58:24Z",
+      "side": 1,
+      "message": "not needed?",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 32
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8eec7cf4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:58:24Z",
+      "side": 1,
+      "message": "This can be config too",
+      "range": {
+        "startLine": 43,
+        "startChar": 42,
+        "endLine": 43,
+        "endChar": 54
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2eab308b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T07:58:24Z",
+      "side": 1,
+      "message": "you need to pass the host to this and return the socket which will be used to send the request.",
+      "range": {
+        "startLine": 46,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 31
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_33127763",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
         "patchSetId": 1
