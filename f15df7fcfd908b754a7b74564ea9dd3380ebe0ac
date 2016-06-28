@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4992ee4c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/metrics/HdrHistogramReservoir.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T21:58:07Z",
+      "side": 1,
+      "message": "Nit: match file name?",
+      "range": {
+        "startLine": 37,
+        "startChar": 6,
+        "endLine": 37,
+        "endChar": 44
+      },
+      "revId": "f15df7fcfd908b754a7b74564ea9dd3380ebe0ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_89711647",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/metrics/HdrHistogramReservoir.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T21:58:07Z",
+      "side": 1,
+      "message": "Add parentheses, the method has side effects.",
+      "revId": "f15df7fcfd908b754a7b74564ea9dd3380ebe0ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
