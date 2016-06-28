@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6e04987d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T08:52:44Z",
+      "side": 1,
+      "message": "These classes are part of the simulation (which are different from the topology objects). Simulation objects may be composed of several bits of information from different topology objects. We don\u0027t need to know the previous host during simulation so I\u0027d remove this.",
+      "range": {
+        "startLine": 159,
+        "startChar": 4,
+        "endLine": 159,
+        "endChar": 28
+      },
+      "revId": "fee98ebd9d8c0f333610ade4cbf51ab124e30533",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4e079481",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T08:52:44Z",
+      "side": 1,
+      "message": "ditto.",
+      "range": {
+        "startLine": 282,
+        "startChar": 17,
+        "endLine": 282,
+        "endChar": 58
+      },
+      "revId": "fee98ebd9d8c0f333610ade4cbf51ab124e30533",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2efe906b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T08:52:44Z",
+      "side": 1,
+      "message": "ditto.",
+      "range": {
+        "startLine": 320,
+        "startChar": 18,
+        "endLine": 320,
+        "endChar": 59
+      },
+      "revId": "fee98ebd9d8c0f333610ade4cbf51ab124e30533",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0e018c6a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T08:52:44Z",
+      "side": 1,
+      "message": "ditto.",
+      "range": {
+        "startLine": 391,
+        "startChar": 22,
+        "endLine": 391,
+        "endChar": 63
+      },
+      "revId": "fee98ebd9d8c0f333610ade4cbf51ab124e30533",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_eef8a87e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T08:52:44Z",
+      "side": 1,
+      "message": "ditto.",
+      "range": {
+        "startLine": 474,
+        "startChar": 4,
+        "endLine": 474,
+        "endChar": 38
+      },
+      "revId": "fee98ebd9d8c0f333610ade4cbf51ab124e30533",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_69825254",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-28T08:52:44Z",
+      "side": 1,
+      "message": "remember to check the state store directly instead of relying on the port.active property.",
+      "range": {
+        "startLine": 101,
+        "startChar": 29,
+        "endLine": 101,
+        "endChar": 81
+      },
+      "revId": "fee98ebd9d8c0f333610ade4cbf51ab124e30533",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
