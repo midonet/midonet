@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b37e8068",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/metrics/HdrHistogramReservoir.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T21:58:07Z",
+      "side": 1,
+      "message": "Nit: histogram",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 14
+      },
+      "revId": "6257fd5e00acb22e593118aa599de0b8882454e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_73d8f87f",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/metrics/HdrHistogramReservoir.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T21:58:07Z",
+      "side": 1,
+      "message": "Nit: getters don\u0027t need parentheses.",
+      "range": {
+        "startLine": 64,
+        "startChar": 8,
+        "endLine": 67,
+        "endChar": 23
+      },
+      "revId": "6257fd5e00acb22e593118aa599de0b8882454e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d30ea4e4",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/metrics/HdrHistogramReservoir.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T21:58:07Z",
+      "side": 1,
+      "message": "I assume that if we loop here more than once, we\u0027re not concerned about the penalty of calling reset() (or getIntervalHistogramInto above on an empty recorder) several times, right?",
+      "range": {
+        "startLine": 132,
+        "startChar": 20,
+        "endLine": 132,
+        "endChar": 36
+      },
+      "revId": "6257fd5e00acb22e593118aa599de0b8882454e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f30768c7",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/metrics/HdrHistogramReservoir.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T21:58:07Z",
+      "side": 1,
+      "message": "Is this needed? the current bucket is already reset in the while loop, which should execute at least once.",
+      "range": {
+        "startLine": 134,
+        "startChar": 16,
+        "endLine": 135,
+        "endChar": 51
+      },
+      "revId": "6257fd5e00acb22e593118aa599de0b8882454e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_33fef0ae",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/metrics/HdrHistogramReservoirTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-28T21:58:07Z",
+      "side": 1,
+      "message": "Add the following check here:\n\nsnap.getMean shouldBe 30.0\n            snap.getStdDev shouldBe 0\n            snap.getValue(50) shouldBe 30.0\n            reservoir.size shouldBe 1\n\nThis will increase the coverage to 96%.",
+      "range": {
+        "startLine": 67,
+        "startChar": 12,
+        "endLine": 67,
+        "endChar": 35
+      },
+      "revId": "6257fd5e00acb22e593118aa599de0b8882454e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
