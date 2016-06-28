@@ -25,9 +25,8 @@ class JmxTransHost(Service):
 
     def start_monitoring_hosts(self, jobname, hosts):
         config = self._build_config(jobname, hosts)
-        cmd = "echo '%s' > %s" % (json.dumps(config),
-                                  self._get_remote_config_file(jobname))
-        self.exec_command(cmd)
+        self.put_file(self._get_remote_config_file(jobname),
+                      json.dumps(config, indent=2))
 
     def _build_config(self, jobname, hosts):
         servers = []
@@ -42,6 +41,7 @@ class JmxTransHost(Service):
             servers.append({
                 "port": "7200",
                 "host": get_container_by_hostname(h).get_ip_address(),
+                "alias": h,
                 "queries": queries
             })
         return { "servers": servers }
@@ -58,5 +58,4 @@ class JmxTransHost(Service):
         }
 
     def stop_monitoring_hosts(self, jobname):
-        cmd = "rm -f %s" % (self._get_remote_config_file(jobname))
-        self.exec_command(cmd)
+        self.delete_file(self._get_remote_config_file(jobname))
