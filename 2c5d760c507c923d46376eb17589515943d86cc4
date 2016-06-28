@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_29fe8a6b",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateRequest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T09:50:30Z",
+      "side": 1,
+      "message": "Yes, there is no real benefit in translating it back to a Java UUID. Done",
+      "parentUuid": "baa041b7_93538339",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 21
+      },
+      "revId": "2c5d760c507c923d46376eb17589515943d86cc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d3846bb2",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2e58d0f9",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T09:50:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d3846bb2",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 14
+      },
+      "revId": "2c5d760c507c923d46376eb17589515943d86cc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_78445eb6",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-06-27T18:56:41Z",
       "side": 1,
       "message": "val GENERIC, BAD_REQUEST, STORAGE_ERROR \u003d Value",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 46
+      },
+      "revId": "2c5d760c507c923d46376eb17589515943d86cc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0e5bccf7",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-28T09:50:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_78445eb6",
       "range": {
         "startLine": 36,
         "startChar": 4,
