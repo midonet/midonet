@@ -53,7 +53,7 @@ public class NeutronUriBuilder {
     public static final String TAP_SERVICES = "/tap_services";
     public static final String TAP_FLOWS = "/tap_flows";
     public static final String FIREWALL_LOGS = "/firewall_logs";
-    public static final String LOGGING_RESOURCE= "/logging_resource";
+    public static final String LOGGING_RESOURCES = "/logging_resources";
 
 
     public static URI getRoot(URI baseUri) {
@@ -296,7 +296,7 @@ public class NeutronUriBuilder {
 
     public static URI getLoggingResources(URI baseUri) {
         return UriBuilder.fromUri(getNeutron(baseUri))
-                .path(LOGGING_RESOURCE).build();
+                .path(LOGGING_RESOURCES).build();
     }
 
     public static URI getLoggingResource(URI baseUri, UUID id) {
