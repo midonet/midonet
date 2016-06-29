@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_592195fb",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateRequest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-29T09:40:10Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be IPAddress after the change?",
+      "range": {
+        "startLine": 25,
+        "startChar": 44,
+        "endLine": 25,
+        "endChar": 56
+      },
+      "revId": "53438d8f39fdb6aa3f596147a451d5eaae59ee82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
