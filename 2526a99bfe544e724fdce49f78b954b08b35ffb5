@@ -22,6 +22,98 @@
       "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ffa049a7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T15:31:18Z",
+      "side": 1,
+      "message": "Nit: enables",
+      "range": {
+        "startLine": 9,
+        "startChar": 11,
+        "endLine": 9,
+        "endChar": 18
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ff8e0926",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T15:31:18Z",
+      "side": 1,
+      "message": "What do you mean by this?",
+      "range": {
+        "startLine": 121,
+        "startChar": 61,
+        "endLine": 122,
+        "endChar": 40
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1f71ad44",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T15:31:18Z",
+      "side": 1,
+      "message": "Same comment as below",
+      "range": {
+        "startLine": 123,
+        "startChar": 4,
+        "endLine": 127,
+        "endChar": 69
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3f76b13e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T15:31:18Z",
+      "side": 1,
+      "message": "Is it possible to encapsulate the UDP sending logic to a different class? Maybe for a future patch, otherwise it looks good!",
+      "range": {
+        "startLine": 225,
+        "startChar": 4,
+        "endLine": 239,
+        "endChar": 5
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
