@@ -22,6 +22,30 @@
       "revId": "e202dcee02eac0dfbbd1c665b4ce7fe4b658f205",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5f3cd5be",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/StateTransferProtocolBuilder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T13:36:16Z",
+      "side": 1,
+      "message": "This host comes from the UnderlayResolver, so for the current implementation we have to build the IpAddress",
+      "parentUuid": "baa041b7_d97b65f3",
+      "range": {
+        "startLine": 42,
+        "startChar": 46,
+        "endLine": 42,
+        "endChar": 58
+      },
+      "revId": "e202dcee02eac0dfbbd1c665b4ce7fe4b658f205",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
