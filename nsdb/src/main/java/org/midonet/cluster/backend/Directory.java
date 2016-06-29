@@ -55,7 +55,8 @@ public interface Directory {
         throws KeeperException, InterruptedException;
 
     void asyncGetChildren(String relativePath,
-                          DirectoryCallback<Collection<String>> callback);
+                          DirectoryCallback<Collection<String>> callback,
+                          Watcher watcher);
 
     boolean exists(String relativePath)
         throws KeeperException, InterruptedException;

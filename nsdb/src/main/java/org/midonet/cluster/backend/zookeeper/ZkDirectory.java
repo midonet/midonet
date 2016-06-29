@@ -234,10 +234,11 @@ public class ZkDirectory implements Directory {
 
     @Override
     public void asyncGetChildren(String relativePath,
-                                 DirectoryCallback<Collection<String>> callback) {
+                                 DirectoryCallback<Collection<String>> callback,
+                                 Watcher watcher) {
         String absPath = getAbsolutePath(relativePath);
         zk.getZooKeeper().getChildren(
-            absPath, null, new AsyncCallback.Children2Callback() {
+            absPath, watcher, new AsyncCallback.Children2Callback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx,
                                           List<String> children, Stat stat) {
