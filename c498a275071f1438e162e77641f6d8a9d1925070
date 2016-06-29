@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_596d1598",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ed978be9",
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_adad039d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
         "patchSetId": 10
@@ -30,6 +48,30 @@
       "writtenOn": "2016-06-28T16:27:57Z",
       "side": 1,
       "message": "Here and below, your\u0027re making an implicit conversion from the scala map to the maplike trait. Use the scala map methods, e.g. containsKey, put. Or use a Java hashmap and this can be a `putIfAbsent`",
+      "range": {
+        "startLine": 91,
+        "startChar": 49,
+        "endLine": 91,
+        "endChar": 57
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_399ff160",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_adad039d",
       "range": {
         "startLine": 91,
         "startChar": 49,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5990754e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/InternalState.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Removed. It was a leftover of using @tailrec in a previous implementation.",
+      "parentUuid": "baa041b7_6d6dbb98",
+      "range": {
+        "startLine": 130,
+        "startChar": 4,
+        "endLine": 130,
+        "endChar": 9
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_cddcc748",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
         "patchSetId": 10
@@ -76,6 +142,30 @@
       "writtenOn": "2016-06-28T16:27:57Z",
       "side": 1,
       "message": "Make most info messages debug. I would leave info/warn only when the client starts/stops/changes the connection state.",
+      "range": {
+        "startLine": 60,
+        "startChar": 6,
+        "endLine": 60,
+        "endChar": 22
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f9b509d0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_cddcc748",
       "range": {
         "startLine": 60,
         "startChar": 6,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_843a14cc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "I want the prefix to change during the lifetime of this instance (as the remote address can change due to service discovery) and I\u0027m not sure if thats possible with Logging. Let\u0027s discuss it in a future patch.",
+      "parentUuid": "baa041b7_cd25e75c",
+      "range": {
+        "startLine": 76,
+        "startChar": 16,
+        "endLine": 76,
+        "endChar": 19
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8db0ff8c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
         "patchSetId": 10
@@ -122,6 +236,30 @@
       "writtenOn": "2016-06-28T17:44:26Z",
       "side": 1,
       "message": "transitionToDead and transitionToConnected make the code harder to follow. For transitionToDead, where are the observers coming from?\n\nFor transitionToConnected what does the opt returned mean? It would be clearer to just put the code itself here, since both these methods are only called once. And the broken out code wouldn\u0027t be much more verbose (perhaps 1-2 more cases).",
+      "range": {
+        "startLine": 104,
+        "startChar": 14,
+        "endLine": 104,
+        "endChar": 30
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_39db711d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Those methods were used to isolate all state changes into InternalState class, but I agree they hamper readability.",
+      "parentUuid": "baa041b7_8db0ff8c",
       "range": {
         "startLine": 104,
         "startChar": 14,
@@ -180,6 +318,54 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f9bbc973",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "baa041b7_edd54b1b",
+      "range": {
+        "startLine": 120,
+        "startChar": 12,
+        "endLine": 120,
+        "endChar": 17
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_99ea7d73",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0d2cef48",
+      "range": {
+        "startLine": 120,
+        "startChar": 18,
+        "endLine": 120,
+        "endChar": 20
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2d1573e4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
         "patchSetId": 10
@@ -191,6 +377,30 @@
       "writtenOn": "2016-06-28T16:27:57Z",
       "side": 1,
       "message": "We should add exception handling here, not to crash the executor and the agent.",
+      "range": {
+        "startLine": 123,
+        "startChar": 12,
+        "endLine": 123,
+        "endChar": 16
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_79021940",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_2d1573e4",
       "range": {
         "startLine": 123,
         "startChar": 12,
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_59fd153a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_cd0e07e5",
+      "range": {
+        "startLine": 130,
+        "startChar": 8,
+        "endLine": 130,
+        "endChar": 45
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0dbcef6a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
         "patchSetId": 10
@@ -237,6 +471,30 @@
       "writtenOn": "2016-06-28T17:44:26Z",
       "side": 1,
       "message": "rather than wrapping this in a single thread thing, you should use the observable observeOn method",
+      "range": {
+        "startLine": 160,
+        "startChar": 16,
+        "endLine": 160,
+        "endChar": 33
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_04ff2402",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0dbcef6a",
       "range": {
         "startLine": 160,
         "startChar": 16,
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_996f1dfc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "You\u0027re totally right, big mistake. I got rid of the assert and made it clearer why it might fail.",
+      "parentUuid": "baa041b7_6d1b7b1d",
+      "range": {
+        "startLine": 228,
+        "startChar": 8,
+        "endLine": 228,
+        "endChar": 14
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4daaf71a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClientSettings.scala",
         "patchSetId": 10
@@ -283,6 +565,30 @@
       "writtenOn": "2016-06-28T17:44:26Z",
       "side": 1,
       "message": "We already have a set of classes for config (see MidolmanConfig). This should go there and match the same style to keep things consistent.",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 30
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_643cb0bf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClientSettings.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-06-29T11:07:07Z",
+      "side": 1,
+      "message": "Sure. I will address to fix in the integration with MidonetBackend patch.",
+      "parentUuid": "baa041b7_4daaf71a",
       "range": {
         "startLine": 21,
         "startChar": 6,
