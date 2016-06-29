@@ -225,6 +225,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7fcaf950",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T15:13:39Z",
+      "side": 1,
+      "message": "No, it\u0027s not: leave it like this then: maybe you should cache the string in the base class to prevent creating a new instance for every log message (for a later patch).",
+      "parentUuid": "baa041b7_843a14cc",
+      "range": {
+        "startLine": 76,
+        "startChar": 16,
+        "endLine": 76,
+        "endChar": 19
+      },
+      "revId": "c498a275071f1438e162e77641f6d8a9d1925070",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8db0ff8c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
         "patchSetId": 10
