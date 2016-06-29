@@ -29,7 +29,7 @@ class StateSubscriptionKey(val objectClass: Class[_],
                            val tableArguments: List[String],
                            val lastVersion: Option[Long]) {
 
-    private[client] def toSubscribeMessage()
+    private[client] def toSubscribeMessage
         : ProxyRequest.Subscribe = {
 
         val msg = ProxyRequest.Subscribe.newBuilder()
@@ -41,9 +41,9 @@ class StateSubscriptionKey(val objectClass: Class[_],
         msg.setObjectId(Commons.UUID.newBuilder()
                             .setMsb(objectId.getMostSignificantBits)
                             .setLsb(objectId.getLeastSignificantBits))
-            .setObjectClass(objectClass.toString())
-            .setKeyClass(keyClass.toString())
-            .setValueClass(valueClass.toString())
+            .setObjectClass(objectClass.toString)
+            .setKeyClass(keyClass.toString)
+            .setValueClass(valueClass.toString)
             .setTableName(tableName)
             .build()
     }
@@ -51,5 +51,5 @@ class StateSubscriptionKey(val objectClass: Class[_],
 
 object StateSubscriptionKey {
     private[client] implicit def toSubscribeMessage(key: StateSubscriptionKey)
-        : ProxyRequest.Subscribe = key.toSubscribeMessage()
+        : ProxyRequest.Subscribe = key.toSubscribeMessage
 }
