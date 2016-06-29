@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5984f5af",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-29T09:56:35Z",
+      "side": 1,
+      "message": "Nevermind. I saw you changed it on a later patch.",
+      "parentUuid": "baa041b7_995cbd7e",
+      "range": {
+        "startLine": 249,
+        "startChar": 8,
+        "endLine": 249,
+        "endChar": 25
+      },
+      "revId": "3e4d9fcaf508fea76b8633e626e4813c85b3f008",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_79545953",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/client/FlowStateAggregator.scala",
         "patchSetId": 2
