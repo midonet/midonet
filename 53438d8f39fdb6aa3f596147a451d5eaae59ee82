@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ff25e9ad",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateRequest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T13:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_592195fb",
+      "range": {
+        "startLine": 25,
+        "startChar": 44,
+        "endLine": 25,
+        "endChar": 56
+      },
+      "revId": "53438d8f39fdb6aa3f596147a451d5eaae59ee82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d9336512",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-29T10:06:46Z",
       "side": 1,
       "message": "Btw. this can be left for a future change: but what is the rationale for having these case classes? Why not just use the protobuf generated classes?",
+      "range": {
+        "startLine": 20,
+        "startChar": 6,
+        "endLine": 20,
+        "endChar": 19
+      },
+      "revId": "53438d8f39fdb6aa3f596147a451d5eaae59ee82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7f3af9ce",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T13:31:32Z",
+      "side": 1,
+      "message": "The initial idea was to make it easier to use internally. For example for using Scala pattern matching when handling responses, instead of having a chain of if-else\u0027s. But yes, we can remove it and just use the generated classes",
+      "parentUuid": "baa041b7_d9336512",
       "range": {
         "startLine": 20,
         "startChar": 6,
