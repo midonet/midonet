@@ -16,6 +16,7 @@
 
 package org.midonet.services.flowstate
 
+import java.io.File
 import java.util.concurrent.{ExecutorService, TimeUnit}
 
 import scala.concurrent.ExecutionContext
@@ -37,7 +38,7 @@ import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.services.FlowStateLog
 import org.midonet.services.flowstate.FlowStateService._
-import org.midonet.services.flowstate.handlers.{FlowStateWriteHandler, FlowStateReadHandler}
+import org.midonet.services.flowstate.handlers.{FlowStateReadHandler, FlowStateWriteHandler}
 import org.midonet.util.netty.ServerFrontEnd
 
 object FlowStateService {
@@ -121,6 +122,9 @@ class FlowStateService @Inject()(nodeContext: Context,
             }
         } else {
             this.synchronized {
+                val flowStateDir = s"${System.getProperty("minions.db.dir")}" + "" +
+                                   s"${config.flowState.logDirectory}"
+                new File(flowStateDir).mkdirs()
                 startAndNotify()
             }
         }
