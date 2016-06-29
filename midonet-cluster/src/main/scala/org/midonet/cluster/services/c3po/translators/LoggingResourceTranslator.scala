@@ -16,15 +16,11 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConverters._
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{MetadataEntry, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronFirewall, NeutronLoggingResource}
+import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Neutron.NeutronLoggingResource
 import org.midonet.cluster.models.Topology.LoggingResource
-import org.midonet.cluster.models.Topology.{Chain, LoggingResource, RuleLogger}
-import org.midonet.cluster.models.Topology.LoggingResource.Type
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.util.concurrent.toFutureOps
 
 class LoggingResourceTranslator(protected val storage: ReadOnlyStorage)
@@ -39,9 +35,14 @@ class LoggingResourceTranslator(protected val storage: ReadOnlyStorage)
 
     override protected def translateUpdate(nlr: NeutronLoggingResource)
     : OperationList = {
-        val oldLogRes = storage.get(classOf[LoggingResource], nlr.getId).await()
-        val newLogRes = oldLogRes.toBuilder.setEnabled(nlr.getEnabled).build()
-        List(Update(newLogRes))
+        if (storage.exists(classOf[LoggingResource], nlr.getId).await()) {
+            val oldLogRes = storage.get(classOf[LoggingResource], nlr.getId).await()
+            val newLogRes = oldLogRes.toBuilder.setEnabled(nlr.getEnabled).build()
+            List(Update(newLogRes))
+        } else {
+            log.warn(s"LoggingResource ${nlr.getId} has not yet been created")
+            List()
+        }
     }
 
     override protected def translateDelete(lrId: UUID)
