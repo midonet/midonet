@@ -114,6 +114,29 @@
       "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5fabb51e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T15:36:29Z",
+      "side": 1,
+      "message": "Sorry didn\u0027t realize on my first review. Does this need some kind of synchronization? I guess you are trying to avoid the allocations in \u0027sendState\u0027, but is it safe this way?",
+      "range": {
+        "startLine": 112,
+        "startChar": 4,
+        "endLine": 113,
+        "endChar": 76
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
