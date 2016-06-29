@@ -36,6 +36,7 @@ import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHostAndPort}
 import org.midonet.cluster.services.state.StateProxyService
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.ConnectionState
 import org.midonet.util.UnixClock
 import org.midonet.util.functors.makeAction0
 
@@ -189,6 +190,13 @@ class StateProxyClient(settings: StateProxyClientConfig,
                 }
             }
         })
+    }
+
+    /**
+      * @return An observable with the client connection state.
+      */
+    override def connection: Observable[ConnectionState] = {
+        Observable.never()
     }
 
     /**
