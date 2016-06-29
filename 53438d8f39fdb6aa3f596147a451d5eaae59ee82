@@ -22,6 +22,29 @@
       "revId": "53438d8f39fdb6aa3f596147a451d5eaae59ee82",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d9336512",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/internal/StateResponse.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T10:06:46Z",
+      "side": 1,
+      "message": "Btw. this can be left for a future change: but what is the rationale for having these case classes? Why not just use the protobuf generated classes?",
+      "range": {
+        "startLine": 20,
+        "startChar": 6,
+        "endLine": 20,
+        "endChar": 19
+      },
+      "revId": "53438d8f39fdb6aa3f596147a451d5eaae59ee82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
