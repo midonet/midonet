@@ -234,7 +234,8 @@ public class ZkDirectory implements Directory {
 
     @Override
     public void asyncGetChildren(String relativePath,
-                                 DirectoryCallback<Collection<String>> callback) {
+                                 DirectoryCallback<Collection<String>> callback,
+                                 Watcher watcher) {
         String absPath = getAbsolutePath(relativePath);
         zk.getZooKeeper().getChildren(
             absPath, null, new AsyncCallback.Children2Callback() {
@@ -248,7 +249,7 @@ public class ZkDirectory implements Directory {
                             KeeperException.Code.get(rc), path));
                     }
                 }
-            }, null);
+            }, watcher);
     }
 
     @Override
