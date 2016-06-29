@@ -39,9 +39,13 @@ class LoggingResourceTranslator(protected val storage: ReadOnlyStorage)
 
     override protected def translateUpdate(nlr: NeutronLoggingResource)
     : OperationList = {
-        val oldLogRes = storage.get(classOf[LoggingResource], nlr.getId).await()
-        val newLogRes = oldLogRes.toBuilder.setEnabled(nlr.getEnabled).build()
-        List(Update(newLogRes))
+        if (storage.exists(classOf[LoggingResource], nlr.getId)) {
+            val oldLogRes = storage.get(classOf[LoggingResource], nlr.getId).await()
+            val newLogRes = oldLogRes.toBuilder.setEnabled(nlr.getEnabled).build()
+            List(Update(newLogRes))
+        } else {
+            List()
+        }
     }
 
     override protected def translateDelete(lrId: UUID)
