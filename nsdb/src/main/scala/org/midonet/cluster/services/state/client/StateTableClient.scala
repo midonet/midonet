@@ -19,6 +19,7 @@ package org.midonet.cluster.services.state.client
 import rx.Observable
 
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.ConnectionState
 
 trait StateTableClient {
 
@@ -27,4 +28,17 @@ trait StateTableClient {
     def stop(): Boolean
 
     def observable(table: StateSubscriptionKey): Observable[Update]
+
+    def connection: Observable[ConnectionState]
+
+}
+
+object StateTableClient {
+
+    object ConnectionState extends Enumeration {
+        class ConnectionState(val isConnected: Boolean) extends Val
+        final val Connected = new ConnectionState(isConnected = true)
+        final val Disconnected = new ConnectionState(isConnected = false)
+    }
+
 }
