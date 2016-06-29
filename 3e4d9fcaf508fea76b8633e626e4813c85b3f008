@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bf088129",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/client/FlowStateAggregator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T13:22:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_79545953",
+      "range": {
+        "startLine": 40,
+        "startChar": 8,
+        "endLine": 40,
+        "endChar": 19
+      },
+      "revId": "3e4d9fcaf508fea76b8633e626e4813c85b3f008",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_594f55be",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/client/FlowStateAggregator.scala",
         "patchSetId": 2
@@ -95,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9f0b7d24",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/client/FlowStateAggregator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T13:22:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_594f55be",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 74
+      },
+      "revId": "3e4d9fcaf508fea76b8633e626e4813c85b3f008",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_79db39ee",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/client/FlowStateRequestClient.scala",
         "patchSetId": 2
@@ -106,6 +154,30 @@
       "writtenOn": "2016-06-29T09:55:25Z",
       "side": 1,
       "message": "call it \"flowStateConfig\"\n\nThen, on the class extending this trait, you can do something like:\n\nclass FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)\n     extends FlowStateRequestClient {\n\n}\n\nby prepending the parameter with override val, you are actually overriding the method on the trait.",
+      "range": {
+        "startLine": 37,
+        "startChar": 8,
+        "endLine": 37,
+        "endChar": 26
+      },
+      "revId": "3e4d9fcaf508fea76b8633e626e4813c85b3f008",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7f13195d",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/client/FlowStateRequestClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T13:22:38Z",
+      "side": 1,
+      "message": "Cool! Done.",
+      "parentUuid": "baa041b7_79db39ee",
       "range": {
         "startLine": 37,
         "startChar": 8,
