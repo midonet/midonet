@@ -34,8 +34,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider
 import com.sun.jersey.api.client.config.DefaultClientConfig
 import com.sun.jersey.api.client.filter.LoggingFilter
-import com.sun.jersey.api.client.{ClientResponse, Client, ClientHandlerException, UniformInterfaceException}
+import com.sun.jersey.api.client.{Client, ClientHandlerException, ClientResponse, UniformInterfaceException}
 
+import org.apache.commons.lang.StringUtils
 import org.apache.commons.lang3.StringUtils.{isBlank, isNotBlank}
 
 import org.midonet.cluster.auth.keystone.KeystoneClient.{AdminToken, TokenExpirationGuard, parseExpiresAt, parseTimestamp}
@@ -134,14 +135,19 @@ class KeystoneClient(config: KeystoneConfig) {
                               "tokens")()
             AuthResponse(tokenId = access.access.token.id, r2 = access.access)
         case 3 =>
+            val domain =
+                if (StringUtils.isNotBlank(config.domainId))
+                    v3.Domain(id = config.domainId)
+                else
+                    v3.Domain(name = config.domainName)
             val auth = v3.KeystoneAuth(v3.Auth(
                 v3.Identity(methods = Collections.singletonList("password"),
                             password = v3.Password(v3.User(
                                 name = userName,
                                 password = password,
-                                domain = v3.Domain(id = config.domainName)))),
+                                domain = domain))),
                 v3.Scope(v3.Project(name = tenantName,
-                                    domain = v3.Domain(id = config.domainName)))))
+                                    domain = domain))))
             handleAuthResponse(post(auth, classOf[ClientResponse], token = None,
                                     "auth", "tokens")())
     }

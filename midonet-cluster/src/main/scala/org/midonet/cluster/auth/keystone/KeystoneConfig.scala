@@ -25,6 +25,7 @@ class KeystoneConfig(conf: Config) extends AuthConfig(conf) {
     def version = conf.getInt(s"$Prefix.keystone.version")
     def projectName = conf.getString(s"$Prefix.keystone.tenant_name")
     def domainName = conf.getString(s"$Prefix.keystone.domain_name")
+    def domainId = conf.getString(s"$Prefix.keystone.domain_id")
     def userName = conf.getString(s"$Prefix.keystone.user_name")
     def password = conf.getString(s"$Prefix.keystone.user_password")
     def adminToken = conf.getString(s"$Prefix.keystone.admin_token")
