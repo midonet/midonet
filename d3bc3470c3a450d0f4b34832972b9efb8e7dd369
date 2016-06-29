@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_79269917",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T09:54:40Z",
+      "side": 1,
+      "message": "I removed closed and made Init, Closed singletons that extend state. I left State a base class, because if it would be a trait, it would be something like this:\n\n    private trait State {\n\n        def contexts: ContextMap\n\n        def add(address: SocketAddress, context: ClientContext): State \u003d {\n            val newContexts \u003d new ContextHashMap(contexts)\n            newContexts.put(address, context)\n            new Running(newContexts)\n        }\n\n        def remove(address: SocketAddress): State \u003d {\n            if (contexts.size() \u003d\u003d 1 \u0026\u0026 contexts.containsKey(address)) {\n                Init\n            } else if (contexts.size() \u003d\u003d 0) {\n                this\n            } else {\n                val newContexts \u003d new ContextHashMap(contexts)\n                newContexts.remove(address)\n                new Running(newContexts)\n            }\n        }\n\n        def get(address: SocketAddress): ClientContext \u003d {\n            contexts.get(address)\n        }\n\n        def list: util.Collection[ClientContext] \u003d {\n            contexts.values()\n        }\n    }\n    private class Running(override val contexts: ContextMap) extends State\n    private object Init extends State { override def contexts \u003d Collections.emptyMap() }\n    private object Closed extends State { override def contexts \u003d Collections.emptyMap() }\n\nHowever, I have doubts about the synchronization of the contexts field with this approach: if a thread will see a correctly initialized version of the hashmap (I suspect it will though)",
+      "parentUuid": "baa041b7_b0df9639",
+      "range": {
+        "startLine": 45,
+        "startChar": 34,
+        "endLine": 45,
+        "endChar": 46
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6d4ffbbe",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
         "patchSetId": 2
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_394ed1c1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T09:54:40Z",
+      "side": 1,
+      "message": "I compare with Closed state now, but used an if though: is more compact and efficient (there\u0027s much less bytecode for an if than for a match).",
+      "parentUuid": "baa041b7_70e22e03",
+      "range": {
+        "startLine": 146,
+        "startChar": 12,
+        "endLine": 149,
+        "endChar": 13
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_50f16acc",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
         "patchSetId": 2
@@ -154,6 +202,30 @@
       "writtenOn": "2016-06-28T19:51:54Z",
       "side": 1,
       "message": "what does shutdown mean in this context?",
+      "range": {
+        "startLine": 156,
+        "startChar": 37,
+        "endLine": 156,
+        "endChar": 45
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_99003d68",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T09:54:40Z",
+      "side": 1,
+      "message": "This is a new addition: it tells the underlying subscribers via the context where they should close gracefully by sending a completion notification to the client. This is true when close() is initiated by the server, and false when initiated by the client (e.g. on unsubscribe or the netty channel being closed).\n\nThe name is not the best though: changing to `serverInitiated`",
+      "parentUuid": "baa041b7_50f16acc",
       "range": {
         "startLine": 156,
         "startChar": 37,
@@ -189,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_79d1f9fa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T09:54:40Z",
+      "side": 1,
+      "message": "There is no break or continue in scala :/ There is a Breakable class, but I think it\u0027s ugly here.",
+      "parentUuid": "baa041b7_3015c6e4",
+      "range": {
+        "startLine": 158,
+        "startChar": 16,
+        "endLine": 158,
+        "endChar": 22
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_30eca6f2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
         "patchSetId": 2
@@ -200,6 +296,24 @@
       "writtenOn": "2016-06-28T19:51:54Z",
       "side": 1,
       "message": "this could get, null check and close could be encapsulated in the State itself.",
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_39fc913d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T09:54:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_30eca6f2",
       "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
