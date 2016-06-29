@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d97b65f3",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/StateTransferProtocolBuilder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-29T09:44:27Z",
+      "side": 1,
+      "message": "If you change this to IPAddress (as in the previous patch), then don\u0027t need to build it again from a string.",
+      "range": {
+        "startLine": 42,
+        "startChar": 46,
+        "endLine": 42,
+        "endChar": 58
+      },
+      "revId": "e202dcee02eac0dfbbd1c665b4ce7fe4b658f205",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
