@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e9266215",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_932a638f",
+      "range": {
+        "startLine": 17,
+        "startChar": 8,
+        "endLine": 17,
+        "endChar": 43
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d320ebb2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-28T06:31:24Z",
       "side": 1,
       "message": "Can we pass a FlowStateConfig configuration object and have the socket timeout be a configuration option?",
+      "range": {
+        "startLine": 34,
+        "startChar": 29,
+        "endLine": 34,
+        "endChar": 47
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_29e8ca7b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d320ebb2",
       "range": {
         "startLine": 34,
         "startChar": 29,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_49630e42",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_b32fa7a0",
+      "range": {
+        "startLine": 36,
+        "startChar": 39,
+        "endLine": 36,
+        "endChar": 47
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ae76203c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_494d4e98",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ae76203c",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 40
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4ea434b8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2016-06-28T07:58:24Z",
       "side": 1,
       "message": "not needed?",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 32
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_29444a72",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4ea434b8",
       "range": {
         "startLine": 41,
         "startChar": 4,
@@ -163,6 +283,54 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_09ebc679",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8eec7cf4",
+      "range": {
+        "startLine": 43,
+        "startChar": 42,
+        "endLine": 43,
+        "endChar": 54
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e902e23d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Yes, that\u0027s correct. Done!",
+      "parentUuid": "baa041b7_6eddb813",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 27
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2eab308b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
         "patchSetId": 1
@@ -197,6 +365,30 @@
       "writtenOn": "2016-06-28T08:05:06Z",
       "side": 1,
       "message": "Same here. I\u0027d return the batch instead of passing the translator as a parameter.",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 29
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4998ae1b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/FlowStateRequestClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0eeaacac",
       "range": {
         "startLine": 65,
         "startChar": 8,
@@ -255,6 +447,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_79f9f9c7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/PipelinedSbeEncoderTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Renamed. Yes, an instance of the aggregator will be created for each independent TCP request sent",
+      "parentUuid": "baa041b7_4e02f40a",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 35
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6efff801",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/PipelinedSbeEncoderTranslator.scala",
         "patchSetId": 1
@@ -278,6 +494,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c9595e5d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/PipelinedSbeEncoderTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6efff801",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 80
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b306871e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/PipelinedSbeEncoderTranslator.scala",
         "patchSetId": 1
@@ -289,6 +529,30 @@
       "writtenOn": "2016-06-28T06:31:24Z",
       "side": 1,
       "message": "rename to just \"batch\".",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 26
+      },
+      "revId": "36b732586247ba2e6dcedcb1ec7a7baa1abff2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a9585a57",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/transfer/PipelinedSbeEncoderTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-29T08:38:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_b306871e",
       "range": {
         "startLine": 65,
         "startChar": 8,
