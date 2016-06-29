@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_59abd51e",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T16:07:53Z",
+      "side": 1,
+      "message": "import order",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 34
+      },
+      "revId": "3dc327059a2c42e6631c331a07f9b54ffc58997e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b96c2109",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T16:07:53Z",
+      "side": 1,
+      "message": "eof\nalso can it be a singleton?",
+      "range": {
+        "startLine": 53,
+        "startChar": 16,
+        "endLine": 53,
+        "endChar": 19
+      },
+      "revId": "3dc327059a2c42e6631c331a07f9b54ffc58997e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f962a915",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-06-29T16:07:53Z",
+      "side": 1,
+      "message": "same comment.",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 34
+      },
+      "revId": "3dc327059a2c42e6631c331a07f9b54ffc58997e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
