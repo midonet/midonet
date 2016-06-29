@@ -99,7 +99,7 @@ public class TestMockDirectory {
             public void onError(KeeperException e) {
                 Assert.fail();
             }
-        });
+        }, null);
     }
 
     @Test
@@ -342,7 +342,7 @@ public class TestMockDirectory {
             public void onError(KeeperException e) {
                 Assert.fail();
             }
-        });
+        }, null);
         dir.asyncGetChildren("/a/b/c", new DirectoryCallback<Collection<String>>() {
             @Override
             public void onSuccess(Collection<String> children, Stat stat) {
@@ -352,7 +352,7 @@ public class TestMockDirectory {
             public void onError(KeeperException e) {
                 Assert.fail();
             }
-        });
+        }, null);
         subdir.add("/x", "x".getBytes(), CreateMode.PERSISTENT);
         subdir.add("/x/y", "xy".getBytes(), CreateMode.PERSISTENT);
         String actualPath = subdir.add("/x/y/z", "xyz".getBytes(),
