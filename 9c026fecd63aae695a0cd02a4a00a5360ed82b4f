@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_24b90816",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-06-29T11:17:36Z",
+      "side": 1,
+      "message": "Aren\u0027t we missing the stateForPort local implementation?",
+      "range": {
+        "startLine": 129,
+        "startChar": 4,
+        "endLine": 131,
+        "endChar": 60
+      },
+      "revId": "9c026fecd63aae695a0cd02a4a00a5360ed82b4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
