@@ -48,7 +48,7 @@ import org.midonet.midolman.io._
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
 import org.midonet.midolman.monitoring._
 import org.midonet.midolman.monitoring.metrics.DatapathMetrics
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.monitoring.metrics.PacketExecutorMetrics
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
@@ -78,10 +78,7 @@ class MidolmanModule(injector: Injector,
         bind(classOf[NanoClock]).toInstance(NanoClock.DEFAULT)
         bind(classOf[UnixClock]).toInstance(UnixClock.DEFAULT)
 
-        val metrics = new PacketPipelineMetrics(
-            metricRegistry, config.simulationThreads)
         bind(classOf[MetricRegistry]).toInstance(metricRegistry)
-        bind(classOf[PacketPipelineMetrics]).toInstance(metrics)
 
         // We add an extra slot so that channels can return tokens
         // they obtained due to the multiplier effect but didn't use.
@@ -113,7 +110,7 @@ class MidolmanModule(injector: Injector,
         val barrier = ringBuffer.newBarrier()
         val fp = flowProcessor(dpState, families, channelFactory, backChannel)
         val channel = datapathChannel(
-            ringBuffer, barrier, fp, dpState, families, channelFactory, metrics)
+            ringBuffer, barrier, fp, dpState, families, channelFactory)
         bind(classOf[FlowProcessor]).toInstance(fp)
         bind(classOf[DatapathChannel]).toInstance(channel)
 
@@ -228,8 +225,7 @@ class MidolmanModule(injector: Injector,
             flowProcessor: FlowProcessor,
             dpState: DatapathState,
             families: OvsNetlinkFamilies,
-            channelFactory: NetlinkChannelFactory,
-            metrics: PacketPipelineMetrics) = {
+            channelFactory: NetlinkChannelFactory) = {
         val threads = Math.max(config.outputChannels, 1)
         val processors = new Array[EventProcessor](threads)
         if (threads  == 1) {
@@ -237,14 +233,16 @@ class MidolmanModule(injector: Injector,
                 flowProcessor,
                 new EventPollerHandlerAdapter(
                     new PacketExecutor(
-                        dpState, families, 1, 0, channelFactory, metrics)))
+                        dpState, families, 1, 0, channelFactory,
+                        new PacketExecutorMetrics(metricRegistry, 0))))
             processors(0) = new BackChannelEventProcessor(
                 ringBuffer, fpHandler, flowProcessor)
         } else {
             val numPacketHandlers = threads  - 1
             for (i <- 0 until numPacketHandlers) {
                 val pexec = new PacketExecutor(
-                    dpState, families, numPacketHandlers, i, channelFactory, metrics)
+                    dpState, families, numPacketHandlers, i, channelFactory,
+                    new PacketExecutorMetrics(metricRegistry, i))
                 processors(i) = new BatchEventProcessor(ringBuffer, barrier, pexec)
             }
             processors(numPacketHandlers) = new BackChannelEventProcessor(
@@ -259,8 +257,7 @@ class MidolmanModule(injector: Injector,
             flowProcessor: FlowProcessor,
             dpState: DatapathState,
             families: OvsNetlinkFamilies,
-            channelFactory: NetlinkChannelFactory,
-            metrics: PacketPipelineMetrics): DatapathChannel = {
+            channelFactory: NetlinkChannelFactory): DatapathChannel = {
         new DisruptorDatapathChannel(
             ringBuffer,
             createProcessors(
@@ -269,8 +266,7 @@ class MidolmanModule(injector: Injector,
                 flowProcessor,
                 dpState,
                 families,
-                channelFactory,
-                metrics))
+                channelFactory))
     }
 
     protected def upcallDatapathConnectionManager(
