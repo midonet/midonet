@@ -142,7 +142,7 @@ trait DirectoryStateTable[K, V]
             override def onError(e: KeeperException): Unit =
                 promise.tryFailure(wrapException(e))
         }
-        directory.asyncGetChildren("", callback)
+        directory.asyncGetChildren("", callback, null)
         promise.future
     }
 
@@ -219,7 +219,7 @@ trait DirectoryStateTable[K, V]
             override def onError(e: KeeperException): Unit =
                 promise.tryFailure(wrapException(e))
         }
-        directory.asyncGetChildren("", callback)
+        directory.asyncGetChildren("", callback, null)
         promise.future
     }
 

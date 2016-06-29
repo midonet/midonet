@@ -131,9 +131,9 @@ public class MockDirectory implements Directory {
             return data.clone();
         }
 
-        synchronized Set<String> getChildren(Runnable watcher) {
+        synchronized Set<String> getChildren(Watcher watcher) {
             if (watcher != null)
-                watchers.add(wrapCallback(watcher));
+                watchers.add(watcher);
 
             return new HashSet<>(children.keySet());
         }
@@ -308,14 +308,15 @@ public class MockDirectory implements Directory {
     @Override
     public Set<String> getChildren(String path, Runnable watcher)
         throws NoNodeException {
-        return getNode(path).getChildren(watcher);
+        return getNode(path).getChildren(wrapCallback(watcher));
     }
 
     @Override
     public void asyncGetChildren(String relativePath,
-                                 DirectoryCallback<Collection<String>> callback) {
+                                 DirectoryCallback<Collection<String>> callback,
+                                 Watcher watcher) {
         try {
-            callback.onSuccess(getNode(relativePath).getChildren(null), null);
+            callback.onSuccess(getNode(relativePath).getChildren(watcher), null);
         } catch (KeeperException e) {
             callback.onError(e);
         }
