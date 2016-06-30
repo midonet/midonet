@@ -43,13 +43,14 @@ trait DirectoryStateTable[K, V]
     override def addPersistent(key: K, value: V): Future[Unit] = {
         val promise = Promise[Unit]()
         val callback = new DirectoryCallback[String] {
-            override def onSuccess(name: String, stat: Stat): Unit =
+            override def onSuccess(name: String, stat: Stat,
+                                   context: Object): Unit =
                 promise.trySuccess(())
             override def onError(e: KeeperException): Unit =
                 promise.tryFailure(wrapException(e))
         }
         directory.asyncAdd(encodePersistentPath(key, value), null,
-                           CreateMode.PERSISTENT, callback)
+                           CreateMode.PERSISTENT, callback, null)
         promise.future
     }
 
@@ -61,21 +62,22 @@ trait DirectoryStateTable[K, V]
         val path = encodePersistentPath(key, value)
         val promise = Promise[Boolean]()
         val deleteCallback = new DirectoryCallback[Void] {
-            override def onSuccess(data: Void, stat: Stat): Unit =
+            override def onSuccess(data: Void, stat: Stat, context: Object): Unit =
                 promise.trySuccess(true)
             override def onError(e: KeeperException): Unit =
                 promise.tryFailure(wrapException(e))
         }
         val existsCallback = new DirectoryCallback[java.lang.Boolean] {
-            override def onSuccess(exists: java.lang.Boolean, stat: Stat): Unit = {
+            override def onSuccess(exists: java.lang.Boolean, stat: Stat,
+                                   context: Object): Unit = {
                 if (exists) directory.asyncDelete(path, stat.getVersion,
-                                                  deleteCallback)
+                                                  deleteCallback, context)
                 else promise.trySuccess(false)
             }
             override def onError(e: KeeperException): Unit =
                 promise.tryFailure(wrapException(e))
         }
-        directory.asyncExists(path, existsCallback)
+        directory.asyncExists(path, existsCallback, null)
         promise.future
     }
 
@@ -128,7 +130,7 @@ trait DirectoryStateTable[K, V]
         val promise = Promise[Set[K]]()
         val callback = new DirectoryCallback[util.Collection[String]] {
             override def onSuccess(children: util.Collection[String],
-                                   stat: Stat): Unit = {
+                                   stat: Stat, context: Object): Unit = {
                 val iterator = children.iterator()
                 val set = new util.HashSet[K]()
                 while (iterator.hasNext) {
@@ -142,7 +144,7 @@ trait DirectoryStateTable[K, V]
             override def onError(e: KeeperException): Unit =
                 promise.tryFailure(wrapException(e))
         }
-        directory.asyncGetChildren("", callback, null)
+        directory.asyncGetChildren("", callback, null, null)
         promise.future
     }
 
@@ -157,12 +159,13 @@ trait DirectoryStateTable[K, V]
     private def hasPersistentEntry(key: K, value: V): Future[Boolean] = {
         val promise = Promise[Boolean]()
         val callback = new DirectoryCallback[java.lang.Boolean] {
-            override def onSuccess(exists: java.lang.Boolean, stat: Stat): Unit =
+            override def onSuccess(exists: java.lang.Boolean, stat: Stat,
+                                   context: Object): Unit =
                 promise.trySuccess(exists)
             override def onError(e: KeeperException): Unit =
                 promise.tryFailure(wrapException(e))
         }
-        directory.asyncExists(encodePersistentPath(key, value), callback)
+        directory.asyncExists(encodePersistentPath(key, value), callback, null)
         promise.future
     }
 
@@ -194,7 +197,7 @@ trait DirectoryStateTable[K, V]
         val promise = Promise[util.Map[K, (V, Int)]]()
         val callback = new DirectoryCallback[util.Collection[String]] {
             override def onSuccess(children: util.Collection[String],
-                                   stat: Stat): Unit = {
+                                   stat: Stat, context: Object): Unit = {
                 val iterator = children.iterator()
                 val map = new util.HashMap[K, (V, Int)]()
                 while (iterator.hasNext) {
@@ -219,7 +222,7 @@ trait DirectoryStateTable[K, V]
             override def onError(e: KeeperException): Unit =
                 promise.tryFailure(wrapException(e))
         }
-        directory.asyncGetChildren("", callback, null)
+        directory.asyncGetChildren("", callback, null, null)
         promise.future
     }
 

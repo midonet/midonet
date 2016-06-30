@@ -263,9 +263,9 @@ public class MockDirectory implements Directory {
 
     @Override
     public void asyncAdd(String relativePath, byte[] data, CreateMode mode,
-                         DirectoryCallback<String> cb) {
+                         DirectoryCallback<String> cb, Object context) {
         try {
-            cb.onSuccess(add(relativePath, data, mode), null);
+            cb.onSuccess(add(relativePath, data, mode), null, context);
         } catch (KeeperException e) {
             cb.onError(e);
         }
@@ -295,11 +295,11 @@ public class MockDirectory implements Directory {
 
     @Override
     public void asyncGet(String relativePath, DirectoryCallback<byte[]> dataCb,
-                         TypedWatcher watcher) {
+                         Watcher watcher, Object context) {
         try {
             dataCb
-                .onSuccess(getNode(relativePath).getData(wrapCallback(watcher)),
-                           null);
+                .onSuccess(getNode(relativePath).getData(watcher),
+                           null, context);
         } catch (NoNodeException e) {
             dataCb.onError(e);
         }
@@ -314,9 +314,10 @@ public class MockDirectory implements Directory {
     @Override
     public void asyncGetChildren(String relativePath,
                                  DirectoryCallback<Collection<String>> callback,
-                                 Watcher watcher) {
+                                 Watcher watcher, Object context) {
         try {
-            callback.onSuccess(getNode(relativePath).getChildren(watcher), null);
+            callback.onSuccess(getNode(relativePath).getChildren(watcher), null,
+                               context);
         } catch (KeeperException e) {
             callback.onError(e);
         }
@@ -347,11 +348,12 @@ public class MockDirectory implements Directory {
 
     @Override
     public void asyncExists(String relativePath,
-                            DirectoryCallback<Boolean> callback) {
+                            DirectoryCallback<Boolean> callback,
+                            Object context) {
         try {
-            callback.onSuccess(getNode(relativePath).exists(null), null);
+            callback.onSuccess(getNode(relativePath).exists(null), null, context);
         } catch (NoNodeException e) {
-            callback.onSuccess(false, null);
+            callback.onSuccess(false, null, context);
         }
     }
 
@@ -372,10 +374,10 @@ public class MockDirectory implements Directory {
 
     @Override
     public void asyncDelete(String relativePath, int version,
-                            DirectoryCallback<Void> callback) {
+                            DirectoryCallback<Void> callback, Object context) {
          try {
              delete(relativePath, false);
-             callback.onSuccess(null, null);
+             callback.onSuccess(null, null, context);
          } catch (KeeperException ex) {
              callback.onError(ex);
          }

@@ -21,7 +21,7 @@ import org.apache.zookeeper.data.Stat;
 
 public interface DirectoryCallback<T> {
 
-    void onSuccess(T data, Stat stat);
+    void onSuccess(T data, Stat stat, Object context);
 
     void onError(KeeperException e);
 
