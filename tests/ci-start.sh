@@ -1,5 +1,6 @@
 #!/bin/bash
 
+SANDBOX_NAME="mdts"
 SANDBOX_FLAVOUR="default_v1.9_neutron+kilo"
 OVERRIDE="sandbox/override_v1"
 PROVISIONING="sandbox/provisioning/all-provisioning.sh"
@@ -60,7 +61,7 @@ echo "docker_insecure_registry=True" >> sandbox.conf
 sandbox-manage -c sandbox.conf pull-all $SANDBOX_FLAVOUR
 sandbox-manage -c sandbox.conf \
                     run $SANDBOX_FLAVOUR \
-                    --name=mdts \
+                    --name=$SANDBOX_NAME \
                     --override=$OVERRIDE \
                     --provision=$PROVISIONING
 popd
