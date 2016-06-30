@@ -34,7 +34,8 @@ import io.netty.handler.logging.LoggingHandler
 
 import rx.Observer
 
-class TestServer(decoder: MessageLite) extends Observer[Message] {
+class TestServer(decoder: MessageLite,
+                 verbose: Boolean = false) extends Observer[Message] {
 
     import TestServer._
 
@@ -46,32 +47,49 @@ class TestServer(decoder: MessageLite) extends Observer[Message] {
     val boosGroup = new NioEventLoopGroup()
     val workerGroup = new NioEventLoopGroup()
 
-    val serverFuture = new ServerBootstrap()
-        .group(boosGroup, workerGroup)
-        .channel(classOf[NioServerSocketChannel])
-        .childHandler(new ChannelInitializer[io.netty.channel.Channel] {
-            override def initChannel(ch: Channel) = {
-                initPipeline(ch.pipeline())
-            }
-        })
-        .bind(0)
+    var serverChannel: NioServerSocketChannel = null
 
-    assert(serverFuture.sync().isSuccess)
+    var port: Int = 0
 
-    val serverChannel = serverFuture.channel match {
-        case c: NioServerSocketChannel => c
+    setOnline
+
+    def setOnline(): Unit = {
+        val serverFuture = new ServerBootstrap()
+            .group(boosGroup, workerGroup)
+            .channel(classOf[NioServerSocketChannel])
+            .childHandler(new ChannelInitializer[io.netty.channel.Channel] {
+                override def initChannel(ch: Channel) = {
+                    initPipeline(ch.pipeline())
+                }
+            })
+            .bind(port)
+
+        assert(serverFuture.sync().isSuccess)
+
+        serverChannel = serverFuture.channel match {
+            case c: NioServerSocketChannel => c
+        }
+
+        port = serverChannel.localAddress.getPort
+
+        log.info(s"Listening on port $port")
     }
 
-    val port = serverChannel.localAddress().getPort
-    log.info(s"Listening on port $port")
+    def setOffline(): Unit = {
+        serverChannel.close()
+        if (hasClient) close()
+    }
 
     private def initPipeline(pipeline: ChannelPipeline) = {
-        pipeline.addLast("frameDecoder", new ProtobufVarint32FrameDecoder)
+        pipeline
+            .addLast("frameDecoder", new ProtobufVarint32FrameDecoder)
             .addLast("protobufDecoder", new ProtobufDecoder(decoder))
             .addLast("frameEncoder", new ProtobufVarint32LengthFieldPrepender)
             .addLast("protobufEncoder", new ProtobufEncoder())
-            .addLast(new LoggingHandler())
-            .addLast(new ClientHandler(this,register,unregister))
+
+        if (verbose) pipeline.addLast(new LoggingHandler())
+
+        pipeline.addLast(new ClientHandler(this,register,unregister))
     }
 
     private def register(c: Channel): Unit = {
