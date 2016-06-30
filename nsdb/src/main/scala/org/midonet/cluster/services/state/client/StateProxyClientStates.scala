@@ -58,7 +58,7 @@ private[client] class StateProxyClientStates {
       */
     def removeSubscriber(subscriber: StateSubscriber): Option[SubscriptionId] = {
         state.get match {
-            case Waiting(subscriberMap) =>
+            case Waiting(_, subscriberMap) =>
                 subscriberMap -= subscriber
                 None
             case s: Connected =>
@@ -140,11 +140,14 @@ private[client] object StateProxyClientStates {
 
     case object Init extends State
 
-    case class Waiting(subscribers: SubscriberMap) extends State
+    case class Waiting(retryCount: Int,
+                       subscribers: SubscriberMap) extends State
 
     case class Connected(subscribers: SubscriberMap,
                          subscriptions: SubscriptionMap,
                          transactions: TransactionMap) extends State
+
+    case object Dormant extends State
 
     case object Dead extends State
 

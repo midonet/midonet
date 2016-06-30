@@ -20,7 +20,9 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 import scala.PartialFunction._
+import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
 
 import com.typesafe.scalalogging.Logger
 
@@ -29,6 +31,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import org.slf4j.LoggerFactory
 
 import rx.Observable.OnSubscribe
+import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
@@ -44,7 +47,7 @@ import org.midonet.util.functors.makeAction0
   * State Proxy protocol. It is prepared to handle network failure and retrials
   * transparently so the callers only need to subscribe once.
   *
-  * @param settings                    the configuration for the running service
+  * @param conf                        the configuration for the running service
   * @param discoveryService            a MidonetDiscovery instance that will be
   *                                    used for service discovery
   * @param executor                    a scheduled, single thread executor used
@@ -56,13 +59,33 @@ import org.midonet.util.functors.makeAction0
   *                                    for Netty's event loop.
   *
   * Usage
+  * -----
   *
   * Call [[start()]] when you want the service to be initiated.
   * Use  [[observable]] to obtain an observable to a [[StateSubscriptionKey]]
   * that can be subscribed to.
   * Call [[stop()]] to stop the service and terminate all observables
+  *
+  * Connection observable
+  * ---------------------
+  *
+  * Provides the ability to monitor the connection state in order to fall back
+  * to a different source of state information.
+  *
+  * Before start: The reported state is Disconnected
+  * After start: The state is Connected
+  * After close: Observers are completed
+  *
+  * In the presence on network failure, reconnects will be spaced
+  * by conf.softReconnectDelay. Up to conf.maxSoftReconnectAttempts will be
+  * attempted before emitting a Disconnected state.
+  *
+  * In the disconnected state, all State Table subscribers will be
+  * completed and no new subscriptions will be accepted. The StateProxyClient
+  * will keep trying to contact a remote server using hardReconnectDelay. If
+  * a server comes online, the Connected event will be delivered.
   */
-class StateProxyClient(settings: StateProxyClientConfig,
+class StateProxyClient(conf: StateProxyClientConfig,
                        discoveryService: MidonetDiscovery,
                        executor: ScheduledExecutorService,
                        eventLoopGroup: NioEventLoopGroup)
@@ -70,13 +93,12 @@ class StateProxyClient(settings: StateProxyClientConfig,
 
         extends PersistentConnection[ProxyRequest, ProxyResponse] (
                                      StateProxyService.Name,
-                                     executor,
-                                     settings.softReconnectDelay)(ec,
-                                                              eventLoopGroup)
+                                     executor)(ec, eventLoopGroup)
         with StateTableClient {
 
     import StateProxyClient._
     import StateProxyClientStates._
+    import StateTableClient.ConnectionState
 
     private val log = Logger(LoggerFactory.getLogger(classOf[StateProxyClient]))
     private val clock = UnixClock.DEFAULT
@@ -84,10 +106,13 @@ class StateProxyClient(settings: StateProxyClientConfig,
     private val state = new StateProxyClientStates
     private val outstandingPing = new AtomicReference[(RequestId, Long)](0, 0L)
 
-    override def isConnected: Boolean = cond(state.get) { case _: Connected => true }
-
     private val discoveryClient = discoveryService.getClient[MidonetServiceHostAndPort](
                                                            StateProxyService.Name)
+
+    private val connectionSubject = BehaviorSubject.create(ConnectionState.Disconnected)
+
+    override val connection: Observable[ConnectionState.ConnectionState] =
+        connectionSubject
 
     /**
       * Sets the State Proxy client in started mode. It will maintain
@@ -97,6 +122,7 @@ class StateProxyClient(settings: StateProxyClientConfig,
         if (transitionToWaiting()) {
             log info s"$this - started"
             super.start()
+            connectionSubject.onNext(ConnectionState.Connected)
         } else {
             throw new IllegalStateException("Already started")
         }
@@ -113,7 +139,8 @@ class StateProxyClient(settings: StateProxyClientConfig,
             log info s"$this - stopped"
             runSingleThreaded("termination") {
                 super.stop()
-                subscribers foreach { o => o._1.onCompleted() }
+                connectionSubject.onCompleted()
+                subscribers foreach { _._1.onCompleted() }
             }
             true
         }
@@ -121,31 +148,12 @@ class StateProxyClient(settings: StateProxyClientConfig,
         state.getAndSet(Dead) match {
             case s: Waiting => terminate(s.subscribers)
             case s: Connected => terminate(s.subscribers)
-            case Init => terminate(emptySubscriberMap)
+            case Init | Dormant => terminate(emptySubscriberMap)
             case Dead => false
         }
     }
 
-    private class TaskLogger(body: => Unit,
-                             prefix: String,
-                             name: String) extends Runnable {
-
-        log debug s"$prefix - scheduled task $name"
-
-        override def run(): Unit = {
-            try {
-                log debug s"$prefix - starting task $name"
-                body
-                log debug s"$prefix - finished task $name"
-            } catch {
-                case cause: Throwable =>
-                    log error s"$prefix - task $name failed: $cause"
-            }
-        }
-    }
-
-    private def runSingleThreaded(label: String)(body: => Unit): Unit =
-        executor.submit(new TaskLogger(body, toString, label))
+    override def isConnected: Boolean = cond(state.get) { case _: Connected => true }
 
     /**
       * Gives an observable to the passed state table on the server.
@@ -220,16 +228,22 @@ class StateProxyClient(settings: StateProxyClientConfig,
     override protected def onConnect(): Unit
     = runSingleThreaded("onConnect") {
 
-        def setConnected(waiting: Waiting): Boolean = {
-            state.compareAndSet(waiting, Connected(waiting.subscribers,
+        def setConnected(current: State,
+                         subscribers: SubscriberMap): Boolean = {
+            state.compareAndSet(current, Connected(subscribers,
                                                    emptySubscriptionMap,
                                                    emptyTransactionMap))
         }
 
-        log info s"$this - connected to server"
-
         state.get match {
-            case s: Waiting if setConnected(s) =>
+            case Dormant if setConnected(Dormant, emptySubscriberMap) =>
+                log info s"$this - connected after dormant period"
+                connectionSubject.onNext(ConnectionState.Connected)
+
+            case s: Waiting if setConnected(s, s.subscribers) =>
+
+                log info s"$this - connected to server"
+
                 if (s.subscribers.nonEmpty) {
                     val total = s.subscribers.size
                     log debug s"$this - sending $total subscriptions in batch"
@@ -259,6 +273,72 @@ class StateProxyClient(settings: StateProxyClientConfig,
             log debug s"$this - cancelled by stop"
         }
     }
+
+    override protected def onFailedConnection(cause: Throwable): Unit = {
+
+        @tailrec
+        def incrementRetryCounter(): Unit = {
+            state.get match {
+                case s: Waiting =>
+                    if (s.retryCount < conf.maxSoftReconnectAttempts) {
+                        val count = s.retryCount + 1
+                        if (state.compareAndSet(s, Waiting(count,
+                                                           s.subscribers))) {
+                            log debug s"$this - connection attempt " +
+                                      s"#$count failed: $cause"
+
+                        } else {
+                            incrementRetryCounter()
+                        }
+                    } else {
+                        if (state.compareAndSet(s, Dormant)) {
+                            log debug s"$this - soft reconnect limit exceeded:" +
+                                      " completing subscribers"
+                            connectionSubject.onNext(ConnectionState.Disconnected)
+                            s.subscribers foreach { _._1.onCompleted() }
+                        } else {
+                            incrementRetryCounter()
+                        }
+                    }
+
+                case Dormant =>
+                    log debug s"$this - dormant connection attempt failed"
+
+                case Dead =>
+
+                case s: State =>
+                    log error s"$this - failed connect in unexpected state: $s"
+            }
+        }
+
+        incrementRetryCounter()
+    }
+
+    override protected def reconnectionDelay: Duration = state.get match {
+        case Dormant => conf.hardReconnectDelay
+        case _ => conf.softReconnectDelay
+    }
+
+    private class TaskLogger(body: => Unit,
+                             prefix: String,
+                             name: String) extends Runnable {
+
+        log debug s"$prefix - scheduled task $name"
+
+        override def run(): Unit = {
+            try {
+                log debug s"$prefix - starting task $name"
+                body
+                log debug s"$prefix - finished task $name"
+            } catch {
+                case cause: Throwable =>
+                    log error s"$prefix - task $name failed: $cause"
+            }
+        }
+    }
+
+    private def runSingleThreaded(label: String)(body: => Unit): Unit =
+        executor.submit(new TaskLogger(body, toString, label))
 
     private def onResponse(msg: ProxyResponse): Unit = {
         val rid = msg.getRequestId
@@ -412,13 +492,13 @@ class StateProxyClient(settings: StateProxyClientConfig,
         sent
     }
 
-    /** Moves to Waiting state. If not possible (already Waiting or Dead)
+    /** Moves to Waiting state. If not possible (Waiting, Dormant or Dead)
       * returns false.
       */
     private def transitionToWaiting(): Boolean = {
         state.get match {
-            case s: Connected => state.compareAndSet(s, Waiting(s.subscribers))
-            case Init => state.compareAndSet(Init, Waiting(emptySubscriberMap))
+            case s: Connected => state.compareAndSet(s, Waiting(0, s.subscribers))
+            case Init => state.compareAndSet(Init, Waiting(0, emptySubscriberMap))
             case _ => false
         }
     }
@@ -442,6 +522,9 @@ class StateProxyClient(settings: StateProxyClientConfig,
             baseMsg().setPing(ProxyRequest.Ping.getDefaultInstance).build()
         }
     }
+
+    // stop on construction if disabled via configuration
+    if (!conf.enabled) stop()
 }
 
 object StateProxyClient {

@@ -100,7 +100,6 @@ class StateProxyClientTest extends FeatureSpec
                                    with GivenWhenThen
                                    with MidonetEventually {
 
-    val reconnectTimeout = 500 milliseconds
     val goodUUID = UUID.randomUUID()
     val existingTable = new StateSubscriptionKey(classOf[Int],
                                                  goodUUID,
@@ -118,7 +117,9 @@ class StateProxyClientTest extends FeatureSpec
                                                 Nil,
                                                 None)
 
-    class TestObjects {
+    class TestObjects(val softReconnectDelay: Duration = 200 milliseconds,
+                      val maxAttempts: Int = 30,
+                      val hardReconnectDelay: Duration = 5 seconds) {
 
         val executor = new ScheduledThreadPoolExecutor(1)
         executor.setMaximumPoolSize(1)
@@ -169,16 +170,16 @@ class StateProxyClientTest extends FeatureSpec
             s"""
               |state_proxy.enabled=true
               |state_proxy.network_threads=2
-              |state_proxy.soft_reconnect_delay=${reconnectTimeout.toMillis}ms
-              |state_proxy.max_soft_reconnect_attempts=30
-              |state_proxy.hard_reconnect_delay=5s
+              |state_proxy.soft_reconnect_delay=${softReconnectDelay.toMillis}ms
+              |state_proxy.max_soft_reconnect_attempts=$maxAttempts
+              |state_proxy.hard_reconnect_delay=${hardReconnectDelay.toMillis}ms
             """.stripMargin
         )
 
-        val settings = new StateProxyClientConfig(STATE_PROXY_CFG_OBJECT)
+        val conf = new StateProxyClientConfig(STATE_PROXY_CFG_OBJECT)
 
         val discoveryService = new DiscoveryMock("localhost",server.port)
-        val client = new StateProxyClient(settings,
+        val client = new StateProxyClient(conf,
                                           discoveryService,
                                           executor,
                                           eventLoopGroup)(exctx)
@@ -450,7 +451,7 @@ class StateProxyClientTest extends FeatureSpec
             }
 
             And("The link is reconnected")
-            Thread.sleep(reconnectTimeout.toMillis)
+            Thread.sleep(t.softReconnectDelay.toMillis)
             eventually {
                 t.server.hasClient shouldBe true
                 client.isConnected shouldBe true
@@ -483,7 +484,7 @@ class StateProxyClientTest extends FeatureSpec
             eventually {client.numActiveSubscriptions shouldBe 0 }
 
             And("The link is reconnected")
-            Thread.sleep(reconnectTimeout.toMillis)
+            Thread.sleep(t.softReconnectDelay.toMillis)
             eventually {client.numActiveSubscriptions shouldBe 1 }
             t.server.hasClient shouldBe true
 
@@ -602,5 +603,231 @@ class StateProxyClientTest extends FeatureSpec
 
         } }
 
+    }
+
+    feature("observers completed after after retry limit reached") {
+
+        scenario("reach attempt limit") { for (i <- 1 to 1) {
+
+            Given("a state proxy client and a subscriber")
+            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
+                                    maxAttempts = 5,
+                                    hardReconnectDelay = 150 milliseconds)
+            t.client.start()
+            val observer =  Mockito.mock(classOf[Observer[Update]])
+            val subscription = t.client.observable(existingTable)
+                .subscribe(observer)
+            eventually {
+                t.client.isConnected shouldBe true
+                t.server.hasClient shouldBe true
+            }
+
+            When("the server dies")
+            t.server.setOffline()
+
+            eventually {
+                t.client.isConnected shouldBe false
+            }
+
+            And("retry limit is reached")
+            for (i <- 0 to t.maxAttempts) {
+                Mockito.verifyZeroInteractions(observer)
+                Thread.sleep(t.softReconnectDelay.toMillis)
+            }
+
+            Then("the observer is completed")
+            Thread.sleep(t.softReconnectDelay.toMillis)
+            Mockito.verify(observer).onCompleted()
+
+            And("further subscriptions are not allowed")
+            val subscription2 = t.client.observable(existingTable)
+                .subscribe(observer)
+            eventually { subscription2.isUnsubscribed shouldBe true }
+            Mockito.verify(observer).onError(
+                any(classOf[StateProxyClient.SubscriptionFailedException]))
+
+            t.close()
+        } }
+    }
+
+    feature("connection observable behavior") {
+
+        import StateTableClient.ConnectionState._
+
+        scenario("disconnected before start") {
+
+            Given("a client")
+            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
+                                    maxAttempts = 5,
+                                    hardReconnectDelay = 150 milliseconds)
+
+            When("An observer subscribes")
+            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observer).isUnsubscribed shouldBe false
+
+            Then("a disconnected event is fired")
+            Mockito.verify(observer).onNext(Disconnected)
+
+            t.close()
+        }
+
+        scenario("connected after start") {
+
+            Given("a client")
+            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
+                                    maxAttempts = 5,
+                                    hardReconnectDelay = 150 milliseconds)
+
+            When("an observer subscribes")
+            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observer).isUnsubscribed shouldBe false
+
+            Mockito.verify(observer).onNext(Disconnected)
+
+            And("later the client is started")
+            t.client.start()
+
+            Then("a connected event is fired")
+            Mockito.verify(observer).onNext(Connected)
+
+            And("subsequent observers receive also a connected event")
+            val observerB = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observerB).isUnsubscribed shouldBe false
+
+            Mockito.verify(observerB).onNext(Connected)
+            Mockito.verifyNoMoreInteractions(observer)
+
+            t.close()
+        }
+
+        scenario("keeps connected during transient failures") {
+
+            Given("a started client")
+            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
+                                    maxAttempts = 5,
+                                    hardReconnectDelay = 150 milliseconds)
+
+            t.client.start()
+
+            And("an observer")
+            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observer).isUnsubscribed shouldBe false
+
+            Mockito.verify(observer).onNext(Connected)
+
+            When("connection failure happens")
+            eventually { t.client.isConnected shouldBe true }
+            t.server.close()
+            eventually { t.client.isConnected shouldBe false }
+
+            Then("no disconnected event is generated")
+            Mockito.verifyNoMoreInteractions(observer)
+
+            And("eventually the client connects again")
+            eventually {t.client.isConnected shouldBe true}
+
+            And("no event is ever generated")
+            Mockito.verifyNoMoreInteractions(observer)
+
+            t.close()
+        }
+
+        scenario("disconnected after retry limit") {
+
+            Given("a started client")
+            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
+                                    maxAttempts = 3,
+                                    hardReconnectDelay = 1 second)
+
+            t.client.start()
+
+            And("an observer")
+            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observer).isUnsubscribed shouldBe false
+
+            Mockito.verify(observer).onNext(Connected)
+
+            When("permanent connection failure happens")
+            eventually { t.client.isConnected shouldBe true }
+            t.server.setOffline()
+
+            Then("no disconnected event is generated during soft retries")
+            for (i <- 0 to t.maxAttempts) {
+                Thread.sleep(t.softReconnectDelay.toMillis)
+                Mockito.verifyNoMoreInteractions(observer)
+            }
+
+            And("a disconnected event is generated when hard limit is reached")
+            Thread.sleep(t.softReconnectDelay.toMillis)
+            Mockito.verify(observer).onNext(Disconnected)
+
+            t.close()
+        }
+
+        scenario("connected when server comes back") { for (i <- 1 to 1) {
+
+            Given("a started client")
+            val base = 50 milliseconds
+            val multiplier = 5
+            val t = new TestObjects(softReconnectDelay = base,
+                                    maxAttempts = 0,
+                                    hardReconnectDelay = base * multiplier)
+
+            t.client.start()
+
+            And("an observer")
+            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observer).isUnsubscribed shouldBe false
+
+            Mockito.verify(observer).onNext(Connected)
+
+            When("connection failure happens")
+            eventually { t.client.isConnected shouldBe true }
+            t.server.setOffline()
+
+            eventually { Mockito.verify(observer).onNext(Disconnected) }
+
+            t.server.setOnline()
+
+            Then("The hard delay is used")
+            for (i <- 1 until multiplier) {
+                Thread.sleep(base.toMillis)
+                Mockito.verifyNoMoreInteractions(observer)
+            }
+
+            And("Finally it connects again")
+            Thread.sleep(base.toMillis)
+            Mockito.verify(observer, Mockito.times(2)).onNext(Connected)
+
+            t.close()
+        } }
+
+        scenario("completed after stop") {
+            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
+                                    maxAttempts = 3,
+                                    hardReconnectDelay = 1 second)
+
+            t.client.start()
+
+            And("an observer")
+            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observer).isUnsubscribed shouldBe false
+
+            Mockito.verify(observer).onNext(Connected)
+
+            When("client is stopped")
+            t.client.stop()
+
+            Then("the observer is completed")
+            eventually { Mockito.verify(observer).onCompleted() }
+
+            And("subsequent observers are completed too")
+            val observerB = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observerB).isUnsubscribed shouldBe true
+
+            Mockito.verify(observerB).onCompleted()
+
+            t.close()
+        }
     }
 }
