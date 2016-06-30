@@ -37,7 +37,7 @@ public interface Directory {
         throws KeeperException, InterruptedException;
 
     void asyncAdd(String relativePath, byte[] data, CreateMode mode,
-                  DirectoryCallback<String> callback);
+                  DirectoryCallback<String> callback, Object context);
 
     void update(String relativePath, byte[] data)
         throws KeeperException, InterruptedException;
@@ -49,14 +49,14 @@ public interface Directory {
         throws KeeperException, InterruptedException;
 
     void asyncGet(String relativePath, DirectoryCallback<byte[]> data,
-                  TypedWatcher watcher);
+                  Watcher watcher, Object context);
 
     Set<String> getChildren(String relativePath, Runnable watcher)
         throws KeeperException, InterruptedException;
 
     void asyncGetChildren(String relativePath,
                           DirectoryCallback<Collection<String>> callback,
-                          Watcher watcher);
+                          Watcher watcher, Object context);
 
     boolean exists(String relativePath)
         throws KeeperException, InterruptedException;
@@ -64,13 +64,14 @@ public interface Directory {
     boolean exists(String path, Watcher watcher)
         throws KeeperException, InterruptedException;
 
-    void asyncExists(String relativePath, DirectoryCallback<Boolean> callback);
+    void asyncExists(String relativePath, DirectoryCallback<Boolean> callback,
+                     Object context);
 
     void delete(String relativePath)
         throws KeeperException, InterruptedException;
 
     void asyncDelete(String relativePath, int version,
-                     DirectoryCallback<Void> callback);
+                     DirectoryCallback<Void> callback, Object context);
 
     Directory getSubDirectory(String relativePath) throws KeeperException;
 

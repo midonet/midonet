@@ -70,7 +70,7 @@ public class TestMockDirectory {
             String path = "/a/b/mySequentialNode";
             String actualPath = dir.add(path, null,
                     CreateMode.PERSISTENT_SEQUENTIAL);
-            Assert.assertEquals(String.format("%s%010d", path, new Integer(i)),
+            Assert.assertEquals(String.format("%s%010d", path, i),
                     actualPath);
             i++;
         }
@@ -92,14 +92,15 @@ public class TestMockDirectory {
                             dir.getChildren("/a/b", null));
         dir.asyncGetChildren("/a/b", new DirectoryCallback<Collection<String>>() {
             @Override
-            public void onSuccess(Collection<String> children, Stat stat) {
+            public void onSuccess(Collection<String> children, Stat stat,
+                                  Object context) {
                 Assert.assertEquals(expectedChildren, children);
             }
             @Override
-            public void onError(KeeperException e) {
+            public void onError(KeeperException e, Object context) {
                 Assert.fail();
             }
-        }, null);
+        }, null, null);
     }
 
     @Test
@@ -112,48 +113,48 @@ public class TestMockDirectory {
         Assert.assertTrue(dir.exists(path));
         dir.asyncExists(path, new DirectoryCallback<Boolean>() {
             @Override
-            public void onSuccess(Boolean data, Stat stat) {
+            public void onSuccess(Boolean data, Stat stat, Object context) {
                 Assert.assertTrue(data);
             }
             @Override
-            public void onError(KeeperException e) {
+            public void onError(KeeperException e, Object context) {
                 Assert.fail();
             }
-        });
+        }, null);
         Assert.assertFalse(dir.exists("/anotherpath"));
         dir.asyncExists("/anotherpath", new DirectoryCallback<Boolean>() {
             @Override
-            public void onSuccess(Boolean data, Stat stat) {
+            public void onSuccess(Boolean data, Stat stat, Object context) {
                 Assert.assertFalse(data);
             }
             @Override
-            public void onError(KeeperException e) {
+            public void onError(KeeperException e, Object context) {
                 Assert.fail();
             }
-        });
+        }, null);
         Assert.assertFalse(dir.exists("/some/other/path"));
         dir.asyncExists("/some/other/path", new DirectoryCallback<Boolean>() {
             @Override
-            public void onSuccess(Boolean data, Stat stat) {
+            public void onSuccess(Boolean data, Stat stat, Object context) {
                 Assert.assertFalse(data);
             }
             @Override
-            public void onError(KeeperException e) {
+            public void onError(KeeperException e, Object context) {
                 Assert.fail();
             }
-        });
+        }, null);
         dir.delete(path);
         Assert.assertFalse(dir.exists(path));
         dir.asyncExists(path, new DirectoryCallback<Boolean>() {
             @Override
-            public void onSuccess(Boolean data, Stat stat) {
+            public void onSuccess(Boolean data, Stat stat, Object context) {
                 Assert.assertFalse(data);
             }
             @Override
-            public void onError(KeeperException e) {
+            public void onError(KeeperException e, Object context) {
                 Assert.fail();
             }
-        });
+        }, null);
     }
 
     private class MyRunnable implements Runnable {
@@ -335,24 +336,26 @@ public class TestMockDirectory {
                             dir.getChildren("/a/b/c", null));
         subdir.asyncGetChildren("/", new DirectoryCallback<Collection<String>>() {
             @Override
-            public void onSuccess(Collection<String> children, Stat stat) {
+            public void onSuccess(Collection<String> children, Stat stat,
+                                  Object context) {
                 Assert.assertEquals(expectedChildren, children);
             }
             @Override
-            public void onError(KeeperException e) {
+            public void onError(KeeperException e, Object context) {
                 Assert.fail();
             }
-        }, null);
+        }, null, null);
         dir.asyncGetChildren("/a/b/c", new DirectoryCallback<Collection<String>>() {
             @Override
-            public void onSuccess(Collection<String> children, Stat stat) {
+            public void onSuccess(Collection<String> children, Stat stat,
+                                  Object context) {
                 Assert.assertEquals(expectedChildren, children);
             }
             @Override
-            public void onError(KeeperException e) {
+            public void onError(KeeperException e, Object context) {
                 Assert.fail();
             }
-        }, null);
+        }, null, null);
         subdir.add("/x", "x".getBytes(), CreateMode.PERSISTENT);
         subdir.add("/x/y", "xy".getBytes(), CreateMode.PERSISTENT);
         String actualPath = subdir.add("/x/y/z", "xyz".getBytes(),
