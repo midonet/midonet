@@ -259,6 +259,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5faa95d3",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T10:57:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6ed01854",
+      "range": {
+        "startLine": 104,
+        "startChar": 12,
+        "endLine": 104,
+        "endChar": 38
+      },
+      "revId": "dcca4a50202540ca441127e52cf4b14430ce2087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ee4b082a",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
         "patchSetId": 1
