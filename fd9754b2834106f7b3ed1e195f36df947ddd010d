@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8a91fa9c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/rcu/Host.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T11:09:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_bf3ac1e5",
+      "range": {
+        "startLine": 24,
+        "startChar": 50,
+        "endLine": 24,
+        "endChar": 51
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9f3dbddf",
         "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-29T16:05:28Z",
       "side": 1,
       "message": "Move up.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 34
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_caf5c2ed",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T11:09:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_9f3dbddf",
       "range": {
         "startLine": 34,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ca5a62f2",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T11:09:17Z",
+      "side": 1,
+      "message": "Yes, I don\u0027t think it should be a super likely case, but I can\u0027t say for sure. Maybe the impact of checking for every bind/unbind is too much. Will remove the check",
+      "parentUuid": "baa041b7_9135b1dc",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 97,
+        "endChar": 50
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3f2fd1a2",
         "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-29T16:05:28Z",
       "side": 1,
       "message": "Use a transaction for this:\n\nval tx \u003d storage.transaction()\nval p \u003d tx.get\n\ntx.update(...)\ntx.commit()",
+      "range": {
+        "startLine": 99,
+        "startChar": 12,
+        "endLine": 99,
+        "endChar": 62
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6a5596c4",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T11:09:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_3f2fd1a2",
       "range": {
         "startLine": 99,
         "startChar": 12,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ea5766c8",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T11:09:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_711d8d65",
+      "range": {
+        "startLine": 102,
+        "startChar": 58,
+        "endLine": 102,
+        "endChar": 75
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_71346ddd",
         "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2016-06-29T16:05:28Z",
       "side": 1,
       "message": "If up and p.hasPreviousHostId are false, you shouldn\u0027t set.",
+      "range": {
+        "startLine": 111,
+        "startChar": 32,
+        "endLine": 111,
+        "endChar": 64
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0a616aa8",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T11:09:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_71346ddd",
       "range": {
         "startLine": 111,
         "startChar": 32,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0aecca27",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T11:09:17Z",
+      "side": 1,
+      "message": "I was using the midonet.util toFutureOps because there is also one defined in the parent class for this one. Anyways, the check was removed, so no need now for it",
+      "parentUuid": "baa041b7_31ff0503",
+      "range": {
+        "startLine": 34,
+        "startChar": 35,
+        "endLine": 34,
+        "endChar": 67
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_5f07351d",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
         "patchSetId": 3
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_eaf2c605",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T11:09:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_5f07351d",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 40
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_df334512",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 3
@@ -197,6 +389,30 @@
       "writtenOn": "2016-06-29T16:05:28Z",
       "side": 1,
       "message": "We usually save ids \u003e 100 for backreferences, you could use the next value: 28.",
+      "range": {
+        "startLine": 330,
+        "startChar": 37,
+        "endLine": 330,
+        "endChar": 40
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6a90f695",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-06-30T11:09:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_df334512",
       "range": {
         "startLine": 330,
         "startChar": 37,
