@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.inject.Inject;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,21 +74,21 @@ public class ZkSystemDataProvider implements SystemDataProvider {
         return version;
     }
 
-    class WriteVersionWatcher extends Directory.DefaultTypedWatcher
-        implements Runnable, DirectoryCallback<byte[]> {
+    private class WriteVersionWatcher extends Directory.DefaultTypedWatcher
+        implements Watcher, DirectoryCallback<byte[]> {
         final int DEFAULT_RETRIES = 10;
         int retries = DEFAULT_RETRIES;
 
-        public void onSuccess(byte[] data, Stat stat) {
+        public void onSuccess(byte[] data, Stat stat, Object context) {
             cachedWriteVersion.set(new String(data));
         }
 
-        public void onError(KeeperException e) {
+        public void onError(KeeperException e, Object context) {
             log.error("Error reading from zookeeper, trying again", e);
             readWriteVersion();
         }
 
-        public void readWriteVersion() {
+        private void readWriteVersion() {
             if (--retries > 0) {
                 zk.asyncGet(paths.getWriteVersionPath(),
                             this, this);
@@ -95,7 +97,7 @@ public class ZkSystemDataProvider implements SystemDataProvider {
             }
         }
 
-        public void run() {
+        public void process(WatchedEvent event) {
             readWriteVersion();
         }
     }
