@@ -645,6 +645,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             action: ACCEPT
             condition {
                 match_return_flow: true
+                fragment_policy: ANY
             }
             chain_id { $outboundChainId }
             """)
@@ -653,6 +654,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             action: ACCEPT
             condition {
                 match_return_flow: true
+                fragment_policy: ANY
             }
             chain_id { $inboundChainId }
             """)
@@ -913,6 +915,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             action: ACCEPT
             condition {
                 match_return_flow: true
+                fragment_policy: ANY
             }
             chain_id { $outboundChainId }
             """)
@@ -921,6 +924,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             action: ACCEPT
             condition {
                 match_return_flow: true
+                fragment_policy: ANY
             }
             chain_id { $inboundChainId }
             """)
