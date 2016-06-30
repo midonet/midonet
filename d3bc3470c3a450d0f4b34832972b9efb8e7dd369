@@ -238,6 +238,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_40e2b130",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-30T13:53:15Z",
+      "side": 1,
+      "message": "I generally don\u0027t like boolean parameters. It\u0027s usually a hint to split into 2 methods, like closeGracefully() and closeNow()",
+      "parentUuid": "baa041b7_99003d68",
+      "range": {
+        "startLine": 156,
+        "startChar": 37,
+        "endLine": 156,
+        "endChar": 45
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3015c6e4",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
         "patchSetId": 2
@@ -273,6 +297,30 @@
       "side": 1,
       "message": "There is no break or continue in scala :/ There is a Breakable class, but I think it\u0027s ugly here.",
       "parentUuid": "baa041b7_3015c6e4",
+      "range": {
+        "startLine": 158,
+        "startChar": 16,
+        "endLine": 158,
+        "endChar": 22
+      },
+      "revId": "d3bc3470c3a450d0f4b34832972b9efb8e7dd369",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c0f5a1ed",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-06-30T13:53:15Z",
+      "side": 1,
+      "message": "ah, scala sucks sometimes.",
+      "parentUuid": "baa041b7_79d1f9fa",
       "range": {
         "startLine": 158,
         "startChar": 16,
