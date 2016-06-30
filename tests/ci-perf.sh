@@ -34,6 +34,12 @@ pushd tests/mdts/tests/performance_tests/
 if [ $? = 0 ]; then
     export JMXTRANS=$(docker ps -q -a -f=name=jmxtrans)
     docker exec $JMXTRANS /usr/bin/upload_stats -b $BUILD -c $COMMITISH -I $INFLUX_ENDPOINT
+
+    export MIDOLMAN1=$(docker ps -q -a -f=name=midolman1)
+    docker exec $MIDOLMAN1 /usr/local/bin/upload_mem_stats -b $BUILD -c $COMMITISH -I $INFLUX_ENDPOINT
+
+    export MIDOLMAN2=$(docker ps -q -a -f=name=midolman2)
+    docker exec $MIDOLMAN2 /usr/local/bin/upload_mem_stats -b $BUILD -c $COMMITISH -I $INFLUX_ENDPOINT
 else
     echo "Tests failed, skipping stats upload"
 fi
