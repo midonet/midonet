@@ -24,6 +24,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 import com.google.protobuf.Message
+import com.typesafe.scalalogging.Logger
 
 import io.netty.channel.nio.NioEventLoopGroup
 
@@ -31,6 +32,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
+import org.slf4j.LoggerFactory
 
 import rx.Observer
 
@@ -60,12 +62,18 @@ class PersistentConnectionTest  extends FeatureSpec
     class TestConnection(port: Int)
         extends PersistentConnection[ProxyRequest, ProxyResponse](
             "Test Connection",
-            executor,
-            reconnectTimeout) {
+            executor) {
+
+        private val log = Logger(LoggerFactory.getLogger(classOf[TestServer]))
 
         var numMessages = 0
         var numConnects = 0
         var numDisconnects = 0
+
+        override protected def onFailedConnection(cause: Throwable): Unit = {
+        }
+
+        override protected def reconnectionDelay: Duration = reconnectTimeout
 
         override protected def getMessagePrototype = ProxyResponse
             .getDefaultInstance
@@ -75,14 +83,17 @@ class PersistentConnectionTest  extends FeatureSpec
 
         override protected def onNext(msg: ProxyResponse): Unit = {
             numMessages += 1
+            log debug s"test: onNext #$numMessages"
         }
 
         override protected def onConnect(): Unit = {
             numConnects += 1
+            log debug s"test: onConnect #$numConnects"
         }
 
         override protected def onDisconnect(cause: Throwable): Unit = {
             numDisconnects += 1
+            log debug s"test: onDisconnect #$numDisconnects"
         }
     }
 
