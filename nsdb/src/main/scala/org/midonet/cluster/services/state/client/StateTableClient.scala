@@ -23,6 +23,8 @@ import org.midonet.cluster.services.state.client.StateTableClient.ConnectionStat
 
 trait StateTableClient {
 
+    import StateTableClient.ConnectionState._
+
     def start(): Unit
 
     def stop(): Boolean
@@ -30,7 +32,6 @@ trait StateTableClient {
     def observable(table: StateSubscriptionKey): Observable[Update]
 
     def connection: Observable[ConnectionState]
-
 }
 
 object StateTableClient {
@@ -40,5 +41,4 @@ object StateTableClient {
         final val Connected = new ConnectionState(isConnected = true)
         final val Disconnected = new ConnectionState(isConnected = false)
     }
-
 }

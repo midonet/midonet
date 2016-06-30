@@ -46,8 +46,6 @@ import org.midonet.cluster.services.discovery.MidonetServiceHostAndPort
   * [[Connection]].
   *
   * @param executor ScheduledExecutorService used to schedule reconnects
-  * @param retryTimeout the time to wait between reconnect attempts.
-  *                     The default is 3 seconds.
   * @param context the executionContext
   * @param eventLoopGroup is the [[NioEventLoopGroup]] to be used for Netty's
   *                       event loop.
@@ -64,9 +62,7 @@ import org.midonet.cluster.services.discovery.MidonetServiceHostAndPort
   */
 abstract class PersistentConnection[S <: Message, R <: Message]
                                    (name: String,
-                                    executor: ScheduledExecutorService,
-                                    retryTimeout: FiniteDuration
-                                        = PersistentConnection.DefaultRetryDelay)
+                                    executor: ScheduledExecutorService)
                                    (implicit context: ExecutionContext,
                                     eventLoopGroup: NioEventLoopGroup)
         extends Observer[R] {
@@ -113,6 +109,16 @@ abstract class PersistentConnection[S <: Message, R <: Message]
       * is closed (due to stop(), remote close(), or an error)
       */
     protected def onDisconnect(cause: Throwable): Unit
+
+    /**
+      * Implement this method to react to connection failures
+      */
+    protected def onFailedConnection(cause: Throwable): Unit
+
+    /**
+      * Implement this method to provide the reconnection delay
+      */
+    protected def reconnectionDelay: Duration
 
     /**
       * Initiates the connection to the remote server. It will retry
@@ -208,11 +214,13 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                             } else {
                                 connection.close()
                             }
-                        case Failure(err) => delayedStart(Connecting)
+                        case Failure(err) =>
+                            onFailedConnection(err)
+                            delayedStart(Connecting)
                     }
 
                 case None =>
-                    log error s"$this - no address available from discovery"
+                    onFailedConnection(new ServerNotFoundException(toString))
                     delayedStart(Connecting)
             }
 
@@ -235,7 +243,7 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                             log.info(s"$this reconnect cancelled: $err")
                     }
                 }
-            }, retryTimeout.toMillis, MILLISECONDS)
+            }, reconnectionDelay.toMillis, MILLISECONDS)
         } else {
             log.info(s"$this reconnect cancelled.")
         }
@@ -259,8 +267,6 @@ object PersistentConnection {
     private case object Connecting extends State
     private case object Dead extends State
 
-    private val DefaultRetryDelay = 3 seconds
-
     class UnexpectedStateException(s: State, desc: String)
         extends IllegalStateException(s"$desc got caught in an unexpected state: $s")
 
@@ -269,4 +275,7 @@ object PersistentConnection {
 
     class StoppedException(desc: String)
         extends CancellationException(s"$desc has been stopped")
+
+    class ServerNotFoundException(desc: String)
+        extends Exception(s"$desc server not found")
 }
