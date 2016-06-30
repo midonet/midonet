@@ -82,7 +82,8 @@ public class ZkDirectory implements Directory {
 
     @Override
     public void asyncAdd(String relativePath, final byte[] data,
-                         CreateMode mode, final DirectoryCallback<String> cb) {
+                         CreateMode mode, final DirectoryCallback<String> cb,
+                         Object object) {
 
         final String absPath = getAbsolutePath(relativePath);
 
@@ -93,10 +94,11 @@ public class ZkDirectory implements Directory {
                 public void processResult(int rc, String path,
                                           Object ctx, String name) {
                     if (rc == KeeperException.Code.OK.intValue()) {
-                        cb.onSuccess(name.substring(basePath.length()), null);
+                        cb.onSuccess(name.substring(basePath.length()), null,
+                                     object);
                     } else {
                         cb.onError(KeeperException.create(
-                            KeeperException.Code.get(rc), path));
+                            KeeperException.Code.get(rc), path), ctx);
                     }
                 }
             },
@@ -199,22 +201,23 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-    public void asyncGet(String relativePath, final DirectoryCallback<byte[]> dataCallback, TypedWatcher watcher) {
+    public void asyncGet(String relativePath,
+                         DirectoryCallback<byte[]> dataCallback,
+                         Watcher watcher, Object context) {
         zk.getZooKeeper().getData(
-            getAbsolutePath(relativePath), wrapCallback(watcher),
+            getAbsolutePath(relativePath), watcher,
             new AsyncCallback.DataCallback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx,
                                           byte[] data, Stat stat) {
                     if (rc == KeeperException.Code.OK.intValue()) {
-                        dataCallback.onSuccess(data, stat);
+                        dataCallback.onSuccess(data, stat, ctx);
                     } else {
                         dataCallback.onError(KeeperException.create(
-                            KeeperException.Code.get(rc), path));
+                            KeeperException.Code.get(rc), path), ctx);
                     }
                 }
-            },
-            null);
+            }, context);
     }
 
     @Override
@@ -235,7 +238,7 @@ public class ZkDirectory implements Directory {
     @Override
     public void asyncGetChildren(String relativePath,
                                  DirectoryCallback<Collection<String>> callback,
-                                 Watcher watcher) {
+                                 Watcher watcher, Object context) {
         String absPath = getAbsolutePath(relativePath);
         zk.getZooKeeper().getChildren(
             absPath, watcher, new AsyncCallback.Children2Callback() {
@@ -243,13 +246,13 @@ public class ZkDirectory implements Directory {
                 public void processResult(int rc, String path, Object ctx,
                                           List<String> children, Stat stat) {
                     if (rc == KeeperException.Code.OK.intValue()) {
-                        callback.onSuccess(children, stat);
+                        callback.onSuccess(children, stat, ctx);
                     } else {
                         callback.onError(KeeperException.create(
-                            KeeperException.Code.get(rc), path));
+                            KeeperException.Code.get(rc), path), ctx);
                     }
                 }
-            }, null);
+            }, context);
     }
 
     @Override
@@ -268,7 +271,8 @@ public class ZkDirectory implements Directory {
 
     @Override
     public void asyncExists(String relativePath,
-                            DirectoryCallback<Boolean> callback) {
+                            DirectoryCallback<Boolean> callback,
+                            Object context) {
         String absPath = getAbsolutePath(relativePath);
         zk.getZooKeeper().exists(
             absPath, null, new AsyncCallback.StatCallback() {
@@ -276,15 +280,15 @@ public class ZkDirectory implements Directory {
                 public void processResult(int rc, String path, Object ctx,
                                           Stat stat) {
                     if (rc == KeeperException.Code.OK.intValue()) {
-                        callback.onSuccess(true, stat);
+                        callback.onSuccess(true, stat, ctx);
                     } else if (rc == KeeperException.Code.NONODE.intValue()) {
-                        callback.onSuccess(false, null);
+                        callback.onSuccess(false, null, ctx);
                     } else {
                         callback.onError(KeeperException.create(
-                            KeeperException.Code.get(rc), path));
+                            KeeperException.Code.get(rc), path), ctx);
                     }
                 }
-            }, null);
+            }, context);
     }
 
     @Override
@@ -296,20 +300,21 @@ public class ZkDirectory implements Directory {
 
     @Override
     public void asyncDelete(String relativePath, int version,
-                            DirectoryCallback<Void> callback) {
+                            DirectoryCallback<Void> callback,
+                            Object context) {
         String absPath = getAbsolutePath(relativePath);
         zk.getZooKeeper().delete(
             absPath, version, new AsyncCallback.VoidCallback() {
                 @Override
                 public void processResult(int rc, String path, Object ctx) {
                     if (rc == KeeperException.Code.OK.intValue()) {
-                        callback.onSuccess(null, null);
+                        callback.onSuccess(null, null, ctx);
                     } else {
                         callback.onError(KeeperException.create(
-                            KeeperException.Code.get(rc), path));
+                            KeeperException.Code.get(rc), path), ctx);
                     }
                 }
-            }, null);
+            }, context);
     }
 
     @Override

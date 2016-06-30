@@ -54,8 +54,8 @@ public class ZkManager {
     }
 
     public void asyncGet(String relativePath, DirectoryCallback<byte[]> data,
-                         Directory.TypedWatcher watcher) {
-        this.zk.asyncGet(relativePath, data, watcher);
+                         Watcher watcher) {
+        this.zk.asyncGet(relativePath, data, watcher, null);
     }
 
     protected StateAccessException processException(Exception ex, String action) {

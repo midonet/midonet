@@ -330,7 +330,7 @@ public abstract class ReplicatedMap<K, V> {
             value = v;
         }
 
-        public void onSuccess(String result, Stat stat) {
+        public void onSuccess(String result, Stat stat, Object context) {
             // Claim the sequence number added by ZooKeeper.
             Path p = decodePath(result);
             synchronized(ReplicatedMap.this) {
@@ -338,7 +338,7 @@ public abstract class ReplicatedMap<K, V> {
             }
         }
 
-        public void onError(KeeperException ex) {
+        public void onError(KeeperException ex, Object context) {
             log.error("Put {} => {} failed: {}", key, value, ex);
         }
 
@@ -358,7 +358,7 @@ public abstract class ReplicatedMap<K, V> {
             version = ver;
         }
 
-        public void onSuccess(Void result, Stat stat) {
+        public void onSuccess(Void result, Stat stat, Object context) {
             synchronized(ReplicatedMap.this) {
                 /* The map entry that was just removed from Zookeeper was or
                    will be deleted from the local map in method run(). This is
@@ -373,12 +373,13 @@ public abstract class ReplicatedMap<K, V> {
             final DeleteCallBack thisCb = this;
             return new Runnable() {
                 public void run() {
-                    dir.asyncDelete(encodePath(key, value, version), -1, thisCb);
+                    dir.asyncDelete(encodePath(key, value, version), -1, thisCb,
+                                    null);
                 }
             };
         }
 
-        public void onError(KeeperException ex) {
+        public void onError(KeeperException ex, Object context) {
             String opDesc = "Replicated map deletion of key: " + key;
             connectionWatcher.handleError(opDesc, deleteRunnable(), ex);
         }
@@ -398,7 +399,7 @@ public abstract class ReplicatedMap<K, V> {
         CreateMode mode = this.createsEphemeralNode ?
                 CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.PERSISTENT;
 
-        dir.asyncAdd(path, null, mode, new PutCallback(key, value));
+        dir.asyncAdd(path, null, mode, new PutCallback(key, value), null);
     }
 
     /**
@@ -450,7 +451,7 @@ public abstract class ReplicatedMap<K, V> {
 
         }
         dir.asyncDelete(encodePath(key, mv.value, mv.version), -1,
-                        new DeleteCallBack(key, mv.value, mv.version));
+                        new DeleteCallBack(key, mv.value, mv.version), null);
         return mv.value;
     }
 
