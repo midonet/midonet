@@ -22,6 +22,30 @@
       "revId": "75e1d7a913e5e305f893c73aa33901be4b82e0f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_57cf127f",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-07-01T14:20:36Z",
+      "side": 1,
+      "message": "Yes. hard reconnects are unlimited at the moment. Do you think there should be a limit?",
+      "parentUuid": "baa041b7_37648ee3",
+      "range": {
+        "startLine": 109,
+        "startChar": 3,
+        "endLine": 112,
+        "endChar": 11
+      },
+      "revId": "75e1d7a913e5e305f893c73aa33901be4b82e0f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
