@@ -658,15 +658,16 @@ class PacketWorkflow(
         val port = vt.tryGet(classOf[Port], context.inputPort)
         val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
         dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
-            processDhcp(context, port, dhcp,
-                config.dhcpMtu.min(DatapathController.minMtu))
+            processDhcp(context, port, dhcp)
     }
 
     private def processDhcp(context: PacketContext, inPort: Port,
-                            dhcp: DHCP, mtu: Short): Boolean = {
+                            dhcp: DHCP): Boolean = {
         val srcMac = context.origMatch.getEthSrc
-        val optMtu = Option(mtu)
-        DhcpImpl(dhcpConfigProvider, inPort, dhcp, srcMac, optMtu, context.log) match {
+        val optConfigMtu = Option(config.dhcpMtu)
+        val optUnderlayMtu = Option(DatapathController.minMtu)
+        DhcpImpl(dhcpConfigProvider, inPort, dhcp, srcMac,
+                 optUnderlayMtu, optConfigMtu, context.log) match {
             case Some(dhcpReply) =>
                 context.log.debug(
                     "sending DHCP reply {} to port {}", dhcpReply, inPort.id)
