@@ -20,16 +20,16 @@ dependencies {
     compile libraries.akka, libraries.commons_cli, libraries.commons_conf,
             libraries.commons_io, libraries.commons_lang3, libraries.disruptor,
             libraries.findbugs, libraries.guava,
+            libraries.hdrhistogram,
             libraries.infinispan, libraries.jackson_core,
             libraries.jackson_databind, libraries.jackson_annotations,
-            libraries.jsch, libraries.logback_logstash, libraries.netty,
+            libraries.jsch, libraries.metrics, libraries.logback_logstash, libraries.netty,
             libraries.protobuf, libraries.rx, libraries.scala,
             libraries.sun_tools, libraries.scala_logging, libraries.jna
 
     testCompile libraries.scalatest, libraries.scalacheck,
                 libraries.hamcrest_lib, libraries.hamcrest_integration,
                 libraries.hamcrest_core, libraries.scalatest
-
 }
 
 jar {
