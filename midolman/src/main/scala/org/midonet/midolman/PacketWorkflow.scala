@@ -589,15 +589,14 @@ class PacketWorkflow(
         val port = VirtualTopologyActor.tryAsk[Port](context.inputPort)
         val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
         dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
-            processDhcp(context, port, dhcp,
-                config.dhcpMtu.min(DatapathController.minMtu))
+            processDhcp(context, port, dhcp)
     }
 
     private def processDhcp(context: PacketContext, inPort: Port,
-                            dhcp: DHCP, mtu: Short): Boolean = {
+                            dhcp: DHCP): Boolean = {
         val srcMac = context.origMatch.getEthSrc
-        val optMtu = Option(mtu)
-        DhcpImpl(clusterDataClient, inPort, dhcp, srcMac, optMtu, context.log) match {
+        DhcpImpl(clusterDataClient, inPort, dhcp, srcMac,
+                 DatapathController.minMtu, config.dhcpMtu, context.log) match {
             case Some(dhcpReply) =>
                 context.log.debug(
                     "sending DHCP reply {} to port {}", dhcpReply, inPort.id)
