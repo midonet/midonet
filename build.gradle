@@ -49,7 +49,8 @@ project.ext {
                "com.typesafe.akka:akka-actor_2.11:${versions.akka}"],
         akkatest: "com.typesafe.akka:akka-testkit_2.11:${versions.akka}",
         aspectj: "org.aspectj:aspectjrt:1.8.0",
-        cassandra: "com.datastax.cassandra:cassandra-driver-core:2.0.10",
+        cassandra: dependencies.create("com.datastax.cassandra:cassandra-driver-core:2.0.10") {
+            exclude group: 'com.codahale.metrics', module: 'metrics-core'},
         cassandraunit: dependencies.create("org.cassandraunit:cassandra-unit:2.0.2.2") {
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'
             exclude group: 'org.hamcrest', module: 'hamcrest-core'
