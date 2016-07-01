@@ -1078,24 +1078,29 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
             val chain1 = createPojoChain(name = "chain1")
             val chain2 = createPojoChain(name = "chain2")
 
-            val obs1 = new ClassAwaitableObserver[PojoChain](2)
+            val obs1 = new ClassAwaitableObserver[PojoChain](1)
             storage.observable(classOf[PojoChain]).subscribe(obs1)
 
             storage.create(chain1)
+
+            obs1.await(1 second, 1) shouldBe true
+            obs1.observers should have size 1
+            obs1.observers.head.awaitOnNext(1, 1 second)
+            obs1.observers.head.getOnNextEvents.get(0).name shouldBe "chain1"
+
             storage.create(chain2)
 
-            obs1.await(1 second, 0) shouldBe true
+            obs1.await(1 second, 1) shouldBe true
             obs1.observers should have size 2
+            obs1.observers(1).awaitOnNext(1, 1 second)
+            obs1.observers(1).getOnNextEvents.get(0).name shouldBe "chain2"
 
-            val chain1Sub = obs1.observers.get(0).get
-            chain1Sub.awaitOnNext(1, 1 second) shouldBe true
+            val chain1Sub = obs1.observers.head
 
             storage.delete(classOf[PojoChain], chain1.id)
             chain1Sub.awaitCompletion(1 second)
             chain1Sub.getOnErrorEvents shouldBe empty
             chain1Sub.getOnCompletedEvents should have size 1
-            // the initial value
-            chain1Sub.getOnNextEvents.get(0).name shouldBe "chain1"
 
             // Subscribe to the deleted object
             val obs2 = new ClassAwaitableObserver[PojoChain](1)
@@ -1103,7 +1108,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
 
             obs2.await(1 second, 0) shouldBe true
             obs2.observers.size shouldBe 1
-            val chain2Sub = obs2.observers.get(0).get
+            val chain2Sub = obs2.observers.head
 
             chain2Sub.awaitOnNext(1, 1 second) shouldBe true
             chain2Sub.getOnNextEvents.get(0).name shouldBe "chain2"
