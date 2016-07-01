@@ -196,8 +196,10 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         context become {
             case TunnelPortsCreated_ =>
                 subscribeToHost(hostIdProvider.hostId)
+            case host: ResolvedHost =>
                 log.info("Initialization complete")
                 context become receive
+                self ! host
                 portWatcher = interfaceScanner.subscribe(
                     new Observer[Set[InterfaceDescription]] {
                         def onCompleted(): Unit =
