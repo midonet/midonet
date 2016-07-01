@@ -19,54 +19,59 @@ package org.midonet.midolman
 import java.nio.ByteBuffer
 import java.util.{LinkedList, UUID}
 
-import scala.collection.JavaConversions._
-import scala.collection.mutable
-
 import org.junit.runner.RunWith
-import org.midonet.midolman.config.MidolmanConfig
-import org.scalatest.junit.JUnitRunner
-
 import org.midonet.cluster.data.dhcp.Opt121
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
+import org.midonet.midolman.simulation.PacketEmitter.{GeneratedLogicalPacket, GeneratedPacket}
 import org.midonet.midolman.simulation.{Bridge, DhcpValueParser, Router}
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
+import org.scalatest.junit.JUnitRunner
+
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class DhcpTest extends MidolmanSpec {
 
     val routerIp1 = new IPv4Subnet("192.168.11.1", 24)
-    val routerMac1 = MAC.fromString("22:aa:aa:ff:ff:ff")
+    val routerMac1 = MAC.fromString("11:aa:aa:ff:ff:ff")
 
     val routerIp2 = new IPv4Subnet("192.168.22.1", 24)
-    val routerMac2 = MAC.fromString("22:ab:cd:ff:ff:ff")
+    val routerMac2 = MAC.fromString("22:aa:aa:ff:ff:ff")
 
     val routerIp3 = new IPv4Subnet("192.168.33.1", 24)
-    val routerMac3 = MAC.fromString("22:aa:ee:ff:ff:ff")
+    val routerMac3 = MAC.fromString("33:aa:aa:ff:ff:ff")
 
-    val vm1Mac = MAC.fromString("02:23:24:25:26:27")
-    val vm2Mac = MAC.fromString("02:53:53:53:53:53")
+    val routerIp4 = new IPv4Subnet("192.168.44.1", 24)
+    val routerMac4 = MAC.fromString("44:aa:aa:ff:ff:ff")
+
+    val vm1Mac = MAC.fromString("01:23:24:25:26:27")
+    val vm2Mac = MAC.fromString("02:23:24:25:26:27")
+    val vm3Mac = MAC.fromString("03:23:24:25:26:27")
 
     var bridge: UUID = _
     var bridgePort1: UUID = _
     val bridgePortNumber1 = 1
     var bridgePort2: UUID = _
     val bridgePortNumber2 = 2
+    var bridgePort3: UUID = _
+    val bridgePortNumber3 = 3
 
     val vm1IP : IPv4Subnet = new IPv4Subnet("10.0.0.0", 24)
     val vm2IP: IPv4Subnet = new IPv4Subnet("10.0.1.0", 24)
+    val vm3IP: IPv4Subnet = new IPv4Subnet("10.0.2.0", 24)
 
     var dhcpSubnet1: IPv4Subnet = _
     var dhcpSubnet2: IPv4Subnet = _
+    var dhcpSubnet3: IPv4Subnet = _
 
     var dhcpHost1: MAC = _
     var dhcpHost2: MAC = _
+    var dhcpHost3: MAC = _
 
     var workflow: PacketWorkflow = _
 
@@ -79,6 +84,7 @@ class DhcpTest extends MidolmanSpec {
                  IPv4Addr(Route.NO_GATEWAY).toString, 10)
         val routerPort2 = newRouterPort(router, routerMac2, routerIp2)
         val routerPort3 = newRouterPort(router, routerMac3, routerIp3)
+        val routerPort4 = newRouterPort(router, routerMac4, routerIp4)
 
         bridge = newBridge("bridge")
 
@@ -88,11 +94,17 @@ class DhcpTest extends MidolmanSpec {
         val bridgeIntPort2 = newBridgePort(bridge)
         linkPorts(routerPort3, bridgeIntPort2)
 
+        val bridgeIntPort3 = newBridgePort(bridge)
+        linkPorts(routerPort4, bridgeIntPort3)
+
         bridgePort1 = newBridgePort(bridge)
         materializePort(bridgePort1, hostId, "bridgePort1")
 
         bridgePort2 = newBridgePort(bridge)
         materializePort(bridgePort2, hostId, "bridgePort2")
+
+        bridgePort3 = newBridgePort(bridge)
+        materializePort(bridgePort3, hostId, "bridgePort3")
 
         // First subnet is routerIp2's
         // TODO (galo) after talking with Abel we suspect that
@@ -102,25 +114,32 @@ class DhcpTest extends MidolmanSpec {
         val dnsSrvAddrs = List(IPv4Addr.fromString("192.168.77.118"),
                                IPv4Addr.fromString("192.168.77.119"),
                                IPv4Addr.fromString("192.168.77.120"))
-        dhcpSubnet1 = addDhcpSubnet(bridge, routerIp2, routerIp2.getAddress, dnsSrvAddrs,
-                                    opt121Routes)
+        dhcpSubnet1 = addDhcpSubnet(bridge, routerIp2, routerIp2.getAddress,
+                                    dnsSrvAddrs, 1000, opt121Routes)
 
         // Second subnet is routerIp3's
         opt121Routes = List(DhcpOpt121Route(routerIp3.getAddress, routerIp3))
         dhcpSubnet2 = addDhcpSubnet(bridge, routerIp3, routerIp3.getAddress(),
-                                    dnsSrvAddrs, opt121Routes)
+                                    dnsSrvAddrs, 2000, opt121Routes)
+
+        dhcpSubnet3 = addDhcpSubnet(bridge, routerIp4, routerIp4.getAddress(),
+                                    dnsSrvAddrs, 0, opt121Routes)
 
         dhcpHost1 = addDhcpHost(bridge, dhcpSubnet1, vm1Mac, vm1IP.getAddress)
 
         dhcpHost2 = addDhcpHost(bridge, dhcpSubnet2, vm2Mac, vm2IP.getAddress)
 
-        fetchPorts(routerPort1, routerPort2, routerPort3,
-                   bridgeIntPort1, bridgeIntPort2, bridgePort1, bridgePort2)
+        dhcpHost3 = addDhcpHost(bridge, dhcpSubnet3, vm3Mac, vm3IP.getAddress)
+
+        fetchPorts(routerPort1, routerPort2, routerPort3, routerPort4,
+                   bridgeIntPort1, bridgeIntPort2, bridgeIntPort3,
+                   bridgePort1, bridgePort2, bridgePort3)
         fetchDevice[Router](router)
         fetchDevice[Bridge](bridge)
 
         workflow = packetWorkflow(Map(bridgePortNumber1 -> bridgePort1,
-                                      bridgePortNumber2 -> bridgePort2)).underlyingActor
+                                      bridgePortNumber2 -> bridgePort2,
+                                      bridgePortNumber3 -> bridgePort3)).underlyingActor
     }
 
     def extraDhcpOptToDhcpOption(opt: (String, String)): Option[DHCPOption] = for {
@@ -474,11 +493,44 @@ class DhcpTest extends MidolmanSpec {
         routes should contain only (defaultRoute, expectedRoute)
     }
 
-    scenario("Interface MTU") {
+    scenario("Interface MTU (datapath MTU is the lower value)") {
+        Given("A datapathMTU = 1000, a conf MTU = 1500, a bridge MTU = 2000")
+        DatapathController.minMtu = 1000
+        val returnPkt = injectDhcpDiscover(bridgePort2, bridgePortNumber2, vm2Mac)
+        val dhcpReply = extractDhcpReply(returnPkt)
+        val mtuValue = ByteBuffer.wrap(dhcpReply.getOptions.find(
+            _.getCode == DHCPOption.Code.INTERFACE_MTU.value).get.getData).getShort
+        Then("The Dhcp offer is the minimum")
+        mtuValue shouldBe 1000
+    }
+
+    scenario("Interface MTU (bridge MTU is the lower value)") {
+        Given("A datapathMTU = 1450, a conf MTU = 1500, a bridge MTU = 1000")
+        DatapathController.minMtu = 1450
         val returnPkt = injectDhcpDiscover(bridgePort1, bridgePortNumber1, vm1Mac)
         val dhcpReply = extractDhcpReply(returnPkt)
         val mtuValue = ByteBuffer.wrap(dhcpReply.getOptions.find(
             _.getCode == DHCPOption.Code.INTERFACE_MTU.value).get.getData).getShort
-        mtuValue shouldBe 1450
+        mtuValue shouldBe 1000
+    }
+
+    scenario("Interface MTU (configured MTU is lower than bridge MTU)") {
+        Given("A datapathMTU = 3000, a conf MTU = 1500, a bridge MTU = 2000")
+        DatapathController.minMtu = 3000
+        val returnPkt = injectDhcpDiscover(bridgePort2, bridgePortNumber2, vm2Mac)
+        val dhcpReply = extractDhcpReply(returnPkt)
+        val mtuValue = ByteBuffer.wrap(dhcpReply.getOptions.find(
+            _.getCode == DHCPOption.Code.INTERFACE_MTU.value).get.getData).getShort
+        mtuValue shouldBe 2000
+    }
+
+    scenario("Interface MTU (configured MTU is lower with bridge MTU not defined)") {
+        Given("A datapathMTU = 3000, a conf MTU = 1500, a bridge MTU = 0")
+        DatapathController.minMtu = 3000
+        val returnPkt = injectDhcpDiscover(bridgePort3, bridgePortNumber3, vm3Mac)
+        val dhcpReply = extractDhcpReply(returnPkt)
+        val mtuValue = ByteBuffer.wrap(dhcpReply.getOptions.find(
+            _.getCode == DHCPOption.Code.INTERFACE_MTU.value).get.getData).getShort
+        mtuValue shouldBe 1500
     }
 }
