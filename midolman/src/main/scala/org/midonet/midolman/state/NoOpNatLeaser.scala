@@ -18,12 +18,11 @@ package org.midonet.midolman.state
 
 import java.util.UUID
 
-import com.typesafe.scalalogging.Logger
-
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.NatState.NatBinding
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.NanoClock
+import org.midonet.util.logging.Logger
 
 object NoOpNatLeaser extends NatLeaser {
 

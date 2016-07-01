@@ -23,10 +23,9 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.duration._
 
-import com.typesafe.scalalogging.Logger
-
 import org.midonet.cluster.data.dhcp.{Host, Opt121, Subnet}
 import org.midonet.packets._
+import org.midonet.util.logging.Logger
 
 /**
  * DHCP option value parser based on RFC 2132

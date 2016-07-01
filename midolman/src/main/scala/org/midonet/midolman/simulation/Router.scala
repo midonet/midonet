@@ -16,12 +16,11 @@
 package org.midonet.midolman.simulation
 
 import java.util
-import java.util.{List => JList, UUID}
+import java.util.{UUID, List => JList}
 
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
-import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimulationResult}
@@ -41,6 +40,7 @@ import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.state.{NoOpFlowStateTable, FlowStateTransaction}
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
+import org.midonet.util.logging.Logger
 
 object Router {
 

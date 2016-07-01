@@ -17,12 +17,12 @@ package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean, Long => JLong}
 import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.{ArrayList => JArrayList, UUID}
+import java.util.{UUID, ArrayList => JArrayList}
 
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
-import scala.collection.concurrent.{Map => CMap, TrieMap}
+import scala.collection.concurrent.{TrieMap, Map => CMap}
 import scala.collection.mutable
 import scala.compat.Platform
 import scala.concurrent.duration._
@@ -30,8 +30,6 @@ import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import akka.actor.ActorSystem
-
-import com.typesafe.scalalogging.Logger
 
 import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
@@ -50,6 +48,7 @@ import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, ta
 import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent.TimedExpirationMap
 import org.midonet.util.functors._
+import org.midonet.util.logging.Logger
 
 object BridgeMapper {
 

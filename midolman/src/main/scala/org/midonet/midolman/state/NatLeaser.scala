@@ -18,13 +18,11 @@ package org.midonet.midolman.state
 
 import java.lang.{Integer => JInt, Long => JLong}
 import java.util.UUID
-import java.util.concurrent.{ThreadLocalRandom, ConcurrentHashMap}
+import java.util.concurrent.{ConcurrentHashMap, ThreadLocalRandom}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.util.Success
-
-import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.NatTarget
@@ -34,6 +32,7 @@ import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
 import org.midonet.util.concurrent.ExecutionContextOps
+import org.midonet.util.logging.Logger
 
 object NatLeaser {
     private val BLOCK_SIZE = NatBlock.BLOCK_SIZE // Guaranteed to be a power of 2
