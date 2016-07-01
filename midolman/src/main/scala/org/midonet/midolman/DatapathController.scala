@@ -171,6 +171,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     var zones = Map[UUID, IPAddr]()
 
+    var cachedInterfaces: Set[InterfaceDescription] = _
+
     var portWatcher: Subscription = null
     private val tzSubscriptions = new mutable.HashMap[UUID, Subscription]
 
@@ -196,8 +198,10 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         context become {
             case TunnelPortsCreated_ =>
                 subscribeToHost(hostIdProvider.hostId)
+            case host: ResolvedHost =>
                 log.info("Initialization complete")
                 context become receive
+                self ! host
                 portWatcher = interfaceScanner.subscribe(
                     new Observer[Set[InterfaceDescription]] {
                         def onCompleted(): Unit =
@@ -282,6 +286,10 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             updateVportInterfaceBindings(host.ports)
             doDatapathZonesUpdate(oldZones, newZones)
 
+            if (cachedInterfaces ne null) {
+                setTunnelMtu(cachedInterfaces)
+            }
+
         case m@TunnelZoneUpdate(zone, zoneType, hostId, address, op) =>
             log.debug("Tunnel zone changed: {}", m)
             if (zones contains zone)
@@ -292,6 +300,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         case OnError(e) => // A tunnel-zone emitted an error
 
         case InterfacesUpdate_(interfaces) =>
+            cachedInterfaces = interfaces
             updateInterfaces(interfaces)
             setTunnelMtu(interfaces)
     }
