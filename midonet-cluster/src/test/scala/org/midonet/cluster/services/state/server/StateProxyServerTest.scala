@@ -16,10 +16,11 @@
 
 package org.midonet.cluster.services.state.server
 
-import java.net.BindException
+import java.net.{BindException, ServerSocket}
 
 import scala.util.Random
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import com.typesafe.config.ConfigFactory
 
@@ -94,11 +95,29 @@ class StateProxyServerTest extends FeatureSpec with Matchers
     private val random = new Random()
     private val timeout = 30 seconds
 
+    private def localPort: Int = {
+        var port = -1
+        do {
+            try {
+                val socket = new ServerSocket(0)
+                try {
+                    socket.setReuseAddress(true)
+                    port = socket.getLocalPort
+                } finally {
+                    socket.close()
+                }
+            } catch {
+                case NonFatal(e) => port = -1
+            }
+        } while (port < 0)
+        port
+    }
+
     private def newConfig(supervisorThreads: Int = 1,
                           workerThreads: Int = 1,
                           maxPendingConnections: Int = 10,
                           bindRetryInterval: Int = 1): StateProxyConfig = {
-        val port = 49152 + random.nextInt(16383)
+        val port = localPort
         new StateProxyConfig(ConfigFactory.parseString(
             s"""
                |cluster.state_proxy.server.address : 0.0.0.0
