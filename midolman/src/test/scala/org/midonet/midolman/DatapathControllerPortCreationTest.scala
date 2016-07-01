@@ -39,8 +39,6 @@ import org.midonet.util.reactivex.TestAwaitableObserver
 class DatapathControllerPortCreationTest extends MidolmanSpec {
     var testableDpc: DatapathController = _
 
-    val ifname = "eth0"
-    val ifmtu = 1000
     val ip = IPv4Addr("1.1.1.1")
     var clusterBridge: UUID = null
     var connManager: MockUpcallDatapathConnectionManager = null
@@ -61,7 +59,6 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     override def beforeTest() {
         testableDpc = DatapathController.as[DatapathController]
         testableDpc should not be null
-        buildTopology()
 
         connManager =
             injector.getInstance(classOf[UpcallDatapathConnectionManager]).
@@ -93,38 +90,96 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
         fetchDevice[Bridge](clusterBridge)
     }
 
-    private def addInterface() {
-        ifmtu should not be DatapathController.defaultMtu
-        val intf = new InterfaceDescription(ifname)
-        intf.setInetAddress(ip.toString)
-        intf.setMtu(ifmtu)
+    private def addInterface(name: String, mtu: Int, ipAddr: IPv4Addr) {
+        val intf = new InterfaceDescription(name)
+        intf.setInetAddress(ipAddr.toString)
+        intf.setMtu(mtu)
         intf.setUp(true)
         intf.setHasLink(true)
         interfaceScanner.addInterface(intf)
     }
 
+    feature("Minimum MTU is consistent") {
+        scenario("No tunnel interfaces") {
+            Given("A single interface not in a tunnel zone")
+            addInterface("if1", 2000, IPv4Addr("1.1.1.2"))
+
+            Then("MTU should be the ddefault MTU (1500) minus overhead (50)")
+            DatapathController.minMtu shouldBe config.dhcpMtu
+        }
+
+        scenario("One tunnel interface") {
+            Given("Two interface (one in a tunnel zone, not the other)")
+            addTunnelZoneMember(greTunnelZone("zone"), hostId, IPv4Addr("1.1.1.3"))
+            addInterface("if1", 2000, IPv4Addr("1.1.1.2"))
+            addInterface("if2", 3000, IPv4Addr("1.1.1.3"))
+
+            Then("The min MTU should be the tunnel interface MTU minus overhead")
+            DatapathController.minMtu shouldBe 2950
+
+            When("Removing the tunnel interface")
+            interfaceScanner.removeInterface("if2")
+            Then("The min MTU should be the default")
+            DatapathController.minMtu shouldBe config.dhcpMtu
+        }
+
+        scenario("Creating a non-tunnel interface does not update tunnel MTU") {
+            Given("Two interfaces (one in a tunnel zone, not the other)")
+            addTunnelZoneMember(greTunnelZone("zone"), hostId, IPv4Addr("1.1.1.3"))
+            addInterface("if1", 2000, IPv4Addr("1.1.1.2"))
+            addInterface("if2", 3000, IPv4Addr("1.1.1.3"))
+
+            Then("The min MTU should be the tunnel interface MTU minus overhead")
+            DatapathController.minMtu shouldBe 2950
+
+            When("Removing the non-tunnel interface")
+            interfaceScanner.removeInterface("if1")
+            Then("The min MTU should not change")
+            DatapathController.minMtu shouldBe 2950
+        }
+
+        scenario("Two tunnel interfaces") {
+            Given("Three interfaces (two in a tunnel zone, not the other)")
+            addTunnelZoneMember(greTunnelZone("zone"), hostId, IPv4Addr("1.1.1.3"))
+            addTunnelZoneMember(greTunnelZone("zone"), hostId, IPv4Addr("1.1.1.4"))
+            addInterface("if1", 2000, IPv4Addr("1.1.1.2"))
+            addInterface("if2", 3000, IPv4Addr("1.1.1.3"))
+            addInterface("if3", 4000, IPv4Addr("1.1.1.4"))
+
+            Then("The min MTU should be the minimum tunnel interface MTU - overhead")
+            DatapathController.minMtu shouldBe 2950
+
+            When("Removing one interface")
+            interfaceScanner.removeInterface("if2")
+            Then("The min MTU should be updated")
+            DatapathController.minMtu shouldBe 3950
+        }
+    }
+
     feature("DatapathController manages ports") {
         scenario("Ports are created and removed based on interface status") {
-            Given("A port status observable")
+            Given("A default topology")
+            buildTopology()
+
+            And("A port status observable")
             val obs = new TestAwaitableObserver[LocalPortActive]
             VirtualToPhysicalMapper.portsActive.subscribe(obs)
 
             When("a port binding exists")
-            val port = addAndMaterializeBridgePort(hostId, clusterBridge, ifname)
+            val port = addAndMaterializeBridgePort(hostId, clusterBridge, "if1")
 
-            And("its network interface becomes active")
-            addInterface()
+            And("its network interface becomes active with an MTU lower than default")
+            addInterface("if1", 1000, ip)
 
             Then("the DpC should create the datapath port")
             testableDpc.driver.getDpPortNumberForVport(port) should not equal null
 
-            And("the min MTU should be the default one")
-            DatapathController.minMtu should be (
-                DatapathController.defaultMtu - VxLanTunnelPort.TunnelOverhead)
+            And("the min MTU should be the tunnel default one")
+            DatapathController.minMtu should be (1000 - VxLanTunnelPort.TunnelOverhead)
             obs.getOnNextEvents.get(0) shouldBe LocalPortActive(port, active = true)
 
             When("the network interface disappears")
-            interfaceScanner.removeInterface(ifname)
+            interfaceScanner.removeInterface("if1")
 
             Then("the DpC should delete the datapath port")
             testableDpc.driver.getDpPortNumberForVport(port) should be (null)
@@ -132,18 +187,27 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             And("the min MTU should be the default one")
             DatapathController.minMtu should be (DatapathController.defaultMtu)
             obs.getOnNextEvents.get(1) shouldBe LocalPortActive(port, active = false)
+
+            When("Adding a network interface with an MTU higher than default")
+            addInterface("if2", 2000, ip)
+
+            Then("the min MTU should be updated")
+            DatapathController.minMtu should be (2000 - VxLanTunnelPort.TunnelOverhead)
         }
 
         scenario("Ports are created and removed based on bindings") {
-            Given("A port status observable")
+            Given("A default topology")
+            buildTopology()
+
+            And("A port status observable")
             val obs = new TestAwaitableObserver[LocalPortActive]
             VirtualToPhysicalMapper.portsActive.subscribe(obs)
 
             When("a network interface exists")
-            addInterface()
+            addInterface("if1", 1000, ip)
 
             When("and a port binding is created")
-            val port = addAndMaterializeBridgePort(hostId, clusterBridge, ifname)
+            val port = addAndMaterializeBridgePort(hostId, clusterBridge, "if1")
 
             Then("the DpC should create the datapath port")
             testableDpc.driver.getDpPortNumberForVport(port) should not equal None

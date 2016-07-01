@@ -152,6 +152,7 @@ trait VirtualConfigurationBuilders {
                       subnet: IPv4Subnet,
                       gw: IPv4Addr,
                       dns: List[IPv4Addr],
+                      mtu: Short,
                       opt121routes: List[VirtualConfigurationBuilders.DhcpOpt121Route]): IPv4Subnet
     def addDhcpHost(bridge: UUID, subnet: IPv4Subnet,
                     hostMac: MAC, hostIp: IPv4Addr): MAC
@@ -378,8 +379,9 @@ trait ForwardingVirtualConfigurationBuilders
                                subnet: IPv4Subnet,
                                gw: IPv4Addr,
                                dns: List[IPv4Addr],
+                               mtu: Short,
                                opt121routes: List[VirtualConfigurationBuilders.DhcpOpt121Route]): IPv4Subnet =
-        virtConfBuilderImpl.addDhcpSubnet(bridge, subnet, gw, dns, opt121routes)
+        virtConfBuilderImpl.addDhcpSubnet(bridge, subnet, gw, dns, mtu, opt121routes)
     override def addDhcpHost(bridge: UUID, subnet: IPv4Subnet,
                              hostMac: MAC, hostIp: IPv4Addr): MAC =
         virtConfBuilderImpl.addDhcpHost(bridge, subnet, hostMac, hostIp)
