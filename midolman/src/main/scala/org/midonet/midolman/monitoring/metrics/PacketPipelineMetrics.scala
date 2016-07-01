@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,61 +16,51 @@
 
 package org.midonet.midolman.monitoring.metrics
 
-import com.codahale.metrics.{Gauge, MetricRegistry}
+import java.util.concurrent.TimeUnit
+
+import com.codahale.metrics.{Clock, Gauge, MetricRegistry, Timer}
 import com.codahale.metrics.MetricRegistry.name
 
-class PacketPipelineMetrics(val registry: MetricRegistry,
-                            numPipelineProcessors: Int) {
+import org.midonet.util.metrics.HdrHistogramSlidingTimeWindowReservoir
 
-    val pendedPackets = registry.counter(name(
-        classOf[PacketPipelineCounter], "currentPendedPackets"))
+class PacketPipelineMetrics(val registry: MetricRegistry, workerId: Int) {
+    val workerTag = s"worker-$workerId"
 
-    val packetsOnHold = registry.counter(name(
-        classOf[PacketPipelineCounter], "packetsOnHold"))
+    val packetsOnHold = registry.counter(
+        name(classOf[PacketPipelineCounter], workerTag, "packetsOnHold"))
 
-    val packetsSimulated = registry.meter(name(
-        classOf[PacketPipelineMeter], "packetsSimulated", "packets"))
+    val packetsPostponed = registry.meter(
+        name(classOf[PacketPipelineMeter], workerTag,
+             "packetsPostponed", "packets"))
 
-    val packetsPostponed = registry.meter(name(
-        classOf[PacketPipelineMeter], "packetsPostponed", "packets"))
+    val packetsDropped = registry.meter(
+        name(classOf[PacketPipelineMeter], workerTag,
+             "packetsDropped", "packets"))
 
-    val packetsProcessed = registry.meter(name(
-        classOf[PacketPipelineMeter], "packetsProcessed", "packets"))
+    val statePacketsProcessed = registry.meter(
+        name(classOf[PacketPipelineMeter], workerTag,
+             "statePacketsProcessed", "packets"))
 
-    val packetsDropped = registry.meter(name(
-        classOf[PacketPipelineMeter], "packetsDropped", "packets"))
-
-    val liveSimulations = registry.register(name(
-        classOf[PacketPipelineGauge], "liveSimulations"),
-        new Gauge[Long]{ override def getValue = 0 })
-
-    val simulationLatency = registry.histogram(name(
-        classOf[PacketPipelineHistogram], "simulationLatency"))
-
-    val simulationAccumulatedTime = registry.counter(name(
-        classOf[PacketPipelineAccumulatedTime],
-        "simulationAccumulatedTime"))
+    val packetsProcessed = registry.register(
+        name(classOf[PacketPipelineHistogram], workerTag, "packetsProcessed"),
+        new Timer(new HdrHistogramSlidingTimeWindowReservoir(
+                      5, TimeUnit.MINUTES, 10, TimeUnit.SECONDS,
+                      Clock.defaultClock)))
 
     val currentDpFlowsMetric = registry.register(
-        name(classOf[FlowTablesGauge], "currentDatapathFlows"),
+        name(classOf[FlowTablesGauge], workerTag, "currentDatapathFlows"),
         new Gauge[Long] {
             override def getValue: Long =
                 dpFlowsMetric.getCount - dpFlowsRemovedMetric.getCount
         })
 
-    val dpFlowsMetric = registry.meter(name(
-        classOf[FlowTablesMeter], "datapathFlowsCreated",
-        "datapathFlows"))
+    val dpFlowsMetric = registry.meter(
+        name(classOf[FlowTablesMeter], workerTag,
+             "datapathFlowsCreated", "datapathFlows"))
 
-    val dpFlowsRemovedMetric = registry.meter(name(
-        classOf[FlowTablesMeter], "datapathFlowsRemoved",
-        "datapathFlowsRemoved"))
-
-    def packetSimulated(latency: Int) {
-        packetsSimulated.mark()
-        simulationLatency.update(latency)
-        simulationAccumulatedTime.inc(latency)
-    }
+    val dpFlowsRemovedMetric = registry.meter(
+        name(classOf[FlowTablesMeter], workerTag,
+             "datapathFlowsRemoved", "datapathFlowsRemoved"))
 
     def packetPostponed() {
         packetsPostponed.mark()
