@@ -18,25 +18,12 @@ package org.midonet.midolman
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{HashMap => JHashMap, Set => JSet, UUID}
-
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import scala.reflect._
+import java.util.{UUID, HashMap => JHashMap, Set => JSet}
 
 import akka.actor._
 import akka.pattern.{after, pipe}
-
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-
-import org.slf4j.LoggerFactory
-
-import rx.{Observer, Subscription}
-
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -52,12 +39,21 @@ import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.netlink._
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
-import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
+import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent._
+import org.slf4j.LoggerFactory
+import rx.{Observer, Subscription}
+
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.reflect._
 
 object UnderlayResolver {
     case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput) {
@@ -109,10 +105,10 @@ object DatapathController extends Referenceable {
     /** Java API */
     val initializeMsg = Initialize
 
-    // This value is actually configured in preStart of a DatapathController
-    // instance based on the value specified in /etc/midolman/midolman.conf
-    // because we can't inject midolmanConfig into Scala's companion object.
-    var defaultMtu: Short = MidolmanConfig.DEFAULT_MTU
+    // Default MTU supported by the underlay accounting for the tunnel overhead.
+    // This value is just a reference in case there are no tunnel interfaces
+    // configured.
+    private[midolman] var defaultMtu: Short = _
 
     /**
      * This message is sent when the separate thread has successfully
@@ -123,9 +119,12 @@ object DatapathController extends Referenceable {
     // Signals that the tunnel ports have been created
     case object TunnelPortsCreated_
 
-    private var cachedMinMtu = (defaultMtu - VxLanTunnelPort.TunnelOverhead).toShort
-
-    def minMtu = cachedMinMtu
+    /**
+      * Minimum MTU supported by the underlay considering all configured tunnel
+      * interfaces and accounting for the tunnel overhead. VM interfaces should
+      * not have an MTU higher than this minMtu to avoid fragmentation.
+      */
+    @volatile var minMtu: Short = _
 }
 
 
@@ -163,9 +162,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         with DatapathPortEntangler
         with MtuIncreaser {
 
-    import org.midonet.midolman.DatapathController._
-
     import context.{dispatcher, system}
+    import org.midonet.midolman.DatapathController._
 
     override def logSource = "org.midonet.datapath-control"
 
@@ -177,7 +175,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     override def preStart(): Unit = {
         super.preStart()
         defaultMtu = config.dhcpMtu
-        cachedMinMtu = defaultMtu
+        minMtu = defaultMtu
         context become (DatapathInitializationActor orElse {
             case m =>
                 log.info(s"Not handling $m (still initializing)")
@@ -369,25 +367,31 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     }
 
     private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
-        var minMtu = Short.MaxValue
+        var minTunnelMtu = Short.MaxValue
         val overhead = VxLanTunnelPort.TunnelOverhead
 
+        // Check the interfaces associated to a tunnel zone (tunnel interface).
         for { intf <- interfaces.asScala
               inetAddress <- intf.getInetAddresses.asScala
               zone <- zones
               if InetAddress.getByAddress(zone._2.toBytes) == inetAddress
         } {
-            val tunnelMtu = (defaultMtu - overhead).toShort
-            minMtu = minMtu.min(tunnelMtu)
+            // Keep the minimum of those accounting for the tunnel overhead
+            val tunnelMtu = (intf.getMtu - overhead).toShort
+            minTunnelMtu = minTunnelMtu.min(tunnelMtu)
         }
 
-        if (minMtu == Short.MaxValue)
-            minMtu = defaultMtu
-
-        if (cachedMinMtu != minMtu) {
-            log.info(s"Changing MTU from $cachedMinMtu to $minMtu")
-            cachedMinMtu = minMtu
-        }
+        if (minTunnelMtu == Short.MaxValue) {
+            if (minMtu != defaultMtu) {
+                log.info(
+                    s"There is no interface in any tunnel zone. Updating " +
+                    s"underlay MTU to default value $defaultMtu.")
+                minMtu = defaultMtu
+            }
+        } else if (minMtu != minTunnelMtu) {
+            log.info(s"Updating underlay MTU from $minMtu to $minTunnelMtu.")
+            minMtu = minTunnelMtu
+        } // else => no change on the minimum mtu
     }
 }
 
