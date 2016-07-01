@@ -53,7 +53,7 @@ import org.midonet.cluster.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.MidonetBackendService;
-import org.midonet.cluster.services.rest_api.Vladimir;
+import org.midonet.cluster.services.rest_api.RestApi;
 import org.midonet.cluster.storage.ArpStateTable;
 import org.midonet.cluster.storage.Ip4MacStateTable;
 import org.midonet.cluster.storage.MacIdStateTable;
@@ -181,7 +181,7 @@ public class FuncTest {
                     new NamedThreadFactory("rest-api", true)));
 
             FuncTest._injector = Guice.createInjector(
-                Vladimir.servletModule(
+                RestApi.servletModule(
                     backend, ec, curator, cfg, reflections, authService,
                     Logger.apply(getLogger(getClass()))),
                 new AbstractModule() {

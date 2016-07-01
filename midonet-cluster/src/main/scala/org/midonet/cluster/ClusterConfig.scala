@@ -21,10 +21,10 @@ import scala.concurrent.duration._
 
 import com.typesafe.config.{Config, ConfigFactory}
 
-import org.midonet.cluster.services.containers.ContainerService
-import org.midonet.cluster.services.rest_api.Vladimir
 import org.midonet.cluster.services.c3po.C3POMinion
+import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.services.heartbeat.Heartbeat
+import org.midonet.cluster.services.rest_api.RestApi
 import org.midonet.cluster.services.state.StateProxy
 import org.midonet.cluster.services.topology.TopologyApiService
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
@@ -144,7 +144,7 @@ class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiServic
     def sessionBufferSize = conf.getInt(s"$Prefix.session_buffer_size")
 }
 
-class RestApiConfig(val conf: Config) extends MinionConfig[Vladimir] {
+class RestApiConfig(val conf: Config) extends MinionConfig[RestApi] {
     final val Prefix = "cluster.rest_api"
 
     override def isEnabled = conf.getBoolean("cluster.rest_api.enabled")
