@@ -22,6 +22,30 @@
       "revId": "d3cfb07e4bb431bc3933e740d47a1e299a017072",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c8f1436c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 585,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-02T16:33:01Z",
+      "side": 1,
+      "message": "no reason, I wanted to keep the style but it doesn\u0027t make much sense really. Will change.",
+      "parentUuid": "baa041b7_e82c074c",
+      "range": {
+        "startLine": 585,
+        "startChar": 38,
+        "endLine": 585,
+        "endChar": 68
+      },
+      "revId": "d3cfb07e4bb431bc3933e740d47a1e299a017072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
