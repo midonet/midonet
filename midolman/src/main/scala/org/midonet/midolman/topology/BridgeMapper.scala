@@ -198,17 +198,23 @@ object BridgeMapper {
 
         /** Adds a mapping if it does not exist, and increases its reference count */
         def incrementRefCount(mapping: MacPortMapping): Unit = {
-            if (map.putIfAbsentAndRef(mapping, mapping) == 1) {
-                doOnMap(mapping.vlanId, _.add(mapping.mac, mapping.portId))
+            map.synchronized {
+                if (map.putIfAbsentAndRef(mapping, mapping) == 1) {
+                    doOnMap(mapping.vlanId, _.add(mapping.mac, mapping.portId))
+                }
             }
         }
         /** Decrements the reference count for a given mapping */
         def decrementRefCount(mapping: MacPortMapping, currentTime: Long): Unit = {
-            map.unref(mapping, currentTime)
+            map.synchronized {
+                map.unref(mapping, currentTime)
+            }
         }
         /** Expires MAC-port mappings */
         def expireEntries(currentTime: Long): Unit = {
-            map.obliterateIdleEntries(currentTime, (), reducer)
+            map.synchronized {
+                map.obliterateIdleEntries(currentTime, (), reducer)
+            }
         }
         /** Executes the specified operation on the MAC learning table for the
           * given VLAN.*/
