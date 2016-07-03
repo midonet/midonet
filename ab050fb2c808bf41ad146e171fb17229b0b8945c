@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_83eafcaa",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-03T19:42:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_83b31ce9",
+      "revId": "ab050fb2c808bf41ad146e171fb17229b0b8945c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e3b668db",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
         "patchSetId": 1
@@ -54,6 +72,30 @@
       "side": 1,
       "message": "debug i think.",
       "parentUuid": "baa041b7_e3b668db",
+      "range": {
+        "startLine": 407,
+        "startChar": 16,
+        "endLine": 407,
+        "endChar": 71
+      },
+      "revId": "ab050fb2c808bf41ad146e171fb17229b0b8945c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a3e740e3",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-03T19:42:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_63cb7854",
       "range": {
         "startLine": 407,
         "startChar": 16,
