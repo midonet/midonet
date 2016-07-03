@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -36,9 +37,10 @@ public abstract class ReplicatedMap<K, V> {
     private final static Logger log =
         LoggerFactory.getLogger(ReplicatedMap.class);
 
-    protected ZkConnectionAwareWatcher connectionWatcher;
+    private ZkConnectionAwareWatcher connectionWatcher;
 
     public static final int PERSISTENT_VERSION = Integer.MAX_VALUE;
+    private static final int MAX_SIZE = 65536;
 
     /*
      * TODO(pino): don't allow deletes to be lost.
@@ -107,6 +109,9 @@ public abstract class ReplicatedMap<K, V> {
                             final List<Path> cleanupPaths) {
             for (String path : curPaths) {
                 Path p = decodePath(path);
+                Entry<K, V> entry = new Entry<>(p.key, p.value);
+                writingMap.remove(entry);
+                readingMap.remove(entry, p.version);
                 MapValue mv = newMap.get(p.key);
                 if (mv == null) {
                     newMap.put(p.key, new MapValue(p.value, p.version));
@@ -230,6 +235,9 @@ public abstract class ReplicatedMap<K, V> {
     private Directory dir;
     private AtomicBoolean running;
     private volatile ConcurrentMap<K, MapValue> localMap;
+    private Map<Entry, String> writingMap;
+    private Map<Entry, Integer> readingMap;
+    private Set<Entry> deletingSet;
     private Set<Integer> ownedVersions;
     private Set<Watcher<K, V>> watchers;
     private DirectoryWatcher myWatcher;
@@ -252,6 +260,9 @@ public abstract class ReplicatedMap<K, V> {
         this.dir = dir;
         this.running = new AtomicBoolean(false);
         this.localMap = new ConcurrentHashMap<>();
+        this.writingMap = new HashMap<>();
+        this.readingMap = new HashMap<>();
+        this.deletingSet = new HashSet<>();
         this.ownedVersions = new HashSet<>();
         this.watchers = new HashSet<>();
         this.myWatcher = new DirectoryWatcher();
@@ -317,39 +328,44 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     private class PutCallback implements DirectoryCallback<String> {
-        private final K key;
-        private final V value;
+        private final Entry<K, V> entry;
 
-        PutCallback(K k, V v) {
-            key = k;
-            value = v;
+        PutCallback(Entry<K, V> e) {
+            entry = e;
         }
 
         public void onSuccess(String result) {
             // Claim the sequence number added by ZooKeeper.
             Path p = decodePath(result);
             synchronized(ReplicatedMap.this) {
+                if (writingMap.remove(entry) != null) {
+                    readingMap.put(entry, p.version);
+                }
                 ownedVersions.add(p.version);
             }
         }
 
         public void onError(KeeperException ex) {
-            log.error("Put {} => {} failed: {}", key, value, ex);
+            log.error("Put {} => {} failed: {}", entry.key, entry.value, ex);
+            synchronized (ReplicatedMap.this) {
+                writingMap.remove(entry);
+            }
         }
 
         public void onTimeout() {
-            log.error("Put {} => {} timed out.", key, value);
+            log.error("Put {} => {} timed out.", entry.key, entry.value);
+            synchronized (ReplicatedMap.this) {
+                writingMap.remove(entry);
+            }
         }
     }
 
     private class DeleteCallBack implements DirectoryCallback<Void> {
-        private final K key;
-        private final V value;
+        private final Entry<K, V> entry;
         private final int version;
 
-        DeleteCallBack(K k, V v, int ver) {
-            key = k;
-            value = v;
+        DeleteCallBack(Entry<K, V> e, int ver) {
+            entry = e;
             version = ver;
         }
 
@@ -361,6 +377,7 @@ public abstract class ReplicatedMap<K, V> {
                    meantime. Watchers will be notified of this deletion in
                    method run as well. */
                 ownedVersions.remove(version);
+                deletingSet.remove(entry);
             }
         }
 
@@ -368,19 +385,26 @@ public abstract class ReplicatedMap<K, V> {
             final DeleteCallBack thisCb = this;
             return new Runnable() {
                 public void run() {
-                    dir.asyncDelete(encodePath(key, value, version), thisCb);
+                    dir.asyncDelete(encodePath(entry.key, entry.value, version),
+                                    thisCb);
                 }
             };
         }
 
         public void onError(KeeperException ex) {
-            String opDesc = "Replicated map deletion of key: " + key;
+            String opDesc = "Replicated map deletion of key: " + entry.key;
             connectionWatcher.handleError(opDesc, deleteRunnable(), ex);
+            synchronized (ReplicatedMap.this) {
+                deletingSet.remove(entry);
+            }
         }
 
         public void onTimeout() {
-            log.info("Deletion of key: {} timed out, retrying.", key);
+            log.info("Deletion of key: {} timed out, retrying.", entry.key);
             connectionWatcher.handleTimeout(deleteRunnable());
+            synchronized (ReplicatedMap.this) {
+                deletingSet.remove(entry);
+            }
         }
     }
 
@@ -398,7 +422,30 @@ public abstract class ReplicatedMap<K, V> {
         CreateMode mode = this.createsEphemeralNode ?
                 CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.PERSISTENT;
 
-        dir.asyncAdd(path, null, mode, new PutCallback(key, value));
+        Entry<K, V> entry = new Entry<>(key, value);
+        synchronized (this) {
+            String writingPath = writingMap.putIfAbsent(entry, path);
+            if (writingPath != null) {
+                log.debug("Already writing entry {} -> {}", key, value);
+                return;
+            }
+            if (readingMap.containsKey(entry)) {
+                log.debug("Waiting on reading entry {} -> {}", key, value);
+                return;
+            }
+            MapValue mapValue = localMap.get(key);
+            if (mapValue != null && mapValue.value != null &&
+                mapValue.value.equals(value) && !deletingSet.contains(entry)) {
+                log.debug("Entry {} -> {} already exists", key, value);
+                return;
+            }
+            if (localMap.size() > MAX_SIZE) {
+                log.warn("Replicated map exceeds maximum size {}: "
+                         + "skipping put", MAX_SIZE);
+                return;
+            }
+        }
+        dir.asyncAdd(path, null, mode, new PutCallback(entry));
     }
 
     /**
@@ -439,6 +486,7 @@ public abstract class ReplicatedMap<K, V> {
     public V removeIfOwnerAndValue(K key, V ensureVal)
         throws KeeperException, InterruptedException {
         MapValue mv;
+        Entry<K, V> entry = new Entry<>(key, ensureVal);
         synchronized(this) {
             mv = localMap.get(key);
             if (null == mv)
@@ -448,9 +496,12 @@ public abstract class ReplicatedMap<K, V> {
             if ((ensureVal != null) && !mv.value.equals(ensureVal))
                 return null;
 
+            readingMap.remove(entry);
+            writingMap.remove(entry);
+            deletingSet.add(entry);
         }
         dir.asyncDelete(encodePath(key, mv.value, mv.version),
-                        new DeleteCallBack(key, mv.value, mv.version));
+                        new DeleteCallBack(entry, mv.version));
         return mv.value;
     }
 
@@ -500,6 +551,28 @@ public abstract class ReplicatedMap<K, V> {
             this.key = key;
             this.value = value;
             this.version = version;
+        }
+    }
+
+    private static class Entry<K, V> {
+        final K key;
+        final V value;
+
+        Entry(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public boolean equals(Object obj) {
+            if (obj == null) return false;
+            if (obj.getClass() != getClass()) return false;
+            Entry path = (Entry) obj;
+            return (key != null ? key.equals(path.key) : path.key == null) &&
+                   (value != null ? value.equals(path.value) : path.value == null);
+        }
+
+        public int hashCode() {
+            return Objects.hash(key, value);
         }
     }
 
