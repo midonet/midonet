@@ -200,7 +200,11 @@ object BridgeMapper {
         def incrementRefCount(mapping: MacPortMapping): Unit = {
             map.synchronized {
                 if (map.putIfAbsentAndRef(mapping, mapping) == 1) {
-                    doOnMap(mapping.vlanId, _.add(mapping.mac, mapping.portId))
+                    doOnMap(mapping.vlanId, { m =>
+                        if (m.get(mapping.mac) != mapping.portId) {
+                            m.add(mapping.mac, mapping.portId)
+                        }
+                    })
                 }
             }
         }

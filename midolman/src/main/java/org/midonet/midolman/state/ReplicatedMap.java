@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -105,6 +106,9 @@ public abstract class ReplicatedMap<K, V> {
                             final List<Path> cleanupPaths) {
             for (String path : curPaths) {
                 Path p = decodePath(path);
+                Entry entry = new Entry(p.key, p.value);
+                writingMap.remove(entry);
+                readingMap.remove(entry, p.version);
                 MapValue mv = newMap.get(p.key);
                 if (mv == null)
                     newMap.put(p.key, new MapValue(p.value, p.version));
@@ -220,6 +224,8 @@ public abstract class ReplicatedMap<K, V> {
     private Directory dir;
     private AtomicBoolean running;
     private volatile ConcurrentMap<K, MapValue> localMap;
+    private Map<Entry, String> writingMap;
+    private Map<Entry, Integer> readingMap;
     private Set<Integer> ownedVersions;
     private Set<Watcher<K, V>> watchers;
     private DirectoryWatcher myWatcher;
@@ -242,6 +248,8 @@ public abstract class ReplicatedMap<K, V> {
         this.dir = dir;
         this.running = new AtomicBoolean(false);
         this.localMap = new ConcurrentHashMap<>();
+        this.writingMap = new HashMap<>();
+        this.readingMap = new HashMap<>();
         this.ownedVersions = new HashSet<>();
         this.watchers = new HashSet<>();
         this.myWatcher = new DirectoryWatcher();
@@ -318,7 +326,11 @@ public abstract class ReplicatedMap<K, V> {
         public void onSuccess(String result) {
             // Claim the sequence number added by ZooKeeper.
             Path p = decodePath(result);
+            Entry entry = new Entry(p.key, p.value);
             synchronized(ReplicatedMap.this) {
+                if (writingMap.remove(entry) != null) {
+                    readingMap.put(entry, p.version);
+                }
                 ownedVersions.add(p.version);
             }
         }
@@ -388,6 +400,22 @@ public abstract class ReplicatedMap<K, V> {
         CreateMode mode = this.createsEphemeralNode ?
                 CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.PERSISTENT;
 
+        Entry entry = new Entry(key, value);
+        synchronized (this) {
+            String writingPath = writingMap.putIfAbsent(entry, path);
+            if (writingPath != null) {
+                log.info("Already writing entry {} -> {}", key, value);
+                return;
+            }
+            if (readingMap.containsKey(entry)) {
+                log.info("Waiting on reading entry {} -> {}", key, value);
+                return;
+            }
+            if (localMap.size() > 100000) {
+                log.warn("Replicated map exceeds maximum size");
+                return;
+            }
+        }
         dir.asyncAdd(path, null, mode, new PutCallback(key, value));
     }
 
@@ -490,6 +518,28 @@ public abstract class ReplicatedMap<K, V> {
             this.key = key;
             this.value = value;
             this.version = version;
+        }
+    }
+
+    private class Entry {
+        K key;
+        V value;
+
+        Entry(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public boolean equals(Object obj) {
+            if (obj == null) return false;
+            if (obj.getClass() != getClass()) return false;
+            Path path = (Path) obj;
+            return (key != null ? key.equals(path.key) : path.key == null) &&
+                   (value != null ? value.equals(path.value) : path.value == null);
+        }
+
+        public int hashCode() {
+            return Objects.hash(key, value);
         }
     }
 
