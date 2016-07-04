@@ -37,6 +37,7 @@ import test_load_balancer
 import test_midolman_and_interfaces
 import test_mirroring
 import test_nat_router
+import test_port_migration
 import test_router
 import test_router_service
 import test_tracing
@@ -83,6 +84,7 @@ test_nat_router.test_dnat_for_udp.gate=1
 test_nat_router.test_floating_ip.gate=1
 test_nat_router.test_snat.gate=1
 test_nat_router.test_snat_for_udp.gate=1
+test_port_migration.test_simple_port_migration.gate=1
 test_tracing.test_tracing_egress_matching.gate=1
 test_tracing.test_tracing_egress_matching_over_nat.gate=1
 test_tracing.test_tracing_with_limit.gate=1
