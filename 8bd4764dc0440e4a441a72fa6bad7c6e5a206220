@@ -22,6 +22,30 @@
       "revId": "8bd4764dc0440e4a441a72fa6bad7c6e5a206220",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e94ac982",
+        "filename": "tests/ci-perf.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-04T15:10:13Z",
+      "side": 1,
+      "message": "yes, so that we can \"source\" the file with parameters.",
+      "parentUuid": "baa041b7_c966e528",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 8
+      },
+      "revId": "8bd4764dc0440e4a441a72fa6bad7c6e5a206220",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
