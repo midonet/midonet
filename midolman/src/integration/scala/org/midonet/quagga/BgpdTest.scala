@@ -43,7 +43,8 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
             BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
             routerAddress, routerMac, BGP_VTY_PORT,
             "./src/lib/midolman/bgpd-helper",
-            System.getProperty("user.dir") + "/src/deb/quagga/bgpd.conf")
+            System.getProperty("user.dir") + "/src/deb/quagga/bgpd.conf",
+            Some("router"))
     }
 
     after {
