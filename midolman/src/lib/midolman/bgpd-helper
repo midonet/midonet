@@ -88,6 +88,13 @@ rem_arp_entry() {
     ip netns exec $namespace arp -d $router_ip
 }
 
+reset_namespace_name() {
+    local router_id=$1
+    if [ -n "$router_id" ]; then
+        namespace=bgp-$router_id
+    fi
+}
+
 bgpd_prepare() {
     mkdir -p $socketdir
 
@@ -156,11 +163,13 @@ bgpd_down() {
 }
 
 usage() {
-    echo "Usage: $0 prepare INDEX LOCAL_VTY_IP REMOTE_VTY_IP ROUTER_IP ROUTER_MAC"
-    echo "       $0 up INDEX VTY_PORT_NUMBER BGPD_CONFIG_FILE LOG_DIR"
-    echo "       $0 down INDEX"
-    echo "       $0 add_addr INDEX INTERFACE_NAME ROUTER_IP"
-    echo "       $0 rem_addr INDEX INTERFACE_NAME ROUTER_IP"
+    echo "Usage: $0 prepare INDEX LOCAL_VTY_IP REMOTE_VTY_IP ROUTER_IP ROUTER_MAC [ROUTER_ID]"
+    echo "       $0 up INDEX VTY_PORT_NUMBER BGPD_CONFIG_FILE LOG_DIR [ROUTER_ID]"
+    echo "       $0 down INDEX [ROUTER_ID]"
+    echo "       $0 add_addr INDEX INTERFACE_NAME ROUTER_IP MAC [ROUTER_ID]"
+    echo "       $0 rem_addr INDEX INTERFACE_NAME ROUTER_IP [ROUTER_ID]"
+    echo "       $0 add_arp INDEX INTERFACE_NAME ROUTER_IP MAC [ROUTER_ID]"
+    echo "       $0 rem_arp INDEX INTERFACE_NAME ROUTER_IP [ROUTER_ID]"
     echo "experimental:"
     echo "       $0 quagga_up INDEX LOCAL_VTY_IP VTY_PORT_NUMBER BGPD_CONFIG_FILE ZEBRA_CONFIG_FILE LOG_DIR"
     exit 1
@@ -203,18 +212,21 @@ case "$1" in
         iface=$3
         router_ip=$4
         mac_addr=$5
+        reset_namespace_name $6
         add_arp_entry
         ;;
 
     rem_arp)
         iface=$3
         router_ip=$4
+        reset_namespace_name $5
         rem_arp_entry
         ;;
 
     rem_addr)
         iface=$3
         router_ip=$4
+        reset_namespace_name $5
         if [ -z "$iface" ] || [ -z "$router_ip" ] ; then
             usage
         fi
@@ -225,6 +237,7 @@ case "$1" in
         iface=$3
         router_ip=$4
         mac=$5
+        reset_namespace_name $6
         if [ -z "$iface" ] || [ -z "$router_ip" ] ; then
             usage
         fi
@@ -237,6 +250,7 @@ case "$1" in
         router_ip=$5
         router_mac=$6
         iface_name=$7
+        reset_namespace_name $8
 
         if [ -z "$remote_vty_ip" ] || [ -z "$local_vty_ip" ] ; then
             usage
@@ -253,6 +267,7 @@ case "$1" in
         vtyport=$3
         bgp_config_file=$4
         log_dir=$5
+        reset_namespace_name $6
         if [ -z "$bgp_config_file" ] || [ -z "$vtyport" ] || [ -z "$log_dir" ] ; then
             usage
         fi
@@ -265,6 +280,7 @@ case "$1" in
         bgp_config_file=$5
         zebra_config_file=$6
         log_dir=$7
+        reset_namespace_name $8
         let fpm_port="index+2620"
         fpm_address=`echo $local_vty_ip | cut -d'/' -f 1`
         if [ -z "$bgp_config_file" ] || [ -z "$zebra_config_file" ] || [ -z "$vtyport" ] || [ -z "$log_dir" ] ; then
@@ -274,6 +290,7 @@ case "$1" in
         ;;
 
     down)
+        reset_namespace_name $3
         bgpd_down
         exit 0
         ;;
