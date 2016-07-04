@@ -286,7 +286,9 @@ class Router(override val id: UUID,
         // Fetch the MAC address associated with ipDest in case it
         // belongs to a router port connected to the bridge or was pre-seeded.
         val bridge = tryGet(classOf[Bridge], port.deviceId)
-        bridge.ipToMac.getOrElse(ipDest, bridge.ip4MacMap.get(ipDest))
+        bridge.ipToMac.getOrElse(ipDest, {
+            if (bridge.ip4MacMap ne null) bridge.ip4MacMap.get(ipDest) else null
+        })
     }
 
     private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr,
