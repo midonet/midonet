@@ -142,7 +142,7 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
     }
 
     def isTracingReady: Boolean = {
-        log.info(s"Trace chain ready: ${!awaitingTraceChain}")
+        log.debug(s"Trace chain ready: ${!awaitingTraceChain}")
         !awaitingTraceChain
     }
 
