@@ -102,6 +102,23 @@ midolman2:
   - "zookeeper3:zk3"
   - "cassandra1:cs1"
 
+midolman3:
+  extends:
+    file: $BASE/midolman.yml
+    service: midolman
+  image: sandbox/midolman:v5.0
+  hostname: midolman3
+  volumes:
+  - /lib/modules:/lib/modules
+  labels:
+      interface: mdts.services.midonet_agent.MidonetAgentHost
+      type: midolman
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"
+  - "cassandra1:cs1"
+
 #########################################
 ## OpenStack Components                ##
 #########################################
