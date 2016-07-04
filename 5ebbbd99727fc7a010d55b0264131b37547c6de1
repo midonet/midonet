@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bb4d2474",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/SubscriptionList.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-07-04T15:46:07Z",
+      "side": 1,
+      "message": "terminated flag is lost if it was set, is that a problem?",
+      "range": {
+        "startLine": 49,
+        "startChar": 16,
+        "endLine": 49,
+        "endChar": 44
+      },
+      "revId": "5ebbbd99727fc7a010d55b0264131b37547c6de1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
