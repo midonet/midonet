@@ -157,9 +157,11 @@ object RoutingHandler {
             private final val BGP_VTY_MIRROR_IP =
                 new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx), 30)
 
+            val routerUUID = if (isQuagga) Some(rport.deviceId.toString) else None
+
             override protected val bgpd: BgpdProcess = new DefaultBgpdProcess(bgpIdx, BGP_VTY_LOCAL_IP,
                 BGP_VTY_MIRROR_IP, new IPv4Subnet(rport.portAddress, rport.portSubnet.getPrefixLen),
-                rport.portMac, BGP_VTY_PORT)
+                rport.portMac, BGP_VTY_PORT, routerId = routerUUID)
 
             val lazyConnWatcher = new LazyZkConnectionMonitor(
                 () => self ! ZookeeperConnected(false),

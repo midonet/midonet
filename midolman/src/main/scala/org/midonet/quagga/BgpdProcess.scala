@@ -16,7 +16,7 @@
 
 package org.midonet.quagga
 
-import org.slf4j.LoggerFactory
+import java.util.UUID
 
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.{IPv4Subnet, MAC}
@@ -38,13 +38,16 @@ trait BgpdProcess {
 case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
                               routerIp: IPv4Subnet, routerMac: MAC, vtyPortNumber: Int,
                               bgpdHelperScript: String = "/usr/lib/midolman/bgpd-helper",
-                              confFile: String = "/etc/midolman/quagga/bgpd.conf")
+                              confFile: String = "/etc/midolman/quagga/bgpd.conf",
+                              routerId: Option[String])
     extends BgpdProcess with MidolmanLogging {
 
     override def logSource = "org.midonet.routing.bgp.bgp-daemon"
     override def logMark = s"bgp:$bgpIndex"
 
     val vty = new BgpVtyConnection(remoteVtyIp.getAddress.toString, vtyPortNumber)
+
+    val router = routerId.getOrElse("")
 
     private var bgpdProcess: Process = null
 
@@ -67,7 +70,8 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     }
 
     def assignAddr(iface: String, ip: String, mac: String): Unit = {
-        val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip $mac"
+        val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip $mac " +
+                  router
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -81,7 +85,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     }
 
     def remAddr(iface: String, ip: String): Unit = {
-        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip"
+        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router"
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -95,7 +99,8 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     }
 
     def addArpEntry(iface: String, ip: String, mac: String): Unit = {
-        val cmd = s"$bgpdHelperScript add_arp $bgpIndex $iface $ip $mac"
+        val cmd = s"$bgpdHelperScript add_arp $bgpIndex $iface $ip $mac " +
+                  router
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -109,7 +114,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     }
 
     def remArpEntry(iface: String, ip: String): Unit = {
-        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip"
+        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router"
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -125,7 +130,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     def prepare(iface: Option[String] = None): Unit = {
         val ifaceOpt = iface.getOrElse("")
         val cmd = s"$bgpdHelperScript prepare $bgpIndex $localVtyIp " +
-                  s"$remoteVtyIp $routerIp $routerMac $ifaceOpt"
+                  s"$remoteVtyIp $routerIp $routerMac $ifaceOpt $router"
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -141,7 +146,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     def stop(): Boolean = {
         vty.close()
 
-        val cmd = s"$bgpdHelperScript down $bgpIndex"
+        val cmd = s"$bgpdHelperScript down $bgpIndex $router"
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -180,7 +185,8 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     }
 
     def start(): Unit = {
-        val cmd = s"$bgpdHelperScript up $bgpIndex $vtyPortNumber $confFile $LOGDIR"
+        val cmd = s"$bgpdHelperScript up $bgpIndex $vtyPortNumber $confFile " +
+                  s"$LOGDIR $router"
 
         log.debug(s"Starting bgpd process VTY: $vtyPortNumber")
         log.debug(s"bgpd command line: $cmd")
