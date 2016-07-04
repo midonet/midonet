@@ -176,6 +176,7 @@ class StateProxyConfig(val conf: Config) extends MinionConfig[StateProxy] {
         conf.getInt(s"$prefix.initial_subscriber_queue_size")
     def notifyBatchSize =
         conf.getInt(s"$prefix.notify_batch_size")
+    def cacheThreads = conf.getInt(s"$prefix.cache_threads")
     def serverAddress = conf.getString(s"$prefix.server.address")
     def serverPort = conf.getInt(s"$prefix.server.port")
     def serverSupervisorThreads =

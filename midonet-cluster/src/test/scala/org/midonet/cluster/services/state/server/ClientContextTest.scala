@@ -19,7 +19,7 @@ package org.midonet.cluster.services.state.server
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
+import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
 import scala.util.Random
 
@@ -141,7 +141,7 @@ class ClientContextTest extends FlatSpec with Matchers with GivenWhenThen {
         val context = new ClientContext(handler)
 
         When("Closing the context")
-        Await.result(context.close(), timeout)
+        Await.result(context.close(serverInitiated = true), timeout)
 
         Then("A client subscribing to a table should fail")
         val cache = Mockito.mock(classOf[StateTableCache])
@@ -209,7 +209,7 @@ class ClientContextTest extends FlatSpec with Matchers with GivenWhenThen {
         Mockito.verify(handler).send(acknowledge(0L, subscriptionId2, None))
 
         When("Closing the context")
-        Await.result(context.close(), timeout)
+        Await.result(context.close(serverInitiated = true), timeout)
 
         Then("The context should send completed")
         Mockito.verify(handler).send(notifyCompleted(0L, subscriptionId1))
