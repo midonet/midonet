@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b7989e1c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateProxy.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-04T09:37:17Z",
+      "side": 1,
+      "message": "nit: remove spaces",
+      "range": {
+        "startLine": 95,
+        "startChar": 12,
+        "endLine": 95,
+        "endChar": 15
+      },
+      "revId": "9d4d9f775433c7b1eb31eb2c716cff3ee3847772",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
