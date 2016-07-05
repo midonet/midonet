@@ -358,13 +358,16 @@ class PacketWorkflow(
      * a NotYet on the way.
      */
     private def postponeOn(pktCtx: PacketContext, f: Future[_]): Unit = {
+        val cookie = pktCtx.cookie
         pktCtx.postpone()
         f.onComplete { res =>
             val error = res match {
                 case Failure(ex) => ex
                 case _ => null
             }
-            backChannel.tell(RestartWorkflow(pktCtx, error))
+            if (pktCtx.cookie == cookie) {
+                backChannel.tell(RestartWorkflow(pktCtx, error))
+            }
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         waitingRoom enter pktCtx
