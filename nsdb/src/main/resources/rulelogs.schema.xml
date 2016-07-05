@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright 2016 Midokura SARL
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<sbe:messageSchema xmlns:sbe="http://www.fixprotocol.org/ns/simple/1.0"
+                   package="org.midonet.logging.rule"
+                   id="1"
+                   version="1"
+                   semanticVersion="5.2"
+                   description="Rule Logging"
+                   byteOrder="littleEndian">
+
+    <types>
+        <composite name="messageHeader" description="Message identifiers and length of message root">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="templateId" primitiveType="uint16"/>
+            <type name="schemaId" primitiveType="uint16"/>
+            <type name="version" primitiveType="uint16"/>
+        </composite>
+        <composite name="groupSizeEncoding">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="numInGroup" primitiveType="uint8"/>
+        </composite>
+        <composite name="ipAddr">
+            <type name="length" primitiveType="uint8" maxValue="16" semanticType="Length"/>
+            <type name="varData" primitiveType="uint8" length="0"/>
+        </composite>
+        <composite name="varDataEncoding">
+            <type name="length" primitiveType="uint16" semanticType="Length"/>
+            <type name="varData" primitiveType="uint8" length="0" characterEncoding="UTF-8" semanticType="data"/>
+        </composite>
+
+        <enum name="Result" encodingType="uint8">
+            <validValue name="ACCEPT">1</validValue>
+            <validValue name="DROP">2</validValue>
+        </enum>
+
+        <type name="UUID" primitiveType="uint64" length="2"/>
+
+        <!--<type name="MetadataKey" primitiveType="uint8" length="32" characterEncoding="UTF-8"/>-->
+        <!--<type name="MetadataValue" primitiveType="uint8" length="64" characterEncoding="UTF-8"/>-->
+
+    </types>
+
+    <sbe:message name="RuleLogEvent" id="1" description="">
+        <field name="srcPort" type="uint16" id="1"/>
+        <field name="dstPort" type="uint16" id="2"/>
+        <field name="nwProto" type="uint8" id="3"/>
+        <field name="result" type="Result" id="4"/>
+        <field name="loggerId" type="UUID" id="5"/>
+        <field name="chainId" type="UUID" id="6"/>
+        <field name="ruleId" type="UUID" id="7"/>
+        <field name="time" type="int64" id="8"/>
+        <data name="srcIp" id="101" type="ipAddr"/>
+        <data name="dstIp" id="102" type="ipAddr"/>
+        <data name="metadata" id="103" type="varDataEncoding"/>
+    </sbe:message>
+
+</sbe:messageSchema>
