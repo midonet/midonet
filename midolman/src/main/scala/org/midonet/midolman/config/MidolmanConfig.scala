@@ -100,6 +100,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val services = new ServicesConfig(conf, schema)
     val flowState = new FlowStateConfig(conf, schema)
     val bindingApi = new BindingApiConfig(conf, schema)
+    val ruleLogging = new RuleLoggingConfig(conf, schema)
 }
 
 class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
@@ -257,4 +258,15 @@ class BindingApiConfig(val conf: Config, val schema: Config)
 
     override def isEnabled: Boolean = getBoolean(s"$prefix.enabled")
     def unixSocket = getString(s"$prefix.unix_socket")
+}
+
+class RuleLoggingConfig(val conf: Config, val schema: Config)
+    extends TypeFailureFallback {
+    val prefix = "agent.rule_logging"
+
+    def compress = getBoolean(s"$prefix.compress")
+    def logFileName = getString(s"$prefix.log_file_name")
+    def maxFiles = getInt(s"$prefix.max_files")
+    def logDirectory = getString(s"$prefix.log_directory")
+    def rotationFrequency = getString(s"$prefix.rotation_frequency")
 }
