@@ -19,8 +19,8 @@ import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.util.{UUID, Set => JSet}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.reflect._
 
 import akka.actor._
@@ -187,6 +187,7 @@ class DatapathController extends Actor
 
     import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
+
     import context.system
 
     override def logSource = "org.midonet.datapath-control"
@@ -248,6 +249,8 @@ class DatapathController extends Actor
     var initializer: ActorRef = system.deadLetters  // only used in tests
 
     var host: ResolvedHost = null
+
+    var cachedInterfaces: JSet[InterfaceDescription] = _
 
     var portWatcher: Subscription = null
     var portWatcherEnabled = true
@@ -357,6 +360,7 @@ class DatapathController extends Actor
         val datapathReadyMsg = DatapathReady(datapath, dpState)
         system.eventStream.publish(datapathReadyMsg)
         initializer ! datapathReadyMsg
+        self ! host
 
         for ((zoneId, _) <- host.zones) {
             VirtualToPhysicalMapper ! TunnelZoneRequest(zoneId)
@@ -418,6 +422,10 @@ class DatapathController extends Actor
             dpState.updateVPortInterfaceBindings(host.ports)
             doDatapathZonesUpdate(oldZones, newZones)
 
+            if (cachedInterfaces ne null) {
+                setTunnelMtu(cachedInterfaces)
+            }
+
         case m@ZoneMembers(zone, zoneType, members) =>
             log.debug("ZoneMembers event: {}", m)
             if (dpState.host.zones contains zone) {
@@ -432,6 +440,7 @@ class DatapathController extends Actor
                 handleZoneChange(zone, zoneType, hostConfig, op)
 
         case InterfacesUpdate_(interfaces) =>
+            cachedInterfaces = interfaces
             dpState.updateInterfaces(interfaces)
             setTunnelMtu(interfaces)
     }

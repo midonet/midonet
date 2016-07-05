@@ -111,7 +111,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             Given("A single interface not in a tunnel zone")
             addInterface("if1", 2000, IPv4Addr("1.1.1.2"))
 
-            Then("MTU should be the ddefault MTU (1500) minus overhead (50)")
+            Then("MTU should be the default MTU (1500) minus overhead (50)")
             DatapathController.minMtu shouldBe config.dhcpMtu
         }
 
@@ -141,6 +141,24 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             interfaceScanner.removeInterface("if2")
             Then("The min MTU should not change")
             DatapathController.minMtu shouldBe 2950
+        }
+
+        scenario("Minimum MTU updated after an updated on the tunnel interfaces") {
+            Given("Two interfaces, one in a tunnel zone, not the other")
+            testableDpc.cachedInterfaces should have size 0
+            addInterface("if1", 2000, IPv4Addr("1.1.1.1"))
+            addInterface("ifNew", 1700, IPv4Addr("1.1.1.5"))
+            testableDpc.cachedInterfaces should have size 2
+
+            Then("The MTU should be the one from the tunnel interface")
+            DatapathController.minMtu shouldBe 1950
+
+            When("Adding a new tunnel interface")
+            val tzNew = greTunnelZone("newZone")
+            addTunnelZoneMember(tzNew, host, IPv4Addr("1.1.1.5"))
+
+            Then("The MTU should be updated to the minimum of the two")
+            DatapathController.minMtu shouldBe 1650
         }
     }
 

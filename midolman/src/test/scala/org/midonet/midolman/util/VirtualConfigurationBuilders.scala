@@ -229,7 +229,7 @@ trait VirtualConfigurationBuilders {
 
     def greTunnelZone(name: String): TunnelZone = {
         val tunnelZone = new TunnelZone().
-            setName("default").
+            setName(name).
             setType(TunnelZone.Type.gre)
         clusterDataClient().tunnelZonesCreate(tunnelZone)
         Thread.sleep(50)
