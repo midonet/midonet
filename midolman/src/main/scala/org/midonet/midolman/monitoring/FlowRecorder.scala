@@ -265,7 +265,6 @@ object FlowRecordBuilder {
             case PacketWorkflow.ShortDrop => SimulationResult.SHORT_DROP
             case PacketWorkflow.AddVirtualWildcardFlow =>
                 SimulationResult.ADD_VIRTUAL_WILDCARD_FLOW
-            case PacketWorkflow.StateMessage => SimulationResult.STATE_MESSAGE
             case PacketWorkflow.UserspaceFlow =>
                 SimulationResult.USERSPACE_FLOW
             case PacketWorkflow.FlowCreated => SimulationResult.FLOW_CREATED
