@@ -39,6 +39,7 @@ import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.common.PathUtils;
+import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.proto.CreateRequest;
 import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
@@ -299,7 +300,7 @@ public class MockDirectory implements Directory {
         try {
             dataCb
                 .onSuccess(getNode(relativePath).getData(watcher),
-                           null, context);
+                           new Stat(), context);
         } catch (NoNodeException e) {
             dataCb.onError(e, context);
         }
@@ -316,8 +317,8 @@ public class MockDirectory implements Directory {
                                  DirectoryCallback<Collection<String>> callback,
                                  Watcher watcher, Object context) {
         try {
-            callback.onSuccess(getNode(relativePath).getChildren(watcher), null,
-                               context);
+            callback.onSuccess(getNode(relativePath).getChildren(watcher),
+                               new Stat(), context);
         } catch (KeeperException e) {
             callback.onError(e, context);
         }
