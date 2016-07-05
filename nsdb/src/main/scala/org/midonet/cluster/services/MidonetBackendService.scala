@@ -46,7 +46,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryImpl}
 import org.midonet.cluster.services.state.StateProxyService
-import org.midonet.cluster.services.state.client.{StateProxyClient, StateProxyClientConfig$, StateTableClient}
+import org.midonet.cluster.services.state.client.{StateProxyClient, StateTableClient}
 import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
 import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.conf.HostIdGenerator
