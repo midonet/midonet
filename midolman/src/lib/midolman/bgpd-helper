@@ -85,11 +85,13 @@ remove_addr() {
 }
 
 add_arp_entry() {
-    ip netns exec $namespace arp -s $router_ip $mac_addr
+    SUBIFACE=`echo $peer_ip | cut -d'/' -f1`
+    ip netns exec $namespace ip n a $router_ip l $mac_addr dev $SUBIFACE
 }
 
 rem_arp_entry() {
-    ip netns exec $namespace arp -d $router_ip
+    SUBIFACE=`echo $peer_ip | cut -d'/' -f1`
+    ip netns exec $namespace ip n del $router_ip dev $SUBIFACE
 }
 
 reset_namespace_name() {
@@ -172,8 +174,8 @@ usage() {
     echo "       $0 down INDEX [ROUTER_ID]"
     echo "       $0 add_addr INDEX INTERFACE_NAME ROUTER_IP MAC [ROUTER_ID]"
     echo "       $0 rem_addr INDEX INTERFACE_NAME ROUTER_IP [ROUTER_ID]"
-    echo "       $0 add_arp INDEX INTERFACE_NAME ROUTER_IP MAC [ROUTER_ID]"
-    echo "       $0 rem_arp INDEX INTERFACE_NAME ROUTER_IP [ROUTER_ID]"
+    echo "       $0 add_arp INDEX INTERFACE_NAME ROUTER_IP MAC [ROUTER_ID] PEER_IP"
+    echo "       $0 rem_arp INDEX INTERFACE_NAME ROUTER_IP [ROUTER_ID] PEER_IP"
     echo "experimental:"
     echo "       $0 quagga_up INDEX LOCAL_VTY_IP VTY_PORT_NUMBER BGPD_CONFIG_FILE ZEBRA_CONFIG_FILE LOG_DIR"
     exit 1
@@ -217,6 +219,7 @@ case "$1" in
         router_ip=$4
         mac_addr=$5
         reset_namespace_name $6
+        peer_ip=$7
         add_arp_entry
         ;;
 
@@ -224,6 +227,7 @@ case "$1" in
         iface=$3
         router_ip=$4
         reset_namespace_name $5
+        peer_ip=$6
         rem_arp_entry
         ;;
 
