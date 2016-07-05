@@ -15,10 +15,11 @@
  */
 package org.midonet.midolman.simulation
 
+import java.nio.CharBuffer
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.UUID
-import java.util.{Map => JMap, List => JList}
+import java.util.{List => JList, Map => JMap}
 
 import com.google.common.annotations.VisibleForTesting
 
@@ -43,7 +44,7 @@ case class Chain(id: UUID,
                  rules: JList[Rule],
                  jumpTargets: JMap[UUID, Chain],
                  name: String,
-                 metadata: String = "",
+                 metadata: Seq[(Array[Byte], Array[Byte])] = Seq(),
                  ruleLoggers: Seq[RuleLogger] = Seq())
     extends VirtualDevice with SimDevice {
     import Chain._
