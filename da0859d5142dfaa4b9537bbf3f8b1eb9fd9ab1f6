@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_af85de59",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-05T14:18:32Z",
+      "side": 1,
+      "message": "You only need the header once in the file.",
+      "range": {
+        "startLine": 77,
+        "startChar": 7,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "da0859d5142dfaa4b9537bbf3f8b1eb9fd9ab1f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_afecbe29",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-05T14:18:32Z",
+      "side": 1,
+      "message": "should call doNotTrackSeenFields before getting from flow match, and doTrackSeenFields after.\n\nWe should rename all those getters to getAndMarkSeen to make this clearer.",
+      "range": {
+        "startLine": 95,
+        "startChar": 20,
+        "endLine": 95,
+        "endChar": 38
+      },
+      "revId": "da0859d5142dfaa4b9537bbf3f8b1eb9fd9ab1f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ef8be666",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-05T14:18:32Z",
+      "side": 1,
+      "message": "you should also handle file rolling, for cleanup.",
+      "range": {
+        "startLine": 151,
+        "startChar": 65,
+        "endLine": 151,
+        "endChar": 73
+      },
+      "revId": "da0859d5142dfaa4b9537bbf3f8b1eb9fd9ab1f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6ff6b6fa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-05T14:18:32Z",
+      "side": 1,
+      "message": "why not just a byte[], to be set by e.getKey().getBytes(Charsets.UTF-8)?\n\ndo you ever need to use this as a string?",
+      "range": {
+        "startLine": 387,
+        "startChar": 27,
+        "endLine": 387,
+        "endChar": 37
+      },
+      "revId": "da0859d5142dfaa4b9537bbf3f8b1eb9fd9ab1f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
