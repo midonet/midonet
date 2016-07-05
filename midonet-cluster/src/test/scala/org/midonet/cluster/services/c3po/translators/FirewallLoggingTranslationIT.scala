@@ -230,7 +230,6 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
     def verifyRuleLogger(fwId: UUID, rlId: UUID, event: LogEvent = LogEvent.ALL) = {
         val rl = storage.get(classOf[RuleLogger], rlId).await()
         rl.getChainId shouldBe fwdChainId(fwId)
-        rl.getFileName shouldBe s"firewall-$rlId.log"
         rl.getEvent shouldBe event
     }
 
