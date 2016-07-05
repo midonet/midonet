@@ -16,16 +16,18 @@
 
 package org.midonet.midolman
 
-import java.util.{LinkedList, UUID}
 import java.util.concurrent.ConcurrentHashMap
+import java.util.{LinkedList, UUID}
 
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
+
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Injector
 import com.lmax.disruptor.{RingBuffer, SequenceBarrier}
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+
 import org.reflections.Reflections
 
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
@@ -38,17 +40,17 @@ import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.FlowTracingAppender
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.logging.rule.RuleLogEventChannel
 import org.midonet.midolman.monitoring.NullFlowRecorder
 import org.midonet.midolman.services.{MidolmanActorsService, SelectLoopService}
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockInterfaceScanner, MockUpcallDatapathConnectionManager}
+import org.midonet.midolman.util.mock._
 import org.midonet.netlink.NetlinkChannelFactory
-import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
+import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
 
@@ -93,6 +95,7 @@ class MockMidolmanModule(override val hostId: UUID,
             config,
             injector.getInstance(classOf[ZkConnectionAwareWatcher]),
             simBackChannel,
+            new MockRuleLogEventChannel,
             new MetricRegistry,
             new SameThreadButAfterExecutorService,
             new SameThreadButAfterExecutorService,
