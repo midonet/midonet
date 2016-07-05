@@ -529,11 +529,11 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
         currentIps -= ip
     }
 
-    def addArpEntry(iface: String, ip: String, mac: String): Unit = {
+    def addArpEntry(iface: String, ip: String, mac: String, peerIp: String): Unit = {
         currentArpEntries += ip
     }
 
-    def remArpEntry(iface: String, ip: String): Unit = {
+    def remArpEntry(iface: String, ip: String, peerIp: String): Unit = {
         currentArpEntries -= ip
     }
 }
