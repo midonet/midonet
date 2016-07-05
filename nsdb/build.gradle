@@ -98,7 +98,9 @@ artifacts {
 task sbetool(type:JavaExec) {
     def targetDir = "$buildDir/generated/java"
     main = "uk.co.real_logic.sbe.SbeTool"
-    args = [ "src/main/resources/flowhistory.schema.xml", "src/main/resources/flowstate.schema.xml" ]
+    args = [ "src/main/resources/flowhistory.schema.xml",
+             "src/main/resources/flowstate.schema.xml",
+             "src/main/resources/rulelogs.schema.xml"]
 
     systemProperty 'sbe.output.dir', targetDir
     classpath = sourceSets.main.compileClasspath

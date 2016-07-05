@@ -26,28 +26,29 @@ import scala.collection.IndexedSeq
 import akka.actor.{ActorSystem, OneForOneStrategy, SupervisorStrategy}
 
 import com.codahale.metrics.MetricRegistry
-import com.google.inject.{AbstractModule, Injector, Key}
 import com.google.inject.name.Names
+import com.google.inject.{AbstractModule, Injector, Key}
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
 
 import org.reflections.Reflections
 import org.slf4j.{Logger, LoggerFactory}
 
+import org.midonet.Util
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath._
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
+import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.scanner.{DefaultInterfaceScanner, InterfaceScanner}
 import org.midonet.midolman.host.services.HostService
 import org.midonet.midolman.io._
+import org.midonet.midolman.logging.rule.{DisruptorRuleLogEventChannel, RuleLogEventChannel}
 import org.midonet.midolman.logging.{FlowTracingAppender, FlowTracingSchema}
 import org.midonet.midolman.monitoring._
-import org.midonet.midolman.monitoring.metrics.DatapathMetrics
-import org.midonet.midolman.monitoring.metrics.PacketExecutorMetrics
+import org.midonet.midolman.monitoring.metrics.{DatapathMetrics, PacketExecutorMetrics}
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
@@ -56,10 +57,9 @@ import org.midonet.midolman.state._
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.netlink.{NetlinkChannelFactory, NetlinkProtocol, NetlinkUtil}
 import org.midonet.odp.OvsNetlinkFamilies
-import org.midonet.Util
+import org.midonet.util._
 import org.midonet.util.concurrent._
 import org.midonet.util.eventloop.{Reactor, SelectLoop, SimpleSelectLoop}
-import org.midonet.util._
 
 class MidolmanModule(injector: Injector,
                      config: MidolmanConfig,
@@ -284,6 +284,10 @@ class MidolmanModule(injector: Injector,
                 channelFactory))
     }
 
+    protected def ruleLogEventChannel(capacity: Int): RuleLogEventChannel = {
+        DisruptorRuleLogEventChannel(capacity, config.ruleLogging)
+    }
+
     protected def upcallDatapathConnectionManager(
             tbPolicy: TokenBucketPolicy,
             workers: IndexedSeq[PacketWorker]) =
@@ -417,10 +421,12 @@ class MidolmanModule(injector: Injector,
                 vtThread.get == Thread.currentThread().getId
             }
         }
+
         new VirtualTopology(
             injector.getInstance(classOf[MidonetBackend]),
             config,
             simBackChannel,
+            ruleLogEventChannel(1 << 12), // TODO: Make capacity configurable
             metricRegistry,
             vtExecutor,
             ioExecutor,
