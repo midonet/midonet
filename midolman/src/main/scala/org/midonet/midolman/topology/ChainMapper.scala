@@ -16,8 +16,9 @@
 
 package org.midonet.midolman.topology
 
-import java.util.UUID
-import java.util.{ArrayList => JArrayList, HashMap => JHashMap}
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
+import java.util.{UUID, ArrayList => JArrayList, HashMap => JHashMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -28,13 +29,13 @@ import rx.subjects.{PublishSubject, Subject}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Rule => TopologyRule}
-import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.rules.{JumpRule, Rule => SimRule}
 import org.midonet.midolman.simulation.{RuleLogger, Chain => SimChain, IPAddrGroup => SimIPAddrGroup}
 import org.midonet.midolman.topology.ChainMapper.{IpAddressGroupState, RuleState}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
+import org.midonet.logging.rule.RuleLogEventBinarySerialization.encodeMetadata
 
 object ChainMapper {
     /**
@@ -130,7 +131,6 @@ object ChainMapper {
         /** Returns true iff the IP address group is ready to be consumed. */
         def isReady = currentIpAddrGroup ne null
     }
-
 }
 
 final class ChainMapper(chainId: UUID, vt: VirtualTopology,
@@ -383,9 +383,8 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
             chainMap.put(id, chain)
         }
 
-        val metadata = chainProto.getMetadataList.asScala.map {
-            e => s"${e.getKey}=${e.getValue}"
-        }.mkString(",")
+        val metadata = encodeMetadata(
+            chainProto.getMetadataList.asScala.map(e => (e.getKey, e.getValue)))
 
         ruleLoggerTracker.currentRefs.values.toSeq
         val chain = new SimChain(chainId, ruleList, chainMap,

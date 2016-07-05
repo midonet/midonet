@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.host.services.HostService;
+import org.midonet.midolman.logging.rule.RuleLogEventChannel;
 import org.midonet.midolman.state.PeerResolver;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopology;
@@ -150,6 +151,13 @@ public class MidolmanService extends AbstractService {
             }
         } catch (InterruptedException e) {
             log.error("Exception while stopping the executors", e);
+        }
+
+        // Flush rule log stream.
+        RuleLogEventChannel rlec = virtualTopology.ruleLogEventChannel();
+        if (rlec != null) {
+            rlec.stopAsync();
+            rlec.awaitTerminated();
         }
 
         if (state() != State.FAILED)
