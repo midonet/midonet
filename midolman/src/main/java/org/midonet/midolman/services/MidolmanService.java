@@ -156,6 +156,8 @@ public class MidolmanService extends AbstractService {
             log.error("Exception while stopping the executors", e);
         }
 
+        virtualTopology.stopRuleLogEventChannel();
+
         if (state() != State.FAILED)
             notifyStopped();
     }

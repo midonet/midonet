@@ -27,7 +27,7 @@ import org.midonet.cluster.models.Topology.LoggingResource.Type
 import org.midonet.cluster.models.Topology.{LoggingResource, RuleLogger}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.{FileRuleLogger, RuleLogger => SimRuleLogger}
+import org.midonet.midolman.simulation.{RuleLogger => SimRuleLogger}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
 class RuleLoggerMapper(id: UUID, vt: VirtualTopology)
@@ -71,9 +71,18 @@ class RuleLoggerMapper(id: UUID, vt: VirtualTopology)
 
         simRuleLogger = lr.getType match {
             case Type.FILE =>
-                new FileRuleLogger(
-                    id, ruleLogger.getFileName, logAcceptEvents, logDropEvents)(
-                    simRuleLogger.asInstanceOf[FileRuleLogger])
+                new SimRuleLogger(
+                    id, logAcceptEvents, logDropEvents, vt.ruleLogEventChannel)
+        }
+
+        if (!vt.ruleLogEventChannel.isRunning) {
+            try vt.ruleLogEventChannel.startAsync() catch {
+                case ex: IllegalStateException =>
+                    // This is a bit suspicious, but it might just be taking a
+                    // while to start up.
+                    log.warn("RuleLogEventChannel has been started, but is " +
+                             "not yet running.")
+            }
         }
 
         log.debug(s"Emitting $simRuleLogger")

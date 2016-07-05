@@ -1130,14 +1130,12 @@ trait TopologyBuilder {
     def createRuleLogger(loggingResourceId: UUID,
                          chainId: UUID,
                          id: UUID = UUID.randomUUID(),
-                         logEvent: LogEvent = LogEvent.ALL,
-                         fileName: Option[String] = None): RuleLogger = {
+                         logEvent: LogEvent = LogEvent.ALL): RuleLogger = {
         val bldr = RuleLogger.newBuilder
             .setLoggingResourceId(loggingResourceId.asProto)
             .setChainId(chainId.asProto)
             .setId(id.asProto)
             .setEvent(logEvent)
-        fileName.foreach(bldr.setFileName)
         bldr.build()
     }
 }
