@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f4e7393e",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-05T11:32:12Z",
+      "side": 1,
+      "message": "Yeah, I wasn\u0027t too sure about this value, I was waiting on comments on it. How much would you suggest? 5s?",
+      "parentUuid": "baa041b7_7457a902",
+      "range": {
+        "startLine": 439,
+        "startChar": 33,
+        "endLine": 439,
+        "endChar": 34
+      },
+      "revId": "e37ea24be37ad172c3154140cc20557ee1e4ccb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_545a652b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
         "patchSetId": 5
