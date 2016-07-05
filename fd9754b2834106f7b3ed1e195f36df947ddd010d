@@ -332,6 +332,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8f0fbae0",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-05T14:42:27Z",
+      "side": 1,
+      "message": "ah cool",
+      "parentUuid": "baa041b7_34036144",
+      "range": {
+        "startLine": 111,
+        "startChar": 32,
+        "endLine": 111,
+        "endChar": 64
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_31ff0503",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
         "patchSetId": 3
