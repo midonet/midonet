@@ -16,69 +16,89 @@
 
 package org.midonet.midolman.simulation
 
+import java.io.{BufferedOutputStream, File, FileOutputStream}
+import java.nio.ByteBuffer
 import java.util.UUID
 
 import scala.util.control.NonFatal
 
-import org.slf4j.{Logger, LoggerFactory}
+import uk.co.real_logic.sbe.codec.java.DirectBuffer
 
+import org.midonet.logging.rule.RuleLogEventBinarySerialization.{BufferSize, MessageTemplateVersion}
+import org.midonet.logging.rule.{MessageHeader, Result, RuleLogEvent}
 import org.midonet.midolman.rules.Rule
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.classic.{AsyncAppender, LoggerContext}
-import ch.qos.logback.core.FileAppender
-
-private object RuleLogger {
-    lazy val LogCtx =
-        LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
-
-    // Encoder looks like it should be shareable, but is not. Each FileAppender
-    // must have its own encoder instance, since it has an outputStream property
-    // that Logback initializes when starting the FileAppender.
-    def newEncoder: PatternLayoutEncoder = {
-        val enc = new PatternLayoutEncoder
-        enc.setContext(LogCtx)
-        enc.setPattern("TIMESTAMP=%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} %msg%n")
-        enc.start()
-        enc
-    }
-}
-
 trait RuleLogger extends VirtualDevice {
     val id: UUID
-    protected val eventLog: Logger
     val logAcceptEvents: Boolean
     val logDropEvents: Boolean
 
-    override def deviceTag: FlowTag = FlowTagger.tagForRuleLogger(id)
+    protected val headerEncoder = new MessageHeader
+    protected val eventEncoder = new RuleLogEvent
 
-    protected val format =
-        "SRC={} DST={} SPT={} DPT={} PROTO={} " +
-        "CHAIN={} RULE={} MD=[{}] {}"
+    protected val eventBuffer = new DirectBuffer(new Array[Byte](BufferSize))
+    private val ipBuffer = ByteBuffer.allocate(16)
+
+    override def deviceTag: FlowTag = FlowTagger.tagForRuleLogger(id)
 
     def logAccept(pktCtx: PacketContext, chain: Chain, rule: Rule): Unit = {
         if (logAcceptEvents)
-            logEvent(pktCtx, "ACCEPT", chain, rule)
+            logEvent(pktCtx, Result.ACCEPT, chain, rule)
     }
 
     def logDrop(pktCtx: PacketContext, chain: Chain, rule: Rule): Unit = {
         if (logDropEvents)
-            logEvent(pktCtx, "DROP", chain, rule)
+            logEvent(pktCtx, Result.DROP, chain, rule)
     }
 
-    private def logEvent(pktCtx: PacketContext, event: String,
+    private def logEvent(pktCtx: PacketContext, result: Result,
                          chain: Chain, rule: Rule): Unit = {
         val m = pktCtx.wcmatch
-        eventLog.info(format,
-                      m.getNetworkSrcIP, m.getNetworkDstIP,
-                      Int.box(m.getSrcPort), Int.box(m.getDstPort),
-                      Byte.box(m.getNetworkProto),
-                      chain.id, rule.id, chain.metadata, event)
+        m.doNotTrackSeenFields()
+
+        eventEncoder.wrapForEncode(eventBuffer, 0)
+            .srcPort(m.getSrcPort)
+            .dstPort(m.getDstPort)
+            .nwProto(m.getNetworkProto)
+            .result(result)
+
+        eventEncoder.chainId(0, chain.id.getMostSignificantBits)
+        eventEncoder.chainId(1, chain.id.getLeastSignificantBits)
+        eventEncoder.ruleId(0, rule.id.getMostSignificantBits)
+        eventEncoder.ruleId(1, rule.id.getLeastSignificantBits)
+        eventEncoder.time(System.currentTimeMillis)
+
+        // Src/dst IP
+        fillIpBuffer(m.getNetworkSrcIP)
+        eventEncoder.putSrcIp(ipBuffer.array, 0, ipBuffer.position)
+        fillIpBuffer(m.getNetworkDstIP)
+        eventEncoder.putDstIp(ipBuffer.array, 0, ipBuffer.position)
+
+        m.doTrackSeenFields()
+
+        eventEncoder.putMetadata(chain.metadata, 0, chain.metadata.length)
+
+        logEvent(eventBuffer.array(), eventEncoder.limit)
     }
+
+    private def fillIpBuffer(ip: IPAddr): Unit = {
+        ipBuffer.position(0)
+
+        ip match {
+            case ip: IPv4Addr =>
+                ipBuffer.putInt(ip.toInt)
+            case ip: IPv6Addr =>
+                ipBuffer.putLong(ip.upperWord).putLong(ip.lowerWord)
+        }
+    }
+
+    def close(): Unit
+
+    protected def logEvent(bytes: Array[Byte], len: Int): Unit
 }
 
 object FileRuleLogger {
@@ -96,38 +116,49 @@ case class FileRuleLogger(id: UUID,
                           logDir: String = FileRuleLogger.DefaultLogDir)
                          (oldLogger: FileRuleLogger = null)
     extends RuleLogger {
-    import RuleLogger._
 
-    // Reuse old logger if possible.
-    override protected val eventLog: Logger =
-        if (oldLogger != null && logDir == oldLogger.logDir &&
-            fileName == oldLogger.fileName) {
-            oldLogger.eventLog
-        } else {
-            makeNewEventLogger
-        }
-
-    private def makeNewEventLogger: Logger = {
-        val fileAppender = new FileAppender[ILoggingEvent]
-        fileAppender.setContext(LogCtx)
-        fileAppender.setName("FILE-" + id)
-        fileAppender.setFile(s"$logDir/$fileName")
-        fileAppender.setEncoder(newEncoder)
-        fileAppender.start()
-
-        val asyncAppender = new AsyncAppender
-        asyncAppender.setContext(LogCtx)
-        asyncAppender.setName("ASYNC-" + id)
-        asyncAppender.addAppender(fileAppender)
-        asyncAppender.start()
-
-        val logger = LoggerFactory.getLogger("LoggingResource-" + id)
-        logger.asInstanceOf[ch.qos.logback.classic.Logger].addAppender(asyncAppender)
-        logger
+    private var os: BufferedOutputStream = _
+    if (oldLogger != null &&
+        oldLogger.fileName == fileName && oldLogger.logDir == logDir) {
+        os = oldLogger.releaseStream()
+    } else {
+        os = new BufferedOutputStream(new FileOutputStream(s"$logDir/$fileName"))
+        writeHeaderIfNeeded()
     }
 
-    override def toString: String =
-        s"FileRuleLogger[id=$id, logDir=$logDir, fileName=$fileName, " +
-        s"logAcceptEvents=$logAcceptEvents, logDropEvents=$logDropEvents]"
+    // TODO: Flush to disk? Otherwise we may need to flush on exit.
+    override protected def logEvent(bytes: Array[Byte], len: Int): Unit =
+        os.write(bytes, 0, len)
+
+    def flush(): Unit = {
+        if (os != null)
+            os.flush()
+    }
+
+    def close(): Unit = {
+        if (os != null) {
+            os.close()
+        }
+    }
+
+    private def writeHeaderIfNeeded(): Unit = {
+        val file = new File(s"$logDir/$fileName")
+        if (!file.exists() || file.length() == 0) {
+            headerEncoder.wrap(eventBuffer, 0, MessageTemplateVersion)
+                .blockLength(eventEncoder.sbeBlockLength())
+                .templateId(eventEncoder.sbeTemplateId())
+                .schemaId(eventEncoder.sbeSchemaId())
+                .version(eventEncoder.sbeSchemaVersion())
+
+            os.write(eventBuffer.array(), 0, headerEncoder.size)
+            os.flush()
+        }
+    }
+
+    private def releaseStream(): BufferedOutputStream = {
+        val osRef = os
+        os = null
+        osRef
+    }
 }
 
