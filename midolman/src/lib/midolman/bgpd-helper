@@ -85,11 +85,14 @@ remove_addr() {
 }
 
 add_arp_entry() {
-    ip netns exec $namespace arp -s $router_ip $mac_addr
+    SUBIFACE=`echo $router_ip | cut -d'/' -f1`
+    ip netns exec $namespace ip n a $router_ip l $mac_addr dev $SUBIFACE
 }
 
 rem_arp_entry() {
+    SUBIFACE=`echo $router_ip | cut -d'/' -f1`
     ip netns exec $namespace arp -d $router_ip
+    ip netns exec $namespace ip n del $router_ip dev $SUBIFACE
 }
 
 reset_namespace_name() {
