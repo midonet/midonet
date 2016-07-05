@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7457a902",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-05T11:23:10Z",
+      "side": 1,
+      "message": "Maybe a bit loo low by default. I suspect we\u0027ll have lots of timeouts in the CI. Maybe change it in a later patch.",
+      "range": {
+        "startLine": 439,
+        "startChar": 33,
+        "endLine": 439,
+        "endChar": 34
+      },
+      "revId": "e37ea24be37ad172c3154140cc20557ee1e4ccb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_545a652b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-05T11:23:10Z",
+      "side": 1,
+      "message": "Add type to be consistent with the rest of the method (can be done in a later patch).",
+      "range": {
+        "startLine": 249,
+        "startChar": 8,
+        "endLine": 249,
+        "endChar": 25
+      },
+      "revId": "e37ea24be37ad172c3154140cc20557ee1e4ccb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
