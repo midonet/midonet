@@ -89,8 +89,6 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                                    => SbeSimResult.ShortDrop
                            case PacketWorkflow.AddVirtualWildcardFlow
                                    => SbeSimResult.AddVirtualWildcardFlow
-                           case PacketWorkflow.StateMessage
-                                   => SbeSimResult.StateMessage
                            case PacketWorkflow.UserspaceFlow
                                    => SbeSimResult.UserspaceFlow
                            case PacketWorkflow.FlowCreated
