@@ -71,9 +71,13 @@ class RuleLoggerMapper(id: UUID, vt: VirtualTopology)
 
         simRuleLogger = lr.getType match {
             case Type.FILE =>
-                new FileRuleLogger(
+                val oldLogger = simRuleLogger
+                val newLogger = new FileRuleLogger(
                     id, ruleLogger.getFileName, logAcceptEvents, logDropEvents)(
                     simRuleLogger.asInstanceOf[FileRuleLogger])
+                if (oldLogger != null)
+                    oldLogger.close()
+                newLogger
         }
 
         log.debug(s"Emitting $simRuleLogger")
@@ -87,6 +91,7 @@ class RuleLoggerMapper(id: UUID, vt: VirtualTopology)
 
     private def ruleLoggerDeleted(): Unit = {
         assertThread()
+        simRuleLogger.close()
         log.debug(s"RuleLogger $id deleted")
     }
 

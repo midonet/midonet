@@ -16,15 +16,18 @@
 
 package org.midonet.midolman.topology
 
+import java.io.File
 import java.util.UUID
 
 import scala.collection.mutable
 import scala.concurrent.duration.{Duration, DurationInt}
 
+import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.junit.JUnitRunner
 
-import rx.{Observable, Subscription}
+import rx.Observable
 
 import org.midonet.cluster.models.Commons.LogEvent
 import org.midonet.cluster.models.Topology.{LoggingResource, RuleLogger}
@@ -33,14 +36,35 @@ import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.simulation.{FileRuleLogger, Chain => SimChain, RuleLogger => SimRuleLogger}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.MidonetEventually
-import org.midonet.util.reactivex.TestAwaitableObserver
 import org.midonet.util.concurrent.toFutureOps
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class RuleLoggerMapperTest extends MidolmanSpec with TopologyBuilder
-                                   with TopologyMatchers with MidonetEventually {
+                                   with TopologyMatchers with MidonetEventually
+                                   with BeforeAndAfterAll {
     private val timeout: Duration = 1 second
     private var vt: VirtualTopology = _
+
+    private var oldLogDirPath: String = _
+    private val logDirPath: String = "/tmp/RuleLoggerMapperTest"
+    private val logDir: File = new File(logDirPath)
+
+    override protected def beforeAll(): Unit = {
+        super.beforeAll()
+        oldLogDirPath = System.setProperty("midolman.log.dir", logDirPath)
+        logDir.mkdir()
+    }
+
+
+    override protected def afterAll(): Unit = {
+        super.afterAll()
+        if (oldLogDirPath == null)
+            System.clearProperty("midolman.log.dir")
+        else
+            System.setProperty("midolman.log.dir", oldLogDirPath)
+        FileUtils.deleteDirectory(logDir)
+    }
 
     override protected def beforeTest(): Unit = {
         super.beforeTest()
