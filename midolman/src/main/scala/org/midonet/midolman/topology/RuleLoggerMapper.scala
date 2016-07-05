@@ -87,6 +87,7 @@ class RuleLoggerMapper(id: UUID, vt: VirtualTopology)
 
     private def ruleLoggerDeleted(): Unit = {
         assertThread()
+        simRuleLogger.close()
         log.debug(s"RuleLogger $id deleted")
     }
 
