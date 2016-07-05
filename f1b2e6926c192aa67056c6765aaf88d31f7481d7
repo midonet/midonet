@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2f91ce52",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerActorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-05T15:07:52Z",
+      "side": 1,
+      "message": "Put up",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 50
+      },
+      "revId": "f1b2e6926c192aa67056c6765aaf88d31f7481d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
