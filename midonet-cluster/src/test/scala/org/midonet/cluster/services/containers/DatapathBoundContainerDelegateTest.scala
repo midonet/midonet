@@ -66,8 +66,8 @@ class DatapathBoundContainerDelegateTest extends FeatureSpec with Matchers
             override def stateStore: StateStorage = storage
             override def store: Storage = storage
             override def connectionWatcher: ZkConnectionAwareWatcher = ???
-            override def failFastConnectionState
-            : Observable[ConnectionState] = ???
+            override def connectionState: Observable[ConnectionState] = ???
+            override def failFastConnectionState: Observable[ConnectionState] = ???
             override def connection: ZkConnection = ???
             override def curator: CuratorFramework = ???
             override def failFastCurator: CuratorFramework = ???
