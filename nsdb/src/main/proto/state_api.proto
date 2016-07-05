@@ -255,9 +255,10 @@ message ProxyResponse {
         enum Code {
             UNKNOWN_MESSAGE = 1;
             UNKNOWN_PROTOCOL = 2;
-            NO_SUBSCRIPTION = 3;
-            SERVER_SHUTDOWN = 4;
-            INVALID_ARGUMENT = 5;
+            UNKNOWN_CLIENT = 3;
+            NO_SUBSCRIPTION = 4;
+            SERVER_SHUTDOWN = 5;
+            INVALID_ARGUMENT = 6;
         }
 
         optional Code code = 1;
