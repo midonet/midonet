@@ -51,7 +51,7 @@ import org.midonet.util.http.HttpSupport;
 public class LoginFilter implements Filter {
 
     private final static Logger log = LoggerFactory
-        .getLogger(package$.MODULE$.authLog());
+        .getLogger(package$.MODULE$.AuthLog());
 
     public final static String HEADER_X_AUTH_PROJECT = "X-Auth-Project";
 

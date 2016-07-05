@@ -39,7 +39,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.util.ZkOpLock
-import org.midonet.cluster.{ZookeeperLockFactory, restApiLog, restApiResourceLog}
+import org.midonet.cluster.{ZookeeperLockFactory, RestApiLog, restApiResourceLog}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
@@ -56,7 +56,7 @@ import org.midonet.util.reactivex._
 
 object MidonetResource {
 
-    private final val log = getLogger(restApiLog)
+    private final val log = getLogger(RestApiLog)
     private final val StorageAttempts = 10
 
     private final val lockOpNumber = new AtomicInteger(1)

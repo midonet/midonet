@@ -32,7 +32,7 @@ import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer, Subscription}
 
-import org.midonet.cluster.vxgwLog
+import org.midonet.cluster.VxgwLog
 import org.midonet.cluster.data.storage.{NotFoundException, StateKey}
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
@@ -66,7 +66,7 @@ object FloodingProxyManager {
   */
 class FloodingProxyManager(backend: MidonetBackend) {
 
-    private val log = LoggerFactory.getLogger(vxgwLog)
+    private val log = LoggerFactory.getLogger(VxgwLog)
 
     private val store = backend.store
     private val stateStore = backend.stateStore

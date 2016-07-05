@@ -61,7 +61,7 @@ object ClusterNode extends App {
       */
     case class Context(nodeId: UUID)
 
-    private val log = LoggerFactory.getLogger(clusterLog)
+    private val log = Logger(LoggerFactory.getLogger(ClusterLog))
 
     private val metrics = new MetricRegistry()
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()
@@ -136,7 +136,7 @@ object ClusterNode extends App {
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
             bind(classOf[ReflectionsHolder])
                 .toInstance(ActualReflections(reflections))
-            install(new AuthModule(clusterConf.auth, Logger(log)))
+            install(new AuthModule(clusterConf.auth, log))
 
             // Minion configurations
             bind(classOf[ClusterConfig]).toInstance(clusterConf)

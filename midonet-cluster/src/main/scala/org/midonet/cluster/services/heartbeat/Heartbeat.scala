@@ -24,9 +24,8 @@ import com.codahale.metrics.{Counter, Metric, MetricRegistry, MetricSet}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.heartbeatLog
 import org.midonet.cluster.services.{ClusterService, ScheduledMinion}
-import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.cluster.{ClusterConfig, ClusterNode, HeartbeatLog}
 import org.midonet.util.functors.makeRunnable
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by
@@ -37,7 +36,7 @@ class Heartbeat @Inject()(nodeContext: ClusterNode.Context,
                           config: ClusterConfig, metrics: MetricRegistry)
     extends ScheduledMinion(nodeContext, config.heartbeat) {
 
-    protected override val log = LoggerFactory.getLogger(heartbeatLog)
+    protected override val log = LoggerFactory.getLogger(HeartbeatLog)
     private val counter = new Counter()
 
     protected override val runnable = makeRunnable(beat())

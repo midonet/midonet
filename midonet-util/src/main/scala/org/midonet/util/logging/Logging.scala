@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.midonet
+package org.midonet.util.logging
 
-import org.midonet.packets.IPv4Addr
+import org.slf4j.LoggerFactory
 
-package object southbound {
-
-    def vtepLog(mgmtIp: IPv4Addr, mgmtPort: Int): String
-        = s"org.midonet.southbound.vtep.vtep-" +
-          s"${mgmtIp.toString.replaceAll("\\.", "_")}:$mgmtPort"
-    def vtepTableLog(schemaName: String): String
-        = s"org.midonet.southbound.vtep.ovsdb-table-[$schemaName]"
-
+trait Logging {
+    def logSource = getClass.getName
+    def logMark: String = null
+    val log = Logger(LoggerFactory.getLogger(logSource), logMark)
 }

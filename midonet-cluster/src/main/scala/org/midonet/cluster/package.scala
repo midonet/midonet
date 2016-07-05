@@ -16,54 +16,46 @@
 
 package org.midonet
 
-import java.util.UUID
-
 package object cluster {
 
-    final val clusterLog = "org.midonet.cluster"
+    final val ClusterLog = "org.midonet.cluster"
 
-    final val authLog = "org.midonet.cluster.auth"
-    final val keystoneLog = "org.midonet.cluster.auth.keystone"
-    def minionLog(clazz: Class[_]): String =
-        s"org.midonet.cluster.services"
+    final val AuthLog = "org.midonet.cluster.auth"
+    final val KeystoneLog = "org.midonet.cluster.auth.keystone"
 
-    final val c3poLog =
+    final val C3poLog =
         "org.midonet.cluster.services.neutron-importer"
-    final val c3poNeutronDeserializerLog =
+    final val C3poNeutronDeserializerLog =
         "org.midonet.cluster.services.neutron-importer.importer-deserializer"
-    final val c3poStorageManagerLog =
+    final val C3poStorageManagerLog =
         "org.midonet.cluster.services.neutron-importer.importer-storage-manager"
     def c3poNeutronTranslatorLog(clazz: Class[_]) =
         s"org.midonet.cluster.services.neutron-importer.importer-${clazz.getSimpleName}"
 
-    final val heartbeatLog =
+    final val HeartbeatLog =
         "org.midonet.cluster.services.heartbeat"
 
-
-    final val restApiLog =
+    final val RestApiLog =
         "org.midonet.cluster.services.rest-api"
-    final val restApiJaxrsLog =
+    final val RestApiJaxrsLog =
         "org.midonet.cluster.services.rest-api.jaxrs"
-    final val restApiNeutronLog =
+    final val RestApiNeutronLog =
         "org.midonet.cluster.services.rest-api.neutron"
-    final val restApiValidationLog =
+    final val RestApiValidationLog =
         "org.midonet.cluster.services.rest-api.validation"
     def restApiResourceLog(clazz: Class[_]) =
         s"org.midonet.cluster.services.rest-api.resources.${clazz.getSimpleName}"
 
-    final val topologyApiLog =
+    final val TopologyApiLog =
         "org.midonet.cluster.services.topology-api"
-    final val topologyApiAggregatorLog =
+    final val TopologyApiAggregatorLog =
         "org.midonet.cluster.services.topology-api.aggregator"
-    final val topologyApiSessionInventoryLog =
+    final val TopologyApiSessionInventoryLog =
         "org.midonet.cluster.services.topology-api.session-inventory"
-    final val topologyApiServerProtocolFactoryLog =
+    final val TopologyApiServerProtocolFactoryLog =
         "org.midonet.cluster.services.topology-api.server-protocol-factory"
 
-    final val vxgwLog = "org.midonet.cluster.services.vxgw"
-    def vxgwVtepControlLog(vtepId: UUID): String =
-        s"org.midonet.cluster.services.vxgw.vxgw-vtep-$vtepId"
-    def vxgwMidonetLog(networkId: UUID): String =
-        s"org.midonet.cluster.services.vxgw.vxgw-midonet-$networkId"
+    final val VxgwLog = "org.midonet.cluster.services.vxgw"
+    final val VxgwVtepLog = "org.midonet.cluster.services.vxgw.vtep"
 
 }

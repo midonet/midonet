@@ -30,7 +30,7 @@ import scala.util.control.NonFatal
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.lmax.disruptor.util.DaemonThreadFactory
-import com.typesafe.scalalogging.Logger
+
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
@@ -39,25 +39,27 @@ import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.string.StringEncoder
 import io.netty.handler.timeout.IdleStateHandler
 import io.netty.util.CharsetUtil
-import io.netty.util.concurrent.{Future => NettyFuture, GenericFutureListener}
+import io.netty.util.concurrent.{GenericFutureListener, Future => NettyFuture}
+
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.OvsdbConnectionInfo.ConnectionType
 import org.opendaylight.ovsdb.lib.impl.OvsdbClientImpl
 import org.opendaylight.ovsdb.lib.jsonrpc.{ExceptionHandler, JsonRpcDecoder, JsonRpcEndpoint, JsonRpcServiceBinderHandler}
 import org.opendaylight.ovsdb.lib.message.OvsdbRPC
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
-import org.slf4j.LoggerFactory.getLogger
+
 import rx.schedulers.Schedulers.from
 import rx.subjects.BehaviorSubject
 import rx.{Observable, Subscription}
 
+import org.midonet.cluster.VxgwVtepLog
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
 import org.midonet.cluster.data.vtep.{VtepNotConnectedException, VtepStateException}
 import org.midonet.packets.IPv4Addr
-import org.midonet.southbound.vtepLog
 import org.midonet.southbound.vtep.ConnectionState.State
 import org.midonet.southbound.vtep.OvsdbVtepConnection._
 import org.midonet.util.functors.{makeAction1, makeFunc1}
+import org.midonet.util.logging.Logging
 
 object OvsdbVtepConnection {
 
@@ -126,12 +128,12 @@ class OvsdbVtepConnectionProvider {
 /** This class handles the connection to an OVSDB-compliant VTEP. */
 class OvsdbVtepConnection(mgmtIp: IPv4Addr, mgmtPort: Int,
                           retryInterval: Duration, maxRetries: Int)
-    extends VtepConnection {
+    extends VtepConnection with Logging {
 
     private type Handler = PartialFunction[ConnectionStatus, Future[Unit]]
 
-    // Do this or it'll interfere with appender config
-    private val log = Logger(getLogger(vtepLog(mgmtIp, mgmtPort)))
+    override def logSource = VxgwVtepLog
+    override def logMark = s"vtep:$mgmtIp:$mgmtPort"
 
     // We must have 1 thread per VTEP
     private val executor = newSingleThreadExecutor(DaemonThreadFactory.INSTANCE)

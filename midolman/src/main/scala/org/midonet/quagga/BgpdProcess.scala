@@ -16,8 +16,7 @@
 
 package org.midonet.quagga
 
-import org.slf4j.LoggerFactory
-
+import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.{IPv4Subnet, MAC}
 import org.midonet.util.process.ProcessHelper
 import org.midonet.util.process.ProcessHelper.ProcessResult
@@ -33,9 +32,11 @@ trait BgpdProcess {
 case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
                               routerIp: IPv4Subnet, routerMac: MAC, vtyPortNumber: Int,
                               bgpdHelperScript: String = "/usr/lib/midolman/bgpd-helper",
-                              confFile: String = "/etc/midolman/quagga/bgpd.conf") extends BgpdProcess {
+                              confFile: String = "/etc/midolman/quagga/bgpd.conf")
+    extends BgpdProcess with MidolmanLogging {
 
-    private final val log = LoggerFactory.getLogger(s"org.midonet.routing.bgpd-helper-$bgpIndex")
+    override def logSource = "org.midonet.routing.bgp.bgp-daemon"
+    override def logMark = s"bgp:$bgpIndex"
 
     val vty = new BgpVtyConnection(remoteVtyIp.getAddress.toString, vtyPortNumber)
 
@@ -61,14 +62,15 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
 
     def prepare(): Unit = {
         val cmd = s"$bgpdHelperScript prepare $bgpIndex $localVtyIp $remoteVtyIp $routerIp $routerMac"
+
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
-                logProcOutput(result, log.debug)
-                log.info(s"Successfully prepared environment for bgpd-$bgpIndex")
+                logProcOutput(result, s => log.debug(s))
+                log.info(s"Successfully prepared environment")
             case err =>
-                logProcOutput(result, log.info)
-                throw new Exception(s"Failed to prepare environment for bgpd-$bgpIndex, exit status $err")
+                logProcOutput(result, s => log.info(s))
+                throw new Exception(s"Failed to prepare environment, exit status $err")
         }
     }
 
@@ -79,12 +81,12 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
-                logProcOutput(result, log.debug)
-                log.info(s"Successfully stopped bgpd-$bgpIndex")
+                logProcOutput(result, s => log.debug(s))
+                log.info(s"Successfully stopped")
                 true
             case err =>
-                logProcOutput(result, log.info)
-                log.warn(s"Failed to stop bgpd-$bgpIndex, exit status $err")
+                logProcOutput(result, s => log.info(s))
+                log.warn(s"Failed to stop, exit status $err")
                 false
         }
     }
@@ -115,17 +117,18 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     def start(): Unit = {
         val cmd = s"$bgpdHelperScript up $bgpIndex $vtyPortNumber $confFile $LOGDIR"
 
-        log.debug(s"Starting bgpd process. vty: $vtyPortNumber")
+        log.debug(s"Starting bgpd process VTY: $vtyPortNumber")
         log.debug(s"bgpd command line: $cmd")
         val daemonRunConfig =
-            ProcessHelper.newDemonProcess(cmd, log, "bgpd-" + vtyPortNumber)
+            ProcessHelper.newDemonProcess(cmd, log.underlying,
+                                          "bgpd-" + vtyPortNumber)
         bgpdProcess = daemonRunConfig.run()
 
         if (isAlive) {
             try {
                 Thread.sleep(100)
                 connectVty()
-                log.info("bgpd started. Vty: {}", vtyPortNumber)
+                log.info(s"bgpd started VTY: $vtyPortNumber")
             } catch {
                 case e: Throwable =>
                     log.warn("bgpd started but vty connection failed, aborting")

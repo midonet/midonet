@@ -15,12 +15,6 @@
  */
 package org.midonet.midolman.logging
 
-import org.slf4j.LoggerFactory
+import org.midonet.util.logging.Logging
 
-import org.midonet.util.logging.Logger
-
-trait MidolmanLogging {
-    def logSource = getClass.getName
-    def logMark: String = null
-    val log = Logger(LoggerFactory.getLogger(logSource), logMark)
-}
+trait MidolmanLogging extends Logging

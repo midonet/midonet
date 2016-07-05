@@ -41,7 +41,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
 
-import org.midonet.cluster.restApiLog
 import org.midonet.cluster.auth.{AuthModule, AuthService}
 import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter, LoginFilter}
@@ -52,7 +51,7 @@ import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage.{LegacyStateTableStorage, MidonetBackendConfig}
 import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.cluster.{ClusterConfig, ClusterNode, RestApiLog}
 import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -136,7 +135,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
     import Vladimir._
 
     private var server: Server = _
-    private val log = Logger(LoggerFactory.getLogger(restApiLog))
+    private val log = Logger(LoggerFactory.getLogger(RestApiLog))
     private val executor = Executors.newCachedThreadPool(
         new NamedThreadFactory("rest-api", isDaemon = true))
     private val executionContext = ExecutionContext.fromExecutor(executor)
