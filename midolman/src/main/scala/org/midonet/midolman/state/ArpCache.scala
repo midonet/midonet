@@ -50,8 +50,8 @@ object ArpCache {
      * Creates an [[Observable]] that emits a single notification with an ARP
      * cache for the specified router.
      */
-    def createAsObservable(vt: VirtualTopology, routerId: UUID) =
-        Observable.create(new OnSubscribeArpCache(vt, routerId))
+    def createAsObservable(vt: VirtualTopology, routerId: UUID, log: Logger) =
+        Observable.create(new OnSubscribeArpCache(vt, routerId, log))
 
     /**
      * Implements the [[OnSubscribe]] interface for an observable that emits
@@ -59,11 +59,9 @@ object ArpCache {
      * and then completes. The observable may emit the notification either at
      * the moment of subscription, or later if the connection to storage fails.
      */
-    private class OnSubscribeArpCache(vt: VirtualTopology, routerId: UUID)
-        extends OnSubscribe[ArpCache] with MidolmanLogging {
-
-        override def logSource =
-            s"org.midonet.devices.router.router-$routerId.arp-cache"
+    private class OnSubscribeArpCache(vt: VirtualTopology, routerId: UUID,
+                                      log: Logger)
+        extends OnSubscribe[ArpCache] {
 
         @ThreadSafe
         protected override def call(child: Subscriber[_ >: ArpCache]): Unit = {

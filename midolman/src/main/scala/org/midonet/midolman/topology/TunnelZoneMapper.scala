@@ -30,7 +30,8 @@ import org.midonet.util.functors.makeFunc1
 final class TunnelZoneMapper(id: UUID, vt: VirtualTopology)
     extends DeviceMapper(classOf[SimTunnelZone], id, vt) {
 
-    override def logSource = s"org.midonet.devices.tunnelzone.tunnelzone-$id"
+    override def logSource = "org.midonet.devices.tunnel-zone"
+    override def logMark = s"tunnel-zone:$id"
 
     protected override val observable =
         vt.store.observable(classOf[TunnelZone], id)

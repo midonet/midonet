@@ -50,7 +50,7 @@ import org.midonet.util.reactivex._
  * create a single instance of the class, with references to the cluster/storage
  * and the agent actor system.
  */
-object VirtualTopology extends MidolmanLogging {
+object VirtualTopology {
     final val VtExecutorName = "vtExecutor"
     final val VtExecutorCheckerName = "vtExecutorChecker"
     final val IoExecutorName = "ioExecutor"
@@ -187,43 +187,6 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
 
     private val traceChains = mutable.Map[UUID,Subject[Chain,Chain]]()
 
-/*    private val factories = Map[ClassTag[_], DeviceFactory](
-        classTag[BgpPort] -> DeviceFactory(
-            classTag[BgpPort], new BgpPortMapper(_, this)),
-        classTag[BgpRouter] -> DeviceFactory(
-            classTag[BgpRouter], new BgpRouterMapper(_, this)),
-        classTag[Bridge] -> DeviceFactory(
-            classTag[Bridge], new BridgeMapper(_, this, traceChains)(
-                actorsService.system)),
-        classTag[BridgePort] -> DeviceFactory(
-            classTag[Port], new PortMapper(_, this, traceChains)),
-        classTag[Chain] -> DeviceFactory(
-            classTag[Chain], new ChainMapper(_, this, traceChains)),
-        classTag[Host] -> DeviceFactory(
-            classTag[Host], new HostMapper(_, this)),
-        classTag[IPAddrGroup] -> DeviceFactory(
-            classTag[IPAddrGroup], new IPAddrGroupMapper(_, this)),
-        classTag[LoadBalancer] -> DeviceFactory(
-            classTag[LoadBalancer], new LoadBalancerMapper(_, this)),
-        classTag[Pool] -> DeviceFactory(
-            classTag[Pool], new PoolMapper(_, this)),
-        classTag[PoolHealthMonitorMap] -> DeviceFactory(
-            classTag[PoolHealthMonitorMap], _ => new PoolHealthMonitorMapper(this)),
-        classTag[Port] -> DeviceFactory(
-            classTag[Port], new PortMapper(_, this, traceChains)),
-        classTag[PortGroup] -> DeviceFactory(
-            classTag[PortGroup], new PortGroupMapper(_, this)),
-        classTag[Router] -> DeviceFactory(
-            classTag[Router], new RouterMapper(_, this, traceChains)(
-                actorsService.system)),
-        classTag[RouterPort] -> DeviceFactory(
-            classTag[Port], new PortMapper(_, this, traceChains)),
-        classTag[TunnelZone] -> DeviceFactory(
-            classTag[TunnelZone], new TunnelZoneMapper(_, this)),
-        classTag[Mirror] -> DeviceFactory(
-            classTag[Mirror], new MirrorMapper(_, this)),
-        classTag[VxLanPort] -> DeviceFactory(
-            classTag[Port], new PortMapper(_, this, traceChains))*/
     private val factories = Map[Class[_], DeviceFactory](
         classOf[BgpPort] -> DeviceFactory(
             classOf[BgpPort], new BgpPortMapper(_, this)),

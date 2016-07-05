@@ -29,7 +29,10 @@ import org.midonet.util.functors.makeFunc1
 class IPAddrGroupMapper(addrGroupId: UUID, vt: VirtualTopology) extends
     DeviceMapper(classOf[SimIPAddrGroup], addrGroupId, vt) {
 
-    private def toSimIPAddrGroup(ipAddGroup: TopologyIPAddrGroup)
+    override def logSource = "org.midonet.devices.ip-group"
+    override def logMark = s"ip-group:$addrGroupId"
+
+    private def build(ipAddGroup: TopologyIPAddrGroup)
     : SimIPAddrGroup = {
         val addrs = ipAddGroup.getIpAddrPortsList.asScala.map(ipAddrPort =>
             toIPAddr(ipAddrPort.getIpAddress)
@@ -39,6 +42,6 @@ class IPAddrGroupMapper(addrGroupId: UUID, vt: VirtualTopology) extends
 
     protected override lazy val observable =
         vt.store.observable(classOf[TopologyIPAddrGroup], addrGroupId)
-            .map[SimIPAddrGroup](makeFunc1(toSimIPAddrGroup))
+            .map[SimIPAddrGroup](makeFunc1(build))
             .observeOn(vt.vtScheduler)
 }

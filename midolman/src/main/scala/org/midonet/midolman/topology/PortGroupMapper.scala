@@ -30,7 +30,8 @@ class PortGroupMapper(id: UUID, vt: VirtualTopology)
     extends DeviceMapper(classOf[SimulationPortGroup], id, vt) {
     import org.midonet.cluster.util.UUIDUtil.{fromProto, fromProtoList}
 
-    override def logSource = s"org.midonet.devices.port-group.port-group-$id"
+    override def logSource = "org.midonet.devices.port-group"
+    override def logMark = s"port-group:$id"
 
     protected override def observable =
         vt.store.observable(classOf[TopologyPortGroup], id)
