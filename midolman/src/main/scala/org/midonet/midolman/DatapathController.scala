@@ -18,7 +18,7 @@ package org.midonet.midolman
 import java.lang.{Integer => JInteger}
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{Set => JSet, UUID}
+import java.util.{UUID, Set => JSet}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -26,17 +26,13 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.reflect._
-
 import akka.actor._
 import akka.pattern.{after, pipe}
-
+import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-
 import org.slf4j.LoggerFactory
-
 import rx.{Observer, Subscription}
-
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -173,6 +169,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     var cachedInterfaces: Set[InterfaceDescription] = _
 
+    var hostActor: ActorRef = _
+
     var portWatcher: Subscription = null
     private val tzSubscriptions = new mutable.HashMap[UUID, Subscription]
 
@@ -191,10 +189,12 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         val props = Props(new HostRequestProxy(
                             id, backChannel, storageFactory.create(), self))
                         .withDispatcher(context.props.dispatcher)
-        context.actorOf(props, s"HostRequestProxy-$id")
+        if (hostActor eq null)
+            hostActor = context.actorOf(props, s"HostRequestProxy-$id")
     }
 
-    private def initialize(): Unit = {
+    @VisibleForTesting
+    private[midolman] def initialize(): Unit = {
         context become {
             case TunnelPortsCreated_ =>
                 subscribeToHost(hostIdProvider.hostId)

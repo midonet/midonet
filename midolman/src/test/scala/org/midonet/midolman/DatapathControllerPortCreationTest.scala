@@ -154,6 +154,35 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             Then("The min MTU should be updated")
             DatapathController.minMtu shouldBe 3950
         }
+
+        scenario("The minimum MTU is updated upon tunnel interface change") {
+            Given("A tunnel zone and an interface")
+            val tunnelZone = greTunnelZone("default")
+            val srcIp = IPv4Addr("192.168.100.1")
+            addTunnelZoneMember(tunnelZone, hostId, srcIp)
+            addInterface("if1", 2000, IPv4Addr("192.168.100.1"))
+            DatapathController.minMtu shouldBe 1950
+
+            When("Adding a new interface")
+            val srcIp2 = IPv4Addr("192.168.100.2")
+            addInterface("if2", 1800, IPv4Addr("192.168.100.2"))
+            Then("The MTU is not updated")
+            DatapathController.minMtu shouldBe 1950
+            testableDpc.cachedInterfaces should have size 2
+
+            When("Adding that interface to a second tunnel zone")
+            val tunnelZone2 = greTunnelZone("default2")
+            addTunnelZoneMember(tunnelZone2, hostId, srcIp2)
+            Then("The MTU is updated acordingly")
+            DatapathController.minMtu shouldBe 1750
+            testableDpc.cachedInterfaces should have size 2
+
+            When("Removing the host from the second tunnel zone")
+            deleteTunnelZoneMember(tunnelZone2, hostId)
+            Then("The MTU is updated accordingly")
+            DatapathController.minMtu shouldBe 1950
+            testableDpc.cachedInterfaces should have size 2
+        }
     }
 
     feature("DatapathController manages ports") {

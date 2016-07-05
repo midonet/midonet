@@ -16,28 +16,29 @@
 
 package org.midonet.midolman
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.UUID
 
 import akka.actor._
-
 import com.typesafe.config.{Config, ConfigValueFactory}
-
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
+import org.midonet.midolman.DatapathController.InterfacesUpdate_
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
 import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.state.{FlowStateStorageFactory, MockStateStorage}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUpdate
-import org.midonet.midolman.topology.rcu.ResolvedHost
+import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.midolman.util.mock.{MessageAccumulator, MockInterfaceScanner}
 import org.midonet.midolman.util.{MidolmanSpec, MockNetlinkChannelFactory}
 import org.midonet.odp.ports._
 import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.FlowTagger
+import org.scalatest.junit.JUnitRunner
+
+import scala.collection.immutable
+import scala.concurrent.{ExecutionContext, Future}
 
 object DatapathControllerActorTest {
     val TestDhcpMtu: Short = 4200
@@ -56,6 +57,17 @@ class DatapathControllerActorTest extends MidolmanSpec {
     val dpPortInt = new InternalPort("int")
     val dpPortDev = new NetDevPort("eth0")
 
+    val interfaceScanner = new MockInterfaceScanner
+
+    private def addInterface(name: String, mtu: Int, ipAddr: IPv4Addr) {
+        val intf = new InterfaceDescription(name)
+        intf.setInetAddress(ipAddr.toString)
+        intf.setMtu(mtu)
+        intf.setUp(true)
+        intf.setHasLink(true)
+        interfaceScanner.addInterface(intf)
+    }
+
     override def fillConfig(config: Config) = {
         super.fillConfig(config.withValue("agent.midolman.dhcp_mtu",
             ConfigValueFactory.fromAnyRef(TestDhcpMtu)))
@@ -64,7 +76,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
     class TestableDpC extends DatapathController(
             new DatapathStateDriver(new Datapath(0, "midonet")),
             injector.getInstance(classOf[HostIdProvider]),
-            new MockInterfaceScanner(),
+            interfaceScanner,
             config,
             new UpcallDatapathConnectionManager {
                 var ports = Set.empty[DpPort]
@@ -158,8 +170,51 @@ class DatapathControllerActorTest extends MidolmanSpec {
         simBackChannel should invalidate(tag1, tag2)
     }
 
+    scenario("No subscription to interface scanner until ResolvedHost received")
+    {
+        Given("An initialized datapath controller")
+        initialize()
+        val tunnelZone = greTunnelZone("default")
+        val ip = IPv4Addr("192.168.0.1")
+
+        Then("No messages in queue and no subscription to interface scanner")
+        dpc.portWatcher shouldBe null
+        DatapathController.messages should have size 0
+
+        When("Adding a tunnel interface in a tunnel zone")
+        addInterface("if1", 2000, ip)
+
+        Then("No interfaces cached because no updates received")
+        dpc.cachedInterfaces shouldBe null
+        dpc.portWatcher shouldBe null
+        DatapathController.messages.collect { case p: ResolvedHost => p } should have size 0
+        DatapathController.messages.collect { case p: InterfacesUpdate_ => p } should have size 0
+        DatapathController.messages.collect { case p: TunnelZoneUpdate => p } should have size 0
+
+        When("Sending a resolved host message")
+        val resolved = ResolvedHost(hostId, true,
+                     immutable.Map.empty[UUID, PortBinding],
+                     immutable.HashMap(tunnelZone -> ip))
+        dpc.self ! resolved
+
+        Then("We are subscribed to the interface scanner")
+        dpc.portWatcher should not be null
+        dpc.portWatcher.isUnsubscribed shouldBe false
+        DatapathController.messages.collect { case p: ResolvedHost => p } should have size 1
+
+        And("We receive the initial set of local interfaces")
+        dpc.cachedInterfaces should not be null
+        dpc.cachedInterfaces should have size 1
+        dpc.zones should have size 1
+        DatapathController.messages.collect { case p: InterfacesUpdate_ => p } should have size 2
+    }
+
     private def initialize(): Unit = {
         while (scheduler.pop exists { r => r.run(); true }) { }
         DatapathController.getAndClear()
+        dpc.portWatcher.unsubscribe()
+        dpc.portWatcher = null
+        dpc.cachedInterfaces = null
+        dpc.initialize()
     }
 }
