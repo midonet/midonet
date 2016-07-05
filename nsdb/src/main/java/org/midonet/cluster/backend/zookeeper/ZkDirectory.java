@@ -89,7 +89,7 @@ public class ZkDirectory implements Directory {
     @Override
     public void asyncAdd(String relativePath, final byte[] data,
                          CreateMode mode, final DirectoryCallback<String> cb,
-                         Object object) {
+                         Object context) {
 
         final String absPath = getAbsolutePath(relativePath);
 
@@ -101,14 +101,14 @@ public class ZkDirectory implements Directory {
                                           Object ctx, String name) {
                     if (rc == KeeperException.Code.OK.intValue()) {
                         cb.onSuccess(name.substring(basePath.length()), null,
-                                     object);
+                                     ctx);
                     } else {
                         cb.onError(KeeperException.create(
                             KeeperException.Code.get(rc), path), ctx);
                     }
                 }
             },
-            null);
+            context);
     }
 
     @Override
