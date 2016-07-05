@@ -78,8 +78,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             override def reactor: Reactor = ???
             override def connection: ZkConnection = ???
             override def connectionWatcher: ZkConnectionAwareWatcher = ???
-            override def failFastConnectionState
-            : Observable[ConnectionState] = ???
+            override def connectionState: Observable[ConnectionState] = ???
+            override def failFastConnectionState: Observable[ConnectionState] = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
         }

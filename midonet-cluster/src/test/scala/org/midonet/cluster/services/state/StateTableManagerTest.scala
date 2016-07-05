@@ -76,6 +76,7 @@ class StateTableManagerTest extends FeatureSpec with Matchers
                    .thenReturn(getChildren)
             curator
         }
+        override def connectionState: Observable[ConnectionState] = ???
         override def failFastConnectionState: Observable[ConnectionState] = ???
         override val stateTableStore: StateTableStorage =
             Mockito.mock(classOf[StateTableStorage])
