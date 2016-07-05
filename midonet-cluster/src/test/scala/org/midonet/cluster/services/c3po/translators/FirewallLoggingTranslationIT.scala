@@ -19,8 +19,10 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import com.fasterxml.jackson.databind.JsonNode
-
 import scala.collection.JavaConverters._
+
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{FirewallLog => FirewallLogType, LoggingResource => LoggingResourceType}
@@ -31,6 +33,7 @@ import org.midonet.cluster.models.Commons.LogEvent
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.util.concurrent.toFutureOps
 
+@RunWith(classOf[JUnitRunner])
 class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager {
 
     "FirewallLogTranslator" should "handle FirewallLog CRUD" in {
@@ -230,7 +233,6 @@ class FirewallLoggingTranslationIT extends C3POMinionTestBase with ChainManager 
     def verifyRuleLogger(fwId: UUID, rlId: UUID, event: LogEvent = LogEvent.ALL) = {
         val rl = storage.get(classOf[RuleLogger], rlId).await()
         rl.getChainId shouldBe fwdChainId(fwId)
-        rl.getFileName shouldBe s"firewall-$rlId.log"
         rl.getEvent shouldBe event
     }
 
