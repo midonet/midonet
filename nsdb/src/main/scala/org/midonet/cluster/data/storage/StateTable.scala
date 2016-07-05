@@ -24,6 +24,22 @@ import org.midonet.cluster.data.storage.StateTable.Update
 
 object StateTable {
 
+    /**
+      * A unique key for a state table, which includes the object class and
+      * identifier, key and value classes, table name and optional arguments.
+      */
+    case class Key(objectClass: Class[_], objectId: Any,
+                   keyClass: Class[_], valueClass: Class[_],
+                   name: String, args: Set[String]) {
+        private var string: String = null
+        override def toString: String = {
+            if (string eq null) {
+                string = s"${objectClass.getSimpleName}|$objectId|$name"
+            }
+            string
+        }
+    }
+
     case class Update[K, V](key: K, oldValue: V, newValue: V)
 
     def empty[K, V]: StateTable[K, V] = {
