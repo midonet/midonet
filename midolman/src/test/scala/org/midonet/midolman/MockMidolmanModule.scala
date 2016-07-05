@@ -23,18 +23,19 @@ import scala.collection.IndexedSeq
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
+
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Injector
 import com.lmax.disruptor.{RingBuffer, SequenceBarrier}
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+
 import org.reflections.Reflections
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath._
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
-import org.midonet.midolman.datapath.FlowProcessor
+import org.midonet.midolman.datapath.{FlowProcessor, _}
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.FlowTracingAppender
@@ -44,13 +45,13 @@ import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockInterfaceScanner, MockUpcallDatapathConnectionManager}
+import org.midonet.midolman.util.mock._
 import org.midonet.netlink.NetlinkChannelFactory
-import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
-import org.midonet.util.concurrent._
-import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
+import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.util._
+import org.midonet.util.concurrent.{SameThreadButAfterExecutorService, _}
+import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
 
 class MockMidolmanModule(override val hostId: UUID,
                          injector: Injector,
@@ -81,6 +82,7 @@ class MockMidolmanModule(override val hostId: UUID,
             injector.getInstance(classOf[MidonetBackend]),
             config,
             simBackChannel,
+            new MockRuleLogEventChannel,
             new MetricRegistry,
             new SameThreadButAfterExecutorService,
             new SameThreadButAfterExecutorService,
