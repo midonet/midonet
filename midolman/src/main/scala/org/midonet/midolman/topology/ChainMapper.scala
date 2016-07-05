@@ -16,10 +16,12 @@
 
 package org.midonet.midolman.topology
 
+import java.nio.{CharBuffer, StringCharBuffer}
 import java.util.UUID
 import java.util.{ArrayList => JArrayList, HashMap => JHashMap}
 
 import scala.collection.JavaConverters._
+import scala.collection.breakOut
 import scala.collection.mutable
 
 import rx.Observable
@@ -382,9 +384,9 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
             chainMap.put(id, chain)
         }
 
-        val metadata = chainProto.getMetadataList.asScala.map {
-            e => s"${e.getKey}=${e.getValue}"
-        }.mkString(",")
+        val metadata: Seq[(CharBuffer, CharBuffer)] =
+            chainProto.getMetadataList.asScala.map(
+                e => (CharBuffer.wrap(e.getKey), CharBuffer.wrap(e.getValue)))
 
         ruleLoggerTracker.currentRefs.values.toSeq
         val chain = new SimChain(chainId, ruleList, chainMap,
