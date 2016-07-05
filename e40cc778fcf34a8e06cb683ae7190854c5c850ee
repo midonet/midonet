@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4fe892e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-05T15:38:23Z",
+      "side": 1,
+      "message": "no need if you enclose the following Future block within an \u0027else\u0027 block.\n\nI read it\u0027s bad practice in scala to break the flow of a method with a return (the same as a break statement in a while loop). That\u0027s why there aren\u0027t many.",
+      "range": {
+        "startLine": 149,
+        "startChar": 12,
+        "endLine": 149,
+        "endChar": 18
+      },
+      "revId": "e40cc778fcf34a8e06cb683ae7190854c5c850ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_efec06f5",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-05T15:38:23Z",
+      "side": 1,
+      "message": "No action to check after this?",
+      "range": {
+        "startLine": 273,
+        "startChar": 12,
+        "endLine": 273,
+        "endChar": 81
+      },
+      "revId": "e40cc778fcf34a8e06cb683ae7190854c5c850ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_efc3e655",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-05T15:38:23Z",
+      "side": 1,
+      "message": "Use scala matchers for consistency with the rest of test suites. Same for the other asserts. http://www.scalatest.org/user_guide/using_matchers\n\nit would be \"handler.getWrites shouldBe 1\"",
+      "range": {
+        "startLine": 298,
+        "startChar": 48,
+        "endLine": 299,
+        "endChar": 12
+      },
+      "revId": "e40cc778fcf34a8e06cb683ae7190854c5c850ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cf8f0222",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 507,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-05T15:38:23Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be a BAD_REQUEST?",
+      "range": {
+        "startLine": 505,
+        "startChar": 12,
+        "endLine": 507,
+        "endChar": 58
+      },
+      "revId": "e40cc778fcf34a8e06cb683ae7190854c5c850ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cf1262b4",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-05T15:38:23Z",
+      "side": 1,
+      "message": "you can specify a before/after clause so each tests initializes/tears down same objects.\n\nbefore {\n    server.startAsync().blabla\n}\n\nafter {\n    servier.stopAsync().blabla\n}\n\nfeature(\"X\") {\n    \n    scenario(\"foo\") {\n        // no need to start/stop servers \n    }\n\n    scenario(\"bar\") {\n        // other test\n    }\n\n}",
+      "range": {
+        "startLine": 525,
+        "startChar": 16,
+        "endLine": 525,
+        "endChar": 70
+      },
+      "revId": "e40cc778fcf34a8e06cb683ae7190854c5c850ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
