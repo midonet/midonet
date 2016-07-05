@@ -284,6 +284,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_14229d01",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-05T12:59:39Z",
+      "side": 1,
+      "message": "I\u0027m confused about alex comment\u0027s and your reply. If we don\u0027t check state storage, we then need to always set the previous host Id on unbind right?",
+      "parentUuid": "baa041b7_0a616aa8",
+      "range": {
+        "startLine": 111,
+        "startChar": 32,
+        "endLine": 111,
+        "endChar": 64
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_31ff0503",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
         "patchSetId": 3
