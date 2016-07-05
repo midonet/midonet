@@ -528,9 +528,6 @@ message RuleLogger {
     optional UUID logging_resource_id = 2;
     optional LogEvent event = 3;
     optional UUID chain_id = 4;
-    oneof log_dest {
-        string file_name = 5;
-    }
 }
 
 message ServiceContainer {
