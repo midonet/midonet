@@ -16,16 +16,18 @@
 
 package org.midonet.midolman
 
-import java.util.{LinkedList, UUID}
 import java.util.concurrent.ConcurrentHashMap
+import java.util.{LinkedList, UUID}
 
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
+
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Injector
 import com.lmax.disruptor.{RingBuffer, SequenceBarrier}
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+
 import org.reflections.Reflections
 
 import org.midonet.cluster.services.MidonetBackend
@@ -43,10 +45,10 @@ import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockInterfaceScanner, MockUpcallDatapathConnectionManager}
+import org.midonet.midolman.util.mock._
 import org.midonet.netlink.NetlinkChannelFactory
-import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
+import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
 
@@ -90,6 +92,7 @@ class MockMidolmanModule(override val hostId: UUID,
             injector.getInstance(classOf[MidonetBackend]),
             config,
             simBackChannel,
+            new MockRuleLogEventChannel,
             new MetricRegistry,
             new SameThreadButAfterExecutorService,
             new SameThreadButAfterExecutorService,

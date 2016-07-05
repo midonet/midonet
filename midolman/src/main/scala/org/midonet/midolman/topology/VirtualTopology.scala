@@ -36,6 +36,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
+import org.midonet.midolman.logging.rule.RuleLogEventChannel
 import org.midonet.midolman.monitoring.metrics.VirtualTopologyMetrics
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{NotYetException, SimulationBackChannel}
@@ -158,6 +159,7 @@ object VirtualTopology {
 class VirtualTopology(val backend: MidonetBackend,
                       val config: MidolmanConfig,
                       val simBackChannel: SimulationBackChannel,
+                      val ruleLogEventChannel: RuleLogEventChannel,
                       val metricRegistry: MetricRegistry,
                       val vtExecutor: ExecutorService,
                       val ioExecutor: ExecutorService,
