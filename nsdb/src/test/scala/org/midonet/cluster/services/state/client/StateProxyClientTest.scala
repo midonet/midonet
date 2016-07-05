@@ -767,11 +767,9 @@ class StateProxyClientTest extends FeatureSpec
         scenario("connected when server comes back") { for (i <- 1 to 1) {
 
             Given("a started client")
-            val base = 50 milliseconds
-            val multiplier = 5
-            val t = new TestObjects(softReconnectDelay = base,
-                                    maxAttempts = 0,
-                                    hardReconnectDelay = base * multiplier)
+            val softDelay = 50 milliseconds
+            val hardDelay = 200 milliseconds
+            val t = new TestObjects(softDelay, 0, hardDelay)
 
             t.client.start()
 
@@ -786,18 +784,17 @@ class StateProxyClientTest extends FeatureSpec
             t.server.setOffline()
 
             eventually { Mockito.verify(observer).onNext(Disconnected) }
+            val startTime = System.currentTimeMillis()
 
             t.server.setOnline()
+            Then("It connects after the hard delay")
 
-            Then("The hard delay is used")
-            for (i <- 1 until multiplier) {
-                Thread.sleep(base.toMillis)
-                Mockito.verifyNoMoreInteractions(observer)
+            eventually {
+                Mockito.verify(observer, Mockito.times(2)).onNext(Connected)
             }
-
-            And("Finally it connects again")
-            Thread.sleep(base.toMillis)
-            Mockito.verify(observer, Mockito.times(2)).onNext(Connected)
+            val took = System.currentTimeMillis() - startTime
+            val ratio = took.toDouble / hardDelay.toMillis
+            (ratio>0.9 && ratio<1.5) shouldBe true
 
             t.close()
         } }
