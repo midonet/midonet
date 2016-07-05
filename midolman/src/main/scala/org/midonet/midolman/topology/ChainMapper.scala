@@ -16,8 +16,8 @@
 
 package org.midonet.midolman.topology
 
-import java.util.UUID
-import java.util.{ArrayList => JArrayList, HashMap => JHashMap}
+import java.nio.charset.Charset
+import java.util.{UUID, ArrayList => JArrayList, HashMap => JHashMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -28,7 +28,6 @@ import rx.subjects.{PublishSubject, Subject}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Rule => TopologyRule}
-import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.rules.{JumpRule, Rule => SimRule}
@@ -130,11 +129,13 @@ object ChainMapper {
         def isReady = currentIpAddrGroup ne null
     }
 
+    val Utf8 = Charset.forName("UTF-8")
 }
 
 final class ChainMapper(chainId: UUID, vt: VirtualTopology,
                         traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]])
     extends VirtualDeviceMapper(classOf[SimChain], chainId, vt) with MidolmanLogging {
+    import ChainMapper.Utf8
 
     override def logSource = "org.midonet.devices.chain"
     override def logMark = s"chain:$chainId"
@@ -383,8 +384,8 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
         }
 
         val metadata = chainProto.getMetadataList.asScala.map {
-            e => s"${e.getKey}=${e.getValue}"
-        }.mkString(",")
+            e => (e.getKey.getBytes(Utf8), e.getValue.getBytes(Utf8))
+        }
 
         ruleLoggerTracker.currentRefs.values.toSeq
         val chain = new SimChain(chainId, ruleList, chainMap,
