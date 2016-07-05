@@ -308,6 +308,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_34036144",
+        "filename": "midolman/src/main/scala/org/midonet/services/rest_api/PortBinder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-05T13:20:25Z",
+      "side": 1,
+      "message": "That is what we are doing now. I marked it as done because the whole logic changed and there is no more \u0027up\u0027, I should have clarified a bit more though",
+      "parentUuid": "baa041b7_14229d01",
+      "range": {
+        "startLine": 111,
+        "startChar": 32,
+        "endLine": 111,
+        "endChar": 64
+      },
+      "revId": "fd9754b2834106f7b3ed1e195f36df947ddd010d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_31ff0503",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
         "patchSetId": 3
