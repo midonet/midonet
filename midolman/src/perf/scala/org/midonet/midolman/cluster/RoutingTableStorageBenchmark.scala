@@ -110,8 +110,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
         val connectionWatcher = new SessionUnawareConnectionWatcher
         connectionWatcher.setZkConnection(connection)
         storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator,
-                                            curator, reactor, connection,
-                                            connectionWatcher)
+                                            curator, null, reactor)
         storage.registerClass(classOf[Port])
         storage.registerKey(classOf[Port], RoutesKey, Multiple)
         storage.build()

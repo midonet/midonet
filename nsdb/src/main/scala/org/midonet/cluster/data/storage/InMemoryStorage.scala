@@ -29,6 +29,7 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.control.NonFatal
 
+import org.apache.curator.framework.state.ConnectionState
 import org.apache.zookeeper.KeeperException.{BadVersionException, Code}
 
 import rx.Observable.OnSubscribe
@@ -36,13 +37,15 @@ import rx._
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.backend.{Directory, MockDirectory}
-import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.InMemoryStorage._
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.rpc.State.ProxyResponse.Notify
+import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
 import org.midonet.cluster.util.ParentDeletedException
 import org.midonet.util.concurrent._
 import org.midonet.util.functors._
@@ -779,6 +782,17 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
     override def failFastOwnerId = DefaultOwnerId
 
     val tablesDirectory = new MockDirectory()
+    val stateTableClient = new StateTableClient {
+        override def stop(): Boolean = { true }
+
+        override def observable(table: StateSubscriptionKey)
+        : Observable[Notify.Update] = Observable.never()
+
+        override def connection: Observable[ProxyConnectionState] =
+            Observable.never()
+
+        override def start(): Unit = { }
+    }
 
     /**
       * @see [[StateTableStorage.registerTable()]]
@@ -812,9 +826,15 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         tablesDirectory.ensureHas(path, "".getBytes)
         val directory = tablesDirectory.getSubDirectory(path)
 
-        val constructor = provider.clazz.getConstructor(classOf[Directory],
-                                                        classOf[ZkConnectionAwareWatcher])
-        constructor.newInstance(directory, null).asInstanceOf[StateTable[K, V]]
+        val constructor = provider.clazz.getConstructor(classOf[StateTable.Key],
+                                                        classOf[Directory],
+                                                        classOf[StateTableClient],
+                                                        classOf[Observable[ConnectionState]])
+        val tableKey =  StateTable.Key(clazz, id, key.runtimeClass,
+                                       value.runtimeClass, name, args)
+        constructor.newInstance(tableKey, directory, stateTableClient,
+                                Observable.never())
+                   .asInstanceOf[StateTable[K, V]]
     }
 
     /**

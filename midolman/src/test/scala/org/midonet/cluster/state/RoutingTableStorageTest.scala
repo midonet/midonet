@@ -53,8 +53,7 @@ class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
 
     protected override def setup(): Unit = {
         storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator,
-                                            curator, reactor, connection,
-                                            connectionWatcher)
+                                            curator, null, reactor)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }

@@ -28,14 +28,19 @@ import scala.util.control.NonFatal
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent}
+import org.apache.curator.framework.state.ConnectionState
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.KeeperException.{Code, NoNodeException}
 
+import rx.Observable
+
 import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkDirectory}
+import org.midonet.cluster.backend.zookeeper.ZkDirectory
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.TransactionManager._
+import org.midonet.cluster.services.state.client.StateTableClient
+import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.util.collection.PathMap
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
@@ -171,13 +176,13 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
 
     protected def curator: CuratorFramework
 
+    protected def stateTables: StateTableClient
+
     protected def version: AtomicLong
 
     protected def reactor: Reactor
 
-    protected def connection: ZkConnection
-
-    protected def connectionWatcher: ZkConnectionAwareWatcher
+    private val connection = ConnectionObservable.create(curator)
 
     /**
       * @see [[StateTableStorage.getTable()]]
@@ -199,13 +204,20 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
         val provider = getProvider(clazz, key.runtimeClass, value.runtimeClass,
                                    name)
         // Create a new directory for the state table path.
-        val directory = new ZkDirectory(connection, path, reactor)
+        val directory = new ZkDirectory(curator.getZookeeperClient.getZooKeeper,
+                                        path, reactor)
 
         // Get the constructor for the provider class and create a new instance.
         val constructor =
-            provider.clazz.getConstructor(classOf[Directory],
-                                          classOf[ZkConnectionAwareWatcher])
-        constructor.newInstance(directory, connectionWatcher)
+            provider.clazz.getConstructor(classOf[StateTable.Key],
+                                          classOf[Directory],
+                                          classOf[StateTableClient],
+                                          classOf[Observable[ConnectionState]])
+
+        val tableKey = StateTable.Key(clazz, id, key.runtimeClass,
+                                      value.runtimeClass, name, args)
+
+        constructor.newInstance(tableKey, directory, stateTables, connection)
                    .asInstanceOf[StateTable[K, V]]
     }
 

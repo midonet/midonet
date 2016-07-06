@@ -84,7 +84,11 @@ public class LegacyArpCacheImpl implements ArpCache, ReplicatedMap.Watcher<IPv4A
         });
     }
 
+    @Override
     public Observable<ArpCacheUpdate> observable() {
         return updates.asObservable();
     }
+
+    @Override
+    public void close() { }
 }
