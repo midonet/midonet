@@ -30,12 +30,17 @@ import org.scalatest.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.slf4j.LoggerFactory._
 
+import rx.Observable
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.backend.MockDirectory
+import org.midonet.cluster.data.storage.StateTable.Key
 import org.midonet.cluster.data.storage.{ObjectExistsException, StateTable, StateTableStorage, Storage}
 import org.midonet.cluster.data.vtep.model.{MacLocation, PhysicalSwitch}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.rpc.State.ProxyResponse.Notify
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
+import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.storage.{Ip4MacStateTable, MacIdStateTable}
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
@@ -181,6 +186,17 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
 
         val vxPorts = new java.util.HashMap[UUID, UUID]
 
+        private val key = Key(classOf[Object], null, classOf[String],
+                              classOf[String], "mac_ip_table", Seq.empty)
+        private val proxy = new StateTableClient {
+            override def stop(): Boolean = false
+            override def observable(table: StateSubscriptionKey): Observable[Notify.Update] =
+                Observable.never()
+            override def connection: Observable[ProxyConnectionState] =
+                Observable.never()
+            override def start(): Unit = { }
+        }
+
         createVxPortForVtep(vtepFix.vtep)
 
         /** Gives two mocks of the state tables of a given network, and mocks
@@ -190,10 +206,12 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
           */
         def mockStateTables(stateTableStorage: StateTableStorage): Unit = {
             // Mock the DataClient
-            macPortTable = new MacIdStateTable(new MockDirectory(), null)
+            macPortTable = new MacIdStateTable(key, new MockDirectory(), proxy,
+                                               Observable.never())
             Mockito.when(stateTableStorage.bridgeMacTable(Eq(nwId), Eq(0.toShort)))
                    .thenReturn(macPortTable)
-            arpTable = new Ip4MacStateTable(new MockDirectory(), null)
+            arpTable = new Ip4MacStateTable(key, new MockDirectory(), proxy,
+                                            Observable.never())
             Mockito.when(stateTableStorage.bridgeArpTable(Eq(nwId)))
                    .thenReturn(arpTable)
         }

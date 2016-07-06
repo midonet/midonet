@@ -48,8 +48,8 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
     }
 
     protected override def createStorage: ZookeeperObjectMapper = {
-        new ZookeeperObjectMapper(zkRoot, hostId, curator, curator,
-                                  reactor, connection, connectionWatcher)
+        new ZookeeperObjectMapper(zkRoot, hostId, curator, curator, stateTables,
+                                  reactor)
     }
 
     feature("Test subscribe") {

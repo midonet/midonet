@@ -43,6 +43,7 @@ trait ArpCache {
     def remove(ipAddr: IPv4Addr): Unit
     def routerId: UUID
     def observable: Observable[ArpCacheUpdate]
+    def close(): Unit
 }
 
 object ArpCache {
@@ -91,6 +92,7 @@ object ArpCache {
         extends ArpCache with MidolmanLogging {
 
         private val arpTable = vt.stateTables.routerArpTable(routerId)
+        arpTable.start()
 
         /** Gets an entry from the underlying ARP table. The request only
           * queries local state. */
@@ -136,5 +138,9 @@ object ArpCache {
                     if (update.oldValue ne null) update.oldValue.mac else null,
                     if (update.newValue ne null) update.newValue.mac else null)
             })
+        /** Closes the ARP cache. */
+        override def close(): Unit = {
+            arpTable.stop()
+        }
     }
 }
