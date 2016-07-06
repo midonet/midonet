@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0056d7d1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-06T08:40:50Z",
+      "side": 1,
+      "message": "Minor comment: you can add here: .asObservable\n(this ensures the subject instance is not exposed)",
+      "range": {
+        "startLine": 115,
+        "startChar": 8,
+        "endLine": 115,
+        "endChar": 25
+      },
+      "revId": "abcfb2496c85736d95d478874c0917c3eb9dbf54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4073bf80",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 527,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-06T08:40:50Z",
+      "side": 1,
+      "message": "Why is this needed? Isn\u0027t stopped state the default?",
+      "range": {
+        "startLine": 526,
+        "startChar": 4,
+        "endLine": 527,
+        "endChar": 29
+      },
+      "revId": "abcfb2496c85736d95d478874c0917c3eb9dbf54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
