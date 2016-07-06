@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0964c3e2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-06T15:30:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_bfc9a1ae",
+      "range": {
+        "startLine": 7,
+        "startChar": 16,
+        "endLine": 7,
+        "endChar": 25
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_ffa049a7",
         "filename": "/COMMIT_MSG",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-29T15:31:18Z",
       "side": 1,
       "message": "Nit: enables",
+      "range": {
+        "startLine": 9,
+        "startChar": 11,
+        "endLine": 9,
+        "endChar": 18
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e962bfd7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-06T15:30:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_ffa049a7",
       "range": {
         "startLine": 9,
         "startChar": 11,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_69a58f02",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-06T15:30:37Z",
+      "side": 1,
+      "message": "I was thinking precisely on your comment below. We have the logic to send flow state through udp in here. We need to encapsulate this in a udp client, and while we are at it, maybe better to create a FlowStateClient that provides the interface to communicate with the minion (either by tcp or udp, that\u0027s an implementation detail). We can do this later or if we have time before doing the rc.",
+      "parentUuid": "baa041b7_ff8e0926",
+      "range": {
+        "startLine": 121,
+        "startChar": 61,
+        "endLine": 122,
+        "endChar": 40
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1f71ad44",
         "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-29T15:31:18Z",
       "side": 1,
       "message": "Same comment as below",
+      "range": {
+        "startLine": 123,
+        "startChar": 4,
+        "endLine": 127,
+        "endChar": 69
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_49a88bdb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-06T15:30:37Z",
+      "side": 1,
+      "message": "ditto.",
+      "parentUuid": "baa041b7_1f71ad44",
       "range": {
         "startLine": 123,
         "startChar": 4,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_29b0a742",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-06T15:30:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1f7c0db4",
+      "range": {
+        "startLine": 226,
+        "startChar": 8,
+        "endLine": 226,
+        "endChar": 66
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3f76b13e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
         "patchSetId": 4
@@ -128,6 +248,30 @@
       "writtenOn": "2016-06-29T15:31:18Z",
       "side": 1,
       "message": "Is it possible to encapsulate the UDP sending logic to a different class? Maybe for a future patch, otherwise it looks good!",
+      "range": {
+        "startLine": 225,
+        "startChar": 4,
+        "endLine": 239,
+        "endChar": 5
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_09aba3d7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-06T15:30:37Z",
+      "side": 1,
+      "message": "See my previous comment. Will do in a later patch.",
+      "parentUuid": "baa041b7_3f76b13e",
       "range": {
         "startLine": 225,
         "startChar": 4,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_368ed3d0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-06T15:30:37Z",
+      "side": 1,
+      "message": "IIUC yes, the flow state replicatior is instantiated once per simulation thread (packet workflow). So this class is meant to be single threaded. And yes, much better if don\u0027t allocate in each sendState (as this method is executed on each simulation that generates flow state).",
+      "parentUuid": "baa041b7_5fabb51e",
+      "range": {
+        "startLine": 112,
+        "startChar": 4,
+        "endLine": 113,
+        "endChar": 76
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_bf43e16b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
         "patchSetId": 4
@@ -174,6 +342,30 @@
       "writtenOn": "2016-06-29T16:18:34Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 279,
+        "startChar": 8,
+        "endLine": 279,
+        "endChar": 58
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a9827750",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-06T15:30:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_bf43e16b",
       "range": {
         "startLine": 279,
         "startChar": 8,
