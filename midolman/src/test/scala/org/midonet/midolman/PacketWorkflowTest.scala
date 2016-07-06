@@ -20,7 +20,7 @@ import java.util.UUID
 import org.midonet.midolman.topology.VirtualTopology
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Promise
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
@@ -39,10 +39,9 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStateAgentPackets => FlowStatePackets}
-import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable, MockStateStorage}
+import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.flows.{FlowActions, FlowAction}
@@ -236,6 +235,27 @@ class PacketWorkflowTest extends MidolmanSpec {
             And("packetsOut should be called")
             packetsOut should be (1)
         }
+
+        scenario("Processed context not restarted after postpone") {
+            createDda(0)
+
+            Given("A postponed simulation")
+            val packet = List(makePacket(1)).toArray
+            ddaRef ! PacketWorkflow.HandlePackets(packet)
+
+            When("Processes finishes")
+            mockDpChannel.contextsSeen.asScala foreach { c =>
+                c.setFlowProcessed()
+                c.setPacketProcessed()
+            }
+            ddaRef ! CheckBackchannels
+
+            And("Completing the postpone future")
+            ddaRef.underlyingActor.p.trySuccess(null)
+
+            Then("The workflow is not restarted")
+            ddaRef.underlyingActor.backChannel.hasMessages shouldBe false
+        }
     }
 
     feature("Packet Context pooling") {
@@ -281,7 +301,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             metrics.contextsBeingProcessed.getCount shouldBe 1
 
             When("processing finishes")
-            mockDpChannel.contextsSeen.asScala map { c =>
+            mockDpChannel.contextsSeen.asScala foreach  { c =>
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
@@ -306,7 +326,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             metrics.contextsBeingProcessed.getCount shouldBe 1
 
             When("processing finishes")
-            mockDpChannel.contextsSeen.asScala map { c =>
+            mockDpChannel.contextsSeen.asScala foreach { c =>
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
