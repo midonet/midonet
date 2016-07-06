@@ -21,15 +21,17 @@ import java.util.UUID
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.state.ConnectionState
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, GivenWhenThen, BeforeAndAfter, FeatureSpec}
+import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.toFutureOps
@@ -70,6 +72,7 @@ class DatapathBoundContainerDelegateTest extends FeatureSpec with Matchers
             override def curator: CuratorFramework = ???
             override def failFastCurator: CuratorFramework = ???
             override def stateTableStore: StateTableStorage = ???
+            override def stateTableClient: StateTableClient = ???
             override def reactor: Reactor = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
