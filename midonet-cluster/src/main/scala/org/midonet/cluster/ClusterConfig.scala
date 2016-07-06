@@ -148,5 +148,10 @@ class RestApiConfig(val conf: Config) extends MinionConfig[RestApi] {
     def httpsPort = conf.getInt(s"$prefix.https_port")
     def rootUri = conf.getString(s"$prefix.root_uri")
     def outputBufferSize = conf.getInt(s"$prefix.output_buffer_size")
-    def nsdbLockTimeoutMs = conf.getDuration(s"$prefix.nsdb_lock_timeout", TimeUnit.MILLISECONDS)
+    def minThreadPoolSize = conf.getInt(s"$prefix.min_thread_pool_size")
+    def maxThreadPoolSize = conf.getInt(s"$prefix.max_thread_pool_size")
+    def threadPoolIdleTimeoutMs =
+        conf.getDuration(s"$prefix.thread_pool_idle_timeout", TimeUnit.MILLISECONDS)
+    def nsdbLockTimeoutMs =
+        conf.getDuration(s"$prefix.nsdb_lock_timeout", TimeUnit.MILLISECONDS)
 }
