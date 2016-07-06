@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_063dd0ba",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-06T13:21:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e05093d6",
+      "range": {
+        "startLine": 240,
+        "startChar": 23,
+        "endLine": 240,
+        "endChar": 32
+      },
+      "revId": "b94c73426048c67b097d08cf9dee53e1423afc77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_40de1f6e",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8082e7fe",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-06T13:21:42Z",
+      "side": 1,
+      "message": "Patch set 1 was correct, I got confused after: so this doesn\u0027t put if the entry is in the map and not being deleted.\n\nWe still put if the entry is in the map and in the process of being deleted.",
+      "parentUuid": "baa041b7_40de1f6e",
+      "range": {
+        "startLine": 437,
+        "startChar": 16,
+        "endLine": 438,
+        "endChar": 73
+      },
+      "revId": "b94c73426048c67b097d08cf9dee53e1423afc77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2092fb9f",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
         "patchSetId": 2
@@ -59,6 +107,24 @@
       "writtenOn": "2016-07-06T08:38:52Z",
       "side": 1,
       "message": ", skipping put.",
+      "revId": "b94c73426048c67b097d08cf9dee53e1423afc77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_407dff1a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-06T13:21:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_2092fb9f",
       "revId": "b94c73426048c67b097d08cf9dee53e1423afc77",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
