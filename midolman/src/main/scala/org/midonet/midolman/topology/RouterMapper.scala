@@ -536,6 +536,9 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
         mark.onCompleted()
+        if (arpCache ne null) {
+            arpCache.close()
+        }
     }
 
     /**

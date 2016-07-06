@@ -21,8 +21,7 @@ import java.util.UUID
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import org.apache.curator.utils.ZKPaths
-import org.apache.zookeeper.{CreateMode, KeeperException}
+import org.apache.zookeeper.CreateMode
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
@@ -30,17 +29,20 @@ import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import rx.Observable
 
 import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.data.storage.StorageTestClasses.{PojoBridge, PojoRouter}
 import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.services.state.client.StateTableClient
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.ConnectionState
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent._
 
 object ZookeeperStateTableTest {
-    private class ScoreStateTable(val directory: Directory,
-                                  val connectionWatcher: ZkConnectionAwareWatcher)
+    private class ScoreStateTable(val key: StateTable.Key,
+                                  val directory: Directory,
+                                  val proxy: StateTableClient,
+                                  val connection: Observable[ConnectionState])
         extends StateTable[Int, String] {
 
         override def start(): Unit = ???
@@ -81,7 +83,7 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
 
     private def newStorage(): ZookeeperObjectMapper = {
         new ZookeeperObjectMapper(zkRoot, namespaceId, curator, curator,
-                                  reactor, connection, connectionWatcher)
+                                  stateTables, reactor)
     }
 
     private def setupStorage(): ZookeeperObjectMapper = {
@@ -304,9 +306,14 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
             Then("The table should not be null")
             table should not be null
 
-            And("The table connection watcher should not be null")
+            And("The table arguments should not be null")
             val scoreTable = table.asInstanceOf[ScoreStateTable]
-            scoreTable.connectionWatcher shouldBe connectionWatcher
+            scoreTable.key shouldBe StateTable.Key(
+                classOf[PojoBridge], obj.id, classOf[Int], classOf[String],
+                "score-table", Seq.empty)
+            scoreTable.directory should not be null
+            scoreTable.proxy should not be null
+            scoreTable.connection should not be null
 
             And("The table directory path should be the table path")
             val path = storage.tableRootPath(classOf[PojoBridge], obj.id,
