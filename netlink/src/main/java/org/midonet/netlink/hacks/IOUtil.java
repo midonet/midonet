@@ -104,9 +104,9 @@ public class IOUtil {
         return -1;
     }
 
-    public static int write(FileDescriptor fd, ByteBuffer[] buffers, NativeDispatcher nd) {
+    public static long write(FileDescriptor fd, ByteBuffer[] buffers, NativeDispatcher nd) {
         try {
-            return (Integer)writeMultipleRef.invoke(null, fd, buffers, nd.dispatcher);
+            return (Long)writeMultipleRef.invoke(null, fd, buffers, nd.dispatcher);
         } catch (Exception e) {
             log.error("Error invoking method \"{}\"", writeMultipleRef, e);
         }
@@ -123,9 +123,9 @@ public class IOUtil {
         return -1;
     }
 
-    public static int read(FileDescriptor fd, ByteBuffer[] buffers, NativeDispatcher nd) {
+    public static long read(FileDescriptor fd, ByteBuffer[] buffers, NativeDispatcher nd) {
         try {
-            return (Integer)readMultipleRef.invoke(null, fd, buffers, nd.dispatcher);
+            return (Long)readMultipleRef.invoke(null, fd, buffers, nd.dispatcher);
         } catch (Exception e) {
             log.error("Error invoking method \"{}\"", readMultipleRef, e);
         }
