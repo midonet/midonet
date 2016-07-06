@@ -113,6 +113,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
 
             // Preseed table
             val mac1 = MAC.random
+            vxgw.macPortTable.start()
             vxgw.macPortTable.add(mac1, vxgw.port1Id)
 
             // map so we can inject stuff ourselves.

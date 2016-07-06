@@ -17,14 +17,15 @@
 package org.midonet.cluster.data.storage
 
 import java.util
-import java.util.{ConcurrentModificationException, UUID}
+import java.util.UUID
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Await, Future, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
-import org.scalatest.{Matchers, BeforeAndAfter, FeatureSpec}
+import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
+import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
@@ -33,6 +34,9 @@ import org.midonet.cluster.data.storage.StorageTestClasses._
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.Condition
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.rpc.State.ProxyResponse.Notify
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => StateClientConnectionState}
+import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{ClassAwaitableObserver, UUIDUtil}
 import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}

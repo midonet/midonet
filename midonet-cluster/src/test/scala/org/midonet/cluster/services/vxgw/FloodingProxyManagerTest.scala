@@ -360,8 +360,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         val hostStore =
             new ZookeeperObjectMapper(backendCfg.rootKey, id.toString,
                                       backend.curator, backend.failFastCurator,
-                                      backend.reactor, backend.connection,
-                                      backend.connectionWatcher)
+                                      null, backend.reactor)
         MidonetBackend.setupBindings(hostStore, hostStore)
         if (isAlive) {
             hostStore.addValue(classOf[Host], id, AliveKey, AliveKey)

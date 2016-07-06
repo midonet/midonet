@@ -30,7 +30,7 @@ object StateTable {
       */
     case class Key(objectClass: Class[_], objectId: Any,
                    keyClass: Class[_], valueClass: Class[_],
-                   name: String, args: Set[String]) {
+                   name: String, args: Seq[Any]) {
         private var string: String = null
         override def toString: String = {
             if (string eq null) {

@@ -18,15 +18,28 @@ package org.midonet.cluster.util
 
 import org.scalatest.Suite
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection, SessionUnawareConnectionWatcher}
+import rx.Observable
+
+import org.midonet.cluster.backend.zookeeper.{SessionUnawareConnectionWatcher, ZkConnection, ZkConnectionAwareWatcher}
+import org.midonet.cluster.rpc.State.ProxyResponse.Notify
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => StateClientConnectionState}
+import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.storage.CuratorZkConnection
-import org.midonet.util.eventloop.{Reactor, CallingThreadReactor}
+import org.midonet.util.eventloop.{CallingThreadReactor, Reactor}
 
 trait MidonetBackendTest extends Suite with CuratorTestFramework {
 
     protected var reactor: Reactor = _
     protected var connection: ZkConnection = _
     protected var connectionWatcher: ZkConnectionAwareWatcher = _
+    protected val stateTables = new StateTableClient {
+        override def stop(): Boolean = false
+        override def observable(table: StateSubscriptionKey): Observable[Notify.Update] =
+            Observable.never()
+        override def connection: Observable[StateClientConnectionState] =
+            Observable.never()
+        override def start(): Unit = { }
+    }
 
     override def beforeEach(): Unit = {
         super.beforeEach()
