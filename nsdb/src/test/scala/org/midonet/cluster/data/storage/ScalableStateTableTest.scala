@@ -62,7 +62,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
         protected[storage] override lazy val nullValue = null
         protected[storage] override lazy val tableKey =
             Key(classOf[Object], objectId, classOf[String], classOf[String],
-                "test", Set.empty)
+                "test", Seq.empty)
 
         protected override def decodeKey(string: String): String = string
         protected override def decodeValue(string: String): String = string

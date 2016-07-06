@@ -16,11 +16,15 @@
 
 package org.midonet.cluster.storage
 
+import org.apache.curator.framework.state.ConnectionState
+
+import rx.Observable
+
 import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
+import org.midonet.cluster.data.storage.StateTable.Key
 import org.midonet.cluster.data.storage.StateTableEncoder.Ip4ToMacEncoder
-import org.midonet.cluster.data.storage.{DirectoryStateTable, StateTable}
-import org.midonet.midolman.state.ReplicatedMap
+import org.midonet.cluster.data.storage.{DirectoryStateTable, ScalableStateTable, StateTable}
+import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.packets.{IPv4Addr, MAC}
 
 /**
@@ -34,17 +38,14 @@ import org.midonet.packets.{IPv4Addr, MAC}
   * Therefore, to modify an existing persisting entry, first delete the entry
   * and then add a new one with the same IP address.
   */
-final class Ip4MacStateTable(override val directory: Directory,
-                             zkConnWatcher: ZkConnectionAwareWatcher)
+final class Ip4MacStateTable(override val tableKey: Key,
+                             override val directory: Directory,
+                             override val proxy: StateTableClient,
+                             override val connection: Observable[ConnectionState])
     extends DirectoryStateTable[IPv4Addr, MAC]
-    with ReplicatedMapStateTable[IPv4Addr, MAC]
+    with ScalableStateTable[IPv4Addr, MAC]
     with Ip4ToMacEncoder {
 
-    protected override val nullValue = null
-    protected override val map = new ReplicatedMap[IPv4Addr, MAC](directory)
-                                 with Ip4ToMacEncoder
-
-    if (zkConnWatcher ne null)
-        map.setConnectionWatcher(zkConnWatcher)
+    override val nullValue = null
 
 }
