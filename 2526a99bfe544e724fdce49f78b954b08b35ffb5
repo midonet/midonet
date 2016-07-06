@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8961f3aa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-06T16:22:42Z",
+      "side": 1,
+      "message": "Cool. Yeah, the encapsulation of both of them in the same Client makes sense.",
+      "parentUuid": "baa041b7_69a58f02",
+      "range": {
+        "startLine": 121,
+        "startChar": 61,
+        "endLine": 122,
+        "endChar": 40
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_1f71ad44",
         "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
         "patchSetId": 4
@@ -319,6 +343,30 @@
       "side": 1,
       "message": "IIUC yes, the flow state replicatior is instantiated once per simulation thread (packet workflow). So this class is meant to be single threaded. And yes, much better if don\u0027t allocate in each sendState (as this method is executed on each simulation that generates flow state).",
       "parentUuid": "baa041b7_5fabb51e",
+      "range": {
+        "startLine": 112,
+        "startChar": 4,
+        "endLine": 113,
+        "endChar": 76
+      },
+      "revId": "2526a99bfe544e724fdce49f78b954b08b35ffb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6958effa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-06T16:22:42Z",
+      "side": 1,
+      "message": "OK, great then!",
+      "parentUuid": "baa041b7_368ed3d0",
       "range": {
         "startLine": 112,
         "startChar": 4,
