@@ -44,7 +44,8 @@ class BindingHandler @Inject()(
         lockFactory: ZookeeperLockFactory,
         backend: MidonetBackend) {
 
-    private val binder = new ZoomPortBinder(backend.store, lockFactory)
+    private val binder = new ZoomPortBinder(backend.store, backend.stateStore,
+                                            lockFactory)
 
     @PUT
     @Path("{portId}")

@@ -223,7 +223,7 @@ class HostMapperTest extends MidolmanSpec
 
             Then("We obtain a simulation host with the port bound.")
             hostObs.getOnNextEvents.last.portBindings should
-                contain only port.getId.asJava -> "eth0"
+                contain only port.getId.asJava -> ("eth0", null)
 
             And("The host mapper is observing the port.")
             hostMapper.isObservingPort(port.getId) shouldBe true
@@ -255,7 +255,8 @@ class HostMapperTest extends MidolmanSpec
             hostObs.getOnNextEvents should have size 2
 
             hostObs.getOnNextEvents.last.portBindings should contain
-                only(port1.getId.asJava -> "eth0", port2.getId.asJava -> "eth1")
+                only(port1.getId.asJava -> ("eth0", null),
+                     port2.getId.asJava -> ("eth1", null))
 
             And("The host mapper is watching both ports")
             hostMapper.isObservingPort(port1.getId) shouldBe true
@@ -308,7 +309,8 @@ class HostMapperTest extends MidolmanSpec
             hostObs.awaitOnNext(1, timeout) shouldBe true
             hostObs.getOnNextEvents should have size 1
             hostObs.getOnNextEvents.last.portBindings should contain only
-                (port1.getId.asJava -> "eth0", port2.getId.asJava -> "eth1")
+                (port1.getId.asJava -> ("eth0", null),
+                 port2.getId.asJava -> ("eth1", null))
 
             And("The host mapper is watching both ports")
             hostMapper.isObservingPort(port1.getId) shouldBe true
@@ -322,7 +324,7 @@ class HostMapperTest extends MidolmanSpec
             hostObs.getOnNextEvents should have size 2
 
             hostObs.getOnNextEvents.last.portBindings should
-                contain only port2.getId.asJava -> "eth1"
+                contain only port2.getId.asJava -> ("eth1", null)
 
             And("The host mapper is not watching the deleted port")
             hostMapper.isObservingPort(port1.getId) shouldBe false
