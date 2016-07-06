@@ -49,7 +49,7 @@ import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 import org.midonet.cluster.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.services.MidonetBackendService;
-import org.midonet.cluster.services.rest_api.Vladimir;
+import org.midonet.cluster.services.rest_api.RestApi;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.southbound.vtep.MockOvsdbVtepConnectionProvider;
 import org.midonet.southbound.vtep.OvsdbVtepConnectionProvider;
@@ -153,7 +153,7 @@ public class FuncTest {
                     new NamedThreadFactory("rest-api", true)));
 
             FuncTest._injector = Guice.createInjector(
-                Vladimir.servletModule(
+                RestApi.servletModule(
                     backend, ec, curator, cfg, authService,
                     Logger.apply(getLogger(getClass()))),
                 new AbstractModule() {
