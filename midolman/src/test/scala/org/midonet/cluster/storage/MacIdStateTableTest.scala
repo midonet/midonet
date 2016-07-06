@@ -25,9 +25,14 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
+import rx.Observable
+
 import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkDirectory, ZookeeperConnectionWatcher}
-import org.midonet.cluster.data.storage.StateTable.Update
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkDirectory}
+import org.midonet.cluster.data.storage.StateTable.{Key, Update}
+import org.midonet.cluster.rpc.State.ProxyResponse.Notify
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
+import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.packets.MAC
 import org.midonet.util.MidonetEventually
@@ -42,13 +47,21 @@ class MacIdStateTableTest extends FlatSpec with GivenWhenThen with Matchers
     private var connection: ZkConnection = _
     private var directory: Directory = _
     private val reactor = new CallingThreadReactor
-    private var zkConnWatcher: ZkConnectionAwareWatcher = _
     private val timeout = 5 seconds
+    private val tableKey = Key(classOf[Object], null, classOf[String],
+                               classOf[String], "mac_id_table", Seq.empty)
+    private val proxy = new StateTableClient {
+        override def stop(): Boolean = false
+        override def observable(table: StateSubscriptionKey): Observable[Notify.Update] =
+            Observable.never()
+        override def connection: Observable[ProxyConnectionState] =
+            Observable.never()
+        override def start(): Unit = { }
+    }
 
     protected override def setup(): Unit = {
         connection = new CuratorZkConnection(curator, reactor)
         directory = new ZkDirectory(connection, zkRoot, reactor)
-        zkConnWatcher = new ZookeeperConnectionWatcher
     }
 
     protected override def teardown(): Unit = {
@@ -82,7 +95,7 @@ class MacIdStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support ephemeral CRUD operations for single entry" in {
         Given("A state table")
-        val table = new MacIdStateTable(directory, zkConnWatcher)
+        val table = new MacIdStateTable(tableKey, directory, proxy, Observable.never())
 
         And("An observer to the table")
         val obs = new TestAwaitableObserver[Update[MAC, UUID]]
@@ -139,7 +152,7 @@ class MacIdStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support ephemeral CRUD operations for multiple entries" in {
         Given("A state table")
-        val table = new MacIdStateTable(directory, zkConnWatcher)
+        val table = new MacIdStateTable(tableKey, directory, proxy, Observable.never())
 
         And("An observer to the table")
         val obs = new TestAwaitableObserver[Update[MAC, UUID]]
@@ -229,7 +242,7 @@ class MacIdStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support persistent operations" in {
         Given("A state table")
-        val table = new MacIdStateTable(directory, zkConnWatcher)
+        val table = new MacIdStateTable(tableKey, directory, proxy, Observable.never())
 
         And("An observer to the table")
         val obs = new TestAwaitableObserver[Update[MAC, UUID]]
@@ -273,7 +286,7 @@ class MacIdStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support get by value" in {
         Given("A state table")
-        val table = new MacIdStateTable(directory, zkConnWatcher)
+        val table = new MacIdStateTable(tableKey, directory, proxy, Observable.never())
         table.start()
 
         When("Adding three MAC-ID pair to the table")

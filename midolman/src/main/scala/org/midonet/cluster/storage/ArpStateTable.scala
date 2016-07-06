@@ -16,13 +16,17 @@
 
 package org.midonet.cluster.storage
 
+import org.apache.curator.framework.state.ConnectionState
+
+import rx.Observable
+
 import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
+import org.midonet.cluster.data.storage.StateTable.Key
 import org.midonet.cluster.data.storage.model.ArpEntry
-import org.midonet.cluster.data.storage.{DirectoryStateTable, StateTableEncoder}
+import org.midonet.cluster.data.storage.{DirectoryStateTable, ScalableStateTable, StateTableEncoder}
+import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.storage.ArpStateTable.ArpEncoder
 import org.midonet.midolman.serialization.SerializationException
-import org.midonet.midolman.state.ReplicatedMap
 import org.midonet.packets.IPv4Addr
 
 object ArpStateTable {
@@ -49,17 +53,14 @@ object ArpStateTable {
 
 }
 
-final class ArpStateTable(override val directory: Directory,
-                          zkConnWatcher: ZkConnectionAwareWatcher)
+final class ArpStateTable(override val key: Key,
+                          override val directory: Directory,
+                          override val proxy: StateTableClient,
+                          override val connection: Observable[ConnectionState])
     extends DirectoryStateTable[IPv4Addr, ArpEntry]
-    with ReplicatedMapStateTable[IPv4Addr, ArpEntry]
+    with ScalableStateTable[IPv4Addr, ArpEntry]
     with ArpEncoder {
 
     protected override val nullValue = null
-    protected override val map = new ReplicatedMap[IPv4Addr, ArpEntry](directory)
-                                 with ArpEncoder
-
-    if (zkConnWatcher ne null)
-        map.setConnectionWatcher(zkConnWatcher)
 
 }

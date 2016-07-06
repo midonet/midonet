@@ -33,7 +33,7 @@ class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
 
     override protected def setup(): Unit = {
         zom = new ZookeeperObjectMapper(zkRoot, "host", curator, curator,
-                                        reactor, connection, connectionWatcher)
+                                        stateTables, reactor)
         zom.build()
     }
 

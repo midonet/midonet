@@ -43,10 +43,12 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryImpl}
 import org.midonet.cluster.services.state.StateProxyService
-import org.midonet.cluster.services.state.client.{StateProxyClient, StateProxyClientConfig$, StateTableClient}
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => StateClientConnectionState}
+import org.midonet.cluster.services.state.client.{StateProxyClient, StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
 import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.conf.HostIdGenerator
@@ -354,6 +356,7 @@ abstract class MidonetBackend extends AbstractService {
     def connection: ZkConnection
     /** Watches the storage connection. */
     def connectionWatcher: ZkConnectionAwareWatcher
+
     /** Emits notifications with the current connection state for
       * [[curator]]. */
     def connectionState: Observable[ConnectionState]
@@ -396,10 +399,19 @@ class MidonetBackendService(config: MidonetBackendConfig,
     override val failFastConnectionState =
         ConnectionObservable.create(failFastCurator)
 
+    private val stateTables = new StateTableClient {
+        override def stop(): Boolean = false
+        override def observable(table: StateSubscriptionKey): Observable[Notify.Update] =
+            Observable.never()
+        override def connection: Observable[StateClientConnectionState] =
+            Observable.never()
+        override def start(): Unit = { }
+    }
+
     private val zoom =
         new ZookeeperObjectMapper(config.rootKey, namespaceId.toString, curator,
-                                  failFastCurator, reactor, connection,
-                                  connectionWatcher, metricRegistry)
+                                  failFastCurator, stateTables, reactor,
+                                  metricRegistry)
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
