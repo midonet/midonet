@@ -41,10 +41,10 @@ import org.midonet.cluster.services.discovery.MidonetServiceHostAndPort
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
-class PersistentConnectionTest  extends FeatureSpec
-                                        with Matchers
-                                        with MidonetEventually
-                                        with GivenWhenThen {
+class PersistentConnectionTest extends FeatureSpec
+                                       with Matchers
+                                       with MidonetEventually
+                                       with GivenWhenThen {
 
     val executor = new ScheduledThreadPoolExecutor(4)
     implicit val exctx = ExecutionContext.fromExecutor(executor)
