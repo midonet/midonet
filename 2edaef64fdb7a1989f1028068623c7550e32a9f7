@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c64488b8",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-06T13:21:42Z",
+      "side": 1,
+      "message": "can be a hash set",
+      "range": {
+        "startLine": 238,
+        "startChar": 12,
+        "endLine": 238,
+        "endChar": 42
+      },
+      "revId": "2edaef64fdb7a1989f1028068623c7550e32a9f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e649ccd1",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-06T13:21:42Z",
+      "side": 1,
+      "message": "this is wrong: if we return at any of the ifs below, we leave the entry in the writing set even if we don\u0027t begin the async add: need to move at the end.",
+      "range": {
+        "startLine": 427,
+        "startChar": 12,
+        "endLine": 427,
+        "endChar": 69
+      },
+      "revId": "2edaef64fdb7a1989f1028068623c7550e32a9f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
