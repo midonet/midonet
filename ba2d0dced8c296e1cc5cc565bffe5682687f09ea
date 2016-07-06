@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_06c0307b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-06T10:59:29Z",
+      "side": 1,
+      "message": "Not anymore. Update.",
+      "range": {
+        "startLine": 15,
+        "startChar": 31,
+        "endLine": 18,
+        "endChar": 15
+      },
+      "revId": "ba2d0dced8c296e1cc5cc565bffe5682687f09ea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
