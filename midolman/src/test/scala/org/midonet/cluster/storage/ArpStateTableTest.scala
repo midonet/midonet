@@ -19,6 +19,9 @@ package org.midonet.cluster.storage
 import java.util.Formatter
 
 import scala.concurrent.duration._
+import scala.util.Random
+
+import com.google.protobuf.ByteString
 
 import org.apache.zookeeper.data.Stat
 import org.junit.runner.RunWith
@@ -31,9 +34,11 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkDirectory}
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
 import org.midonet.cluster.data.storage.model.ArpEntry
+import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
+import org.midonet.cluster.storage.ArpStateTable.ArpEncoder
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.MidonetEventually
@@ -86,7 +91,7 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     private def hasPersistentNode(address: IPv4Addr, entry: ArpEntry): Boolean = {
         val stat = new Stat
-        val data = curator.getData.storingStatIn(stat)
+        curator.getData.storingStatIn(stat)
             .forPath(getPersistentPath(address, entry))
         stat.getEphemeralOwner == 0
     }
@@ -314,5 +319,30 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         And("The table should return the keys by value")
         table.getLocalByValue(entry1) shouldBe Set(ip1)
         table.getLocalByValue(entry2) shouldBe Set(ip2, ip3, ip4)
+    }
+
+    "Encoder" should "decode key and values" in {
+        Given("An ARP enocoder")
+        val encoder = new ArpEncoder {
+            def keyOf(kv: KeyValue): IPv4Addr = decodeKey(kv)
+            def valueOf(kv: KeyValue): ArpEntry = decodeValue(kv)
+        }
+
+        And("An address key")
+        val address = IPv4Addr.random
+        val key = KeyValue.newBuilder().setData32(address.addr).build()
+
+        And("An ARP entry")
+        val random = new Random()
+        val entry = ArpEntry(MAC.random(), random.nextLong(), random.nextLong(),
+                             random.nextLong())
+        val value = KeyValue.newBuilder().setDataVariable(
+            ByteString.copyFromUtf8(entry.encode)).build()
+
+        Then("The decoder decodes the key")
+        encoder.keyOf(key) shouldBe address
+
+        And("The decoder decodes the value")
+        encoder.valueOf(value) shouldBe entry
     }
 }

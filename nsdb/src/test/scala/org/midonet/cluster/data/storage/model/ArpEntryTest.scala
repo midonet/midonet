@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.data.storage.model
 
-import org.apache.commons.lang3.SerializationException
+import org.apache.commons.lang.SerializationException
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}

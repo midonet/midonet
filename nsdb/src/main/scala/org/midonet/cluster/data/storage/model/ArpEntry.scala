@@ -18,7 +18,7 @@ package org.midonet.cluster.data.storage.model
 
 import com.google.common.base.MoreObjects
 
-import org.apache.commons.lang3.SerializationException
+import org.apache.commons.lang.SerializationException
 
 import org.midonet.packets.MAC
 import org.midonet.packets.MAC.InvalidMacException
