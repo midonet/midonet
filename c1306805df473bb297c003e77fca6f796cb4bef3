@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7592fc4c",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 611,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-07-07T13:03:17Z",
+      "side": 1,
+      "message": "Will remove. This was used to execute the tests a few hundred times to try to bring races out.",
+      "parentUuid": "baa041b7_d5e7883e",
+      "range": {
+        "startLine": 611,
+        "startChar": 42,
+        "endLine": 611,
+        "endChar": 61
+      },
+      "revId": "c1306805df473bb297c003e77fca6f796cb4bef3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_35cd94b7",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-07-07T12:42:07Z",
       "side": 1,
       "message": "Do we need to check also the upper bound? Just asking because I\u0027m not sure of the guarantees the client expect. I think this is prone to flakeyness. I\u0027d just check for the lower bound if not mandatory (time elapsed \u003e reconnectDelay * maxAttempts).\n\nSame for the other similar tests.",
+      "range": {
+        "startLine": 774,
+        "startChar": 12,
+        "endLine": 776,
+        "endChar": 34
+      },
+      "revId": "c1306805df473bb297c003e77fca6f796cb4bef3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_15a4d0a3",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 776,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-07-07T13:03:17Z",
+      "side": 1,
+      "message": "I removed the upper bound check as it was a cause of flakeyness, as you say. The client really doesn\u0027t care about the timing, just checking that it performs as expected.",
+      "parentUuid": "baa041b7_35cd94b7",
       "range": {
         "startLine": 774,
         "startChar": 12,
