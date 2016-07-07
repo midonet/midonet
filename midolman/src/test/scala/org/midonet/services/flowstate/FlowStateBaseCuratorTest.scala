@@ -25,12 +25,14 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.services.flowstate.stream.{Context, FlowStateManager}
 
 trait FlowStateBaseCuratorTest extends FlowStateBaseTest
                                        with CuratorTestFramework {
 
     protected var config: String = _
     protected var midolmanConfig: MidolmanConfig = _
+    protected var streamContext: Context = _
     protected var tmpDir: File = _
 
     override def beforeEach(): Unit = {
@@ -69,5 +71,7 @@ trait FlowStateBaseCuratorTest extends FlowStateBaseTest
         val flowStateConfig = ConfigFactory.parseString(config.stripMargin)
 
         midolmanConfig = MidolmanConfig.forTests(flowStateConfig)
+        val manager = new FlowStateManager(midolmanConfig.flowState)
+        streamContext = Context(midolmanConfig.flowState, manager)
     }
 }
