@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.data.storage
 
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
@@ -39,8 +40,10 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.ZkDirectory
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.TransactionManager._
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.util.ConnectionObservable
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.collection.PathMap
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
@@ -195,6 +198,16 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
                       (implicit key: ClassTag[K], value: ClassTag[V])
     : StateTable[K, V] = {
         assertBuilt()
+
+        val objectId = id match {
+            case uuid: UUID => uuid
+            case uuid: Commons.UUID => uuid.asJava
+            case string: String => UUID.fromString(string)
+            case _ =>
+                throw new IllegalArgumentException(
+                    s"Table object identifier $id not supported")
+        }
+
         val path = tablePath(clazz, id, name, args: _*)
         if (args.nonEmpty) {
             ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, path, true)
@@ -214,7 +227,7 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
                                           classOf[StateTableClient],
                                           classOf[Observable[ConnectionState]])
 
-        val tableKey = StateTable.Key(clazz, id, key.runtimeClass,
+        val tableKey = StateTable.Key(clazz, objectId, key.runtimeClass,
                                       value.runtimeClass, name, args)
 
         constructor.newInstance(tableKey, directory, stateTables, connection)
