@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory
 
 import rx.Observer
 
+import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.rpc.State
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
@@ -101,21 +102,23 @@ class StateProxyClientTest extends FeatureSpec
                                    with MidonetEventually {
 
     val goodUUID = UUID.randomUUID()
-    val existingTable = new StateSubscriptionKey(classOf[Int],
-                                                 goodUUID,
-                                                 classOf[Long],
-                                                 classOf[String],
-                                                 "test_table",
-                                                 Nil,
-                                                 None)
+    val existingTable = new StateSubscriptionKey(
+        StateTable.Key(classOf[Int],
+                       goodUUID,
+                       classOf[Long],
+                       classOf[String],
+                       "test_table",
+                       Nil),
+        None)
 
-    val missingTable = new StateSubscriptionKey(classOf[Int],
-                                                UUID.randomUUID(),
-                                                classOf[Long],
-                                                classOf[String],
-                                                "bad_table",
-                                                Nil,
-                                                None)
+    val missingTable = new StateSubscriptionKey(
+        StateTable.Key(classOf[Int],
+                       UUID.randomUUID(),
+                       classOf[Long],
+                       classOf[String],
+                       "bad_table",
+                       Nil),
+        None)
 
     class TestObjects(val softReconnectDelay: Duration = 200 milliseconds,
                       val maxAttempts: Int = 30,

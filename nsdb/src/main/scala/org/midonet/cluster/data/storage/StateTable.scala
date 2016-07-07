@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.data.storage
 
+import java.util.UUID
+
 import scala.concurrent.Future
 
 import rx.Observable
@@ -28,7 +30,7 @@ object StateTable {
       * A unique key for a state table, which includes the object class and
       * identifier, key and value classes, table name and optional arguments.
       */
-    case class Key(objectClass: Class[_], objectId: Any,
+    case class Key(objectClass: Class[_], objectId: UUID,
                    keyClass: Class[_], valueClass: Class[_],
                    name: String, args: Seq[Any]) {
         private var string: String = null
