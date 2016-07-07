@@ -16,6 +16,8 @@
 
 package org.midonet.util.io.stream
 
+import java.nio.ByteBuffer
+
 import org.midonet.util.concurrent.NanoClock
 
 trait TimedBlockHeader extends BlockHeader {
@@ -36,21 +38,31 @@ trait TimedBlockInvalidator[T <: TimedBlockHeader] { this: ByteBufferBlockWriter
 
     /**
       * This method triggers and invalidates the entries in the ring buffer
-      * that are older than a configured amount of time.
+      * that are older than a configured amount of time. We do not invalidate
+      * the head of the ring buffer as it's the block being written.
       *
       * @return The number of blocks invalidated
       */
     def invalidateBlocks(): Int = {
-        val numBlocks = buffers.length
-        val current = buffers.head
-        while (buffers.nonEmpty
-               && isBlockStale(blockBuilder(buffers.peek.get), currentClock)) {
-            val bb = buffers.take().get
+        var invalidatedBlocks = 0
+        var finished = false
+        while (buffers.length > 1 && !finished) {
+            var bb: ByteBuffer = null
+            buffers.synchronized {
+                if (isBlockStale(blockBuilder(buffers.peek.get), currentClock)) {
+                    bb = buffers.take().get
+                    invalidatedBlocks += 1
+                } else {
+                    finished = true
+                }
+            }
             // Reset the block to initial values to prepare them for reuse
             // and not confuse as a valid block when reading it.
-            blockBuilder.reset(bb)
+            if (bb ne null) {
+                blockBuilder.reset(bb)
+            }
         }
-        numBlocks - buffers.length
+        invalidatedBlocks
     }
 
     @inline
