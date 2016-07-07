@@ -29,7 +29,6 @@ import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
 import org.midonet.cluster.util.UUIDUtil.toProto
-import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
@@ -173,14 +172,14 @@ trait FlowStateBaseTest extends FeatureSpec
         (udp, protos, encoder)
     }
 
-    protected def createValidFlowStatePorts(flowStateConfig: FlowStateConfig) = {
+    protected def createValidFlowStatePorts(context: stream.Context) = {
         val validPorts = (1 to 3) map { _ => randomUUID }
 
         validPorts foreach { port =>
             val flowstate = validFlowStateInternalMessage(numNats = 2,
                 numEgressPorts = 3)._3
 
-            val writer: FlowStateWriter = FlowStateWriter(flowStateConfig, port)
+            val writer: FlowStateWriter = FlowStateWriter(context, port)
             writer.write(flowstate)
             writer.flush()
         }
