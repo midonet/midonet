@@ -22,6 +22,30 @@
       "revId": "5def47f89dc19c80b5759ad7035a749c67a35f2c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_daad7789",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 628,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-07-07T10:14:13Z",
+      "side": 1,
+      "message": "Thanks, will do.",
+      "parentUuid": "baa041b7_9a8fef22",
+      "range": {
+        "startLine": 628,
+        "startChar": 28,
+        "endLine": 628,
+        "endChar": 54
+      },
+      "revId": "5def47f89dc19c80b5759ad7035a749c67a35f2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
