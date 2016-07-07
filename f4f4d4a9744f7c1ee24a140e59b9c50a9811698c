@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_203b14d3",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-07T14:30:03Z",
+      "side": 1,
+      "message": "What if this fails in the first line? Couldn\u0027t it cause leaks?",
+      "range": {
+        "startLine": 129,
+        "startChar": 12,
+        "endLine": 132,
+        "endChar": 39
+      },
+      "revId": "f4f4d4a9744f7c1ee24a140e59b9c50a9811698c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
