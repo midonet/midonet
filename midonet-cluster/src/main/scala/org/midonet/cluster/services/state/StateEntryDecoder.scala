@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.state
 
-import java.nio.ByteBuffer
+import java.nio.{ByteBuffer, ByteOrder}
 import java.util.UUID
 
 import com.google.protobuf.ByteString
@@ -64,6 +64,7 @@ object StateEntryDecoder {
             KeyValue.newBuilder()
                     .setDataVariable(ByteString.copyFrom(
                         ByteBuffer.allocate(16)
+                            .order(ByteOrder.BIG_ENDIAN)
                             .putLong(id.getMostSignificantBits)
                             .putLong(id.getLeastSignificantBits)
                             .rewind().asInstanceOf[ByteBuffer]))
