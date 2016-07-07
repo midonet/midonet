@@ -355,6 +355,9 @@ abstract class MidonetBackend extends AbstractService {
     /** Watches the storage connection. */
     def connectionWatcher: ZkConnectionAwareWatcher
     /** Emits notifications with the current connection state for
+      * [[curator]]. */
+    def connectionState: Observable[ConnectionState]
+    /** Emits notifications with the current connection state for
       * [[failFastCurator]]. */
     def failFastConnectionState: Observable[ConnectionState]
     /** Provides access to the state table client. */
@@ -388,6 +391,8 @@ class MidonetBackendService(config: MidonetBackendConfig,
     override val connection = new CuratorZkConnection(curator, reactor)
     override val connectionWatcher =
         ZookeeperConnectionWatcher.createWith(config, reactor, connection)
+    override val connectionState =
+        ConnectionObservable.create(curator)
     override val failFastConnectionState =
         ConnectionObservable.create(failFastCurator)
 
