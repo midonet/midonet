@@ -36,15 +36,15 @@ trait TimedBlockInvalidator[T <: TimedBlockHeader] { this: ByteBufferBlockWriter
 
     /**
       * This method triggers and invalidates the entries in the ring buffer
-      * that are older than a configured amount of time.
+      * that are older than a configured amount of time. We do not invalidate
+      * the head of the ring buffer as it's the block being written.
       *
       * @return The number of blocks invalidated
       */
     def invalidateBlocks(): Int = {
         val numBlocks = buffers.length
-        val current = buffers.head
-        while (buffers.nonEmpty
-               && isBlockStale(blockBuilder(buffers.peek.get), currentClock)) {
+        while (buffers.length > 1 &&
+               isBlockStale(blockBuilder(buffers.peek.get), currentClock)) {
             val bb = buffers.take().get
             // Reset the block to initial values to prepare them for reuse
             // and not confuse as a valid block when reading it.
