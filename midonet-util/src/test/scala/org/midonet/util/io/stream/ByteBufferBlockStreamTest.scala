@@ -308,6 +308,32 @@ class ByteBufferBlockStreamTest extends FeatureSpec
     }
 
     feature("ByteBufferExpirationStream handles block expiration") {
+        scenario("The running block is not expired") {
+            Given("An expiration byte buffer block stream")
+            val blockBuilder = TestTimedBlockBuilder
+            val (outStream, _, _) = getStreams(blockBuilder)
+
+            When("Starting the clock")
+            currentTime = 0
+
+            And("Writing a single message to have a single block")
+            val outBlock = ByteBuffer.allocate(blockSize)
+            Random.nextBytes(outBlock.array())
+            val beforeWrite = currentTime
+            outStream.write(outBlock.array)
+            currentTime += 1
+
+            Then("No blocks should be invalidated")
+            outStream.invalidateBlocks() shouldBe 0
+
+            When("Advancing the clock past the timeout time")
+            currentTime += (timeout * 2)
+
+            Then("No blocks should be invalidated because we have only one")
+            outStream.invalidateBlocks() shouldBe 0
+
+        }
+
         scenario("Blocks are removed after expiration time.") {
             Given("An expiration byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder

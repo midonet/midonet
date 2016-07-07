@@ -67,7 +67,7 @@ trait FlowStateBaseTest extends FeatureSpec
            |agent.minions.flow_state.connection_timeout : 5s
            |agent.minions.flow_state.block_size : 1
            |agent.minions.flow_state.blocks_per_port : 10
-           |agent.minions.flow_state.expiration_time : 20s
+           |agent.minions.flow_state.expiration_delay : 5s
            |agent.minions.flow_state.log_directory: ${Files.createTempDir().getName}
            |cassandra.servers : "127.0.0.1:9142"
            |cassandra.cluster : "midonet"
