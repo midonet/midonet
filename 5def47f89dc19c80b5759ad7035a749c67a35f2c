@@ -46,6 +46,29 @@
       "revId": "5def47f89dc19c80b5759ad7035a749c67a35f2c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3ab343eb",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-07T10:18:53Z",
+      "side": 1,
+      "message": "Nit: (maybe for a later patch) something like this is more readable:\nratio should be \u003e\u003d 0.8\nSame for the ones below",
+      "range": {
+        "startLine": 643,
+        "startChar": 12,
+        "endLine": 643,
+        "endChar": 36
+      },
+      "revId": "5def47f89dc19c80b5759ad7035a749c67a35f2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
