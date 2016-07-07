@@ -18,30 +18,27 @@ package org.midonet.services.flowstate.handlers
 import java.nio.ByteBuffer
 import java.util
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{List => JList, UUID}
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable
-import scala.collection.mutable.MutableList
-import scala.util.control.NonFatal
+import java.util.{UUID, List => JList}
 
 import com.datastax.driver.core.Session
 import com.google.common.annotations.VisibleForTesting
-
+import io.netty.channel.ChannelHandler.Sharable
+import io.netty.channel.socket.DatagramPacket
+import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
 import org.midonet.cluster.storage.{FlowStateStorage, FlowStateStorageWriter}
-import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
 import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
 import org.midonet.packets.SbeEncoder
 import org.midonet.services.flowstate.FlowStateService._
-import org.midonet.services.flowstate.stream.FlowStateWriter
+import org.midonet.services.flowstate.stream.{Context, FlowStateWriter}
 import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType}
 
-import io.netty.channel.ChannelHandler.Sharable
-import io.netty.channel.socket.DatagramPacket
-import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+import scala.collection.mutable.MutableList
+import scala.util.control.NonFatal
 
 trait FlowStateOp
 case class PushState(encoder: SbeEncoder) extends FlowStateOp
@@ -53,7 +50,7 @@ case class InvalidOp(e: Throwable) extends FlowStateOp
   * cluster. We reuse this handler for each incoming connection to avoid
   * garbage collection. */
 @Sharable
-class FlowStateWriteHandler(config: FlowStateConfig,
+class FlowStateWriteHandler(context: Context,
                             session: Session)
     extends SimpleChannelInboundHandler[DatagramPacket] {
 
@@ -67,7 +64,7 @@ class FlowStateWriteHandler(config: FlowStateConfig,
       * initialized if the legacyPushState flag is true.
       */
     protected val storageProvider: ThreadLocal[FlowStateStorageWriter] = {
-        if (config.legacyPushState) {
+        if (context.config.legacyPushState) {
             new ThreadLocal[FlowStateStorageWriter] {
                 override def initialValue(): FlowStateStorageWriter = {
                     Log debug "Getting the initial value for the flow state storage."
@@ -80,7 +77,6 @@ class FlowStateWriteHandler(config: FlowStateConfig,
         }
     }
 
-    @VisibleForTesting
     protected[flowstate] val portWriters = new ConcurrentHashMap[UUID, FlowStateWriter]()
 
     @volatile
@@ -143,7 +139,7 @@ class FlowStateWriteHandler(config: FlowStateConfig,
             if (portWriters.containsKey(portId)) {
                 portWriters.get(portId)
             } else {
-                val writer = FlowStateWriter(config, portId)
+                val writer = FlowStateWriter(context, portId)
                 portWriters.put(portId, writer)
                 writer
             }
@@ -181,11 +177,11 @@ class FlowStateWriteHandler(config: FlowStateConfig,
         val portsIter = msg.portIds
         if (portsIter.count == 1) {
             val (ingressPortId, egressPortIds) = portIdsFromSbe(portsIter.next)
-            if (config.legacyPushState) {
+            if (context.config.legacyPushState) {
                 writeInLegacyStorage(
                     ingressPortId, egressPortIds, conntrackKeys, natKeys)
             }
-            if (config.localPushState) {
+            if (context.config.localPushState) {
                 writeInLocalStorage(ingressPortId, egressPortIds, encoder)
             }
         } else {

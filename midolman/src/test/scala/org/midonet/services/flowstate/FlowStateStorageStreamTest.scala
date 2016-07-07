@@ -41,6 +41,7 @@ import org.midonet.util.io.stream._
 class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
     private var config: FlowStateConfig = _
+    private var context: stream.Context = _
     private var tmpFile: File = _
     private var portId: UUID = _
     private var tmpDir: File = _
@@ -102,6 +103,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
                |""".stripMargin)
         config = MidolmanConfig.forTests(flowStateConfig).flowState
         portId = UUID.randomUUID()
+        context = stream.Context(config, new FlowStateManager(config))
     }
 
     feature("FlowState builder handles headers") {
@@ -176,7 +178,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
         scenario("Writing a single message on an empty stream is compressed") {
             Given("A flow state storage stream")
-            val outStream = FlowStateWriter(config, portId)
+            val outStream = FlowStateWriter(context, portId)
             val buffers = outStream.out.out.buffers
 
             And("A message to store")
@@ -201,7 +203,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
         scenario("Writing to a stream adds a buffer when current is full") {
             Given("A flow state storage stream")
-            val outStream = FlowStateWriter(config, portId)
+            val outStream = FlowStateWriter(context, portId)
             val buffers = outStream.out.out.buffers
 
             When("Writing to the stream indefinitely")
@@ -234,7 +236,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
         scenario("Trying to write a message bigger than the block size") {
             Given("A flow state storage stream")
-            val blockWriter = ByteBufferBlockWriter(config, portId)
+            val blockWriter = ByteBufferBlockWriter(context, portId)
             val snappyWriter = new SnappyBlockWriter(blockWriter, config.blockSize)
 
             val block = ByteBuffer.allocate(config.blockSize + 1)
@@ -247,7 +249,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
     feature("FlowStateStream handles reads") {
         scenario("Reading from a single-block multi-message stream") {
             Given("A flow state storage stream")
-            val outStream = FlowStateWriter(config, portId)
+            val outStream = FlowStateWriter(context, portId)
             val buffers = outStream.out.out.buffers
 
             And("Some messages to store")
@@ -262,7 +264,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             buffers.length shouldBe 1
             outStream.close()
 
-            val inStream = FlowStateReader(config, portId)
+            val inStream = FlowStateReader(context, portId)
 
             def readFully() {
                 val readMsgs = mutable.MutableList.empty[SbeEncoder]
@@ -292,7 +294,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
         scenario("Reading from a multi-block multi-message stream") {
             Given("A flow state storage stream")
-            val outStream = FlowStateWriter(config, portId)
+            val outStream = FlowStateWriter(context, portId)
             val buffers = outStream.out.out.buffers
 
             When("Writing to the stream indefinitely")
@@ -308,7 +310,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             When("Closing and reading from the stream")
             outStream.close()
 
-            val inStream = FlowStateReader(config, portId)
+            val inStream = FlowStateReader(context, portId)
             val readMsgs = mutable.MutableList.empty[SbeEncoder]
             var msg: Option[SbeEncoder] = None
             while ( {
@@ -328,7 +330,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
     feature("FlowState expiration") {
         scenario("Can read input stream after some expirations.") {
             Given("A flow state storage stream")
-            val outStream = FlowStateWriter(config, portId)
+            val outStream = FlowStateWriter(context, portId)
             val buffers = outStream.out.out.buffers
             val timeout = config.expirationTime.toMillis
 
@@ -372,7 +374,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
             And("We can read from the stream")
             // point the stream to the new head after expirations
-            val inStream = FlowStateReader(config, portId)
+            val inStream = FlowStateReader(context, portId)
             val readMsg = inStream.read()
             readMsg should not be None
             val readEncoder = readMsg.get
@@ -389,7 +391,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
                 .asInstanceOf[BlockFactory[BlockHeader]]
             val buffers = new RingBufferWithFactory[ByteBuffer](
                 config.blocksPerPort, null, blockFactory.allocate)
-            val outStream = FlowStateWriter(config, buffers)
+            val outStream = FlowStateWriter(context, buffers)
 
             And("A stream of messages until we have two blocks")
             val writeMsgs = mutable.MutableList.empty[SbeEncoder]
@@ -403,7 +405,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             outStream.close()
 
             Then("We can read from it")
-            val inStream = FlowStateReader(config, buffers)
+            val inStream = FlowStateReader(context, buffers)
             val readMsgs = mutable.MutableList.empty[SbeEncoder]
             var msg: Option[SbeEncoder] = None
             while ( { msg = inStream.read(); msg }.isDefined) {
@@ -442,7 +444,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             outStream.close()
 
             Then("It stop after the first truncated message is found")
-            val inStream = FlowStateReader(config, buffers)
+            val inStream = FlowStateReader(context, buffers)
             var readEncoder = inStream.read().get
             assertEqualMessages(readEncoder, writeEncoder)
             readEncoder = inStream.read().get
@@ -454,7 +456,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
     feature("Writting/reading from disk with mem mapped files") {
         scenario("Create/Delete file") {
             When("Opening a flow state writer on unexiting port")
-            val outStream = FlowStateWriter(config, portId)
+            val outStream = FlowStateWriter(context, portId)
             val buffers = outStream.out.out.buffers
 
             Then("An empty file is created")
@@ -481,7 +483,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             size1 shouldBe config.blockSize
 
             When("Deleting the file")
-            deleteFlowStateFile(config, portId)
+            context.ioManager.close(portId)
 
             Then("Memory is not released")
             outStream.write(writeEncoder)
@@ -494,20 +496,20 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             buffers.length shouldBe 0
 
             And("Trying to delete an already deleted file doesn't fail")
-            deleteFlowStateFile(config, portId)
+            context.ioManager.close(portId)
         }
 
         scenario("Opening a non existing file (new binding)") {
             When("Opening a flow state reader on unexisting port")
             intercept[IOException] {
-                FlowStateReader(config, portId)
+                FlowStateReader(context, portId)
                 // The caller should recover from this failure
             }
         }
 
         scenario("Clearing the buffers in input stream") {
             Given("A pre-populated file for a given portId")
-            val outStream = FlowStateWriter(config, portId)
+            val outStream = FlowStateWriter(context, portId)
             val writeMsg1 = validFlowStateInternalMessage(numNats = 2,
                                                   numEgressPorts = 3)
             val writeEncoder1 = writeMsg1._3
@@ -516,7 +518,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             outStream.clear() // remove references to underlying buffer
 
             And("Opening for reading")
-            val inStream = FlowStateReader(config, portId)
+            val inStream = FlowStateReader(context, portId)
             val readEncoder1 = inStream.read().get
             inStream.read() shouldBe None
             Then("The message read is the same as written before")
@@ -530,7 +532,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
         scenario("Reboot (opening an already existing file for reading/writting)") {
             Given("A pre-populated file for a given portId")
-            val outStream = FlowStateWriter(config, portId)
+            val outStream = FlowStateWriter(context, portId)
             val writeMsg1 = validFlowStateInternalMessage(numNats = 2,
                                                   numEgressPorts = 3)
             val writeEncoder1 = writeMsg1._3
@@ -539,14 +541,14 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             outStream.clear() // remove references to underlying buffer
 
             When("Opening for reading")
-            val inStream = FlowStateReader(config, portId)
+            val inStream = FlowStateReader(context, portId)
             var readEncoder1 = inStream.read().get
             inStream.read() shouldBe None
             Then("The message read is the same as written before")
             assertEqualMessages(readEncoder1, writeEncoder1)
 
             When("Writing on a new output stream")
-            val newOutStream = FlowStateWriter(config, portId)
+            val newOutStream = FlowStateWriter(context, portId)
             val writeMsg2 = validFlowStateInternalMessage(numNats = 2,
                                                   numEgressPorts = 3)
             val writeEncoder2 = writeMsg2._3
@@ -556,7 +558,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             newOutStream.clear()
 
             Then("Opening for reading contains two messages")
-            val newInStream = FlowStateReader(config, portId)
+            val newInStream = FlowStateReader(context, portId)
             readEncoder1 = newInStream.read().get
             assertEqualMessages(readEncoder1, writeEncoder1)
             val readEncoder2 = newInStream.read().get
@@ -566,7 +568,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
         scenario("Port migration (request for existing raw flow state)") {
             Given("A pre-populated file for a given portId")
-            val outStream = FlowStateWriter(config, portId)
+            val outStream = FlowStateWriter(context, portId)
             val writeMsg1 = validFlowStateInternalMessage(numNats = 2,
                                                   numEgressPorts = 3)
             val writeEncoder1 = writeMsg1._3
@@ -577,7 +579,7 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             outStream.clear() // remove references to underlying buffer
 
             When("Opening raw data for reading")
-            val rawInStream = ByteBufferBlockReader(config, portId)
+            val rawInStream = ByteBufferBlockReader(context, portId)
             val rawBlock = ByteBuffer.allocate(config.blockSize)
             buffersSeq = rawInStream.buffers.iterator.toIndexedSeq
             rawInStream.read(rawBlock.array, 0, FlowStateBlock.headerSize)
@@ -589,11 +591,11 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
 
             And("Transfer it to another file (using the raw interface)")
             val newPortId = UUID.randomUUID() // so we don't overwrite existing one
-            val rawOutStream = ByteBufferBlockWriter(config, newPortId)
+            val rawOutStream = ByteBufferBlockWriter(context, newPortId)
             rawOutStream.write(rawBlock.array(), 0, header1_1.blockLength)
 
             Then("Read from the new file succeeds")
-            val inStream = FlowStateReader(config, newPortId)
+            val inStream = FlowStateReader(context, newPortId)
             val readEncoder = inStream.read().get
             assertEqualMessages(readEncoder, writeEncoder1)
         }
