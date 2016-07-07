@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f5596c5c",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateReadHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-07T14:26:29Z",
+      "side": 1,
+      "message": "Nit: import order",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 34
+      },
+      "revId": "62aab16333a9539a61315e924ac47f7ecbf6bc50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9531000e",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-07T14:26:29Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 34
+      },
+      "revId": "62aab16333a9539a61315e924ac47f7ecbf6bc50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_152610ce",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-07T14:26:29Z",
+      "side": 1,
+      "message": "rename to iterator?",
+      "range": {
+        "startLine": 132,
+        "startChar": 8,
+        "endLine": 132,
+        "endChar": 14
+      },
+      "revId": "62aab16333a9539a61315e924ac47f7ecbf6bc50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b501a408",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateBaseTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-07T14:26:29Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 24
+      },
+      "revId": "62aab16333a9539a61315e924ac47f7ecbf6bc50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a0ff2400",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/handlers/TestableReadHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-07T14:26:29Z",
+      "side": 1,
+      "message": "import full name?",
+      "range": {
+        "startLine": 23,
+        "startChar": 35,
+        "endLine": 23,
+        "endChar": 49
+      },
+      "revId": "62aab16333a9539a61315e924ac47f7ecbf6bc50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
