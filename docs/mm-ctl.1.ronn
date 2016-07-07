@@ -3,23 +3,14 @@ mm-ctl(1) -- Midolman command line interface
 
 ## SYNOPSIS
 
-`mm-ctl` [--config <file>] [--command] [<args>]
+`mm-ctl` [--command] [<args>]
 
 ## DESCRIPTION
 
-**mm-ctl** is a command line interface to manage Midolman.  It is not a client
-of the REST API, and it does not provide interfaces to manage datapath.
-It is, however, a client of the MidoNet data cluster, and furthermore, it
-is meant to provide all CLI functions with the abstraction level that sits somewhere
-in between the REST API and datapath.  It is useful for certain operations
-needed by cloud orchestration systems to run directly from the hypervisor
-host.
-
-## OPTIONS
-
-  * `--config` <file>:
-    Midolman configuraiton file path.  If not supplied,
-    **/etc/midolman/midolman.conf** is used.
+**mm-ctl** is a command line interface to manage Midolman.
+It talks with the Midolman instance running on the local host directly.
+It is useful for certain operations needed by cloud orchestration
+systems to run directly from the hypervisor host.
 
 ## COMMANDS
   These are option commands in which one of them must be supplied.
@@ -44,4 +35,4 @@ To unbind a virtual port with ID 2a244ece-6e95-4255-a598-8cefba3777a9:
 
 ## COPYRIGHT
 
-mm-ctl is Copyright (C) 2015 Midokura SARL.
+mm-ctl is Copyright (C) 2015,2016 Midokura SARL.

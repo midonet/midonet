@@ -30,7 +30,6 @@ import com.google.inject.Inject
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.midolman.tools.ZoomPortBinder
 
 import RestApiService.Log
 
