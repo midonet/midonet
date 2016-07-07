@@ -21,6 +21,7 @@ import java.util.UUID
 import scala.util.control.NonFatal
 
 import org.midonet.cluster.data.storage.StateTableEncoder.PersistentVersion
+import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.packets.{IPv4Addr, MAC}
 
 object StateTableEncoder {
@@ -42,6 +43,30 @@ object StateTableEncoder {
         @inline protected override def decodeValue(string: String): UUID = {
             UUID.fromString(string)
         }
+
+        @inline protected override def decodeKey(kv: KeyValue): MAC = {
+            new MAC(kv.getData64)
+        }
+
+        @inline protected override def decodeValue(kv: KeyValue): UUID = {
+            val msb = (kv.getDataVariable.byteAt(0).toLong << 56) |
+                      ((kv.getDataVariable.byteAt(1).toLong & 0xFF) << 48) |
+                      ((kv.getDataVariable.byteAt(2).toLong & 0xFF) << 40) |
+                      ((kv.getDataVariable.byteAt(3).toLong & 0xFF) << 32) |
+                      ((kv.getDataVariable.byteAt(4).toLong & 0xFF) << 24) |
+                      ((kv.getDataVariable.byteAt(5).toLong & 0xFF) << 16) |
+                      ((kv.getDataVariable.byteAt(6).toLong & 0xFF) << 8) |
+                      (kv.getDataVariable.byteAt(7).toLong & 0xFF)
+            val lsb = (kv.getDataVariable.byteAt(8).toLong << 56) |
+                      ((kv.getDataVariable.byteAt(9).toLong & 0xFF) << 48) |
+                      ((kv.getDataVariable.byteAt(10).toLong & 0xFF) << 40) |
+                      ((kv.getDataVariable.byteAt(11).toLong & 0xFF) << 32) |
+                      ((kv.getDataVariable.byteAt(12).toLong & 0xFF) << 24) |
+                      ((kv.getDataVariable.byteAt(13).toLong & 0xFF) << 16) |
+                      ((kv.getDataVariable.byteAt(14).toLong & 0xFF) << 8) |
+                      (kv.getDataVariable.byteAt(15).toLong & 0xFF)
+            new UUID(msb, lsb)
+        }
     }
     object MacToIdEncoder extends MacToIdEncoder
 
@@ -60,6 +85,14 @@ object StateTableEncoder {
 
         @inline protected override def decodeValue(string: String): MAC = {
             MAC.fromString(string)
+        }
+
+        @inline protected override def decodeKey(kv: KeyValue): IPv4Addr = {
+            new IPv4Addr(kv.getData32)
+        }
+
+        @inline protected override def decodeValue(kv: KeyValue): MAC = {
+            new MAC(kv.getData64)
         }
     }
     object Ip4ToMacEncoder extends Ip4ToMacEncoder
@@ -80,6 +113,14 @@ object StateTableEncoder {
         @inline protected override def decodeValue(string: String): IPv4Addr = {
             IPv4Addr(string)
         }
+
+        @inline protected override def decodeKey(kv: KeyValue): MAC = {
+            new MAC(kv.getData64)
+        }
+
+        @inline protected override def decodeValue(kv: KeyValue): IPv4Addr = {
+            new IPv4Addr(kv.getData32)
+        }
     }
     object MacToIp4Encoder extends MacToIp4Encoder
 }
@@ -97,6 +138,10 @@ trait StateTableEncoder[K, V] {
     protected def encodeValue(value: V): String
 
     protected def decodeValue(string: String): V
+
+    protected def decodeKey(kv: KeyValue): K
+
+    protected def decodeValue(kv: KeyValue): V
 
     /**
       * @return The encoded string for the specified key, value and version
