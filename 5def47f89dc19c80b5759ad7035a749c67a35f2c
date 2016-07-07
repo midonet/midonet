@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9a8fef22",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 628,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-07T10:08:23Z",
+      "side": 1,
+      "message": "Use nanoTime() for counting execution times better, timeMillis uses the clock",
+      "range": {
+        "startLine": 628,
+        "startChar": 28,
+        "endLine": 628,
+        "endChar": 54
+      },
+      "revId": "5def47f89dc19c80b5759ad7035a749c67a35f2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
