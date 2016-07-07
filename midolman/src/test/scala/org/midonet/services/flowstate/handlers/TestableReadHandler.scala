@@ -16,12 +16,12 @@
 package org.midonet.services.flowstate.handlers
 
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.midolman.config.FlowStateConfig
+import org.midonet.services.flowstate.stream.Context
 
 import scala.util.Random
 
-class TestableReadHandler(config: FlowStateConfig, validPorts: Seq[UUID])
-    extends FlowStateReadHandler(config) {
+class TestableReadHandler(context: Context, validPorts: Seq[UUID])
+    extends FlowStateReadHandler(context) {
 
     private var flowStateReads = 0
     private var bufferReads = 0
