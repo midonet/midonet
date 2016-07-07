@@ -27,6 +27,7 @@ import rx.Observable
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkDirectory}
 import org.midonet.cluster.data.storage.StateTable.Update
+import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.concurrent._
 
@@ -56,6 +57,10 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
         protected override def decodeValue(string: String): String = string
         protected override def encodeKey(string: String): String = string
         protected override def encodeValue(string: String): String = string
+        protected override def decodeKey(kv: KeyValue): String =
+            kv.getDataVariable.toStringUtf8
+        protected override def decodeValue(kv: KeyValue): String =
+            kv.getDataVariable.toStringUtf8
         protected override val nullValue: String = null
     }
 

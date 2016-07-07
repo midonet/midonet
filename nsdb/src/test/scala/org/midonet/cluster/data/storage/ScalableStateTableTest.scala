@@ -21,7 +21,6 @@ import java.util.UUID
 import scala.concurrent.duration._
 
 import ch.qos.logback.classic.{Level, Logger}
-
 import org.apache.curator.framework.state.ConnectionState
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException.ConnectionLossException
@@ -36,6 +35,7 @@ import rx.subjects.PublishSubject
 import org.midonet.cluster.backend.zookeeper.ZkDirectory
 import org.midonet.cluster.backend.{Directory, MockDirectory}
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
+import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
@@ -68,6 +68,10 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
         protected override def decodeValue(string: String): String = string
         protected override def encodeKey(key: String): String = key
         protected override def encodeValue(value: String): String = value
+        protected override def decodeKey(kv: KeyValue): String =
+            kv.getDataVariable.toStringUtf8
+        protected override def decodeValue(kv: KeyValue): String =
+            kv.getDataVariable.toStringUtf8
     }
 
     private val proxy = new StateTableClient {
