@@ -17,15 +17,15 @@ package org.midonet.services.flowstate.handlers
 
 import java.nio.ByteBuffer
 
-import scala.util.control.NonFatal
-
 import com.google.common.annotations.VisibleForTesting
-
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled._
+import io.netty.channel.ChannelHandler.Sharable
+import io.netty.channel._
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateResponse.Error
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.services.flowstate.FlowStateService._
 import org.midonet.services.flowstate.stream._
 import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
@@ -33,10 +33,7 @@ import org.midonet.services.flowstate.transfer.StateTransferProtocolParser._
 import org.midonet.services.flowstate.transfer.client.FlowStateRemoteClient
 import org.midonet.services.flowstate.transfer.internal.{InvalidStateRequest, StateRequestInternal, StateRequestRaw, StateRequestRemote}
 
-import io.netty.buffer.ByteBuf
-import io.netty.buffer.Unpooled._
-import io.netty.channel.ChannelHandler.Sharable
-import io.netty.channel._
+import scala.util.control.NonFatal
 
 /** Handler used to receive flow state read requests from agents and forward
   * back the requested flow state reusing the same socket.
@@ -51,25 +48,25 @@ import io.netty.channel._
   * client requesting it.
   */
 @Sharable
-class FlowStateReadHandler(config: FlowStateConfig)
+class FlowStateReadHandler(context: Context)
     extends SimpleChannelInboundHandler[ByteBuf] {
 
-    private val tcpClient = new FlowStateRemoteClient(config)
+    private val tcpClient = new FlowStateRemoteClient(context.config)
     private var ctx: ChannelHandlerContext = _
 
     private def eof = copyInt(0)
 
     @VisibleForTesting
     protected def getByteBufferBlockReader(portId: UUID) =
-        ByteBufferBlockReader(config, fromProto(portId))
+        ByteBufferBlockReader(context, fromProto(portId))
 
     @VisibleForTesting
     protected def getByteBufferBlockWriter(portId: UUID) =
-        ByteBufferBlockWriter(config, fromProto(portId))
+        ByteBufferBlockWriter(context, fromProto(portId))
 
     @VisibleForTesting
     protected def getFlowStateReader(portId: UUID) =
-        FlowStateReader(config, fromProto(portId))
+        FlowStateReader(context, fromProto(portId))
 
     override def channelRead0(context: ChannelHandlerContext,
                               msg: ByteBuf): Unit = {
@@ -103,7 +100,7 @@ class FlowStateReadHandler(config: FlowStateConfig)
 
             val in = getByteBufferBlockReader(portId)
             val headerBuff = new Array[Byte](FlowStateBlock.headerSize)
-            val blockBuff = new Array[Byte](config.blockSize)
+            val blockBuff = new Array[Byte](context.config.blockSize)
 
             in.read(headerBuff)
             var header = FlowStateBlock(ByteBuffer.wrap(headerBuff))

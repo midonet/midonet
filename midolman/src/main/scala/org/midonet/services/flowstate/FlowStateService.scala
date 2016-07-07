@@ -21,16 +21,13 @@ import java.util.concurrent.{ExecutorService, TimeUnit}
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
-
 import com.datastax.driver.core.Session
 import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import com.typesafe.scalalogging.Logger
-
 import org.apache.curator.framework.CuratorFramework
 import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.config.MidolmanConfig
@@ -38,7 +35,8 @@ import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.services.FlowStateLog
 import org.midonet.services.flowstate.FlowStateService._
-import org.midonet.services.flowstate.handlers.{FlowStateWriteHandler, FlowStateReadHandler}
+import org.midonet.services.flowstate.handlers.{FlowStateReadHandler, FlowStateWriteHandler}
+import org.midonet.services.flowstate.stream.FlowStateManager
 import org.midonet.util.netty.ServerFrontEnd
 
 object FlowStateService {
@@ -73,6 +71,11 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
 
     private var cassandraSession: Session = _
 
+    private val ioManager = new FlowStateManager(config.flowState)
+
+    @VisibleForTesting
+    protected val streamContext = stream.Context(config.flowState, ioManager)
+
     @VisibleForTesting
     protected var readMessageHandler: FlowStateReadHandler = _
     @VisibleForTesting
@@ -85,11 +88,11 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
     /** Initialize the UDP and TCP server frontends. Cassandra session MUST be
       * previously initialized. */
     private[flowstate] def startServerFrontEnds() = {
-        writeMessageHandler = new FlowStateWriteHandler(config.flowState,
+        writeMessageHandler = new FlowStateWriteHandler(streamContext,
             cassandraSession)
         udpFrontend = ServerFrontEnd.udp(writeMessageHandler, port)
 
-        readMessageHandler = new FlowStateReadHandler(config.flowState)
+        readMessageHandler = new FlowStateReadHandler(streamContext)
         tcpFrontend = ServerFrontEnd.tcp(readMessageHandler, port)
 
         try {

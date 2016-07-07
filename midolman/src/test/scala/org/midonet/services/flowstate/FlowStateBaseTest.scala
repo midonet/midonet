@@ -22,14 +22,10 @@ import java.util
 import java.util.UUID
 import java.util.UUID.randomUUID
 
-import scala.collection.mutable
-import scala.util.Random
-
-import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
-
+import io.netty.buffer.Unpooled
+import io.netty.channel.socket.DatagramPacket
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
 import org.midonet.cluster.util.UUIDUtil.toProto
-import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
@@ -39,9 +35,10 @@ import org.midonet.packets._
 import org.midonet.services.flowstate.stream.FlowStateWriter
 import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
 import org.midonet.util.MidonetEventually
+import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
-import io.netty.buffer.Unpooled
-import io.netty.channel.socket.DatagramPacket
+import scala.collection.mutable
+import scala.util.Random
 
 trait FlowStateBaseTest extends FeatureSpec
                                 with GivenWhenThen with Matchers
@@ -173,14 +170,14 @@ trait FlowStateBaseTest extends FeatureSpec
         (udp, protos, encoder)
     }
 
-    protected def createValidFlowStatePorts(flowStateConfig: FlowStateConfig) = {
+    protected def createValidFlowStatePorts(context: stream.Context) = {
         val validPorts = (1 to 3) map { _ => randomUUID }
 
         validPorts foreach { port =>
             val flowstate = validFlowStateInternalMessage(numNats = 2,
                 numEgressPorts = 3)._3
 
-            val writer: FlowStateWriter = FlowStateWriter(flowStateConfig, port)
+            val writer: FlowStateWriter = FlowStateWriter(context, port)
             writer.write(flowstate)
             writer.flush()
         }

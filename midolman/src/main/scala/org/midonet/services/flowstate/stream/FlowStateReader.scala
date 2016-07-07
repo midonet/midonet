@@ -20,21 +20,19 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.UUID
 
-import scala.util.control.NonFatal
-
 import com.google.common.annotations.VisibleForTesting
-
-import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.packets.SbeEncoder
 import org.midonet.services.flowstate.stream.snappy.SnappyBlockReader
 import org.midonet.util.Clearable
 import org.midonet.util.collection.RingBuffer
 import org.midonet.util.io.stream._
 
+import scala.util.control.NonFatal
+
 object FlowStateReader {
 
     @VisibleForTesting
-    private[flowstate] def apply(config: FlowStateConfig,
+    private[flowstate] def apply(context: Context,
                                  buffers: RingBuffer[ByteBuffer])
     : FlowStateReader = {
          val blockInput = new ByteBufferBlockReader(FlowStateBlock, buffers)
@@ -42,10 +40,9 @@ object FlowStateReader {
          new FlowStateReaderImpl(compressedInput)
     }
 
-    def apply(config: FlowStateConfig,
-              portId: UUID): FlowStateReader = {
+    private[flowstate] def apply(context: Context, portId: UUID): FlowStateReader = {
         try {
-            val blockReader = ByteBufferBlockReader(config, portId)
+            val blockReader = ByteBufferBlockReader(context, portId)
             val snappyReader = new SnappyBlockReader(blockReader)
             new FlowStateReaderImpl(snappyReader)
         } catch {

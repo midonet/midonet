@@ -37,7 +37,7 @@ import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.minion.Context
 import org.midonet.services.flowstate.handlers._
-import org.midonet.services.flowstate.stream.{ByteBufferBlockReader, FlowStateBlock}
+import org.midonet.services.flowstate.stream.{ByteBufferBlockReader, FlowStateBlock, FlowStateManager}
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser.parseStateResponse
 import org.midonet.services.flowstate.transfer.client._
 import org.midonet.services.flowstate.transfer.internal._
@@ -56,6 +56,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
     private var midolmanConfig: MidolmanConfig = _
     private var midolmanConfigChangedPort: MidolmanConfig = _
+    private var streamContext: stream.Context = _
+    private var streamContextChangedPort: stream.Context = _
 
     private val executor: ExecutorService = new SameThreadButAfterExecutorService
     private var internalClient: FlowStateInternalClient = _
@@ -79,7 +81,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
     private def currentRawState(portId: UUID) = {
         var raw = new collection.mutable.ArrayBuffer[Byte]()
-        val in = ByteBufferBlockReader(midolmanConfig.flowState, portId)
+        val in = ByteBufferBlockReader(streamContext, portId)
         val headerBuff = new Array[Byte](FlowStateBlock.headerSize)
         val blockBuff = new Array[Byte](midolmanConfig.flowState.blockSize)
 
@@ -156,10 +158,16 @@ class FlowStateServiceTest extends FlowStateBaseTest
             config.replace("1234", "1235").stripMargin)
 
         midolmanConfig = MidolmanConfig.forTests(flowStateConfig)
-        midolmanConfigChangedPort = MidolmanConfig.forTests(flowStateConfigChangedPort)
+        midolmanConfigChangedPort =
+            MidolmanConfig.forTests(flowStateConfigChangedPort)
 
         internalClient = new FlowStateInternalClient(midolmanConfig.flowState)
         remoteClient = new FlowStateRemoteClient(midolmanConfig.flowState)
+
+        val ioManager = new FlowStateManager(midolmanConfig.flowState)
+        streamContext = stream.Context(midolmanConfig.flowState, ioManager)
+        streamContextChangedPort =
+            stream.Context(midolmanConfigChangedPort.flowState, ioManager)
     }
 
     feature("Test service lifecycle") {
@@ -245,7 +253,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
     feature("Flow state write message handling") {
         scenario("Service handle calls storage with a valid message") {
             Given("A flow state message handler")
-            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val handler = new TestableWriteHandler(streamContext)
             And("A valid message")
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
@@ -271,7 +279,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("Service handle calls storage with trace keys") {
             Given("A flow state handler")
-            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val handler = new TestableWriteHandler(streamContext)
             And("A message with trace keys")
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
@@ -297,7 +305,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("Service handle ignores non flow state sbe messages") {
             Given("A flow state message handler")
-            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val handler = new TestableWriteHandler(streamContext)
             And("An invalid message")
             val datagram = invalidFlowStateMessage()
 
@@ -321,7 +329,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("Service handle calls storage with valid empty message") {
             Given("A flow state message handler")
-            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val handler = new TestableWriteHandler(streamContext)
             And("A message without keys")
             val (datagram, protos, _) = validFlowStateInternalMessage(numIngressPorts = 0,
                 numEgressPorts = 0,
@@ -348,7 +356,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("Service handle calls to storage with > 1 keys") {
             Given("A flow state message handler and a message with > 1 keys")
-            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val handler = new TestableWriteHandler(streamContext)
             val (datagram, protos, _) = validFlowStateInternalMessage(numConntracks = 2,
                 numNats = 2)
             When("The message is handled")
@@ -370,8 +378,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
     feature("Flow state read message handling") {
         scenario("Service read handler receives valid raw state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val ports = createValidFlowStatePorts(streamContext)
+            val handler = new TestableReadHandler(streamContext, ports)
             And("A valid raw state request")
             val request = rawStateRequest(handler.validPortId)
 
@@ -392,8 +400,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("Service read handler receives valid remote state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val ports = createValidFlowStatePorts(streamContext)
+            val handler = new TestableReadHandler(streamContext, ports)
             And("A valid remote state request")
             val request = remoteStateRequest(handler.validPortId)
 
@@ -414,8 +422,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("Service read handler receives valid internal state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val ports = createValidFlowStatePorts(streamContext)
+            val handler = new TestableReadHandler(streamContext, ports)
             And("A valid internal state request")
             val request = internalStateRequest(handler.validPortId)
 
@@ -436,8 +444,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("Service read handler receives invalid flow state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val ports = createValidFlowStatePorts(streamContext)
+            val handler = new TestableReadHandler(streamContext, ports)
             And("An invalid transfer request")
             val request = invalidStateTransferRequest
 
@@ -460,8 +468,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("Service read handler receives malformed flow state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val ports = createValidFlowStatePorts(streamContext)
+            val handler = new TestableReadHandler(streamContext, ports)
             And("A malformed transfer request")
             val request = malformedStateTransferRequest
 
@@ -484,8 +492,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("Service read handler receives unknown flow state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val ports = createValidFlowStatePorts(streamContext)
+            val handler = new TestableReadHandler(streamContext, ports)
             And("An valid transfer request, but unknown to this agent")
             val request = internalStateRequest()
 
@@ -510,8 +518,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
     feature("Client-Server interaction between agents/flow state minions") {
         scenario("A raw flow state request between minions") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val ports = createValidFlowStatePorts(streamContext)
+            val handler = new TestableReadHandler(streamContext, ports)
             And("A previous port id of the server agent")
             val portId = handler.validPortId
             And("A TCP server frontend handling requests")
@@ -539,8 +547,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("A internal flow state request between minion and agent") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val ports = createValidFlowStatePorts(streamContext)
+            val handler = new TestableReadHandler(streamContext, ports)
             And("A previous port id of the server agent")
             val portId = handler.validPortId
             And("A TCP server frontend handling requests")
@@ -567,12 +575,12 @@ class FlowStateServiceTest extends FlowStateBaseTest
             // We need a new TCP port for the test, since the raw request that
             // will be chained from the initial remote request, will be on the
             // same server and we will need to bind to 2 different ports
-            val handler = new TestableReadHandler(midolmanConfigChangedPort.flowState, ports)
+            val handler = new TestableReadHandler(streamContextChangedPort, ports)
             And("A TCP server frontend handling requests")
             val server = ServerFrontEnd.tcp(handler, midolmanConfig.flowState.port)
             And("A remote handler to simulate a remote Agent")
-            val remotePorts = createValidFlowStatePorts(midolmanConfig.flowState)
-            val remoteHandler = new TestableReadHandler(midolmanConfig.flowState, remotePorts)
+            val remotePorts = createValidFlowStatePorts(streamContext)
+            val remoteHandler = new TestableReadHandler(streamContextChangedPort, remotePorts)
             And("A remote TCP server frontend handling remote requests")
             val remoteServer = ServerFrontEnd.tcp(remoteHandler, midolmanConfigChangedPort.flowState.port)
             And("A previous port id of the remote agent")
@@ -599,8 +607,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         scenario("An invalid flow state transfer between agents") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val ports = createValidFlowStatePorts(streamContext)
+            val handler = new TestableReadHandler(streamContext, ports)
             And("An invalid port id")
             val portId = UUID.randomUUID()
             And("A TCP server frontend handling requests")
@@ -633,7 +641,9 @@ class FlowStateServiceTest extends FlowStateBaseTest
                |agent.minions.flow_state.local_read_state : true
                |""".stripMargin)
             midolmanConfig = MidolmanConfig.forTests(flowStateConfig)
-            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val context = stream.Context(midolmanConfig.flowState,
+                                         streamContext.ioManager)
+            val handler = new TestableWriteHandler(context)
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numConntracks = 1,
                 numNats = 2,
@@ -659,7 +669,9 @@ class FlowStateServiceTest extends FlowStateBaseTest
         scenario("Flow state not sent to local storage by default") {
             Given("A storage handler with default configuration")
             midolmanConfig = MidolmanConfig.forTests(ConfigFactory.empty())
-            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val context = stream.Context(midolmanConfig.flowState,
+                                         streamContext.ioManager)
+            val handler = new TestableWriteHandler(context)
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numConntracks = 1,
                 numNats = 2,
@@ -680,7 +692,9 @@ class FlowStateServiceTest extends FlowStateBaseTest
                |agent.minions.flow_state.local_push_state : true
                |""".stripMargin)
             midolmanConfig = MidolmanConfig.forTests(flowStateConfig)
-            val handler = new TestableWriteHandler(midolmanConfig.flowState)
+            val context = stream.Context(midolmanConfig.flowState,
+                                         streamContext.ioManager)
+            val handler = new TestableWriteHandler(context)
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numConntracks = 1,
                 numNats = 2,
@@ -708,7 +722,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             Then("The handler writes to local storage (1 owned port)")
             handler.getWrites shouldBe 2
             handler.portWriters.keySet() should have size 1
-            handler.portWriters.keySet() shouldBe portsSet
+            handler.portWriters.keySet().asScala shouldBe portsSet
             val mockedWriter = handler.portWriters.get(protos.ingressPort)
             verify(mockedWriter, times(1)).write(mockito.any())
         }
