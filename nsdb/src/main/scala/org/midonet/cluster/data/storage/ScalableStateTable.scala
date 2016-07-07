@@ -38,7 +38,8 @@ import rx.subscriptions.Subscriptions
 import org.midonet.cluster.backend.{Directory, DirectoryCallback}
 import org.midonet.cluster.data.storage.ScalableStateTable._
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
-import org.midonet.cluster.services.state.client.StateTableClient
+import org.midonet.cluster.rpc.State.ProxyResponse.Notify
+import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
 import org.midonet.util.reactivex.SubscriptionList
 import org.midonet.util.functors.makeAction0
@@ -91,6 +92,20 @@ object ScalableStateTable {
         def contains(inner: Subscriber[_ >: Update[K, V]]): Boolean = {
             child eq inner
         }
+    }
+
+    /**
+      * Provides a [[Subscriber]] singleton that does nothing and it is by
+      * default unsubscribed.
+      */
+    private object EmptySubscriber extends Subscriber[Notify.Update] {
+        unsubscribe()
+
+        override def onNext(update: Notify.Update): Unit = { }
+
+        override def onCompleted(): Unit = { }
+
+        override def onError(e: Throwable): Unit = { }
     }
 
 }
@@ -205,8 +220,8 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
     private class ProxyConnectionSubscriber(state: State)
         extends Subscriber[ProxyConnectionState] {
 
-        override def onNext(state: ProxyConnectionState): Unit = {
-            Log debug s"[$tableKey] Proxy connection state changed: $state"
+        override def onNext(connectionState: ProxyConnectionState): Unit = {
+            processProxyConnection(state, connectionState)
         }
 
         override def onError(e: Throwable): Unit = {
@@ -219,6 +234,24 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
             Log.warn(s"[$tableKey] Unexpected completion of the proxy " +
                      "connection observable: closing table")
             close(e = null)
+        }
+    }
+
+    /**
+      * The subscriber to the state proxy client for the current state table.
+      */
+    private class ProxySubscriber(state: State) extends Subscriber[Notify.Update] {
+
+        override def onNext(update: Notify.Update): Unit = {
+            processProxyUpdate(state, update)
+        }
+
+        override def onError(e: Throwable): Unit = {
+            processProxyError(state, e)
+        }
+
+        override def onCompleted(): Unit = {
+            processProxyCompletion(state)
         }
     }
 
@@ -236,7 +269,11 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
         private val storageConnectionSubscriber = new StorageConnectionSubscriber(this)
         private val proxyConnectionSubscriber = new ProxyConnectionSubscriber(this)
 
+        @volatile private var proxySubscriber: Subscriber[Notify.Update] =
+            EmptySubscriber
+
         private val storageConnectedFlag = new AtomicBoolean(true)
+        private val proxyConnectedFlag = new AtomicBoolean(false)
 
         private val cache = new ConcurrentHashMap[K, TableEntry[K, V]]
         private var version = -1L
@@ -251,6 +288,8 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
         private val adding = new util.HashSet[KeyValue[K, V]](4)
         private val removing = new util.HashSet[KeyValue[K, V]](4)
         private val owned = new util.HashSet[Int]()
+
+        private var snapshotInProgress = false
 
         /**
           * Starts the current state by monitoring the connection for the
@@ -287,8 +326,10 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
                 index += 1
             }
 
+            proxySubscriber.unsubscribe()
             proxyConnectionSubscriber.unsubscribe()
             storageConnectionSubscriber.unsubscribe()
+            proxySubscriber = null
             cache.clear()
             failures.clear()
             version = Long.MaxValue
@@ -503,6 +544,11 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
                 updateCache.clear()
                 updates.clear()
 
+                // A storage update invalidates any in-progress snapshot: this
+                // will discard all subsequent notifications to ensure we do
+                // not load an incomplete table.
+                snapshotInProgress = false
+
                 val entryIterator = entries.iterator()
                 while (entryIterator.hasNext) {
                     val nextEntry = decodeEntry(entryIterator.next())
@@ -522,62 +568,16 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
                 }
 
                 // Compute the added entries.
-                val addIterator = updateCache.values().iterator()
-                while (addIterator.hasNext) {
-                    val newEntry = addIterator.next()
-                    val oldEntry = cache.get(newEntry.key)
-                    if (oldEntry eq null) {
-                        cache.put(newEntry.key, newEntry)
-                        updates.add(Update(newEntry.key, nullValue,
-                                           newEntry.value))
-                    } else if (oldEntry.version != newEntry.version) {
-                        cache.put(newEntry.key, newEntry)
-                        updates.add(Update(newEntry.key, oldEntry.value,
-                                           newEntry.value))
-                        // Remove owned replaced entry.
-                        if (owned.contains(oldEntry.version)) {
-                            rem.add(oldEntry)
-                        }
-                    }
-                }
+                computeAddedEntries(rem)
 
                 // Compute the removed entries.
-                val removeIterator = cache.entrySet().iterator()
-                while (removeIterator.hasNext) {
-                    val oldEntry = removeIterator.next()
-                    if (!updateCache.containsKey(oldEntry.getKey)) {
-                        removeIterator.remove()
-                        updates.add(Update(oldEntry.getKey,
-                                           oldEntry.getValue.value, nullValue))
-                        // Remove owned deleted entry.
-                        if (owned.contains(oldEntry.getValue.version)) {
-                            rem.add(oldEntry.getValue)
-                        }
-                    }
-                }
+                computeRemovedEntries(rem)
 
-                Log trace s"[$tableKey] Update with ${updates.size()} changes"
-
-                // Publish updates to all subscribers.
-                val subs = subscribers
-                var updateIndex = 0
-                while (updateIndex < updates.size()) {
-                    var subIndex = 0
-                    while (subIndex < subs.length) {
-                        subs(subIndex) onNext updates.get(updateIndex)
-                        subIndex += 1
-                    }
-                    updateIndex += 1
-                }
+                // Publish updates.
+                publishUpdates()
             }
 
-            // Delete the removed entries.
-            Log trace s"[$tableKey] Deleting ${rem.size()} obsolete entries"
-            var index = 0
-            while (index < rem.size()) {
-                delete(rem.get(index))
-                index += 1
-            }
+            deleteEntries(rem)
         }
 
         /**
@@ -620,10 +620,89 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
         }
 
         /**
-          * Refreshes the state table cache using data from storage.
+          * Called when the state proxy is connected. This will create a new
+          * subscriber to the state proxy client for the current table and
+          * table version number.
+          */
+        def proxyConnected(): Unit = {
+            if (proxyConnectedFlag.compareAndSet(false, true)) {
+                if (proxySubscriber.isUnsubscribed) {
+                    proxySubscriber = new ProxySubscriber(this)
+                    proxy.observable(StateSubscriptionKey(tableKey, Some(version)))
+                         .subscribe(proxySubscriber)
+                }
+            }
+        }
+
+        /**
+          * Called when the state proxy is disconnected. At this point the state
+          * table falls-back and begins synchronizing with the storage backend.
+          */
+        def proxyDisconnected(): Unit = {
+            proxyConnectedFlag set false
+            proxySubscriber.unsubscribe()
+
+            if (storageConnectedFlag.get()) {
+                refresh()
+            }
+        }
+
+        /**
+          * Processes a state table update received from the state proxy server,
+          * either a snapshot or a relative update.
+          */
+        def proxyUpdate(update: Notify.Update): Unit = {
+            // Validate the message.
+            if (!update.hasType) {
+                Log info s"[$tableKey] State proxy update missing type"
+            }
+            if (!update.hasCurrentVersion) {
+                Log info s"[$tableKey] State proxy update missing version"
+            }
+
+            val rem = removals.get
+            rem.clear()
+
+            this.synchronized {
+                // Drop all messages that are previous to the current version.
+                if (update.getCurrentVersion < version) {
+                    Log info s"[$tableKey] Ignoring state proxy update version " +
+                             s"${update.getCurrentVersion} previous to " +
+                             s"$version"
+                    return
+                }
+
+                update.getType match {
+                    case Notify.Update.Type.SNAPSHOT =>
+                        proxySnapshot(update, rem)
+                    case Notify.Update.Type.RELATIVE =>
+                        proxyRelative(update, rem)
+                    case _ => // Ignore
+                }
+            }
+
+            deleteEntries(rem)
+        }
+
+        /**
+          * Processes an error from the state proxy client.
+          */
+        def proxyError(e: Throwable): Unit = {
+            // TODO: Must update with more relevant exceptions.
+            Log debug s"[$tableKey] Proxy error: $e"
+            proxyDisconnected()
+        }
+
+        /**
+          * Refreshes the state table cache using data from storage. The method
+          * does nothing if the storage is not connected or the table is
+          * being synchronized using the state proxy client.
           */
         def refresh(): Unit = {
-            if (!storageConnectedFlag.get || get().terminated) {
+            if (!storageConnectedFlag.get() || get().terminated) {
+                return
+            }
+            if (proxyConnectedFlag.get() && !proxySubscriber.isUnsubscribed) {
                 return
             }
 
@@ -702,6 +781,74 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
         }
 
         /**
+          * Computes the added entries by comparing a new snapshot in the
+          * [[updateCache]] with the current [[cache]], and adding all missing
+          * or updating entries. Replaced entries are added to the removal
+          * argument list for deletion.
+          *
+          * The call of this method must be synchronized.
+          */
+        private def computeAddedEntries(rem: util.List[TableEntry[K, V]])
+        : Unit = {
+            // Compute the added entries.
+            val addIterator = updateCache.values().iterator()
+            while (addIterator.hasNext) {
+                val newEntry = addIterator.next()
+                val oldEntry = cache.get(newEntry.key)
+                if (oldEntry eq null) {
+                    cache.put(newEntry.key, newEntry)
+                    updates.add(Update(newEntry.key, nullValue,
+                                       newEntry.value))
+                } else if (oldEntry.version != newEntry.version) {
+                    cache.put(newEntry.key, newEntry)
+                    updates.add(Update(newEntry.key, oldEntry.value,
+                                       newEntry.value))
+                    // Remove owned replaced entry.
+                    if (owned.contains(oldEntry.version)) {
+                        rem.add(oldEntry)
+                    }
+                }
+            }
+        }
+
+        /**
+          * Computes the removed entries by comparing a new snapshot in the
+          * [[updateCache]] with the current [[cache]], and removing all
+          * entries that are no longer in the snapshot.
+          *
+          * The call of this method must be synchronized.
+          */
+        private def computeRemovedEntries(rem: util.List[TableEntry[K, V]])
+        : Unit = {
+            val removeIterator = cache.entrySet().iterator()
+            while (removeIterator.hasNext) {
+                val oldEntry = removeIterator.next()
+                if (!updateCache.containsKey(oldEntry.getKey)) {
+                    removeIterator.remove()
+                    updates.add(Update(oldEntry.getKey,
+                                       oldEntry.getValue.value, nullValue))
+                    // Remove owned deleted entry.
+                    if (owned.contains(oldEntry.getValue.version)) {
+                        rem.add(oldEntry.getValue)
+                    }
+                }
+            }
+        }
+
+        /**
+          * Deletes from storage the list of entries.
+          */
+        private def deleteEntries(rem: util.List[TableEntry[K, V]]): Unit = {
+            // Delete the removed entries.
+            Log trace s"[$tableKey] Deleting ${rem.size()} obsolete entries"
+            var index = 0
+            while (index < rem.size()) {
+                delete(rem.get(index))
+                index += 1
+            }
+        }
+
+        /**
           * Retries the previously failed operations.
           */
         private def retry(): Unit = {
@@ -717,13 +864,138 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
         /**
           * Publishes an update to all subscribers.
           */
-        def publish(update: Update[K, V]): Unit = {
+        private def publish(update: Update[K, V]): Unit = {
             val sub = subscribers
             var index = 0
             while (index < sub.length) {
                 sub(index) onNext update
                 index += 1
             }
+        }
+
+        /**
+          * Publishes all updates from the [[updates]] list to the current
+          * subscribers.
+          *
+          * The call of this method must be synchronized.
+          */
+        private def publishUpdates(): Unit = {
+            Log trace s"[$tableKey] Update with ${updates.size()} changes"
+
+            // Publish updates to all subscribers.
+            val subs = subscribers
+            var updateIndex = 0
+            while (updateIndex < updates.size()) {
+                var subIndex = 0
+                while (subIndex < subs.length) {
+                    subs(subIndex) onNext updates.get(updateIndex)
+                    subIndex += 1
+                }
+                updateIndex += 1
+            }
+        }
+
+        /**
+          * Processes a state proxy snapshot notification. This method must be
+          * synchronized.
+          */
+        private def proxySnapshot(update: Notify.Update,
+                                  rem: util.List[TableEntry[K, V]]): Unit = {
+            Log trace s"[$tableKey] Snapshot begin:${update.getBegin} " +
+                      s"end:${update.getEnd} entries:${update.getEntriesCount}"
+
+            // If this is the beginning of a snapshot, clear the update cache,
+            // otherwise verify that a snapshot notification sequence is in
+            // progress.
+            if (update.getBegin) {
+                updateCache.clear()
+                updates.clear()
+                snapshotInProgress = true
+            } else if (!snapshotInProgress) {
+                Log debug s"[$tableKey] Notification sequence interrupted: " +
+                          "discarding update"
+                return
+            }
+
+            // Add all entries to the update cache: the entries are added
+            // without any processing, since this is performed at the server.
+            var index = 0
+            while (index < update.getEntriesCount) {
+                val entry = decodeEntry(update.getEntries(index))
+                if (entry ne null) {
+                    updateCache.put(entry.key, entry)
+                }
+                index += 1
+            }
+
+            // If this is the end of a snapshot, update the table and notify
+            // the changes.
+            if (update.getEnd) {
+                snapshotInProgress = false
+
+                // Compute the added entries.
+                computeAddedEntries(rem)
+
+                // Compute the removed entries.
+                computeRemovedEntries(rem)
+
+                // Publish updates.
+                publishUpdates()
+            }
+        }
+
+        /**
+          * Processes a state proxy relative notification. This method must be
+          * synchronized.
+          */
+        private def proxyRelative(update: Notify.Update,
+                                  rem: util.List[TableEntry[K, V]]): Unit = {
+            Log trace s"[$tableKey] Diff begin:${update.getBegin} " +
+                      s"end:${update.getEnd} entries:${update.getEntriesCount}"
+
+            updates.clear()
+
+            // Apply all differential updates to the current cache: all updates
+            // must be applied and notify (a sanity check is performed).
+            var index = 0
+            while (index < update.getEntriesCount) {
+                val entry = update.getEntries(index)
+                if (entry.hasValue) {
+                    // This entry is added or updated.
+                    val newEntry = decodeEntry(entry)
+                    val oldEntry = cache.put(newEntry.key, newEntry)
+                    if (oldEntry eq null) {
+                        updates.add(Update(newEntry.key, nullValue,
+                                           newEntry.value))
+                    } else {
+                        updates.add(Update(newEntry.key, oldEntry.value,
+                                           newEntry.value))
+                        // Remove owned deleted entry.
+                        if (owned.contains(oldEntry.version)) {
+                            rem.add(oldEntry)
+                        }
+                    }
+                } else {
+                    // This entry is removed.
+                    val oldKey = decodeKey(entry.getKey)
+                    val oldEntry = cache.remove(oldKey)
+                    if (oldEntry eq null) {
+                        Log warn s"$tableKey Inconsistent diff: removing " +
+                                 s"$oldKey not found"
+                    } else {
+                        updates.add(Update(oldEntry.key, oldEntry.value,
+                                           nullValue))
+                        // Remove owned deleted entry.
+                        if (owned.contains(oldEntry.version)) {
+                            rem.add(oldEntry)
+                        }
+                    }
+                }
+                index += 1
+            }
+
+            // Publish updates.
+            publishUpdates()
         }
     }
 
@@ -954,6 +1226,21 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
         }
     }
 
+    private def processProxyConnection(s: State,
+                                       connectionState: ProxyConnectionState)
+    : Unit = {
+        if (state ne s) {
+            return
+        }
+        if (connectionState.isConnected) {
+            Log debug s"[$tableKey] State proxy connected"
+            s.proxyConnected()
+        } else {
+            Log debug s"[$tableKey] State proxy disconnected"
+            s.proxyDisconnected()
+        }
+    }
+
     /**
       * Processes the completion of adding a new entry to this state table. The
       * method updates to the current state the map of owned versions, that is
@@ -1077,6 +1364,43 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
     }
 
     /**
+      * Processes an update from the state proxy client.
+      */
+    private def processProxyUpdate(proxyState: State, update: Notify.Update): Unit = {
+        // Ignore, if the error state does not match the current table state.
+        if (state ne proxyState) {
+            return
+        }
+
+        proxyState.proxyUpdate(update)
+    }
+
+    /**
+      * Processes an error from the state proxy client.
+      */
+    private def processProxyError(proxyState: State, e: Throwable): Unit = {
+        // Ignore, if the error state does not match the current table state.
+        if (state ne proxyState) {
+            return
+        }
+
+        proxyState.proxyError(e)
+    }
+
+    /**
+      * Processes an observable completion from the state proxy client.
+      */
+    private def processProxyCompletion(proxyState: State): Unit = {
+        // Ignore, if the error state does not match the current table state.
+        if (state ne proxyState) {
+            return
+        }
+
+        Log debug s"[$tableKey] State proxy notification stream completed"
+        proxyState.proxyDisconnected()
+    }
+
+    /**
       * @return The encoded table entry path with the version suffix.
       */
     private def encodeEntryWithVersion(entry: TableEntry[K, V]): String = {
@@ -1094,8 +1418,7 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
     /**
       * Decodes the table path and returns a [[TableEntry]].
       */
-    private def decodeEntry(path: String)
-    : TableEntry[K, V] = {
+    private def decodeEntry(path: String): TableEntry[K, V] = {
         val string = if (path.startsWith("/")) path.substring(1)
         else path
         val tokens = string.split(",")
@@ -1104,6 +1427,18 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
         try {
             TableEntry(decodeKey(tokens(0)), decodeValue(tokens(1)),
                        Integer.parseInt(tokens(2)))
+        } catch {
+            case NonFatal(_) => null
+        }
+    }
+
+    /**
+      * Decodes a state proxy [[Notify.Entry]] and returns a [[TableEntry]].
+      */
+    private def decodeEntry(entry: Notify.Entry): TableEntry[K, V] = {
+        try {
+            TableEntry(decodeKey(entry.getKey), decodeValue(entry.getValue),
+                       entry.getVersion)
         } catch {
             case NonFatal(_) => null
         }
