@@ -32,20 +32,20 @@ import org.midonet.util.io.stream._
 object FlowStateWriter {
 
     @VisibleForTesting
-    private[flowstate] def apply(config: FlowStateConfig,
+    private[flowstate] def apply(context: Context,
                                  buffers: RingBufferWithFactory[ByteBuffer])
     : FlowStateWriter = {
-        val blockWriter = new ByteBufferBlockWriter(FlowStateBlock,
-                                                    buffers,
-                                                    config.expirationTime toNanos)
-        val snappyWriter = new SnappyBlockWriter(blockWriter, config.blockSize)
-        new FlowStateWriterImpl(config, snappyWriter)
+        val blockWriter = new ByteBufferBlockWriter(
+            FlowStateBlock, buffers, context.config.expirationTime toNanos)
+        val snappyWriter = new SnappyBlockWriter(blockWriter, context.config.blockSize)
+        new FlowStateWriterImpl(context.config, snappyWriter)
     }
 
-    def apply(config: FlowStateConfig, portId: UUID): FlowStateWriter = {
-        val blockWriter = ByteBufferBlockWriter(config, portId)
-        val snappyWriter = new SnappyBlockWriter(blockWriter, config.blockSize)
-        new FlowStateWriterImpl(config, snappyWriter)
+    @VisibleForTesting
+    private[flowstate] def apply(context: Context, portId: UUID): FlowStateWriter = {
+        val blockWriter = ByteBufferBlockWriter(context, portId)
+        val snappyWriter = new SnappyBlockWriter(blockWriter, context.config.blockSize)
+        new FlowStateWriterImpl(context.config, snappyWriter)
     }
 }
 

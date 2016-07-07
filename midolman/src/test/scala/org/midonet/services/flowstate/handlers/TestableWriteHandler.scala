@@ -19,14 +19,13 @@ import java.util
 import java.util.UUID
 
 import org.midonet.cluster.storage.FlowStateStorageWriter
-import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.packets.SbeEncoder
+import org.midonet.services.flowstate.stream
+import org.midonet.services.flowstate.stream.FlowStateWriter
 import org.mockito.Mockito._
 
-import org.midonet.services.flowstate.stream.FlowStateWriter
-
-class TestableWriteHandler (config: FlowStateConfig)
-    extends FlowStateWriteHandler(config, null) {
+class TestableWriteHandler (context: stream.Context)
+    extends FlowStateWriteHandler(context, null) {
 
     private var legacyStorage: FlowStateStorageWriter = _
     private var writes = 0
