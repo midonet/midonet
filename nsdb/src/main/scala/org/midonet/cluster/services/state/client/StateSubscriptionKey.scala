@@ -18,33 +18,29 @@ package org.midonet.cluster.services.state.client
 
 import java.util.UUID
 
+import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.rpc.State.ProxyRequest
 import org.midonet.cluster.models.Commons
 
-class StateSubscriptionKey(val objectClass: Class[_],
-                           val objectId: UUID,
-                           val keyClass: Class[_],
-                           val valueClass: Class[_],
-                           val tableName: String,
-                           val tableArguments: List[String],
-                           val lastVersion: Option[Long]) {
+case class StateSubscriptionKey(key: StateTable.Key,
+                                lastVersion: Option[Long]) {
 
     private[client] def toSubscribeMessage
         : ProxyRequest.Subscribe = {
 
         val msg = ProxyRequest.Subscribe.newBuilder()
 
-        tableArguments foreach (arg => msg.addTableArguments(arg))
+        key.args foreach (arg => msg.addTableArguments(arg.toString))
 
         if (lastVersion.isDefined) msg.setLastVersion(lastVersion.get)
 
         msg.setObjectId(Commons.UUID.newBuilder()
-                            .setMsb(objectId.getMostSignificantBits)
-                            .setLsb(objectId.getLeastSignificantBits))
-            .setObjectClass(objectClass.getName)
-            .setKeyClass(keyClass.getName)
-            .setValueClass(valueClass.getName)
-            .setTableName(tableName)
+                            .setMsb(key.objectId.getMostSignificantBits)
+                            .setLsb(key.objectId.getLeastSignificantBits))
+            .setObjectClass(key.objectClass.getName)
+            .setKeyClass(key.keyClass.getName)
+            .setValueClass(key.valueClass.getName)
+            .setTableName(key.name)
             .build()
     }
 }

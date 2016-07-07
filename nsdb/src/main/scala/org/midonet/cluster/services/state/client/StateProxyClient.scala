@@ -167,7 +167,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
                       table: StateSubscriptionKey): Boolean = {
             val result = state.addSubscriber(subscriber, table)
             if (result) {
-                log debug s"$this - subscribing to ${table.tableName}"
+                log debug s"$this - subscribing to ${table.key.name}"
                 sendSubscribeRequest(subscriber, table, flush = true)
             }
             result
