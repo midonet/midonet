@@ -25,7 +25,6 @@ import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateResponse.Error
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.services.flowstate.FlowStateService._
 import org.midonet.services.flowstate.stream._
 import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
@@ -51,25 +50,25 @@ import io.netty.channel._
   * client requesting it.
   */
 @Sharable
-class FlowStateReadHandler(config: FlowStateConfig)
+class FlowStateReadHandler(context: Context)
     extends SimpleChannelInboundHandler[ByteBuf] {
 
-    private val tcpClient = new FlowStateRemoteClient(config)
+    private val tcpClient = new FlowStateRemoteClient(context.config)
     private var ctx: ChannelHandlerContext = _
 
     private def eof = copyInt(0)
 
     @VisibleForTesting
     protected def getByteBufferBlockReader(portId: UUID) =
-        ByteBufferBlockReader(config, fromProto(portId))
-
-    @VisibleForTesting
-    protected def getByteBufferBlockWriter(portId: UUID) =
-        ByteBufferBlockWriter(config, fromProto(portId))
+        ByteBufferBlockReader(context, fromProto(portId))
 
     @VisibleForTesting
     protected def getFlowStateReader(portId: UUID) =
-        FlowStateReader(config, fromProto(portId))
+        FlowStateReader(context, fromProto(portId))
+
+    @VisibleForTesting
+    protected def getByteBufferBlockWriter(portId: UUID) =
+        context.ioManager.blockWriter(portId)
 
     override def channelRead0(context: ChannelHandlerContext,
                               msg: ByteBuf): Unit = {
@@ -103,7 +102,7 @@ class FlowStateReadHandler(config: FlowStateConfig)
 
             val in = getByteBufferBlockReader(portId)
             val headerBuff = new Array[Byte](FlowStateBlock.headerSize)
-            val blockBuff = new Array[Byte](config.blockSize)
+            val blockBuff = new Array[Byte](context.config.blockSize)
 
             in.read(headerBuff)
             var header = FlowStateBlock(ByteBuffer.wrap(headerBuff))
