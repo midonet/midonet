@@ -18,7 +18,7 @@ package org.midonet.services.flowstate
 
 import java.net.{BindException, DatagramSocket, ServerSocket}
 import java.util.UUID
-import java.util.concurrent.{ExecutorService, TimeUnit}
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import scala.collection.JavaConverters._
 
@@ -37,10 +37,8 @@ import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.minion.Context
 import org.midonet.services.flowstate.handlers._
-import org.midonet.services.flowstate.stream.{ByteBufferBlockReader, FlowStateBlock, FlowStateManager}
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser.parseStateResponse
 import org.midonet.services.flowstate.transfer.internal._
-import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
@@ -49,13 +47,23 @@ import io.netty.channel.ChannelHandlerContext
 class FlowStateServiceTest extends FlowStateBaseCuratorTest
                                    with TopologyBuilder {
 
-    private val executor: ExecutorService = new SameThreadButAfterExecutorService
+    private val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
 
     /** Mocked flow state minion, overrides local ip discovery */
     private class FlowStateServiceTest(nodeContext: Context, curator: CuratorFramework,
-                                       executor: ExecutorService, config: MidolmanConfig)
-        extends FlowStateService(nodeContext: Context, curator: CuratorFramework,
-                                 executor: ExecutorService, config: MidolmanConfig) {
+                                       executor: ScheduledExecutorService,
+                                       config: MidolmanConfig)
+        extends FlowStateService(nodeContext, curator, executor, config) {
+
+        var numInvalidations = 0
+
+        override def blockInvalidator: Runnable = new TestBlockInvalidator()
+
+        class TestBlockInvalidator extends Runnable {
+            override def run(): Unit = {
+                numInvalidations += 1
+            }
+        }
 
         override def startServerFrontEnds() = {
             port shouldBe 1234
@@ -158,6 +166,18 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
 
             Then("The service is enabled")
             service.isEnabled shouldBe true
+        }
+
+        scenario("Background invalidator runs at specified intervals") {
+            Given("A flow state service that is started")
+            val service = new FlowStateServiceTest(
+                Context(UUID.randomUUID()), curator, executor, midolmanConfig)
+            val expirationDelay = midolmanConfig.flowState.expirationDelay
+            Then("The background invalidator is run at specified intervals")
+            for (i <- 0 to 5) {
+                service.numInvalidations shouldBe i
+                Thread.sleep(expirationDelay toMillis)
+            }
         }
 
     }
