@@ -427,7 +427,10 @@ class StateProxyClientTest extends FeatureSpec
             Given("A working link to the state server")
             val client = t.client
             client.start()
-            eventually { t.server.hasClient shouldBe true }
+            eventually {
+                t.server.hasClient shouldBe true
+                client.isConnected shouldBe true
+            }
 
             When("An observer subscribes")
             val observer =  Mockito.mock(classOf[Observer[Update]])
@@ -451,7 +454,6 @@ class StateProxyClientTest extends FeatureSpec
             }
 
             And("The link is reconnected")
-            Thread.sleep(t.softReconnectDelay.toMillis)
             eventually {
                 t.server.hasClient shouldBe true
                 client.isConnected shouldBe true
@@ -484,7 +486,6 @@ class StateProxyClientTest extends FeatureSpec
             eventually {client.numActiveSubscriptions shouldBe 0 }
 
             And("The link is reconnected")
-            Thread.sleep(t.softReconnectDelay.toMillis)
             eventually {client.numActiveSubscriptions shouldBe 1 }
             t.server.hasClient shouldBe true
 
@@ -610,9 +611,9 @@ class StateProxyClientTest extends FeatureSpec
         scenario("reach attempt limit") { for (i <- 1 to 1) {
 
             Given("a state proxy client and a subscriber")
-            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
-                                    maxAttempts = 5,
-                                    hardReconnectDelay = 150 milliseconds)
+            val t = new TestObjects(softReconnectDelay = 200 milliseconds,
+                                    maxAttempts = 1,
+                                    hardReconnectDelay = 1 second)
             t.client.start()
             val observer =  Mockito.mock(classOf[Observer[Update]])
             val subscription = t.client.observable(existingTable)
@@ -623,21 +624,23 @@ class StateProxyClientTest extends FeatureSpec
             }
 
             When("the server dies")
+
+            val startTime = System.nanoTime()
             t.server.setOffline()
 
             eventually {
                 t.client.isConnected shouldBe false
             }
 
-            And("retry limit is reached")
-            for (i <- 0 to t.maxAttempts) {
-                Mockito.verifyZeroInteractions(observer)
-                Thread.sleep(t.softReconnectDelay.toMillis)
+            Then("the observer is completed after retries")
+            eventually {
+                Mockito.verify(observer).onCompleted()
             }
 
-            Then("the observer is completed")
-            Thread.sleep(t.softReconnectDelay.toMillis)
-            Mockito.verify(observer).onCompleted()
+            val ratio = (System.nanoTime() - startTime).toDouble /
+                        (t.softReconnectDelay.toNanos * t.maxAttempts)
+
+            ratio should be >= 0.8
 
             And("further subscriptions are not allowed")
             val subscription2 = t.client.observable(existingTable)
@@ -700,12 +703,12 @@ class StateProxyClientTest extends FeatureSpec
             t.close()
         }
 
-        scenario("keeps connected during transient failures") {
+        scenario("keeps connected during transient failures") { for (i <- 1 to 1) {
 
             Given("a started client")
-            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
+            val t = new TestObjects(softReconnectDelay = 200 milliseconds,
                                     maxAttempts = 5,
-                                    hardReconnectDelay = 150 milliseconds)
+                                    hardReconnectDelay = 500 milliseconds)
 
             t.client.start()
 
@@ -716,8 +719,12 @@ class StateProxyClientTest extends FeatureSpec
             Mockito.verify(observer).onNext(Connected)
 
             When("connection failure happens")
-            eventually { t.client.isConnected shouldBe true }
+            eventually {
+                t.client.isConnected shouldBe true
+                t.server.hasClient shouldBe true
+            }
             t.server.close()
+
             eventually { t.client.isConnected shouldBe false }
 
             Then("no disconnected event is generated")
@@ -730,13 +737,13 @@ class StateProxyClientTest extends FeatureSpec
             Mockito.verifyNoMoreInteractions(observer)
 
             t.close()
-        }
+        } }
 
-        scenario("disconnected after retry limit") {
+        scenario("disconnected after retry limit") { for (i <- 1 to 1) {
 
             Given("a started client")
-            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
-                                    maxAttempts = 3,
+            val t = new TestObjects(200 milliseconds,
+                                    3,
                                     hardReconnectDelay = 1 second)
 
             t.client.start()
@@ -748,30 +755,35 @@ class StateProxyClientTest extends FeatureSpec
             Mockito.verify(observer).onNext(Connected)
 
             When("permanent connection failure happens")
-            eventually { t.client.isConnected shouldBe true }
-            t.server.setOffline()
-
-            Then("no disconnected event is generated during soft retries")
-            for (i <- 0 to t.maxAttempts) {
-                Thread.sleep(t.softReconnectDelay.toMillis)
-                Mockito.verifyNoMoreInteractions(observer)
+            eventually {
+                t.server.hasClient shouldBe true
+                t.client.isConnected shouldBe true
             }
 
-            And("a disconnected event is generated when hard limit is reached")
-            Thread.sleep(t.softReconnectDelay.toMillis)
-            Mockito.verify(observer).onNext(Disconnected)
+            val startTime = System.nanoTime()
+            t.server.setOffline()
+
+            Then("disconnected event is generated after soft retries")
+            eventually {
+                Mockito.verify(observer).onNext(Disconnected)
+            }
+
+            // check that the event was received "more or less" after
+            // the grace time. Can't be too precise here or test might fail
+            // on a loaded system
+            val ratio = (System.nanoTime() - startTime).toDouble /
+                        (t.softReconnectDelay.toNanos * t.maxAttempts)
+            ratio should be >= 0.8
 
             t.close()
-        }
+        } }
 
         scenario("connected when server comes back") { for (i <- 1 to 1) {
 
             Given("a started client")
-            val base = 50 milliseconds
-            val multiplier = 5
-            val t = new TestObjects(softReconnectDelay = base,
-                                    maxAttempts = 0,
-                                    hardReconnectDelay = base * multiplier)
+            val softDelay = 200 milliseconds
+            val hardDelay = 500 milliseconds
+            val t = new TestObjects(softDelay, 0, hardDelay)
 
             t.client.start()
 
@@ -779,26 +791,26 @@ class StateProxyClientTest extends FeatureSpec
             val observer = Mockito.mock(classOf[Observer[ConnectionState]])
             t.client.connection.subscribe(observer).isUnsubscribed shouldBe false
 
-            Mockito.verify(observer).onNext(Connected)
+            eventually {
+                Mockito.verify(observer).onNext(Connected)
+            }
 
             When("connection failure happens")
             eventually { t.client.isConnected shouldBe true }
             t.server.setOffline()
 
             eventually { Mockito.verify(observer).onNext(Disconnected) }
+            val startTime = System.nanoTime()
 
             t.server.setOnline()
+            Then("It connects after the hard delay")
 
-            Then("The hard delay is used")
-            for (i <- 1 until multiplier) {
-                Thread.sleep(base.toMillis)
-                Mockito.verifyNoMoreInteractions(observer)
+            eventually {
+                Mockito.verify(observer, Mockito.times(2)).onNext(Connected)
             }
-
-            And("Finally it connects again")
-            Thread.sleep(base.toMillis)
-            Mockito.verify(observer, Mockito.times(2)).onNext(Connected)
-
+            val took = System.nanoTime() - startTime
+            val ratio = took.toDouble / hardDelay.toNanos
+            ratio should be >= 0.8
             t.close()
         } }
 
