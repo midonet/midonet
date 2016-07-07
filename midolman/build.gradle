@@ -56,6 +56,7 @@ dependencies {
             libraries.commons_codec,
             libraries.guava,
             libraries.guice,
+            libraries.guice_servlet,
             libraries.metrics,
             libraries.rx,
             libraries.logback,
@@ -68,11 +69,16 @@ dependencies {
             libraries.disruptor,
             libraries.curator_test,
             libraries.jersey_client,
+            libraries.jersey_guice,
+            libraries.jersey_servlet,
             libraries.jetty_server,
+            libraries.jetty_servlet,
             libraries.jctools,
             libraries.reflections,
             libraries.snappy,
             "com.fasterxml.jackson.core:jackson-databind:2.3.0"
+
+    runtime libraries.jackson_jaxrs
 
     testCompile project(':midonet-cluster')
     testCompile project(path: ':nsdb', configuration: 'tests')

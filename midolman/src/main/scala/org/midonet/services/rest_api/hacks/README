@@ -1,0 +1,7 @@
+The code under this directory are necessary to use our
+UnixDomainSocketChannel with jetty-9.3.x, which assumes
+ServerSocketChannel/SocketChannel.  Hopefully we can get rid of
+most of them with jetty-9.4.x, which will have unix domain socket
+support. [1]
+
+[1] https://webtide.com/unix-sockets-for-jetty-9-4/
