@@ -20,17 +20,20 @@ import java.util.UUID
 
 import scala.concurrent.duration._
 
+import com.google.protobuf.ByteString
+
 import ch.qos.logback.classic.{Level, Logger}
 import org.apache.curator.framework.state.ConnectionState
 import org.apache.curator.utils.ZKPaths
+import org.apache.zookeeper.CreateMode
 import org.apache.zookeeper.KeeperException.ConnectionLossException
 import org.junit.runner.RunWith
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
 
-import rx.Observable
+import rx.{Observable, Observer, Subscriber}
 import rx.observers.TestObserver
-import rx.subjects.PublishSubject
+import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.backend.zookeeper.ZkDirectory
 import org.midonet.cluster.backend.{Directory, MockDirectory}
@@ -38,8 +41,7 @@ import org.midonet.cluster.data.storage.StateTable.{Key, Update}
 import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
-import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
-import org.midonet.cluster.storage.CuratorZkConnection
+import org.midonet.cluster.services.state.client.StateTableClient.{ConnectionState => ProxyConnectionState}
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.util.MidonetEventually
 import org.midonet.util.eventloop.CallingThreadReactor
@@ -74,40 +76,86 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             kv.getDataVariable.toStringUtf8
     }
 
-    private val proxy = new StateTableClient {
+    private class TestableProxyClient extends StateTableClient {
+        val updates = PublishSubject.create[Notify.Update]
+        val state = BehaviorSubject.create[ProxyConnectionState.ConnectionState]
         override def stop(): Boolean = false
         override def observable(table: StateSubscriptionKey): Observable[Notify.Update] =
-            Observable.never()
-        override def connection: Observable[ProxyConnectionState] =
-            Observable.never()
+            updates
+        override def connection: Observable[ProxyConnectionState.ConnectionState] =
+            state
         override def start(): Unit = { }
     }
+    private object Proxy extends TestableProxyClient
 
     private val reactor = new CallingThreadReactor
     private val timeout = 5 seconds
 
     private def mockTable(connection: Observable[ConnectionState] =
-                              Observable.never())
-    : ScalableStateTable[String, String] = {
-        new Table(UUID.randomUUID(), new MockDirectory(), proxy, connection)
+                              Observable.never(),
+                          proxy: StateTableClient = Proxy)
+    : (ScalableStateTable[String, String], Directory) = {
+        val directory = new MockDirectory()
+        (new Table(UUID.randomUUID(), directory, proxy, connection), directory)
     }
 
-    private def zkTable(create: Boolean = true)
+    private def zkTable(create: Boolean = true,
+                        connection: Observable[ConnectionState] =
+                            Observable.never(),
+                        proxy: StateTableClient = Proxy)
     : (ScalableStateTable[String, String], String) = {
         val id = UUID.randomUUID()
-        val connection = new CuratorZkConnection(curator, reactor)
         val path = s"$zkRoot/$id"
         if (create) {
             ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper, path)
         }
-        val directory = new ZkDirectory(connection, path, reactor)
-        (new Table(id, directory, proxy, Observable.never()), path)
+        val directory = new ZkDirectory(curator.getZookeeperClient.getZooKeeper,
+                                        path, reactor)
+        (new Table(id, directory, proxy, connection), path)
+    }
+
+    private def snapshot(client: TestableProxyClient,
+                         begin: Boolean, end: Boolean, version: Long,
+                         entries: Map[String, (String, Int)]): Unit = {
+        val update = Notify.Update.newBuilder()
+            .setType(Notify.Update.Type.SNAPSHOT)
+            .setBegin(begin)
+            .setEnd(end)
+            .setCurrentVersion(version)
+        for ((key, (value, version)) <- entries) {
+            update.addEntries(Notify.Entry.newBuilder()
+                  .setKey(KeyValue.newBuilder().setDataVariable(
+                      ByteString.copyFromUtf8(key)))
+                  .setValue(KeyValue.newBuilder().setDataVariable(
+                      ByteString.copyFromUtf8(value)))
+                  .setVersion(version))
+        }
+        client.updates onNext update.build()
+    }
+
+    private def diff(client: TestableProxyClient, version: Long,
+                     entries: Seq[(String, String, Int)]): Unit = {
+        val update = Notify.Update.newBuilder()
+            .setType(Notify.Update.Type.RELATIVE)
+            .setCurrentVersion(version)
+        for ((key, value, version) <- entries) {
+            val entry = Notify.Entry.newBuilder()
+                .setKey(KeyValue.newBuilder().setDataVariable(
+                    ByteString.copyFromUtf8(key)))
+            if (value ne null) {
+                entry.setValue(KeyValue.newBuilder().setDataVariable(
+                    ByteString.copyFromUtf8(value)))
+                     .setVersion(version)
+            }
+            update.addEntries(entry)
+        }
+        client.updates onNext update.build()
     }
 
     feature("Test table lifecycle") {
         scenario("Table starts and stops and counts subscriptions") {
             Given("A state table with mock directory")
-            val table = mockTable()
+            val (table, _) = mockTable()
 
             Then("Requesting the table snapshot returns empty")
             table.localSnapshot shouldBe Map.empty
@@ -139,7 +187,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
         scenario("Table starts on observable subscribers") {
             Given("A state table with mock directory")
-            val table = mockTable()
+            val (table, _) = mockTable()
 
             And("A table observer")
             val observer = new TestObserver[StateTable.Update[String, String]]
@@ -159,7 +207,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
         scenario("Table mixes user start with observable subscriptions") {
             Given("A state table with mock directory")
-            val table = mockTable()
+            val (table, _) = mockTable()
 
             And("A table observer")
             val observer = new TestObserver[StateTable.Update[String, String]]
@@ -188,7 +236,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
         scenario("Table handles multiple subscriptions") {
             Given("A state table with mock directory")
-            val table = mockTable()
+            val (table, _) = mockTable()
 
             And("A table observers")
             val observer = new TestObserver[StateTable.Update[String, String]]
@@ -222,7 +270,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             val connection = PublishSubject.create[ConnectionState]
 
             And("A state table")
-            val table = mockTable(connection)
+            val (table, _) = mockTable(connection)
 
             When("Starting the table")
             table.start()
@@ -239,7 +287,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             val connection = PublishSubject.create[ConnectionState]
 
             And("A state table")
-            val table = mockTable(connection)
+            val (table, _) = mockTable(connection)
 
             And("A table observers")
             val observer = new TestObserver[StateTable.Update[String, String]]
@@ -267,7 +315,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             val connection = PublishSubject.create[ConnectionState]
 
             And("A state table")
-            val table = mockTable(connection)
+            val (table, _) = mockTable(connection)
             table.start()
 
             When("The connection is suspended")
@@ -286,12 +334,78 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
             table.localSnapshot shouldBe Map("key0" -> "value0")
         }
+
+        scenario("Table should synchronize after connected") {
+            Given("A connection observable")
+            val connection = PublishSubject.create[ConnectionState]
+
+            And("A state table with ZooKeeper directory")
+            val (table, path) = zkTable(create = true, connection)
+            table.start()
+
+            When("The connection is suspended")
+            connection onNext ConnectionState.SUSPENDED
+
+            And("Adding a learned entry")
+            curator.create().forPath(s"$path/key0,value0,0000000000")
+
+            And("The connection is connected")
+            connection onNext ConnectionState.CONNECTED
+
+            Then("The table should contain the entry")
+            eventually { table.localSnapshot shouldBe Map("key0" -> "value0") }
+
+            When("The connection is suspended")
+            connection onNext ConnectionState.SUSPENDED
+
+            And("Adding a learned entry")
+            curator.create().forPath(s"$path/key1,value1,0000000001")
+
+            And("The connection is connected")
+            connection onNext ConnectionState.RECONNECTED
+
+            Then("The table should contain the entry")
+            eventually { table.localSnapshot shouldBe Map("key0" -> "value0",
+                                                          "key1" -> "value1") }
+
+            table.stop()
+        }
+
+        scenario("Table should stop on connection completion") {
+            Given("A connection observable")
+            val connection = PublishSubject.create[ConnectionState]
+
+            And("A state table")
+            val (table, _) = mockTable(connection)
+            table.start()
+
+            When("The connection completes")
+            connection.onCompleted()
+
+            Then("The table is stopped")
+            table.isStopped shouldBe true
+        }
+
+        scenario("Table should stop on connection error") {
+            Given("A connection observable")
+            val connection = PublishSubject.create[ConnectionState]
+
+            And("A state table")
+            val (table, _) = mockTable(connection)
+            table.start()
+
+            When("The connection emits an error")
+            connection onError new Exception()
+
+            Then("The table is stopped")
+            table.isStopped shouldBe true
+        }
     }
 
     feature("Table supports basic operations") {
         scenario("Table no ops if not started") {
             Given("A state table with mock directory")
-            val table = mockTable()
+            val (table, _) = mockTable()
 
             Then("Adding an entry does nothing")
             table.add("key0", "value0")
@@ -490,6 +604,8 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             And("The storage should contain the latest entry")
             curator.checkExists().forPath(s"$path/key0,value0,0000000000") shouldBe null
             curator.checkExists().forPath(s"$path/key0,value1,0000000001") should not be null
+
+            table.stop()
         }
 
         scenario("Table does not remove not owned entries") {
@@ -513,6 +629,18 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
             And("The storage should contain the entry")
             curator.checkExists().forPath(s"$path/key0,value0,0000000000") should not be null
+
+            table.stop()
+        }
+
+        scenario("Table does not remove non-existing entries") {
+            Given("A state table with ZooKeeper directory")
+            val (table, path) = zkTable()
+            table.start()
+
+            Then("Deleting a non-existing entry returns null")
+            table.remove("key0") shouldBe null
+            table.remove("key0", "value0") shouldBe false
 
             table.stop()
         }
@@ -542,6 +670,75 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
             And("The table should contain the entry")
             eventually { table.containsLocal("key0") shouldBe true }
+
+            table.stop()
+        }
+
+        scenario("Table enqueues deletion operations") {
+            Given("A connection observable")
+            val connection = PublishSubject.create[ConnectionState]
+
+            And("A state table with ZooKeeper directory")
+            val (table, path) = zkTable(create = true, connection)
+            table.start()
+
+            When("Adding an entry")
+            table.add("key0", "value0")
+
+            Then("The table should contain the entry")
+            eventually { table.containsLocal("key0", "value0") shouldBe true }
+
+            And("The entry should exist in storage")
+            curator.checkExists().forPath(s"$path/key0,value0,0000000000") should not be null
+
+            When("The table disconnects and then removes a value")
+            connection onNext ConnectionState.SUSPENDED
+            table.remove("key0", "value0")
+
+            And("Reconnects")
+            connection onNext ConnectionState.RECONNECTED
+
+            Then("The old entry should be deleted")
+            eventually {
+                curator.checkExists().forPath(s"$path/key0,value0,0000000000") shouldBe null
+            }
+
+            table.stop()
+        }
+
+        scenario("Table handles error on add") {
+            Given("A state table with ZooKeeper directory")
+            val (table, _) = zkTable(create = false)
+            table.start()
+
+            Then("Adding an entry for a non-existing table should not fail")
+            table.add("key0", "value0")
+
+            table.stop()
+        }
+
+        scenario("Table handles error on delete") {
+            Given("A state table with ZooKeeper directory")
+            val (table, path) = zkTable()
+            table.start()
+
+            When("Adding an entry")
+            table.add("key0", "value0")
+
+            Then("The table should contain the entry")
+            eventually { table.containsLocal("key0", "value0") shouldBe true }
+
+            When("Deleting the table")
+            ZKPaths.deleteChildren(curator.getZookeeperClient.getZooKeeper,
+                                   path, true)
+
+            Then("Adding an entry for a non-existing table should not fail")
+            table.remove("key0", "value0")
+
+            And("The table should clear the entry")
+            eventually { table.containsLocal("key0", "value0") shouldBe false }
+
+            table.stop()
         }
     }
 
@@ -745,6 +942,34 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
             And("The table should contain the learned entry")
             table.containsLocal("key0", "value0") shouldBe true
+
+            table.stop()
+        }
+
+        scenario("Adding a persistent entry does not overwrite learned entry") {
+            Given("A state table with ZooKeeper directory")
+            val (table, _) = zkTable()
+            table.start()
+
+            When("Adding a learned entry")
+            table.add("key0", "value0")
+
+            Then("The table should contain the learned entry")
+            eventually { table.containsLocal("key0", "value0") shouldBe true }
+
+            When("Adding a persistent entry")
+            table.addPersistent("key0", "value1")
+
+            And("Adding a second control entry")
+            table.add("key1", "value1")
+
+            Then("The table should contain the control entry")
+            eventually { table.containsLocal("key1", "value1") shouldBe true }
+
+            And("The original learned entry")
+            table.containsLocal("key0", "value0") shouldBe true
+
+            table.stop()
         }
     }
 
@@ -949,7 +1174,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
         scenario("Table for non-existing path") {
             Given("A state table with ZooKeeper directory")
-            val (table, path) = zkTable(create = false)
+            val (table, _) = zkTable(create = false)
 
             And("A table observer")
             val observer = new TestAwaitableObserver[StateTable.Update[String, String]]
@@ -966,6 +1191,435 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
             And("The table should be stopped")
             table.isStopped shouldBe true
+        }
+
+        scenario("Table handles throwing subscriber during onNext") {
+            Given("A state table with ZooKeeper directory")
+            val (table, _) = zkTable()
+
+            And("Adding an entry to the table")
+            table.start()
+            table.add("key0", "value0")
+
+            And("A subscriber that throws during onNext")
+            val badObserver = new Subscriber[StateTable.Update[String, String]] {
+                override def onNext(u: StateTable.Update[String, String]): Unit = {
+                    throw new Exception()
+                }
+                override def onCompleted(): Unit = { }
+                override def onError(e: Throwable): Unit = { }
+            }
+
+            And("A good observer")
+            val observer = new TestAwaitableObserver[StateTable.Update[String, String]]
+
+            When("The good observer subscribes to the table")
+            val sub1 = table.observable.subscribe(observer)
+
+            Then("The observer should receive the update")
+            observer.awaitOnNext(1, timeout)
+            observer.getOnNextEvents.get(0) shouldBe Update[String, String](
+                "key0", null, "value0")
+
+            When("The bad observer subscribes to the table")
+            val sub2 = table.observable.subscribe(badObserver)
+
+            Then("The bad observer should be unsubscribed")
+            sub1.isUnsubscribed shouldBe false
+            sub2.isUnsubscribed shouldBe true
+
+            table.stop()
+        }
+
+        scenario("Table handles throwing subscriber during onCompleted") {
+            Given("A connection observable")
+            val connection = PublishSubject.create[ConnectionState]
+
+            And("A state table")
+            val (table, _) = mockTable(connection)
+            table.start()
+
+            And("Adding an entry to the table")
+            table.start()
+
+            And("A subscriber that throws during onCompleted")
+            val badObserver = new Observer[StateTable.Update[String, String]] {
+                override def onNext(u: StateTable.Update[String, String]): Unit = { }
+                override def onCompleted(): Unit = {
+                    throw new Exception()
+                }
+                override def onError(e: Throwable): Unit = { }
+            }
+
+            When("The bad observer subscribes to the table")
+            table.observable.subscribe(badObserver)
+
+            Then("Completing the connection observable should not throw")
+            connection.onCompleted()
+
+            And("The table should be stopped")
+            table.isStopped shouldBe true
+        }
+
+        scenario("Table handles throwing subscriber during onError") {
+            Given("A connection observable")
+            val connection = PublishSubject.create[ConnectionState]
+
+            And("A state table")
+            val (table, _) = mockTable(connection)
+            table.start()
+
+            And("Adding an entry to the table")
+            table.start()
+
+            And("A subscriber that throws during onError")
+            val badObserver = new Observer[StateTable.Update[String, String]] {
+                override def onNext(u: StateTable.Update[String, String]): Unit = { }
+                override def onCompleted(): Unit = { }
+                override def onError(e: Throwable): Unit = {
+                    throw new Exception(e)
+                }
+            }
+
+            When("The bad observer subscribes to the table")
+            table.observable.subscribe(badObserver)
+
+            Then("Completing the connection should not throw")
+            connection onNext ConnectionState.LOST
+
+            And("The table should be stopped")
+            table.isStopped shouldBe true
+        }
+    }
+
+    feature("Table uses state proxy") {
+        scenario("Table subscribes to state client") {
+            Given("A proxy client")
+            val proxy = new TestableProxyClient
+
+            And("A state table with mock backend")
+            val (table, _) = mockTable(proxy = proxy)
+            table.start()
+
+            And("The client has no observers")
+            proxy.updates.hasObservers shouldBe false
+
+            When("The proxy notifies as connected")
+            proxy.state onNext ProxyConnectionState.Connected
+
+            Then("The table should subscribe to the client")
+            proxy.updates.hasObservers shouldBe true
+
+            When("The proxy notifies as disconnected")
+            proxy.state onNext ProxyConnectionState.Disconnected
+
+            Then("The table should unsubscribe")
+            proxy.updates.hasObservers shouldBe false
+
+            table.stop()
+        }
+
+        scenario("Table should fallback to storage when proxy disconnected") {
+            Given("A proxy client")
+            val proxy = new TestableProxyClient
+
+            And("A state table with mock backend")
+            val (table, directory) = mockTable(proxy = proxy)
+            table.start()
+
+            When("Adding an entry to the table")
+            directory.add("/key0,value0,0000000000", null, CreateMode.EPHEMERAL)
+
+            Then("The table should contain the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            When("The proxy client becomes connected")
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("Adding an entry to the table")
+            directory.add("/key1,value1,0000000001", null, CreateMode.EPHEMERAL)
+
+            Then("The table should not contain the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            When("The proxy client becomes disconnected")
+            proxy.state onNext ProxyConnectionState.Disconnected
+
+            Then("The table should not contain the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0",
+                                             "key1" -> "value1")
+        }
+
+        scenario("Table updates with snapshot") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, _) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The proxy publishes a snapshot")
+            snapshot(proxy, begin = true, end = true, 0L,
+                     Map("key0" -> ("value0", 0)))
+
+            Then("The table should contain the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+        }
+
+        scenario("Table ignores update with lower version") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, _) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The proxy publishes a snapshot")
+            snapshot(proxy, begin = true, end = true, 1L,
+                     Map("key0" -> ("value0", 0)))
+
+            Then("The table should contain the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            When("The proxy publishes an older snapshot")
+            snapshot(proxy, begin = true, end = true, 0L,
+                     Map("key1" -> ("value1", 0)))
+
+            Then("The table should not contain the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+        }
+
+        scenario("Table ignores non-begin snapshot") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, _) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The proxy publishes a snapshot")
+            snapshot(proxy, begin = false, end = false, 1L,
+                     Map("key0" -> ("value0", 0)))
+
+            Then("The table should be empty")
+            table.localSnapshot shouldBe empty
+        }
+
+        scenario("Table does not update the cache until end is true") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, _) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The proxy publishes the snapshot begin")
+            snapshot(proxy, begin = true, end = false, 1L,
+                     Map("key0" -> ("value0", 0)))
+
+            Then("The table cache should be empty")
+            table.localSnapshot shouldBe empty
+
+            When("The proxy publishes the snapshot middle")
+            snapshot(proxy, begin = false, end = false, 1L,
+                     Map("key1" -> ("value1", 1)))
+
+            Then("The table cache should be empty")
+            table.localSnapshot shouldBe empty
+
+            When("The proxy publishes the snapshot end")
+            snapshot(proxy, begin = false, end = true, 1L,
+                     Map("key2" -> ("value2", 2)))
+
+            Then("The table cache should contain all entries")
+            table.localSnapshot shouldBe Map("key0" -> "value0",
+                                             "key1" -> "value1",
+                                             "key2" -> "value2")
+        }
+
+        scenario("Table handles relative update") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, _) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The proxy publishes a diff that adds an entry")
+            diff(proxy, 1L, Seq(("key0", "value0", 0)))
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            When("The proxy publishes another diff for the same key")
+            diff(proxy, 1L, Seq(("key0", "value1", 1)))
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value1")
+
+            When("The proxy publishes a diff that removes an entry")
+            diff(proxy, 1L, Seq(("key0", null, 1)))
+
+            Then("The table snapshot should be empty")
+            table.localSnapshot shouldBe empty
+        }
+
+        scenario("Table handles multiple relative updates") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, _) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The proxy publishes a diff that adds an entry")
+            diff(proxy, 1L, Seq(("key0", "value0", 0)))
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            And("The proxy publishes a diff that adds another entry")
+            diff(proxy, 1L, Seq(("key1", "value1", 1)))
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0",
+                                             "key1" -> "value1")
+        }
+
+        scenario("Table removes owned entry for different value") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, directory) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The table adds an entry")
+            table.add("key0", "value0")
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            And("The directory contains the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe true
+
+            When("The proxy publishes a diff for another entry")
+            diff(proxy, 1L, Seq(("key0", "value1", 1)))
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value1")
+
+            And("The directory does not contains the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe false
+        }
+
+        scenario("Table removes owned entry for different version") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, directory) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The table adds an entry")
+            table.add("key0", "value0")
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            And("The directory contains the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe true
+
+            When("The proxy publishes a diff for another entry")
+            diff(proxy, 1L, Seq(("key0", "value0", 1)))
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            And("The directory does not contains the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe false
+        }
+
+        scenario("Table removes owned entry for deleted version") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, directory) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The table adds an entry")
+            table.add("key0", "value0")
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            And("The directory contains the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe true
+
+            When("The proxy publishes a diff for another entry")
+            diff(proxy, 1L, Seq(("key0", null, 1)))
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe empty
+
+            And("The directory does not contains the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe false
+        }
+
+        scenario("Table ignores inconsistent relative update") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, _) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The table adds an entry")
+            table.add("key0", "value0")
+
+            And("The proxy publishes a diff that removes a non-existing entry")
+            diff(proxy, 1L, Seq(("key1", null, 1)))
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+        }
+
+        scenario("Table handles missing update type") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, _) = mockTable(proxy = proxy)
+            table.start()
+
+            Then("The table handles an unknown update")
+            proxy.updates onNext Notify.Update.newBuilder().build()
+        }
+
+        scenario("Table handles missing update version") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, directory) = mockTable(proxy = proxy)
+            table.start()
+
+            Then("The table handles an unknown update")
+            proxy.updates onNext Notify.Update.newBuilder()
+                .setType(Notify.Update.Type.RELATIVE).build()
         }
     }
 }
