@@ -17,18 +17,22 @@
 package org.midonet.services.flowstate
 
 import java.io.File
-import java.util.concurrent.{ExecutorService, TimeUnit}
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
+
 import com.datastax.driver.core.Session
 import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import com.typesafe.scalalogging.Logger
+
 import org.apache.curator.framework.CuratorFramework
 import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.config.MidolmanConfig
@@ -57,7 +61,7 @@ object FlowStateService {
   */
 @MinionService(name = "flow-state", runsOn = TargetNode.AGENT)
 class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework,
-                                 @Named("agent-services-pool") executor: ExecutorService,
+                                 @Named("agent-services-pool") executor: ScheduledExecutorService,
                                  config: MidolmanConfig)
     extends Minion(nodeContext) {
 
@@ -84,6 +88,37 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
 
     @VisibleForTesting
     protected val port = config.flowState.port
+
+    protected def blockInvalidator: Runnable = new BlockInvalidator()
+
+    /**
+      * Block invalidation task that runs periodically over the existing
+      * blocks.
+      */
+    class BlockInvalidator extends Runnable {
+        override def run(): Unit = {
+            val startTime = System.nanoTime()
+            var invalidatedBlocks = 0
+            for ((portId, writer) <- ioManager.iterator) {
+                invalidatedBlocks += writer.invalidateBlocks()
+            }
+            val elapsed = Duration(System.nanoTime - startTime,
+                                   TimeUnit.NANOSECONDS).toMillis
+            Log debug s"Flow state block invalidator task took $elapsed ms " +
+                      s"and invalidated $invalidatedBlocks blocks."
+        }
+    }
+
+    /** Initializes the block invalidator thread */
+    private[flowstate] def startBlockInvalidator() = {
+        if (config.flowState.localPushState) {
+            executor.scheduleWithFixedDelay(
+                blockInvalidator,
+                config.flowState.expirationDelay toMillis,
+                config.flowState.expirationDelay toMillis,
+                TimeUnit.MILLISECONDS)
+        }
+    }
 
     @VisibleForTesting
     /** Initialize the UDP and TCP server frontends. Cassandra session MUST be
@@ -155,6 +190,7 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
     }
 
     private def startAndNotify(): Unit = {
+        startBlockInvalidator()
         startServerFrontEnds()
         Log info "Flow state service registered and listening" +
             s"for TCP and UDP connections on 0.0.0.0:$port"
