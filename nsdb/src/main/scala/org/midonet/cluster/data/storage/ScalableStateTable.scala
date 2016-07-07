@@ -28,6 +28,8 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.storage.ScalableStateTable._
 import org.midonet.cluster.data.storage.ScalableStateTableManager.ProtectedSubscriber
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
+import org.midonet.cluster.rpc.State.KeyValue
+import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.util.functors.makeAction0
 import org.midonet.util.logging.Logging
@@ -295,8 +297,7 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
     /**
       * Decodes the table path and returns a [[TableEntry]].
       */
-    private[storage] def decodeEntry(path: String)
-    : TableEntry[K, V] = {
+    private[storage] def decodeEntry(path: String): TableEntry[K, V] = {
         val string = if (path.startsWith("/")) path.substring(1)
         else path
         val tokens = string.split(",")
@@ -308,6 +309,24 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
         } catch {
             case NonFatal(_) => null
         }
+    }
+    /**
+      * Decodes a state proxy [[Notify.Entry]] and returns a [[TableEntry]].
+      */
+    private[storage] def decodeEntry(entry: Notify.Entry): TableEntry[K, V] = {
+        try {
+            TableEntry(decodeKey(entry.getKey), decodeValue(entry.getValue),
+                       entry.getVersion)
+        } catch {
+            case NonFatal(_) => null
+        }
+    }
+
+    /**
+      * This changes the access rights for a protected method.
+      */
+    @inline private[storage] def accessibleDecodeKey(kv: KeyValue): K = {
+        decodeKey(kv)
     }
 
 }
