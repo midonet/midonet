@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.storage
 
+import org.apache.commons.lang.SerializationException
 import org.apache.curator.framework.state.ConnectionState
 
 import rx.Observable
@@ -24,9 +25,9 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.storage.StateTable.Key
 import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.data.storage.{DirectoryStateTable, ScalableStateTable, StateTableEncoder}
+import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.storage.ArpStateTable.ArpEncoder
-import org.midonet.midolman.serialization.SerializationException
 import org.midonet.packets.IPv4Addr
 
 object ArpStateTable {
@@ -47,6 +48,15 @@ object ArpStateTable {
         @throws[SerializationException]
         @inline protected override def decodeValue(string: String): ArpEntry = {
             ArpEntry.decode(string)
+        }
+
+        @inline protected override def decodeKey(kv: KeyValue): IPv4Addr = {
+            new IPv4Addr(kv.getData32)
+        }
+
+        @throws[SerializationException]
+        @inline protected override def decodeValue(kv: KeyValue): ArpEntry = {
+            ArpEntry.decode(kv.getDataVariable.toStringUtf8)
         }
     }
     object ArpEncoder extends ArpEncoder
