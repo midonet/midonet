@@ -39,9 +39,9 @@ object StateTransferProtocolBuilder {
             .build()
     }
 
-    def buildStateRequestRemote(portId: UUID, host: String) = {
+    def buildStateRequestRemote(portId: UUID, address: String) = {
         @inline def remoteIp = Commons.IPAddress.newBuilder()
-                .setAddress(host)
+                .setAddress(address)
                 .setVersion(Commons.IPVersion.V4)
                 .build()
 
