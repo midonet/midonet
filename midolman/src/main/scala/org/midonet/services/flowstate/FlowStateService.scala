@@ -28,7 +28,6 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 import com.typesafe.scalalogging.Logger
 
-import org.apache.curator.framework.CuratorFramework
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
@@ -57,7 +56,7 @@ object FlowStateService {
   * to a Cassandra cluster.
   */
 @MinionService(name = "flow-state", runsOn = TargetNode.AGENT)
-class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework,
+class FlowStateService @Inject()(nodeContext: Context,
                                  @Named("agent-services-pool") executor: ExecutorService,
                                  config: MidolmanConfig)
     extends Minion(nodeContext) {
@@ -92,31 +91,26 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
         readMessageHandler = new FlowStateReadHandler(config.flowState)
         tcpFrontend = ServerFrontEnd.tcp(readMessageHandler, port)
 
-        try {
-            udpFrontend.startAsync()
-            tcpFrontend.startAsync()
+        udpFrontend.startAsync()
+        tcpFrontend.startAsync()
 
-            udpFrontend.awaitRunning(FrontEndTimeout, FrontEndTimeoutUnit)
-            tcpFrontend.awaitRunning(FrontEndTimeout, FrontEndTimeoutUnit)
-        } catch {
-            case NonFatal(e) =>
-                if (cassandraSession ne null) cassandraSession.close()
-                notifyFailed(e)
-        }
+        udpFrontend.awaitRunning(FrontEndTimeout, FrontEndTimeoutUnit)
+        tcpFrontend.awaitRunning(FrontEndTimeout, FrontEndTimeoutUnit)
+    }
+
+    private[flowstate] def cassandraClient: CassandraClient = {
+        new CassandraClient(config.zookeeper,
+                            config.cassandra,
+                            FlowStateStorage.KEYSPACE_NAME,
+                            FlowStateStorage.SCHEMA,
+                            FlowStateStorage.SCHEMA_TABLE_NAMES)
     }
 
     protected override def doStart(): Unit = {
         Log info "Starting flow state service"
 
         if (legacyPushState) {
-            val client = new CassandraClient(
-                config.zookeeper,
-                config.cassandra,
-                FlowStateStorage.KEYSPACE_NAME,
-                FlowStateStorage.SCHEMA,
-                FlowStateStorage.SCHEMA_TABLE_NAMES)
-
-            client.connect() onComplete {
+            cassandraClient.connect() onComplete {
                 case Success(session) =>
                     this.synchronized {
                         cassandraSession = session
@@ -147,10 +141,16 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
     }
 
     private def startAndNotify(): Unit = {
-        startServerFrontEnds()
-        Log info "Flow state service registered and listening" +
-            s"for TCP and UDP connections on 0.0.0.0:$port"
-        notifyStarted()
+        try {
+            startServerFrontEnds()
+            Log info "Flow state service registered and listening" +
+                     s"for TCP and UDP connections on 0.0.0.0:$port"
+            notifyStarted()
+        } catch {
+            case NonFatal(e) =>
+                if (cassandraSession ne null) cassandraSession.close()
+                notifyFailed(e)
+        }
     }
 }
 

@@ -20,12 +20,16 @@ import java.net.{BindException, DatagramSocket, ServerSocket}
 import java.util.UUID
 import java.util.concurrent.{ExecutorService, TimeUnit}
 
-import org.apache.curator.framework.CuratorFramework
+import scala.concurrent.Future
+
+import com.datastax.driver.core.Session
+
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{atLeastOnce, mock, times, verify}
+import org.mockito.Mockito.{atLeastOnce, mock, times, verify, when => mockWhen}
 import org.mockito.{ArgumentCaptor, Matchers => mockito}
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateResponse
 import org.midonet.cluster.storage.FlowStateStorageWriter
 import org.midonet.cluster.topology.TopologyBuilder
@@ -41,24 +45,26 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 
 @RunWith(classOf[JUnitRunner])
-class FlowStateServiceTest extends FlowStateBaseCuratorTest
+class FlowStateServiceTest extends FlowStateBaseTest
                                    with TopologyBuilder {
 
     private val executor: ExecutorService = new SameThreadButAfterExecutorService
 
     /** Mocked flow state minion, overrides local ip discovery */
-    private class FlowStateServiceTest(nodeContext: Context, curator: CuratorFramework,
-                                       executor: ExecutorService, config: MidolmanConfig)
-        extends FlowStateService(nodeContext: Context, curator: CuratorFramework,
-                                 executor: ExecutorService, config: MidolmanConfig) {
-
-        override def startServerFrontEnds() = {
-            port shouldBe 1234
-            super.startServerFrontEnds()
-        }
+    private class FlowStateServiceTest(nodeContext: Context,
+                                       executor: ExecutorService,
+                                       config: MidolmanConfig)
+        extends FlowStateService(nodeContext, executor, config) {
 
         def getUdpMessageHandler = writeMessageHandler
         def getTcpMessageHandler = readMessageHandler
+
+        override def cassandraClient: CassandraClient = {
+            val client = mock(classOf[CassandraClient])
+            val session = mock(classOf[Session])
+            mockWhen(client.connect()).thenReturn(Future.successful(session))
+            client
+        }
     }
 
     private def mockedWriteAndFlushResponse(ctx: ChannelHandlerContext,
@@ -77,12 +83,19 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
         parseStateResponse(stateResponse)
     }
 
+    before {
+        // We assume midolman.log.dir contains an ending / but tmpdir does not
+        // add it on some platforms.
+        System.setProperty("minions.db.dir",
+                           s"${System.getProperty("java.io.tmpdir")}/")
+    }
+
     feature("Test service lifecycle") {
         scenario("A flow state storage object is created per thread.") {
             Given("A flow state service and message handler")
             val context = Context(UUID.randomUUID())
             val service = new FlowStateServiceTest(
-                context, curator, executor, midolmanConfig)
+                context, executor, midolmanConfig)
             service.startAsync().awaitRunning(60, TimeUnit.SECONDS)
 
             val handler = service.getUdpMessageHandler
@@ -122,34 +135,37 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
             Given("A discovery service")
             And("A container service that is started")
             val context = Context(UUID.randomUUID())
+            val config = midolmanConfig
             val service = new FlowStateServiceTest(
-                context, curator, executor, midolmanConfig)
+                context, executor, config)
             service.startAsync().awaitRunning(60, TimeUnit.SECONDS)
 
             Then("The udp socket is bound on configured port")
             intercept[BindException] {
-                new DatagramSocket(midolmanConfig.flowState.port)
+                log.debug(s"Configured port: ${config.flowState.port}")
+                new DatagramSocket(config.flowState.port)
             }
 
             Then("The tcp socket is bound on configured port")
             intercept[BindException] {
-                new ServerSocket(midolmanConfig.flowState.port)
+                log.debug(s"Configured port: ${config.flowState.port}")
+                new ServerSocket(config.flowState.port)
             }
 
             When("The service is stopped")
             service.stopAsync().awaitTerminated(10, TimeUnit.SECONDS)
 
             Then("The udp port is unbound")
-            new DatagramSocket(midolmanConfig.flowState.port).close()
+            new DatagramSocket(config.flowState.port).close()
 
             Then("The tcp port is unbound")
-            new ServerSocket(midolmanConfig.flowState.port).close()
+            new ServerSocket(config.flowState.port).close()
         }
 
         scenario("Service is enabled in the default configuration schema") {
             Given("A flow state service that is started")
             val service = new FlowStateServiceTest(
-                Context(UUID.randomUUID()), curator, executor, midolmanConfig)
+                Context(UUID.randomUUID()), executor, midolmanConfig)
 
             Then("The service is enabled")
             service.isEnabled shouldBe true
@@ -285,8 +301,9 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
     feature("Flow state read message handling") {
         scenario("Service read handler receives valid raw state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val config = midolmanConfig
+            val ports = createValidFlowStatePorts(config.flowState)
+            val handler = new TestableReadHandler(config.flowState, ports)
             And("A valid raw state request")
             val request = rawStateRequest(handler.validPortId)
 
@@ -307,8 +324,9 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
 
         scenario("Service read handler receives valid remote state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val config = midolmanConfig
+            val ports = createValidFlowStatePorts(config.flowState)
+            val handler = new TestableReadHandler(config.flowState, ports)
             And("A valid remote state request")
             val request = remoteStateRequest(handler.validPortId)
 
@@ -329,8 +347,9 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
 
         scenario("Service read handler receives valid internal state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val config = midolmanConfig
+            val ports = createValidFlowStatePorts(config.flowState)
+            val handler = new TestableReadHandler(config.flowState, ports)
             And("A valid internal state request")
             val request = internalStateRequest(handler.validPortId)
 
@@ -351,8 +370,9 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
 
         scenario("Service read handler receives invalid flow state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val config = midolmanConfig
+            val ports = createValidFlowStatePorts(config.flowState)
+            val handler = new TestableReadHandler(config.flowState, ports)
             And("An invalid transfer request")
             val request = invalidStateTransferRequest
 
@@ -375,8 +395,9 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
 
         scenario("Service read handler receives malformed flow state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val config = midolmanConfig
+            val ports = createValidFlowStatePorts(config.flowState)
+            val handler = new TestableReadHandler(config.flowState, ports)
             And("A malformed transfer request")
             val request = malformedStateTransferRequest
 
@@ -399,8 +420,9 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
 
         scenario("Service read handler receives unknown flow state request") {
             Given("A flow state read message handler")
-            val ports = createValidFlowStatePorts(midolmanConfig.flowState)
-            val handler = new TestableReadHandler(midolmanConfig.flowState, ports)
+            val config = midolmanConfig
+            val ports = createValidFlowStatePorts(config.flowState)
+            val handler = new TestableReadHandler(config.flowState, ports)
             And("An valid transfer request, but unknown to this agent")
             val request = internalStateRequest()
 
