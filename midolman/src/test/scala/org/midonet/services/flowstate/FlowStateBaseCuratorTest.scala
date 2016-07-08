@@ -21,8 +21,6 @@ import java.io.File
 import com.google.common.io.Files
 import com.typesafe.config.ConfigFactory
 
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
-
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.midolman.config.MidolmanConfig
 
@@ -44,8 +42,6 @@ trait FlowStateBaseCuratorTest extends FlowStateBaseTest
         // add it on some platforms.
         System.setProperty("minions.db.dir",
                            s"${System.getProperty("java.io.tmpdir")}/")
-
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra(60000L)
 
         config =
             s"""
