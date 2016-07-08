@@ -77,7 +77,6 @@ object PacketWorkflow {
     case object ErrorDrop extends DropAction
     case object ShortDrop extends DropAction
     case object AddVirtualWildcardFlow extends SimulationResult
-    case object StateMessage extends SimulationResult
     case object UserspaceFlow extends SimulationResult
     case object FlowCreated extends SimulationResult
     case object GeneratedPacket extends SimulationResult
@@ -370,14 +369,9 @@ class PacketWorkflow(
         handoff(pktCtx)
 
         if (pktCtx.ingressed) {
-            simRes match {
-                case StateMessage =>
-                    metrics.statePacketsProcessed.mark()
-                case _ =>
-                    val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
-                    metrics.packetsProcessed.update(latency.toInt,
-                                                    TimeUnit.NANOSECONDS)
-            }
+            val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
+            metrics.packetsProcessed.update(latency.toInt,
+                                            TimeUnit.NANOSECONDS)
         }
 
         meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
@@ -602,6 +596,7 @@ class PacketWorkflow(
     protected def handleStateMessage(context: PacketContext): Unit = {
         context.log.debug("Accepting a state push message")
         replicator.accept(context.ethernet)
+        metrics.statePacketsProcessed.mark()
     }
 
     private def handleDHCP(context: PacketContext): Boolean = {
