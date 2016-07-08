@@ -434,7 +434,8 @@ public abstract class ReplicatedMap<K, V> {
             }
             MapValue mapValue = localMap.get(key);
             if (mapValue != null && mapValue.value != null &&
-                mapValue.value.equals(value) && !deletingSet.contains(entry)) {
+                mapValue.value.equals(value) && !deletingSet.contains(entry) &&
+                ownedVersions.contains(mapValue.version)) {
                 log.debug("Entry {} -> {} already exists", key, value);
                 return;
             }
