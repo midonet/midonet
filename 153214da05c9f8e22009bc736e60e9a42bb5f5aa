@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_63bfe360",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-08T15:24:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_4db6508b",
+      "range": {
+        "startLine": 48,
+        "startChar": 14,
+        "endLine": 48,
+        "endChar": 17
+      },
+      "revId": "153214da05c9f8e22009bc736e60e9a42bb5f5aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2d154c48",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2016-07-08T11:14:41Z",
       "side": 1,
       "message": "there\u0027s a lot of code in this class, a lot of it with similar names which makes it hard to drill down to the actual logic. I\u0027d move State to another file.",
+      "range": {
+        "startLine": 103,
+        "startChar": 6,
+        "endLine": 103,
+        "endChar": 24
+      },
+      "revId": "153214da05c9f8e22009bc736e60e9a42bb5f5aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e60e6131",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-08T15:24:58Z",
+      "side": 1,
+      "message": "Done: moved to new class",
+      "parentUuid": "baa041b7_2d154c48",
       "range": {
         "startLine": 103,
         "startChar": 6,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_46caada2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-08T15:24:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6dbfd460",
+      "range": {
+        "startLine": 310,
+        "startChar": 58,
+        "endLine": 310,
+        "endChar": 65
+      },
+      "revId": "153214da05c9f8e22009bc736e60e9a42bb5f5aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_d01d5367",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
         "patchSetId": 8
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_863795af",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-08T15:24:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d01d5367",
+      "revId": "153214da05c9f8e22009bc736e60e9a42bb5f5aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b0464f4d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
         "patchSetId": 8
@@ -99,6 +189,30 @@
       "writtenOn": "2016-07-08T11:14:41Z",
       "side": 1,
       "message": "what if I had an entry. Another client added the same entry with a newer version, and then i wanted to delete my own. This would fail.",
+      "range": {
+        "startLine": 407,
+        "startChar": 24,
+        "endLine": 407,
+        "endChar": 29
+      },
+      "revId": "153214da05c9f8e22009bc736e60e9a42bb5f5aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_663a519a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-08T15:24:58Z",
+      "side": 1,
+      "message": "Explained f2f: this entry is removed on the getChildren callback, removal here is not needed.",
+      "parentUuid": "baa041b7_b0464f4d",
       "range": {
         "startLine": 407,
         "startChar": 24,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_46418d0a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 412,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-08T15:24:58Z",
+      "side": 1,
+      "message": "Synchronized above.",
+      "parentUuid": "baa041b7_7029e788",
+      "range": {
+        "startLine": 411,
+        "startChar": 9,
+        "endLine": 412,
+        "endChar": 38
+      },
+      "revId": "153214da05c9f8e22009bc736e60e9a42bb5f5aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f063b7db",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
         "patchSetId": 8
@@ -145,6 +283,30 @@
       "writtenOn": "2016-07-08T11:14:41Z",
       "side": 1,
       "message": "deletes are async, so there\u0027s no harm in putting this under the synchronized and getting rid of the tls.",
+      "range": {
+        "startLine": 578,
+        "startChar": 16,
+        "endLine": 578,
+        "endChar": 22
+      },
+      "revId": "153214da05c9f8e22009bc736e60e9a42bb5f5aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c66c7d9e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTable.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-08T15:24:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_f063b7db",
       "range": {
         "startLine": 578,
         "startChar": 16,
