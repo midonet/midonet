@@ -327,6 +327,7 @@ message Port {
     optional UUID peer_id = 7;
     optional UUID vif_id = 8;
     optional UUID host_id = 9;
+    optional UUID previous_host_id = 28;
     optional string interface_name = 10;
     optional bool admin_state_up = 11 [default = true];
 
