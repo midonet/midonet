@@ -41,9 +41,9 @@ class StateSubscriptionKey(val objectClass: Class[_],
         msg.setObjectId(Commons.UUID.newBuilder()
                             .setMsb(objectId.getMostSignificantBits)
                             .setLsb(objectId.getLeastSignificantBits))
-            .setObjectClass(objectClass.toString)
-            .setKeyClass(keyClass.toString)
-            .setValueClass(valueClass.toString)
+            .setObjectClass(objectClass.getName)
+            .setKeyClass(keyClass.getName)
+            .setValueClass(valueClass.getName)
             .setTableName(tableName)
             .build()
     }
