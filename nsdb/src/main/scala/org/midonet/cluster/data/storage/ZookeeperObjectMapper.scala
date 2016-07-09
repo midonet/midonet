@@ -52,9 +52,9 @@ import rx.functions.Func1
 import rx.{Notification, Observable, Subscriber}
 
 import org.midonet.cluster.data.storage.CuratorUtil._
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException, PathCacheClosedException}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.eventloop.Reactor
@@ -111,9 +111,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                             protected override val namespace: String,
                             protected override val curator: CuratorFramework,
                             protected override val failFastCurator: CuratorFramework,
+                            protected override val stateTables: StateTableClient,
                             protected override val reactor: Reactor,
-                            protected override val connection: ZkConnection,
-                            protected override val connectionWatcher: ZkConnectionAwareWatcher,
                             metricsRegistry: MetricRegistry = null)
     extends ZookeeperObjectState with ZookeeperStateTable with Storage
     with StorageInternals {
