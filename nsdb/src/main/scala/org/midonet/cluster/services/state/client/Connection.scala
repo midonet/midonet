@@ -221,6 +221,8 @@ class Connection[S <: Message, R <: Message]
         }
     }
 
+    override def toString = s"$host:$port"
+
     protected override def channelRead0(ctx: ChannelHandlerContext,
                                         msg: Message) = {
         state.get match {

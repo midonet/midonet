@@ -24,6 +24,7 @@ import scala.util.{Failure, Success}
 import scala.PartialFunction.cond
 import scala.concurrent.duration._
 import scala.concurrent.{CancellationException, ExecutionContext}
+import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
 import com.typesafe.scalalogging.Logger
@@ -71,9 +72,12 @@ abstract class PersistentConnection[S <: Message, R <: Message]
 
     private type ConnectionType = Connection[S, R]
 
-    private case class Connected(connection: ConnectionType) extends State
+    private case class Connected(connection: ConnectionType) extends State {
+        override def toString = s"connected $connection"
+    }
 
-    private val log = Logger(LoggerFactory.getLogger("PersistentConnection"))
+    protected val log =
+        Logger(LoggerFactory.getLogger("org.midonet.nsdb.state-proxy-client"))
     private val state = new AtomicReference(Init : State)
 
     private var currentAddress: Option[MidonetServiceHostAndPort] = None
@@ -139,21 +143,21 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                     start()
                 }
             case Dead =>
-                throw new StoppedException(toString)
+                throw new StoppedException()
 
             case _ =>
-                throw new AlreadyStartedException(toString)
+                throw new AlreadyStartedException()
         }
     }
 
     def stop(): Boolean = {
-        log.info(s"$this disconnecting")
+        log.info(s"$this Disconnecting")
 
         state.getAndSet(Dead) match {
             case Dead => false
             case Connected(conn) =>
                 conn.close()
-                onDisconnect(new StoppedException(toString))
+                onDisconnect(new StoppedException())
                 true
             case _ => true
         }
@@ -176,7 +180,7 @@ abstract class PersistentConnection[S <: Message, R <: Message]
         handleDisconnect(cause)
 
     private def handleDisconnect(cause: Throwable) = {
-        log.warn(s"$this closed: $cause")
+        log.warn(s"$this Connection closed: ${cause.getMessage}")
 
         val current = state.get
         current match {
@@ -187,20 +191,20 @@ abstract class PersistentConnection[S <: Message, R <: Message]
             case Dead =>
 
             case _ =>
-                throw new UnexpectedStateException(current, toString)
+                throw new UnexpectedStateException(current)
         }
     }
 
     @throws[StoppedException]
     @throws[UnexpectedStateException]
     private def connect(): Unit = {
-        log.info(s"$this connecting")
-
         if (state.compareAndSet(AwaitingReconnect, Connecting)) {
             currentAddress = getRemoteAddress
             currentAddress match {
 
                 case Some(address) =>
+                    log.info(s"$this Connecting to $address")
+
                     val connection = new ConnectionType(address.address,
                                                         address.port,
                                                         this,
@@ -209,7 +213,7 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                         case Success(_) =>
                             if (state.compareAndSet(Connecting,
                                                     Connected(connection))) {
-                                log.info(s"$this connection established")
+                                log.info(s"$this Connection established")
                                 onConnect()
                             } else {
                                 connection.close()
@@ -220,62 +224,66 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                     }
 
                 case None =>
-                    onFailedConnection(new ServerNotFoundException(toString))
+                    log.warn(s"$this No state proxy server available")
+                    onFailedConnection(new ServerNotFoundException())
                     delayedStart(Connecting)
             }
-
         } else {
             state.get match {
-                case Dead => throw new StoppedException(toString)
-                case s: State => throw new UnexpectedStateException(s, toString)
+                case Dead => throw new StoppedException()
+                case s: State => throw new UnexpectedStateException(s)
             }
         }
     }
 
     private def delayedStart(currentState: State): Unit = {
         if (state.compareAndSet(currentState, AwaitingReconnect)) {
+            log debug s"$this Reconnecting to state proxy server in " +
+                      s"${reconnectionDelay.toMillis} milliseconds"
             executor.schedule(new Runnable {
                 def run() = {
                     try {
                         connect()
                     } catch {
-                        case err: Throwable =>
-                            log.info(s"$this reconnect cancelled: $err")
+                        case NonFatal(e) =>
+                            log.debug(s"$this Reconnect cancelled: " +
+                                      s"${e.getMessage}")
                     }
                 }
             }, reconnectionDelay.toMillis, MILLISECONDS)
         } else {
-            log.info(s"$this reconnect cancelled.")
+            log.info(s"$this Reconnect cancelled")
         }
     }
 
-    override def toString: String = {
-        if (currentAddress.isDefined) {
-            val addr = currentAddress.get
-            s"[$name to ${addr.address}:${addr.port}]"
-        } else {
-            s"[$name]"
-        }
-    }
+    override def toString: String = s"[$state]"
 }
 
 object PersistentConnection {
 
     private sealed trait State
-    private case object Init extends State
-    private case object AwaitingReconnect extends State
-    private case object Connecting extends State
-    private case object Dead extends State
+    private case object Init extends State {
+        override def toString = "init"
+    }
+    private case object AwaitingReconnect extends State {
+        override def toString = "awaiting"
+    }
+    private case object Connecting extends State {
+        override def toString = "connecting"
+    }
+    private case object Dead extends State {
+        override def toString = "dead"
+    }
 
-    class UnexpectedStateException(s: State, desc: String)
-        extends IllegalStateException(s"$desc got caught in an unexpected state: $s")
+    class UnexpectedStateException(s: State)
+        extends IllegalStateException(s"client in an unexpected state: $s")
 
-    class AlreadyStartedException(desc: String)
-        extends IllegalStateException(s"$desc has already been started")
+    class AlreadyStartedException
+        extends IllegalStateException("client has already been started")
 
-    class StoppedException(desc: String)
-        extends CancellationException(s"$desc has been stopped")
+    class StoppedException
+        extends CancellationException("client has been stopped")
 
-    class ServerNotFoundException(desc: String)
-        extends Exception(s"$desc server not found")
+    class ServerNotFoundException
+        extends Exception("state proxy server not found")
 }

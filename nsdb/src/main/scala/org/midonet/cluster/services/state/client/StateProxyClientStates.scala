@@ -138,18 +138,28 @@ private[client] object StateProxyClientStates {
 
     sealed trait State
 
-    case object Init extends State
+    case object Init extends State {
+        override def toString = "init"
+    }
 
     case class Waiting(retryCount: Int,
-                       subscribers: SubscriberMap) extends State
+                       subscribers: SubscriberMap) extends State {
+        override def toString = s"waiting $retryCount"
+    }
 
     case class Connected(subscribers: SubscriberMap,
                          subscriptions: SubscriptionMap,
-                         transactions: TransactionMap) extends State
+                         transactions: TransactionMap) extends State {
+        override def toString = "connected"
+    }
 
-    case object Dormant extends State
+    case object Dormant extends State {
+        override def toString = "dormant"
+    }
 
-    case object Dead extends State
+    case object Dead extends State {
+        override def toString = "dead"
+    }
 
     implicit def toAtomic(states: StateProxyClientStates):
         AtomicReference[State] = states.state
