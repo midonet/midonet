@@ -48,7 +48,6 @@ test_bgp.test_icmp_failback.slow=1
 test_bgp.test_mn_1172.slow=1
 test_bgp.test_multisession_icmp_failback.flaky=1
 test_bgp.test_multisession_icmp_failback.gate=1
-test_bgp.test_multisession_icmp_with_redundancy.flaky=1
 test_bgp.test_multisession_icmp_with_redundancy.gate=1
 test_bgp.test_snat.gate=1
 test_bgp.test_snat.slow=1
