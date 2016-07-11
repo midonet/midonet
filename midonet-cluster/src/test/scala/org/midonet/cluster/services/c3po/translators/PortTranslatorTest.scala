@@ -1160,6 +1160,7 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
         bind(portWithPeerId, mPortWithRPortPeer)
         bind(peerRouterPortId, mRouterPort)
         bind(routerId, mRouterWithGwPort)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     "DHCP port CREATE" should "configure DHCP" in {
@@ -1240,13 +1241,14 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
         bind(routerId, mRouterWithMDSRoute)
         bind(routeId, mRoute)
         bind(mdsRouteId, mMDSRoute)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     "DHCP port UPDATE" should "update port admin state" in {
         val dhcpPortDown = dhcpPort.toBuilder.setAdminStateUp(false).build
         val midoOps = translator.translate(UpdateOp(dhcpPortDown))
 
-        midoOps should contain only UpdateOp(midoPortBaseDown)
+        midoOps should contain(UpdateOp(midoPortBaseDown))
     }
 
     // TODO Add an assert that the fixed IPs haven't been changed.
@@ -1308,7 +1310,7 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
 }
 
 @RunWith(classOf[JUnitRunner])
-class VipPortTranslationTest extends PortTranslatorTest {
+class VipPortTranslationTest extends VifPortTranslationTest {
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
@@ -1316,6 +1318,7 @@ class VipPortTranslationTest extends PortTranslatorTest {
 
         bind(networkId, nNetworkBase)
         bind(networkId, midoNetwork)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     protected val vipPortUp = nPortFromTxt(portBaseUp + """
@@ -1327,21 +1330,25 @@ class VipPortTranslationTest extends PortTranslatorTest {
 
     "VIP port CREATE" should "create a MidoNet port" in {
         val midoOps = translator.translate(CreateOp(vipPortUp))
-        midoOps should contain only CreateOp(midoPortBaseUp)
+        midoOps should contain(CreateOp(mPortWithChains))
     }
 
     "VIP port UPDATE" should "update port admin state" in {
-        bind(portId, midoPortBaseDown)
+        bind(portId, mPortDownWithChains)
         bind(portId, vipPortUp)
+        bind(inboundChainId, inboundChain)
+        bind(outboundChainId, outboundChain)
+        bind(spoofChainId, antiSpoofChain)
+
         val midoOps = translator.translate(UpdateOp(vipPortDown))
-        midoOps should contain only UpdateOp(midoPortBaseDown)
+        midoOps should contain(UpdateOp(mPortDownWithChains))
     }
 
     "VIP port DELETE" should "delete the MidoNet Port" in {
         bind(portId, vipPortUp)
         val midoOps = translator.translate(
             DeleteOp(classOf[NeutronPort], portId))
-        midoOps should contain only DeleteOp(classOf[Port], portId)
+        midoOps should contain(DeleteOp(classOf[Port], portId))
     }
 }
 
@@ -1394,6 +1401,7 @@ class RouterInterfacePortCreateTranslationTest
         translator = new PortTranslator(storage, stateTableStorage,
                                         pathBldr, seqDispenser)
         bind(nIpv4Subnet1Id, mIpv4Dhcp)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     "Router interface port CREATE" should "create a normal Network port" in {
@@ -1430,6 +1438,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
         bind(networkId, midoNetwork)
         bind(peerPortId, mRouterPortWithPeer)
         bind(routerId, mTenantRouter)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     "Router interface port UPDATE" should "NOT update Port" in {
@@ -1479,6 +1488,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest{
         bindAll(Seq(espRuleId, udp500RuleId, udp4500RuleId),
                 Seq(mEspRuleId, mUdp500RuleId, mUdp4500RuleId))
         bindAll(Seq(nVpnServiceId), Seq(nVpnService))
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     private val externalIp = IPv4Addr.random
@@ -1614,7 +1624,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest{
             }
             """)
         val midoOps = translator.translate(UpdateOp(newGwPort))
-        midoOps should have size 4
+        midoOps should have size 6
 
         midoOps should contain (UpdateOp(nVpnService
                                              .toBuilder

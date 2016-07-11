@@ -25,6 +25,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Subnet => SubnetType}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
@@ -444,6 +445,44 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
             val ip2Grp = ipAddrGroupList.find(_.getIpAddress.getAddress == ip2).get
             ip2Grp.getPortIdsList should contain theSameElementsAs Seq(toProto(p2Id))
         }
+    }
+
+    it should "update ip addr groups on device_owner changes" in {
+
+        val ip = "10.0.0.3"
+        val nwId = createTenantNetwork(10)
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+        val sgId = createSecurityGroup(30)
+
+        def checkAddrGrpAddrCounts(counts: Int): Unit = {
+            val iag = storage.get(classOf[IPAddrGroup], sgId).await()
+            iag.getIpAddrPortsCount shouldBe counts
+        }
+
+        // Create a VIF port with port security enabled, and verify that there
+        // is one entry in IP address group.
+        val pId = createVifPort(50, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                                sgs = Seq(sgId), securityEnabled = true)
+        eventually(checkAddrGrpAddrCounts(1))
+
+        // Update the port with device_owner ROUTER_INTERFACE,
+        // which is considered "trusted", and verify that there is no item
+        // in the ip address group.
+        val pJson1 = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                              securityGroups = Seq(sgId),
+                              portSecurityEnabled = true,
+                              deviceOwner = DeviceOwner.ROUTER_INTERFACE)
+        insertUpdateTask(60, PortType, pJson1, pId)
+        eventually(checkAddrGrpAddrCounts(0))
+
+        // Update the port with device_owner COMPUTE, and verify
+        // that IP address group has an entry again.
+        val pJson2 = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                              securityGroups = Seq(sgId),
+                              portSecurityEnabled = true,
+                              deviceOwner = DeviceOwner.COMPUTE)
+        insertUpdateTask(70, PortType, pJson2, pId)
+        eventually(checkAddrGrpAddrCounts(1))
     }
 
     private def bindVifPort(portId: UUID, hostId: UUID, ifName: String)
