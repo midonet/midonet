@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_19f51fec",
+        "filename": "tests/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-11T14:55:02Z",
+      "side": 1,
+      "message": "nit^2: While you are at it, remove trailing space :)",
+      "range": {
+        "startLine": 8,
+        "startChar": 76,
+        "endLine": 8,
+        "endChar": 77
+      },
+      "revId": "6a760d57f345872275c0c5718f6d5a85389cad5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f9defb6b",
+        "filename": "tests/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-11T14:55:02Z",
+      "side": 1,
+      "message": "same.",
+      "revId": "6a760d57f345872275c0c5718f6d5a85389cad5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
