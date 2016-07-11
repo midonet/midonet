@@ -31,7 +31,7 @@ import org.midonet.util.ClosingRetriable
 
 trait FlowStateRequestClient extends ClosingRetriable {
 
-    private val Retries = 3
+    private val Retries = 5
 
     def flowStateConfig: FlowStateConfig
 
