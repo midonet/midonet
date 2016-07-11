@@ -22,8 +22,6 @@ import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
 
-import com.typesafe.config.ConfigFactory
-
 import org.junit.runner.RunWith
 import org.mockito.Mockito.{atLeastOnce, mock, times, verify}
 import org.mockito.{ArgumentCaptor, Matchers => mockito}
@@ -41,10 +39,10 @@ import org.midonet.util.io.stream.{ByteBufferBlockWriter, TimedBlockHeader}
 import org.midonet.util.netty.ServerFrontEnd
 
 @RunWith(classOf[JUnitRunner])
-class FlowStateTransferTest extends FlowStateBaseCuratorTest
-                                    with TopologyBuilder {
+class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
 
-    private var midolmanConfigChangedPort: MidolmanConfig = _
+    private var config: MidolmanConfig = _
+    private var configChangedPort: MidolmanConfig = _
 
     private var internalClient: FlowStateInternalClient = _
     private var remoteClient: FlowStateRemoteClient = _
@@ -53,11 +51,11 @@ class FlowStateTransferTest extends FlowStateBaseCuratorTest
     private var handler: TestableReadHandler = _
     private var server: ServerFrontEnd = _
 
-    private def currentRawState(portId: UUID) = {
+    private def currentRawState(config: MidolmanConfig, portId: UUID) = {
         var raw = new collection.mutable.ArrayBuffer[Byte]()
-        val in = ByteBufferBlockReader(midolmanConfig.flowState, portId)
+        val in = ByteBufferBlockReader(config.flowState, portId)
         val headerBuff = new Array[Byte](FlowStateBlock.headerSize)
-        val blockBuff = new Array[Byte](midolmanConfig.flowState.blockSize)
+        val blockBuff = new Array[Byte](config.flowState.blockSize)
 
         in.read(headerBuff)
         var header = FlowStateBlock(ByteBuffer.wrap(headerBuff))
@@ -81,18 +79,21 @@ class FlowStateTransferTest extends FlowStateBaseCuratorTest
         responseCaptor.getAllValues.asScala.flatten
     }
 
-    before  {
-        val flowStateConfigChangedPort = ConfigFactory.parseString(
-            config.replace("1234", "1235").stripMargin)
+    before {
+        // We assume midolman.log.dir contains an ending / but tmpdir does not
+        // add it on some platforms.
+        System.setProperty("minions.db.dir",
+                           s"${System.getProperty("java.io.tmpdir")}/")
 
-        midolmanConfigChangedPort = MidolmanConfig.forTests(flowStateConfigChangedPort)
+        config = MidolmanConfig.forTests(getConfig)
+        configChangedPort = MidolmanConfig.forTests(getConfig)
 
-        internalClient = new FlowStateInternalClient(midolmanConfig.flowState)
-        remoteClient = new FlowStateRemoteClient(midolmanConfig.flowState)
+        internalClient = new FlowStateInternalClient(config.flowState)
+        remoteClient = new FlowStateRemoteClient(config.flowState)
 
-        ports = createValidFlowStatePorts(midolmanConfig.flowState)
-        handler = new TestableReadHandler(midolmanConfig.flowState, ports)
-        server = ServerFrontEnd.tcp(handler, midolmanConfig.flowState.port)
+        ports = createValidFlowStatePorts(config.flowState)
+        handler = new TestableReadHandler(config.flowState, ports)
+        server = ServerFrontEnd.tcp(handler, config.flowState.port)
         server.startAsync().awaitRunning(20, TimeUnit.SECONDS)
     }
 
@@ -105,7 +106,7 @@ class FlowStateTransferTest extends FlowStateBaseCuratorTest
             Given("A previous port id of the server agent")
             val portId = handler.validPortId
             And("The raw state for the port")
-            val initialRaw = currentRawState(portId)
+            val initialRaw = currentRawState(config, portId)
 
             When("The flow state is requested by the TCP client")
             val writer = mock(classOf[ByteBufferBlockWriter[TimedBlockHeader]])
@@ -140,17 +141,17 @@ class FlowStateTransferTest extends FlowStateBaseCuratorTest
             // same server and we will need to bind to 2 different ports
             server.stopAsync().awaitTerminated(20, TimeUnit.SECONDS)
             val localHandler = new TestableReadHandler(
-                midolmanConfigChangedPort.flowState, localPorts)
+                configChangedPort.flowState, localPorts)
             And("A TCP server frontend handling requests")
             val localServer = ServerFrontEnd.tcp(localHandler,
-                                                 midolmanConfig.flowState.port)
+                                                 config.flowState.port)
             And("A remote handler to simulate a remote Agent")
-            val remotePorts = createValidFlowStatePorts(midolmanConfig.flowState)
-            val remoteHandler = new TestableReadHandler(midolmanConfig.flowState,
+            val remotePorts = createValidFlowStatePorts(config.flowState)
+            val remoteHandler = new TestableReadHandler(config.flowState,
                                                         remotePorts)
             And("A remote TCP server frontend handling remote requests")
             val remoteServer = ServerFrontEnd.tcp(remoteHandler,
-                                                  midolmanConfigChangedPort.flowState.port)
+                                                  configChangedPort.flowState.port)
             And("A previous port id of the remote agent")
             val portId = remoteHandler.validPortId
 
