@@ -88,6 +88,9 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
 
         // Convert Neutron/network port to router interface port if it isn't
         // already one.
+        // NOTE(yamamoto): This isn't necessary for Neutron 8.0.0 (Mitaka)
+        // and later, because the way to update device_owner has been
+        // changed.  (If0178887282456842b6078a851a9233cb58a391a)
         if (nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
             midoOps ++= convertPortOps(nPort, isUplink, ri.getId)
 

@@ -1157,6 +1157,7 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
         bind(portWithPeerId, mPortWithRPortPeer)
         bind(peerRouterPortId, mRouterPort)
         bind(routerId, mRouterWithGwPort)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     "DHCP port CREATE" should "configure DHCP" in {
@@ -1236,13 +1237,14 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
         bind(routerId, mRouterWithMDSRoute)
         bind(routeId, mRoute)
         bind(mdsRouteId, mMDSRoute)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     "DHCP port UPDATE" should "update port admin state" in {
         val dhcpPortDown = dhcpPort.toBuilder.setAdminStateUp(false).build
         val midoOps = translator.translate(neutron.Update(dhcpPortDown))
 
-        midoOps should contain only midonet.Update(midoPortBaseDown)
+        midoOps should contain(midonet.Update(midoPortBaseDown))
     }
 
     // TODO Add an assert that the fixed IPs haven't been changed.
@@ -1311,6 +1313,7 @@ class VipPortTranslationTest extends PortTranslatorTest {
         bind(networkId, nNetworkBase)
         bind(portId, null, classOf[Port])
         bind(networkId, midoNetwork)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     protected val vipPortUp = nPortFromTxt(portBaseUp + """
@@ -1383,6 +1386,7 @@ class RouterInterfacePortCreateTranslationTest
         initMockStorage()
         translator = new PortTranslator(storage, pathBldr, seqDispenser)
         bind(nIpv4Subnet1Id, mIpv4Dhcp)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     "Router interface port CREATE" should "create a normal Network port" in {
@@ -1414,6 +1418,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
         bind(networkId, midoNetwork)
         bind(peerPortId, mRouterPortWithPeer)
         bind(routerId, mTenantRouter)
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     "Router interface port UPDATE" should "NOT update Port" in {
@@ -1454,7 +1459,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
         bind(mrGatewayPortId, mrGatewayPort)
         bind(outSnatRuleId, null, classOf[Rule])
         bind(networkId, midoNetwork)
-
+        bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
     private val nGatewayPort = nPortFromTxt(portBaseUp + """
