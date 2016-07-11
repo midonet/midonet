@@ -3,7 +3,7 @@ MDTS - MidoNet Distributed Testing System
 
 MDTS provides the testing framework for [MidoNet](https://github.com/midonet/midonet).
 
-It will exercise MidoNet system using [Midonet Sandbox](https://github.com/midokura/midonet-sandbox)
+It will exercise MidoNet system using [Midonet Sandbox](https://github.com/midonet/midonet-sandbox)
 (docker containers management framework) to simulate multiple hosts, including
 Neutron, multiple MidoNet Agents, multiple Zookeeper and Cassandra instances 
 and Quagga servers. 
@@ -86,7 +86,7 @@ sandbox-manage -c sandbox.conf build-all default_v2 && popd
 Wait until all images have been generated. The default_v2 is a basic MDTS
 flavour for sandbox. Look into the sandbox/flavours directory for a list of the
 supported flavours. For more information about how to use sandbox, components,
-flavors and overrides, check its [source repo](https://github.com/midokura/midonet-sandbox)
+flavors and overrides, check its [source repo](https://github.com/midonet/midonet-sandbox)
 or execute `sandbox-manage --help`.
 
 Copy all packages inside the corresponding override so Sandbox knows which
