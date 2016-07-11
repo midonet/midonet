@@ -180,9 +180,13 @@ class MidonetDiscoveryImpl @Inject()(curator: CuratorFramework,
   * information will be presented according to this interface.
   */
 trait MidonetServiceInstance
-case class MidonetServiceHostAndPort(val address: String, val port: Int)
-    extends MidonetServiceInstance
-case class MidonetServiceURI(val uri: URI) extends MidonetServiceInstance
+case class MidonetServiceHostAndPort(address: String, port: Int)
+    extends MidonetServiceInstance {
+    override def toString = s"$address:$port"
+}
+case class MidonetServiceURI(uri: URI) extends MidonetServiceInstance {
+    override def toString = uri.toString
+}
 
 /**
   * This trait provides a service discovery client exposing an observable

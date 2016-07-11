@@ -23,12 +23,9 @@ import scala.PartialFunction._
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-
-import com.typesafe.scalalogging.Logger
+import scala.util.control.NonFatal
 
 import io.netty.channel.nio.NioEventLoopGroup
-
-import org.slf4j.LoggerFactory
 
 import rx.Observable.OnSubscribe
 import rx.subjects.BehaviorSubject
@@ -100,7 +97,6 @@ class StateProxyClient(conf: StateProxyClientConfig,
     import StateProxyClient._
     import StateProxyClientStates._
 
-    private val log = Logger(LoggerFactory.getLogger(classOf[StateProxyClient]))
     private val clock = UnixClock.DEFAULT
 
     private val state = new StateProxyClientStates
@@ -120,7 +116,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
       */
     override def start(): Unit = {
         if (transitionToWaiting()) {
-            log info s"$this - started"
+            log info s"$this Client started"
             super.start()
             connectionSubject.onNext(ConnectionState.Connected)
         } else {
@@ -136,7 +132,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
     override def stop(): Boolean = {
 
         def terminate(subscribers: SubscriberMap): Boolean = {
-            log info s"$this - stopped"
+            log info s"$this Client stopped"
             runSingleThreaded("termination") {
                 super.stop()
                 connectionSubject.onCompleted()
@@ -167,7 +163,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
                       table: StateSubscriptionKey): Boolean = {
             val result = state.addSubscriber(subscriber, table)
             if (result) {
-                log debug s"$this - subscribing to ${table.key.name}"
+                log debug s"$this Subscribing to ${table.key.name}"
                 sendSubscribeRequest(subscriber, table, flush = true)
             }
             result
@@ -220,7 +216,8 @@ class StateProxyClient(conf: StateProxyClientConfig,
     override protected def onNext(msg: ProxyResponse): Unit = {
 
         runSingleThreaded("onNext") {
-            log debug s"$this - Received message:\n$msg"
+            log debug s"$this Received message reqId:${msg.getRequestId} " +
+                      s"type:${msg.getDataCase}"
             onResponse(msg)
         }
     }
@@ -237,16 +234,16 @@ class StateProxyClient(conf: StateProxyClientConfig,
 
         state.get match {
             case Dormant if setConnected(Dormant, emptySubscriberMap) =>
-                log info s"$this - connected after dormant period"
+                log debug s"$this Connected after dormant period"
                 connectionSubject.onNext(ConnectionState.Connected)
 
             case s: Waiting if setConnected(s, s.subscribers) =>
 
-                log info s"$this - connected to server"
+                log debug s"$this Connected to server"
 
                 if (s.subscribers.nonEmpty) {
                     val total = s.subscribers.size
-                    log debug s"$this - sending $total subscriptions in batch"
+                    log debug s"$this Sending $total subscriptions in batch"
                     val count = s.subscribers
                         .takeWhile(item => sendSubscribeRequest(item._1,
                                                                 item._2,
@@ -254,23 +251,22 @@ class StateProxyClient(conf: StateProxyClientConfig,
                         .size
 
                     if (flush() && total == count) {
-                        log debug s"$this - sent all subscriptions"
+                        log debug s"$this Sent all subscriptions"
                     } else {
-                        log debug
-                        s"$this - unable to send all subscriptions"
+                        log debug s"$this Unable to send all subscriptions"
                     }
                 }
             case _ =>
-                log debug s"$this - connection cancelled by stop"
+                log debug s"$this Connection cancelled by stop"
         }
     }
 
     override protected def onDisconnect(cause: Throwable): Unit
     = runSingleThreaded("onDisconnect") {
 
-        log info s"$this - disconnected from server: $cause"
+        log.info(s"$this Disconnected from server", cause)
         if (!transitionToWaiting()) {
-            log debug s"$this - cancelled by stop"
+            log debug s"$this Cancelled by stop"
         }
     }
 
@@ -284,16 +280,16 @@ class StateProxyClient(conf: StateProxyClientConfig,
                         val count = s.retryCount + 1
                         if (state.compareAndSet(s, Waiting(count,
                                                            s.subscribers))) {
-                            log debug s"$this - connection attempt " +
-                                      s"#$count failed: $cause"
+                            log.debug(s"$this Connection attempt $count " +
+                                      s"failed: ${cause.getMessage}")
 
                         } else {
                             incrementRetryCounter()
                         }
                     } else {
                         if (state.compareAndSet(s, Dormant)) {
-                            log debug s"$this - soft reconnect limit exceeded:" +
-                                      " completing subscribers"
+                            log debug s"$this Soft reconnect limit exceeded:"  +
+                                      "completing subscribers"
                             connectionSubject.onNext(ConnectionState.Disconnected)
                             s.subscribers foreach { _._1.onCompleted() }
                         } else {
@@ -302,12 +298,12 @@ class StateProxyClient(conf: StateProxyClientConfig,
                     }
 
                 case Dormant =>
-                    log debug s"$this - dormant connection attempt failed"
+                    log debug s"$this Dormant connection attempt failed"
 
                 case Dead =>
 
                 case s: State =>
-                    log error s"$this - failed connect in unexpected state: $s"
+                    log error s"$this Failed connect in unexpected state: $s"
             }
         }
 
@@ -319,26 +315,24 @@ class StateProxyClient(conf: StateProxyClientConfig,
         case _ => conf.softReconnectDelay
     }
 
-    private class TaskLogger(body: => Unit,
-                             prefix: String,
-                             name: String) extends Runnable {
+    private class TaskLogger(body: => Unit, name: String) extends Runnable {
 
-        log debug s"$prefix - scheduled task $name"
+        log trace s"$this Scheduled task $name"
 
         override def run(): Unit = {
             try {
-                log debug s"$prefix - starting task $name"
+                log trace s"$this Starting task $name"
                 body
-                log debug s"$prefix - finished task $name"
+                log trace s"$this Finished task $name"
             } catch {
-                case cause: Throwable =>
-                    log error s"$prefix - task $name failed: $cause"
+                case NonFatal(e) =>
+                    log.error(s"$this Task $name failed", e)
             }
         }
     }
 
     private def runSingleThreaded(label: String)(body: => Unit): Unit =
-        executor.submit(new TaskLogger(body, toString, label))
+        executor.submit(new TaskLogger(body, label))
 
     private def onResponse(msg: ProxyResponse): Unit = {
         val rid = msg.getRequestId
@@ -357,7 +351,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
                 onNotifyReceived(rid, msg.getNotify)
 
             case ProxyResponse.DataCase.DATA_NOT_SET =>
-                log debug s"$this - received unknown response with id:$rid"
+                log debug s"$this Received unknown response with reqId:$rid"
         }
     }
 
@@ -370,14 +364,14 @@ class StateProxyClient(conf: StateProxyClientConfig,
 
                 if (transaction.isSubscribe) {
                     assert(state.addSubscription(sid, transaction.subscriber))
-                    log debug s"$this - started subscription $sid"
+                    log debug s"$this Started subscription $sid"
                 } else {
-                    log debug s"$this - finished subscription $sid"
+                    log debug s"$this Finished subscription $sid"
                 }
-                log debug s"$this - active subscriptions: $numActiveSubscriptions"
+                log debug s"$this Active subscriptions: $numActiveSubscriptions"
 
             case None =>
-                log debug s"$this - Got acknowledge for unknown request:$rid"
+                log debug s"$this Received acknowledge for unknown reqId:$rid"
         }
     }
 
@@ -393,8 +387,12 @@ class StateProxyClient(conf: StateProxyClientConfig,
                     transaction.subscriber.onError(
                         new SubscriptionFailedException(description))
                 }
-                val logLabel = if (isSubscribe) "subscribe" else "unsubscribe"
-                log debug s"$this - $logLabel failed. request: $rid reason: $description"
+                if (isSubscribe)
+                    log debug s"$this Subscribe failed reqId:$rid " +
+                              s"reason:$description"
+                else
+                    log debug s"$this Unsubscribe failed reqId:$rid " +
+                              s"reason:$description"
 
             case None =>
         }
@@ -404,10 +402,10 @@ class StateProxyClient(conf: StateProxyClientConfig,
         val reference = outstandingPing.get()
         if (reference._1 == rid) {
             val took = clock.time - reference._2
-            log debug s"Ping seq=$rid time=$took ms"
+            log debug s"$this Ping seq:$rid latency:$took ms"
         }
         else {
-            log debug s"Unexpected ping response with seq=$rid"
+            log debug s"$this Unexpected ping response with reqId:$rid"
         }
     }
 
@@ -418,7 +416,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
             case Some(subscriber) =>
                 msg.getNotificationCase match {
                     case ProxyResponse.Notify.NotificationCase.COMPLETED =>
-                        log debug s"$this - subscription $sid completed"
+                        log debug s"$this Subscription $sid completed"
                         subscriber.onCompleted()
 
                     case ProxyResponse.Notify.NotificationCase.UPDATE =>
@@ -428,7 +426,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
                         subscriber.onError(new SubscriptionFailedException("Protocol error"))
                 }
 
-            case None => log debug s"$this - no subscriber for subscription $sid"
+            case None => log debug s"$this No subscriber for subscription $sid"
         }
     }
 
@@ -438,22 +436,24 @@ class StateProxyClient(conf: StateProxyClientConfig,
                             flush: Boolean): Boolean = {
 
         val rid = msg.getRequestId
-        val logLabel = if (isSubscribe) "subscribe" else "unsubscribe"
 
-        log debug s"$this - attempting $logLabel transaction $rid"
+        if (isSubscribe)
+            log debug s"$this Subscribing reqId:$rid"
+        else
+            log debug s"$this Unsubscribing reqId:$rid"
 
         var result = state.addTransaction(rid, TransactionRecord(isSubscribe,
                                                                  subscriber))
         if (result) {
             result = write(msg, flush)
             if (result) {
-                log debug s"$this - transaction $rid: sent"
+                log debug s"$this Transaction request reqId:$rid sent"
             } else {
-                log debug s"$this - transaction $rid: failed to send"
+                log debug s"$this Transaction request reqId:$rid failed to send"
                 state.removeTransaction(rid)
             }
         } else {
-            log debug s"$this - transaction $rid: not connected"
+            log debug s"$this Transaction request reqId:$rid failed: not connected"
         }
         result
     }
@@ -484,9 +484,9 @@ class StateProxyClient(conf: StateProxyClientConfig,
         val sent = write(msg)
 
         if (sent) {
-            log debug s"Sent ping request: $rid"
+            log debug s"$this Sent ping reqId:$rid"
         } else {
-            log debug s"$this - Failed to send ping request"
+            log debug s"$this Failed to send ping request"
             outstandingPing.compareAndSet(nextState, prevState)
         }
         sent
@@ -541,6 +541,7 @@ object StateProxyClient {
             case ProxyResponse.Error.Code.SERVER_SHUTDOWN  => "Server shutdown"
             case ProxyResponse.Error.Code.INVALID_ARGUMENT => "Invalid argument"
             case ProxyResponse.Error.Code.UNKNOWN_CLIENT   => "Unknown client"
+            case _ => s"Unknown error code $code"
         }
 
         val desc = msg.getDescription

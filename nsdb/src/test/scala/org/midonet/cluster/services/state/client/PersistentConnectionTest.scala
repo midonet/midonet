@@ -64,8 +64,6 @@ class PersistentConnectionTest extends FeatureSpec
             "Test Connection",
             executor) {
 
-        private val log = Logger(LoggerFactory.getLogger(classOf[TestServer]))
-
         var numMessages = 0
         var numConnects = 0
         var numDisconnects = 0
