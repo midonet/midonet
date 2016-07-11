@@ -103,7 +103,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
     private val outstandingPing = new AtomicReference[(RequestId, Long)](0, 0L)
 
     private val discovery = MidonetDiscoverySelector.roundRobin(
-        discoveryService.getClient(StateProxyService.Name))
+        discoveryService.getClient[MidonetServiceHostAndPort](StateProxyService.Name))
 
     private val connectionSubject = BehaviorSubject.create(ConnectionState.Disconnected)
 
