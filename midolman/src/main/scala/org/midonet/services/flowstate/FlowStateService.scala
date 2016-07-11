@@ -105,18 +105,19 @@ class FlowStateService @Inject()(nodeContext: Context, curator: CuratorFramework
         }
     }
 
+    private[flowstate] def cassandraClient: CassandraClient = {
+        new CassandraClient(config.zookeeper,
+                            config.cassandra,
+                            FlowStateStorage.KEYSPACE_NAME,
+                            FlowStateStorage.SCHEMA,
+                            FlowStateStorage.SCHEMA_TABLE_NAMES)
+    }
+
     protected override def doStart(): Unit = {
         Log info "Starting flow state service"
 
         if (legacyPushState) {
-            val client = new CassandraClient(
-                config.zookeeper,
-                config.cassandra,
-                FlowStateStorage.KEYSPACE_NAME,
-                FlowStateStorage.SCHEMA,
-                FlowStateStorage.SCHEMA_TABLE_NAMES)
-
-            client.connect() onComplete {
+            cassandraClient.connect() onComplete {
                 case Success(session) =>
                     this.synchronized {
                         cassandraSession = session

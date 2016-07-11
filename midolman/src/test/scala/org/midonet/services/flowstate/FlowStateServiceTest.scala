@@ -20,12 +20,17 @@ import java.net.{BindException, DatagramSocket, ServerSocket}
 import java.util.UUID
 import java.util.concurrent.{ExecutorService, TimeUnit}
 
+import scala.concurrent.Future
+
+import com.datastax.driver.core.Session
+
 import org.apache.curator.framework.CuratorFramework
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{atLeastOnce, mock, times, verify}
+import org.mockito.Mockito.{atLeastOnce, mock, times, verify, when => mockWhen}
 import org.mockito.{ArgumentCaptor, Matchers => mockito}
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateResponse
 import org.midonet.cluster.storage.FlowStateStorageWriter
 import org.midonet.cluster.topology.TopologyBuilder
@@ -59,6 +64,13 @@ class FlowStateServiceTest extends FlowStateBaseCuratorTest
 
         def getUdpMessageHandler = writeMessageHandler
         def getTcpMessageHandler = readMessageHandler
+
+        override def cassandraClient: CassandraClient = {
+            val client = mock(classOf[CassandraClient])
+            val session = mock(classOf[Session])
+            mockWhen(client.connect()).thenReturn(Future.successful(session))
+            client
+        }
     }
 
     private def mockedWriteAndFlushResponse(ctx: ChannelHandlerContext,
