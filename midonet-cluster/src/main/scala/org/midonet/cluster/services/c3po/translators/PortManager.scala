@@ -251,6 +251,11 @@ object PortManager {
     def isRemoteSitePort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.REMOTE_SITE
 
+    // NOTE(yamamoto): This is intended to be sync with Neutron's
+    // is_port_trusted.
+    def isTrustedPort(nPort: NeutronPortOrBuilder) =
+        ! (isVifPort(nPort) || isVipPort(nPort))
+
     def hasMacAndArpTableEntries(nPort: NeutronPortOrBuilder): Boolean =
         isVifPort(nPort) || isRouterInterfacePort(nPort) ||
         isRouterGatewayPort(nPort) || isRemoteSitePort(nPort)
