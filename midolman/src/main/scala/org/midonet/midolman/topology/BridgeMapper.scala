@@ -145,8 +145,13 @@ object BridgeMapper {
         }
         /** Stops the underlying replicated map and completes the observable. */
         def complete(): Unit = {
+            table.stop()
             mark.onCompleted()
         }
+
+        def ready: Observable[Boolean] = table.ready
+
+        def isReady: Boolean = table.isReady
     }
 
     /** Represents a MAC-port mapping */
@@ -378,7 +383,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             localPorts.forall(_._2.isReady) && peerPorts.forall(_._2.isReady) &&
             isTracingReady && chainsTracker.areRefsReady &&
             mirrorsTracker.areRefsReady &&
-            ((ipv4MacMap eq null) || ipv4MacMap.isReady)
+            ((ipv4MacMap eq null) || ipv4MacMap.isReady) &&
+            macLearningTables.values.forall(_.isReady)
         log.debug("Bridge ready: {}", ready)
         ready
     }
@@ -477,7 +483,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         if (vt.config.bridgeArpEnabled && (ipv4MacMap eq null)) {
             ipv4MacMap = new BridgeIpv4MacMap(vt, bridgeId)
             ipv4MacMap.ready.map[TopologyBridge](makeFunc1 { _ =>
-                log debug s"IPv4-MAC state table is ready"
+                log debug "IPv4-MAC state table is ready"
                 null
             }).subscribe(feedbackSubject)
         }
@@ -810,6 +816,10 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         val table = new BridgeMacLearningTable(vt, bridgeId, vlanId, log)
         macLearningTables += vlanId -> table
         macUpdatesSubject onNext table.observable
+        table.ready.map[TopologyBridge](makeFunc1 { _ =>
+            log debug s"MAC-port state table for VLAN $vlanId is ready"
+            null
+        }).subscribe(feedbackSubject)
     }
 
     /**
