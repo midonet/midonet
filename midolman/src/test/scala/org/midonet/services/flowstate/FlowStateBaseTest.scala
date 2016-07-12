@@ -16,23 +16,20 @@
 
 package org.midonet.services.flowstate
 
-import java.io.File
-import java.net.InetSocketAddress
+import java.net.{InetSocketAddress, ServerSocket}
 import java.util
 import java.util.UUID
 import java.util.UUID.randomUUID
 
 import scala.collection.mutable
 import scala.util.Random
+import scala.util.control.NonFatal
 
 import com.google.common.io.Files
-import com.typesafe.config.ConfigFactory
 
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
-import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.midolman.config.{FlowStateConfig, MidolmanConfig}
 import org.midonet.midolman.logging.MidolmanLogging
@@ -52,6 +49,56 @@ trait FlowStateBaseTest extends FeatureSpec
                                 with GivenWhenThen with Matchers
                                 with BeforeAndAfter with MidonetEventually
                                 with MidolmanLogging {
+
+    // It returns a new configuration with different ports and
+    // temporal directory on each invocation
+    protected def midolmanConfig: MidolmanConfig =
+        MidolmanConfig.forTests(getConfig)
+
+    protected def getConfig = {
+        s"""
+           |agent.minions.flow_state.enabled : true
+           |agent.minions.flow_state.legacy_push_state : true
+           |agent.minions.flow_state.legacy_read_state : true
+           |agent.minions.flow_state.local_push_state : true
+           |agent.minions.flow_state.local_read_state : true
+           |agent.minions.flow_state.port : $getFreePort
+           |agent.minions.flow_state.connection_timeout : 5s
+           |agent.minions.flow_state.block_size : 1
+           |agent.minions.flow_state.blocks_per_port : 10
+           |agent.minions.flow_state.expiration_time : 20s
+           |agent.minions.flow_state.log_directory: ${Files.createTempDir().getName}
+           |cassandra.servers : "127.0.0.1:9142"
+           |cassandra.cluster : "midonet"
+           |cassandra.replication_factor : 1
+           |""".stripMargin
+    }
+
+    protected def getFreePort: Int = {
+        // Binding a socket to port 0 makes the OS returns us a free ephemeral
+        // port. Return this port so jetty binds to it.
+        var localPort: Int = -1
+        while (localPort == -1) {
+            var ss: ServerSocket = null
+            try {
+                ss = new ServerSocket(0)
+                ss.setReuseAddress(true)
+                localPort = ss.getLocalPort
+            } catch {
+                case NonFatal(e) =>
+            } finally {
+                if (ss != null) {
+                    try {
+                        ss.close()
+                    } catch {
+                        case NonFatal(e) =>
+                    }
+                }
+            }
+        }
+        log.debug(s"Using port $localPort")
+        localPort
+    }
 
     protected def randomPort: Int = Random.nextInt(Short.MaxValue + 1)
 
