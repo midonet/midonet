@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0a7edf18",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-12T09:52:38Z",
+      "side": 1,
+      "message": "Not sure if it makes sense or neutron allows this case, but can a router have two uplinks (two separate physical interfaces) on the same host (for redundancy)? In that case, I\u0027d also append the vtysh number to the namespace as before.",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0a97ff48",
+        "filename": "midolman/src/lib/midolman/bgpd-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-12T09:52:38Z",
+      "side": 1,
+      "message": "It could be good to update this to show the new argument. Also, i see missing commands (add_arp, rem_arp, etc.). I\u0027d add them while you\u0027re here.",
+      "range": {
+        "startLine": 165,
+        "startChar": 0,
+        "endLine": 174,
+        "endChar": 1
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ca9c776c",
+        "filename": "midolman/src/lib/midolman/bgpd-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-12T09:52:38Z",
+      "side": 1,
+      "message": "Does it makes sense to keep it here?",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 204,
+        "endChar": 27
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8a90af44",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-12T09:52:38Z",
+      "side": 1,
+      "message": "Can this happen? We will end up with a namespace called \"bgp-\". I\u0027d fail and log.",
+      "range": {
+        "startLine": 50,
+        "startChar": 36,
+        "endLine": 50,
+        "endChar": 38
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_aaeb73db",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-12T09:52:38Z",
+      "side": 1,
+      "message": "I\u0027d use string interpolation throughout.",
+      "range": {
+        "startLine": 74,
+        "startChar": 18,
+        "endLine": 74,
+        "endChar": 24
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6ac0cb50",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-12T09:52:38Z",
+      "side": 1,
+      "message": "ditto.",
+      "range": {
+        "startLine": 103,
+        "startChar": 18,
+        "endLine": 103,
+        "endChar": 24
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_aac25351",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-12T09:52:38Z",
+      "side": 1,
+      "message": "should we change this also to first 4/8 digits of the router uuid? For easier correlation between logs and real world.",
+      "range": {
+        "startLine": 195,
+        "startChar": 52,
+        "endLine": 195,
+        "endChar": 65
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
