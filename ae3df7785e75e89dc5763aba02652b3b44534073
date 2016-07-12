@@ -88,6 +88,75 @@
       "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6a88cb71",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 506,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-07-12T09:05:03Z",
+      "side": 1,
+      "message": "What is this for?",
+      "range": {
+        "startLine": 505,
+        "startChar": 0,
+        "endLine": 506,
+        "endChar": 32
+      },
+      "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5f9b8718",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-07-12T09:05:03Z",
+      "side": 1,
+      "message": "You can use nPortOld.exists(!isTrustedPort(_)) here. Some(x).exists(fn) return fn(x) and None.exists(fn) returns false.",
+      "range": {
+        "startLine": 576,
+        "startChar": 12,
+        "endLine": 576,
+        "endChar": 31
+      },
+      "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5f6947f8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-07-12T09:05:03Z",
+      "side": 1,
+      "message": "Should a port be considered trusted if it has port security disabled? Or would that be a problem for security group membership?",
+      "range": {
+        "startLine": 602,
+        "startChar": 36,
+        "endLine": 602,
+        "endChar": 65
+      },
+      "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
