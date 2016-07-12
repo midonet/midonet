@@ -3,10 +3,10 @@ MDTS - MidoNet Distributed Testing System
 
 MDTS provides the testing framework for [MidoNet](https://github.com/midonet/midonet).
 
-It will exercise MidoNet system using [Midonet Sandbox](https://github.com/midokura/midonet-sandbox)
+It will exercise MidoNet system using [Midonet Sandbox](https://github.com/midonet/midonet-sandbox)
 (docker containers management framework) to simulate multiple hosts, including
-Neutron, multiple MidoNet Agents, multiple Zookeeper and Cassandra instances 
-and Quagga servers. 
+Neutron, multiple MidoNet Agents, multiple Zookeeper and Cassandra instances
+and Quagga servers.
 On top of this simulated physical topology, we can generate whatever
 virtual topology we need to test using both the Neutron API models (networks,
 subnets, ports, security groups, etc.) or the internal Midonet API counterparts
@@ -38,9 +38,9 @@ midonet/tests$ ./setup_test_server
 If manual installation is needed, please refer to this script for a
 comprehensive list of all the required packages.
 
-You also need the python-neutronclient and the python-midonetclient installed 
+You also need the python-neutronclient and the python-midonetclient installed
 on your host so MDTS can access both API servers (Neutron or Midonet) through
-the python API. However, as this package is part of the Midonet packages, 
+the python API. However, as this package is part of the Midonet packages,
 you need to install it once you compile/generate the packages.
 
 Running Sandbox
@@ -86,7 +86,7 @@ sandbox-manage -c sandbox.conf build-all default_v2 && popd
 Wait until all images have been generated. The default_v2 is a basic MDTS
 flavour for sandbox. Look into the sandbox/flavours directory for a list of the
 supported flavours. For more information about how to use sandbox, components,
-flavors and overrides, check its [source repo](https://github.com/midokura/midonet-sandbox)
+flavors and overrides, check its [source repo](https://github.com/midonet/midonet-sandbox)
 or execute `sandbox-manage --help`.
 
 Copy all packages inside the corresponding override so Sandbox knows which
