@@ -61,6 +61,11 @@ trait FlowStateWriter extends Closeable with Flushable with Clearable {
       * data stream.
       */
     def write(encoder: SbeEncoder): Unit
+
+    /**
+      * Refer to [[Flushable#flush]]
+      */
+    def flush(): Unit
 }
 
 protected[flowstate] class FlowStateWriterImpl(val config: FlowStateConfig,
