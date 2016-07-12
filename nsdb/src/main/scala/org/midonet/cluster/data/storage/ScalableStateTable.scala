@@ -81,6 +81,24 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
         }
     }
 
+    /**
+      * Implements the [[OnSubscribe]] interface for subscriptions to the
+      * ready state. Upon subscription, the table starts if not already started,
+      * but unlike the update subscriptions, unsubscribing from the ready
+      * observable will not stop the table, nor will the ready subscribers
+      * prevent the table from being stopped.
+      */
+    private class OnReadySubscribe extends OnSubscribe[Boolean] {
+
+        override def call(child: Subscriber[_ >: Boolean]): Unit = {
+            sync.synchronized {
+                if (!child.isUnsubscribed) {
+                    startInternal(0).ready(child)
+                }
+            }
+        }
+    }
+
     protected[storage] def tableKey: Key
 
     protected[storage] def directory: Directory
@@ -92,7 +110,8 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
     @volatile private var manager: ScalableStateTableManager[K, V] = null
 
     private var subscriptions = 0L
-    private val onSubscribe = new OnTableSubscribe
+    private val onTableSubscribe = new OnTableSubscribe
+    private val onReadySubscribe = new OnReadySubscribe
     private val sync = new Object
 
     /**
@@ -214,7 +233,26 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
       */
     @inline
     override val observable: Observable[Update[K, V]] = {
-        Observable.create(onSubscribe)
+        Observable.create(onTableSubscribe)
+    }
+
+    /**
+      * @see [[StateTable.ready]]
+      */
+    override val ready: Observable[Boolean] = {
+        Observable.create(onReadySubscribe)
+    }
+
+    /**
+      * @see [[StateTable.isReady]]
+      */
+    override def isReady:Boolean = {
+        val currentManager = manager
+        if (currentManager ne null) {
+            currentManager.isReady
+        } else {
+            false
+        }
     }
 
     /**
