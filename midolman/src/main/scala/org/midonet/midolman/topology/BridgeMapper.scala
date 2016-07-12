@@ -32,7 +32,6 @@ import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.VlanPortMapImpl
-import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
@@ -101,7 +100,6 @@ object BridgeMapper {
      * the underlying [[ReplicatedMap]] and completes the exposed observable
      * when the VLAN is no longer present on the bridge.
      */
-    @throws[StateAccessException]
     private class BridgeMacLearningTable(vt: VirtualTopology, bridgeId: UUID,
                                          vlanId: Short, log: Logger)
         extends MacLearningTable {
@@ -210,22 +208,25 @@ object BridgeMapper {
      * which allows the [[SimulationBridge]] to query the IPv4-MAC mappings.
      * A complete() method stops watching the underlying [[ReplicatedMap]].
      */
-    @throws[StateAccessException]
     private class BridgeIpv4MacMap(vt: VirtualTopology, bridgeId: UUID)
         extends IpMacMap[IPv4Addr] {
-        private val map = vt.stateTables.bridgeArpTable(bridgeId)
-        map.start()
+        private val table = vt.stateTables.bridgeArpTable(bridgeId)
+        table.start()
 
         /** Thread-safe query that gets the IPv4-MAC mapping*/
-        override def get(ip: IPv4Addr): MAC = map.getLocal(ip)
+        override def get(ip: IPv4Addr): MAC = table.getLocal(ip)
 
         override def put(ip: IPv4Addr, mac: MAC): Unit = {
-            map.remove(ip)
-            map.add(ip, mac)
+            table.remove(ip)
+            table.add(ip, mac)
         }
 
         /** Stops the underlying [[ReplicatedMap]]*/
-        def complete(): Unit = map.stop()
+        def complete(): Unit = table.stop()
+
+        def ready: Observable[Boolean] = table.ready
+
+        def isReady: Boolean = table.isReady
     }
 
     /**
@@ -319,10 +320,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         .subscribe(makeAction1(onMacExpirationTimer), makeAction1(onThrow))
     // A subject that emits updates when a storage connection was
     // re-established.
-    private lazy val connectionSubject = PublishSubject.create[TopologyBridge]
-    private lazy val connectionRetryHandler = makeRunnable {
-        connectionSubject.onNext(bridge)
-    }
+    private lazy val feedbackSubject = PublishSubject.create[TopologyBridge]
 
     // The output device observable for the bridge mapper.
     //
@@ -343,7 +341,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     //   |                       +-----------------------+
     // Obs[Obs[MacTableUpdate]]->| subscribe(macUpdated) |
     //                           +-----------------------+
-    private lazy val connectionObservable = connectionSubject
+    private lazy val feedbackObservable = feedbackSubject
         .observeOn(vt.vtScheduler)
     private lazy val portsObservable = Observable
         .merge(portsSubject)
@@ -357,7 +355,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         .doOnNext(makeAction1(bridgeUpdated))
 
     protected override lazy val observable = Observable
-        .merge[TopologyBridge](connectionObservable, portsObservable,
+        .merge[TopologyBridge](feedbackObservable, portsObservable,
                                traceChainObservable.map[TopologyBridge](
                                    makeFunc1(traceChainUpdated)),
                                mirrorsTracker.refsObservable
@@ -373,11 +371,14 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
      * Indicates the bridge device is ready, when the states for all local and
      * peer ports are ready, and all the chains are ready.
      */
-    private def isBridgeReady(bridge: TopologyBridge): JBoolean = {
+    private def isBridgeReady(br: TopologyBridge): JBoolean = {
         assertThread()
         val ready: JBoolean =
+            (br ne null) && (bridge ne null) &&
             localPorts.forall(_._2.isReady) && peerPorts.forall(_._2.isReady) &&
-            isTracingReady && chainsTracker.areRefsReady && mirrorsTracker.areRefsReady
+            isTracingReady && chainsTracker.areRefsReady &&
+            mirrorsTracker.areRefsReady &&
+            ((ipv4MacMap eq null) || ipv4MacMap.isReady)
         log.debug("Bridge ready: {}", ready)
         ready
     }
@@ -408,7 +409,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
         macUpdatesSubject.onCompleted()
-        connectionSubject.onCompleted()
+        feedbackSubject.onCompleted()
         macUpdatesSubscription.unsubscribe()
         timerSubscription.unsubscribe()
     }
@@ -438,6 +439,9 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         assertThread()
         assert(!macUpdatesSubscription.isUnsubscribed)
         assert(!timerSubscription.isUnsubscribed)
+        if (br eq null) {
+            return
+        }
 
         bridge = br
 
@@ -466,6 +470,16 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         // Publish observable for added ports.
         for (portState <- addedPorts) {
             portsSubject onNext portState.observable
+        }
+
+        // If the bridge is ARP-enabled initialize the IPv4-MAC map and
+        // subscribe the feedback subject to its ready observable.
+        if (vt.config.bridgeArpEnabled && (ipv4MacMap eq null)) {
+            ipv4MacMap = new BridgeIpv4MacMap(vt, bridgeId)
+            ipv4MacMap.ready.map[TopologyBridge](makeFunc1 { _ =>
+                log debug s"IPv4-MAC state table is ready"
+                null
+            }).subscribe(feedbackSubject)
         }
 
         // Request trace chain be built if necessary
@@ -543,7 +557,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
      * notifications.
      */
     private def onThrow(e: Throwable): Unit = {
-        connectionSubject.onError(e)
+        feedbackSubject.onError(e)
     }
 
     /**
@@ -721,18 +735,6 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             removeMacLearningTable(vlanId)
         }
 
-        // If the bridge is ARP-enabled initialize the IPv4-MAC map.
-        if (vt.config.bridgeArpEnabled && (ipv4MacMap eq null)) {
-            try {
-                ipv4MacMap = new BridgeIpv4MacMap(vt, bridgeId)
-            } catch {
-                case e: StateAccessException =>
-                    log.warn("Error retrieving ARP table")
-                    vt.connectionWatcher.handleError(
-                        bridgeId.toString, connectionRetryHandler, e)
-            }
-        }
-
         val addedMacPortMappings = routerMacToPortMap -- oldRouterMacPortMap.keys
         val deletedMacPortMappings = oldRouterMacPortMap -- routerMacToPortMap.keys
         // Invalidate the flows for the deleted MAC-port mappings.
@@ -805,17 +807,9 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
      */
     private def createMacLearningTable(vlanId: Short): Unit = {
         log.debug("Create MAC learning table for VLAN {}", Short.box(vlanId))
-        try {
-            val table = new BridgeMacLearningTable(vt, bridgeId, vlanId, log)
-            macLearningTables += vlanId -> table
-            macUpdatesSubject onNext table.observable
-        } catch {
-            case e: StateAccessException =>
-                log.warn("Error retrieving MAC-port table for VLAN {}",
-                         Short.box(vlanId), e)
-                vt.connectionWatcher.handleError(
-                    bridgeId.toString, connectionRetryHandler, e)
-        }
+        val table = new BridgeMacLearningTable(vt, bridgeId, vlanId, log)
+        macLearningTables += vlanId -> table
+        macUpdatesSubject onNext table.observable
     }
 
     /**
