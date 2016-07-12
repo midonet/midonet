@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3fce832d",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-12T07:49:59Z",
+      "side": 1,
+      "message": "Does this get deleted? Otherwise we should probably keep a reference to this and call something like: https://goo.gl/j1hVZh on an afterAll",
+      "range": {
+        "startLine": 505,
+        "startChar": 58,
+        "endLine": 505,
+        "endChar": 79
+      },
+      "revId": "48eb11554265ad9b0115272b564c415cd072bc8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
