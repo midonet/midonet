@@ -1614,12 +1614,87 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             proxy.state onNext ProxyConnectionState.Connected
 
             And("A state table with mock backend")
-            val (table, directory) = mockTable(proxy = proxy)
+            val (table, _) = mockTable(proxy = proxy)
             table.start()
 
             Then("The table handles an unknown update")
             proxy.updates onNext Notify.Update.newBuilder()
                 .setType(Notify.Update.Type.RELATIVE).build()
+        }
+    }
+
+    feature("Table publishes ready notifications") {
+        scenario("Table starts on ready subscriptions") {
+            Given("A state table with mock directory")
+            val (table, _) = mockTable()
+
+            And("A ready observer")
+            val observer1 = new TestObserver[Boolean]()
+
+            Then("The table should not be ready")
+            table.isReady shouldBe false
+
+            When("The observer subscribes to the ready observable")
+            table.ready.subscribe(observer1)
+
+            Then("The observer should receive a ready notification")
+            observer1.getOnNextEvents should contain only true
+
+            And("The table should be ready")
+            table.isReady shouldBe true
+
+            When("A new ready observer subscribes")
+            val observer2 = new TestObserver[Boolean]()
+            table.ready.subscribe(observer2)
+
+            Then("The first observer should not see any new notifications")
+            observer1.getOnNextEvents should contain only true
+
+            And("The second observer should receive a ready notification")
+            observer2.getOnNextEvents should contain only true
+        }
+
+        scenario("Table does not complete on unsubscribe") {
+            Given("A state table with mock directory")
+            val (table, _) = mockTable()
+
+            And("A ready observer")
+            val observer = new TestObserver[Boolean]()
+
+            Then("The table should not be stopped")
+            table.isStopped shouldBe true
+
+            When("The observer subscribes to the ready observable")
+            val subscription = table.ready.subscribe(observer)
+
+            Then("The table should be running")
+            table.isStopped shouldBe false
+
+            When("The ready observer unsubscribes")
+            subscription.unsubscribe()
+
+            Then("The table should be running")
+            table.isStopped shouldBe false
+        }
+
+        scenario("Ready observables should complete on stop") {
+            Given("A state table with mock directory")
+            val (table, _) = mockTable()
+
+            And("A ready observer")
+            val observer = new TestObserver[Boolean]()
+
+            When("The observer subscribes to the ready observable")
+            val subscription = table.ready.subscribe(observer)
+
+            And("The table stops")
+            table.stop()
+
+            Then("The observer should receive onCompleted")
+            observer.getOnCompletedEvents should have size 1
+
+            And("The observer should be unsubscribed")
+            subscription.isUnsubscribed shouldBe true
         }
     }
 }
