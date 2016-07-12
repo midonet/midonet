@@ -241,6 +241,8 @@ class FlowStateConfig(val conf: Config, val schema: Config)
     def blocksPerPort: Int = getInt(s"$prefix.blocks_per_port")
     def expirationTime: Duration = getDuration(s"$prefix.expiration_time",
                                                TimeUnit.MILLISECONDS) millis
+    def expirationDelay: Duration = getDuration(s"$prefix.expiration_delay",
+                                               TimeUnit.MILLISECONDS) millis
     def logDirectory: String = getString(s"$prefix.log_directory")
     def legacyPushState: Boolean = getBoolean(s"$prefix.legacy_push_state")
     def legacyReadState: Boolean = getBoolean(s"$prefix.legacy_read_state")
