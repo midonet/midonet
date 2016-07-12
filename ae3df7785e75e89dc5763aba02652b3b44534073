@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3f23235a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2016-07-12T07:21:15Z",
+      "side": 1,
+      "message": "Can trustiness  change for the existing port?",
+      "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
