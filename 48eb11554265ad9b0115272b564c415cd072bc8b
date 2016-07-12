@@ -46,6 +46,30 @@
       "revId": "48eb11554265ad9b0115272b564c415cd072bc8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4adaa74c",
+        "filename": "midolman/src/test/scala/org/midonet/services/flowstate/FlowStateServiceTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-12T09:35:33Z",
+      "side": 1,
+      "message": "I would say it is easier to do it proactively just to avoid deleting temp files for other jobs, but yeah it can be done in a later patch",
+      "parentUuid": "baa041b7_4a54e7fc",
+      "range": {
+        "startLine": 505,
+        "startChar": 58,
+        "endLine": 505,
+        "endChar": 79
+      },
+      "revId": "48eb11554265ad9b0115272b564c415cd072bc8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
