@@ -604,7 +604,7 @@ class StateProxyServerTest extends FeatureSpec with Matchers
             }
 
             And("The client should be registered")
-            manager.clients should have size 1
+            eventually { manager.clients should have size 1 }
 
             When("The client sends a SUBSCRIBE request")
             var requestId = random.nextLong()
@@ -658,7 +658,7 @@ class StateProxyServerTest extends FeatureSpec with Matchers
             }
 
             And("The client should be unregistered")
-            manager.clients shouldBe empty
+            eventually { manager.clients shouldBe empty }
 
             server.close()
         }
@@ -847,7 +847,7 @@ class StateProxyServerTest extends FeatureSpec with Matchers
             }
 
             And("The client should be registered")
-            manager.clients should have size 1
+            eventually { manager.clients should have size 1 }
 
             When("The first client sends a SUBSCRIBE request")
             var requestId = random.nextLong()
@@ -875,7 +875,7 @@ class StateProxyServerTest extends FeatureSpec with Matchers
             }
 
             And("The client should be registered")
-            manager.clients should have size 2
+            eventually { manager.clients should have size 2 }
 
             When("The second client sends a SUBSCRIBE request")
             requestId = random.nextLong()
