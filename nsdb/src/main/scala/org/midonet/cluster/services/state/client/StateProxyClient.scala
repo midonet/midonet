@@ -37,7 +37,7 @@ import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
-import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetServiceHostAndPort}
+import org.midonet.cluster.services.discovery._
 import org.midonet.cluster.services.state.StateProxyService
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState
 import org.midonet.util.UnixClock
@@ -106,8 +106,8 @@ class StateProxyClient(conf: StateProxyClientConfig,
     private val state = new StateProxyClientStates
     private val outstandingPing = new AtomicReference[(RequestId, Long)](0, 0L)
 
-    private val discoveryClient = discoveryService.getClient[MidonetServiceHostAndPort](
-                                                           StateProxyService.Name)
+    private val discovery = MidonetDiscoverySelector.roundRobin(
+        discoveryService.getClient(StateProxyService.Name))
 
     private val connectionSubject = BehaviorSubject.create(ConnectionState.Disconnected)
 
@@ -215,7 +215,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
     protected def getMessagePrototype = ProxyResponse.getDefaultInstance
 
     override protected def getRemoteAddress: Option[MidonetServiceHostAndPort] =
-        discoveryClient.instances.headOption
+        discovery.getInstance
 
     override protected def onNext(msg: ProxyResponse): Unit = {
 
