@@ -308,7 +308,7 @@ class ByteBufferBlockStreamTest extends FeatureSpec
     }
 
     feature("ByteBufferExpirationStream handles block expiration") {
-        scenario("Blocks are removed after expiration time.") {
+        scenario("The running block is not expired") {
             Given("An expiration byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
             val (outStream, _, _) = getStreams(blockBuilder)
@@ -323,25 +323,54 @@ class ByteBufferBlockStreamTest extends FeatureSpec
             outStream.write(outBlock.array)
             currentTime += 1
 
+            Then("No blocks should be invalidated")
+            outStream.invalidateBlocks() shouldBe 0
+
+            When("Advancing the clock past the timeout time")
+            currentTime += (timeout * 2)
+
+            Then("No blocks should be invalidated because we have only one")
+            outStream.invalidateBlocks() shouldBe 0
+
+        }
+
+        scenario("Blocks are removed after expiration time.") {
+            Given("An expiration byte buffer block stream")
+            val blockBuilder = TestTimedBlockBuilder
+            val (outStream, _, _) = getStreams(blockBuilder)
+
+            When("Starting the clock")
+            currentTime = 0
+
+            And("Writing a single block")
+            val outBlock = ByteBuffer.allocate(blockSize)
+            Random.nextBytes(outBlock.array())
+            outStream.write(outBlock.array)
+
+            And("Writing a second block after some time")
+            currentTime += 1
+            val beforeWrite = currentTime
+            outStream.write(outBlock.array)
+            currentTime += 1
+
             Then("The expiration markers should be correctly set")
-            outStream.buffers.length shouldBe 1
-            val header = blockBuilder(outStream.buffers.head.get)
+            outStream.buffers.length shouldBe 2
+            val blocks = outStream.buffers.iterator.toIndexedSeq
+            val header = blockBuilder(blocks(1))
+            val tail = blockBuilder(blocks(0))
             header.lastEntryTime shouldBe beforeWrite
             header.lastEntryTime should be < currentTime
+            tail.lastEntryTime should be < header.lastEntryTime
 
             When("Waiting a timeout amount of time")
             currentTime += timeout
 
-            Then("The block should be released and cleared")
+            Then("The head block should be released and cleared")
             eventually {
                 outStream.invalidateBlocks() shouldBe 1
-                outStream.buffers.length shouldBe 0
-                outStream.buffers.isEmpty shouldBe true
+                outStream.buffers.length shouldBe 1
+                outStream.buffers.isEmpty shouldBe false
             }
-
-            And("Writing a new message")
-            outStream.write(outBlock.array())
-            outStream.buffers.length shouldBe 1
         }
 
         scenario("Expiring a single block on a multiblock stream.") {
@@ -402,7 +431,7 @@ class ByteBufferBlockStreamTest extends FeatureSpec
             currentTime += timeout + 1
 
             Then("We should invalidate 2 blocks")
-            outStream.invalidateBlocks() shouldBe 2
+            outStream.invalidateBlocks() shouldBe 1
 
         }
     }

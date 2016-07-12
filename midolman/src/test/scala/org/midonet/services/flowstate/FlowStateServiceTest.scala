@@ -18,7 +18,7 @@ package org.midonet.services.flowstate
 
 import java.net.{BindException, DatagramSocket, ServerSocket}
 import java.util.UUID
-import java.util.concurrent.{ExecutorService, TimeUnit}
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -43,7 +43,6 @@ import org.midonet.services.flowstate.handlers._
 import org.midonet.services.flowstate.stream.FlowStateManager
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser.parseStateResponse
 import org.midonet.services.flowstate.transfer.internal._
-import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
@@ -53,13 +52,23 @@ class FlowStateServiceTest extends FlowStateBaseTest
                                    with TopologyBuilder {
 
     private var streamContext: stream.Context = _
-    private val executor: ExecutorService = new SameThreadButAfterExecutorService
+    private val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
 
     /** Mocked flow state minion, overrides local ip discovery */
     private class FlowStateServiceTest(nodeContext: Context,
-                                       executor: ExecutorService,
+                                       executor: ScheduledExecutorService,
                                        config: MidolmanConfig)
         extends FlowStateService(nodeContext, executor, config) {
+
+        var numInvalidations = 0
+
+        override def blockInvalidator: Runnable = new TestBlockInvalidator()
+
+        class TestBlockInvalidator extends Runnable {
+            override def run(): Unit = {
+                numInvalidations += 1
+            }
+        }
 
         def getUdpMessageHandler = writeMessageHandler
         def getTcpMessageHandler = readMessageHandler
@@ -178,6 +187,21 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
             Then("The service is enabled")
             service.isEnabled shouldBe true
+        }
+
+        scenario("Background invalidator runs at specified intervals") {
+            Given("A flow state service that is started")
+            val config = midolmanConfig
+            val service = new FlowStateServiceTest(
+                Context(UUID.randomUUID()), executor, config)
+            service.startBlockInvalidator()
+            val expirationDelay = config.flowState.expirationDelay
+            Thread.sleep((expirationDelay toMillis) / 2)
+            Then("The background invalidator is run at specified intervals")
+            for (i <- 0 to 5) {
+                service.numInvalidations shouldBe i
+                Thread.sleep(expirationDelay toMillis)
+            }
         }
 
     }
