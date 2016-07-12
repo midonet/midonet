@@ -98,7 +98,7 @@ class FlowStateService @Inject()(nodeContext: Context,
         override def run(): Unit = {
             val startTime = System.nanoTime()
             var invalidatedBlocks = 0
-            for ((portId, writer) <- ioManager.iterator) {
+            for (writer <- ioManager.blockWriters.valuesIterator) {
                 invalidatedBlocks += writer.invalidateBlocks()
             }
             val elapsed = Duration(System.nanoTime - startTime,
@@ -176,6 +176,10 @@ class FlowStateService @Inject()(nodeContext: Context,
 
             tcpFrontend.awaitTerminated(FrontEndTimeout, FrontEndTimeoutUnit)
             udpFrontend.awaitTerminated(FrontEndTimeout, FrontEndTimeoutUnit)
+
+            for (writer <- ioManager.stateWriters.valuesIterator) {
+                writer.flush()
+            }
 
             if (cassandraSession ne null) cassandraSession.close()
             notifyStopped()
