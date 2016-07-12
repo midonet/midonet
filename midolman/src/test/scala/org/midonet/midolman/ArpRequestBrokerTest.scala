@@ -30,14 +30,23 @@ import org.scalatest.concurrent.Eventually._
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.{Second, Span}
+
+import rx.Observable
+
 import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.{ZkDirectory, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkDirectory}
+import org.midonet.cluster.data.storage.StateTable
+import org.midonet.cluster.data.storage.model.ArpEntry
+import org.midonet.cluster.rpc.State.ProxyResponse.Notify
+import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState
+import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
+import org.midonet.cluster.storage.ArpStateTable
 import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, GeneratedPacket}
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ArpRequestBroker._
-import org.midonet.midolman.state.{LegacyArpCacheImpl, _}
+import org.midonet.midolman.state._
 import org.midonet.midolman.util.ArpCacheHelper
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
@@ -53,6 +62,16 @@ class ArpRequestBrokerTest extends Suite
                              with BeforeAndAfter
                              with BeforeAndAfterAll
                              with ShouldMatchers {
+
+    private object TestableProxyClient extends StateTableClient {
+        override def stop(): Boolean = false
+        override def observable(table: StateSubscriptionKey)
+        : Observable[Notify.Update] = Observable.never()
+        override def connection: Observable[ConnectionState.ConnectionState] =
+            Observable.never()
+        override def start(): Unit = { }
+    }
+
     private final val ARP_RETRY = 1 * 1000
     private final val ARP_TIMEOUT = 6 * 1000
     private final val ARP_STALE = 100 * 1000
@@ -69,13 +88,13 @@ class ArpRequestBrokerTest extends Suite
     var ts: TestingServer = _
     var directory: Directory = _
     var zkConn: ZkConnection = _
-    var arpTable: ArpTable = _
+    var arpTable: ArpStateTable = _
     var arpCache: ArpCache = _
     var reactor: Reactor = _
 
     var remoteDir: Directory = _
     var remoteZkConn: ZkConnection = _
-    var remoteArpTable: ArpTable = _
+    var remoteArpTable: ArpStateTable = _
     var remoteArpCache: ArpCache = _
     var remoteReactor: Reactor = _
 
@@ -181,14 +200,24 @@ class ArpRequestBrokerTest extends Suite
         val root = "/test-" + routerId.toString
         directory.add(root, "".getBytes, CreateMode.PERSISTENT)
 
-        arpTable = new ArpTable(directory.getSubDirectory(root))
+        arpTable = new ArpStateTable(
+            StateTable.Key(classOf[Nothing], null, classOf[Nothing],
+                           classOf[Nothing], "arp_table", Seq.empty),
+            directory.getSubDirectory(root),
+            TestableProxyClient,
+            Observable.never())
         arpTable.start()
 
-        remoteArpTable = new ArpTable(directory.getSubDirectory(root))
+        remoteArpTable = new ArpStateTable(
+            StateTable.Key(classOf[Nothing], null, classOf[Nothing],
+                           classOf[Nothing], "arp_table", Seq.empty),
+            directory.getSubDirectory(root),
+            TestableProxyClient,
+            Observable.never())
         remoteArpTable.start()
 
-        arpCache = new LegacyArpCacheImpl(arpTable, routerId, reactor)
-        remoteArpCache = new LegacyArpCacheImpl(arpTable, routerId, reactor)
+        arpCache = null//new LegacyArpCacheImpl(arpTable, routerId, reactor)
+        remoteArpCache = null//new LegacyArpCacheImpl(arpTable, routerId, reactor)
         arps.clear()
         invalidations.clear()
 

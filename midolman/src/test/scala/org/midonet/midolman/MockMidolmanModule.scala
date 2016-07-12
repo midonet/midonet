@@ -91,7 +91,6 @@ class MockMidolmanModule(override val hostId: UUID,
         new VirtualTopology(
             injector.getInstance(classOf[MidonetBackend]),
             config,
-            injector.getInstance(classOf[ZkConnectionAwareWatcher]),
             simBackChannel,
             new MetricRegistry,
             new SameThreadButAfterExecutorService,

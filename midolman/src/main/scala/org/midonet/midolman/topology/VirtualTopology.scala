@@ -158,7 +158,6 @@ object VirtualTopology {
  */
 class VirtualTopology(val backend: MidonetBackend,
                       val config: MidolmanConfig,
-                      val connectionWatcher: ZkConnectionAwareWatcher,
                       val simBackChannel: SimulationBackChannel,
                       val metricRegistry: MetricRegistry,
                       val vtExecutor: ExecutorService,

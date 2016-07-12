@@ -28,7 +28,7 @@ import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.util.functors.{makeFunc1, makeRunnable}
+import org.midonet.util.functors.makeFunc1
 import org.midonet.util.logging.Logger
 
 /** An ARP cache update. */
@@ -68,25 +68,14 @@ object ArpCache {
         @ThreadSafe
         protected override def call(child: Subscriber[_ >: ArpCache]): Unit = {
             log.debug("Subscribing to the ARP cache")
-            try {
-                val arpCache = new RouterArpCache(vt, routerId, log)
-                child.onNext(arpCache)
-                child.onCompleted()
-            } catch {
-                case e: StateAccessException =>
-                    // If initializing the ARP cache fails, use the connection
-                    // watcher to retry emitting the ARP cache notification for
-                    // the subscriber.
-                    vt.connectionWatcher.handleError(
-                        routerId.toString, makeRunnable { call(child) }, e)
-            }
+            child.onNext(new RouterArpCache(vt, routerId, log))
+            child.onCompleted()
         }
     }
 
     /**
      * Implements the [[ArpCache]] for a router.
      */
-    @throws[StateAccessException]
     private class RouterArpCache(vt: VirtualTopology,
                                  override val routerId: UUID, log: Logger)
         extends ArpCache with MidolmanLogging {

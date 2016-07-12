@@ -388,7 +388,6 @@ class MidolmanModule(injector: Injector,
         new VirtualTopology(
             injector.getInstance(classOf[MidonetBackend]),
             config,
-            injector.getInstance(classOf[ZkConnectionAwareWatcher]),
             simBackChannel,
             metricRegistry,
             vtExecutor,
