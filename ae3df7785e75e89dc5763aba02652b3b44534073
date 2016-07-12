@@ -52,6 +52,42 @@
       "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1fa17f46",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-07-12T08:04:00Z",
+      "side": 1,
+      "message": "i\u0027m not sure what you mean by \"the existing port\".\nit can be changed in some cases as aojea said.",
+      "parentUuid": "baa041b7_3f23235a",
+      "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_df8797b3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-07-12T08:04:00Z",
+      "side": 1,
+      "message": "Jaume,\naojea is talking about VIF -\u003e router interface transition.",
+      "parentUuid": "baa041b7_bfe2939e",
+      "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
