@@ -174,7 +174,8 @@ packaging {
 }
 
 preparePkg_debian.dependsOn cleanPkg_debian
-debian.dependsOn preparePkg_debian
+debianPrepare.dependsOn preparePkg_debian
+debian.dependsOn debianPrepare
 
 preparePkg_rpm.dependsOn cleanPkg_rpm
 rhel7Prepare.dependsOn preparePkg_rpm
