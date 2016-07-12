@@ -34,10 +34,10 @@ class StateTableSubscriber(val key: StateTableKey, handler: ClientHandler,
                            onComplete: (StateTableSubscriber) => Unit)
     extends StateTableObserver {
 
-    private val subscription = cache.subscribe(this, lastVersion)
     // The promise completes with the delivery of the subscribe
     // acknowledgment. This permits subsequent table updates.
     private val promise = Promise[AnyRef]()
+    private val subscription = cache.subscribe(this, lastVersion)
 
     /**
       * @return The subscription identifier.
