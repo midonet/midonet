@@ -257,7 +257,8 @@ preparePkg_debian.dependsOn manpages
 
 pf9PreparePkg_debian.dependsOn cleanPkg_debian
 preparePkg_debian.dependsOn pf9PreparePkg_debian
-debian.dependsOn preparePkg_debian
+debianPrepare.dependsOn preparePkg_debian
+debian.dependsOn debianPrepare
 
 pf9PreparePkg_rpm.dependsOn cleanPkg_rpm
 preparePkg_rpm.dependsOn pf9PreparePkg_rpm
