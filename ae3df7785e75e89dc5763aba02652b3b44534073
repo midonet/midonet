@@ -34,6 +34,24 @@
       "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bfe2939e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2016-07-12T07:51:09Z",
+      "side": 1,
+      "message": "No... In midonet the port of the VIP is assigned to a bridge (the tenant network), not to a router...",
+      "parentUuid": "baa041b7_1fe97fb7",
+      "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
