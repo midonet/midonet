@@ -29,6 +29,11 @@ import org.midonet.util.collection.RingBufferWithFactory
   * exposed in [[BlockHeader]]. This block writer takes care of
   * allocating a new block from the pool when necessary.
   *
+  * WARNING: This is not thread safe. The behaviour is undefined if more
+  * than one writer uses the same underlying ring buffer. For flow state
+  * local storage, we should only have one writer at a time so it's not a
+  * big issue.
+  *
   * @tparam H Type of the block header used to write block headers.
   * @param blockBuilder The builder for CRUD ops on the block header.
   * @param buffers The pool where the buffer blocks are written.

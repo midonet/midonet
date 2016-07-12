@@ -16,6 +16,7 @@
 
 package org.midonet.services.flowstate
 
+import java.io.File
 import java.util.concurrent.{ExecutorService, TimeUnit}
 
 import scala.concurrent.ExecutionContext
@@ -37,7 +38,8 @@ import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.services.FlowStateLog
 import org.midonet.services.flowstate.FlowStateService._
-import org.midonet.services.flowstate.handlers.{FlowStateWriteHandler, FlowStateReadHandler}
+import org.midonet.services.flowstate.handlers.{FlowStateReadHandler, FlowStateWriteHandler}
+import org.midonet.services.flowstate.stream.FlowStateManager
 import org.midonet.util.netty.ServerFrontEnd
 
 object FlowStateService {
@@ -72,6 +74,11 @@ class FlowStateService @Inject()(nodeContext: Context,
 
     private var cassandraSession: Session = _
 
+    private val ioManager = new FlowStateManager(config.flowState)
+
+    @VisibleForTesting
+    protected val streamContext = stream.Context(config.flowState, ioManager)
+
     @VisibleForTesting
     protected var readMessageHandler: FlowStateReadHandler = _
     @VisibleForTesting
@@ -84,11 +91,11 @@ class FlowStateService @Inject()(nodeContext: Context,
     /** Initialize the UDP and TCP server frontends. Cassandra session MUST be
       * previously initialized. */
     private[flowstate] def startServerFrontEnds() = {
-        writeMessageHandler = new FlowStateWriteHandler(config.flowState,
+        writeMessageHandler = new FlowStateWriteHandler(streamContext,
             cassandraSession)
         udpFrontend = ServerFrontEnd.udp(writeMessageHandler, port)
 
-        readMessageHandler = new FlowStateReadHandler(config.flowState)
+        readMessageHandler = new FlowStateReadHandler(streamContext)
         tcpFrontend = ServerFrontEnd.tcp(readMessageHandler, port)
 
         udpFrontend.startAsync()
@@ -121,6 +128,9 @@ class FlowStateService @Inject()(nodeContext: Context,
             }
         } else {
             this.synchronized {
+                val flowStateDir = s"${System.getProperty("minions.db.dir")}" + "" +
+                                   s"${config.flowState.logDirectory}"
+                new File(flowStateDir).mkdirs()
                 startAndNotify()
             }
         }

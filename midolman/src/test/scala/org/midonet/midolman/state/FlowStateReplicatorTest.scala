@@ -16,20 +16,19 @@
 
 package org.midonet.midolman.state
 
+import java.net.DatagramSocket
 import java.nio.ByteBuffer
 import java.util.{ArrayList, Collection, HashSet => JHashSet}
-import java.util.{Set => JSet, UUID}
+import java.util.{UUID, Set => JSet}
 import java.util.Random
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
 import scala.concurrent.duration._
-
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
@@ -41,7 +40,7 @@ import org.midonet.midolman.{HostRequestProxy, UnderlayResolver}
 import org.midonet.midolman.datapath.StatePacketExecutor
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.NatKey
-import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.midolman.topology.VirtualTopology
@@ -56,6 +55,8 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.functors.Callback0
 import org.midonet.util.reactivex._
+import org.mockito.Mockito._
+import org.mockito.{ArgumentCaptor, Matchers => mockito}
 
 @RunWith(classOf[JUnitRunner])
 class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
@@ -426,8 +427,12 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         }
     }
 
-    def acceptPushedState(packet: Packet): Unit =
+    def acceptPushedState(packet: Packet): Unit = {
         recipient.accept(packet.getEthernet)
+        recipient.numIncomingFlowStateMessagesReceived += 1
+        verify(recipient.flowStateSocket,
+               times(recipient.numIncomingFlowStateMessagesReceived)).send(mockito.any())
+    }
 
     feature("L4 flow state resolves hosts and ports correctly") {
         scenario("All relevant ingress and egress hosts and ports get detected") {
@@ -598,6 +603,10 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
     } with FlowStateReplicator(conntrackTable, natTable, traceTable,
                                hostId, peerResolver, underlay,
                                mockFlowInvalidation, midolmanConfig) {
+
+        var numIncomingFlowStateMessagesReceived = 0
+
+        override val flowStateSocket = mock(classOf[DatagramSocket])
 
         override def resolvePeers(ingressPort: UUID,
                                   egressPorts: ArrayList[UUID],
