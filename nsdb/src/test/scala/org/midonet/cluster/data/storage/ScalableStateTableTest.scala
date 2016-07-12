@@ -1165,7 +1165,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             observer.getOnCompletedEvents should have size 1
 
             And("The observer should be unsubscribed")
-            subscription.isUnsubscribed shouldBe true
+            eventually { subscription.isUnsubscribed shouldBe true }
 
             And("The table should be stopped")
             table.isStopped shouldBe true
@@ -1187,7 +1187,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             observer.getOnCompletedEvents should have size 1
 
             And("The observer should be unsubscribed")
-            subscription.isUnsubscribed shouldBe true
+            eventually { subscription.isUnsubscribed shouldBe true }
 
             And("The table should be stopped")
             table.isStopped shouldBe true
