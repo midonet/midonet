@@ -226,6 +226,60 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
         }
     }
 
+    /**
+      * The subscription list for the ready state.
+      */
+    private class ReadySubscriptionList extends SubscriptionList[Boolean] {
+
+        protected def start(child: Subscriber[_ >: Boolean]): Unit = {
+            // Do nothing.
+        }
+
+        protected def added(child: Subscriber[_ >: Boolean]): Unit = {
+            this.synchronized {
+                if (snapshotReady) child.onNext(true)
+            }
+        }
+
+        protected def terminated(child: Subscriber[_ >: Boolean]): Unit = {
+            child.onCompleted()
+        }
+
+        /**
+          * Notifies the ready subscribers that the table has finished loading a
+          * complete snapshot.
+          *
+          * The call of this method must be synchronized.
+          */
+        def ready(): Unit = {
+            if (!snapshotReady) {
+                log debug s"Table ready with ${cache.size()} entries"
+
+                // Publish ready state to all subscribers.
+                snapshotReady = true
+                val subs = readySubscriptionList.subscribers
+                var index = 0
+                while (index < subs.length) {
+                    subs(index) onNext true
+                    index += 1
+                }
+            }
+        }
+
+        /**
+          * Closes the ready subscription list and completes all ready
+          * subscribers.
+          */
+        def close(): Unit = {
+            val readySubs = readySubscriptionList.terminate()
+            var index = 0
+            while (index < readySubs.length) {
+                readySubs(index).onCompleted()
+                index += 1
+            }
+        }
+    }
+
     private val addCallback = new AddCallback
     private val getCallback = new GetCallback
     private val deleteCallback = new DeleteCallback
@@ -252,6 +306,8 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
     private val removing = new util.HashSet[KeyValue[K, V]](4)
     private val owned = new util.HashSet[Int]()
 
+    private val readySubscriptionList = new ReadySubscriptionList
+    private var snapshotReady = false
     private var snapshotInProgress = false
 
     private def log = table.log
@@ -279,7 +335,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
             return
         }
 
-        // Complete all subscribers.
+        // Complete all table subscribers.
         val subs = terminate()
         var index = 0
         while (index < subs.length) {
@@ -290,6 +346,9 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
             }
             index += 1
         }
+
+        // Complete all ready subscribers.
+        readySubscriptionList.close()
 
         proxySubscriber.unsubscribe()
         proxyConnectionSubscriber.unsubscribe()
@@ -502,6 +561,18 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
     }
 
     /**
+      * Adds the specified subscriber to the ready subscription list.
+      */
+    def ready(child: Subscriber[_ >: Boolean]): Unit = {
+        readySubscriptionList.call(child)
+    }
+
+    /**
+      * @return Whether the table has loaded an initial snapshot.
+      */
+    def isReady: Boolean = snapshotReady
+
+    /**
       * @see [[SubscriptionList.start()]]
       */
     protected override def start(child: Subscriber[_ >: Update[K, V]])
@@ -615,6 +686,9 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
 
             // Delete the pending entries.
             deleteEntries()
+
+            // Mark the table as ready.
+            readySubscriptionList.ready()
         }
     }
 
@@ -731,6 +805,9 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
 
             // Publish updates.
             publishUpdates()
+
+            // Mark the table as ready.
+            readySubscriptionList.ready()
         }
     }
 
