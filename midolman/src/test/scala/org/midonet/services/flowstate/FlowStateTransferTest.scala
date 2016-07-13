@@ -27,9 +27,7 @@ import org.mockito.Mockito.{atLeastOnce, mock, times, verify}
 import org.mockito.{ArgumentCaptor, Matchers => mockito}
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.models.Commons.{UUID => ProtoUUID}
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.services.flowstate.handlers._
@@ -49,7 +47,7 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
     private var internalClient: FlowStateInternalClient = _
     private var remoteClient: FlowStateRemoteClient = _
 
-    private var ports: Seq[ProtoUUID] = _
+    private var ports: Seq[UUID] = _
     private var handler: TestableReadHandler = _
     private var server: ServerFrontEnd = _
 
@@ -118,8 +116,7 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
 
             When("The flow state is requested by the TCP client")
             val writer = mock(classOf[ByteBufferBlockWriter[TimedBlockHeader]])
-            remoteClient.rawPipelinedFlowStateFrom("127.0.0.1",
-                fromProto(portId), writer)
+            remoteClient.rawPipelinedFlowStateFrom("127.0.0.1", portId, writer)
 
             Then("The flow state for the given portId was received")
             verify(writer, times(1)).write(mockito.any())
@@ -134,7 +131,7 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
 
             When("The flow state is requested by the TCP client")
             val FlowStateBatch(sc, _, sn, _) =
-                internalClient.internalFlowStateFrom(fromProto(portId))
+                internalClient.internalFlowStateFrom(portId)
 
             Then("The flow state for the given portId was received")
             sc should not be empty
@@ -171,7 +168,7 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
 
                 When("The flow state is requested by the TCP client")
                 val FlowStateBatch(sc, _, sn, _) =
-                    internalClient.remoteFlowStateFrom("127.0.0.1", fromProto(portId))
+                    internalClient.remoteFlowStateFrom("127.0.0.1", portId)
 
                 Then("The flow state for the given portId was received")
                 sc should not be empty
