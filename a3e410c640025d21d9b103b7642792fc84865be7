@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e11d19bf",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateWriter.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-13T16:39:32Z",
+      "side": 1,
+      "message": "Not needed with Flushable",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 68,
+        "endChar": 21
+      },
+      "revId": "a3e410c640025d21d9b103b7642792fc84865be7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
