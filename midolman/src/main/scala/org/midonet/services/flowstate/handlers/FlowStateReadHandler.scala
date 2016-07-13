@@ -15,7 +15,9 @@
  */
 package org.midonet.services.flowstate.handlers
 
+import java.io.FileNotFoundException
 import java.nio.ByteBuffer
+import java.util.UUID
 
 import scala.util.control.NonFatal
 
@@ -23,7 +25,7 @@ import com.google.common.annotations.VisibleForTesting
 
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateResponse.Error
-import org.midonet.cluster.models.Commons.{IPAddress, UUID}
+import org.midonet.cluster.models.Commons.IPAddress
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.services.flowstate.FlowStateService._
 import org.midonet.services.flowstate.stream._
@@ -60,11 +62,11 @@ class FlowStateReadHandler(context: Context)
 
     @VisibleForTesting
     protected def getByteBufferBlockReader(portId: UUID) =
-        ByteBufferBlockReader(context, fromProto(portId))
+        ByteBufferBlockReader(context, portId)
 
     @VisibleForTesting
     protected def getFlowStateReader(portId: UUID) =
-        FlowStateReader(context, fromProto(portId))
+        FlowStateReader(context, portId)
 
     @VisibleForTesting
     protected def getByteBufferBlockWriter(portId: UUID) =
@@ -72,21 +74,20 @@ class FlowStateReadHandler(context: Context)
 
     override def channelRead0(context: ChannelHandlerContext,
                               msg: ByteBuf): Unit = {
-        Log debug "Flow state read request received"
         ctx = context
 
         parseSegment(msg) match {
             case StateRequestInternal(portId) =>
-                Log debug s"Flow state internal request for port: $portId"
+                Log debug s"Flow state internal request for port: ${fromProto(portId)}"
                 respondInternal(portId)
             case StateRequestRemote(portId, address) =>
-                Log debug s"Flow state remote[$address] request for port: $portId"
+                Log debug s"Flow state remote[$address] request for port: ${fromProto(portId)}"
                 respondRemote(portId, address)
             case StateRequestRaw(portId) =>
-                Log debug s"Flow state raw request for port: $portId"
+                Log debug s"Flow state raw request for port: ${fromProto(portId)}"
                 respondRaw(portId)
             case InvalidStateRequest(e) =>
-                Log warn s"Invalid flow state request: $e"
+                Log warn s"Invalid flow state request: ${e.getMessage}"
                 val error = buildError(Error.Code.BAD_REQUEST, e).toByteArray
 
                 writeAndFlushWithHeader(error)
@@ -164,7 +165,13 @@ class FlowStateReadHandler(context: Context)
     }
 
     private def handleStorageError(portId: UUID, e: Throwable): Unit = {
-        Log warn(s"Error handling flow state request for port: $portId", e)
+        e match {
+            case ex: FileNotFoundException =>
+                Log debug s"${ex.getMessage}"
+            case _ =>
+                Log warn s"Error handling flow state request for port $portId: $e"
+
+        }
         val error = buildError(Error.Code.STORAGE_ERROR, e)
 
         writeAndFlushWithHeader(error.toByteArray)
