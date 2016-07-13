@@ -172,6 +172,13 @@ public class Midolman {
             }
         });
 
+        minionProcess = ProcessHelper
+            .newDemonProcess("/usr/share/midolman/minions-start", log,
+                             "org.midonet.services")
+            .run();
+        log.info("Starting Agent minions in process " +
+                 ProcessHelper.getProcessPid(minionProcess));
+
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
 
@@ -226,13 +233,6 @@ public class Midolman {
 
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
-
-        minionProcess = ProcessHelper
-            .newDemonProcess("/usr/share/midolman/minions-start", log,
-                             "org.midonet.services")
-            .run();
-        log.info("Starting Agent minions in process " +
-                 ProcessHelper.getProcessPid(minionProcess));
 
         log.info("Running manual GC to tenure pre-allocated objects");
         System.gc();
