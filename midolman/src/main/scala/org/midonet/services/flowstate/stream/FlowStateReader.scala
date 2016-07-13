@@ -16,18 +16,19 @@
 
 package org.midonet.services.flowstate.stream
 
-import java.io.IOException
+import java.io.FileNotFoundException
 import java.nio.ByteBuffer
 import java.util.UUID
 
+import scala.util.control.NonFatal
+
 import com.google.common.annotations.VisibleForTesting
+
 import org.midonet.packets.SbeEncoder
 import org.midonet.services.flowstate.stream.snappy.SnappyBlockReader
 import org.midonet.util.Clearable
 import org.midonet.util.collection.RingBuffer
 import org.midonet.util.io.stream._
-
-import scala.util.control.NonFatal
 
 object FlowStateReader {
 
@@ -46,8 +47,8 @@ object FlowStateReader {
             val snappyReader = new SnappyBlockReader(blockReader)
             new FlowStateReaderImpl(snappyReader)
         } else {
-            throw new IOException(s"Flow state file for port $portId does not " +
-                                  s"exist.")
+            throw new FileNotFoundException(
+                s"Flow state file for port $portId does not exist.")
         }
     }
 }
