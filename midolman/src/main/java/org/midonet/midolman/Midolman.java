@@ -154,6 +154,13 @@ public class Midolman {
         log.info("build.user: {}", properties.get("git.build.user.name"));
         log.info("-------------------------------------");
 
+        minionProcess = ProcessHelper
+            .newDemonProcess("/usr/share/midolman/minions-start", log,
+                             "org.midonet.services")
+            .run();
+        log.info("Starting Agent minions in process " +
+                 ProcessHelper.getProcessPid(minionProcess));
+
         // log cmdline and JVM info
         log.info("Command-line arguments: {}", Arrays.toString(args));
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
@@ -226,13 +233,6 @@ public class Midolman {
 
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
-
-        minionProcess = ProcessHelper
-            .newDemonProcess("/usr/share/midolman/minions-start", log,
-                             "org.midonet.services")
-            .run();
-        log.info("Starting Agent minions in process " +
-                 ProcessHelper.getProcessPid(minionProcess));
 
         log.info("Running manual GC to tenure pre-allocated objects");
         System.gc();
