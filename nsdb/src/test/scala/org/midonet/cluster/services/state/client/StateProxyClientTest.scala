@@ -398,14 +398,14 @@ class StateProxyClientTest extends FeatureSpec
             val subscription = client.observable(existingTable)
                 .subscribe(observer)
             subscription.isUnsubscribed shouldBe false
-            eventually {client.numActiveSubscriptions shouldBe 1 }
+            eventually { client.numActiveSubscriptions shouldBe 1 }
 
             When("the link goes down")
             t.server.close()
-            eventually {client.numActiveSubscriptions shouldBe 0 }
+            eventually { client.numActiveSubscriptions shouldBe 0 }
 
             And("The link is reconnected")
-            eventually {client.numActiveSubscriptions shouldBe 1 }
+            eventually { client.numActiveSubscriptions shouldBe 1 }
 
             And("An event is generated")
             client.ping() shouldBe true
@@ -799,7 +799,10 @@ class StateProxyClientTest extends FeatureSpec
             }
 
             When("connection failure happens")
-            eventually { t.client.isConnected shouldBe true }
+            eventually {
+                t.server.hasClient shouldBe true
+                t.client.isConnected shouldBe true
+            }
             t.server.setOffline()
 
             eventually { Mockito.verify(observer).onNext(Disconnected) }
