@@ -117,19 +117,21 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
 
     override val Name = "HealthMonitorConfigWatcher"
 
+    override def logSource = "org.midonet.services.l4lb.health-monitor-watcher"
+
     override def preStart(): Unit = {
         subscribe(classOf[PoolHealthMonitorMap], PoolHealthMonitorMapKey)
     }
 
     private  def handleDeletedMapping(poolId: UUID) {
-        log.debug("handleDeletedMapping deleting {}", poolId)
+        log.debug("Pool {} deleted", poolId)
         if (currentLeader)
             manager ! ConfigDeleted(poolId)
     }
 
     private def handleAddedMapping(poolId: UUID,
                                    data: PoolHealthMonitor) {
-        log.debug("handleAddedMapping added {}", poolId)
+        log.debug("Pool {} added", poolId)
         val poolConfig = convertDataToPoolConfig(poolId, fileLocs, suffix, data)
         if (currentLeader) {
             manager ! ConfigAdded(poolId, poolConfig,
@@ -198,7 +200,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
             handleMappingChange(mapping)
 
         case loadBalancer: SimLoadBalancer =>
-            log.debug("load balancer {} received", loadBalancer.id)
+            log.debug("Load balancer {} received", loadBalancer.id)
 
             def notifyChangedRouter(loadBalancer: SimLoadBalancer,
                                     routerId: UUID) = {
@@ -225,7 +227,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
             }
 
         case BecomeHaproxyNode =>
-            log.debug("{} has become the HM leader", self.path.name)
+            log.debug("Agent is the load-balancer health monitor leader")
             currentLeader = true
             this.poolIdtoConfigMap foreach(kv =>
                 manager ! ConfigAdded(kv._1, kv._2,
