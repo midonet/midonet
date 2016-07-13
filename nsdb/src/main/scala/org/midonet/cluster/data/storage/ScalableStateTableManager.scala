@@ -355,7 +355,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
         storageConnectionSubscriber.unsubscribe()
         cache.clear()
         failures.clear()
-        proxySubscriber = null
+        proxySubscriber = EmptySubscriber
         version = Long.MaxValue
     }
 
