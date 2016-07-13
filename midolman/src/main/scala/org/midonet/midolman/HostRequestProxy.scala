@@ -20,7 +20,10 @@ import java.nio.ByteBuffer
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.{UUID, HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet}
 
+import scala.collection.immutable.Iterable
+
 import akka.actor.ActorRef
+
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.config.FlowStateConfig
@@ -38,7 +41,6 @@ import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowS
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent._
 import rx.Subscription
-
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -134,23 +136,14 @@ class HostRequestProxy(hostId: UUID,
     private val flowStateBuffer = ByteBuffer.allocate(MaxMessageSize)
 
 
-    private def stateForPort(storage: FlowStateStorage[ConnTrackKey, NatKey],
-                             portInfo: (UUID, UUID)): Future[FlowStateBatch] = {
-        val (portId, previousOwnerId) = portInfo
-
-        if (flowStateConfig.legacyReadState) {
-            legacyStateRequestForPort(storage, portId)
-        } else if (flowStateConfig.localReadState) {
-            stateRequestForPort(portId, previousOwnerId)
-        } else {
-            log warn "Flow state not being recovered from local nor legacy " +
-                "storage. Check the agent's configuration to turn on one of " +
-                "the flags for flow state recovery"
-            Future.successful(EmptyFlowStateBatch)
-        }
+    private def legacyStateForPorts(storage: FlowStateStorage[ConnTrackKey, NatKey],
+                                    bindings: Map[UUID, UUID]): Future[FlowStateBatch] = {
+        val batches =
+            bindings.map(binding => legacyStateForPort(storage, binding._1))
+        mergedBatches(batches)
     }
 
-    private def legacyStateRequestForPort(storage: FlowStateStorage[ConnTrackKey, NatKey],
+    private def legacyStateForPort(storage: FlowStateStorage[ConnTrackKey, NatKey],
                                   port: UUID): Future[FlowStateBatch] = {
         val scf = storage.fetchStrongConnTrackRefs(port)
         val wcf = storage.fetchWeakConnTrackRefs(port)
@@ -162,7 +155,9 @@ class HostRequestProxy(hostId: UUID,
         }
     }
 
-    private def stateRequestForPort(port: UUID, previousOwnerId: UUID): Future[FlowStateBatch] = {
+    private def stateRequestForPort(portInfo: (UUID, UUID)): Future[FlowStateBatch] = {
+        val (port, previousOwnerId) = portInfo
+
         if (previousOwnerId eq null) {
             // First binding -> no flow state to recover
             Future.successful(EmptyFlowStateBatch)
@@ -189,10 +184,21 @@ class HostRequestProxy(hostId: UUID,
         }
     }
 
-    private def stateForPorts(storage: FlowStateStorage[ConnTrackKey, NatKey],
-                              bindings: Map[UUID, UUID]): Future[FlowStateBatch] =
-        Future.fold(bindings map (stateForPort(storage, _)))(EmptyFlowStateBatch) {
-            (batch: FlowStateBatch, v: FlowStateBatch) => batch.merge(v)
+    private def stateForPorts(bindings: Map[UUID, UUID]): Future[FlowStateBatch] =
+        if (flowStateConfig.legacyReadState) {
+            storageFuture.flatMap(legacyStateForPorts(_, bindings))
+        } else if (flowStateConfig.localReadState) {
+            mergedBatches(bindings map stateRequestForPort)
+        } else {
+            log warn "Flow state not being recovered from local nor legacy " +
+                     "storage. Check the agent's configuration to turn on " +
+                     "one of the flags for flow state recovery"
+            Future.successful(EmptyFlowStateBatch)
+        }
+
+    private def mergedBatches(batches: Iterable[Future[FlowStateBatch]]) =
+        Future.fold(batches)(EmptyFlowStateBatch) {
+            (left: FlowStateBatch, right: FlowStateBatch) => left.merge(right)
         }
 
     private def resolveHostIp(id: UUID) =
@@ -268,7 +274,7 @@ class HostRequestProxy(hostId: UUID,
 
                 lastPorts = h.portBindings.keySet
 
-                storageFuture.flatMap(stateForPorts(_, ports)).andThen {
+                stateForPorts(ports).andThen {
                     case Success(stateBatch) =>
                         log.debug(s"Fetched ${stateBatch.size()} pieces of " +
                                   s"flow state for ports ${ports.keySet}")
