@@ -25,10 +25,15 @@ import java.util.Random
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
+import com.typesafe.config.ConfigFactory
+
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
@@ -179,6 +184,13 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
     val conntrackDevice = UUID.randomUUID()
 
     val midolmanConfig = MidolmanConfig.forTests
+
+    val localStoreMidolmanConfig = MidolmanConfig.forTests(
+        ConfigFactory.parseString(
+            s"""
+               |agent.minions.flow_state.local_push_state : true
+            """.stripMargin
+        ))
 
     override def beforeTest(): Unit = {
         ingressPortNoGroup = makePort(hostId)
@@ -374,6 +386,32 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             context.containsFlowState shouldBe true
             context.stateMessageLength should be > 0
         }
+
+        scenario("Incoming keys are forwarded to the minion in local storage") {
+            Given("A conntrack key in a transaction using the local store")
+            recipient.localConfig = localStoreMidolmanConfig
+            connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
+
+            When("Sending the state and accepting it on the recipient")
+            val (packet, context) = sendState(ingressPort.getId, egressPort1.getId)
+            acceptPushedState(packet)
+
+            Then("The flow state is forwarded to the minion")
+            verify(recipient.flowStateSocket, times(1)).send(mockito.any())
+            recipient.localConfig = midolmanConfig
+        }
+
+        scenario("Incoming keys are NOT forwarded to the minion in legacy storage") {
+            Given("A conntrack key in a transaction using the local store")
+            connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
+
+            When("Sending the state and accepting it on the recipient")
+            val (packet, context) = sendState(ingressPort.getId, egressPort1.getId)
+            acceptPushedState(packet)
+
+            Then("The flow state is forwarded to the minion")
+            verify(recipient.flowStateSocket, times(0)).send(mockito.any())
+        }
     }
 
     feature("Unref callbacks are correctly added") {
@@ -429,9 +467,6 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
 
     def acceptPushedState(packet: Packet): Unit = {
         recipient.accept(packet.getEthernet)
-        recipient.numIncomingFlowStateMessagesReceived += 1
-        verify(recipient.flowStateSocket,
-               times(recipient.numIncomingFlowStateMessagesReceived)).send(mockito.any())
     }
 
     feature("L4 flow state resolves hosts and ports correctly") {
@@ -600,6 +635,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
         val natTable = new MockFlowStateTable[NatKey, NatBinding]()
         val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
+        var localConfig = midolmanConfig
     } with FlowStateReplicator(conntrackTable, natTable, traceTable,
                                hostId, peerResolver, underlay,
                                mockFlowInvalidation, midolmanConfig) {
@@ -607,6 +643,8 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         var numIncomingFlowStateMessagesReceived = 0
 
         override val flowStateSocket = mock(classOf[DatagramSocket])
+
+        override def config = localConfig
 
         override def resolvePeers(ingressPort: UUID,
                                   egressPorts: ArrayList[UUID],
