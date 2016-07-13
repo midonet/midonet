@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_5c794a81",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-13T18:46:20Z",
+      "side": 1,
+      "message": "I\u0027d make the method signatures for fetching from legacy storage and local storage similar. For example:\n\nprivate def requestLegacyStateForPort(binding: (UUID, UUID)): Future[FlowStateBatch] \u003d {\n    storageFuture.flatMap { case storage \u003d\u003e\n        val port \u003d binding._1\n        val scf \u003d storage.fetchStrongConnTrackRefs(port)\n        etc....\n}\n\nprivate def requestLocalStateForPort(binding: (UUID, UUID)): Future[FlowStateBatch] \u003d {\n    val (port, previousOwnerId) \u003d binding\n    if (previousOwnerId eq null) {\n         ...\n    } else {\n        ....\n    }\n}\n\nThen have an intermediate method that merges all ports, accepting a partial function as a parameter:\n\nprivate def requestStateForPorts(bindings: Map[UUID, UUID],\n                                     request: ((UUID, UUID)) \u003d\u003e Future[FlowStateBatch])\n    : Future[FlowStateBatch] \u003d {\n    val batches \u003d bindings.map(binding \u003d\u003e request(binding))\n    mergedBatches(batches)\n}\n\nThen, this stateForPorts method looks very simple:\n\nprivate def stateForPorts(bindings: Map[UUID, UUID]): Future[FlowStateBatch] \u003d\n    if (flowStateConfig.legacyReadState) {\n        requestStateForPorts(bindings, requestLegacyStateForPort)\n    } else if (flowStateConfig.localReadState) {\n        requestStateForPorts(bindings, requestLocalStateForPort)\n    } else {\n        ....\n    }\n\nHaven\u0027t tested, what do you think?",
+      "range": {
+        "startLine": 188,
+        "startChar": 8,
+        "endLine": 191,
+        "endChar": 59
+      },
+      "revId": "dfafd17404835d5a6e6321dea134883fb1a6b7c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
