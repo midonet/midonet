@@ -211,7 +211,7 @@ class FlowStateWriteHandler(context: Context,
         }
         for (egressPortId <- egressPortIds) {
             if (cachedOwnedPortIds.contains(egressPortId)) {
-                matchingPorts += ingressPortId
+                matchingPorts += egressPortId
             }
         }
 
