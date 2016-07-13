@@ -91,6 +91,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_50ced12d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2016-07-13T07:19:04Z",
+      "side": 1,
+      "message": "I  think what is missing for clarity is that such changes can apply to unbound ports, but once the port is bound, the owner cannot change",
+      "parentUuid": "baa041b7_df8797b3",
+      "revId": "ae3df7785e75e89dc5763aba02652b3b44534073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6a88cb71",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
