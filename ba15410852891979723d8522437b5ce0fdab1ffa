@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e62c0fae",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/state/client/StateProxyClientTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-13T14:08:33Z",
+      "side": 1,
+      "message": "I don\u0027t see how this is going to remove flakyness. If it failed before on the t.client.isConnected, is going to fail again in the future. If the client",
+      "range": {
+        "startLine": 803,
+        "startChar": 16,
+        "endLine": 803,
+        "endChar": 48
+      },
+      "revId": "ba15410852891979723d8522437b5ce0fdab1ffa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
