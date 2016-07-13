@@ -252,7 +252,6 @@ class FlowStateReplicator(
 
         val p = flowStateMessage.portIdsCount(1)
         portIdsToSbe(context.inputPort, context.outPorts, p.next)
-
         context.stateMessageLength = flowStateEncoder.encodedLength
     }
 
@@ -310,7 +309,8 @@ class FlowStateReplicator(
         }
 
         val traceIter = msg.trace
-        if (traceIter.hasNext()) {
+        if (traceIter.count > 0) {
+            // There's only one trace object, so no need to iterate
             val trace = traceIter.next()
             val k = traceFromSbe(trace, TraceKey)
             val ctx = new TraceContext(uuidFromSbe(trace.flowTraceId))
@@ -322,6 +322,18 @@ class FlowStateReplicator(
             }
             log.debug("Got new trace state: {} -> {}", k, ctx)
             traceTable.touch(k, ctx)
+        } else {
+            // Bypass Trace request IDs to reach the last group, portIds.
+            val reqIdsIter = msg.traceRequestIds
+            while (reqIdsIter.hasNext) reqIdsIter.next
+        }
+
+        // Read the rest of the message so we know the actual encoded length
+        val portIds = msg.portIds
+        if (portIds.hasNext) {
+            portIds.next
+            val egressPorts = portIds.egressPortIds
+            while (egressPorts.hasNext) egressPorts.next
         }
 
         sendState(encoder.flowStateBuffer.array, encoder.encodedLength())
