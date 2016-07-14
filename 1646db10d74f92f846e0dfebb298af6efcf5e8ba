@@ -22,6 +22,30 @@
       "revId": "1646db10d74f92f846e0dfebb298af6efcf5e8ba",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0218fc1c",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-14T06:52:14Z",
+      "side": 1,
+      "message": "It takes a while until the minion is ready to answer flow state requests. The sooner we start the minions, the sooner we\u0027ll have the flow state loaded in memory and start processing packets. Also, there\u0027s a task to not set a port active until the flow state is loaded. It looks like an unnecessary delay to start the minion so late in the boot sequence. What do you think?",
+      "parentUuid": "baa041b7_5c326a5f",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 61
+      },
+      "revId": "1646db10d74f92f846e0dfebb298af6efcf5e8ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
