@@ -22,6 +22,30 @@
       "revId": "526c4c70a7a4e37900a5ba05ebec4ad466f1198a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4b74df66",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-14T17:13:02Z",
+      "side": 1,
+      "message": "Actually no idea: it might have to do with a newer jersey version, but haven\u0027t investigated. I remember we had to add a custom reader to the REST API, when we upgraded jersey in the past.\n\nThe underlying cause here is that there\u0027s no reader for the \"plain/text\" media type. We could have added one to the client, but it seemed like too much trouble for just reading an input stream and convert it to a string.",
+      "parentUuid": "baa041b7_48b2a595",
+      "range": {
+        "startLine": 10,
+        "startChar": 52,
+        "endLine": 11,
+        "endChar": 24
+      },
+      "revId": "526c4c70a7a4e37900a5ba05ebec4ad466f1198a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
