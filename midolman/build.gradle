@@ -170,6 +170,9 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/deb/bin/mm-dpctl") {
         into "usr/bin"
     }
+    from("src/deb/bin/mm-logxl") {
+        into "usr/bin"
+    }
     from("src/deb/bin/mm-trace") {
         into "usr/bin"
     }
