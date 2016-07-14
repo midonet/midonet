@@ -33,14 +33,13 @@ import org.apache.zookeeper.KeeperException.Code.{NONODE, OK}
 import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.WatchedEvent
 import org.apache.zookeeper.Watcher.Event.EventType._
-import org.slf4j.LoggerFactory.getLogger
 
 import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
 import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
-import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
+import org.midonet.cluster.data.storage.StorageMetrics
 import org.midonet.util.concurrent.Locks._
 import org.midonet.util.functors._
 import org.midonet.util.logging.Logging
@@ -74,7 +73,7 @@ object ObservablePathChildrenCache {
       * All data notifications are executed on ZK's watcher thread.
       */
     def create(zk: CuratorFramework, path: String,
-               zoomMetrics: ZoomMetrics = BlackHoleZoomMetrics)
+               zoomMetrics: StorageMetrics = StorageMetrics.Nil)
     : ObservablePathChildrenCache = {
         new ObservablePathChildrenCache(
             new OnSubscribeToPathChildren(zk, path, zoomMetrics)
@@ -83,7 +82,7 @@ object ObservablePathChildrenCache {
 }
 
 class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
-                                zoomMetrics: ZoomMetrics)
+                                storageMetrics: StorageMetrics)
     extends OnSubscribe[Observable[ChildData]] with Logging {
 
     private type ChildMap = mutable.Map[String, Subject[ChildData, ChildData]]
@@ -122,15 +121,15 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
             event.getType match {
                 // These run on the event thread
                 case CHILD_ADDED =>
-                    zoomMetrics.childrenWatcherTriggered()
+                    storageMetrics.childrenWatcherTriggered()
                     newChild(event.getData)
                 case CHILD_UPDATED =>
-                    zoomMetrics.nodeWatcherTriggered()
+                    storageMetrics.nodeWatcherTriggered()
                     changedChild(event)
                 case CHILD_REMOVED =>
                     // Node deletion triggers both children and node watchers.
-                    zoomMetrics.childrenWatcherTriggered()
-                    zoomMetrics.nodeWatcherTriggered()
+                    storageMetrics.childrenWatcherTriggered()
+                    storageMetrics.nodeWatcherTriggered()
                     lostChild(event)
                 // These run on the connection event thread
                 case CONNECTION_SUSPENDED =>
@@ -181,7 +180,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
                                    e: CuratorEvent): Unit = e.getType match {
             case CuratorEventType.EXISTS if !initialized =>
                 if (e.getResultCode == NONODE.intValue()) {
-                    zoomMetrics.zkNoNodeTriggered()
+                    storageMetrics.noNodeTriggered()
                     failWith(new NoNodeException(path))
                 } else if (e.getResultCode == OK.intValue()) {
                     cache.start(StartMode.POST_INITIALIZED_EVENT)
