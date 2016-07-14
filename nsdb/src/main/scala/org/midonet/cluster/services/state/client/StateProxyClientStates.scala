@@ -84,7 +84,18 @@ private[client] class StateProxyClientStates {
                         subscriber: StateSubscriber): Boolean = {
         state.get match {
             case s: Connected =>
-                s.subscriptions.putIfAbsent(sid,subscriber) == null
+                s.subscriptions.putIfAbsent(sid, subscriber) == null
+            case _ => false
+        }
+    }
+
+    /** Removes a subscription from the connected state, useful when
+      * the server has terminated it.
+      */
+    def removeSubscription(sid: SubscriptionId,
+                           subscriber: StateSubscriber): Boolean = {
+        state.get match {
+            case s: Connected => s.subscriptions.remove(sid, subscriber)
             case _ => false
         }
     }
