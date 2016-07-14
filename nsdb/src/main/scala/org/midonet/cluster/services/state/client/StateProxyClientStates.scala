@@ -89,6 +89,17 @@ private[client] class StateProxyClientStates {
         }
     }
 
+    /** Removes a subscription from the connected state, useful when
+      * the server has terminated it.
+      */
+    def removeSubscription(sid: SubscriptionId,
+                           subscriber: StateSubscriber): Boolean = {
+        state.get match {
+            case s: Connected => s.subscriptions.remove(sid,subscriber)
+            case _ => false
+        }
+    }
+
     /** Stores a pending transaction record
       */
     def addTransaction(rid: RequestId, transaction: TransactionRecord): Boolean = {
