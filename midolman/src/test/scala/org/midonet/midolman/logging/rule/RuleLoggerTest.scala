@@ -142,8 +142,8 @@ class RuleLoggerTest extends MidolmanSpec
         }
 
         scenario("Logs multiple events") {
-            val (chain1, rule, logger) = makeLogger(
-                metadata = defaultMetadata())
+            val (chain1, rule, logger) =
+                makeLogger(metadata = defaultMetadata())
             val chain2 = makeChain(UUID.randomUUID(), defaultMetadata())
             val ctx1 = makePktCtx()
             val ctx2 = makePktCtx()
