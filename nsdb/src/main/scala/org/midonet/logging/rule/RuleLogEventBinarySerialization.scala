@@ -69,12 +69,6 @@ object RuleLogEventBinarySerialization {
     }
 }
 
-object DeserializedRuleLogEvent {
-    private val format =
-        "SRC={} DST={} SPT={} DPT={} PROTO={} " +
-        "CHAIN={} RULE={} MD=[{}] {}"
-}
-
 case class DeserializedRuleLogEvent(srcIp: IPAddr, dstIp: IPAddr,
                                     srcPort: Int, dstPort: Int,
                                     nwProto: Byte, result: String, time: Long,
@@ -139,7 +133,7 @@ class RuleLogEventBinaryDeserializer(path: String) {
                    h.version, h.blockLength)
     }
 
-    def next(): DeserializedRuleLogEvent = {
+    def next(): DeserializedRuleLogEvent = try {
         EventDecoder.wrapForDecode(directBuf, pos, header.blockLength,
                                    header.version)
         val srcIpLen = EventDecoder.getSrcIp(ipBuffer, 0, 16)
@@ -163,6 +157,9 @@ class RuleLogEventBinaryDeserializer(path: String) {
                                  EventDecoder.result.toString,
                                  EventDecoder.time,
                                  loggerId, chainId, ruleId, metadata)
+    } catch {
+        case ex: IndexOutOfBoundsException =>
+            throw new IllegalArgumentException("Log file corrupt.")
     }
 
     private def parseIp(len: Int): IPAddr = len match {
