@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e2be38ad",
+        "filename": "tests/mdts/tests/functional_tests/test-attr.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-14T07:37:45Z",
+      "side": 1,
+      "message": ".gate at the end of the test name",
+      "range": {
+        "startLine": 89,
+        "startChar": 46,
+        "endLine": 89,
+        "endChar": 47
+      },
+      "revId": "ebae6fc9aa3a29a3d96c01682ebbbb3bdbcadb89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
