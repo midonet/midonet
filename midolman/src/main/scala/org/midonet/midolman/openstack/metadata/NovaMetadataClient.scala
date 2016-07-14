@@ -18,13 +18,13 @@ package org.midonet.midolman.openstack.metadata
 
 import com.sun.jersey.api.client.Client
 import com.sun.jersey.api.client.UniformInterfaceException
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.Logger
 
 object Conv {
-    implicit def to_hexstring(bytes: Array[Byte]): String =
-        (bytes flatMap (x => f"${x}%02x")).mkString
+    implicit def toHexstring(bytes: Array[Byte]): String =
+        (bytes flatMap (x => f"$x%02x")).mkString
 
-    implicit def to_bytes(string: String): Array[Byte] =
+    implicit def toBytes(string: String): Array[Byte] =
         string.getBytes
 }
 
@@ -51,53 +51,52 @@ object Conv {
  */
 
 class UnknownRemoteAddressException(remoteAddr: String)
-    extends RuntimeException(
-        s"Unknown remote address ${remoteAddr}")
+    extends RuntimeException(s"Unknown remote address $remoteAddr")
 
 object NovaMetadataClient {
     private val log: Logger = MetadataService.getLogger
 
     import Conv._
 
-    private def signInstanceId(shared_secret: String,
+    private def signInstanceId(sharedSecret: String,
                                instanceId: String): String =
-        Hmac.hmac(shared_secret, instanceId)
+        Hmac.hmac(sharedSecret, instanceId)
 
     def getMetadata(path: String, remoteAddr: String,
-                    nova_metadata_url: String,
-                    shared_secret: String): String = {
-        log debug s"Forwarding a request from ${remoteAddr}"
+                    novaMetadataUrl: String,
+                    sharedSecret: String): String = {
+        log debug s"Forwarding a request from $remoteAddr"
         InstanceInfoMap getByAddr remoteAddr match {
             case Some(info) =>
-                log debug s"InstanceInfo ${info}"
-                getMetadata(path, info, nova_metadata_url, shared_secret)
+                log debug s"InstanceInfo $info"
+                getMetadata(path, info, novaMetadataUrl, sharedSecret)
             case None =>
                 /*
                  * This shouldn't happen normally as datapath flows are
                  * installed using InstanceInfo.
                  */
-                log warn s"Got a request from unknown address ${remoteAddr}"
+                log warn s"Got a request from unknown address $remoteAddr"
                 throw new UnknownRemoteAddressException(remoteAddr)
         }
     }
 
     def getMetadata(path: String, info: InstanceInfo,
-                    nova_metadata_url: String,
-                    shared_secret: String): String = {
-        val instanceIdSig = signInstanceId(shared_secret, info.instanceId)
+                    novaMetadataUrl: String,
+                    sharedSecret: String): String = {
+        val instanceIdSig = signInstanceId(sharedSecret, info.instanceId)
         val client = new Client
-        val url = nova_metadata_url + path
-        val r = client.resource(url)
+        val url = novaMetadataUrl + path
+        val resource = client.resource(url)
             .header("X-Tenant-ID", info.tenantId)
             .header("X-Instance-ID", info.instanceId)
             .header("X-Instance-ID-Signature", instanceIdSig)
             .header("X-Forwarded-For", info.addr)
         try {
-            r get classOf[String]
+            resource get classOf[String]
         } catch {
             case e: UniformInterfaceException =>
-                log error s"Unexpected HTTP response: ${e} for request: " +
-                          s"${url} ${info}"
+                log error s"Unexpected HTTP response: $e for request: " +
+                          s"$url $info"
                 throw e
         }
     }

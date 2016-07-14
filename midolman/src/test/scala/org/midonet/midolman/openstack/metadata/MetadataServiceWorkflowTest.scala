@@ -100,9 +100,9 @@ class MetadataServiceWorkflowTest extends FeatureSpecLike
 
         when(fmatch.getEtherType).thenReturn(IPv4.ETHERTYPE)
         when(fmatch.getNetworkDstIP).thenReturn(
-            IPv4Addr(MetadataApi.address))
+            IPv4Addr(MetadataApi.Address))
         when(fmatch.getNetworkProto).thenReturn(TCP.PROTOCOL_NUMBER)
-        when(fmatch.getDstPort).thenReturn(MetadataApi.port)
+        when(fmatch.getDstPort).thenReturn(MetadataApi.Port)
         when(fmatch.getInputPortNumber).thenReturn(vmPortNumber)
         context
     }
@@ -169,7 +169,7 @@ class MetadataServiceWorkflowTest extends FeatureSpecLike
         val context = mockForEgress
         val fmatch = context.wcmatch
         val arpReq = makeArpRequest(MAC fromString metadataMacAddress,
-                                    IPv4Addr(MetadataApi.address),
+                                    IPv4Addr(MetadataApi.Address),
                                     IPv4Addr(vmMappedIpAddress))
 
         when(fmatch.getEtherType).thenReturn(ARP.ETHERTYPE)
@@ -191,7 +191,7 @@ class MetadataServiceWorkflowTest extends FeatureSpecLike
         val fmatch = context.wcmatch
 
         when(fmatch.getEtherType).thenReturn(IPv4.ETHERTYPE)
-        when(fmatch.getNetworkSrcIP).thenReturn(IPv4Addr(MetadataApi.address))
+        when(fmatch.getNetworkSrcIP).thenReturn(IPv4Addr(MetadataApi.Address))
         when(fmatch.getNetworkDstIP).thenReturn(IPv4Addr(vmMappedIpAddress))
         when(fmatch.getNetworkProto).thenReturn(TCP.PROTOCOL_NUMBER)
         when(fmatch.getSrcPort).thenReturn(Proxy.port)

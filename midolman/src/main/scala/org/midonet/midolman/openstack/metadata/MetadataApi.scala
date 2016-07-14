@@ -23,6 +23,6 @@ package org.midonet.midolman.openstack.metadata
  * http://docs.openstack.org/admin-guide-cloud/compute-networking-nova.html#metadata-service
  */
 object MetadataApi {
-    val address = "169.254.169.254"
-    val port = 80
+    val Address = "169.254.169.254"
+    val Port = 80
 }

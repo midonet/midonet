@@ -17,6 +17,7 @@
 package org.midonet.midolman.openstack.metadata
 
 import java.util.UUID
+
 import scala.collection.concurrent.TrieMap
 
 /*
@@ -26,12 +27,11 @@ import scala.collection.concurrent.TrieMap
  * addr, tenantId, instanceId are needed by ProxyHandler.
  * They are sent to the nova metadata API.
  */
-case class InstanceInfo(
-    val addr: String,
-    val mac: String,
-    val portId: UUID,
-    val tenantId: String,
-    val instanceId: String)
+case class InstanceInfo(addr: String,
+                        mac: String,
+                        portId: UUID,
+                        tenantId: String,
+                        instanceId: String)
 
 /*
  * IP address mapping for instances

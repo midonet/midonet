@@ -16,11 +16,13 @@
 
 package org.midonet.midolman.openstack.metadata
 
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import com.sun.jersey.api.client.UniformInterfaceException
+
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
-import org.slf4j.{Logger, LoggerFactory}
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import org.slf4j.Logger
 
 import org.midonet.midolman.config.MidolmanConfig
 

@@ -79,7 +79,7 @@ class MetadataServiceManagerActor @Inject() (
                     val remoteAddr = plumber.plumb(info, mdInfo)
                     InstanceInfoMap.put(remoteAddr, portId, info)
                 case _ =>
-                    log debug s"Non-compute port? ${portId}"
+                    log debug s"Non-compute port? $portId"
             }
 
         case LocalPortActive(portId, false) =>
@@ -91,7 +91,7 @@ class MetadataServiceManagerActor @Inject() (
                     plumber.unplumb(remoteAddr, info, mdInfo)
                     InstanceInfoMap removeByPortId portId
                 case _ =>
-                    log debug s"Non-compute port? ${portId}"
+                    log debug s"Non-compute port? $portId"
             }
 
         case _ => log error "Unknown message."
