@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e2d518e5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-07-14T08:39:31Z",
+      "side": 1,
+      "message": "We currently don\u0027t support this.",
+      "parentUuid": "baa041b7_0a7edf18",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0a97ff48",
         "filename": "midolman/src/lib/midolman/bgpd-helper",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-07-12T09:52:38Z",
       "side": 1,
       "message": "It could be good to update this to show the new argument. Also, i see missing commands (add_arp, rem_arp, etc.). I\u0027d add them while you\u0027re here.",
+      "range": {
+        "startLine": 165,
+        "startChar": 0,
+        "endLine": 174,
+        "endChar": 1
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_82fbec7a",
+        "filename": "midolman/src/lib/midolman/bgpd-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-07-14T08:39:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0a97ff48",
       "range": {
         "startLine": 165,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6200e866",
+        "filename": "midolman/src/lib/midolman/bgpd-helper",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-07-14T08:39:31Z",
+      "side": 1,
+      "message": "This still makes sense to keep because for BGP on exterior ports, we still use this original namespace definition.",
+      "parentUuid": "baa041b7_ca9c776c",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 204,
+        "endChar": 27
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8a90af44",
         "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2016-07-12T09:52:38Z",
       "side": 1,
       "message": "Can this happen? We will end up with a namespace called \"bgp-\". I\u0027d fail and log.",
+      "range": {
+        "startLine": 50,
+        "startChar": 36,
+        "endLine": 50,
+        "endChar": 38
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_424164a8",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-07-14T08:39:31Z",
+      "side": 1,
+      "message": "This can happen and is expected when using BGP on exterior ports. In this case, the router name will look like \"bgp1_ns\", instead of the new style for BGP on interior ports.",
+      "parentUuid": "baa041b7_8a90af44",
       "range": {
         "startLine": 50,
         "startChar": 36,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_42fa8476",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-07-14T08:39:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_aaeb73db",
+      "range": {
+        "startLine": 74,
+        "startChar": 18,
+        "endLine": 74,
+        "endChar": 24
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_6ac0cb50",
         "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
         "patchSetId": 1
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_22f7808c",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-07-14T08:39:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6ac0cb50",
+      "range": {
+        "startLine": 103,
+        "startChar": 18,
+        "endLine": 103,
+        "endChar": 24
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_aac25351",
         "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
         "patchSetId": 1
@@ -151,6 +295,30 @@
       "writtenOn": "2016-07-12T09:52:38Z",
       "side": 1,
       "message": "should we change this also to first 4/8 digits of the router uuid? For easier correlation between logs and real world.",
+      "range": {
+        "startLine": 195,
+        "startChar": 52,
+        "endLine": 195,
+        "endChar": 65
+      },
+      "revId": "19373e8db89374826b2cd6bb826affa122ca822b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_22254008",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-07-14T08:39:31Z",
+      "side": 1,
+      "message": "Good point. Done.",
+      "parentUuid": "baa041b7_aac25351",
       "range": {
         "startLine": 195,
         "startChar": 52,
