@@ -22,6 +22,30 @@
       "revId": "dfafd17404835d5a6e6321dea134883fb1a6b7c9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_226c2034",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-14T08:12:41Z",
+      "side": 1,
+      "message": "I think it looks much more readable this way :). Initially I had something like this but didn\u0027t know you could call a completed future several times, so was bound to using a method that received a binding sequence for the legacy call. I like this better though, I\u0027ll try it out!",
+      "parentUuid": "baa041b7_5c794a81",
+      "range": {
+        "startLine": 188,
+        "startChar": 8,
+        "endLine": 191,
+        "endChar": 59
+      },
+      "revId": "dfafd17404835d5a6e6321dea134883fb1a6b7c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
