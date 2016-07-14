@@ -57,7 +57,7 @@ object AddressManager {
                 dpPortNo - 2
         val hi = (x >> 8) & 0xff
         val lo = x & 0xff
-        s"169.254.${hi}.${lo}"
+        s"169.254.$hi.$lo"
     }
 
     def remoteAddressToDpPort(addr: String) = {

@@ -17,7 +17,10 @@
 package org.midonet.midolman.openstack.metadata
 
 import java.util.UUID
+
 import scala.collection.concurrent.TrieMap
+
+import com.google.common.base.MoreObjects
 
 /*
  * InstanceInfo describes VM-side of the plumbing.
@@ -26,12 +29,22 @@ import scala.collection.concurrent.TrieMap
  * addr, tenantId, instanceId are needed by ProxyHandler.
  * They are sent to the nova metadata API.
  */
-case class InstanceInfo(
-    val addr: String,
-    val mac: String,
-    val portId: UUID,
-    val tenantId: String,
-    val instanceId: String)
+case class InstanceInfo(address: String,
+                        mac: String,
+                        portId: UUID,
+                        tenantId: String,
+                        instanceId: String) {
+
+    override lazy val toString = {
+        MoreObjects.toStringHelper(this).omitNullValues()
+            .add("address", address)
+            .add("mac", mac)
+            .add("portId", portId)
+            .add("tenantId", tenantId)
+            .add("instanceId", instanceId)
+            .toString
+    }
+}
 
 /*
  * IP address mapping for instances

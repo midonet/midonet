@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.openstack.metadata
 
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.LoggerFactory
 
 /*
  * Service-global definitions

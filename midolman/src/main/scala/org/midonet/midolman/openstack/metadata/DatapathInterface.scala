@@ -46,7 +46,7 @@ class DatapathInterface(private val scanner: InterfaceScanner,
 
     private def run(command: String) = {
         if (Process(command).! != 0) {
-            throw new RuntimeException(s"command failed: $command")
+            throw new RuntimeException(s"Command failed: $command")
         }
     }
 
@@ -75,7 +75,7 @@ class DatapathInterface(private val scanner: InterfaceScanner,
         }
         val port = portObs.toBlocking.first
         subscription.unsubscribe()
-        val mdInfo = ProxyInfo(dpPort.getPortNo, MetadataApi.address,
+        val mdInfo = ProxyInfo(dpPort.getPortNo, MetadataApi.Address,
                                MAC.bytesToString(port.getMac.getAddress))
 
         /*
@@ -84,7 +84,7 @@ class DatapathInterface(private val scanner: InterfaceScanner,
          *
          * REVISIT(yamamoto): better to use rtnetlink
          */
-        run(s"ip addr add ${MetadataApi.address}/16 dev $ifName")
+        run(s"ip addr add ${MetadataApi.Address}/16 dev $ifName")
         run(s"ip link set $ifName up")
 
         log debug s"mdInfo $mdInfo"

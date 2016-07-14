@@ -16,11 +16,12 @@
 
 package org.midonet.midolman.openstack.metadata
 
-import org.eclipse.jetty.server.Server
-import org.slf4j.{Logger, LoggerFactory}
+import java.net.{InetAddress, InetSocketAddress}
+
 import scala.util.control.NonFatal
-import java.net.InetSocketAddress
-import java.net.InetAddress
+
+import org.eclipse.jetty.server.Server
+import org.slf4j.Logger
 
 import org.midonet.midolman.config.MidolmanConfig
 
@@ -31,29 +32,29 @@ import org.midonet.midolman.config.MidolmanConfig
 
 object Proxy {
     private val log: Logger = MetadataService.getLogger
-    private val ip = InetAddress getByName MetadataApi.address
+    private val ip = InetAddress getByName MetadataApi.Address
     val port = 9697  // REVISIT(yamamoto): should be a config?
     private var server: Server = _
 
-    def start(config: MidolmanConfig) = {
+    def start(config: MidolmanConfig): Unit = {
         val sa = new InetSocketAddress(ip, port)
-        log info s"Starting metadata proxy on ${sa}"
+        log info s"Starting metadata proxy on $sa"
         val s = new Server(sa)
         s.setHandler(new ProxyHandler(config))
         try {
-            s.start
+            s.start()
             server = s
         } catch {
             case NonFatal(e) =>
-                log error s"Failed to start metadata proxy: ${e}"
+                log.error("Failed to start metadata proxy", e)
         }
     }
 
-    def stop = {
+    def stop(): Unit = {
         if (server != null) {
             log info s"Stopping metadata proxy"
-            server.stop
-            server.join
+            server.stop()
+            server.join()
             server = null
         }
     }
