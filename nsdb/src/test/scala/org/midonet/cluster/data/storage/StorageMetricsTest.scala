@@ -35,11 +35,11 @@ import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.reactivex.{TestAwaitableObserver, richObservable}
 
 @RunWith(classOf[JUnitRunner])
-class ZoomMetricsTest extends FeatureSpec
-                              with BeforeAndAfter
-                              with Matchers
-                              with MidonetBackendTest
-                              with GivenWhenThen {
+class StorageMetricsTest extends FeatureSpec
+                                 with BeforeAndAfter
+                                 with Matchers
+                                 with MidonetBackendTest
+                                 with GivenWhenThen {
 
     private val timeout = 5 seconds
     private var registry: MetricRegistry = _
