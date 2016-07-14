@@ -88,9 +88,9 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
       * observable will not stop the table, nor will the ready subscribers
       * prevent the table from being stopped.
       */
-    private class OnReadySubscribe extends OnSubscribe[Boolean] {
+    private class OnReadySubscribe extends OnSubscribe[StateTable.Key] {
 
-        override def call(child: Subscriber[_ >: Boolean]): Unit = {
+        override def call(child: Subscriber[_ >: StateTable.Key]): Unit = {
             sync.synchronized {
                 if (!child.isUnsubscribed) {
                     startInternal(0).ready(child)
@@ -239,7 +239,7 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
     /**
       * @see [[StateTable.ready]]
       */
-    override val ready: Observable[Boolean] = {
+    override val ready: Observable[StateTable.Key] = {
         Observable.create(onReadySubscribe)
     }
 

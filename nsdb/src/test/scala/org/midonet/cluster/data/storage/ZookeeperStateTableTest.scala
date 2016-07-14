@@ -64,7 +64,7 @@ object ZookeeperStateTableTest {
         override def localSnapshot: Map[Int, String] = ???
         override def remoteSnapshot: Future[Map[Int, String]] = ???
         override def observable: Observable[Update[Int, String]] = ???
-        override def ready: Observable[Boolean] = ???
+        override def ready: Observable[StateTable.Key] = ???
         override def isReady: Boolean = ???
     }
 }

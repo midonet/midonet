@@ -64,7 +64,7 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
 
     @NotThreadSafe
     final def requestRefs(ids: Set[UUID]): Unit = {
-        log.debug(s"Updating references $clazz: $ids")
+        log.debug(s"Updating references ${clazz.getSimpleName}: $ids")
 
         // Remove the refs that are no longer used.
         for ((id, state) <- refs if !ids.contains(id)) {
@@ -118,7 +118,7 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
     final def areRefsReady: Boolean = {
         assertThread()
         val ready = refs.forall(_._2.isReady)
-        log.debug("References {} ready: {}", clazz, Boolean.box(ready))
+        log.debug(s"References ${clazz.getSimpleName} ready: $ready")
         ready
     }
 

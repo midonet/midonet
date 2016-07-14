@@ -52,7 +52,7 @@ class DirectoryStateTableTest extends FlatSpec with BeforeAndAfter
         override def localSnapshot: Map[String, String] = Map.empty
         override def observable: Observable[Update[String, String]] =
             Observable.never()
-        override def ready: Observable[Boolean] = Observable.never()
+        override def ready: Observable[StateTable.Key] = Observable.never()
         override def isReady: Boolean = false
 
         protected override def decodeKey(string: String): String = string
