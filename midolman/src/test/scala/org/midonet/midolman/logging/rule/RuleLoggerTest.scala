@@ -86,7 +86,7 @@ class RuleLoggerTest extends MidolmanSpec
 
         scenario("Logs event metadata") {
             val (chain, rule, logger) =
-                makeLogger(metadata = Seq("key1" -> "val1", "key2" -> "val2"))
+                makeLogger(metadata = defaultMetadata())
             val ctx = makePktCtx()
             logger.logAccept(ctx, chain, rule)
             eventChannel.flush()
@@ -113,10 +113,9 @@ class RuleLoggerTest extends MidolmanSpec
         }
 
         scenario("Logs multiple events") {
-            val (chain1, rule, logger) = makeLogger(
-                metadata = Seq("11" -> "eleven", "12" -> "twelve"))
-            val chain2 = makeChain(UUID.randomUUID(),
-                                   Seq("13" -> "thirteen", "14" -> "fourteen"))
+            val (chain1, rule, logger) =
+                makeLogger(metadata = defaultMetadata())
+            val chain2 = makeChain(UUID.randomUUID(), defaultMetadata())
             val ctx1 = makePktCtx()
             val ctx2 = makePktCtx()
             val ctx3 = makePktCtx()
@@ -184,6 +183,11 @@ class RuleLoggerTest extends MidolmanSpec
     private def makeChain(id: UUID, metadata: Seq[(String, String)]): Chain = {
         new Chain(id, List(), Map[UUID, Chain](), s"chain-$id",
                   encodeMetadata(metadata), Seq())
+    }
+
+    private def defaultMetadata(): Seq[(String, String)] = {
+        Seq("firewall_id" -> UUID.randomUUID().toString,
+            "tenant_id" -> UUID.randomUUID().toString.replace("-", ""))
     }
 
     private def makePktCtx(nwProto: Byte = rand.nextInt.toByte,
