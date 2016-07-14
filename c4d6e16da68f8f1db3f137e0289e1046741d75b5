@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f69cb66b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-14T21:03:39Z",
+      "side": 1,
+      "message": "Not used",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 26
+      },
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b6898e28",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-14T21:03:39Z",
+      "side": 1,
+      "message": "I think this will allocate an empty array every time: make constant?",
+      "range": {
+        "startLine": 47,
+        "startChar": 41,
+        "endLine": 47,
+        "endChar": 48
+      },
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_167b9a29",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-14T21:03:39Z",
+      "side": 1,
+      "message": "lower case? same below",
+      "range": {
+        "startLine": 40,
+        "startChar": 18,
+        "endLine": 40,
+        "endChar": 19
+      },
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_76e426df",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-14T21:03:39Z",
+      "side": 1,
+      "message": "since you write byte arrays, maybe you can use FileChannel from java.nio.\n\nAlso, do you know if this is blocking, since it will be called on the VT thread, and may block other updates. If that\u0027s the case, maybe using an AsynchronousFileChannel would be better. Each operations returns a future and you can serialize them using a conveyor belt.",
+      "range": {
+        "startLine": 125,
+        "startChar": 13,
+        "endLine": 125,
+        "endChar": 81
+      },
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d6a772a5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-14T21:03:39Z",
+      "side": 1,
+      "message": "Move up",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 78
+      },
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_16d03af5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RuleLoggerMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-14T21:03:39Z",
+      "side": 1,
+      "message": "We should make sure this doesn\u0027t block the VT thread for a significant amount of time. If using async file channel is too difficult, you may observeOn this on of the I/O threads from the virtual topology and the result observeOn VT thread.\n\nYou may also need to add a backpressure buffer to make sure the observeOn doesn\u0027t overflow (the queue size for observeOn is 128).",
+      "range": {
+        "startLine": 74,
+        "startChar": 15,
+        "endLine": 80,
+        "endChar": 25
+      },
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
