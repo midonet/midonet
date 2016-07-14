@@ -139,7 +139,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     /* Functions and variables to expose metrics using JMX in class
        ZoomMetrics. */
     implicit protected override val metrics = metricsRegistry match {
-        case null => BlackHoleZoomMetrics
+        case null => ZoomMetrics.Nil
         case registry => new JmxZoomMetrics(this, registry)
     }
 

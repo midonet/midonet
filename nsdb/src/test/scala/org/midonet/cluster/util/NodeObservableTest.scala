@@ -28,7 +28,7 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.BlackHoleZoomMetrics
+import org.midonet.cluster.data.storage.ZoomMetrics
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -141,7 +141,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         val path = makePath("5")
         val closed = new AtomicBoolean()
         val observable = NodeObservable.create(
-            curator, path, completeOnDelete = true, BlackHoleZoomMetrics, {
+            curator, path, completeOnDelete = true, ZoomMetrics.Nil, {
                 closed set true
             })
 

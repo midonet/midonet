@@ -31,7 +31,7 @@ import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
-import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
+import org.midonet.cluster.data.storage.ZoomMetrics
 import org.midonet.cluster.util.NodeObservable.State
 import org.midonet.cluster.util.NodeObservable.State.State
 import org.midonet.util.functors.makeAction0
@@ -72,7 +72,7 @@ object NodeObservable {
       */
     def create(curator: CuratorFramework, path: String,
                completeOnDelete: Boolean = true,
-               metrics: ZoomMetrics = BlackHoleZoomMetrics,
+               metrics: ZoomMetrics = ZoomMetrics.Nil,
                onClose: => Unit = OnCloseDefault)
     : NodeObservable = {
         new NodeObservable(new OnSubscribeToNode(curator, path, onClose,

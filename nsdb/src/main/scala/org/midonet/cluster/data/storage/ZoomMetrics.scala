@@ -16,19 +16,30 @@
 
 package org.midonet.cluster.data.storage
 
-import java.util.concurrent.atomic.AtomicLong
-
 import scala.reflect.ClassTag
 
 import com.codahale.metrics._
+import com.codahale.metrics.MetricRegistry.name
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.CuratorEventType
 import org.apache.curator.framework.api.CuratorEventType._
-import org.apache.curator.framework.state.ConnectionState.LOST
+import org.apache.curator.framework.state.ConnectionState.{CONNECTED, LOST}
 import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListener}
-import org.apache.zookeeper.KeeperException.{NodeExistsException, NoNodeException}
+import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException}
 
-import org.midonet.cluster.util.{NodeObservableClosedException, DirectoryObservableClosedException}
+import org.midonet.cluster.util.{DirectoryObservableClosedException, NodeObservableClosedException}
+
+/**
+  * Class names to publish metrics. They are meant to be used while creating
+  * a metrics object from the Metrics library, and will act as a marker to
+  * organize the metrics when exported via JMX.
+  */
+
+trait ZoomCounter
+trait ZoomMeter
+trait ZoomGauge
+trait ZoomHistogram
 
 trait ZoomMetrics {
 
@@ -37,203 +48,224 @@ trait ZoomMetrics {
       */
     final def count(t: Throwable): Throwable = {
         t match {
-            case e: DirectoryObservableClosedException =>
+            case _: DirectoryObservableClosedException =>
                 observableClosedPrematurely()
-            case e: NodeObservableClosedException =>
+            case _: NodeObservableClosedException =>
                 observableClosedPrematurely()
-            case e: NoNodeException =>
+            case _: NoNodeException =>
                 zkNoNodeTriggered()
-            case nee: NodeExistsException =>
+            case _: NodeExistsException =>
                 zkNodeExistsTriggered()
             case _ =>
         }
         t
     }
 
+    final def addLatency(eventType: CuratorEventType, latencyInNanos: Long)
+    : Unit = eventType match {
+        case CREATE | DELETE | SET_DATA =>
+            addWriteLatency(latencyInNanos / 1000L)
+        case EXISTS | GET_DATA =>
+            addReadLatency(latencyInNanos / 1000L)
+        case CHILDREN =>
+            addReadChildrenLatency(latencyInNanos / 1000L)
+        case _ =>
+    }
+
     def addReadLatency(latencyInNanos: Long): Unit
+
     def addReadChildrenLatency(latencyInNanos: Long): Unit
+
     def addWriteLatency(latencyInNanos: Long): Unit
+
     def addMultiLatency(latencyInNanos: Long): Unit
-    def addLatency(eventType: CuratorEventType, latencyInNanos: Long): Unit
 
     /**
-     * The number of triggered watchers for ZooKeeper nodes.
-     */
-    protected val objectWatcherTriggerCount = new AtomicLong
-    /**
-     * The number of triggered watchers for ZooKeeper children.
-     */
-    protected val classWatcherTriggerCount = new AtomicLong
-
-    /**
-     * Increment the count of node watcher triggered.
-     */
+      * Increment the count of node watcher triggered.
+      */
     def nodeWatcherTriggered(): Unit
 
     /**
-     * Increment the count of children watcher triggered (the on.
-     */
+      * Increment the count of children watcher triggered (the on.
+      */
     def childrenWatcherTriggered(): Unit
 
     /**
-     * The count of premature closing of Node observables
-     * (when one or more observers are subscribed to the observable).
-     */
-    protected val nodeObservablePrematureCloseCount = new AtomicLong
-
-    /**
-     * The count of timeout exceptions encountered when
-     * interacting with ZooKeeper.
-     */
-    protected val zkNodeExistsCount = new AtomicLong
-
-    /**
-     * The count of NoNode exception encountered when interacting
-     * with ZooKeeper.
-     */
-    protected val zkNoNodeCount = new AtomicLong
-
-    /**
-     * The count of connection losses to ZooKeeper.
-     */
-    protected val zkConnectionLossCount = new AtomicLong
-
-    /**
-     * Increment the count of premature close of observables.
-     */
+      * Increment the count of premature close of observables.
+      */
     protected def observableClosedPrematurely(): Unit
 
     /**
-     * Increment the count of ZooKeeper timeout exception encountered.
-     */
+      * Increment the count of ZooKeeper timeout exception encountered.
+      */
     protected def zkNodeExistsTriggered(): Unit
 
     /**
-     * Increment the count of ZooKeeper NoNode exception encountered.
-     */
+      * Increment the count of ZooKeeper NoNode exception encountered.
+      */
     def zkNoNodeTriggered(): Unit
 
     /**
-     * A listener for changes in ZooKeeper connection state.
-     */
+      * A listener for changes in ZooKeeper connection state.
+      */
     def zkConnectionStateListener(): ConnectionStateListener
+
 }
 
-object BlackHoleZoomMetrics extends ZoomMetrics {
-    override def addMultiLatency(latencyInNanos: Long): Unit = {}
-    override def addReadLatency(latencyInNanos: Long): Unit = {}
-    override def addReadChildrenLatency(latencyInNanos: Long): Unit = {}
-    override def addWriteLatency(latencyInNanos: Long): Unit = {}
-    override def addLatency(eventType: CuratorEventType, latencyInNanos: Long): Unit = {}
-    override def nodeWatcherTriggered(): Unit = {}
-    override def childrenWatcherTriggered(): Unit = {}
-    override def observableClosedPrematurely(): Unit = {}
-    override def zkNoNodeTriggered(): Unit = {}
-    override def zkNodeExistsTriggered(): Unit = {}
-    override def zkConnectionStateListener(): ConnectionStateListener =
-        new ConnectionStateListener {
-            override def stateChanged(client: CuratorFramework,
-                                      newState: ConnectionState): Unit = {}
-        }
+object ZoomMetrics {
+
+    val Nil = new ZoomMetrics {
+        override def addReadLatency(latencyInNanos: Long): Unit = {}
+
+        override def addReadChildrenLatency(latencyInNanos: Long): Unit = {}
+
+        override def addWriteLatency(latencyInNanos: Long): Unit = {}
+
+        override def addMultiLatency(latencyInNanos: Long): Unit = {}
+
+        override def nodeWatcherTriggered(): Unit = {}
+
+        override def childrenWatcherTriggered(): Unit = {}
+
+        override def observableClosedPrematurely(): Unit = {}
+
+        override def zkNodeExistsTriggered(): Unit = {}
+
+        override def zkNoNodeTriggered(): Unit = {}
+
+        override def zkConnectionStateListener(): ConnectionStateListener =
+            new ConnectionStateListener {
+                override def stateChanged(client: CuratorFramework,
+                                          newState: ConnectionState): Unit = {}
+            }
+    }
 }
 
 class JmxZoomMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
     extends ZoomMetrics {
 
-    private var readLatencies: Histogram = _
-    private var readChildrenLatencies: Histogram = _
-    private var writeLatencies: Histogram = _
-    private var multiLatencies: Histogram = _
-
-    registerMetrics()
-
-    private def gauge[T](f: () => T)(implicit ct: ClassTag[T]) =
-        new Gauge[T] { override def getValue = f() }
-
-    private def registerMetrics(): Unit = {
-        val metricPrefix = "Zoom-" + zoom.basePath + "/"
-
-        registry.register(metricPrefix + "ZkConnectionState",
-                          gauge { zoom.zkConnectionState _ })
-        registry.register(metricPrefix + "TypeObservableCount",
-                          gauge { zoom.startedClassObservableCount _ })
-        registry.register(metricPrefix + "ObjectObservableCount",
-                          gauge { zoom.startedObjectObservableCount _ })
-        registry.register(metricPrefix + "ObjectObservableCountPerType",
-                          gauge { () =>
-                              val res = new StringBuilder()
-                              for ((clazz, count) <- zoom
-                                  .objectObservableCounters) {
-                                  res.append(clazz + ":" + count + "\n")
-                              }
-                              res.toString()
-                          })
-        registry.register(metricPrefix + "TypeObservableList",
-                          gauge { () =>
-                              val classes = zoom.startedClassObservables
-                              classes.foldLeft(
-                                  new StringBuilder)((builder, clazz) => {
-                                    builder.append(clazz.getName + "\n")
-                                  }).toString()
-                          })
-        registry.register(metricPrefix + "ObjectWatchersTriggered",
-                          gauge { objectWatcherTriggerCount.get })
-        registry.register(metricPrefix + "TypeWatchersTriggered",
-                          gauge { classWatcherTriggerCount.get })
-        registry.register(metricPrefix + "ObservablePrematureCloseCount",
-                          gauge { nodeObservablePrematureCloseCount.get })
-        registry.register(metricPrefix + "ZKNoNodeExceptionCount",
-                          gauge { zkNoNodeCount.get })
-        registry.register(metricPrefix + "ZKNodeExistsExceptionCount",
-                          gauge { zkNodeExistsCount.get })
-        registry.register(metricPrefix + "ZKConnectionLostExceptionCount",
-                          gauge { zkConnectionLossCount.get })
-
-        readLatencies = registry.histogram(metricPrefix + "readMicroSec")
-        readChildrenLatencies = registry.histogram(metricPrefix +
-                                    "readChildrenMicroSec")
-        writeLatencies = registry.histogram(metricPrefix + "writeMicroSec")
-        multiLatencies = registry.histogram(metricPrefix + "multiMicroSec")
-    }
+    val Tag: String = "Zoom"
 
     override def addReadLatency(latencyInNanos: Long): Unit =
-        readLatencies.update(latencyInNanos / 1000l)
-    override def addReadChildrenLatency(latencyInNanos: Long): Unit =
-        readChildrenLatencies.update(latencyInNanos / 1000l)
-    override def addWriteLatency(latencyInNanos: Long): Unit =
-        writeLatencies.update(latencyInNanos / 1000l)
-    override def addMultiLatency(latencyInNanos: Long): Unit =
-        multiLatencies.update(latencyInNanos / 1000l)
+        readLatencies.update(latencyInNanos / 1000L)
 
-    override def addLatency(eventType: CuratorEventType, latencyInNanos: Long)
-    : Unit = eventType match {
-        case CREATE | DELETE | SET_DATA => addWriteLatency(latencyInNanos)
-        case EXISTS | GET_DATA => addReadLatency(latencyInNanos)
-        case CHILDREN => addReadChildrenLatency(latencyInNanos)
-        case _ =>
-    }
+    override def addReadChildrenLatency(latencyInNanos: Long): Unit =
+        readChildrenLatencies.update(latencyInNanos / 1000L)
+
+    override def addWriteLatency(latencyInNanos: Long): Unit =
+        writeLatencies.update(latencyInNanos / 1000L)
+
+    override def addMultiLatency(latencyInNanos: Long): Unit =
+        multiLatencies.update(latencyInNanos / 1000L)
 
     override def nodeWatcherTriggered(): Unit =
-        objectWatcherTriggerCount.incrementAndGet()
+        nodeTriggeredWatchers.inc()
+
     override def childrenWatcherTriggered(): Unit =
-        classWatcherTriggerCount.incrementAndGet()
+        childrenTriggeredWatchers.inc()
 
     override def observableClosedPrematurely(): Unit =
-        nodeObservablePrematureCloseCount.incrementAndGet()
+        nodeObservablePrematureCloses.inc()
+
     override def zkNoNodeTriggered(): Unit =
-        zkNoNodeCount.incrementAndGet()
+        noNodesExceptions.inc()
+
     override def zkNodeExistsTriggered(): Unit =
-        zkNodeExistsCount.incrementAndGet()
+        nodeExistsExceptions.inc()
 
     override def zkConnectionStateListener(): ConnectionStateListener = {
         new ConnectionStateListener {
             override def stateChanged(client: CuratorFramework,
                                       state: ConnectionState): Unit =
                 state match {
-                    case LOST => zkConnectionLossCount.incrementAndGet()
+                    case LOST => connectionsLostMeter.mark()
+                    case CONNECTED => connectionsCreatedMeter.mark()
                     case _ =>
                 }
-
         }
+    }
+
+    private val connectionsLostMeter = meter("connectionsLostMeter")
+    private val connectionsCreatedMeter = meter("connectionsCreatedMeter")
+
+    val nodeTriggeredWatchers = counter("nodeTriggeredWatchers")
+    val childrenTriggeredWatchers = counter("childrenTriggeredWatchers")
+    val nodeObservablePrematureCloses = counter("nodeObservablePrematureCloses")
+    val nodeExistsExceptions = counter("nodeExistsExceptions")
+    val noNodesExceptions = counter("noNodesExceptions")
+
+    val readLatencies = histogram("readLatencies")
+    val readChildrenLatencies = histogram("readChildrenLatencies")
+    val writeLatencies = histogram("writeLatencies")
+    val multiLatencies = histogram("multiLatencies")
+
+    val connectionsLost = registerGauge(gauge {
+            connectionsLostMeter.getCount
+        }, "connectionsLost")
+    val connectionsCreated = registerGauge(gauge {
+            connectionsCreatedMeter.getCount
+        }, "connectionsCreated")
+    val connectionsLostPerMinute = registerGauge(gauge {
+            connectionsLostMeter.getOneMinuteRate
+        }, "connectionsLostPerMinute")
+    val connectionsCreatedPerMinute = registerGauge(gauge {
+            connectionsCreatedMeter.getOneMinuteRate
+        }, "connectionsCreatedPerMinute")
+    val connectionsLostPerFiveMinutes = registerGauge(gauge {
+            connectionsLostMeter.getFiveMinuteRate
+        }, "connectionsLostPerFiveMinutes")
+    val connectionsCreatedPerFiveMinutes = registerGauge(gauge {
+            connectionsCreatedMeter.getFiveMinuteRate
+        }, "connectionsCreatedPerFiveMinutes")
+    val connectionsLostPerFifteenMinutes = registerGauge(gauge {
+            connectionsLostMeter.getFifteenMinuteRate
+        }, "connectionsLostPerFifteenMinutes")
+    val connectionsCreatedPerFifteenMinutes = registerGauge(gauge {
+            connectionsCreatedMeter.getFifteenMinuteRate
+        }, "connectionsCreatedPerFifteenMinutes")
+
+    val zkConnectionState = registerGauge(gauge {
+            zoom.zkConnectionState _
+        }, "ZkConnectionState")
+    val typeObservableCount = registerGauge(gauge {
+            zoom.startedClassObservableCount _
+        }, "TypeObservableCount")
+    val objectObservableCount = registerGauge(gauge {
+            zoom.startedObjectObservableCount _
+        }, "ObjectObservableCount")
+    val objectObservableCountPerType = registerGauge(gauge { () =>
+            val res = new StringBuilder()
+            for ((clazz, count) <- zoom.objectObservableCounters) {
+                res.append(clazz + ":" + count + "\n")
+            }
+            res.toString()
+        }, "ObjectObservableCountPerType")
+    val typeObservableList = registerGauge(gauge { () =>
+            val classes = zoom.startedClassObservables
+            classes.foldLeft(
+                new StringBuilder)((builder, clazz) => {
+                builder.append(clazz.getName + "\n")
+            }).toString()
+        }, "TypeObservableList")
+
+    private def gauge[T](f: () => T)(implicit ct: ClassTag[T]) =
+        new Gauge[T] {
+            override def getValue = f()
+        }
+
+    private def registerGauge(gauge: Gauge[_], names: String*) = {
+        registry.register(name(classOf[ZoomGauge], Seq(Tag) ++ names: _*), gauge)
+    }
+
+    private def meter(names: String*) = {
+        registry.meter(name(classOf[ZoomMeter], Seq(Tag) ++ names: _*))
+    }
+
+    private def counter(names: String*) = {
+        registry.counter(name(classOf[ZoomCounter], Seq(Tag) ++ names: _*))
+    }
+
+    private def histogram(names: String*) = {
+        registry.histogram(name(classOf[ZoomHistogram], Seq(Tag) ++ names: _*))
     }
 }

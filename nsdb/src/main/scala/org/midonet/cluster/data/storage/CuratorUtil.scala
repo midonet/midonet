@@ -39,9 +39,8 @@ object CuratorUtil {
                 f(new BackgroundCallback {
                     override def processResult(client: CuratorFramework,
                                                event: CuratorEvent): Unit = {
-
                         val end = System.nanoTime()
-                        zoomMetrics.addLatency(event.getType, end-start)
+                        zoomMetrics.addLatency(event.getType, end - start)
 
                         s.onNext(event)
                         s.onCompleted()

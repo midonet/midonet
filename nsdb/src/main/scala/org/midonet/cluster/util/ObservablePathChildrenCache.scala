@@ -33,14 +33,13 @@ import org.apache.zookeeper.KeeperException.Code.{NONODE, OK}
 import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.WatchedEvent
 import org.apache.zookeeper.Watcher.Event.EventType._
-import org.slf4j.LoggerFactory.getLogger
 
 import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
 import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
-import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
+import org.midonet.cluster.data.storage.ZoomMetrics
 import org.midonet.util.concurrent.Locks._
 import org.midonet.util.functors._
 import org.midonet.util.logging.Logging
@@ -74,7 +73,7 @@ object ObservablePathChildrenCache {
       * All data notifications are executed on ZK's watcher thread.
       */
     def create(zk: CuratorFramework, path: String,
-               zoomMetrics: ZoomMetrics = BlackHoleZoomMetrics)
+               zoomMetrics: ZoomMetrics = ZoomMetrics.Nil)
     : ObservablePathChildrenCache = {
         new ObservablePathChildrenCache(
             new OnSubscribeToPathChildren(zk, path, zoomMetrics)

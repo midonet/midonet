@@ -32,7 +32,7 @@ import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 import rx.Observable.OnSubscribe
 
-import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
+import org.midonet.cluster.data.storage.ZoomMetrics
 import org.midonet.cluster.util.PathDirectoryObservable.State
 import org.midonet.cluster.util.PathDirectoryObservable.State.State
 import org.midonet.util.functors.makeAction0
@@ -76,7 +76,7 @@ object PathDirectoryObservable {
       */
     def create(curator: CuratorFramework, path: String,
                completeOnDelete: Boolean = true,
-               metrics: ZoomMetrics = BlackHoleZoomMetrics,
+               metrics: ZoomMetrics = ZoomMetrics.Nil,
                onClose: => Unit = OnCloseDefault)
     :PathDirectoryObservable = {
         new PathDirectoryObservable(
