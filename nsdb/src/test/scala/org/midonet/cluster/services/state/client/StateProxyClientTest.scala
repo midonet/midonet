@@ -821,6 +821,8 @@ class StateProxyClientTest extends FeatureSpec
         }
 
         scenario("completed after stop") {
+
+            Given("a client")
             val t = new TestObjects(softReconnectDelay = 50 milliseconds,
                                     maxAttempts = 3,
                                     hardReconnectDelay = 1 second)
@@ -846,6 +848,37 @@ class StateProxyClientTest extends FeatureSpec
             Mockito.verify(observerB).onCompleted()
 
             t.close()
+        }
+    }
+
+    feature("subscriptions are removed after table termination from server") {
+        scenario("table completed") {
+
+            Given("a client")
+            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
+                                    maxAttempts = 3,
+                                    hardReconnectDelay = 1 second)
+            t.client.start()
+
+            And("an observer")
+            val observer = Mockito.mock(classOf[Observer[Update]])
+            val subscription = t.client.observable(existingTable).subscribe(observer)
+            subscription.isUnsubscribed shouldBe false
+
+            eventually {
+                t.client.numActiveSubscriptions shouldBe 1
+            }
+
+            When("The server terminates the table subscription")
+            t.server.write(terminationMsgForSubscription(1))
+
+            Then("The observer is completed")
+            eventually {
+                Mockito.verify(observer).onCompleted()
+            }
+
+            And("The client is not handling the subscription anymore")
+            t.client.numActiveSubscriptions shouldBe 0
         }
     }
 }
