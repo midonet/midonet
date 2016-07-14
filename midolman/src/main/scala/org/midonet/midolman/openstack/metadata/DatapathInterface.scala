@@ -24,8 +24,6 @@ import scala.sys.process.Process
 
 import akka.actor.ActorSystem
 
-import org.slf4j.Logger
-
 import rx.Observable
 import rx.subjects.BehaviorSubject
 
@@ -42,7 +40,6 @@ class DatapathInterface(private val scanner: InterfaceScanner,
                         private val dpState: DatapathState,
                         private val dpConnManager:
                             UpcallDatapathConnectionManager) {
-    private val log: Logger = MetadataService.getLogger
 
     private def run(command: String) = {
         if (Process(command).! != 0) {
@@ -87,7 +84,7 @@ class DatapathInterface(private val scanner: InterfaceScanner,
         run(s"ip addr add ${MetadataApi.Address}/16 dev $ifName")
         run(s"ip link set $ifName up")
 
-        log debug s"mdInfo $mdInfo"
+        Log debug s"mdInfo $mdInfo"
         mdInfo
     }
 }

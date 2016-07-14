@@ -16,8 +16,6 @@
 
 package org.midonet.midolman.openstack.metadata
 
-import org.slf4j.Logger
-
 import org.midonet.midolman.DatapathState
 
 /*
@@ -35,13 +33,12 @@ case class ProxyInfo(dpPortNo: Int,
                      mac: String)
 
 class Plumber(val dpState: DatapathState) {
-    private val log: Logger = MetadataService.getLogger
 
     def plumb(vmInfo: InstanceInfo, mdInfo: ProxyInfo) = {
         val vmDpPortNo = dpState getDpPortNumberForVport vmInfo.portId
         val addr = AddressManager dpPortToRemoteAddress vmDpPortNo
 
-        log debug s"Plumbing $vmDpPortNo $addr $vmInfo $mdInfo"
+        Log debug s"Plumbing $vmDpPortNo $addr $vmInfo $mdInfo"
 
         /*
          * TODO(yamamoto): we should set up arp responder
@@ -54,6 +51,6 @@ class Plumber(val dpState: DatapathState) {
     def unplumb(addr: String, vmInfo: InstanceInfo, mdInfo: ProxyInfo) = {
         val vmDpPortNo = AddressManager remoteAddressToDpPort addr
 
-        log debug s"Unplumbing $vmDpPortNo $addr $vmInfo $mdInfo"
+        Log debug s"Unplumbing $vmDpPortNo $addr $vmInfo $mdInfo"
     }
 }
