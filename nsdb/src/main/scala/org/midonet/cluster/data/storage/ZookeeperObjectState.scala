@@ -106,7 +106,7 @@ object ZookeeperObjectState {
  */
 trait ZookeeperObjectState extends StateStorage with Storage with StorageInternals {
 
-    implicit protected def metrics: ZoomMetrics
+    implicit protected def metrics: StorageMetrics
 
     private val singleObservableRef = new AtomicLong()
     private val multiObservableRef = new AtomicLong()
@@ -275,7 +275,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, Some(value), ownerId))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    metrics.zkNoNodeTriggered()
+                    metrics.noNodeTriggered()
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, None, NoOwnerId))
                 } else {
@@ -294,7 +294,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     Notification.createOnNext[StateKey](
                         MultiValueKey(key,values))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    metrics.zkNoNodeTriggered()
+                    metrics.noNodeTriggered()
                     Notification.createOnNext[StateKey](
                         MultiValueKey(key, Set()))
                 } else {
@@ -585,7 +585,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                         event.getStat.getEphemeralOwner))
                 }
             } else if (event.getResultCode == Code.NONODE.intValue()) {
-                metrics.zkNoNodeTriggered()
+                metrics.noNodeTriggered()
                 // The node does not exist: complete immediately.
                 Observable.just(StateResult(NoOwnerId))
             } else {
