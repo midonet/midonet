@@ -26,7 +26,7 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.BlackHoleZoomMetrics
+import org.midonet.cluster.data.storage.StorageMetrics
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -154,7 +154,7 @@ class PathDirectoryObservableTest extends FlatSpec
 
         val closed = new AtomicBoolean()
         val observable = PathDirectoryObservable.create(
-            curator, parentPath, completeOnDelete = true, BlackHoleZoomMetrics, {
+            curator, parentPath, completeOnDelete = true, StorageMetrics.Nil, {
                 closed set true
             })
         val obs1 = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
