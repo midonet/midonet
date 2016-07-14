@@ -140,12 +140,12 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     /* Functions and variables to expose metrics using JMX in class
        ZoomMetrics. */
     implicit protected override val metrics = metricsRegistry match {
-        case null => BlackHoleZoomMetrics
-        case registry => new JmxZoomMetrics(this, registry)
+        case null => StorageMetrics.Nil
+        case registry => new JmxStorageMetrics(this, registry)
     }
 
     curator.getConnectionStateListenable
-           .addListener(metrics.zkConnectionStateListener())
+           .addListener(metrics.connectionStateListener())
 
     private[storage] def totalObjectObservableCount: Int =
         objectObservables.size
@@ -240,7 +240,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                                         event.getStat.getVersion))
                     }
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    metrics.zkNoNodeTriggered()
+                    metrics.noNodeTriggered()
                     createOnError(new NotFoundException(clazz, id))
                 } else {
                     createOnError(new InternalObjectMapperException(
@@ -491,7 +491,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             deserialize(event.getData, clazz)
         } else {
             if (event.getResultCode == Code.NONODE.intValue()) {
-                metrics.zkNoNodeTriggered()
+                metrics.noNodeTriggered()
             }
             throw new NotFoundException(clazz, id)
         }
