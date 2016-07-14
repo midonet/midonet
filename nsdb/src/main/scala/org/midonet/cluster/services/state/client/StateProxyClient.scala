@@ -180,7 +180,8 @@ class StateProxyClient(conf: StateProxyClientConfig,
         Observable.create(new OnSubscribe[Update] {
             override def call(subscriber: Subscriber[_ >: Update]): Unit = {
                 runSingleThreaded("subscribe") {
-                    if (subscribe(subscriber, table)) {
+                    if (!subscriber.isUnsubscribed &&
+                        subscribe(subscriber, table)) {
                         subscriber.add(Subscriptions.create(makeAction0 {
                             runSingleThreaded("unsubscribe") {
                                 unsubscribe(subscriber, table)

@@ -1629,7 +1629,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             val (table, _) = mockTable()
 
             And("A ready observer")
-            val observer1 = new TestObserver[Boolean]()
+            val observer1 = new TestObserver[StateTable.Key]()
 
             Then("The table should not be ready")
             table.isReady shouldBe false
@@ -1638,20 +1638,20 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             table.ready.subscribe(observer1)
 
             Then("The observer should receive a ready notification")
-            observer1.getOnNextEvents should contain only true
+            observer1.getOnNextEvents should contain only table.tableKey
 
             And("The table should be ready")
             table.isReady shouldBe true
 
             When("A new ready observer subscribes")
-            val observer2 = new TestObserver[Boolean]()
+            val observer2 = new TestObserver[StateTable.Key]()
             table.ready.subscribe(observer2)
 
             Then("The first observer should not see any new notifications")
-            observer1.getOnNextEvents should contain only true
+            observer1.getOnNextEvents should contain only table.tableKey
 
             And("The second observer should receive a ready notification")
-            observer2.getOnNextEvents should contain only true
+            observer2.getOnNextEvents should contain only table.tableKey
         }
 
         scenario("Table does not complete on unsubscribe") {
@@ -1659,7 +1659,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             val (table, _) = mockTable()
 
             And("A ready observer")
-            val observer = new TestObserver[Boolean]()
+            val observer = new TestObserver[StateTable.Key]()
 
             Then("The table should not be stopped")
             table.isStopped shouldBe true
@@ -1682,7 +1682,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             val (table, _) = mockTable()
 
             And("A ready observer")
-            val observer = new TestObserver[Boolean]()
+            val observer = new TestObserver[StateTable.Key]()
 
             When("The observer subscribes to the ready observable")
             val subscription = table.ready.subscribe(observer)

@@ -80,7 +80,7 @@ object StateTable {
         override def remoteSnapshot: Future[Map[Any, Any]] = MapFuture
         override def observable: Observable[Update[Any, Any]] =
             Observable.never()
-        override def ready: Observable[Boolean] = Observable.never()
+        override def ready: Observable[StateTable.Key] = Observable.never()
         override def isReady: Boolean = false
     }
 
@@ -207,7 +207,7 @@ trait StateTable[K, V] {
       * Returns an observable that notifies when the table has loaded an
       * initial snapshot.
       */
-    def ready: Observable[Boolean]
+    def ready: Observable[StateTable.Key]
 
     /**
       * Returns whether the map has loaded an initial snapshot.
