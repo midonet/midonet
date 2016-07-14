@@ -100,7 +100,8 @@ class FileRuleLoggerTest extends MidolmanSpec
 
         scenario("Logs multiple events") {
             val (chain1, rule, logger) = makeLogger(
-                metadata = Seq("11" -> "eleven", "12" -> "twelve"))
+                metadata = Seq("firewall_id" -> UUID.randomUUID().toString,
+                               "tenant_id" -> UUID.randomUUID().toString))
             val chain2 = makeChain(UUID.randomUUID(),
                                    Seq("13" -> "thirteen", "14" -> "fourteen"))
             val ctx1 = makePktCtx()
@@ -177,6 +178,11 @@ class FileRuleLoggerTest extends MidolmanSpec
     private def makeChain(id: UUID, metadata: Seq[(String, String)]): Chain = {
         new Chain(id, List(), Map[UUID, Chain](), s"chain-$id",
                   encodeMetadata(metadata), Seq())
+    }
+
+    private def defaultMetadata(): Seq[(String, String)] = {
+        Seq("firewall_id" -> UUID.randomUUID().toString,
+            "tenant_id" -> UUID.randomUUID().toString.replace())
     }
 
     private def makePktCtx(nwProto: Byte = rand.nextInt.toByte,
