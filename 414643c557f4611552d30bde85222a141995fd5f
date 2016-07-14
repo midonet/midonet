@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_287be129",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-14T14:00:23Z",
+      "side": 1,
+      "message": "you could even change it by mergedBatches(bindings map requestLegacyStateForPort)\n\nsame below.",
+      "range": {
+        "startLine": 186,
+        "startChar": 12,
+        "endLine": 186,
+        "endChar": 69
+      },
+      "revId": "414643c557f4611552d30bde85222a141995fd5f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
