@@ -19,12 +19,11 @@ package org.midonet.cluster.services.state.client
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
 
-import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 import com.google.protobuf.Message
-import com.typesafe.scalalogging.Logger
 
 import io.netty.channel.nio.NioEventLoopGroup
 
@@ -32,7 +31,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
-import org.slf4j.LoggerFactory
 
 import rx.Observer
 
@@ -50,7 +48,7 @@ class PersistentConnectionTest extends FeatureSpec
     implicit val exctx = ExecutionContext.fromExecutor(executor)
 
     val numThreads = 4
-    val reconnectTimeout = 100 milliseconds
+    val reconnectTimeout = 300 milliseconds
     implicit val loopGroup = new NioEventLoopGroup(numThreads)
     val message = msgPing(1)
 
@@ -172,9 +170,11 @@ class PersistentConnectionTest extends FeatureSpec
             c.isConnected shouldBe false
 
             And("It reconnects when the timeout expires")
-            Thread.sleep(reconnectTimeout.toMillis)
-            c.isConnected shouldBe true
-            c.numConnects shouldBe 2
+            eventually {
+                c.isConnected shouldBe true
+                c.numConnects shouldBe 2
+            }
+
             c.numDisconnects shouldBe 1
             c.numMessages shouldBe 0
 
