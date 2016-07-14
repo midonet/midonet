@@ -16,8 +16,9 @@
 
 package org.midonet.midolman.openstack.metadata
 
-import com.sun.jersey.api.client.Client
-import com.sun.jersey.api.client.UniformInterfaceException
+import com.sun.jersey.api.client.{Client, ClientResponse, UniformInterfaceException}
+
+import org.apache.commons.io.IOUtils
 import org.slf4j.Logger
 
 object Conv {
@@ -65,7 +66,7 @@ object NovaMetadataClient {
     def getMetadata(path: String, remoteAddr: String,
                     novaMetadataUrl: String,
                     sharedSecret: String): String = {
-        log debug s"Forwarding a request from $remoteAddr"
+        log debug s"Request from $remoteAddr for path $path"
         InstanceInfoMap getByAddr remoteAddr match {
             case Some(info) =>
                 log debug s"Request matches instance $info"
@@ -86,13 +87,25 @@ object NovaMetadataClient {
         val instanceIdSig = signInstanceId(sharedSecret, info.instanceId)
         val client = new Client
         val url = novaMetadataUrl + path
+        log debug s"Request from instance:${info.instanceId} to $url"
+
         val resource = client.resource(url)
             .header("X-Tenant-ID", info.tenantId)
             .header("X-Instance-ID", info.instanceId)
             .header("X-Instance-ID-Signature", instanceIdSig)
             .header("X-Forwarded-For", info.address)
         try {
-            resource get classOf[String]
+            val response = resource get classOf[ClientResponse]
+            val encoding =
+                response.getType.getParameters.getOrDefault("charset", "UTF-8")
+            val data = IOUtils.toString(response.getEntityInputStream,
+                                        encoding)
+            log debug s"Response for instance:${info.instanceId} " +
+                      s"status:${response.getStatus} " +
+                      s"length:${response.getLength} " +
+                      s"media-type:${response.getType} " +
+                      s"data:$data"
+            data
         } catch {
             case e: UniformInterfaceException =>
                 log error s"Unexpected HTTP response: $e for request: " +
