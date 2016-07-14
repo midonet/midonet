@@ -17,10 +17,10 @@
 package org.midonet.midolman.openstack.metadata
 
 import java.util.UUID
-import org.slf4j.{Logger, LoggerFactory}
 
-import org.midonet.cluster.data.storage.NotFoundException
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.slf4j.Logger
+
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.util.concurrent._
 
@@ -32,7 +32,7 @@ class StorageClient(val store: ReadOnlyStorage) {
             store.get(classOf[NeutronPort], portId).await()
         } catch {
             case e: NotFoundException =>
-                log debug s"Non-neutron port? ${e}"
+                log debug s"Non-neutron port? $e"
                 return None
         }
         if (port.getDeviceOwner != NeutronPort.DeviceOwner.COMPUTE) {
@@ -47,7 +47,7 @@ class StorageClient(val store: ReadOnlyStorage) {
             portId,
             port.getTenantId,
             port.getDeviceId)
-        log debug s"PortInfo ${info}"
+        log debug s"PortInfo $info"
         Some(info)
     }
 }

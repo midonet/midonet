@@ -16,16 +16,16 @@
 
 package org.midonet.midolman.openstack.metadata
 
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import com.sun.jersey.api.client.UniformInterfaceException
+
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
-import org.slf4j.{Logger, LoggerFactory}
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 import org.midonet.midolman.config.MidolmanConfig
 
 class ProxyHandler(val config: MidolmanConfig) extends AbstractHandler {
-    private val log: Logger = MetadataService.getLogger
 
     def handle(target: String, baseReq: Request, req: HttpServletRequest,
                res: HttpServletResponse) = {
@@ -34,8 +34,8 @@ class ProxyHandler(val config: MidolmanConfig) extends AbstractHandler {
             val result = NovaMetadataClient.getMetadata(
                                 req getPathInfo,
                                 req getRemoteAddr,
-                                config.openstack.metadata.nova_metadata_url,
-                                config.openstack.metadata.shared_secret)
+                                config.openstack.metadata.novaMetadataUrl,
+                                config.openstack.metadata.sharedSecret)
             res.getWriter print result
         } catch {
             case e: UniformInterfaceException =>
