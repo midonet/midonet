@@ -46,6 +46,30 @@
       "revId": "526c4c70a7a4e37900a5ba05ebec4ad466f1198a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_910b34d6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-07-14T23:18:16Z",
+      "side": 1,
+      "message": "but we haven\u0027t upgraded jersey recently, have we?",
+      "parentUuid": "baa041b7_4b74df66",
+      "range": {
+        "startLine": 10,
+        "startChar": 52,
+        "endLine": 11,
+        "endChar": 24
+      },
+      "revId": "526c4c70a7a4e37900a5ba05ebec4ad466f1198a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
