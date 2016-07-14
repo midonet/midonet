@@ -384,6 +384,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
             case Some(transaction) =>
                 val isSubscribe = transaction.isSubscribe
                 if (isSubscribe) {
+                    state.removeSubscriber(transaction.subscriber)
                     transaction.subscriber.onError(
                         new SubscriptionFailedException(description))
                 }
@@ -417,12 +418,16 @@ class StateProxyClient(conf: StateProxyClientConfig,
                 msg.getNotificationCase match {
                     case ProxyResponse.Notify.NotificationCase.COMPLETED =>
                         log debug s"$this Subscription $sid completed"
+                        state.removeSubscription(sid,subscriber)
+                        state.removeSubscriber(subscriber)
                         subscriber.onCompleted()
 
                     case ProxyResponse.Notify.NotificationCase.UPDATE =>
                         subscriber.onNext(msg.getUpdate)
 
                     case ProxyResponse.Notify.NotificationCase.NOTIFICATION_NOT_SET =>
+                        state.removeSubscription(sid,subscriber)
+                        state.removeSubscriber(subscriber)
                         subscriber.onError(new SubscriptionFailedException("Protocol error"))
                 }
 
