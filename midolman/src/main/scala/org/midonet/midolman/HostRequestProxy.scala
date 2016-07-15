@@ -163,30 +163,25 @@ class HostRequestProxy(hostId: UUID,
     }
 
     private def stateRequestForPort(port: UUID, previousOwnerId: UUID): Future[FlowStateBatch] = {
-        if (previousOwnerId eq null) {
-            // First binding -> no flow state to recover
-            Future.successful(EmptyFlowStateBatch)
-        } else {
-            Future {
-                if (previousOwnerId == hostId) {
-                    log debug s"Requesting local flow state for port: $port"
-                    tcpClient.internalFlowStateFrom(port)
-                } else {
-                    log debug s"Requesting remote flow state for port: $port"
-                    val ip = resolveHostIp(previousOwnerId)
+        Future {
+            if (previousOwnerId == null || previousOwnerId == hostId) {
+                log debug s"Requesting local flow state for port: $port"
+                tcpClient.internalFlowStateFrom(port)
+            } else {
+                log debug s"Requesting remote flow state for port: $port"
+                val ip = resolveHostIp(previousOwnerId)
 
-                    ip match {
-                        case Some(hostIp) =>
-                            tcpClient.remoteFlowStateFrom(hostIp, port)
-                        case None =>
-                            log.debug(
-                                s"Host $previousOwnerId is not registered in" +
-                                " any tunnel zone when trying to fetch flow state from it.")
-                            EmptyFlowStateBatch
-                    }
+                ip match {
+                    case Some(hostIp) =>
+                        tcpClient.remoteFlowStateFrom(hostIp, port)
+                    case None =>
+                        log.debug(
+                            s"Host $previousOwnerId is not registered in" +
+                            " any tunnel zone when trying to fetch flow state from it.")
+                        EmptyFlowStateBatch
                 }
-            }(tcpClientExecutionContext)
-        }
+            }
+        }(tcpClientExecutionContext)
     }
 
     private def stateForPorts(storage: FlowStateStorage[ConnTrackKey, NatKey],

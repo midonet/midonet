@@ -18,8 +18,9 @@ package org.midonet.midolman.state
 
 import java.net.{DatagramPacket, DatagramSocket, InetAddress}
 import java.nio.ByteBuffer
-import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JIterator, Set => JSet, UUID}
+import java.util.{ArrayList, Collection, UUID, HashSet => JHashSet, Iterator => JIterator, Set => JSet}
 
+import com.google.common.annotations.VisibleForTesting
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
@@ -37,7 +38,7 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.packets.NatState.NatBinding
-import org.midonet.packets.{FlowStateEthernet, Ethernet, SbeEncoder}
+import org.midonet.packets.{Ethernet, FlowStateEthernet, SbeEncoder}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType}
@@ -98,11 +99,14 @@ class FlowStateReplicator(
         peerResolver: PeerResolver,
         underlay: UnderlayResolver,
         flowInvalidation: FlowTagIndexer,
-        config: MidolmanConfig) {
+        midolmanConfig: MidolmanConfig) {
     import FlowStateAgentPackets._
     private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     private val flowStateEncoder = new SbeEncoder
+
+    @VisibleForTesting
+    @inline protected def config = midolmanConfig
 
     /* Used for sending flow state messages to minion */
     protected[state] val flowStateSocket = new DatagramSocket()
@@ -252,7 +256,6 @@ class FlowStateReplicator(
 
         val p = flowStateMessage.portIdsCount(1)
         portIdsToSbe(context.inputPort, context.outPorts, p.next)
-
         context.stateMessageLength = flowStateEncoder.encodedLength
     }
 
@@ -310,7 +313,8 @@ class FlowStateReplicator(
         }
 
         val traceIter = msg.trace
-        if (traceIter.hasNext()) {
+        if (traceIter.count > 0) {
+            // There's only one trace object, so no need to iterate
             val trace = traceIter.next()
             val k = traceFromSbe(trace, TraceKey)
             val ctx = new TraceContext(uuidFromSbe(trace.flowTraceId))
@@ -322,9 +326,23 @@ class FlowStateReplicator(
             }
             log.debug("Got new trace state: {} -> {}", k, ctx)
             traceTable.touch(k, ctx)
+        } else {
+            // Bypass Trace request IDs to reach the last group, portIds.
+            val reqIdsIter = msg.traceRequestIds
+            while (reqIdsIter.hasNext) reqIdsIter.next
         }
 
-        sendState(encoder.flowStateBuffer.array, encoder.encodedLength())
+        // Read the rest of the message so we know the actual encoded length
+        val portIds = msg.portIds
+        if (portIds.hasNext) {
+            portIds.next
+            val egressPorts = portIds.egressPortIds
+            while (egressPorts.hasNext) egressPorts.next
+        }
+
+        if (config.flowState.localPushState) {
+            sendState(encoder.flowStateBuffer.array, encoder.encodedLength())
+        }
     }
 
     /**

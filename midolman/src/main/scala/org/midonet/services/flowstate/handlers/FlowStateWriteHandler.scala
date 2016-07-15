@@ -18,7 +18,7 @@ package org.midonet.services.flowstate.handlers
 import java.nio.ByteBuffer
 import java.util
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{UUID, List => JList}
+import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -28,7 +28,6 @@ import scala.util.control.NonFatal
 import com.datastax.driver.core.Session
 import com.google.common.annotations.VisibleForTesting
 
-import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
 import org.midonet.cluster.storage.{FlowStateStorage, FlowStateStorageWriter}
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
@@ -86,14 +85,14 @@ class FlowStateWriteHandler(context: Context,
 
     override def channelRead0(ctx: ChannelHandlerContext,
                               msg: DatagramPacket): Unit = {
-        Log debug s"Datagram packet received: $msg"
         parseDatagram(msg) match {
             case PushState(sbe) => // push state to storage
                 pushNewState(sbe)
             case UpdateOwnedPorts(portIds) =>
+                Log debug s"Received new owned ports: $portIds}"
                 cachedOwnedPortIds = portIds
             case InvalidOp(e) =>
-                Log warn s"Invalid flow state message, ignoring: $e"
+                Log warn s"Invalid flow state message, ignoring -> ${e.getMessage}"
         }
     }
 
@@ -109,6 +108,9 @@ class FlowStateWriteHandler(context: Context,
                     handleFlowStateMessage(messageData)
                 case FlowStateInternalMessageType.OwnedPortsUpdate =>
                     handleUpdateOwnedPorts(messageData)
+                case _ =>
+                    InvalidOp(new IllegalArgumentException(
+                        s"Message header invalid: $messageType"))
             }
         } catch {
             case NonFatal(e) =>
@@ -121,7 +123,6 @@ class FlowStateWriteHandler(context: Context,
         val data = new Array[Byte](buffer.capacity())
         buffer.get(data)
         val flowStateMessage = encoder.decodeFrom(data)
-        Log debug s"Flow state message decoded: $flowStateMessage"
         PushState(encoder)
     }
 
@@ -211,17 +212,16 @@ class FlowStateWriteHandler(context: Context,
         }
         for (egressPortId <- egressPortIds) {
             if (cachedOwnedPortIds.contains(egressPortId)) {
-                matchingPorts += ingressPortId
+                matchingPorts += egressPortId
             }
         }
 
         for (portId <- matchingPorts) {
             val writer = getFlowStateWriter(portId)
             writer.synchronized {
+                Log debug s"Writing flow state message to $portId writer."
                 writer.write(encoder)
             }
         }
     }
-
-
 }

@@ -238,7 +238,7 @@ trait FlowStateBaseTest extends FeatureSpec
             writer.flush()
         }
 
-        validPorts map toProto
+        validPorts
     }
 
     protected def invalidFlowStateMessage(port: Int = 6688): DatagramPacket = {

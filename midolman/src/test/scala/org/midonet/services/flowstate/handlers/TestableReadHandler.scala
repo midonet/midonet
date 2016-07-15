@@ -15,9 +15,9 @@
  */
 package org.midonet.services.flowstate.handlers
 
-import org.midonet.cluster.models.Commons.UUID
-import org.midonet.services.flowstate.stream.Context
+import java.util.UUID
 
+import org.midonet.services.flowstate.stream.Context
 import scala.util.Random
 
 class TestableReadHandler(context: Context, validPorts: Seq[UUID])

@@ -21,6 +21,7 @@ import java.net.Socket
 import java.util.UUID
 
 import org.midonet.cluster.flowstate.FlowStateTransfer.{StateRequest, StateResponse}
+import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.packets.SbeEncoder
 import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
@@ -31,7 +32,7 @@ import org.midonet.util.ClosingRetriable
 
 trait FlowStateRequestClient extends ClosingRetriable {
 
-    private val Retries = 3
+    private val Retries = 5
 
     def flowStateConfig: FlowStateConfig
 
@@ -91,7 +92,7 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
 
             response match {
                 case StateAck(port) =>
-                    log debug s"Remote Ack received from previous owner of $port"
+                    log debug s"Remote Ack received from previous owner of ${fromProto(port)}"
                     pipelinedReadTranslatedState(dis, aggregator)
                 case StateError(code, description) =>
                     log warn s"Ignoring response: $code error received from" +
@@ -118,7 +119,7 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
 
             response match {
                 case StateAck(port) =>
-                    log debug s"Internal Ack received from previous owner of $port"
+                    log debug s"Internal Ack received from previous owner of ${fromProto(port)}"
                     pipelinedReadTranslatedState(dis, aggregator)
                 case StateError(code, description) =>
                     log warn s"Ignoring response: $code error received from" +
@@ -171,7 +172,7 @@ class FlowStateRemoteClient(override val flowStateConfig: FlowStateConfig)
 
             response match {
                 case StateAck(port) =>
-                    log debug s"Raw Ack received from previous owner of $port"
+                    log debug s"Raw Ack received from previous owner of ${fromProto(port)}"
                     pipelinedReadWriteRawState(dis, writer)
                 case StateError(code, description) =>
                     log warn s"Ignoring response: $code error received from" +
