@@ -22,6 +22,30 @@
       "revId": "8329150afb1bf9f2d9ed3e782ee144064f6f095f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_29fac043",
+        "filename": "tests/mdts/tests/functional_tests/test_port_migration.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-15T16:08:15Z",
+      "side": 1,
+      "message": "Deleted in a previous patch :)",
+      "parentUuid": "baa041b7_a8d93159",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 182,
+        "endChar": 31
+      },
+      "revId": "8329150afb1bf9f2d9ed3e782ee144064f6f095f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
