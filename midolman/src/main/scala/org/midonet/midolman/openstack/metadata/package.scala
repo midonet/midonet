@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.openstack.metadata
+package org.midonet.midolman.openstack
+
+import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
 
 /*
  * Service-global definitions
  */
+package object metadata {
 
-object MetadataService {
-    def getLogger = LoggerFactory getLogger MetadataService.getClass
+    final val Log =
+        Logger(LoggerFactory getLogger "org.midonet.midolman.openstack.metadata")
+
 }
