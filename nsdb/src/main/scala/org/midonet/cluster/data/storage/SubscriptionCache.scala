@@ -140,7 +140,7 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
  * Caches deserializer objects on a per-class basis.
  */
 private object DeserializerCache {
-    import ZookeeperObjectMapper.deserialize
+    import ZoomSerializer.deserialize
 
     private val deserializers = new TrieMap[Class[_], Func1[ChildData, _]]
 

@@ -36,6 +36,7 @@ import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
+import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, serialize}
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
 import org.midonet.util.concurrent._
