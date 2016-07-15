@@ -42,11 +42,12 @@ import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
+import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, serialize}
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
-import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
+import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
 import org.midonet.cluster.util.ParentDeletedException
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent._
