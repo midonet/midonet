@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_09725c11",
+        "filename": "tests/mdts/tests/functional_tests/test_port_migration.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-15T16:00:20Z",
+      "side": 1,
+      "message": "delete?",
+      "range": {
+        "startLine": 240,
+        "startChar": 4,
+        "endLine": 240,
+        "endChar": 64
+      },
+      "revId": "68737a3926875e82907e4f53ad1220f9846a4233",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e961783a",
+        "filename": "tests/mdts/tests/functional_tests/test_port_migration.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-15T16:00:20Z",
+      "side": 1,
+      "message": "what\u0027s the if for?",
+      "range": {
+        "startLine": 241,
+        "startChar": 4,
+        "endLine": 241,
+        "endChar": 39
+      },
+      "revId": "68737a3926875e82907e4f53ad1220f9846a4233",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
