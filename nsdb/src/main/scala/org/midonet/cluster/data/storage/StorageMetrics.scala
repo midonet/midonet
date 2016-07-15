@@ -64,13 +64,22 @@ trait StorageMetrics {
     final def addLatency(eventType: CuratorEventType, latencyInNanos: Long)
     : Unit = eventType match {
         case CREATE | DELETE | SET_DATA =>
+            addWriteEvent()
             addWriteLatency(latencyInNanos / 1000L)
         case EXISTS | GET_DATA =>
+            addReadEvent()
             addReadLatency(latencyInNanos / 1000L)
         case CHILDREN =>
+            addReadChildrenEvent()
             addReadChildrenLatency(latencyInNanos / 1000L)
         case _ =>
     }
+
+    def addReadEvent(): Unit
+
+    def addReadChildrenEvent(): Unit
+
+    def addWriteEvent(): Unit
 
     def addReadLatency(latencyInNanos: Long): Unit
 
@@ -86,7 +95,7 @@ trait StorageMetrics {
     def nodeWatcherTriggered(): Unit
 
     /**
-      * Increment the count of children watcher triggered (the on.
+      * Increment the count of children watcher triggered.
       */
     def childrenWatcherTriggered(): Unit
 
@@ -96,12 +105,12 @@ trait StorageMetrics {
     protected def nodeObservablePrematurelyClosed(): Unit
 
     /**
-      * Increment the count of ZooKeeper timeout exception encountered.
+      * Increment the count of ZooKeeper timeout exceptions encountered.
       */
     protected def nodeExistsTriggered(): Unit
 
     /**
-      * Increment the count of ZooKeeper NoNode exception encountered.
+      * Increment the count of ZooKeeper NoNode exceptions encountered.
       */
     def noNodeTriggered(): Unit
 
@@ -115,6 +124,12 @@ trait StorageMetrics {
 object StorageMetrics {
 
     val Nil = new StorageMetrics {
+        override def addReadEvent(): Unit = {}
+
+        override def addReadChildrenEvent(): Unit = {}
+
+        override def addWriteEvent(): Unit = {}
+
         override def addReadLatency(latencyInNanos: Long): Unit = {}
 
         override def addReadChildrenLatency(latencyInNanos: Long): Unit = {}
@@ -143,6 +158,15 @@ object StorageMetrics {
 
 class JmxStorageMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
     extends StorageMetrics {
+
+    override def addReadEvent(): Unit =
+        readsMeter.mark()
+
+    override def addReadChildrenEvent(): Unit =
+        childrenReadsMeter.mark()
+
+    override def addWriteEvent(): Unit =
+        writesMeter.mark()
 
     override def addReadLatency(latencyInNanos: Long): Unit =
         readLatencies.update(latencyInNanos / 1000L)
@@ -191,6 +215,10 @@ class JmxStorageMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
     val nodeObservablePrematureCloses = counter("nodeObservablePrematureCloses")
     val nodeExistsExceptions = counter("nodeExistsExceptions")
     val noNodesExceptions = counter("noNodesExceptions")
+
+    val readsMeter = meter("readsMeter")
+    val childrenReadsMeter = meter("childrenReadsMeter")
+    val writesMeter = meter("writesMeter")
 
     val readLatencies = histogram("readLatencies")
     val readChildrenLatencies = histogram("readChildrenLatencies")

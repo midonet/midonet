@@ -22,7 +22,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import com.codahale.metrics.{Counting, MetricRegistry}
+import com.codahale.metrics.MetricRegistry
 
 import org.apache.zookeeper.ZooKeeper.States
 import org.junit.runner.RunWith
@@ -292,7 +292,7 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(1, timeout)
 
             And("The number of object watcher triggered is 0")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 0
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 0
 
             When("We update the bridge")
             bridge.name = "toto"
@@ -302,14 +302,14 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(2, timeout)
 
             And("The number of object watcher triggered is 1")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 1
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 1
 
             And("When we delete the bridge")
             zoom.delete(classOf[PojoBridge], bridge.id)
             observer1.awaitCompletion(timeout)
 
             Then("The number of object watcher triggered is 2")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 2
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 2
 
             When("We create a router")
             val router = createPojoRouter()
@@ -324,7 +324,7 @@ class StorageMetricsTest extends FeatureSpec
             observer2.awaitOnNext(1, timeout)
 
             And("The number of object watcher triggered is 2")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 2
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 2
 
             When("We update the router")
             router.name = "toto"
@@ -334,14 +334,14 @@ class StorageMetricsTest extends FeatureSpec
             observer2.awaitOnNext(2, timeout)
 
             And("The number of object watcher triggered is 3")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 3
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 3
 
             When("We delete the router")
             zoom.delete(classOf[PojoRouter], router.id)
             observer2.awaitCompletion(timeout)
 
             Then("The number of object watcher triggered is 4")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 4
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 4
         }
 
         scenario("Object observable with unsubscribe and multiple observers") {
@@ -358,7 +358,7 @@ class StorageMetricsTest extends FeatureSpec
 
             Then("We receive a notification")
             observer1.awaitOnNext(1, timeout) shouldBe true
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 0
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 0
 
             When("We unsubscribe from the bridge's observable")
             sub1.unsubscribe()
@@ -375,7 +375,7 @@ class StorageMetricsTest extends FeatureSpec
             observer3.awaitOnNext(1, timeout) shouldBe true
 
             And("The number of object watchers triggered is 0")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 0
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 0
 
             When("We update the bridge")
             bridge1.name = "toto"
@@ -386,7 +386,7 @@ class StorageMetricsTest extends FeatureSpec
             observer3.awaitOnNext(2, timeout) shouldBe true
 
             And("The number of object watchers triggered is 1")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 1
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 1
         }
 
         scenario("Triggered class watchers") {
@@ -411,7 +411,7 @@ class StorageMetricsTest extends FeatureSpec
             bridge1Observer.awaitOnNext(1, timeout)
 
             And("The number of class watchers triggered is 1")
-            getCountForMetric("childrenTriggeredWatchers") shouldBe 1
+            getCountForCounter("childrenTriggeredWatchers") shouldBe 1
 
             When("We update the bridge")
             bridge1.name = "toto"
@@ -421,10 +421,10 @@ class StorageMetricsTest extends FeatureSpec
             bridge1Observer.awaitOnNext(2, timeout)
 
             And("The number of object watchers triggered is 1")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 1
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 1
 
             And("The number of class watchers triggered is still 1")
-            getCountForMetric("childrenTriggeredWatchers") shouldBe 1
+            getCountForCounter("childrenTriggeredWatchers") shouldBe 1
 
             When("We add a bridge")
             val bridge2 = createPojoBridge()
@@ -434,7 +434,7 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(2, timeout)
 
             And("The number of class watchers triggered is 2")
-            getCountForMetric("childrenTriggeredWatchers") shouldBe 2
+            getCountForCounter("childrenTriggeredWatchers") shouldBe 2
 
             When("We delete the 1st bridge")
             zoom.delete(classOf[PojoBridge], bridge1.id)
@@ -443,10 +443,10 @@ class StorageMetricsTest extends FeatureSpec
             bridge1Observer.awaitCompletion(timeout)
 
             And("The number of object watchers triggered is 2")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 2
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 2
 
             And("The number of class watchers triggered is 3")
-            getCountForMetric("childrenTriggeredWatchers") shouldBe 3
+            getCountForCounter("childrenTriggeredWatchers") shouldBe 3
 
             When("We create a router")
             val router = createPojoRouter()
@@ -461,7 +461,7 @@ class StorageMetricsTest extends FeatureSpec
             observer2.awaitOnNext(1, timeout) shouldBe true
 
             And("The number of class watchers triggered is 4")
-            getCountForMetric("childrenTriggeredWatchers") shouldBe 4
+            getCountForCounter("childrenTriggeredWatchers") shouldBe 4
         }
 
         scenario("Zoom NoNode/NodeExists exceptions") {
@@ -473,7 +473,7 @@ class StorageMetricsTest extends FeatureSpec
             }
 
             Then("The number of ZK NoNode exceptions should be 1")
-            getCountForMetric("noNodesExceptions") shouldBe 1
+            getCountForCounter("noNodesExceptions") shouldBe 1
 
             When("We attempt to store the same object twice in Zoom")
             val bridge = createPojoBridge()
@@ -483,8 +483,8 @@ class StorageMetricsTest extends FeatureSpec
             }
 
             Then("The number of ZK NodeExists exception should be 1")
-            getCountForMetric("nodeExistsExceptions") shouldBe 1
-            getCountForMetric("noNodesExceptions") shouldBe 1
+            getCountForCounter("nodeExistsExceptions") shouldBe 1
+            getCountForCounter("noNodesExceptions") shouldBe 1
 
             When("We create an observable for a non-existing object")
             val obs = zoom.observable(classOf[PojoBridge], nonExistingId)
@@ -497,7 +497,7 @@ class StorageMetricsTest extends FeatureSpec
             observer.awaitCompletion(timeout)
 
             And("The number of ZK NoNode exceptions should be 2")
-            getCountForMetric("noNodesExceptions") shouldBe 2
+            getCountForCounter("noNodesExceptions") shouldBe 2
 
             When("We attempt to delete a non-existing object")
             intercept[NotFoundException] {
@@ -505,7 +505,7 @@ class StorageMetricsTest extends FeatureSpec
             }
 
             Then("The number of ZK NoNode exceptions should be 3")
-            getCountForMetric("noNodesExceptions") shouldBe 3
+            getCountForCounter("noNodesExceptions") shouldBe 3
 
             When("We attempt to update a non-existing object")
             intercept[NotFoundException] {
@@ -513,7 +513,36 @@ class StorageMetricsTest extends FeatureSpec
             }
 
             Then("The number of ZK NoNode exceptions should be 4")
-            getCountForMetric("noNodesExceptions") shouldBe 4
+            getCountForCounter("noNodesExceptions") shouldBe 4
+        }
+
+        scenario("Zoom reads/writes") {
+            Given("A set of objects")
+            val objects = (1 to 4) map { value =>
+                val obj = new State
+                zoom.create(obj)
+                obj.id -> value.toString
+            }
+
+            When(s"We add ${objects.size} single value keys")
+            objects foreach { obj =>
+                val key = "single"
+                zoom.addValue(classOf[State], obj._1, key, value.toString)
+                    .await(timeout)
+            }
+
+            And("Read each of the previously saved values")
+            objects foreach { obj =>
+                val f = zoom.get(classOf[State], obj._1)
+                Await.ready(f, timeout)
+            }
+
+            Then("The number of values read from ZK should be one for each get")
+            // The 3 is because exists is called twice on writes
+            getCountForMeter("readsMeter") shouldBe (objects.size * 3)
+
+            And("There was a write for each object")
+            getCountForMeter("writesMeter") shouldBe objects.length
         }
     }
 
@@ -537,7 +566,7 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(1, timeout) shouldBe true
 
             And("The number of object watchers triggered should be 0")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 0
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 0
 
             When("We modify the single value key")
             zoom.addValue(classOf[State], obj.id, key, value = "2")
@@ -547,7 +576,7 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(2, timeout) shouldBe true
 
             And("The number of object watchers triggered should be 1")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 1
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 1
 
             When("A 2nd observer subscribes to the single value")
             val observer2 = new TestAwaitableObserver[StateKey]
@@ -563,7 +592,7 @@ class StorageMetricsTest extends FeatureSpec
             observer2.awaitOnNext(2, timeout) shouldBe true
 
             And("The number of object watchers triggered should be 2")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 2
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 2
 
             When("The 1st observer unsubscribes")
             sub1.unsubscribe()
@@ -582,7 +611,7 @@ class StorageMetricsTest extends FeatureSpec
             observer3.awaitOnNext(2, timeout) shouldBe true
 
             And("The number of object watchers triggered should be 3")
-            getCountForMetric("nodeTriggeredWatchers") shouldBe 3
+            getCountForCounter("nodeTriggeredWatchers") shouldBe 3
         }
 
         scenario("Multi-value key observable") {
@@ -604,7 +633,7 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(1, timeout) shouldBe true
 
             And("The number of class watchers triggered should be 0")
-            getCountForMetric("childrenTriggeredWatchers") shouldBe 0
+            getCountForCounter("childrenTriggeredWatchers") shouldBe 0
 
             When("We add a 2nd value")
             zoom.addValue(classOf[State], obj.id, key, value = "2")
@@ -614,7 +643,7 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(2, timeout) shouldBe true
 
             And("The number of class watchers triggered should be 1")
-            getCountForMetric("childrenTriggeredWatchers") shouldBe 1
+            getCountForCounter("childrenTriggeredWatchers") shouldBe 1
 
             When("We delete the 1st value")
             zoom.removeValue(classOf[State], obj.id, key, value = "1")
@@ -624,7 +653,7 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(3, timeout) shouldBe true
 
             And("The number of class watchers triggered should be 2")
-            getCountForMetric("childrenTriggeredWatchers") shouldBe 2
+            getCountForCounter("childrenTriggeredWatchers") shouldBe 2
         }
 
         scenario("Zoom state NoNode exceptions") {
@@ -633,32 +662,37 @@ class StorageMetricsTest extends FeatureSpec
             zoom.getKey(classOf[State], nonExistingId, "single").await(timeout)
 
             Then("The number of ZK NoNode exceptions should be 1")
-            getCountForMetric("noNodesExceptions") shouldBe 1
+            getCountForCounter("noNodesExceptions") shouldBe 1
 
             When("We request a multi-value key that doesn't exist")
             zoom.getKey(classOf[State], nonExistingId, "multi").await(timeout)
 
             Then("The number of ZK NoNode exceptions should be 2")
-            getCountForMetric("noNodesExceptions") shouldBe 2
+            getCountForCounter("noNodesExceptions") shouldBe 2
 
             When("We attempt to remove a non-existing single value")
             zoom.removeValue(classOf[State], nonExistingId, "single", "1")
                 .await(timeout)
 
             Then("The number of ZK NoNode exceptions should be 3")
-            getCountForMetric("noNodesExceptions") shouldBe 3
+            getCountForCounter("noNodesExceptions") shouldBe 3
 
             When("We attempt to remove a non-existing multi-value")
             zoom.removeValue(classOf[State], nonExistingId, "multi", "2")
                 .await(timeout)
 
             Then("The number of ZK NoNode exceptions should be 4")
-            getCountForMetric("noNodesExceptions") shouldBe 4
+            getCountForCounter("noNodesExceptions") shouldBe 4
         }
     }
 
-    private def getCountForMetric(suffix: String): Long =
+    private def getCountForMeter(suffix: String): Long =
+        registry.getMeters
+            .filterKeys(_ contains suffix)
+            .head._2.getCount
+
+    private def getCountForCounter(suffix: String): Long =
         registry.getCounters
-                .filterKeys(_ contains suffix)
-                .head._2.getCount
+            .filterKeys(_ contains suffix)
+            .head._2.getCount
 }
