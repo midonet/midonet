@@ -27,15 +27,17 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import org.apache.zookeeper.KeeperException.{BadVersionException, Code}
+
 import rx.Observable.OnSubscribe
 import rx._
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, namespaceId, PrimedSubject, asObservable, copyObj}
+import org.midonet.cluster.data.storage.InMemoryStorage._
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
+import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, serialize}
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
 import org.midonet.util.concurrent._
