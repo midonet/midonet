@@ -27,21 +27,21 @@ import org.midonet.midolman.config.MidolmanConfig
 
 class ProxyHandler(val config: MidolmanConfig) extends AbstractHandler {
 
-    def handle(target: String, baseReq: Request, req: HttpServletRequest,
-               res: HttpServletResponse) = {
+    def handle(target: String, baseReq: Request, request: HttpServletRequest,
+               response: HttpServletResponse) = {
         baseReq setHandled true
         try {
             val result = NovaMetadataClient.getMetadata(
-                                req getPathInfo,
-                                req getRemoteAddr,
+                                request.getPathInfo,
+                                request.getRemoteAddr,
                                 config.openstack.metadata.novaMetadataUrl,
                                 config.openstack.metadata.sharedSecret)
-            res.getWriter print result
+            response.getWriter print result
         } catch {
             case e: UniformInterfaceException =>
-                res.sendError(e.getResponse.getStatus, e.getMessage)
+                response.sendError(e.getResponse.getStatus, e.getMessage)
             case e: UnknownRemoteAddressException =>
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage)
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage)
         }
     }
 }
