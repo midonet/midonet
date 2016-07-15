@@ -37,7 +37,7 @@ import org.midonet.util.functors.makeFunc1
 private[storage] object ZoomSerializer {
 
     private val JsonFactory = new JsonFactory(new ObjectMapper())
-    private val ProtoParser = TextFormat.Parser.newBuilder().build()
+    private val ProtoParser = createProtoParser
     private val Utf8 = Charset.forName("UTF-8")
 
     private val Deserializers =
@@ -130,6 +130,20 @@ private[storage] object ZoomSerializer {
                     s"Could not parse data from ZooKeeper:\n " +
                     s"${new String(data, Utf8)}", e)
         }
+    }
+
+    private def createProtoParser: TextFormat.Parser = {
+        val builder = TextFormat.Parser.newBuilder()
+        val builderClass = builder.getClass
+
+        // Set the `allowUnknownFields` using reflection: this field is private
+        // and not exposed by the builder in the open-source code for Protocol
+        // Buffers (according to Google this is intentional).
+        val field = builderClass.getDeclaredField("allowUnknownFields")
+        field.setAccessible(true)
+        field.setBoolean(builder, true)
+
+        builder.build()
     }
 
 }
