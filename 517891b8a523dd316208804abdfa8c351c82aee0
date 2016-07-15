@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_dc455343",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-15T08:02:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6b7e836b",
+      "range": {
+        "startLine": 115,
+        "startChar": 7,
+        "endLine": 115,
+        "endChar": 11
+      },
+      "revId": "517891b8a523dd316208804abdfa8c351c82aee0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8b79c784",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-07-14T16:33:53Z",
       "side": 1,
       "message": "Maybe we can remove the prefix \"zk\" here and below: if these are zoom metrics, it\u0027s implicit.",
+      "range": {
+        "startLine": 132,
+        "startChar": 21,
+        "endLine": 132,
+        "endChar": 23
+      },
+      "revId": "517891b8a523dd316208804abdfa8c351c82aee0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9c7a2b87",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-15T08:02:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8b79c784",
       "range": {
         "startLine": 132,
         "startChar": 21,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3c6affb3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-15T08:02:22Z",
+      "side": 1,
+      "message": "Not really. I thought maybe we wanted to group them under a common name or something like the PacketPipelineMetrics, will remove",
+      "parentUuid": "baa041b7_ab880b72",
+      "range": {
+        "startLine": 147,
+        "startChar": 4,
+        "endLine": 147,
+        "endChar": 28
+      },
+      "revId": "517891b8a523dd316208804abdfa8c351c82aee0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4b985fc0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7cf087fd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-15T08:02:22Z",
+      "side": 1,
+      "message": "Just regular counters or meters with rates like for lost and connected?",
+      "parentUuid": "baa041b7_4b985fc0",
+      "range": {
+        "startLine": 182,
+        "startChar": 20,
+        "endLine": 182,
+        "endChar": 68
+      },
+      "revId": "517891b8a523dd316208804abdfa8c351c82aee0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_0b8ed778",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2016-07-14T16:33:53Z",
       "side": 1,
       "message": "here and below: use lower case for the metric name.",
+      "range": {
+        "startLine": 229,
+        "startChar": 12,
+        "endLine": 229,
+        "endChar": 14
+      },
+      "revId": "517891b8a523dd316208804abdfa8c351c82aee0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fc5ff70c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-15T08:02:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_0b8ed778",
       "range": {
         "startLine": 229,
         "startChar": 12,
