@@ -191,9 +191,9 @@ class OpenStackConfig(val conf: Config, val schema: Config)
 class MetadataConfig(val conf: Config, val schema: Config)
         extends TypeFailureFallback {
     def enabled = getBoolean("agent.openstack.metadata.enabled")
-    def nova_metadata_url =
+    def novaMetadataUrl =
         getString("agent.openstack.metadata.nova_metadata_url")
-    def shared_secret = getString("agent.openstack.metadata.shared_secret")
+    def sharedSecret = getString("agent.openstack.metadata.shared_secret")
 }
 
 class FlowHistoryConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
