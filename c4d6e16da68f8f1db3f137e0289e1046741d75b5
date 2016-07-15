@@ -71,6 +71,23 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d11adcc5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-07-15T03:59:51Z",
+      "side": 1,
+      "message": "isn\u0027t this shared among threads?",
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_76e426df",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
         "patchSetId": 8
