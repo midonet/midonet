@@ -466,6 +466,8 @@ class PacketContext extends Clearable
         this.preRoutingMatch.clear()
         this.wcmatch.clear()
         this.diffBaseMatch.clear()
+        this.inPortId = null
+        this.outPortId = null
         this.outPorts.clear()
         this.portGroups = null
         this.inPortGroups = null
