@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e964d822",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-15T16:20:51Z",
+      "side": 1,
+      "message": "Do you have a link about the rationale as to why google decided to make this private?",
+      "range": {
+        "startLine": 135,
+        "startChar": 4,
+        "endLine": 147,
+        "endChar": 5
+      },
+      "revId": "fd64878b2dca60a53718a51c9f087618da443858",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
