@@ -15,7 +15,6 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.io.StringWriter
 import java.util.ConcurrentModificationException
 import java.util.concurrent.Executors._
 import java.util.concurrent.atomic.AtomicLong
@@ -30,15 +29,12 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import com.codahale.metrics.MetricRegistry
-import com.fasterxml.jackson.core.JsonFactory
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
-import com.google.protobuf.{Message, TextFormat}
+import com.google.protobuf.Message
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
-import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException._
 import org.apache.zookeeper.OpResult.ErrorResult
@@ -48,11 +44,11 @@ import org.slf4j.LoggerFactory
 
 import rx.Notification._
 import rx.Observable.OnSubscribe
-import rx.functions.Func1
 import rx.{Notification, Observable, Subscriber}
 
 import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.data.storage.TransactionManager._
+import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, deserializerOf, serialize}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.services.state.client.StateTableClient
@@ -192,8 +188,6 @@ class ZookeeperObjectMapper(override val rootPath: String,
             extends TransactionManager(classInfo.toMap, allBindings)
             with StateTableTransactionManager {
 
-        import ZookeeperObjectMapper._
-
         protected override def executorService = executor
 
         // Create an ephemeral node so that we can get Zookeeper's current
@@ -279,25 +273,25 @@ class ZookeeperObjectMapper(override val rootPath: String,
             for ((Key(clazz, id), txOp) <- ops) txn = txOp match {
                 case TxCreate(obj) =>
                     val path = getPath(clazz, id)
-                    log.debug(s"Create: $path")
+                    Log.debug(s"Create: $path")
                     txn.create.forPath(path, serialize(obj)).and
                 case TxUpdate(obj, ver) =>
                     val path = getPath(clazz, id)
-                    log.debug(s"Update ($ver): $path")
+                    Log.debug(s"Update ($ver): $path")
                     txn.setData().withVersion(ver)
                         .forPath(path, serialize(obj)).and
                 case TxDelete(ver) =>
                     val path = getPath(clazz, id)
-                    log.debug(s"Delete ($ver): $path")
+                    Log.debug(s"Delete ($ver): $path")
                     txn.delete.withVersion(ver).forPath(path).and
                 case TxCreateNode(value) =>
-                    log.debug(s"Create node: $id")
+                    Log.debug(s"Create node: $id")
                     txn.create.forPath(id, asBytes(value)).and
                 case TxUpdateNode(value) =>
-                    log.debug(s"Update node: $id")
+                    Log.debug(s"Update node: $id")
                     txn.setData().forPath(id, asBytes(value)).and
                 case TxDeleteNode =>
-                    log.debug(s"Delete node: $id")
+                    Log.debug(s"Delete node: $id")
                     txn.delete.forPath(id).and
                 case TxNodeExists =>
                     throw new InternalObjectMapperException(
@@ -343,7 +337,7 @@ class ZookeeperObjectMapper(override val rootPath: String,
             curator.delete().forPath(lockPath)
         } catch {
             // Not much we can do. Fortunately, it's ephemeral.
-            case NonFatal(e) => log.warn(
+            case NonFatal(e) => Log.warn(
                 s"Could not delete TransactionManager lock node $lockPath.", e)
         }
 
@@ -430,7 +424,7 @@ class ZookeeperObjectMapper(override val rootPath: String,
     override def isRegistered(clazz: Class[_]) = {
         val registered = classInfo.contains(clazz)
         if (!registered)
-            log.warn(s"Class ${clazz.getSimpleName} is not registered.")
+            Log.warn(s"Class ${clazz.getSimpleName} is not registered.")
         registered
     }
 
@@ -461,7 +455,7 @@ class ZookeeperObjectMapper(override val rootPath: String,
             return
         } catch {
             case ex: Exception =>
-                log.info("Could not confirm existence of all class nodes in " +
+                Log.info("Could not confirm existence of all class nodes in " +
                          "Zookeeper. Creating missing class node(s).")
         }
 
@@ -751,6 +745,7 @@ class ZookeeperObjectMapper(override val rootPath: String,
 }
 
 object ZookeeperObjectMapper {
+
     private[storage] final class MessageClassInfo(clazz: Class[_])
         extends ClassInfo(clazz) {
 
@@ -789,12 +784,10 @@ object ZookeeperObjectMapper {
         override def hashCode: Int = cache.hashCode
     }
 
-    protected val log = LoggerFactory.getLogger("org.midonet.nsdb")
-
+    protected val Log = LoggerFactory.getLogger("org.midonet.nsdb")
     private val OnCloseDefault = { }
-    private val jsonFactory = new JsonFactory(new ObjectMapper())
-    private val deserializers =
-        new TrieMap[Class[_], Func1[ChildData, Notification[_]]]
+    //private val jsonFactory = new JsonFactory(new ObjectMapper())
+
 
     private[storage] def makeInfo(clazz: Class[_])
     : ClassInfo = {
@@ -810,75 +803,6 @@ object ZookeeperObjectMapper {
                     s"Class $clazz does not have a field named 'id', or the " +
                     "field could not be made accessible.", ex)
         }
-    }
-
-    private[storage] def serialize(obj: Obj): Array[Byte] = {
-        obj match {
-            case msg: Message => serializeMessage(msg)
-            case pojo => serializePojo(pojo)
-        }
-    }
-
-    private def serializeMessage(msg: Message): Array[Byte] = {
-        msg.toString.getBytes
-    }
-
-    private def serializePojo(obj: Obj): Array[Byte] = {
-        val writer = new StringWriter()
-        try {
-            val generator = jsonFactory.createGenerator(writer)
-            generator.writeObject(obj)
-            generator.close()
-        } catch {
-            case ex: Exception =>
-                throw new InternalObjectMapperException(
-                    "Could not serialize " + obj, ex)
-        }
-
-        writer.toString.trim.getBytes
-    }
-
-    private[storage] def deserialize[T](data: Array[Byte],  clazz: Class[T])
-    : T = {
-        try {
-            if (classOf[Message].isAssignableFrom(clazz)) {
-                deserializeMessage(data, clazz)
-            } else {
-                deserializePojo(data, clazz)
-            }
-        } catch {
-            case ex: Exception =>
-                throw new InternalObjectMapperException(
-                    "Could not parse data from Zookeeper: " + new String(data),
-                    ex)
-        }
-    }
-
-    private def deserializeMessage[T](data: Array[Byte], clazz: Class[T]): T = {
-        val builderObj = clazz.getMethod("newBuilder").invoke(null)
-        val builder = builderObj.asInstanceOf[Message.Builder]
-        TextFormat.merge(new String(data), builder)
-        builder.build().asInstanceOf[T]
-    }
-
-    private def deserializePojo[T](json: Array[Byte], clazz: Class[T]): T = {
-        val parser = jsonFactory.createParser(json)
-        val t = parser.readValueAs(clazz)
-        parser.close()
-        t
-    }
-
-    private def deserializerOf[T](clazz: Class[T])
-    : Func1[ChildData, Notification[T]] = {
-        deserializers.getOrElseUpdate(
-            clazz,
-            makeFunc1((data: ChildData) => data match {
-                case null =>
-                    Notification.createOnError[T](new NotFoundException(clazz,
-                                                                        None))
-                case cd =>
-                    Notification.createOnNext[T](deserialize(cd.getData, clazz))
-            })).asInstanceOf[Func1[ChildData, Notification[T]]]
     }
 
 }
