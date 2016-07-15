@@ -93,6 +93,30 @@
       "revId": "68737a3926875e82907e4f53ad1220f9846a4233",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e99618ef",
+        "filename": "tests/mdts/tests/functional_tests/test_port_migration.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-15T16:08:15Z",
+      "side": 1,
+      "message": "Ok, thanks for clearing that up!",
+      "parentUuid": "baa041b7_29e3e0a5",
+      "range": {
+        "startLine": 241,
+        "startChar": 4,
+        "endLine": 241,
+        "endChar": 39
+      },
+      "revId": "68737a3926875e82907e4f53ad1220f9846a4233",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
