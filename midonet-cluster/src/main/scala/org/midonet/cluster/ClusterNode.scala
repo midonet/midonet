@@ -128,7 +128,10 @@ object ClusterNode extends App {
 
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
     val renderOpts = ConfigRenderOptions.defaults
-        .setComments(false).setOriginComments(false).setFormatted(true)
+        .setComments(false)
+        .setOriginComments(false)
+        .setFormatted(true)
+        .setJson(true)
     log.info("Loaded configuration: {}",
              configurator.dropSchema(clusterConf.conf).root.render(renderOpts))
     val clusterExecutor = ExecutorsModule(clusterConf.executors, log)
