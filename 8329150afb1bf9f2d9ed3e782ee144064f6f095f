@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a8d93159",
+        "filename": "tests/mdts/tests/functional_tests/test_port_migration.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-15T16:04:19Z",
+      "side": 1,
+      "message": "No need, in this test we assume that all agents are on the same version.",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 182,
+        "endChar": 31
+      },
+      "revId": "8329150afb1bf9f2d9ed3e782ee144064f6f095f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
