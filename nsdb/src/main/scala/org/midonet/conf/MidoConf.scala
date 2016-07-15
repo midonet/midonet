@@ -187,19 +187,19 @@ object MidoNodeConfigurator {
 
                 case "/midonet/v1" =>
                     /* Non-interactive mode */
-                    log.warn("WARNING:\n" +
-                        "A configuration was read that contains a\n" +
-                        "deprecated zookeeper root path (/midonet/v1).\n" +
-                        "This version of MidoNet does not read information\n" +
-                        "stored in the old root path and will now\n" +
-                        "fall back to the new default root: /midonet.\n\n" +
-                        "Please make sure that you used the MidoNet v5.0\n" +
-                        "upgrade scripts, and check the MidoNet v5.0\n" +
-                        "release notes for further information.\n\n" +
-                        "To remove this warning, please remove the \n" +
-                        "'zookeeper.root_key' configuration key from \n" +
-                        "this configuration file, should it exist:\n " +
-                        s"$MIDOLMAN_CONF_LOCATION.\n")
+                    log.warn("WARNING: " +
+                        "A configuration was read that contains a " +
+                        "deprecated zookeeper root path (/midonet/v1). " +
+                        "This version of MidoNet does not read information " +
+                        "stored in the old root path and will now " +
+                        "fall back to the new default root: /midonet. " +
+                        "Make sure that you used the MidoNet v5.x " +
+                        "upgrade scripts, and check the MidoNet v5.x " +
+                        "release notes for further information. " +
+                        "To remove this warning, remove the " +
+                        "'zookeeper.root_key' configuration key from " +
+                        "this configuration file, should it exist: " +
+                        s"$MIDOLMAN_CONF_LOCATION.")
                     defaultZkRootKey
 
                 case key => key
@@ -566,10 +566,32 @@ class MidoNodeConfigurator(zk: CuratorFramework,
             fold(ConfigFactory.empty)((a, b) => a.withFallback(b))
     }
 
+    private def prepareSchema(conf: Config): Config = {
+        var ret = conf
+        for (entry <- conf.entrySet()) {
+            if (entry.getKey.endsWith("_description")) {
+                try {
+                    entry.getValue.unwrapped() match {
+                        case description: String =>
+                            // Clear duplicate spaces and new line for configuration
+                            // descriptions.
+                            ret = ret.withValue(
+                                entry.getKey,
+                                description.trim.replaceAll("[ \\n]+", " "))
+                        case _ =>
+                    }
+                } catch {
+                    case _: Throwable =>
+                }
+            }
+        }
+        ret
+    }
+
     private def deploySchemas(): Boolean = {
         var ret = false
         for ((name, newSchema) <- bundledSchemas) {
-            val newConfig = newSchema.get
+            val newConfig = prepareSchema(newSchema.get)
             if (!newConfig.isEmpty) {
                 val newVersion = newConfig.getInt(s"$name.schemaVersion")
                 val zkSchema = schema(name)
@@ -675,10 +697,10 @@ class MidoNodeConfigurator(zk: CuratorFramework,
 class ResourceConf(path: String) extends MidoConf {
     val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
 
-    val parseOpts = ConfigParseOptions.defaults().
-        setAllowMissing(false).
-        setOriginDescription(s"resource:$path").
-        setSyntax(ConfigSyntax.CONF)
+    val parseOpts = ConfigParseOptions.defaults()
+            .setAllowMissing(false)
+            .setOriginDescription(s"resource:$path")
+            .setSyntax(ConfigSyntax.CONF)
 
     override def get: Config = try {
         val stream = getClass.getClassLoader.getResourceAsStream(path)
@@ -696,10 +718,10 @@ class ResourceConf(path: String) extends MidoConf {
 class FileConf(file: File) extends MidoConf {
     val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
 
-    val parseOpts = ConfigParseOptions.defaults().
-        setAllowMissing(false).
-        setOriginDescription(s"file://${file.getAbsolutePath}").
-        setSyntax(ConfigSyntax.CONF)
+    val parseOpts = ConfigParseOptions.defaults()
+            .setAllowMissing(false)
+            .setOriginDescription(s"file://${file.getAbsolutePath}")
+            .setSyntax(ConfigSyntax.CONF)
 
     override def get: Config = try {
         ConfigFactory.parseFile(file)
@@ -717,12 +739,13 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
                                                                 WritableConf with
                                                                 ObservableConf {
 
-    private val renderOpts = ConfigRenderOptions.defaults().setOriginComments(false).
-                                                            setComments(false).
-                                                            setJson(false)
-    private val parseOpts = ConfigParseOptions.defaults().
-        setAllowMissing(false).
-        setOriginDescription(s"zookeeper://${zk.getNamespace}$path")
+    private val renderOpts = ConfigRenderOptions.defaults()
+            .setOriginComments(false)
+            .setComments(false)
+            .setJson(true)
+    private val parseOpts = ConfigParseOptions.defaults()
+            .setAllowMissing(false)
+            .setOriginDescription(s"zookeeper://${zk.getNamespace}$path")
 
     private val cache = new ObservableNodeCache(zk, path, emitNoNodeAsEmpty = true)
     cache.connect()
