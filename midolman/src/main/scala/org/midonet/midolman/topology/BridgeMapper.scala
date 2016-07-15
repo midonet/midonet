@@ -33,6 +33,7 @@ import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.VlanPortMapImpl
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
+import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge.{MacFlowCount, RemoveFlowCallbackGenerator, UntaggedVlanId}
@@ -106,6 +107,7 @@ object BridgeMapper {
 
         private val mark = PublishSubject.create[MacTableUpdate]
         private val table = vt.stateTables.bridgeMacTable(bridgeId, vlanId)
+        table.start()
 
         val observable = table.observable
             .map[MacTableUpdate](makeFunc1(update => {
@@ -149,7 +151,7 @@ object BridgeMapper {
             mark.onCompleted()
         }
 
-        def ready: Observable[Boolean] = table.ready
+        def ready: Observable[StateTable.Key] = table.ready
 
         def isReady: Boolean = table.isReady
     }
@@ -229,7 +231,7 @@ object BridgeMapper {
         /** Stops the underlying [[ReplicatedMap]]*/
         def complete(): Unit = table.stop()
 
-        def ready: Observable[Boolean] = table.ready
+        def ready: Observable[StateTable.Key] = table.ready
 
         def isReady: Boolean = table.isReady
     }
@@ -286,8 +288,13 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     private val localPorts = new mutable.HashMap[UUID, LocalPortState]
     private val peerPorts = new mutable.HashMap[UUID, PeerPortState]
     private val exteriorPorts = new mutable.HashSet[UUID]
+    private val routerIpToMacMap = new mutable.HashMap[IPAddr, MAC]
+
     private var oldExteriorPorts = Set.empty[UUID]
     private var oldRouterMacPortMap = Map.empty[MAC, UUID]
+    private var vlanPortMap: VlanPortMapImpl = null
+    private var vlanPeerBridgePortId: Option[UUID] = None
+
     private var traceChain: Option[UUID] = None
 
     private val macLearningTables = new TrieMap[Short, BridgeMacLearningTable]
@@ -298,6 +305,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     private val flowCallbackGenerator =
         new BridgeRemoveFlowCallbackGenerator(macLearning)
     private var ipv4MacMap: BridgeIpv4MacMap = null
+
+    private var deviceReady = false
 
 
     // A subject that emits a port observable for every port added to the
@@ -323,9 +332,10 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             MILLISECONDS, // Time unit
             vt.vtScheduler)
         .subscribe(makeAction1(onMacExpirationTimer), makeAction1(onThrow))
-    // A subject that emits updates when a storage connection was
-    // re-established.
-    private lazy val feedbackSubject = PublishSubject.create[TopologyBridge]
+
+    // A subject that emits updates when the bridge state table have loaded.
+    private lazy val stateTableSubject =
+        PublishSubject.create[Observable[StateTable.Key]]
 
     // The output device observable for the bridge mapper.
     //
@@ -346,21 +356,21 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     //   |                       +-----------------------+
     // Obs[Obs[MacTableUpdate]]->| subscribe(macUpdated) |
     //                           +-----------------------+
-    private lazy val feedbackObservable = feedbackSubject
+    private lazy val stateTableObservable = Observable
+        .merge(stateTableSubject)
         .observeOn(vt.vtScheduler)
+        .map[TopologyBridge](makeFunc1(stateTableReady))
     private lazy val portsObservable = Observable
         .merge(portsSubject)
         .filter(makeFunc1(isPortKnown))
         .map[TopologyBridge](makeFunc1(portUpdated))
-
     private lazy val bridgeObservable = vt.store
         .observable(classOf[TopologyBridge], bridgeId)
         .observeOn(vt.vtScheduler)
         .doOnCompleted(makeAction0(bridgeDeleted()))
         .doOnNext(makeAction1(bridgeUpdated))
-
-    protected override lazy val observable = Observable
-        .merge[TopologyBridge](feedbackObservable, portsObservable,
+    private lazy val deviceObservable = Observable
+        .merge[TopologyBridge](portsObservable,
                                traceChainObservable.map[TopologyBridge](
                                    makeFunc1(traceChainUpdated)),
                                mirrorsTracker.refsObservable
@@ -370,22 +380,41 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
                                bridgeObservable)
         .doOnError(makeAction1(bridgeError))
         .filter(makeFunc1(isBridgeReady))
-        .map[SimulationBridge](makeFunc1(deviceUpdated))
+        .doOnNext(makeAction1(deviceUpdated))
+
+    protected override lazy val observable = Observable
+        .merge[TopologyBridge](stateTableObservable, deviceObservable)
+        .filter(makeFunc1(isDeviceReady))
+        .map[SimulationBridge](makeFunc1(buildDevice))
 
     /**
-     * Indicates the bridge device is ready, when the states for all local and
-     * peer ports are ready, and all the chains are ready.
-     */
+      * Indicates the bridge device data is ready, when the states for all local
+      * and peer ports are ready, and all the chains are ready. This does not
+      * include the bridge's state table.
+      */
     private def isBridgeReady(br: TopologyBridge): JBoolean = {
         assertThread()
         val ready: JBoolean =
-            (br ne null) && (bridge ne null) &&
             localPorts.forall(_._2.isReady) && peerPorts.forall(_._2.isReady) &&
             isTracingReady && chainsTracker.areRefsReady &&
-            mirrorsTracker.areRefsReady &&
+            mirrorsTracker.areRefsReady
+
+        log.debug("Topology bridge ready: {}", ready)
+        ready
+    }
+
+    /**
+      * Indicates whether the bridge device is ready, including the bridge's
+      * state tables.
+      */
+    private def isDeviceReady(br: TopologyBridge): JBoolean = {
+        assertThread()
+        val ready: JBoolean =
+            (bridge ne null) && deviceReady &&
             ((ipv4MacMap eq null) || ipv4MacMap.isReady) &&
             macLearningTables.values.forall(_.isReady)
-        log.debug("Bridge ready: {}", ready)
+
+        log.debug("Simulation bridge ready: {}", ready)
         ready
     }
 
@@ -415,7 +444,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
         macUpdatesSubject.onCompleted()
-        feedbackSubject.onCompleted()
+        stateTableSubject.onCompleted()
         macUpdatesSubscription.unsubscribe()
         timerSubscription.unsubscribe()
     }
@@ -445,10 +474,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         assertThread()
         assert(!macUpdatesSubscription.isUnsubscribed)
         assert(!timerSubscription.isUnsubscribed)
-        if (br eq null) {
-            return
-        }
 
+        deviceReady = false
         bridge = br
 
         val portIds = bridge.getPortIdsList.asScala.map(_.asJava).toSet
@@ -482,10 +509,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         // subscribe the feedback subject to its ready observable.
         if (vt.config.bridgeArpEnabled && (ipv4MacMap eq null)) {
             ipv4MacMap = new BridgeIpv4MacMap(vt, bridgeId)
-            ipv4MacMap.ready.map[TopologyBridge](makeFunc1 { _ =>
-                log debug "IPv4-MAC state table is ready"
-                null
-            }).subscribe(feedbackSubject)
+            stateTableSubject onNext ipv4MacMap.ready
         }
 
         // Request trace chain be built if necessary
@@ -514,6 +538,14 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             log.warn("Update for unknown port {}, ignoring", port.id)
             false
         }
+    }
+
+    /**
+      * Indicates that a state table is ready.
+      */
+    private def stateTableReady(key: StateTable.Key): TopologyBridge = {
+        log debug s"State table $key ready"
+        bridge
     }
 
     /**
@@ -563,7 +595,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
      * notifications.
      */
     private def onThrow(e: Throwable): Unit = {
-        feedbackSubject.onError(e)
+        stateTableSubject.onError(e)
     }
 
     /**
@@ -679,16 +711,16 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
      * - updates the set of exterior ports for this bridge
      * - performs flow invalidation
      */
-    private def deviceUpdated(br: TopologyBridge): SimulationBridge = {
+    private def deviceUpdated(br: TopologyBridge): Unit = {
         log.debug("Refreshing bridge state")
         assertThread()
 
-        val vlanPortMap = new VlanPortMapImpl
         val vlanSet = new mutable.HashSet[Short]
-        var vlanPeerBridgePortId: Option[UUID] = None
         val routerMacToPortMap = new mutable.HashMap[MAC, UUID]
-        val routerIpToMacMap = new mutable.HashMap[IPAddr, MAC]
 
+        routerIpToMacMap.clear()
+        vlanPortMap = new VlanPortMapImpl
+        vlanPeerBridgePortId = None
         vlanSet += UntaggedVlanId
 
         // Compute the VLAN bridge peer port ID.
@@ -732,13 +764,19 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         }
 
         // Create MAC learning tables for new VLANs.
-        for (vlanId <- vlanSet -- macLearningTables.keySet) {
-            createMacLearningTable(vlanId)
-        }
+        val readyObservables =
+            for (vlanId <- vlanSet if !macLearningTables.contains(vlanId)) yield {
+                createMacLearningTable(vlanId)
+            }
 
         // Remove MAC learning tables for deleted VLANs.
-        for (vlanId <- macLearningTables.keySet -- vlanSet) {
+        for (vlanId <- macLearningTables.keys if !vlanSet.contains(vlanId)) {
             removeMacLearningTable(vlanId)
+        }
+
+        // Publish the ready observables for the new tables.
+        for (readyObservable <- readyObservables) {
+            //stateTableSubject onNext readyObservable
         }
 
         val addedMacPortMappings = routerMacToPortMap -- oldRouterMacPortMap.keys
@@ -765,6 +803,15 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             vt.invalidate(tagForBroadcast(bridgeId))
             oldExteriorPorts = exteriorPorts.toSet
         }
+
+        deviceReady = true
+    }
+
+    /**
+      * Builds the bridge device after the bridge and the bridge's state tables
+      * are ready.
+      */
+    private def buildDevice(br: TopologyBridge): SimulationBridge = {
 
         val inFilters = new JArrayList[UUID]()
         val outFilters = new JArrayList[UUID]()
@@ -797,13 +844,14 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             routerIpToMacMap.toMap,
             vlanPortMap,
             exteriorPorts.toList,
-            br.getDhcpIdsList.asScala.map(_.asJava).toList,
+            bridge.getDhcpIdsList.asScala.map(_.asJava).toList,
             preInFilterMirrors,
             postOutFilterMirrors
         )
 
         log.debug("Build bridge: {}", device)
 
+        deviceReady = false
         device
     }
 
@@ -811,15 +859,13 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
      * Create a new MAC learning table for this VLAN, add it to the MAC learning
      * tables map, and emit its observable on the MAC updates subject.
      */
-    private def createMacLearningTable(vlanId: Short): Unit = {
+    private def createMacLearningTable(vlanId: Short): Observable[StateTable.Key] = {
         log.debug("Create MAC learning table for VLAN {}", Short.box(vlanId))
         val table = new BridgeMacLearningTable(vt, bridgeId, vlanId, log)
         macLearningTables += vlanId -> table
         macUpdatesSubject onNext table.observable
-        table.ready.map[TopologyBridge](makeFunc1 { _ =>
-            log debug s"MAC-port state table for VLAN $vlanId is ready"
-            null
-        }).subscribe(feedbackSubject)
+        stateTableSubject onNext table.ready
+        table.ready
     }
 
     /**

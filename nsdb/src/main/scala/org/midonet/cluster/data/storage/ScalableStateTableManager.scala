@@ -229,19 +229,19 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
     /**
       * The subscription list for the ready state.
       */
-    private class ReadySubscriptionList extends SubscriptionList[Boolean] {
+    private class ReadySubscriptionList extends SubscriptionList[StateTable.Key] {
 
-        protected def start(child: Subscriber[_ >: Boolean]): Unit = {
+        protected def start(child: Subscriber[_ >: StateTable.Key]): Unit = {
             // Do nothing.
         }
 
-        protected def added(child: Subscriber[_ >: Boolean]): Unit = {
+        protected def added(child: Subscriber[_ >: StateTable.Key]): Unit = {
             this.synchronized {
-                if (snapshotReady) child.onNext(true)
+                if (snapshotReady) child.onNext(table.tableKey)
             }
         }
 
-        protected def terminated(child: Subscriber[_ >: Boolean]): Unit = {
+        protected def terminated(child: Subscriber[_ >: StateTable.Key]): Unit = {
             child.onCompleted()
         }
 
@@ -260,7 +260,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
                 val subs = readySubscriptionList.subscribers
                 var index = 0
                 while (index < subs.length) {
-                    subs(index) onNext true
+                    subs(index) onNext table.tableKey
                     index += 1
                 }
             }
@@ -563,7 +563,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
     /**
       * Adds the specified subscriber to the ready subscription list.
       */
-    def ready(child: Subscriber[_ >: Boolean]): Unit = {
+    def ready(child: Subscriber[_ >: StateTable.Key]): Unit = {
         readySubscriptionList.call(child)
     }
 
