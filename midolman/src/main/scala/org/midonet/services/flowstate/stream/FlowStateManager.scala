@@ -39,8 +39,18 @@ object FlowStateManager {
 class FlowStateManager(config: FlowStateConfig) {
 
     protected[this] val buffers = TrieMap.empty[UUID, Buffers]
-    protected[this] val stateWriters = TrieMap.empty[UUID, FlowStateWriter]
-    protected[this] val blockWriters = TrieMap.empty[UUID, BlockWriter]
+
+    /**
+      * Mapping between the [[UUID]] of a port and its corresponding
+      * [[FlowStateWriter]].
+      */
+    val stateWriters = TrieMap.empty[UUID, FlowStateWriter]
+
+    /**
+      * Mapping between the [[UUID]] of a port and its corresponding
+      * [[BlockWriter]].
+      */
+    val blockWriters = TrieMap.empty[UUID, BlockWriter]
 
     /**
       * Open memory mapped backed file with read/write access. If the file
@@ -127,9 +137,6 @@ class FlowStateManager(config: FlowStateConfig) {
                 FlowStateBlock, open(portId), config.expirationTime toNanos)
         })
     }
-
-    /** Returns an iterator over the raw block writers. */
-    def iterator: Iterator[(UUID, BlockWriter)] = blockWriters.iterator
 
     /**
       * Closes this portId for writting and prepare it for reading. This needs
