@@ -31,7 +31,6 @@ import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
-import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
@@ -158,7 +157,6 @@ object VirtualTopology {
  */
 class VirtualTopology(val backend: MidonetBackend,
                       val config: MidolmanConfig,
-                      val connectionWatcher: ZkConnectionAwareWatcher,
                       val simBackChannel: SimulationBackChannel,
                       val metricRegistry: MetricRegistry,
                       val vtExecutor: ExecutorService,

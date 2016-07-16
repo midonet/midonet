@@ -38,7 +38,6 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 
 import org.midonet.cluster.StateProxyConfig
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage.{StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.rpc.State.ProxyRequest.{Subscribe, Unsubscribe}
@@ -63,8 +62,6 @@ class StateTableManagerTest extends FeatureSpec with Matchers
 
         override def stateStore: StateStorage = ???
         override def store: Storage = ???
-        override def connectionWatcher: ZkConnectionAwareWatcher = ???
-        override def connection: ZkConnection = ???
         override val curator: CuratorFramework = {
             val curator = Mockito.mock(classOf[CuratorFramework])
             Mockito.when(curator.getConnectionStateListenable)
