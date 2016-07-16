@@ -140,6 +140,9 @@ JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midonet-cluster/gc-`date +%Y%m%d_%H%M%S`.lo
 # comment out this entry to enable IPv6 support).
 # JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
 
+# uncomment to log configuration passwords
+# JVM_OPTS="$JVM_OPTS -Dmidonet.show_config_passwords"
+
 # uncomment to disable JMX
 # JMXDISABLE=true
 
