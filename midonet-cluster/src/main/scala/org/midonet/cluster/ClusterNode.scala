@@ -17,7 +17,12 @@
 package org.midonet.cluster
 
 import java.nio.file.{Files, Paths}
+<<<<<<< HEAD
 import java.util.UUID
+=======
+import java.util.Properties
+import java.util.concurrent.TimeUnit
+>>>>>>> ce15aa5... Hide configuration passwords by default
 
 import javax.sql.DataSource
 
@@ -105,8 +110,11 @@ object ClusterNode extends App {
         .setOriginComments(false)
         .setFormatted(true)
         .setJson(true)
+    val showConfigPasswords =
+        System.getProperties.containsKey("midonet.show_config_passwords")
     log.info("Loaded configuration: {}",
-             configurator.dropSchema(clusterConf.conf).root.render(renderOpts))
+             configurator.dropSchema(clusterConf.conf, showConfigPasswords)
+                         .root.render(renderOpts))
 
     log.info("Scanning classpath for Cluster Minions..")
     private val reflections = new Reflections("org.midonet")

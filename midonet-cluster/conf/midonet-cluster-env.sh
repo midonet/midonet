@@ -140,6 +140,9 @@ JVM_OPTS="$JVM_OPTS -XX:PretenureSizeThreshold=2m"
 # comment out this entry to enable IPv6 support).
 # JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
 
+# uncomment to log configuration passwords
+# JVM_OPTS="$JVM_OPTS -Dmidonet.show_config_passwords"
+
 # uncomment to disable JMX
 # JMXDISABLE=true
 

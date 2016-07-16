@@ -239,8 +239,11 @@ public class Midolman {
             .setOriginComments(false)
             .setFormatted(true);
         Config conf = injector.getInstance(MidolmanConfig.class).conf();
+        Boolean showConfigPasswords =
+            System.getProperties().containsKey("midonet.show_config_passwords");
         log.info("Loaded configuration: {}",
-                 configurator.dropSchema(conf).root().render(renderOpts));
+                 configurator.dropSchema(conf, showConfigPasswords).root()
+                             .render(renderOpts));
 
         configurator.observableRuntimeConfig(HostIdGenerator.getHostId()).
                 subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
