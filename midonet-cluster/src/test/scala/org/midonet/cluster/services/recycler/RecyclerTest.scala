@@ -103,8 +103,6 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         backend = new MidonetBackend {
             override def stateStore: StateStorage = RecyclerTest.this.store
             override def store: Storage = RecyclerTest.this.store
-            override def connectionWatcher: ZkConnectionAwareWatcher = null
-            override def connection: ZkConnection = null
             override def curator: CuratorFramework = RecyclerTest.this.curator
             override def failFastConnectionState: Observable[ConnectionState] = null
             override def stateTableStore: StateTableStorage = null
@@ -254,8 +252,6 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             val backend = new MidonetBackend {
                 override def stateStore: StateStorage = s
                 override def store: Storage = s
-                override def connectionWatcher: ZkConnectionAwareWatcher = null
-                override def connection: ZkConnection = null
                 override def curator: CuratorFramework = RecyclerTest.this.curator
                 override def failFastConnectionState: Observable[ConnectionState] = null
                 override def stateTableStore: StateTableStorage = null
