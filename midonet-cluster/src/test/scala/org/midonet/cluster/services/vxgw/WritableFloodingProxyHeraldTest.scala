@@ -31,7 +31,6 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.cluster.models.Topology.TunnelZone.Type
@@ -76,8 +75,6 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             override def curator: CuratorFramework = ???
             override def failFastCurator: CuratorFramework = ???
             override def reactor: Reactor = ???
-            override def connection: ZkConnection = ???
-            override def connectionWatcher: ZkConnectionAwareWatcher = ???
             override def connectionState: Observable[ConnectionState] = ???
             override def failFastConnectionState: Observable[ConnectionState] = ???
             override def doStop(): Unit = ???

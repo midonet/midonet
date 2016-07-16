@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory
 
 import rx.{Observable, Subscriber}
 
-import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
@@ -43,7 +42,7 @@ import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscover
 import org.midonet.cluster.services.state.StateProxyService
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => StateClientConnectionState}
 import org.midonet.cluster.services.state.client.{StateProxyClient, StateSubscriptionKey, StateTableClient}
-import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.conf.HostIdGenerator
 import org.midonet.util.concurrent.Executors
@@ -71,10 +70,6 @@ class MidonetBackendService(config: MidonetBackendConfig,
     @volatile private var stateProxyClient: StateProxyClient = null
 
     override val reactor = new TryCatchReactor("nsdb", 1)
-    override val connection = new CuratorZkConnection(curator, reactor)
-    override val connectionWatcher =
-        ZookeeperConnectionWatcher.createWith(config, reactor, connection)
-
     override val connectionState =
         ConnectionObservable.create(curator)
     override val failFastConnectionState =
