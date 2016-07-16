@@ -338,7 +338,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         ConfigUtil.joinPath(keyParts.dropRight(1).:+(s"${keyParts.last}$suffix"))
     }
 
-    def dropSchema(cfg: Config): Config = {
+    def dropSchema(cfg: Config, showPasswords: Boolean = false): Config = {
         var ret = cfg
         for (entry <- cfg.entrySet()) {
             val typeKey = keyWithSuffix(entry.getKey, "_type")
@@ -348,6 +348,9 @@ class MidoNodeConfigurator(zk: CuratorFramework,
                 ret = ret.withoutPath(typeKey)
             if (ret.hasPath(descrKey))
                 ret = ret.withoutPath(descrKey)
+            if (!showPasswords && entry.getKey.endsWith("password")) {
+                ret = ret.withValue(entry.getKey, "********")
+            }
         }
         ret
     }
