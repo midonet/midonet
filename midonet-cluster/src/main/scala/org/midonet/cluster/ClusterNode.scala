@@ -18,7 +18,7 @@ package org.midonet.cluster
 
 import java.lang.management.ManagementFactory
 import java.nio.file.{Files, Paths}
-import java.util.{Arrays, Properties}
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import javax.sql.DataSource
@@ -130,8 +130,11 @@ object ClusterNode extends App {
     val renderOpts = ConfigRenderOptions.defaults
         .setComments(false).setOriginComments(false).setFormatted(true)
         .setJson(true)
+    val showConfigPasswords =
+        System.getProperties.containsKey("midonet.show_config_passwords")
     log.info("Loaded configuration: {}",
-             configurator.dropSchema(clusterConf.conf).root.render(renderOpts))
+             configurator.dropSchema(clusterConf.conf, showConfigPasswords)
+                         .root.render(renderOpts))
     val clusterExecutor = ExecutorsModule(clusterConf.executors, log)
 
     log.info("Scanning classpath for Cluster Minions...")

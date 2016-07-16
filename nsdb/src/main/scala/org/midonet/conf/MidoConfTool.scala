@@ -96,7 +96,7 @@ object ListTemplate extends Subcommand("template-list") with ConfCommand {
         val templates = configurator.listTemplates
 
         val mappingsMap = mappings.entrySet() map { e => e.getKey -> e.getValue.unwrapped().asInstanceOf[String] } toMap
-        val inverseMappings = mappingsMap.groupBy(_._2).mapValues(_.map(_._1))
+        val inverseMappings = mappingsMap.groupBy(_._2).mapValues(_.keys)
 
         for (template <- templates) {
             println(template)
@@ -359,7 +359,9 @@ object DumpConf extends ConfigQuery("dump") with ConfCommand {
     descr("Prints out a dump of the configuration")
 
     override def run(configurator: MidoNodeConfigurator) = {
-        print(configurator.dropSchema(makeConfig(configurator).resolve()).root().render(renderOpts))
+        print(configurator.dropSchema(makeConfig(configurator).resolve(),
+                                      showPasswords = true)
+                          .root().render(renderOpts))
         println()
         ConfCommand.SUCCESS
     }
@@ -397,7 +399,7 @@ object Doc extends Subcommand("doc") with ConfCommand {
             if (key.get.isDefined) {
                 doc(key.get.get)
             } else {
-                val noSchema = configurator.dropSchema(conf)
+                val noSchema = configurator.dropSchema(conf, showPasswords = true)
                 for (entry <- noSchema.entrySet if !entry.getKey.endsWith(".schemaVersion")) {
                     doc(entry.getKey)
                     println("")
@@ -515,7 +517,7 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
         }
 
         if (useSchema)
-            conf = conf.withFallback(configurator.mergedSchemas)
+            conf = conf.withFallback(configurator.mergedSchemas())
 
         conf
     }
