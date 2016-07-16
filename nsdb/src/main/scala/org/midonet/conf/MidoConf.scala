@@ -18,7 +18,8 @@ package org.midonet.conf
 
 import java.io._
 import java.net.{URI, URL}
-import java.util.UUID
+import java.security.MessageDigest
+import java.util.{Base64, UUID}
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
@@ -28,6 +29,7 @@ import scala.util.Try
 
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
+
 import org.apache.commons.configuration.{ConfigurationException, HierarchicalINIConfiguration}
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
@@ -35,6 +37,7 @@ import org.apache.curator.retry.RetryOneTime
 import org.apache.zookeeper.KeeperException
 import org.slf4j.LoggerFactory
 import org.slf4j.helpers.NOPLogger
+
 import rx.Observable
 
 import org.midonet.cluster.util.ObservableNodeCache
@@ -325,6 +328,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
 
     private val _templateMappings = new ZookeeperConf(zk, s"/config/template-mappings")
+    private val digest = MessageDigest.getInstance("SHA-256")
 
     {
         val zkClient = zk.getZookeeperClient
@@ -339,7 +343,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         ConfigUtil.joinPath(keyParts.dropRight(1).:+(s"${keyParts.last}$suffix"))
     }
 
-    def dropSchema(cfg: Config): Config = {
+    def dropSchema(cfg: Config, showPasswords: Boolean = false): Config = {
         var ret = cfg
         for (entry <- cfg.entrySet()) {
             val typeKey = keyWithSuffix(entry.getKey, "_type")
@@ -349,6 +353,13 @@ class MidoNodeConfigurator(zk: CuratorFramework,
                 ret = ret.withoutPath(typeKey)
             if (ret.hasPath(descrKey))
                 ret = ret.withoutPath(descrKey)
+            if (!showPasswords && entry.getKey.endsWith("password")) {
+                val password = Base64.getEncoder
+                    .encodeToString(digest.digest(entry.getValue.render()
+                                                       .getBytes("UTF-8")))
+                    .substring(0, 8)
+                ret = ret.withValue(entry.getKey, s"SHA-256+base64=$password...")
+            }
         }
         ret
     }

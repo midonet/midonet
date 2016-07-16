@@ -105,8 +105,11 @@ object ClusterNode extends App {
         .setOriginComments(false)
         .setFormatted(true)
         .setJson(true)
+    val showConfigPasswords =
+        System.getProperties.containsKey("midonet.show_config_passwords")
     log.info("Loaded configuration: {}",
-             configurator.dropSchema(clusterConf.conf).root.render(renderOpts))
+             configurator.dropSchema(clusterConf.conf, showConfigPasswords)
+                         .root.render(renderOpts))
 
     log.info("Scanning classpath for Cluster Minions..")
     private val reflections = new Reflections("org.midonet")
