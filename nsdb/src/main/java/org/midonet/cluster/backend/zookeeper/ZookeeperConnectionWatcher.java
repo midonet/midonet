@@ -18,8 +18,6 @@ package org.midonet.cluster.backend.zookeeper;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -37,7 +35,6 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
     static final Logger log = LoggerFactory.getLogger(ZookeeperConnectionWatcher.class);
 
-    private ScheduledFuture<?> disconnectHandle;
     private ZkConnection conn = null;
     private long sessionId = 0;
     private List<Runnable> reconnectCallbacks = new LinkedList<>();
@@ -70,18 +67,6 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     @Override
     public synchronized void process(WatchedEvent event) {
         if (event.getState() == Watcher.Event.KeeperState.Disconnected) {
-            log.warn("KeeperState is Disconnected, will shutdown in {} " +
-                     "milliseconds if the connection is not restored.",
-                     config.graceTime());
-
-            disconnectHandle = reactorLoop.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    log.error("have been disconnected for {} milliseconds, " +
-                              "so exiting", config.graceTime());
-                    System.exit(7453);
-                }
-            }, config.graceTime(), TimeUnit.MILLISECONDS);
             submitDisconnectCallbacks();
         }
 
@@ -90,31 +75,14 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
                 if (sessionId == 0) {
                     this.sessionId = conn.getZooKeeper().getSessionId();
                 } else if (sessionId != conn.getZooKeeper().getSessionId()) {
-                    log.warn("Zookeeper connection restored to a new session " +
-                            "id (old={} new={}), shutting down",
-                            sessionId, conn.getZooKeeper().getSessionId());
-                    System.exit(-1);
+                    return;
                 }
-
-                log.info("KeeperState is SyncConnected, SessionId={}",
-                         conn.getZooKeeper().getSessionId());
             } else {
                 log.error("Got ZK connection event but ZkConnection "+
                           "has not been supplied, cannot track sessions");
             }
 
             submitReconnectCallbacks();
-
-            if (disconnectHandle != null) {
-                log.info("canceling shutdown");
-                disconnectHandle.cancel(true);
-                disconnectHandle = null;
-            }
-        }
-
-        if (event.getState() == Watcher.Event.KeeperState.Expired) {
-            log.warn("KeeperState is Expired, shutdown now");
-            System.exit(-1);
         }
 
         //TODO(abel) should this class process other Zookeeper events?
