@@ -96,53 +96,32 @@ public class FuncTest {
               .add(new WildcardJacksonJaxbJsonProvider(
                   new ObjectMapperProvider()));
         return new WebAppDescriptor.Builder()
-            .contextListenerClass(VladimirServletContextListener.class)
+            .contextListenerClass(RestApiServletContextListener.class)
             .filterClass(GuiceFilter.class)
             .servletPath("/")
             .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 
-    public static class VladimirServletContextListener
+    public static class RestApiServletContextListener
         extends GuiceServletContextListener {
 
-        private TestingServer testZk;
+        private final TestingServer testZk;
+        private final CuratorFramework curator;
+        private final MidonetBackendService backend;
+        private final ClusterConfig cfg;
 
-        public VladimirServletContextListener () {
+        public RestApiServletContextListener () {
             try {
                 // This starts a Zookeeper server on an available port that
                 // is randomly selected.
                 testZk = new TestingServer();
+                curator = newClient(testZk.getConnectString(),
+                                    new RetryNTimes(10, 500));
             } catch (Exception e) {
                 throw new IllegalStateException("Can't start Zookeeper server");
             }
-        }
 
-        @Override
-        public void contextInitialized(ServletContextEvent sce) {
-            super.contextInitialized(sce);
-        }
-
-        @Override
-        public void contextDestroyed(ServletContextEvent sce) {
-            try {
-                testZk.close();
-            } catch (Exception e) {
-                // OK
-            }
-            super.contextDestroyed(sce);
-        }
-
-        @Override
-        protected Injector getInjector() {
-
-            Reflections reflections = new Reflections(
-                "org.midonet.cluster.rest_api",
-                "org.midonet.cluster.services.rest_api");
-
-            CuratorFramework curator = newClient(testZk.getConnectString(),
-                                                 new RetryNTimes(10, 500));
-
-            ClusterConfig cfg = ClusterConfig.forTests(
+            cfg = ClusterConfig.forTests(
                 ConfigFactory.parseString (
                     "zookeeper.use_new_stack = true \n" +
                     "zookeeper.curator_enabled = true \n" +
@@ -153,12 +132,9 @@ public class FuncTest {
                 )
             );
 
-            AuthService authService = new MockAuthService(cfg.conf());
-
-            MidonetBackendService backend =
-                new MidonetBackendService(cfg.backend(), curator, curator,
-                                          null /* metricRegistry */,
-                                          scala.Option.apply(null)) {
+            backend = new MidonetBackendService(cfg.backend(), curator, curator,
+                                                null /* metricRegistry */,
+                                                scala.Option.apply(null)) {
                     @Override
                     public void setup(StateTableStorage storage) {
                         storage.registerTable(
@@ -174,6 +150,33 @@ public class FuncTest {
                             ArpStateTable.class);
                     }
                 };
+        }
+
+        @Override
+        public void contextInitialized(ServletContextEvent sce) {
+            super.contextInitialized(sce);
+        }
+
+        @Override
+        public void contextDestroyed(ServletContextEvent sce) {
+            try {
+                backend.stopAsync().awaitTerminated();
+                testZk.close();
+            } catch (Exception e) {
+                // OK
+            }
+            super.contextDestroyed(sce);
+        }
+
+        @Override
+        protected Injector getInjector() {
+
+            Reflections reflections = new Reflections(
+                "org.midonet.cluster.rest_api",
+                "org.midonet.cluster.services.rest_api");
+
+            AuthService authService = new MockAuthService(cfg.conf());
+
             backend.startAsync().awaitRunning();
 
             ExecutionContext ec = ExecutionContext$.MODULE$.fromExecutor(
