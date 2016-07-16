@@ -23,15 +23,17 @@ import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
+import com.typesafe.scalalogging.Logger
 
 import io.netty.channel.nio.NioEventLoopGroup
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
+import org.apache.curator.framework.state.ConnectionState
 import org.reflections.Reflections
-import org.slf4j.LoggerFactory.getLogger
+import org.slf4j.LoggerFactory
 
-import rx.Observable
+import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher
 import org.midonet.cluster.data.storage._
@@ -56,7 +58,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
                             reflections: Option[Reflections])
     extends MidonetBackend {
 
-    private val log = getLogger("org.midonet.nsdb")
+    private val log = Logger(LoggerFactory.getLogger("org.midonet.nsdb"))
 
     private val namespaceId =
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
@@ -94,6 +96,22 @@ class MidonetBackendService(config: MidonetBackendConfig,
 
         override def start(): Unit = { }
     }
+
+    private val connectionSubscriber = new Subscriber[ConnectionState] {
+        override def onNext(state: ConnectionState): Unit = {
+            connectionStateChanged(state)
+        }
+
+        override def onCompleted(): Unit = {
+            log warn s"Backend connection notification stream has completed"
+        }
+
+        override def onError(e: Throwable): Unit = {
+            log.error("Error on connection notification stream", e)
+        }
+    }
+    @volatile private var connectionSuspendedTime = -1L
+    @volatile private var sessionId = 0L
 
     private val zoom =
         new ZookeeperObjectMapper(config.rootKey, namespaceId.toString, curator,
@@ -143,7 +161,6 @@ class MidonetBackendService(config: MidonetBackendConfig,
                 stateProxyClient.start()
             }
 
-            notifyStarted()
             log.info("Setting up storage bindings")
             MidonetBackend.setupBindings(zoom, zoom, () => {
                 setup(zoom)
@@ -151,6 +168,12 @@ class MidonetBackendService(config: MidonetBackendConfig,
                     setupFromClasspath(zoom, zoom, reflections.get)
                 }
             })
+
+            log.info("Start observing backend connection")
+            sessionId = curator.getZookeeperClient.getZooKeeper.getSessionId
+            connectionState subscribe connectionSubscriber
+
+            notifyStarted()
         } catch {
             case NonFatal(e) =>
                 log.error("Failed to start backend service", e)
@@ -160,22 +183,30 @@ class MidonetBackendService(config: MidonetBackendConfig,
 
     protected def doStop(): Unit = {
         log.info("Stopping backend store for host {}", namespaceId)
+
+        connectionSubscriber.unsubscribe()
         reactor.shutDownNow()
+
         curator.close()
         failFastCurator.close()
-        notifyStopped()
+
         if (config.stateClient.enabled) {
             stateProxyClient.stop()
             stateProxyClientExecutor.shutdown()
         }
+
         discoveryService.stop()
         discoveryServiceExecutor.shutdown()
+
+        notifyStopped()
     }
 
-    /** This method allows hooks to be inserted in the classpath, so that setup
+    /**
+      * This method allows hooks to be inserted in the classpath, so that setup
       * code can be executed before the MidoNet backend is built. Such hook
       * classes must implement ZoomInitializer and have the @ZoomInit
-      * annotation. */
+      * annotation.
+      */
     private def setupFromClasspath(store: Storage, stateStore: StateStorage,
                                    reflections: Reflections): Unit = {
         log.info("Scanning classpath for storage plugins...")
@@ -196,5 +227,55 @@ class MidonetBackendService(config: MidonetBackendConfig,
                                  s"${initializer.getName}", e)
                 }
             }
+    }
+
+    /**
+      * Handles changes to the backend connection state.
+      */
+    private def connectionStateChanged(state: ConnectionState): Unit = {
+        state match {
+            case ConnectionState.CONNECTED =>
+                log info "Backend is connected"
+
+            case ConnectionState.SUSPENDED =>
+                log warn "Backend connection is suspended: MidoNet will " +
+                         "shutdown after a grace time of " +
+                         s"${config.sessionTimeout} milliseconds if the " +
+                         "session is not restored"
+                if (connectionSuspendedTime < 0) {
+                    connectionSuspendedTime = System.currentTimeMillis()
+                }
+
+            case ConnectionState.RECONNECTED =>
+                val suspendedTime = connectionSuspendedTime
+                if (suspendedTime > 0) {
+                    val duration = System.currentTimeMillis() - suspendedTime
+                    connectionSuspendedTime = -1L
+                    log info "Backend is reconnected after being disconnected " +
+                             s"for $duration milliseconds"
+                } else {
+                    log info "Backend is reconnected"
+                }
+
+                val currentSessionId =
+                    curator.getZookeeperClient.getZooKeeper.getSessionId
+                if (sessionId != currentSessionId) {
+                    log error "The backend has reconnected with a different " +
+                              s"session identifier old=$sessionId " +
+                              s"new=$currentSessionId: shutting down"
+                    System.exit(-1)
+                }
+
+            case ConnectionState.READ_ONLY =>
+                log warn "Backend connection is read-only"
+
+            case ConnectionState.LOST =>
+                log error "Backend connection is lost after being disconnected " +
+                          s"for ${config.sessionTimeout} millisecond: shutting " +
+                          "down"
+                if (isRunning) {
+                    System.exit(7453)
+                }
+        }
     }
 }
