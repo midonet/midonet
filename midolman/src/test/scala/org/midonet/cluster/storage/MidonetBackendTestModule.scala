@@ -25,7 +25,6 @@ import org.mockito.Mockito._
 
 import rx.subjects.BehaviorSubject
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, StateTableStorage, Storage}
 import org.midonet.cluster.models.Topology
@@ -65,8 +64,6 @@ class MidonetTestBackend (curatorParam: CuratorFramework) extends MidonetBackend
     override def curator: CuratorFramework = curatorParam
     override def failFastCurator: CuratorFramework = curatorParam
     override def reactor: Reactor = null
-    override def connection: ZkConnection = null
-    override def connectionWatcher: ZkConnectionAwareWatcher = null
     override def failFastConnectionState =
         connectionState.asObservable()
 

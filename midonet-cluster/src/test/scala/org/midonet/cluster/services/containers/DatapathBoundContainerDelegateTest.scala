@@ -26,7 +26,6 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.{Host, Port, ServiceContainer}
@@ -65,10 +64,8 @@ class DatapathBoundContainerDelegateTest extends FeatureSpec with Matchers
         backend = new MidonetBackend {
             override def stateStore: StateStorage = storage
             override def store: Storage = storage
-            override def connectionWatcher: ZkConnectionAwareWatcher = ???
             override def connectionState: Observable[ConnectionState] = ???
             override def failFastConnectionState: Observable[ConnectionState] = ???
-            override def connection: ZkConnection = ???
             override def curator: CuratorFramework = ???
             override def failFastCurator: CuratorFramework = ???
             override def stateTableStore: StateTableStorage = ???
