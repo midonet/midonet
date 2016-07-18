@@ -19,6 +19,7 @@ package org.midonet.cluster.services.rest_api
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.{ConfigException, ConfigFactory}
 
 import org.apache.http.client.fluent.Request
@@ -27,12 +28,12 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.cluster.auth.MockAuthService
 import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.test.util.ZookeeperTestSuite
-import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
+import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 
 @RunWith(classOf[JUnitRunner])
 class ConfResourceTest extends FeatureSpec
@@ -64,10 +65,10 @@ class ConfResourceTest extends FeatureSpec
 
     override def beforeAll(): Unit = {
         super.beforeAll()
-        
+
         val context = ClusterNode.Context(HostIdGenerator.getHostId)
         backend = new MidonetBackendService(new MidonetBackendConfig(config),
-                                                zkClient, null, null)
+                                            zkClient, new MetricRegistry, null)
         backend.startAsync().awaitRunning()
         api = new RestApi(context, backend, zkClient,
                           new MockAuthService(config),

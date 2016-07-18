@@ -21,7 +21,9 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.ConfigFactory
+
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -38,11 +40,13 @@ import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.{SequenceDispenser, IPSubnetUtil, CuratorTestFramework}
+import org.midonet.cluster.util.{CuratorTestFramework, SequenceDispenser, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
+
+import org.midonet.cluster.util
 
 @RunWith(classOf[JUnitRunner])
 class NeutronZoomPluginTest extends FeatureSpec
@@ -68,7 +72,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         """.stripMargin)
         )
         MidonetBackend.isCluster = true
-        backend = new MidonetBackendService(cfg, curator, metricRegistry = null,
+        backend = new MidonetBackendService(cfg, curator, new MetricRegistry,
                                             reflections = null)
         backend.startAsync().awaitRunning()
 

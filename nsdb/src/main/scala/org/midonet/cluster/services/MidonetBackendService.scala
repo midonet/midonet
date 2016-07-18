@@ -16,7 +16,6 @@
 package org.midonet.cluster.services
 
 import java.util.UUID
-import javax.annotation.Nullable
 
 import scala.util.control.NonFatal
 import scala.collection.JavaConversions._
@@ -25,7 +24,6 @@ import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
-import org.reflections.Reflections
 import org.slf4j.LoggerFactory.getLogger
 import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._

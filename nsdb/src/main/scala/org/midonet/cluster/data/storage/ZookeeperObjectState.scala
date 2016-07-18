@@ -37,6 +37,7 @@ import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage.{NoOwnerId, StringEncoding}
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectState.{KeyIndex, MultiObservable, SingleObservable, makeThrowable}
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.{DirectoryObservableClosedException, NodeObservable, NodeObservableClosedException, PathDirectoryObservable}
 import org.midonet.util.functors._
 
@@ -266,7 +267,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, Some(value), ownerId))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    metrics.noNodeTriggered()
+                    metrics.error.noNodesExceptions.inc()
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, None, NoOwnerId))
                 } else {
@@ -285,7 +286,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     Notification.createOnNext[StateKey](
                         MultiValueKey(key,values))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    metrics.noNodeTriggered()
+                    metrics.error.noNodesExceptions.inc()
                     Notification.createOnNext[StateKey](
                         MultiValueKey(key, Set()))
                 } else {
@@ -566,7 +567,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                         event.getStat.getEphemeralOwner))
                 }
             } else if (event.getResultCode == Code.NONODE.intValue()) {
-                metrics.noNodeTriggered()
+                metrics.error.noNodesExceptions.inc()
                 // The node does not exist: complete immediately.
                 Observable.just(StateResult(NoOwnerId))
             } else {
@@ -616,7 +617,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             val ref = singleObservableRef.getAndIncrement()
 
             val nodeObservable = NodeObservable.create(
-                curator, path, completeOnDelete = false, metrics, {
+                curator, path, metrics, completeOnDelete = false, {
                     singleObservables.remove(index, SingleObservable(ref))
                 })
 
@@ -634,7 +635,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     singleObservables.remove(index, SingleObservable(ref))
                 }))
                 .onErrorResumeNext(makeFunc1((t: Throwable) => {
-                    metrics.count(t) match {
+                    metrics.error.count(t) match {
                         case e: NodeObservableClosedException=>
                             singleObservable(index, version)
                         case e: Throwable =>
@@ -669,7 +670,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             val ref = multiObservableRef.getAndIncrement()
 
             val directoryObservable = PathDirectoryObservable.create(
-                curator, path, completeOnDelete = false, metrics, {
+                curator, path, metrics, completeOnDelete = false, {
                     multiObservables.remove(index, MultiObservable(ref))
                 })
 
@@ -685,7 +686,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     multiObservables.remove(index, MultiObservable(ref))
                 }))
                 .onErrorResumeNext(makeFunc1((t: Throwable) => {
-                    metrics.count(t) match {
+                    metrics.error.count(t) match {
                         case e: DirectoryObservableClosedException =>
                             multiObservable(index, version)
                         case e: Throwable =>

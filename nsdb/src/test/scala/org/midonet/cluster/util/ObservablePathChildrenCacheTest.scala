@@ -21,6 +21,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import ch.qos.logback.classic.Level
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.retry.RetryOneTime
@@ -30,9 +32,11 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
+
 import rx.Observable
 import rx.observers.{TestObserver, TestSubscriber}
 
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.util.MidonetEventually
 import org.midonet.util.functors.{makeAction1, makeRunnable}
 import org.midonet.util.reactivex.TestAwaitableObserver
@@ -43,8 +47,9 @@ class ObservablePathChildrenCacheTest extends Suite
                                       with Matchers
                                       with MidonetEventually {
 
-    val log = LoggerFactory.getLogger(classOf[ObservablePathChildrenCache])
-    val timeout = 5
+    private val log = LoggerFactory.getLogger(classOf[ObservablePathChildrenCache])
+    private val timeout = 5
+    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
 
     /** Subscribes to an ObservablePathChildrenCache and also to every child
       * observable that appears, accumulating all the data received. The given
@@ -110,7 +115,7 @@ class ObservablePathChildrenCacheTest extends Suite
             curator.getChildren.forPath(zkRoot) should have size nChildren
         }
 
-        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot, metrics)
         opcc.subscribe(collector)
         assert(latch.await(timeout, TimeUnit.SECONDS))
         collector.getOnNextEvents should have size nChildren
@@ -127,7 +132,7 @@ class ObservablePathChildrenCacheTest extends Suite
     }
 
     def testOnNonExistentPath(): Unit = {
-        val o = ObservablePathChildrenCache.create(curator, "/NOT_EXISTS")
+        val o = ObservablePathChildrenCache.create(curator, "/NOT_EXISTS", metrics)
         val ts1 = new TestAwaitableObserver[Observable[ChildData]]
         val ts2 = new TestAwaitableObserver[Observable[ChildData]]
         o.subscribe(ts1) // the subscriber is told about the dodgy observable
@@ -152,7 +157,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val ts = new TestAwaitableObserver[ChildData]()
 
         makePaths(1)
-        ObservablePathChildrenCache.create(curator, zkRoot)
+        ObservablePathChildrenCache.create(curator, zkRoot, metrics)
                                    .observableChild("NOT_A_REAL_CHILD")
                                    .subscribe(ts)
 
@@ -178,7 +183,7 @@ class ObservablePathChildrenCacheTest extends Suite
             curator.getChildren.forPath(zkRoot) should have size nItems
         }
 
-        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot, metrics)
         opcc.asObservable().subscribe(ts)
         ts.awaitOnNext(nItems, timeout.seconds)
         opcc close()
@@ -212,7 +217,7 @@ class ObservablePathChildrenCacheTest extends Suite
         eventually { curator.getChildren.forPath(zkRoot) should have size 2 }
 
         val collector = new ChildDataAccumulator()
-        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot, metrics)
         opcc.subscribe(collector)
 
         eventually {
@@ -248,7 +253,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val nodeData = makePaths(1)
         val childData = nodeData.values.head
         val collector = new ChildDataAccumulator()
-        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot, metrics)
 
         nodeData should not be null
 
@@ -291,7 +296,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val nodeData = makePaths(1)
         val oldChildData = nodeData.values.head
         val collector = new ChildDataAccumulator()
-        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot, metrics)
 
         opcc.subscribe(collector)
 
@@ -330,7 +335,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
         makePaths(nInitial) // Create nInitial children
 
-        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot, metrics)
 
         // Let the OPCC catch up to the initial state
         eventually { opcc.allChildren should have size nInitial }
@@ -405,12 +410,13 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
     override def cnxnTimeoutMs = 3000
     override def sessionTimeoutMs = 10000
 
-    val timeout = 5
+    private val timeout = 5
+    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
 
     def testOnErrorEmittedWhenCacheLosesConnection(): Unit = {
         val ts1 = new TestAwaitableObserver[Observable[ChildData]]
         makePaths(2)
-        val o = ObservablePathChildrenCache.create(curator, zkRoot)
+        val o = ObservablePathChildrenCache.create(curator, zkRoot, metrics)
         o.subscribe(ts1)
         ts1.awaitOnNext(2, timeout.seconds)
         ts1.getOnErrorEvents shouldBe empty
