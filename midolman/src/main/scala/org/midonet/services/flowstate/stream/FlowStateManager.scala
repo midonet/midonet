@@ -147,7 +147,10 @@ class FlowStateManager(config: FlowStateConfig) {
       */
     def close(portId: UUID): Unit = {
         stateWriters.remove(portId) match {
-            case Some(writer) => writer.close()
+            case Some(writer) => {
+                Log debug s"Closing flow state file for port $portId"
+                writer.close()
+            }
             case _ =>
         }
     }
