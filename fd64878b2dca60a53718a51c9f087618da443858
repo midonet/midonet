@@ -22,6 +22,30 @@
       "revId": "fd64878b2dca60a53718a51c9f087618da443858",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bd504633",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomSerializer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-18T07:38:03Z",
+      "side": 1,
+      "message": "https://github.com/google/protobuf/pull/782",
+      "parentUuid": "baa041b7_e964d822",
+      "range": {
+        "startLine": 135,
+        "startChar": 4,
+        "endLine": 147,
+        "endChar": 5
+      },
+      "revId": "fd64878b2dca60a53718a51c9f087618da443858",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
