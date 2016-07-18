@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7d6f5efc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageMetrics.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-18T07:32:42Z",
+      "side": 1,
+      "message": "A meter already gives you 1, 5, and 15 min moving averages. You don\u0027t need separate meters for each. Just one is enough.",
+      "range": {
+        "startLine": 206,
+        "startChar": 8,
+        "endLine": 206,
+        "endChar": 32
+      },
+      "revId": "3716cb1b60b13e39224befcc99bc15fa5dab525d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
