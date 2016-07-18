@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
+try:
+        import httplib
+except ImportError:
+        import http.client as httplib
 import json
 import socket
 import sys
