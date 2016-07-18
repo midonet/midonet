@@ -19,6 +19,7 @@ package org.midonet.cluster.services.rest_api
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.{ConfigException, ConfigFactory}
 
 import org.apache.http.client.fluent.Request
@@ -33,7 +34,7 @@ import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.auth.MockAuthService
 import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.test.util.ZookeeperTestSuite
-import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.minion.Context
 
 @RunWith(classOf[JUnitRunner])
@@ -73,7 +74,8 @@ class ConfResourceTest extends FeatureSpec
 
         val context = Context(HostIdGenerator.getHostId)
         backend = new MidonetBackendService(new MidonetBackendConfig(config),
-                                                zkClient, zkClient, null, None)
+                                            zkClient, zkClient,
+                                            new MetricRegistry, None)
         backend.startAsync().awaitRunning()
         api = new RestApi(context, backend, zkClient, reflections,
                           new MockAuthService(config),
