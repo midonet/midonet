@@ -22,6 +22,30 @@
       "revId": "cfe4892bd63879111a2a5c7c8a25dfc9bb34db60",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_18e50037",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-18T08:39:41Z",
+      "side": 1,
+      "message": "Done. I don\u0027t think there\u0027s a need but should we point to specific logs?",
+      "parentUuid": "baa041b7_d800b803",
+      "range": {
+        "startLine": 245,
+        "startChar": 8,
+        "endLine": 245,
+        "endChar": 44
+      },
+      "revId": "cfe4892bd63879111a2a5c7c8a25dfc9bb34db60",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
