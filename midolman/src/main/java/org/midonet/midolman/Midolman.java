@@ -139,7 +139,9 @@ public class Midolman {
     private void run(String[] args) throws Exception {
         Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
         setUncaughtExceptionHandler();
-        watchedProcess.start(initializationPromise);
+        int initTimeout = Integer.valueOf(
+            System.getProperty("midolman.init_timeout", "120"));
+        watchedProcess.start(initializationPromise, initTimeout);
 
         // log git commit info
         Properties properties = new Properties();
@@ -240,7 +242,14 @@ public class Midolman {
         if (config.lockMemory())
             lockMemory();
 
-        initializationPromise.success(true);
+        if (!initializationPromise.trySuccess(true)) {
+            log.error("MidoNet Agent failed to initialize in {} seconds and " +
+                      "is shutting down: try increasing the initialization " +
+                      "timeout using the \"midonet.init_timeout\" system " +
+                      "property or check the upstart logs to determine the " +
+                      "cause of the failure.", initTimeout);
+            System.exit(-1);
+        }
         log.info("MidoNet Agent started");
 
         injector.getInstance(MidolmanService.class).awaitTerminated();
