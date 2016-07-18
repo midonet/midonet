@@ -51,17 +51,24 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
         val update = retry(UpdateBindingRetries) {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
-            val newPort = oldPort.toBuilder
-                                 .setHostId(UUIDUtil.toProto(hostId))
-                                 .setInterfaceName(deviceName)
-                                 .build()
-            tx.update(newPort)
+            val newPortBldr = oldPort.toBuilder
+                .setHostId(UUIDUtil.toProto(hostId))
+                .setInterfaceName(deviceName)
+            // If binding from a different host before unbinding,
+            // update previous host. This is necessary since in Nova, bind
+            // on the new host happens before unbind on live migration, and
+            // we need to update the previous host to know where to fetch the
+            // flow state from.
+            if (oldPort.hasHostId && oldPort.getHostId != hostId) {
+                newPortBldr.setPreviousHostId(oldPort.getHostId)
+            }
+            tx.update(newPortBldr.build)
             tx.commit()
         }
 
         if (update.isLeft) {
             val e = update.left.get
-            Log.error(s"Unable to bind port ${portId} to host ${hostId}", e)
+            Log.error(s"Unable to bind port $portId to host $hostId", e)
             throw e
         }
     }
@@ -91,7 +98,7 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
         if (update.isLeft) {
             val e = update.left.get
             Log.error(
-                s"Unable to unbind port ${portId} from host ${hostId}", e)
+                s"Unable to unbind port $portId from host $hostId", e)
             throw e
         }
     }
