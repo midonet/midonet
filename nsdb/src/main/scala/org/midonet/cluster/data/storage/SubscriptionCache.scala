@@ -20,12 +20,15 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.concurrent.TrieMap
 
 import com.google.common.annotations.VisibleForTesting
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.zookeeper.KeeperException.NoNodeException
+
 import rx.Observable
 import rx.functions.Func1
 
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.{ObservableNodeCache, ObservablePathChildrenCache}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
