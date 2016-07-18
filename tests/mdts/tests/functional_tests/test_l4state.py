@@ -326,7 +326,7 @@ def test_distributed_l4_storage_ttl():
     check_forward_flow(port_num)
     check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
 
-    reboot_agents(90)
+    reboot_agents(120)
 
     check_return_flow(left_uplink_port(), left_uplink_iface(),
                       port_num, dropped=True)

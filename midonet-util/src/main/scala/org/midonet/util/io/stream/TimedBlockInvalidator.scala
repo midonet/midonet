@@ -38,15 +38,20 @@ trait TimedBlockInvalidator[T <: TimedBlockHeader] { this: ByteBufferBlockWriter
 
     /**
       * This method triggers and invalidates the entries in the ring buffer
-      * that are older than a configured amount of time. We do not invalidate
-      * the head of the ring buffer as it's the block being written.
+      * that are older than a configured amount of time. By default, we do not
+      * invalidate the head of the ring buffer as it's the block being written
+      * (excludeBlocks == 1). In case the user needs to analize all blocks,
+      * call this method with excludeBlocks = 0.
       *
+      * @param excludeBlocks Number of blocks from the head of the ring buffer
+      *                      to exclude from invalidations. By default, we only
+      *                      exclude the head of the ring buffer.
       * @return The number of blocks invalidated
       */
-    def invalidateBlocks(): Int = {
+    def invalidateBlocks(excludeBlocks: Int = 1): Int = {
         var invalidatedBlocks = 0
         var finished = false
-        while (buffers.length > 1 && !finished) {
+        while (buffers.length > excludeBlocks && !finished) {
             var bb: ByteBuffer = null
             buffers.synchronized {
                 if (isBlockStale(blockBuilder(buffers.peek.get), currentClock)) {

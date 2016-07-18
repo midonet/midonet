@@ -133,8 +133,12 @@ class FlowStateManager(config: FlowStateConfig) {
       */
     def blockWriter(portId: UUID): ByteBufferBlockWriter[TimedBlockHeader] = {
         blockWriters.getOrElseUpdate(portId, {
-            new BlockWriter(
-                FlowStateBlock, open(portId), config.expirationTime toNanos)
+            val ring = open(portId)
+            val blockWriter = new BlockWriter(
+                FlowStateBlock, ring, config.expirationTime toNanos)
+            // Expire blocks before actually start writting to it.
+            blockWriter.invalidateBlocks(excludeBlocks = 0)
+            blockWriter
         })
     }
 
@@ -147,10 +151,15 @@ class FlowStateManager(config: FlowStateConfig) {
       */
     def close(portId: UUID): Unit = {
         stateWriters.remove(portId) match {
-            case Some(writer) => {
+            case Some(writer) =>
                 Log debug s"Closing flow state file for port $portId"
                 writer.close()
-            }
+            case _ =>
+        }
+        blockWriters.remove(portId) match {
+            case Some(writer) =>
+                Log debug s"Invalidating flow state for port $portId"
+                writer.invalidateBlocks(excludeBlocks = 0)
             case _ =>
         }
     }
