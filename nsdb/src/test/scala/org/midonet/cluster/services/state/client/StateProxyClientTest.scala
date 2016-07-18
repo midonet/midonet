@@ -21,9 +21,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 import com.google.protobuf.{ByteString, Message}
 import com.typesafe.config.ConfigFactory
@@ -42,8 +41,8 @@ import rx.Observer
 
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.rpc.State
-import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
+import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
 import org.midonet.util.MidonetEventually
 
 abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
@@ -122,7 +121,7 @@ class StateProxyClientTest extends FeatureSpec
 
     class TestObjects(val softReconnectDelay: Duration = 200 milliseconds,
                       val maxAttempts: Int = 30,
-                      val hardReconnectDelay: Duration = 5 seconds) {
+                      val hardReconnectDelay: Duration = 1 second) {
 
         val executor = new ScheduledThreadPoolExecutor(1)
         executor.setMaximumPoolSize(1)
@@ -249,7 +248,7 @@ class StateProxyClientTest extends FeatureSpec
             val client = t.client
 
             When("observable is requested while stopped")
-            val observer =  Mockito.mock(classOf[Observer[Update]])
+            val observer = Mockito.mock(classOf[Observer[Update]])
             val observable = client.observable(existingTable)
 
             Then("subscription fails if not yet started")
@@ -271,7 +270,7 @@ class StateProxyClientTest extends FeatureSpec
             val client = t.client
 
             When("observable is requested before started")
-            val observer =  Mockito.mock(classOf[Observer[Update]])
+            val observer = Mockito.mock(classOf[Observer[Update]])
             val observable = client.observable(existingTable)
 
             And("it is started")
@@ -296,7 +295,7 @@ class StateProxyClientTest extends FeatureSpec
             val client = t.client
 
             When("observable is requested before started")
-            val observer =  Mockito.mock(classOf[Observer[Update]])
+            val observer = Mockito.mock(classOf[Observer[Update]])
             val observable = client.observable(existingTable)
 
             And("it is started")
@@ -304,7 +303,9 @@ class StateProxyClientTest extends FeatureSpec
 
             And("an observer is subscribed")
             val subscription = observable.subscribe(observer)
-            eventually {client.numActiveSubscriptions shouldBe 1 }
+            eventually {
+                client.numActiveSubscriptions shouldBe 1
+            }
 
             Then("unsubscription after start works")
             subscription.isUnsubscribed shouldBe false
@@ -323,7 +324,7 @@ class StateProxyClientTest extends FeatureSpec
             val client = t.client
 
             When("observable is requested before started")
-            val observer =  Mockito.mock(classOf[Observer[Update]])
+            val observer = Mockito.mock(classOf[Observer[Update]])
             val observable = client.observable(existingTable)
 
             And("it is started")
@@ -337,7 +338,8 @@ class StateProxyClientTest extends FeatureSpec
             client.stop() shouldBe true
 
             Then("further subscriptions are not possible")
-            val subscription = client.observable(existingTable).subscribe(observer)
+            val subscription = client.observable(existingTable)
+                .subscribe(observer)
             eventually {
                 subscription.isUnsubscribed shouldBe true
             }
@@ -355,16 +357,19 @@ class StateProxyClientTest extends FeatureSpec
             val client = t.client
 
             When("observable is requested before started")
-            val observer =  Mockito.mock(classOf[Observer[Update]])
+            val observer = Mockito.mock(classOf[Observer[Update]])
             val observable = client.observable(existingTable)
 
             And("it is started")
             client.start()
 
             And("subscriptions are made")
-            val subscription = client.observable(existingTable).subscribe(observer)
+            val subscription = client.observable(existingTable)
+                .subscribe(observer)
             subscription.isUnsubscribed shouldBe false
-            eventually {client.numActiveSubscriptions shouldBe 1 }
+            eventually {
+                client.numActiveSubscriptions shouldBe 1
+            }
 
             When("the client is stopped")
             client.stop() shouldBe true
@@ -398,14 +403,20 @@ class StateProxyClientTest extends FeatureSpec
             val subscription = client.observable(existingTable)
                 .subscribe(observer)
             subscription.isUnsubscribed shouldBe false
-            eventually { client.numActiveSubscriptions shouldBe 1 }
+            eventually {
+                client.numActiveSubscriptions shouldBe 1
+            }
 
             When("the link goes down")
             t.server.close()
-            eventually { client.numActiveSubscriptions shouldBe 0 }
+            eventually {
+                client.numActiveSubscriptions shouldBe 0
+            }
 
             And("The link is reconnected")
-            eventually { client.numActiveSubscriptions shouldBe 1 }
+            eventually {
+                client.numActiveSubscriptions shouldBe 1
+            }
 
             And("An event is generated")
             client.ping() shouldBe true
@@ -436,18 +447,16 @@ class StateProxyClientTest extends FeatureSpec
             }
 
             When("An observer subscribes")
-            val observer =  Mockito.mock(classOf[Observer[Update]])
+            val observer = Mockito.mock(classOf[Observer[Update]])
             val subscription = client.observable(existingTable)
                 .subscribe(observer)
             subscription.isUnsubscribed shouldBe false
             eventually {
-                t.server.hasClient shouldBe true
                 client.numActiveSubscriptions shouldBe 1
             }
 
             And("the link goes down")
             t.server.close()
-            eventually { t.server.hasClient shouldBe false }
 
             And("The client unsubscribes")
             subscription.unsubscribe()
@@ -458,7 +467,6 @@ class StateProxyClientTest extends FeatureSpec
 
             And("The link is reconnected")
             eventually {
-                t.server.hasClient shouldBe true
                 client.isConnected shouldBe true
             }
 
@@ -474,29 +482,30 @@ class StateProxyClientTest extends FeatureSpec
             Given("A working link to the state server")
             val client = t.client
             client.start()
-            eventually { t.server.hasClient shouldBe true }
+            eventually {
+                t.server.hasClient shouldBe true
+                t.client.isConnected shouldBe true
+            }
 
             When("the link goes down")
-            t.server.close()
-            eventually { t.server.hasClient shouldBe false }
+            t.server.setOffline()
 
             And("An observer subscribes")
-            val observer =  Mockito.mock(classOf[Observer[Update]])
+            val observer = Mockito.mock(classOf[Observer[Update]])
             val subscription = client.observable(existingTable)
                 .subscribe(observer)
             subscription.isUnsubscribed shouldBe false
-            t.server.hasClient shouldBe false
-            eventually {client.numActiveSubscriptions shouldBe 0 }
 
             And("The link is reconnected")
-            eventually {client.numActiveSubscriptions shouldBe 1 }
-            t.server.hasClient shouldBe true
+            t.server.setOnline()
+            eventually {
+                client.numActiveSubscriptions shouldBe 1
+            }
 
             And("An event is generated")
             client.ping() shouldBe true
             val update = updateMsgForSubscription(1)
             t.server.write(update)
-            t.server.write(terminationMsgForSubscription(1))
 
             Then("Events were propagated to the subscriber")
             eventually {
@@ -514,10 +523,12 @@ class StateProxyClientTest extends FeatureSpec
             Given("A working link to the state server")
             val client = t.client
             client.start()
-            eventually { t.server.hasClient shouldBe true }
+            eventually {
+                t.server.hasClient shouldBe true
+            }
 
             When("An observer subscribes to an unexsisting table")
-            val observer =  Mockito.mock(classOf[Observer[Update]])
+            val observer = Mockito.mock(classOf[Observer[Update]])
             val subscription = client.observable(missingTable)
                 .subscribe(observer)
 
@@ -540,28 +551,28 @@ class StateProxyClientTest extends FeatureSpec
             val client = t.client
 
             When("start is invoked in parallel")
-            val tries = 50
+            val tries = 5
             val succeeded = new AtomicInteger(0)
             val failed = new AtomicInteger(0)
-            for (i <- 1 to tries) {
-                Future {
-                    client.start()
-                } onComplete {
-                    case Success(_) =>
-                        succeeded.incrementAndGet()
 
-                    case Failure(err) =>
-                        failed.incrementAndGet()
-                        err shouldBe an[IllegalStateException]
+            val futures = (1 to tries).map { _ =>
+                Future {
+                    try {
+                        client.start()
+                        succeeded.incrementAndGet()
+                    } catch {
+                        case _: IllegalStateException =>
+                            failed.incrementAndGet()
+                        case err: Throwable =>
+                            throw err
+                    }
                 }
             }
 
             Then("Only one call succeeds")
-            eventually {
-                (succeeded.get + failed.get) shouldBe tries
-            }
-            assert(succeeded.get == 1)
-
+            Await.ready(Future.sequence(futures), Duration.Inf)
+            succeeded.get shouldBe 1
+            failed.get shouldBe (tries - 1)
             t.close()
 
         }
@@ -578,30 +589,31 @@ class StateProxyClientTest extends FeatureSpec
             }
 
             When("stop is invoked in parallel")
-            val tries = 50
+            val tries = 5
             val succeeded = new AtomicInteger(0)
             val failed = new AtomicInteger(0)
             val exceptions = new AtomicInteger(0)
-            for (i <- 1 to tries) {
+            val futures = (1 to tries).map { _ =>
                 Future {
-                    client.stop()
-                } onComplete {
-                    case Success(true) =>
-                        succeeded.incrementAndGet()
-
-                    case Success(false) =>
-                        failed.incrementAndGet()
-
-                    case Failure(_) =>
-                        exceptions.incrementAndGet()
+                    try {
+                        if (client.stop()) {
+                            succeeded.incrementAndGet()
+                        }
+                        else {
+                            failed.incrementAndGet()
+                        }
+                    } catch {
+                        case _: Throwable =>
+                            exceptions.incrementAndGet()
+                    }
                 }
             }
 
             Then("Only one call succeeds")
-            eventually {
-                (succeeded.get + failed.get + exceptions.get) shouldBe tries
-            }
-            assert(succeeded.get == 1 && exceptions.get == 0)
+            Await.ready(Future.sequence(futures), Duration.Inf)
+            succeeded.get shouldBe 1
+            exceptions.get shouldBe 0
+            failed.get shouldBe (tries - 1)
 
             t.close()
 
@@ -618,8 +630,9 @@ class StateProxyClientTest extends FeatureSpec
                                     maxAttempts = 1,
                                     hardReconnectDelay = 1 second)
             t.client.start()
-            val observer =  Mockito.mock(classOf[Observer[Update]])
-            val subscription = t.client.observable(existingTable)
+            val observer = Mockito.mock(classOf[Observer[Update]])
+            val subscription = t.client
+                .observable(existingTable)
                 .subscribe(observer)
             eventually {
                 t.client.isConnected shouldBe true
@@ -646,9 +659,12 @@ class StateProxyClientTest extends FeatureSpec
             ratio should be >= 0.8
 
             And("further subscriptions are not allowed")
-            val subscription2 = t.client.observable(existingTable)
+            val subscription2 = t.client
+                .observable(existingTable)
                 .subscribe(observer)
-            eventually { subscription2.isUnsubscribed shouldBe true }
+            eventually {
+                subscription2.isUnsubscribed shouldBe true
+            }
             Mockito.verify(observer).onError(
                 any(classOf[StateProxyClient.SubscriptionFailedException]))
 
@@ -680,9 +696,10 @@ class StateProxyClientTest extends FeatureSpec
         scenario("connected after start") {
 
             Given("a client")
-            val t = new TestObjects(softReconnectDelay = 50 milliseconds,
-                                    maxAttempts = 5,
-                                    hardReconnectDelay = 150 milliseconds)
+            val t = new TestObjects(
+                softReconnectDelay = 50 milliseconds,
+                maxAttempts = 5,
+                hardReconnectDelay = 150 milliseconds)
 
             When("an observer subscribes")
             val observer = Mockito.mock(classOf[Observer[ConnectionState]])
@@ -712,7 +729,6 @@ class StateProxyClientTest extends FeatureSpec
             val t = new TestObjects(softReconnectDelay = 200 milliseconds,
                                     maxAttempts = 5,
                                     hardReconnectDelay = 500 milliseconds)
-
             t.client.start()
 
             And("an observer")
@@ -728,13 +744,17 @@ class StateProxyClientTest extends FeatureSpec
             }
             t.server.close()
 
-            eventually { t.client.isConnected shouldBe false }
+            eventually {
+                t.client.isConnected shouldBe false
+            }
 
             Then("no disconnected event is generated")
             Mockito.verifyNoMoreInteractions(observer)
 
             And("eventually the client connects again")
-            eventually {t.client.isConnected shouldBe true}
+            eventually {
+                t.client.isConnected shouldBe true
+            }
 
             And("no event is ever generated")
             Mockito.verifyNoMoreInteractions(observer)
@@ -748,7 +768,6 @@ class StateProxyClientTest extends FeatureSpec
             val t = new TestObjects(200 milliseconds,
                                     3,
                                     hardReconnectDelay = 1 second)
-
             t.client.start()
 
             And("an observer")
@@ -801,16 +820,18 @@ class StateProxyClientTest extends FeatureSpec
             When("connection failure happens")
             eventually {
                 t.server.hasClient shouldBe true
-                t.client.isConnected shouldBe true
             }
+
+            val startTime = System.nanoTime()
             t.server.setOffline()
 
-            eventually { Mockito.verify(observer).onNext(Disconnected) }
-            val startTime = System.nanoTime()
+            eventually {
+                Mockito.verify(observer).onNext(Disconnected)
+            }
 
             t.server.setOnline()
-            Then("It connects after the hard delay")
 
+            Then("It connects after the hard delay")
             eventually {
                 Mockito.verify(observer, Mockito.times(2)).onNext(Connected)
             }
@@ -824,7 +845,6 @@ class StateProxyClientTest extends FeatureSpec
             val t = new TestObjects(softReconnectDelay = 50 milliseconds,
                                     maxAttempts = 3,
                                     hardReconnectDelay = 1 second)
-
             t.client.start()
 
             And("an observer")
@@ -837,7 +857,9 @@ class StateProxyClientTest extends FeatureSpec
             t.client.stop()
 
             Then("the observer is completed")
-            eventually { Mockito.verify(observer).onCompleted() }
+            eventually {
+                Mockito.verify(observer).onCompleted()
+            }
 
             And("subsequent observers are completed too")
             val observerB = Mockito.mock(classOf[Observer[ConnectionState]])
