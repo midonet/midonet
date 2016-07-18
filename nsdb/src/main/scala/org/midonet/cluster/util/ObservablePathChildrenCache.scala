@@ -39,7 +39,7 @@ import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
 import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
-import org.midonet.cluster.data.storage.StorageMetrics
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.util.concurrent.Locks._
 import org.midonet.util.functors._
 import org.midonet.util.logging.Logging
@@ -121,15 +121,15 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
             event.getType match {
                 // These run on the event thread
                 case CHILD_ADDED =>
-                    storageMetrics.childrenWatcherTriggered()
+                    storageMetrics.watchers.childrenWatcherTriggered()
                     newChild(event.getData)
                 case CHILD_UPDATED =>
-                    storageMetrics.nodeWatcherTriggered()
+                    storageMetrics.watchers.nodeWatcherTriggered()
                     changedChild(event)
                 case CHILD_REMOVED =>
                     // Node deletion triggers both children and node watchers.
-                    storageMetrics.childrenWatcherTriggered()
-                    storageMetrics.nodeWatcherTriggered()
+                    storageMetrics.watchers.childrenWatcherTriggered()
+                    storageMetrics.watchers.nodeWatcherTriggered()
                     lostChild(event)
                 // These run on the connection event thread
                 case CONNECTION_SUSPENDED =>
@@ -180,7 +180,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
                                    e: CuratorEvent): Unit = e.getType match {
             case CuratorEventType.EXISTS if !initialized =>
                 if (e.getResultCode == NONODE.intValue()) {
-                    storageMetrics.noNodeTriggered()
+                    storageMetrics.error.noNodeTriggered()
                     failWith(new NoNodeException(path))
                 } else if (e.getResultCode == OK.intValue()) {
                     cache.start(StartMode.POST_INITIALIZED_EVENT)

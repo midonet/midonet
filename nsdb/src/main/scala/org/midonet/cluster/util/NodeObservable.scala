@@ -31,7 +31,7 @@ import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
-import org.midonet.cluster.data.storage.StorageMetrics
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.NodeObservable.State
 import org.midonet.cluster.util.NodeObservable.State.State
 import org.midonet.util.functors.makeAction0
@@ -105,7 +105,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
     @volatile
     private var nodeWatcher = new Watcher {
         override def process(event: WatchedEvent): Unit = {
-            metrics.nodeWatcherTriggered()
+            metrics.watchers.nodeWatcherTriggered()
             processWatcher(event)
         }
     }

@@ -53,6 +53,7 @@ import rx.{Notification, Observable, Subscriber}
 
 import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.data.storage.TransactionManager._
+import org.midonet.cluster.data.storage.metrics.{JmxStorageMetrics, StorageMetrics}
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException, PathCacheClosedException}
@@ -143,8 +144,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         case registry => new JmxStorageMetrics(this, registry)
     }
 
-    curator.getConnectionStateListenable
-           .addListener(metrics.connectionStateListener())
+    metrics.connectionStateListeners.foreach {
+        curator.getConnectionStateListenable.addListener
+    }
 
     private[storage] def totalObjectObservableCount: Int =
         objectObservables.size
@@ -239,7 +241,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                                         event.getStat.getVersion))
                     }
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    metrics.noNodeTriggered()
+                    metrics.error.noNodeTriggered()
                     createOnError(new NotFoundException(clazz, id))
                 } else {
                     createOnError(new InternalObjectMapperException(
@@ -314,12 +316,12 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                     // objects that are being updated.
                     throw new ConcurrentModificationException(bve)
                 case e: KeeperException =>
-                    metrics.count(e)
+                    metrics.error.count(e)
                     rethrowException(ops, e)
                 case rce: ReferenceConflictException => throw rce
                 case NonFatal(ex) => throw new InternalObjectMapperException(ex)
             } finally {
-                metrics.addMultiLatency(System.nanoTime() - startTime)
+                metrics.performance.addMultiLatency(System.nanoTime() - startTime)
             }
 
             deleteStateTables()
@@ -334,7 +336,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 curator.getChildren.forPath(path).asScala.map(prefix + _)
             } catch {
                 case nne: NoNodeException =>
-                    metrics.count(nne)
+                    metrics.error.count(nne)
                     Seq.empty
             }
         }
@@ -490,7 +492,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             deserialize(event.getData, clazz)
         } else {
             if (event.getResultCode == Code.NONODE.intValue()) {
-                metrics.noNodeTriggered()
+                metrics.error.noNodeTriggered()
             }
             throw new NotFoundException(clazz, id)
         }
@@ -506,7 +508,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         val cb = new BackgroundCallback {
             override def processResult(client: CuratorFramework,
                                        event: CuratorEvent): Unit = {
-                metrics.addLatency(event.getType, System.nanoTime() - start)
+                metrics.performance.addLatency(event.getType, System.nanoTime() - start)
                 try {
                     p.trySuccess(tryDeserialize(clazz, id, event))
                 } catch {
@@ -540,7 +542,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             override def processResult(client: CuratorFramework,
                                        evt: CuratorEvent): Unit = {
                 val end = System.nanoTime()
-                metrics.addReadChildrenLatency(end-start)
+                metrics.performance.addReadChildrenLatency(end - start)
                 assert(CuratorEventType.CHILDREN == evt.getType)
                 getAll(clazz, evt.getChildren).onComplete {
                     case Success(l) => all trySuccess l
@@ -674,13 +676,13 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 .dematerialize().asInstanceOf[Observable[T]]
                 .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
                     case e: NodeObservableClosedException =>
-                        metrics.count(e)
+                        metrics.error.count(e)
                         internalObservable(clazz, id, version, OnCloseDefault)
                     case e: NoNodeException =>
-                        metrics.count(e)
+                        metrics.error.count(e)
                         Observable.error(new NotFoundException(clazz, id))
                     case e: Throwable =>
-                        metrics.count(e)
+                        metrics.error.count(e)
                         Observable.error(e)
                 }))
 
@@ -707,11 +709,11 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             val obs = cache.observable
                 .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
                     case e: PathCacheClosedException =>
-                        metrics.count(e)
+                        metrics.error.count(e)
                         classObservables.remove(clazz, ClassObservable(cache))
                         observable(clazz)
                     case e: Throwable =>
-                        metrics.count(e)
+                        metrics.error.count(e)
                         Observable.error(e)
                 }))
             val entry = ClassObservable(cache, obs)

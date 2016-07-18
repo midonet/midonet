@@ -18,8 +18,11 @@ package org.midonet.cluster.data.storage
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent}
+
 import rx.Observable.OnSubscribe
 import rx.{Observable, Subscriber}
+
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 
 object CuratorUtil {
     /** Wraps a call to a Curator background operation as an observable. The
@@ -30,7 +33,7 @@ object CuratorUtil {
       * argument, the observable will emit a notification with that
       * [[CuratorEvent]]. */
     def asObservable(f: (BackgroundCallback) => Unit)
-                    (implicit storageMetrics: StorageMetrics)
+                    (implicit metrics: StorageMetrics)
     : Observable[CuratorEvent] = {
         Observable.create(new OnSubscribe[CuratorEvent] {
             val start = System.nanoTime()
@@ -40,7 +43,7 @@ object CuratorUtil {
                     override def processResult(client: CuratorFramework,
                                                event: CuratorEvent): Unit = {
                         val end = System.nanoTime()
-                        storageMetrics.addLatency(event.getType, end - start)
+                        metrics.performance.addLatency(event.getType, end - start)
 
                         s.onNext(event)
                         s.onCompleted()
