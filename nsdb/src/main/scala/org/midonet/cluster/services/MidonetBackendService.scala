@@ -71,6 +71,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
     override val connection = new CuratorZkConnection(curator, reactor)
     override val connectionWatcher =
         ZookeeperConnectionWatcher.createWith(config, reactor, connection)
+
     override val connectionState =
         ConnectionObservable.create(curator)
     override val failFastConnectionState =

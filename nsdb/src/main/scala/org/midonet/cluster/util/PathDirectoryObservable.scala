@@ -32,7 +32,7 @@ import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 import rx.Observable.OnSubscribe
 
-import org.midonet.cluster.data.storage.StorageMetrics
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.PathDirectoryObservable.State
 import org.midonet.cluster.util.PathDirectoryObservable.State.State
 import org.midonet.util.functors.makeAction0
@@ -75,8 +75,8 @@ object PathDirectoryObservable {
       *                         the node is created.
       */
     def create(curator: CuratorFramework, path: String,
+               metrics: StorageMetrics,
                completeOnDelete: Boolean = true,
-               metrics: StorageMetrics = StorageMetrics.Nil,
                onClose: => Unit = OnCloseDefault)
     :PathDirectoryObservable = {
         new PathDirectoryObservable(
@@ -113,7 +113,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
         override def process(event: WatchedEvent): Unit = {
             event.getType match {
                 case NodeChildrenChanged =>
-                    metrics.childrenWatcherTriggered()
+                    metrics.watchers.childrenTriggeredWatchers.inc()
                 case _ =>
             }
             processWatcher(event)
@@ -219,7 +219,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
             children.set(event.getChildren.asScala.toSet)
             subject.onNext(children.get)
         } else if (event.getResultCode == Code.NONODE.intValue) {
-            metrics.noNodeTriggered()
+            metrics.error.noNodesExceptions.inc()
             if (completeOnDelete) {
                 log.debug("Node deleted: closing the observable")
                 close(new ParentDeletedException(path))
