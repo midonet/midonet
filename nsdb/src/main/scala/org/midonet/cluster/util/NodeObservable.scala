@@ -31,7 +31,7 @@ import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
-import org.midonet.cluster.data.storage.StorageMetrics
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.NodeObservable.State
 import org.midonet.cluster.util.NodeObservable.State.State
 import org.midonet.util.functors.makeAction0
@@ -71,19 +71,20 @@ object NodeObservable {
       * `completeOnDelete` is set to `true`.
       */
     def create(curator: CuratorFramework, path: String,
+               metrics: StorageMetrics,
                completeOnDelete: Boolean = true,
-               metrics: StorageMetrics = StorageMetrics.Nil,
                onClose: => Unit = OnCloseDefault)
     : NodeObservable = {
-        new NodeObservable(new OnSubscribeToNode(curator, path, onClose,
-                                                 completeOnDelete, metrics))
+        new NodeObservable(new OnSubscribeToNode(curator, path, metrics,
+                                                 completeOnDelete, onClose))
     }
 }
 
 private[util]
 class OnSubscribeToNode(curator: CuratorFramework, path: String,
-                        onClose: => Unit, completeOnDelete: Boolean,
-                        metrics: StorageMetrics)
+                        metrics: StorageMetrics,
+                        completeOnDelete: Boolean,
+                        onClose: => Unit)
     extends OnSubscribe[ChildData] with Logging {
 
     override def logSource = "org.midonet.nsdb.nsdb-node"
@@ -105,7 +106,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
     @volatile
     private var nodeWatcher = new Watcher {
         override def process(event: WatchedEvent): Unit = {
-            metrics.nodeWatcherTriggered()
+            metrics.watchers.nodeTriggeredWatchers.inc()
             processWatcher(event)
         }
     }

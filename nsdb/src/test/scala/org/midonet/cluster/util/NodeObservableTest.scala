@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.retry.RetryOneTime
 import org.apache.zookeeper.KeeperException.NoNodeException
@@ -28,7 +30,7 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.StorageMetrics
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -36,6 +38,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
                          with Matchers {
 
     private val timeout = 5 seconds
+    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
 
     "Node observable" should "emit notifications in create / delete" in {
         val path = makePath("1")
@@ -44,7 +47,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         val obs2 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
 
         val observable =
-            NodeObservable.create(curator, path)
+            NodeObservable.create(curator, path, metrics)
 
         observable.subscribe(obs1)
         obs1.awaitOnNext(1, timeout) shouldBe true
@@ -70,7 +73,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
     }
 
     "Node observable" should "emit error if node does not exist" in {
-        val observable = NodeObservable.create(curator, "/nonExistent")
+        val observable = NodeObservable.create(curator, "/nonExistent", metrics)
         val obs = new TestObserver[ChildData] with AwaitableObserver[ChildData]
 
         observable.subscribe(obs)
@@ -84,7 +87,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
 
     "Node observable" should "emit error on close" in {
         val path = makePath("3")
-        val observable = NodeObservable.create(curator, path)
+        val observable = NodeObservable.create(curator, path, metrics)
 
         val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
         observable.subscribe(obs1)
@@ -112,7 +115,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
 
     "Node observable" should "emit error after last unsubscribe" in {
         val path = makePath("4")
-        val observable = NodeObservable.create(curator, path)
+        val observable = NodeObservable.create(curator, path, metrics)
 
         val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
         val obs2 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
@@ -141,7 +144,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         val path = makePath("5")
         val closed = new AtomicBoolean()
         val observable = NodeObservable.create(
-            curator, path, completeOnDelete = true, StorageMetrics.Nil, {
+            curator, path, metrics, completeOnDelete = true, {
                 closed set true
             })
 
@@ -165,7 +168,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         val parentPath = makePath("parent")
         val path = parentPath + "/6"
 
-        val observable = NodeObservable.create(curator, path,
+        val observable = NodeObservable.create(curator, path, metrics,
                                                completeOnDelete = false)
 
         val obs = new TestObserver[ChildData] with AwaitableObserver[ChildData]
@@ -212,10 +215,11 @@ class NodeObservableConnectionTest extends FlatSpec with CuratorTestFramework
     override def cnxnTimeoutMs = 3000
     override def sessionTimeoutMs = 10000
     private val timeout = 1 second
+    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
 
     "Node observable" should "emit error on losing connection" in {
         val path = makePath("1")
-        val observable = NodeObservable.create(curator, path)
+        val observable = NodeObservable.create(curator, path, metrics)
 
         val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
         observable.subscribe(obs1)
