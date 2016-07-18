@@ -115,7 +115,7 @@ class WatchedProcess {
         }
     }
 
-    def start(initializationWitness: Promise[_]) {
+    def start(initializationWitness: Promise[_], timeout: Int) {
         if (running)
             return
         if (!readConfig())
@@ -129,16 +129,12 @@ class WatchedProcess {
         timer = new Timer("watchdog", true)
         timer.scheduleAtFixedRate(tick, 0, intervalMillis)
 
-        timer.schedule(initializationTimeout(initializationWitness), 60 * 1000)
+        timer.schedule(initializationTimeout(initializationWitness), timeout * 1000)
         initializationWitness.future.onFailure {
             case e =>
                 Midolman.dumpStacks()
                 timer.cancel()
                 pipe.close()
         }(CallingThreadExecutionContext)
-    }
-
-    def start(): Unit = {
-        start(Promise.successful(true))
     }
 }
