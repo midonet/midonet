@@ -30,7 +30,7 @@ object CuratorUtil {
       * argument, the observable will emit a notification with that
       * [[CuratorEvent]]. */
     def asObservable(f: (BackgroundCallback) => Unit)
-                    (implicit zoomMetrics: ZoomMetrics)
+                    (implicit storageMetrics: StorageMetrics)
     : Observable[CuratorEvent] = {
         Observable.create(new OnSubscribe[CuratorEvent] {
             val start = System.nanoTime()
@@ -39,9 +39,8 @@ object CuratorUtil {
                 f(new BackgroundCallback {
                     override def processResult(client: CuratorFramework,
                                                event: CuratorEvent): Unit = {
-
                         val end = System.nanoTime()
-                        zoomMetrics.addLatency(event.getType, end-start)
+                        storageMetrics.addLatency(event.getType, end - start)
 
                         s.onNext(event)
                         s.onCompleted()
