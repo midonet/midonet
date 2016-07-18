@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_78eacc75",
+        "filename": "tests/sandbox/provisioning/keystone-mitaka-provisioning.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-18T10:39:05Z",
+      "side": 1,
+      "message": "Why don\u0027t we change to the openstack client then? What\u0027s missing?",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 62
+      },
+      "revId": "1501a3325af76de2f930f5287b8cf6f465f33d25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
