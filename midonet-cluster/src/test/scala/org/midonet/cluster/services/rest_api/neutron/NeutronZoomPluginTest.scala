@@ -21,7 +21,9 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.ConfigFactory
+
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -70,7 +72,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         val clusterConfig = ClusterConfig.forTests(ConfigFactory.empty())
         MidonetBackend.isCluster = true
         backend = new MidonetBackendService(backendConfig, curator, curator,
-                                            metricRegistry = null, None)
+                                            new MetricRegistry, None)
         backend.startAsync().awaitRunning()
 
         val paths = new PathBuilder(zkRoot)

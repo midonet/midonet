@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import org.apache.curator.retry.RetryOneTime
 import org.junit.runner.RunWith
 import org.scalatest.{FlatSpec, Matchers}
@@ -26,7 +28,7 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.StorageMetrics
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -34,8 +36,9 @@ class PathDirectoryObservableTest extends FlatSpec
                                   with CuratorTestFramework
                                   with Matchers {
 
-    val parentPath = zkRoot + "/parent"
-    val timeout = 5 seconds
+    private val parentPath = zkRoot + "/parent"
+    private val timeout = 5 seconds
+    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
 
     def createParent(): String = {
         curator.create.forPath(parentPath)
@@ -66,7 +69,7 @@ class PathDirectoryObservableTest extends FlatSpec
     "Directory observable" should "notify empty children set" in {
         createParent()
 
-        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val observable = PathDirectoryObservable.create(curator, parentPath, metrics)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         observable.subscribe(obs)
         obs.awaitOnNext(1, timeout) shouldBe true
@@ -80,7 +83,7 @@ class PathDirectoryObservableTest extends FlatSpec
         createParent()
         createChildren(0, 4)
 
-        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val observable = PathDirectoryObservable.create(curator, parentPath, metrics)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         observable.subscribe(obs)
         obs.awaitOnNext(1, timeout) shouldBe true
@@ -93,7 +96,7 @@ class PathDirectoryObservableTest extends FlatSpec
     "Directory observable" should "notify added children" in {
         createParent()
 
-        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val observable = PathDirectoryObservable.create(curator, parentPath, metrics)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         observable.subscribe(obs)
 
@@ -115,7 +118,7 @@ class PathDirectoryObservableTest extends FlatSpec
         createParent()
         createChildren(0, 4)
 
-        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val observable = PathDirectoryObservable.create(curator, parentPath, metrics)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
         observable.subscribe(obs)
@@ -135,7 +138,7 @@ class PathDirectoryObservableTest extends FlatSpec
     "Directory observable" should "emit error on cache close" in {
         createParent()
 
-        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val observable = PathDirectoryObservable.create(curator, parentPath, metrics)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
         observable.subscribe(obs)
@@ -154,7 +157,7 @@ class PathDirectoryObservableTest extends FlatSpec
 
         val closed = new AtomicBoolean()
         val observable = PathDirectoryObservable.create(
-            curator, parentPath, completeOnDelete = true, StorageMetrics.Nil, {
+            curator, parentPath, metrics, completeOnDelete = true, {
                 closed set true
             })
         val obs1 = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
@@ -176,7 +179,7 @@ class PathDirectoryObservableTest extends FlatSpec
     "Complete on delete directory observable" should
     "emit error if the parent does not exist" in {
         val path = zkRoot + "/none"
-        val observable = PathDirectoryObservable.create(curator, path)
+        val observable = PathDirectoryObservable.create(curator, path, metrics)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
         observable.subscribe(obs)
@@ -192,7 +195,7 @@ class PathDirectoryObservableTest extends FlatSpec
     "emit error on parent deletion" in {
         createParent()
 
-        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val observable = PathDirectoryObservable.create(curator, parentPath, metrics)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
         observable.subscribe(obs)
@@ -209,6 +212,7 @@ class PathDirectoryObservableTest extends FlatSpec
     "Continue on delete directory observable" should
     "monitor parent if the parent does not exist" in {
         val observable = PathDirectoryObservable.create(curator, parentPath,
+                                                        metrics,
                                                         completeOnDelete = false)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
@@ -238,6 +242,7 @@ class PathDirectoryObservableTest extends FlatSpec
         createChild(0)
 
         val observable = PathDirectoryObservable.create(curator, parentPath,
+                                                        metrics,
                                                         completeOnDelete = false)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
@@ -278,7 +283,7 @@ class PathDirectoryObservableTest extends FlatSpec
     "Directory observable" should "emit error on connect failure" in {
         curator.close()
 
-        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val observable = PathDirectoryObservable.create(curator, parentPath, metrics)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
         observable.subscribe(obs)
@@ -292,7 +297,7 @@ class PathDirectoryObservableTest extends FlatSpec
     "Directory observable" should "emit error on lost connection" in {
         createParent()
 
-        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val observable = PathDirectoryObservable.create(curator, parentPath, metrics)
         val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
         observable.subscribe(obs)
@@ -319,10 +324,11 @@ class PathDirectoryObservableConnectionTest extends FlatSpec
     override def cnxnTimeoutMs = 3000
     override def sessionTimeoutMs = 10000
     private val timeout = 1 second
+    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
 
     "Directory observable" should "emit error on losing connection" in {
         val path = makePath("1")
-        val observable = PathDirectoryObservable.create(curator, path)
+        val observable = PathDirectoryObservable.create(curator, path, metrics)
 
         val obs1 = new TestObserver[Set[String]]
                        with AwaitableObserver[Set[String]]

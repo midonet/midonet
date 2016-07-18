@@ -26,6 +26,7 @@ import javax.sql.DataSource
 import scala.collection.JavaConverters._
 import scala.util.Try
 
+import com.codahale.metrics.MetricRegistry
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode}
 import com.google.inject.{Guice, Inject, Injector, PrivateModule}
@@ -321,7 +322,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
         pathBldr = new PathBuilder(backendCfg.rootKey)
         backend = new MidonetBackendService(backendCfg, curator, curator,
-                                            metricRegistry = null, None) {
+                                            new MetricRegistry, None) {
             override protected def setup(stateTableStorage: StateTableStorage)
             : Unit = {
                 super.setup(stateTableStorage)
