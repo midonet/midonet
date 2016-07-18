@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f3439dad",
+        "filename": "midolman/src/deb/bin/mm-ctl",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-07-18T13:31:58Z",
+      "side": 1,
+      "message": "too deep indentation",
+      "revId": "0568016a5ca0ceaf66b9a5ce082fefa36a797a15",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
