@@ -22,9 +22,9 @@ from mdts.services.vmguest import VMGuest
 import uuid
 import logging
 from mdts.services import service
+from mdts.lib.bindings import BindingType
 
 LOG = logging.getLogger(__name__)
-
 
 class MidonetAgentHost(Service):
 
@@ -218,16 +218,30 @@ class MidonetAgentHost(Service):
     def destroy_provided(self, **iface_kwargs):
         raise NotImplementedError()
 
-    def bind_port(self, interface, mn_port_id):
-        host_ifname = interface.get_binding_ifname()
-        host_id = self.get_midonet_host_id()
-        self.get_api().get_host(host_id) \
-            .add_host_interface_port() \
-            .port_id(mn_port_id) \
-            .interface_name(host_ifname).create()
+    def bind_port(self, interface, mn_port_id, type=BindingType.API):
+        if type == BindingType.API:
+            host_ifname = interface.get_binding_ifname()
+            host_id = self.get_midonet_host_id()
+            self.get_api().get_host(host_id) \
+                .add_host_interface_port() \
+                .port_id(mn_port_id) \
+                .interface_name(host_ifname).create()
+        elif type == BindingType.MMCTL:
+            self.exec_command("mm-ctl --bind-port {} {}"
+                              .format(mn_port_id, interface.get_binding_ifname()))
 
-    def unbind_port(self, interface):
+    def unbind_port(self, interface, type=BindingType.API):
+        port = None
         compute_host_id = interface.compute_host.get_midonet_host_id()
-        for port in self.get_api().get_host(compute_host_id).get_ports():
-            if port.get_interface_name() == interface.get_binding_ifname():
+        for p in self.get_api().get_host(compute_host_id).get_ports():
+            if p.get_interface_name() == interface.get_binding_ifname():
+                port = p
+
+        if port is not None:
+            # If it's none, the binding was already removed during the test.
+            # Ignoring.
+            if type == BindingType.API:
                 port.delete()
+            elif type == BindingType.MMCTL:
+                self.exec_command("mm-ctl --unbind-port {}"
+                                  .format(port.get_port_id()))
