@@ -276,9 +276,6 @@ class FlowTranslatorTest extends MidolmanSpec {
     }
 
     sealed class TestFlowTranslator(val dpState: DatapathState) extends FlowTranslator {
-        implicit protected def system: ActorSystem = actorSystem
-        implicit override protected def executor = ExecutionContext.callingThread
-        val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
         override protected val hostId: UUID = FlowTranslatorTest.this.hostId
 
         override def translateActions(pktCtx: PacketContext): Unit =

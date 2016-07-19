@@ -21,7 +21,7 @@ import org.scalatest.{BeforeAndAfter, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
-import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 
 @RunWith(classOf[JUnitRunner])
 class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAndAfter {
@@ -48,7 +48,7 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
 
     before {
         checkTriggers.set(0)
-        backChannel = new ShardedSimulationBackChannel(() => checkTriggers.incrementAndGet())
+        backChannel = new ShardedSimulationBackChannel()
         p1 = backChannel.registerProcessor()
         p2 = backChannel.registerProcessor()
         p3 = backChannel.registerProcessor()
@@ -115,31 +115,6 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
             p3.hasMessages should be (false)
 
             backChannel.hasMessages should be (false)
-        }
-    }
-
-    feature("calls the trigger callback") {
-        scenario("from the parent") {
-            backChannel.tell(new Message("bar") with Broadcast)
-            checkTriggers.get() should be (1)
-        }
-
-        scenario("from a child shard") {
-            p1.tell(Message("bar"))
-            checkTriggers.get() should be (1)
-            p2.tell(Message("bar"))
-            checkTriggers.get() should be (2)
-            p3.tell(Message("bar"))
-            checkTriggers.get() should be (3)
-        }
-
-        scenario("from a child shard with a broadcast message") {
-            p1.tell(new Message("bar") with Broadcast)
-            checkTriggers.get() should be (1)
-            p2.tell(new Message("bar") with Broadcast)
-            checkTriggers.get() should be (2)
-            p3.tell(new Message("bar") with Broadcast)
-            checkTriggers.get() should be (3)
         }
     }
 }

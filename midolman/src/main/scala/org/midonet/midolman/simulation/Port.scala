@@ -21,8 +21,6 @@ import java.util.Collections.emptyList
 
 import scala.collection.JavaConverters._
 
-import akka.actor.ActorSystem
-
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.state.PortStateStorage.PortState
@@ -168,26 +166,25 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
 
     def isPlugged: Boolean = this.isInterior || this.isExterior
 
-    protected def device(implicit as: ActorSystem): ForwardingDevice
+    protected def device: ForwardingDevice
 
     private[this] val emit = ContinueWith(if (isExterior) {
-        (context, as) =>
+        (context) =>
             context.calculateActionsFromMatchDiff()
             context.log.debug("Emitting packet from vport {}", id)
             context.addVirtualAction(action)
             context.trackConnection(deviceId)
             AddVirtualWildcardFlow
     } else if (isInterior) {
-        (context, as) =>
-            implicit val actorSystem: ActorSystem = as
-            tryGet(classOf[Port], peerId).ingress(context, as)
+        (context) =>
+            tryGet(classOf[Port], peerId).ingress(context)
     } else {
-        (context, as) =>
+        (context) =>
             context.log.warn("Port {} is unplugged", id)
             ErrorDrop
     })
 
-    def ingress(implicit context: PacketContext, as: ActorSystem): SimulationResult = {
+    def ingress(implicit context: PacketContext): SimulationResult = {
         context.log.debug(s"Ingressing port $id")
         if (context.devicesTraversed >= Simulator.MAX_DEVICES_TRAVERSED) {
             context.log.debug(s"Dropping packet that traversed too many devices "+
@@ -198,51 +195,51 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
             context.addFlowTag(deviceTag)
             context.addFlowTag(rxTag)
             context.inPortId = id
-            mirroringInbound(context, portIngress, as)
+            mirroringInbound(context, portIngress)
         }
     }
 
-    protected def egressCommon(context: PacketContext, as: ActorSystem,
+    protected def egressCommon(context: PacketContext,
                                next: SimStep): SimulationResult = {
         context.log.debug(s"Egressing port $id")
         context.addFlowTag(deviceTag)
         context.addFlowTag(txTag)
         context.outPortId = id
 
-        next(context, as)
+        next(context)
     }
 
-    def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
-        egressCommon(context, as, filterAndContinueOut)
+    def egress(context: PacketContext): SimulationResult = {
+        egressCommon(context, filterAndContinueOut)
     }
 
 
-    private[this] val ingressDevice: SimStep = (context, as) => {
-        val dev = device(as)
-        dev.continue(context, dev.process(context))(as)
+    private[this] val ingressDevice: SimStep = (context) => {
+        val dev = device
+        dev.continue(context, dev.process(context))
     }
 
-    protected val continueIn: SimStep = (c, as) => ingressDevice(c, as)
-    protected val continueOut: SimStep = (c, as) => mirroringOutbound(c, emit, as)
-    protected val filterAndContinueOut: SimStep = (context, as) => {
-        filterOut(context, as, continueOut)
+    protected val continueIn: SimStep = (c) => ingressDevice(c)
+    protected val continueOut: SimStep = (c) => mirroringOutbound(c, emit)
+    protected val filterAndContinueOut: SimStep = (context) => {
+        filterOut(context, continueOut)
     }
-    val egressNoFilter: SimStep = (context, as) => {
-        egressCommon(context, as, continueOut)
+    val egressNoFilter: SimStep = (context) => {
+        egressCommon(context, continueOut)
     }
 
-    private val portIngress = ContinueWith((context, as) => {
-        filterIn(context, as, continueIn)
+    private val portIngress = ContinueWith((context) => {
+        filterIn(context, continueIn)
     })
 
-    override protected val preIn: SimHook = (c, as) => {
+    override protected val preIn: SimHook = (c) => {
         if (isExterior && (portGroups ne null))
             c.portGroups = portGroups
         c.inPortId = id
         c.outPortId = null
     }
 
-    override protected val preOut: SimHook = (c, as) => {
+    override protected val preOut: SimHook = (c) => {
         c.outPortId = id
     }
 
@@ -276,17 +273,16 @@ class BridgePort(override val id: UUID,
 
     override def deviceId = networkId
 
-    protected def device(implicit as: ActorSystem) =
-        tryGet(classOf[Bridge], networkId)
+    protected def device = tryGet(classOf[Bridge], networkId)
 
-    override def egressCommon(context: PacketContext, as: ActorSystem,
+    override def egressCommon(context: PacketContext,
                               next: SimStep): SimulationResult = {
         if (id == context.inPortId) {
             Drop
         } else {
             if ((vlanId > 0) && context.wcmatch.isVlanTagged)
                 context.wcmatch.removeVlanId(vlanId)
-            super.egressCommon(context, as, next)
+            super.egressCommon(context, next)
         }
     }
 }
@@ -313,17 +309,17 @@ class ServicePort(override val id: UUID,
         s"ServicePort [${super.toString} networkId=$networkId" +
             s" realAdminState=$realAdminStateUp]"
 
-    override def ingress(implicit context: PacketContext,
-                         as: ActorSystem): SimulationResult = {
+    override def ingress(implicit context: PacketContext)
+            : SimulationResult = {
         if (!realAdminStateUp) {
             context.log.debug("Service port has adminStateUp=false, Dropping")
             Drop
         } else {
-            super.ingress(context, as)
+            super.ingress(context)
         }
     }
 
-    override def egressCommon(context: PacketContext, as: ActorSystem,
+    override def egressCommon(context: PacketContext,
                               next: SimStep): SimulationResult = {
         if (context.isRedirectedOut) {
             val result = if (!realAdminStateUp || !isActive) {
@@ -339,7 +335,7 @@ class ServicePort(override val id: UUID,
                  */
                 if (context.isRedirectFailOpen) {
                     context.clearRedirect()
-                    super.ingress(context, as)
+                    super.ingress(context)
                 } else {
                     context.log.debug(
                         s"Service port is down (adminStateUp:$realAdminStateUp,"
@@ -347,7 +343,7 @@ class ServicePort(override val id: UUID,
                     Drop
                 }
             } else {
-                super.egressCommon(context, as, next)
+                super.egressCommon(context, next)
             }
             context.clearRedirect()
             result
@@ -379,13 +375,12 @@ case class RouterPort(override val id: UUID,
 
     override val servicePorts: JList[UUID] = emptyList()
 
-    protected def device(implicit as: ActorSystem) =
+    protected def device =
         tryGet(classOf[Router], routerId)
 
     override def deviceId = routerId
 
-    override protected def reject(context: PacketContext, as: ActorSystem): Unit = {
-        implicit val _as: ActorSystem = as
+    override protected def reject(context: PacketContext): Unit = {
         if (context.inPortId ne null) {
             if (context.inPortId eq id)
                 sendIcmpProhibited(this, context)
@@ -402,12 +397,12 @@ case class RouterPort(override val id: UUID,
             context.addGeneratedPacket(from.id, ethOpt.get)
     }
 
-    override def egressCommon(context: PacketContext, as: ActorSystem,
+    override def egressCommon(context: PacketContext,
                               next: SimStep): SimulationResult = {
         if (context.wcmatch.getEthSrc == context.wcmatch.getEthDst) {
-            ingress(context, as)
+            ingress(context)
         } else {
-            super.egressCommon(context, as, next)
+            super.egressCommon(context, next)
         }
     }
 
@@ -438,7 +433,7 @@ case class VxLanPort(override val id: UUID,
     override def isActive = true
     override def servicePorts: JList[UUID] = emptyList()
 
-    protected def device(implicit as: ActorSystem) =
+    protected def device =
         tryGet(classOf[Bridge], networkId)
 
     override def toString =

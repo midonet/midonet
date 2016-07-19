@@ -17,8 +17,6 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
-import akka.actor.ActorSystem
-
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route
@@ -41,8 +39,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                                         val cfg: Config,
                                         val rTable: RoutingTable,
                                         val routerMgrTagger: TagManager)
-                                       (implicit system: ActorSystem,
-                                        icmpErrors: IcmpErrorSender[IP])
+                                       (implicit icmpErrors: IcmpErrorSender[IP])
     extends SimDevice with ForwardingDevice with InAndOutFilters
         with MirroringDevice with RoutingWorkflow with VirtualDevice {
 
@@ -56,9 +53,9 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     override def outfilters = cfg.outboundFilters
     override def adminStateUp = cfg.adminStateUp
 
-    private val routeAndMirrorOut: ContinueWith = ContinueWith((context, actorSystem) => {
+    private val routeAndMirrorOut: ContinueWith = ContinueWith((context) => {
         preRouting()(context) match {
-            case toPort: ToPortAction => mirroringOutbound(context, toPort, system)
+            case toPort: ToPortAction => mirroringOutbound(context, toPort)
             case action => action
         }
     })
@@ -101,13 +98,13 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                         context.addFlowTag(deviceTag)
                         Drop
                     case inPort =>
-                        mirroringInbound(context, routeAndMirrorOut, system)
+                        mirroringInbound(context, routeAndMirrorOut)
                 }
             }
         }
     }
 
-    override val dropIn: DropHook = (context, as, action) => {
+    override val dropIn: DropHook = (context, action) => {
         implicit val c: PacketContext = context
         if (action == RuleResult.Action.DROP) {
             if (context.wcmatch.getIpFragmentType == IPFragmentType.First) {
@@ -181,12 +178,12 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         applyServicesInbound() match {
             case res if res.action == RuleResult.Action.CONTINUE =>
                 // Continue to inFilter / ingress chain
-                filterIn(context, system, continueIn)
+                filterIn(context, continueIn)
             case res if res.action == RuleResult.Action.DROP =>
                 // Skip the inFilter / ingress chain
-                dropIn(context, system, res.action)
+                dropIn(context, res.action)
             case _ =>
-                continueIn(context, system)
+                continueIn(context)
         }
     }
 
@@ -207,7 +204,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     }
 
 
-    private val continueIn: SimStep = (context, as) => {
+    private val continueIn: SimStep = (context) => {
         implicit val c: PacketContext = context
         val fmatch = context.wcmatch
         val dstIP = context.wcmatch.getNetworkDstIP
@@ -326,21 +323,21 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         applyServicesOutbound() match {
             case res if res.action == RuleResult.Action.CONTINUE =>
                 // Continue to outFilter / egress chain
-                filterOut(context, system, continueOut)
+                filterOut(context, continueOut)
             case res =>
                 // Skip outFilter / egress chain
-                continueOut(context, system)
+                continueOut(context)
         }
     }
 
-    override protected def reject(context: PacketContext, as: ActorSystem): Unit = {
+    override protected def reject(context: PacketContext): Unit = {
         sendAnswer(context.inPortId,
             icmpErrors.unreachableProhibitedIcmp(
                 tryGet(classOf[RouterPort], context.inPortId), context,
                 context.preRoutingMatch))(context)
     }
 
-    private val continueOut: SimStep = (context, as) => {
+    private val continueOut: SimStep = (context) => {
         implicit val c: PacketContext = context
         val rt = context.routeTo
         context.routeTo = null

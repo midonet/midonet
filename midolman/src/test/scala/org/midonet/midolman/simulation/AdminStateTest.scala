@@ -18,6 +18,7 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -29,12 +30,12 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.{BackChannelAccessor, MessageAccumulator}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.OvsDatapathConnection
@@ -66,7 +67,7 @@ class AdminStateTest extends MidolmanSpec {
     var exteriorRouterPort: UUID = _
 
     var brPortIds: List[UUID] = List.empty
-    var bca: BackChannelAccessor = _
+    var backChannel: SimulationBackChannel = _
 
     override def beforeTest() {
         newHost("myself", hostId)
@@ -125,11 +126,23 @@ class AdminStateTest extends MidolmanSpec {
         sendPacket (fromBridgeSide) should be (flowMatching (emittedRouterSidePkt))
         sendPacket (fromRouterSide) should be (flowMatching (emittedBridgeSidePkt))
 
-        bca = new BackChannelAccessor(injector.getInstance(classOf[VirtualTopology]))
-        bca.getAndClearBC()
+        backChannel = simBackChannel
+        getAndClearBC(simBackChannel)
 
         VirtualToPhysicalMapper.setPortActive(exteriorBridgePort, active = true,
                                               tunnelKey = 0L)
+    }
+
+    def getAndClearBC(backChannel: SimulationBackChannel)
+            : mutable.Buffer[BackChannelMessage] = {
+        val messages = mutable.Buffer[BackChannelMessage]()
+        backChannel.process(
+            new BackChannelHandler() {
+                override def handle(message: BackChannelMessage): Unit = {
+                    messages += message
+                }
+            })
+        messages
     }
 
     lazy val fromBridgeSide = (exteriorBridgePort, bridgeSidePkt)
@@ -444,7 +457,7 @@ class AdminStateTest extends MidolmanSpec {
         scenario("the admin state of a bridge is set to up") {
             Given("a bridge with its state set to down")
             setBridgeAdminStateUp(bridge, false)
-            bca.getAndClearBC()
+            getAndClearBC(backChannel)
 
             When("setting its state to down")
 
@@ -475,7 +488,7 @@ class AdminStateTest extends MidolmanSpec {
             setPortAdminStateUp(interiorBridgePort, false)
             setPortAdminStateUp(exteriorBridgePort, false)
 
-            bca.getAndClearBC()
+            getAndClearBC(backChannel)
 
             When("setting their state to up")
 
@@ -503,7 +516,7 @@ class AdminStateTest extends MidolmanSpec {
         scenario("the admin state of a router is set to up") {
             Given("a router with its state set to down")
             setRouterAdminStateUp(router, false)
-            bca.getAndClearBC()
+            getAndClearBC(backChannel)
 
             When("setting its state to up")
 
@@ -532,7 +545,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("interior and exterior router ports with their state set to down")
             setPortAdminStateUp(interiorRouterPort, false)
             setPortAdminStateUp(exteriorRouterPort, false)
-            bca.getAndClearBC()
+            getAndClearBC(backChannel)
 
             When("setting their state to up")
 
@@ -547,7 +560,7 @@ class AdminStateTest extends MidolmanSpec {
     }
 
     private[this] def assertFlowTagsInvalidated(tags: FlowTagger.FlowTag*) {
-        val invalidations = bca.getAndClearBC()
+        val invalidations = getAndClearBC(backChannel)
                 .filter(_.isInstanceOf[FlowTagger.FlowTag])
 
         for (tag <- tags) {

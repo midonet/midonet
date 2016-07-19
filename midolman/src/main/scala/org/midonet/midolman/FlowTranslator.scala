@@ -48,8 +48,6 @@ trait FlowTranslator {
     protected val hostId: UUID
 
     implicit protected val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
-    implicit protected def system: ActorSystem
-    implicit protected def executor: ExecutionContextExecutor = system.dispatcher
 
     /**
      * Translates a Seq of FlowActions expressed in virtual references into a

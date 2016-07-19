@@ -67,7 +67,9 @@ class MidolmanActorsService extends AbstractService {
     @Inject
     val config: MidolmanConfig = null
 
-    private var _system: ActorSystem = null
+    @Inject
+    val _system: ActorSystem = null
+
     implicit def system: ActorSystem = _system
     implicit def ex: ExecutionContext = _system.dispatcher
 
@@ -75,7 +77,6 @@ class MidolmanActorsService extends AbstractService {
 
     protected def actorSpecs = {
         val actors = ListBuffer(
-            (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[DatapathController]), DatapathController.Name),
             (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name),
             (propsFor(classOf[NetlinkCallbackDispatcher]),
@@ -108,7 +109,6 @@ class MidolmanActorsService extends AbstractService {
             log.info("Booting up actors service")
 
             PacketTracing.registerAsMXBean()
-            _system = createActorSystem()
             supervisorActor = startTopActor(
                                 propsFor(classOf[SupervisorActor]),
                                 SupervisorActor.Name)
@@ -185,10 +185,6 @@ class MidolmanActorsService extends AbstractService {
         log.debug("Request for starting actor {}", name)
         (supervisorActor ? StartChild(props, name)).mapTo[ActorRef]
     }
-
-    protected def createActorSystem(): ActorSystem =
-        ActorSystem.create("midolman", ConfigFactory.load()
-                .getConfig("midolman"))
 
     def initProcessing() {
         log.debug("Sending Initialization message to datapath controller.")

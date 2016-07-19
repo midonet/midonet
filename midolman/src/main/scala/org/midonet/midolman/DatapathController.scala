@@ -154,7 +154,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                                     interfaceScanner: InterfaceScanner,
                                     config: MidolmanConfig,
                                     upcallConnManager: UpcallDatapathConnectionManager,
-                                    flowInvalidator: SimulationBackChannel,
+                                    backChannel: SimulationBackChannel,
                                     clock: NanoClock,
                                     storageFactory: FlowStateStorageFactory,
                                     val netlinkChannelFactory: NetlinkChannelFactory)
@@ -192,7 +192,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     private def subscribeToHost(id: UUID): Unit = {
         val props = Props(classOf[HostRequestProxy],
-                          id, storageFactory.create(), self)
+                          id, backChannel, storageFactory.create(), self)
                         .withDispatcher(context.props.dispatcher)
         context.actorOf(props, s"HostRequestProxy-$id")
     }
@@ -257,7 +257,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                 case None =>
             }
             for (tag <- driver.removePeersForZone(zone)) {
-                flowInvalidator.tell(tag)
+                backChannel.tell(tag)
             }
         }
 
@@ -324,7 +324,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         }
 
         def processTags(tags: TraversableOnce[FlowTag]): Unit =
-            tags foreach flowInvalidator.tell
+            tags foreach backChannel.tell
 
         def processDelPeer(): Unit =
             processTags(driver.removePeer(peerUUID, zone))
@@ -373,8 +373,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         //   - The case for invalidating on deactivation is obvious.
         //   - On activation we invalidate flows for this dp port number in case
         //     it has been reused by the dp: we want to start with a clean state
-        flowInvalidator.tell(FlowTagger.tagForTunnelKey(tunnelKey))
-        flowInvalidator.tell(FlowTagger.tagForDpPort(port.getPortNo))
+        backChannel.tell(FlowTagger.tagForTunnelKey(tunnelKey))
+        backChannel.tell(FlowTagger.tagForDpPort(port.getPortNo))
     }
 
     private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {

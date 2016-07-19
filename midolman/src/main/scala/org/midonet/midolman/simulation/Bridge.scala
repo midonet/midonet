@@ -22,8 +22,6 @@ import java.util.UUID
 
 import scala.collection.{Map => ROMap}
 
-import akka.actor.ActorSystem
-
 import org.midonet.cluster.client._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimStep,
@@ -89,7 +87,6 @@ object Bridge {
   * @param macToLogicalPortId
   * @param ipToMac
   * @param subnetIds only used for the new storage
-  * @param actorSystem
   */
 class Bridge(val id: UUID,
              val adminStateUp: Boolean,
@@ -108,11 +105,11 @@ class Bridge(val id: UUID,
              val subnetIds: List[UUID],
              val inboundMirrors: JList[UUID] = new util.ArrayList[UUID](),
              val outboundMirrors: JList[UUID] = new util.ArrayList[UUID]())
-            (implicit val actorSystem: ActorSystem) extends SimDevice
-                                                    with ForwardingDevice
-                                                    with InAndOutFilters
-                                                    with MirroringDevice
-                                                    with VirtualDevice {
+        extends SimDevice
+        with ForwardingDevice
+        with InAndOutFilters
+        with MirroringDevice
+        with VirtualDevice {
 
     import org.midonet.midolman.simulation.Simulator._
 
@@ -147,16 +144,16 @@ class Bridge(val id: UUID,
         // Some basic sanity checks
         if (context.wcmatch.getEthSrc.mcast) {
             context.log.info("Packet has multi/broadcast source, DROP")
-            mirroringInbound(context, Drop, actorSystem)
+            mirroringInbound(context, Drop)
         } else if (adminStateUp) {
-            mirroringInbound(context, normalProcess, actorSystem)
+            mirroringInbound(context, normalProcess)
         } else {
             context.log.debug("Bridge {} is down, DROP", id)
             Drop
         }
     }
 
-    private val continueIn: SimStep = (context, as) => {
+    private val continueIn: SimStep = (context) => {
         // Learn the entry
         implicit val c: PacketContext = context
         val srcDlAddress = context.wcmatch.getEthSrc
@@ -177,18 +174,18 @@ class Bridge(val id: UUID,
             action
     }
 
-    val normalProcess = ContinueWith((context, actorSystem) => {
+    val normalProcess = ContinueWith((context) => {
         if (areChainsApplicable()(context)) {
             // Call ingress (pre-bridging) chain. InputPort is already set.
             context.outPortId = null
-            filterIn(context, actorSystem, continueIn)
+            filterIn(context, continueIn)
         } else {
             context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
-            continueIn(context, actorSystem)
+            continueIn(context)
         }
     })
 
-    override val dropIn: DropHook = (context, as, result) => {
+    override val dropIn: DropHook = (context, result) => {
         updateFlowCount(context.wcmatch.getEthSrc, context)
         Drop
     }
@@ -494,9 +491,9 @@ class Bridge(val id: UUID,
             case _ =>
         }
 
-        val result = filterOut(context, actorSystem, act.simStep)
+        val result = filterOut(context, act.simStep)
         if (result eq act)
-            mirroringOutbound(context, result, actorSystem)
+            mirroringOutbound(context, result)
         else
             result
     }

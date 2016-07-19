@@ -112,10 +112,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         feedMacTable(bridge, SimBridge.UntaggedVlanId, mac, port)
     }
 
-
     def throwAwayArpBroker(emitter: JQueue[PacketEmitter.GeneratedPacket] = new JLinkedList): ArpRequestBroker =
-        new ArpRequestBroker(new PacketEmitter(emitter, actorSystem.deadLetters),
-                             config, flowInvalidator, () => { }, UnixClock.MOCK)
+        new ArpRequestBroker(new PacketEmitter(emitter),
+                             config, flowInvalidator, UnixClock.MOCK)
 
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard())
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard())
@@ -132,7 +131,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
         fmatch.setInputPortNumber(inPortNumber)
         val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
-        context.packetEmitter = new PacketEmitter(emitter, actorSystem.deadLetters)
+        context.packetEmitter = new PacketEmitter(emitter)
         context.arpBroker = arpBroker
         context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
         context.prepareForSimulation()
@@ -152,7 +151,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     : PacketContext = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
         val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch, egressPort)
-        context.packetEmitter = new PacketEmitter(emitter, actorSystem.deadLetters)
+        context.packetEmitter = new PacketEmitter(emitter)
         context.arpBroker = arpBroker
         context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
         context.prepareForSimulation()
@@ -297,41 +296,10 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                 (dpPortToVport map (_.swap) toMap) get vportId map Integer.valueOf orNull
         }
 
-        val dhcpConfig = new DhcpConfigFromNsdb(
-            injector.getInstance(classOf[VirtualTopology]))
-
-        TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
-            config,
-            hostId,
-            dpState,
-            new CookieGenerator(0, 1),
-            clock,
-            dpChannel,
-            dhcpConfig,
-            simBackChannel,
-            flowProcessor,
-            conntrackTable,
-            natTable,
-            traceTable,
-            peerResolver,
-            Future.successful(new MockStateStorage),
-            HappyGoLuckyLeaser,
-            metrics,
-            flowRecorder,
-            _ => { }) {
-
-            override def runWorkflow(pktCtx: PacketContext) = {
-                packetCtxTrap.offer(pktCtx)
-                super.runWorkflow(pktCtx)
-            }
-
-            override def start(pktCtx: PacketContext): SimulationResult =
-                if (workflowTrap ne null) {
-                    pktCtx.prepareForSimulation()
-                    workflowTrap(pktCtx)
-                } else {
-                    super.start(pktCtx)
-                }
-        }))
+        new MockPacketWorkflow(config, hostId, dpState, clock, dpChannel,
+                               virtualTopology, simBackChannel, flowProcessor,
+                               conntrackTable, natTable,
+                               traceTable, peerResolver, metrics, flowRecorder,
+                               packetCtxTrap, workflowTrap)
     }
 }
