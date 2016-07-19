@@ -31,7 +31,6 @@ import com.google.common.io.Files
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
-import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore

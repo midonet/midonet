@@ -67,6 +67,7 @@ object Port {
             tunnelKey = state.tunnelKey.getOrElse(p.getTunnelKey),
             peerId = if (p.hasPeerId) p.getPeerId else null,
             hostId = if (p.hasHostId) p.getHostId else null,
+            previousHostId = if (p.hasPreviousHostId) p.getPreviousHostId else null,
             interfaceName = if (p.hasInterfaceName) p.getInterfaceName else null,
             adminStateUp = p.getAdminStateUp,
             portGroups = p.getPortGroupIdsList,
