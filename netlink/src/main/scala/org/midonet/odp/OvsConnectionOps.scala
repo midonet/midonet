@@ -112,8 +112,8 @@ object OvsConnectionOps {
     }
 
     object NoOpHandler extends BatchCollector[Packet] {
-        def submit(p: Packet) { }
-        def endBatch() { }
+        override def submit(p: Packet) = true
+        override def endBatch() { }
     }
 
     def prepareDatapath(dpName: String, ifName: String)

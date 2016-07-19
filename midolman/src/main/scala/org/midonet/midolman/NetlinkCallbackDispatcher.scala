@@ -59,7 +59,7 @@ object NetlinkCallbackDispatcher extends Referenceable {
                 }
             }
 
-            override def submit(r: Runnable) {
+            override def submit(r: Runnable): Boolean = {
 
                 this.synchronized {
                     currentCBs(cursor) = r
@@ -67,6 +67,7 @@ object NetlinkCallbackDispatcher extends Referenceable {
                     if (cursor == BATCH_SIZE)
                         cycle()
                 }
+                true
             }
         }
 
