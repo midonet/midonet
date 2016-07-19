@@ -23,6 +23,8 @@ import scala.collection.JavaConversions._
 import scala.concurrent.Future._
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import org.mockito.Matchers.{anyObject, eq => Eq}
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
@@ -35,7 +37,8 @@ import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.backend.MockDirectory
 import org.midonet.cluster.data.storage.StateTable.Key
-import org.midonet.cluster.data.storage.{ObjectExistsException, StateTable, StateTableStorage, Storage}
+import org.midonet.cluster.data.storage._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.vtep.model.{MacLocation, PhysicalSwitch}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
@@ -197,6 +200,8 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
             override def start(): Unit = { }
         }
 
+        val metrics: StorageMetrics = new StorageMetrics(null, new MetricRegistry)
+
         createVxPortForVtep(vtepFix.vtep)
 
         /** Gives two mocks of the state tables of a given network, and mocks
@@ -207,11 +212,11 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
         def mockStateTables(stateTableStorage: StateTableStorage): Unit = {
             // Mock the DataClient
             macPortTable = new MacIdStateTable(key, new MockDirectory(), proxy,
-                                               Observable.never())
+                                               Observable.never(), metrics)
             Mockito.when(stateTableStorage.bridgeMacTable(Eq(nwId), Eq(0.toShort)))
                    .thenReturn(macPortTable)
             arpTable = new Ip4MacStateTable(key, new MockDirectory(), proxy,
-                                            Observable.never())
+                                            Observable.never(), metrics)
             Mockito.when(stateTableStorage.bridgeArpTable(Eq(nwId)))
                    .thenReturn(arpTable)
         }

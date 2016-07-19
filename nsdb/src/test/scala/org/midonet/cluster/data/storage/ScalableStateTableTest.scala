@@ -20,6 +20,7 @@ import java.util.UUID
 
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
 import com.google.protobuf.ByteString
 
 import ch.qos.logback.classic.{Level, Logger}
@@ -38,6 +39,7 @@ import rx.subjects.{BehaviorSubject, PublishSubject}
 import org.midonet.cluster.backend.zookeeper.ZkDirectory
 import org.midonet.cluster.backend.{Directory, MockDirectory}
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
@@ -55,7 +57,8 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
     private class Table(objectId: UUID,
                         override val directory: Directory,
                         override val proxy: StateTableClient,
-                        override val connection: Observable[ConnectionState])
+                        override val connection: Observable[ConnectionState],
+                        override val metrics: StorageMetrics = new StorageMetrics(null, new MetricRegistry))
         extends ScalableStateTable[String, String]
         with DirectoryStateTable[String, String] {
 

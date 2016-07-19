@@ -20,6 +20,8 @@ import java.util.Formatter
 
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import org.apache.zookeeper.data.Stat
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -30,6 +32,7 @@ import rx.Observable
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkDirectory}
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => ProxyConnectionState}
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
@@ -58,6 +61,8 @@ class MacIp4StateTableTest extends FlatSpec with GivenWhenThen with Matchers
             Observable.never()
         override def start(): Unit = { }
     }
+
+    val metrics: StorageMetrics = new StorageMetrics(null, new MetricRegistry)
 
     protected override def setup(): Unit = {
         connection = new CuratorZkConnection(curator, reactor)
@@ -95,7 +100,8 @@ class MacIp4StateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support ephemeral CRUD operations for single entry" in {
         Given("A state table")
-        val table = new MacIp4StateTable(tableKey, directory, proxy, Observable.never())
+        val table = new MacIp4StateTable(tableKey, directory, proxy,
+                                         Observable.never(), metrics)
 
         And("An observer to the table")
         val obs = new TestAwaitableObserver[Update[MAC, IPv4Addr]]
@@ -152,7 +158,8 @@ class MacIp4StateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support ephemeral CRUD operations for multiple entries" in {
         Given("A state table")
-        val table = new MacIp4StateTable(tableKey, directory, proxy, Observable.never())
+        val table = new MacIp4StateTable(tableKey, directory, proxy,
+                                         Observable.never(), metrics)
 
         And("An observer to the table")
         val obs = new TestAwaitableObserver[Update[MAC, IPv4Addr]]
@@ -243,7 +250,8 @@ class MacIp4StateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support persistent operations" in {
         Given("A state table")
-        val table = new MacIp4StateTable(tableKey, directory, proxy, Observable.never())
+        val table = new MacIp4StateTable(tableKey, directory, proxy,
+                                         Observable.never(), metrics)
 
         And("An observer to the table")
         val obs = new TestAwaitableObserver[Update[MAC, IPv4Addr]]
@@ -287,7 +295,8 @@ class MacIp4StateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support get by value" in {
         Given("A state table")
-        val table = new MacIp4StateTable(tableKey, directory, proxy, Observable.never())
+        val table = new MacIp4StateTable(tableKey, directory, proxy,
+                                         Observable.never(), metrics)
         table.start()
 
         When("Adding three MAC-IP pair to the table")
