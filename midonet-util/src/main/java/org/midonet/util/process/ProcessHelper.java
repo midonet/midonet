@@ -262,7 +262,7 @@ public class ProcessHelper {
         if (errorList.size() != 0 && !ignoreErrors) {
             // TODO: remove once tuntap is out (RHEL)
             if(!errorList.get(0).contains("tuntap")) {
-                log.warn("Process \"$ {}\" generated errors:", command);
+                log.warn("Process \"{}\" generated errors:", command);
                 for (String s : errorList) log.warn(s);
             }
         }

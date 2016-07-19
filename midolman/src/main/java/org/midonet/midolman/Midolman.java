@@ -277,6 +277,7 @@ public class Midolman {
         } catch (Exception e) {
             log.error("Agent service failed while stopping", e);
         } finally {
+
             log.info("MidoNet Agent exiting. Bye!");
         }
     }
