@@ -29,6 +29,8 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.control.NonFatal
 
+import com.codahale.metrics.MetricRegistry
+
 import org.apache.curator.framework.state.ConnectionState
 import org.apache.zookeeper.KeeperException.{BadVersionException, Code}
 
@@ -42,6 +44,7 @@ import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
@@ -827,11 +830,13 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         val provider = getProvider(clazz, key.runtimeClass, value.runtimeClass, name)
         tablesDirectory.ensureHas(path, "".getBytes)
         val directory = tablesDirectory.getSubDirectory(path)
+        val metrics = new StorageMetrics(null, new MetricRegistry)
 
         val constructor = provider.clazz.getConstructor(classOf[StateTable.Key],
                                                         classOf[Directory],
                                                         classOf[StateTableClient],
-                                                        classOf[Observable[ConnectionState]])
+                                                        classOf[Observable[ConnectionState]],
+                                                        classOf[StorageMetrics])
         val objectId = id match {
             case uuid: UUID => uuid
             case uuid: Commons.UUID => uuid.asJava
@@ -841,7 +846,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         val tableKey =  StateTable.Key(clazz, objectId, key.runtimeClass,
                                        value.runtimeClass, name, args)
         constructor.newInstance(tableKey, directory, stateTableClient,
-                                Observable.never())
+                                Observable.never(), metrics)
                    .asInstanceOf[StateTable[K, V]]
     }
 

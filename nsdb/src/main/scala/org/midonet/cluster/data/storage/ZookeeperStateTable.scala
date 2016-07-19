@@ -40,6 +40,7 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.ZkDirectory
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.TransactionManager._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.util.ConnectionObservable
@@ -225,7 +226,8 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
             provider.clazz.getConstructor(classOf[StateTable.Key],
                                           classOf[Directory],
                                           classOf[StateTableClient],
-                                          classOf[Observable[ConnectionState]])
+                                          classOf[Observable[ConnectionState]],
+                                          classOf[StorageMetrics])
 
         val tableKey = StateTable.Key(clazz, objectId, key.runtimeClass,
                                       value.runtimeClass, name, args)

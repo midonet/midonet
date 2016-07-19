@@ -23,6 +23,7 @@ import rx.Observable
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.storage.StateTable.Key
 import org.midonet.cluster.data.storage.StateTableEncoder.MacToIp4Encoder
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.storage.{DirectoryStateTable, ScalableStateTable, StateTable}
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -41,7 +42,8 @@ import org.midonet.packets.{IPv4Addr, MAC}
 final class MacIp4StateTable(override val tableKey: Key,
                              override val directory: Directory,
                              override val proxy: StateTableClient,
-                             override val connection: Observable[ConnectionState])
+                             override val connection: Observable[ConnectionState],
+                             override val metrics: StorageMetrics)
     extends DirectoryStateTable[MAC, IPv4Addr]
     with ScalableStateTable[MAC, IPv4Addr]
     with MacToIp4Encoder {
