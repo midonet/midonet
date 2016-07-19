@@ -130,7 +130,7 @@ class ProcMon(ISelectLoopObserver):
         self.running = True
         self.dump_path = dump_path
 
-    def dump_core(self, pid):
+    def dump_core(self, pid, pgid):
         try:
             if self.dump_path is None:
                 return
@@ -154,24 +154,24 @@ class ProcMon(ISelectLoopObserver):
             else:
                 core_file = os.path.join(os.getcwd(), "%s.%d" % (core_pattern, pid))
 
-            err("dumping core (goes to %s)" % core_file)
-            os.killpg(pid, signal.SIGABRT)
+            err("Dumping core (goes to %s)" % core_file)
+            os.killpg(pgid, signal.SIGABRT)
 
             # wait for process to exit.
-            # when it exits, os.killpg(pid, 0) will throw, breaking the loop
+            # when it exits, os.killpg(pgid, 0) will throw, breaking the loop
             try:
                 ticks = 100  # each tick is 0.1 second, so 10 seconds in total
                 while ticks > 0:
-                    os.killpg(pid, 0)
+                    os.killpg(pgid, 0)
                     time.sleep(0.1)
                     ticks -= 1
             except OSError:
                 pass
             if os.path.exists(core_file):
-                err("core dumped into %s, moving to %s" % (core_file, filename))
+                err("Core dumped into %s, moving to %s" % (core_file, filename))
                 os.rename(core_file, filename)
             else:
-                err("core not dumped, process may have exited too soon")
+                err("Core not dumped, process may have exited too soon")
         except Exception as e:
             err(e.message)
             pass
@@ -199,10 +199,13 @@ class ProcMon(ISelectLoopObserver):
                 self.select_loop.loop(1.0)
                 self.ticks_left -= 1
                 if self.ticks_left < 0 and not killed:
-                    err('child is unresponsive, killing')
-                    os.killpg(self.child_pid, signal.SIGQUIT)
-                    self.dump_core(self.child_pid)
-                    os.killpg(self.child_pid, signal.SIGKILL)
+                    pid = self.child_pid
+                    pgid = os.getpgid(pid)
+                    err('Child is unresponsive, killing child processes (pid:%d pgid:%d)' % (
+                        self.child_pid, pgid))
+                    os.killpg(pgid, signal.SIGQUIT)
+                    self.dump_core(pid, pgid)
+                    os.killpg(pgid, signal.SIGKILL)
                     killed = True
         finally:
             try:
@@ -211,8 +214,10 @@ class ProcMon(ISelectLoopObserver):
                     os.unlink(self.pipe_path)
                 os.rmdir(self.pipe_dir)
                 if self.running and self.child_pid > 0:
-                    err('unexpected error: killing child process')
-                    os.killpg(self.child_pid, signal.SIGKILL)
+                    pgid = os.getpgid(self.child_pid)
+                    err('Unexpected error: killing child processes (pid:%d pgid:%d)' % (
+                        self.child_pid, pgid))
+                    os.killpg(pgid, signal.SIGKILL)
                     pid, status = os.waitpid(self.child_pid, 0)
             except OSError:
                 pass
@@ -224,39 +229,55 @@ class ProcMon(ISelectLoopObserver):
             if os.WIFEXITED(status):
                 code = os.WEXITSTATUS(status)
                 if code != 0:
-                    err('child died with status %d' % code)
+                    err('Child died with status %d' % code)
                 else:
-                    msg('child exited')
+                    msg('Child exited')
                 sys.exit(code)
             elif os.WIFSIGNALED(status):
                 if os.WTERMSIG(status) == signal.SIGTERM:
-                    msg('child received SIGTERM and exited gracefully')
+                    msg('Child received SIGTERM and exited gracefully')
                     sys.exit(0)
                 else:
-                    err('child received signal: %d' % os.WTERMSIG(status))
+                    err('Child received signal: %d' % os.WTERMSIG(status))
                     sys.exit(254)
             else:
-                msg('child crashed')
+                msg('Child crashed')
                 sys.exit(253)
 
     def on_sigquit(self):
         if self.child_pid > 0:
-            msg('received SIGQUIT, dumping core and delivering signal')
-            self.dump_core(self.child_pid)
-            os.killpg(self.child_pid, signal.SIGQUIT)
+            pid = self.child_pid
+            pgid = os.getpgid(pid)
+            msg('Received SIGQUIT, dumping core and delivering signal (pid:%d pgid:%d)' % (
+                pid, pgid))
+            self.dump_core(pid, pgid)
+            os.killpg(pgid, signal.SIGQUIT)
 
     def on_sigterm(self):
-        msg('signal received, exiting')
-        self.terminate(5, signal.SIGTERM)
+        msg('Signal received, exiting')
+        self.terminate(5)
 
-    def terminate(self, timeout, signum):
+    def wait_on_children(self, pgid, timeout):
+        for i in range(timeout):
+            try:
+                time.sleep(1)
+                os.kill(pgid, 0)
+            except OSError:
+                return True
+        return False
+
+    def terminate(self, timeout):
         pid = self.child_pid
         if pid > 0:
-            os.killpg(pid, signum)
-            for i in range(timeout):
-                self.select_loop.loop(1.0)
-            err('child did not stop gracefully in 5 seconds, killing')
-            os.killpg(pid, signal.SIGKILL)
+            pgid = os.getpgid(pid)
+            msg('Terminating child processes with timeout %d seconds (pid:%d pgid:%d)' % (
+                timeout, pid, pgid))
+            os.killpg(pgid, signal.SIGTERM)
+            if self.wait_on_children(pgid, timeout):
+                return
+            err('Child did not stop gracefully in %d seconds, killing (pid:%d pgid:%d)' % (
+                timeout, pid, pgid))
+            os.killpg(pgid, signal.SIGKILL)
 
     def on_signal(self, signum):
         if signum == signal.SIGQUIT:
@@ -287,7 +308,7 @@ class ProcMon(ISelectLoopObserver):
             self.ticks_left = self.grace
 
     def open_pipe(self):
-        msg('opening pipe at ' + self.pipe_path)
+        msg('Opening pipe at ' + self.pipe_path)
         try:
             os.stat(self.pipe_path)
         except OSError as e:
@@ -302,11 +323,13 @@ class ProcMon(ISelectLoopObserver):
     def spawn(self):
         self.child_pid = os.fork()
         if self.child_pid > 0:
-            msg("spawned child process with PID %d" % self.child_pid)
+            msg('Spawned child process with pid:%d' % self.child_pid)
             return self.child_pid
         elif self.child_pid == 0:
             resource.setrlimit(resource.RLIMIT_CORE,
                                (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+            os.setsid()
+            msg("Started child process pid:%d pgid:%d" % (os.getpid(), os.getpgrp()))
             os.putenv('WDOG_PIPE', self.pipe_path)
             os.putenv('WDOG_TIMEOUT', str(self.grace))
             os.execvp(self.args[0], self.args)
