@@ -19,8 +19,6 @@ package org.midonet.midolman.routingprotocols
 import java.util.{Collections, UUID}
 import java.util.concurrent.ConcurrentHashMap
 
-import akka.actor.ActorSystem
-
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, SimulationResult, ErrorDrop}
 import org.midonet.midolman.simulation.{RouterPort, PacketContext}
 import org.midonet.midolman.topology.VirtualTopology
@@ -48,7 +46,7 @@ trait RoutingWorkflow {
      * Handles BGP traffic coming in through Quagga.
      */
     def handleBgp(context: PacketContext, inPort: Int)
-                 (implicit as: ActorSystem): SimulationResult = {
+            : SimulationResult = {
         val info = inputPortToDatapathInfo.get(inPort)
         if (info eq null)
             return ErrorDrop
