@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data
+package org.midonet.cluster.services
 
 import java.util.UUID
 
+import com.codahale.metrics.MetricRegistry
+import com.typesafe.config.ConfigFactory
+
 import org.junit.runner.RunWith
+import org.mockito.Mockito
 import org.reflections.Reflections
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec, Matchers}
-import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, Storage}
-import org.midonet.cluster.services.MidonetBackend
+import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
-object ZoomInitTest {
+import org.midonet.cluster.data.storage.{StateStorage, Storage}
+import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
+import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.util.MidonetBackendTest
+import org.midonet.conf.HostIdGenerator
+
+object MidonetBackendServiceTest {
 
     /** ZoomInitializer, but no annotation: setupFromClasspath shouldn't use */
     class TestZoomIniterBase extends ZoomInitializer {
@@ -63,19 +71,37 @@ object ZoomInitTest {
 }
 
 @RunWith(classOf[JUnitRunner])
-class ZoomInitTest extends FeatureSpec with Matchers {
-    import ZoomInitTest._
+class MidonetBackendServiceTest extends FeatureSpec with Matchers
+                                with GivenWhenThen with MidonetBackendTest {
+    import MidonetBackendServiceTest._
 
-    feature("ZoomInit hooks") {
-        scenario("execute setup of a ZoomInit class") {
-            val store = new InMemoryStorage()
-            val reflections = new Reflections("org.midonet")
-            MidonetBackend.setupFromClasspath(store, store, reflections)
+    private var config: MidonetBackendConfig = _
 
-            store.isRegistered(classOf[NonAnnotatedZoomIniter]) shouldBe false
-            store.isRegistered(classOf[AnnotatedZoomIniter]) shouldBe true
-            store.isRegistered(classOf[OtherAnnotatedZoomIniter]) shouldBe true
-            store.isRegistered(classOf[AnnotatedNoZoomIniter]) shouldBe false
-        }
+    override def beforeEach(): Unit = {
+        super.beforeEach()
+        config = new MidonetBackendConfig(ConfigFactory.parseString(
+            """
+              |state_proxy.enabled : false
+            """.stripMargin))
+    }
+
+    scenario("Backend calls plugins") {
+        Given("A backend service")
+        HostIdGenerator.useTemporaryHostId()
+        val reflections = new Reflections("org.midonet")
+        val backend = new MidonetBackendService(
+            config, curator, curator, Mockito.mock(classOf[MetricRegistry]),
+            Some(reflections))
+
+        When("Staring the backend")
+        backend.startAsync().awaitRunning()
+
+        Then("The storage calls the plugins")
+        backend.store.isRegistered(classOf[NonAnnotatedZoomIniter]) shouldBe false
+        backend.store.isRegistered(classOf[AnnotatedZoomIniter]) shouldBe true
+        backend.store.isRegistered(classOf[OtherAnnotatedZoomIniter]) shouldBe true
+        backend.store.isRegistered(classOf[AnnotatedNoZoomIniter]) shouldBe false
+
+        backend.stopAsync().awaitTerminated()
     }
 }
