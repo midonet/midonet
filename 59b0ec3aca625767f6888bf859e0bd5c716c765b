@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c0cb1aa3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageMetrics.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-19T15:48:32Z",
+      "side": 1,
+      "message": "A meter that for something that also records latency. Look at the Timer class in codahale.",
+      "revId": "59b0ec3aca625767f6888bf859e0bd5c716c765b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
