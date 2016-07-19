@@ -117,10 +117,10 @@ private[storage]
 class ClassSubscriptionCache[T](val clazz: Class[T],
                                 path: String,
                                 curator: CuratorFramework,
-                                zoomMetrics: ZoomMetrics) {
+                                storageMetrics: StorageMetrics) {
 
     private val pathCache = ObservablePathChildrenCache.create(curator, path,
-                                                               zoomMetrics)
+                                                               storageMetrics)
     private val deserializer = makeFunc1 {
         obs: Observable[ChildData] =>
             obs.map[T](DeserializerCache.deserializer(clazz))
