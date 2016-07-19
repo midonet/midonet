@@ -27,6 +27,8 @@ import scala.concurrent.{Future, Promise}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
+import com.codahale.metrics.MetricRegistry
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent}
 import org.apache.curator.framework.state.ConnectionState
@@ -40,6 +42,7 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.ZkDirectory
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.TransactionManager._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.util.ConnectionObservable
@@ -220,17 +223,20 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
         val directory = new ZkDirectory(curator.getZookeeperClient.getZooKeeper,
                                         path, reactor)
 
+        val metrics = new StorageMetrics(null, new MetricRegistry)
+
         // Get the constructor for the provider class and create a new instance.
         val constructor =
             provider.clazz.getConstructor(classOf[StateTable.Key],
                                           classOf[Directory],
                                           classOf[StateTableClient],
-                                          classOf[Observable[ConnectionState]])
+                                          classOf[Observable[ConnectionState]],
+                                          classOf[StorageMetrics])
 
         val tableKey = StateTable.Key(clazz, objectId, key.runtimeClass,
                                       value.runtimeClass, name, args)
 
-        constructor.newInstance(tableKey, directory, stateTables, connection)
+        constructor.newInstance(tableKey, directory, stateTables, connection, metrics)
                    .asInstanceOf[StateTable[K, V]]
     }
 
