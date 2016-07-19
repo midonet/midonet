@@ -47,7 +47,7 @@ api:
   extends:
     file: $BASE/midonet-api.yml
     service: api
-  image: sandbox/midonet-api:v1.9.5
+  image: sandbox/midonet-api:v1.9.6
   hostname: api
   labels:
       interface: mdts.services.midonet_api.MidonetApiHost
@@ -72,7 +72,7 @@ midolman1:
   extends:
     file: $BASE/midolman.yml
     service: midolman
-  image: sandbox/midolman:v1.9.5
+  image: sandbox/midolman:v1.9.6
   hostname: midolman1
   volumes:
   - /lib/modules:/lib/modules
@@ -89,7 +89,7 @@ midolman2:
   extends:
     file: $BASE/midolman.yml
     service: midolman
-  image: sandbox/midolman:v1.9.5
+  image: sandbox/midolman:v1.9.6
   hostname: midolman2
   volumes:
   - /lib/modules:/lib/modules
