@@ -165,7 +165,7 @@ abstract class DeviceMapper[D <: Device](val clazz: Class[D], val id: UUID,
 
     override final def onCompleted() = {
         assertThread()
-        log.debug("Device {}/{} deleted", clazz, id)
+        log.debug(s"Device ${clazz.getSimpleName}:$id deleted")
         state = MapperState.Completed
         val device = vt.devices.remove(id)
         vt.observables.remove(key)
@@ -177,7 +177,14 @@ abstract class DeviceMapper[D <: Device](val clazz: Class[D], val id: UUID,
 
     override final def onError(e: Throwable) = {
         assertThread()
-        log.error("Device {}/{} error", clazz, id, e)
+        e match {
+            case nfe: NotFoundException =>
+                log.debug(s"Device ${clazz.getSimpleName}:$id not found")
+            case _ =>
+                log.warn(s"Device ${clazz.getSimpleName}:$id error", e)
+        }
+
+
         error = e
         state = MapperState.Error
         val device = vt.devices.remove(id)
@@ -191,7 +198,7 @@ abstract class DeviceMapper[D <: Device](val clazz: Class[D], val id: UUID,
 
     override final def onNext(device: D) = {
         assertThread()
-        log.debug("Device {}/{} notification: {}", clazz, id, device)
+        log.debug(s"Device ${clazz.getSimpleName}:$id updated: $device")
         vt.devices.put(id, device)
         onDeviceChanged(device)
     }
@@ -313,8 +320,8 @@ abstract class DeviceMapper[D <: Device](val clazz: Class[D], val id: UUID,
 
 class DeviceMapperException(msg: String) extends Exception(msg) {
     def this(clazz: Class[_], id: UUID) =
-        this(s"Device mapper exception for device ${clazz.getSimpleName} $id")
+        this(s"Device mapper exception for device ${clazz.getSimpleName}:$id")
     def this(clazz: Class[_], id: UUID, msg: String) =
-        this(s"Device mapper exception for device ${clazz.getSimpleName} $id" +
+        this(s"Device mapper exception for device ${clazz.getSimpleName}:$id" +
              s": $msg")
 }
