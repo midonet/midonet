@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1bd4d31d",
+        "filename": "midolman/src/lib/midolman/bgpd-helper",
+        "patchSetId": 4
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-19T22:03:58Z",
+      "side": 1,
+      "message": "Can this be empty now?",
+      "range": {
+        "startLine": 177,
+        "startChar": 63,
+        "endLine": 177,
+        "endChar": 75
+      },
+      "revId": "42a14d5d4a0d43d8ed995f4649cdf34678cd00bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
