@@ -430,8 +430,10 @@ class ByteBufferBlockStreamTest extends FeatureSpec
             And("Fast forwarding time")
             currentTime += timeout + 1
 
-            Then("We should invalidate 2 blocks")
+            Then("We should invalidate 1 block (but the header)")
             outStream.invalidateBlocks() shouldBe 1
+            And("We should invalidate the header if no excluded blocks")
+            outStream.invalidateBlocks(excludeBlocks = 0) shouldBe 1
 
         }
     }
