@@ -15,6 +15,7 @@
 # limitations under the License.
 
 bgpd_start() {
+    router_id=$1
     bgpd=/usr/sbin/bgpd
     pidfile="/var/run/quagga/bgpd.${vtyport}.pid"
     if [ ! -x $bgpd ] ; then
@@ -26,6 +27,9 @@ bgpd_start() {
     fi
 
     quagga_log="$log_dir/quagga.$vtyport"
+    if [ -n "$router_id" ]; then
+        quagga_log=$quagga_log.$router_id
+    fi
     mkdir -p $quagga_log
     chown quagga.quagga $quagga_log
     pushd $quagga_log
@@ -177,7 +181,7 @@ usage() {
 
 bgpd_up() {
     kill_namespace_pids
-    bgpd_start
+    bgpd_start $1
     wait_for_all
 }
 
@@ -267,11 +271,12 @@ case "$1" in
         vtyport=$3
         bgp_config_file=$4
         log_dir=$5
-        reset_namespace_name $6
+        router_uuid=$6
+        reset_namespace_name $router_uuid
         if [ -z "$bgp_config_file" ] || [ -z "$vtyport" ] || [ -z "$log_dir" ] ; then
             usage
         fi
-        bgpd_up
+        bgpd_up $router_uuid
         ;;
 
     quagga_up)
