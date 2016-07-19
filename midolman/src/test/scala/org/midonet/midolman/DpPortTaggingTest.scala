@@ -58,5 +58,5 @@ class DpPortTaggingTest extends MidolmanSpec {
     }
 
     def workflow = packetWorkflow(Map(inPortNumber -> inPort,
-                                      outPortNumber -> outPort)).underlyingActor
+                                      outPortNumber -> outPort))
 }

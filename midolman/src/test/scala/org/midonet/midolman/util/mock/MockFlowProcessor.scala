@@ -44,7 +44,7 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
                                                      new PacketFamily(0), 0, 0),
                               10000, 1023, new MockNetlinkChannelFactory,
                               new MockSelectorProvider,
-                              new ShardedSimulationBackChannel(() => { }),
+                              new ShardedSimulationBackChannel(),
                               new DatapathMetrics(new MetricRegistry()),
                               new MockClock) {
     var flowDelCb: Flow => Unit = _

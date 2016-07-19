@@ -71,6 +71,10 @@ class PacketPipelineMetrics(val registry: MetricRegistry, workerId: Int) {
         name(classOf[FlowTablesMeter], workerTag,
              "datapathFlowsRemoved", "datapathFlowsRemoved"))
 
+    val workerQueueOverflow = registry.meter(
+        name(classOf[PacketPipelineMeter], workerTag,
+             "packetQueue", "overflow"))
+
     def packetPostponed() {
         packetsPostponed.mark()
         packetsOnHold.inc()

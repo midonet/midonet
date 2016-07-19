@@ -18,8 +18,7 @@ package org.midonet.midolman
 
 import java.util.ArrayList
 
-import akka.actor.ActorSystem
-import org.jctools.queues.MpscArrayQueue
+import org.jctools.queues.MpscLinkedQueue8
 
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
@@ -34,15 +33,7 @@ trait SimulationBackChannel {
     def poll(): SimulationBackChannel.BackChannelMessage
 }
 
-object ShardedSimulationBackChannel {
-    def apply(as: ActorSystem): ShardedSimulationBackChannel = {
-        new ShardedSimulationBackChannel(
-            () => PacketsEntryPoint.getRef()(as) ! CheckBackchannels
-        )
-    }
-}
-
-final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
+final class ShardedSimulationBackChannel
     extends SimulationBackChannel {
     import SimulationBackChannel._
 
@@ -75,7 +66,6 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
                 p.offer(msg)
             i += 1
         }
-        triggerChannelCheck()
     }
 
     override def hasMessages: Boolean = {
@@ -88,14 +78,13 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
         false
     }
 
-     override def poll(): BackChannelMessage =
+    override def poll(): BackChannelMessage =
         throw new UnsupportedOperationException(
             "Calling process on the main back channel is not supported")
 
     final class BackChannelShard extends SimulationBackChannel with Parkable {
-        private val MAX_PENDING = 1024
 
-        private val q = new MpscArrayQueue[BackChannelMessage](MAX_PENDING)
+        private val q = new MpscLinkedQueue8[BackChannelMessage]()
 
         private[ShardedSimulationBackChannel] def offer(msg: BackChannelMessage): Unit = {
             while (!q.offer(msg)) {
@@ -111,9 +100,6 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
             offer(msg)
             if (msg.isInstanceOf[BackChannelMessage with Broadcast])
                 tellOthers(this, msg)
-            else
-                triggerChannelCheck()
-
         }
 
         override def hasMessages: Boolean = !q.isEmpty

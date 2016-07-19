@@ -46,7 +46,7 @@ object FlowController {
 }
 
 trait FlowController extends FlowIndexer with FlowTagIndexer
-                     with FlowExpirationIndexer with DisruptorBackChannel { this: Actor =>
+                     with FlowExpirationIndexer with DisruptorBackChannel {
     import FlowController._
 
     protected val config: MidolmanConfig
@@ -55,8 +55,6 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     protected val datapathId: Int
     protected val workerId: Int
     val metrics: PacketPipelineMetrics
-
-    implicit val system: ActorSystem
 
     private var curIndex = -1
     private var numFlows = 0
@@ -79,7 +77,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
         flowProcessor.capacity)
     private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
-        flowProcessor.capacity, new FlowOperation(self, _, completedFlowOperations))
+        flowProcessor.capacity, new FlowOperation(_, completedFlowOperations))
     private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
         flowProcessor.capacity)
 

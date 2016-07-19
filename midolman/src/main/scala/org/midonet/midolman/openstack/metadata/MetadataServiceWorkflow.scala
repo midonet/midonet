@@ -16,8 +16,6 @@
 
 package org.midonet.midolman.openstack.metadata
 
-import akka.actor.ActorSystem
-
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.PacketWorkflow.NoOp
@@ -33,7 +31,7 @@ import org.midonet.packets.MAC
 import org.midonet.packets.TCP
 
 object MetadataServiceWorkflow {
-    var mdInfo: ProxyInfo = null  /* null means diabled */
+    var mdInfo: ProxyInfo = null  /* null means disabled */
 }
 
 // Note: Ingress/Egress here are from the POV of metadata proxy, not VMs.
@@ -41,8 +39,7 @@ object MetadataServiceWorkflow {
 trait MetadataServiceWorkflow {
     import MetadataServiceWorkflow.mdInfo
 
-    def handleMetadataIngress(context: PacketContext)
-            (implicit as: ActorSystem): SimulationResult = {
+    def handleMetadataIngress(context: PacketContext): SimulationResult = {
         if (mdInfo eq null) {
             return null  // disabled
         }
@@ -56,8 +53,7 @@ trait MetadataServiceWorkflow {
         }
     }
 
-    private def handleMetadataIngressTcp(context: PacketContext)
-            (implicit as: ActorSystem): SimulationResult = {
+    private def handleMetadataIngressTcp(context: PacketContext): SimulationResult = {
         val fmatch = context.wcmatch
         val remoteAddr =
             AddressManager dpPortToRemoteAddress fmatch.getInputPortNumber
@@ -75,7 +71,7 @@ trait MetadataServiceWorkflow {
     }
 
     private def handleMetadataIngressArp(context: PacketContext)
-            (implicit as: ActorSystem): SimulationResult = {
+            : SimulationResult = {
         val remoteAddr = MetadataApi.Address
         val mac = MAC fromString "94:e7:ac:7a:c5:13"  // random
 
@@ -99,8 +95,7 @@ trait MetadataServiceWorkflow {
         fmatch.getNetworkDstIP.toString == MetadataApi.Address
     }
 
-    def handleMetadataEgress(context: PacketContext)
-            (implicit as: ActorSystem): SimulationResult = {
+    def handleMetadataEgress(context: PacketContext): SimulationResult = {
         if (mdInfo eq null) {
             return null  // disabled
         }
@@ -119,7 +114,7 @@ trait MetadataServiceWorkflow {
     }
 
     private def handleMetadataEgressTcp(context: PacketContext)
-            (implicit as: ActorSystem): SimulationResult = {
+            : SimulationResult = {
         val fmatch = context.wcmatch
         val remoteAddr = fmatch.getNetworkDstIP.toString
 
@@ -152,7 +147,7 @@ trait MetadataServiceWorkflow {
     }
 
     private def handleMetadataEgressArp(context: PacketContext)
-            (implicit as: ActorSystem): SimulationResult = {
+            : SimulationResult = {
         val fmatch = context.wcmatch
         val remoteAddr = fmatch.getNetworkDstIP.toString  // tpa
 

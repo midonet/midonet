@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.IndexedSeq
 
 import akka.actor.{ActorSystem, OneForOneStrategy, SupervisorStrategy}
 
@@ -71,9 +72,10 @@ class MidolmanModule(injector: Injector,
     override def configure(): Unit = {
         bind(classOf[MidolmanConfig]).toInstance(config)
         val host = hostId()
-        bind(classOf[HostIdProvider]).toInstance(new HostIdProvider {
+        val hostIdProvider = new HostIdProvider {
             override def hostId(): UUID = host
-        })
+        }
+        bind(classOf[HostIdProvider]).toInstance(hostIdProvider)
 
         bind(classOf[NanoClock]).toInstance(NanoClock.DEFAULT)
         bind(classOf[UnixClock]).toInstance(UnixClock.DEFAULT)
@@ -100,8 +102,9 @@ class MidolmanModule(injector: Injector,
         val as = actorSystem()
         bind(classOf[ActorSystem]).toInstance(as)
         bind(classOf[SupervisorStrategy]).toInstance(crashStrategy())
-        val backChannel = simulationBackChannel(as)
-        bind(classOf[SimulationBackChannel]).toInstance(backChannel)
+
+        val backChannel = new ShardedSimulationBackChannel
+        bind(classOf[ShardedSimulationBackChannel]).toInstance(backChannel)
 
         val capacity = Util.findNextPositivePowerOfTwo(
             config.datapath.globalIncomingBurstCapacity)
@@ -115,9 +118,6 @@ class MidolmanModule(injector: Injector,
         bind(classOf[DatapathChannel]).toInstance(channel)
 
         bind(classOf[DatapathConnectionPool]).toInstance(connectionPool())
-        val dpConnectionManager = upcallDatapathConnectionManager(policy)
-        bind(classOf[UpcallDatapathConnectionManager]).toInstance(
-            dpConnectionManager)
 
         bind(classOf[DatapathConnectionService]).asEagerSingleton()
 
@@ -132,13 +132,11 @@ class MidolmanModule(injector: Injector,
         bind(classOf[HostService]).toInstance(hservice)
 
         bind(classOf[Plumber]).toInstance(plumber(dpState))
-        bind(classOf[DatapathInterface]).toInstance(
-            datapathInterface(scanner, dpState, dpConnectionManager))
-
 
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
-        bind(classOf[FlowRecorder]).toInstance(flowRecorder(host))
+        val flowRecorder = createFlowRecorder(host)
+        bind(classOf[FlowRecorder]).toInstance(flowRecorder)
 
         val allocator = natAllocator()
         bind(classOf[NatBlockAllocator]).toInstance(allocator)
@@ -152,6 +150,23 @@ class MidolmanModule(injector: Injector,
 
         val resolver = peerResolver(host, vt)
         bind(classOf[PeerResolver]).toInstance(resolver)
+
+        val allWorkers = createAllPacketWorkers(config, hostIdProvider,
+                                                channel, dpState, fp,
+                                                allocator, resolver,
+                                                backChannel, vt,
+                                                NanoClock.DEFAULT,
+                                                flowRecorder, metricRegistry,
+                                                counter, as)
+        bind(classOf[AllPacketWorkersService]).toInstance(allWorkers)
+
+        val dpConnectionManager = upcallDatapathConnectionManager(
+            policy, allWorkers.workers)
+        bind(classOf[UpcallDatapathConnectionManager]).toInstance(
+            dpConnectionManager)
+        bind(classOf[DatapathInterface]).toInstance(
+            datapathInterface(scanner, dpState, dpConnectionManager))
+
 
         bind(classOf[MidolmanService]).asEagerSingleton()
     }
@@ -270,12 +285,15 @@ class MidolmanModule(injector: Injector,
     }
 
     protected def upcallDatapathConnectionManager(
-            tbPolicy: TokenBucketPolicy) =
+            tbPolicy: TokenBucketPolicy,
+            workers: IndexedSeq[PacketWorker]) =
         config.inputChannelThreading match {
             case "one_to_many" =>
-                new OneToManyDpConnManager(config, tbPolicy, metricRegistry)
+                new OneToManyDpConnManager(config, workers,
+                                           tbPolicy, metricRegistry)
             case "one_to_one" =>
-                new OneToOneDpConnManager(config, tbPolicy, metricRegistry)
+                new OneToOneDpConnManager(config, workers,
+                                          tbPolicy, metricRegistry)
             case s =>
                 throw new IllegalArgumentException(
                     "Unknown value for input_channel_threading: " + s)
@@ -294,6 +312,26 @@ class MidolmanModule(injector: Injector,
                     .map(FlowStateStorage(_, NatKey, ConnTrackKey))(ExecutionContext.callingThread)
         }
     }
+
+    protected def createAllPacketWorkers(config: MidolmanConfig,
+                                         hostIdProvider: HostIdProvider,
+                                         dpChannel: DatapathChannel,
+                                         dpState: DatapathState,
+                                         flowProcessor: FlowProcessor,
+                                         natBlockAllocator: NatBlockAllocator,
+                                         peerResolver: PeerResolver,
+                                         backChannel: ShardedSimulationBackChannel,
+                                         vt: VirtualTopology,
+                                         clock: NanoClock,
+                                         flowRecorder: FlowRecorder,
+                                         metricsRegistry: MetricRegistry,
+                                         counter: StatisticalCounter,
+                                         actorSystem: ActorSystem)
+            : AllPacketWorkersService =
+        new AllPacketWorkersServiceImpl(config, hostIdProvider, dpChannel, dpState,
+                                        flowProcessor, natBlockAllocator, peerResolver,
+                                        backChannel, vt, clock, flowRecorder,
+                                        metricsRegistry, counter, actorSystem)
 
     protected def connectionPool(): DatapathConnectionPool =
         new OneToOneConnectionPool(
@@ -336,13 +374,7 @@ class MidolmanModule(injector: Injector,
     protected def bindActorService(): Unit =
         bind(classOf[MidolmanActorsService]).asEagerSingleton()
 
-    protected def simulationBackChannel(as: ActorSystem): SimulationBackChannel = {
-        val backchannel = ShardedSimulationBackChannel(as)
-        bind(classOf[ShardedSimulationBackChannel]).toInstance(backchannel)
-        backchannel
-    }
-
-    protected def flowRecorder(hostId: UUID): FlowRecorder =
+    protected def createFlowRecorder(hostId: UUID): FlowRecorder =
         FlowRecorder(config, hostId)
 
     protected def flowTracingAppender() = {
