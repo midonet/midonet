@@ -43,7 +43,7 @@ object FlowController {
 }
 
 trait FlowController extends FlowLifecycle with FlowInvalidation
-                     with FlowExpiration with Backchannel { this: Actor =>
+                     with FlowExpiration with Backchannel {
     import FlowController._
 
     val id: Int
@@ -76,7 +76,7 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
     private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
         flowProcessor.capacity)
     private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
-        flowProcessor.capacity, new FlowOperation(self, _, completedFlowOperations))
+        flowProcessor.capacity, new FlowOperation(_, completedFlowOperations))
     private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
         flowProcessor.capacity)
 

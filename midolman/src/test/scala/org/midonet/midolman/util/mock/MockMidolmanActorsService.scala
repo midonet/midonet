@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.midonet.midolman.util.mock
 
 import java.util.concurrent.CountDownLatch
-
 import scala.collection.mutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
@@ -27,6 +26,7 @@ import akka.testkit.TestActorRef
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import com.google.inject.{Inject, Injector}
 import org.midonet.midolman.{MockScheduler, Referenceable}
+
 import org.midonet.midolman.services.MidolmanActorsService
 
 class EmptyActor extends Actor {
@@ -116,12 +116,6 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
         actors += (name -> testRef)
         Future successful testRef
     }
-
-    override def createActorSystem(): ActorSystem =
-        ActorSystem.create("MidolmanActors", ConfigFactory.load()
-            .getConfig("midolman")
-            .withValue("akka.scheduler.implementation",
-                       ConfigValueFactory.fromAnyRef(classOf[MockScheduler].getName)))
 
     override def initProcessing() { }
 }

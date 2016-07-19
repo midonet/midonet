@@ -40,7 +40,7 @@ import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.midolman.state.TraceState
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology._
-import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.{MidolmanSpec, MockPacketWorkflow}
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.{Flow, FlowMatches, Packet}
 import org.midonet.odp.flows._
@@ -89,7 +89,8 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     // infra for ingress dda
     private val portMapIngress: BiMap[Int,UUID] = HashBiMap.create()
     private val mockDpIngress = new MockDatapathChannel
-    private var pktWkflIngress: TestActorRef[PacketWorkflow] = null
+
+    private var pktWkflIngress: MockPacketWorkflow = null
     private val packetOutQueueIngress = new ju.LinkedList[(Packet, ju.List[FlowAction])]
     private val flowQueueIngress = new ju.LinkedList[Flow]
     private val packetCtxTrapIngress = new ju.LinkedList[PacketContext]
@@ -97,7 +98,8 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     // infra for egress dda
     private val portMapEgress: BiMap[Int,UUID] = HashBiMap.create()
     private val mockDpEgress = new MockDatapathChannel
-    private var pktWkflEgress: TestActorRef[PacketWorkflow] = null
+
+    private var pktWkflEgress: MockPacketWorkflow = null
     private val packetOutQueueEgress = new ju.LinkedList[(Packet, ju.List[FlowAction])]
     private val flowQueueEgress = new ju.LinkedList[Flow]
     private val packetCtxTrapEgress = new ju.LinkedList[PacketContext]
@@ -215,11 +217,11 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
     private def injectPacketVerifyTraced(inPortNum: Int,
                                          frame: Ethernet): Unit = {
-        val packets = List(new Packet(frame,
-                                      FlowMatches.fromEthernetPacket(frame)
-                                          .addKey(FlowKeys.inPort(inPortNum))
-                                          .setInputPortNumber(inPortNum)))
-        pktWkflIngress ! PacketWorkflow.HandlePackets(packets.toArray)
+        val packet1 = new Packet(frame,
+                                FlowMatches.fromEthernetPacket(frame)
+                                    .addKey(FlowKeys.inPort(inPortNum))
+                                    .setInputPortNumber(inPortNum))
+        pktWkflIngress.handlePackets(packet1)
 
         // should be sending a trace state to other host
         packetOutQueueIngress.size should be (2)
@@ -258,8 +260,8 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         egressFrameFlowMatch.addKey(FlowKeys.inPort(tunnelPort))
             .setInputPortNumber(tunnelPort)
 
-        val packets2 = List(new Packet(egressFrame, egressFrameFlowMatch))
-        pktWkflEgress ! PacketWorkflow.HandlePackets(packets2.toArray)
+        val packet2 = new Packet(egressFrame, egressFrameFlowMatch)
+        pktWkflEgress.handlePackets(packet2)
 
         val (_, actions2) = packetOutQueueEgress.remove()
 

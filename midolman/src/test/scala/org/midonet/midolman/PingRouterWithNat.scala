@@ -25,7 +25,6 @@ import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.PacketWorkflow.HandlePackets
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -174,7 +173,7 @@ class PingRouterWithNat extends MidolmanSpec {
             passed = true
         }
 
-        workflow.receive(HandlePackets(Array(packet)))
+        workflow.handlePackets(packet)
         mockDpChannel.packetsSent should have size 1
         passed should be (true)
     }

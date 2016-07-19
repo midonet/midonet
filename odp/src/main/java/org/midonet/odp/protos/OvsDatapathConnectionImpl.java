@@ -125,8 +125,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     private PacketBuilder builder = new PacketBuilder();
 
     @Override
-    protected void handleNotification(short type, byte cmd, int seq, int pid,
-                                      ByteBuffer buffer) {
+    protected boolean handleNotification(short type, byte cmd, int seq, int pid,
+                                         ByteBuffer buffer) {
         if (pid == 0 &&
             packetFamily.familyId == type &&
             (packetFamily.contextMiss.command() == cmd ||
@@ -134,7 +134,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             if (notificationHandler != null) {
                 Packet packet = builder.buildFrom(buffer);
                 if (packet == null)
-                    return;
+                    return false;
 
                 if (packetFamily.contextAction.command() == cmd) {
                     packet.setReason(Packet.Reason.FlowActionUserspace);
@@ -142,12 +142,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     packet.setReason(Packet.Reason.FlowTableMiss);
                 }
 
-                notificationHandler.submit(packet);
+                return notificationHandler.submit(packet);
             }
         } else {
             log.error("Cannot handle notification for: {family: {}, cmd: {}}",
                       type, cmd);
         }
+        return false;
     }
 
     @Override

@@ -32,6 +32,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.flows.FlowInvalidator
@@ -125,7 +126,6 @@ object DatapathController extends Referenceable {
 
     /** Java API */
     val initializeMsg = Initialize
-
     // Default MTU supported by the underlay accounting for the tunnel overhead.
     // This value is just a reference in case there are no tunnel interfaces
     // configured.
@@ -138,6 +138,7 @@ object DatapathController extends Referenceable {
      * @param datapath the active datapath
      */
     case class DatapathReady(datapath: Datapath, state: DatapathState)
+            extends BackChannelMessage with Broadcast
 
     /**
      * This message is sent when the separate thread has successfully
@@ -161,6 +162,9 @@ object DatapathController extends Referenceable {
     @volatile var minMtu: Short = _
 }
 
+trait DatapathControllerListener {
+    def ready(msg: DatapathController.DatapathReady): Unit
+}
 
 /**
  * The DP (Datapath) Controller is responsible for managing MidoNet's local
@@ -220,6 +224,12 @@ class DatapathController extends Actor
     @Inject
     var flowInvalidator: FlowInvalidator = _
 
+    @Inject
+    val datapathControllerListener: DatapathControllerListener = null
+
+    @Inject
+    val backChannel: SimulationBackChannel = null
+
     protected def storageFactory = _storageFactory
 
     val dpState = new DatapathStateManager(
@@ -272,7 +282,7 @@ class DatapathController extends Actor
 
     private def subscribeToHost(id: UUID): Unit = {
         val props = Props(classOf[HostRequestProxy],
-                          id, storageFactory.create(), self)
+                          id, backChannel, storageFactory.create(), self)
                         .withDispatcher(context.props.dispatcher)
         context.actorOf(props, s"HostRequestProxy-$id")
     }
@@ -364,6 +374,8 @@ class DatapathController extends Actor
         context become receive
         val datapathReadyMsg = DatapathReady(datapath, dpState)
         system.eventStream.publish(datapathReadyMsg)
+
+        datapathControllerListener.ready(datapathReadyMsg)
         initializer ! datapathReadyMsg
         self ! host
 

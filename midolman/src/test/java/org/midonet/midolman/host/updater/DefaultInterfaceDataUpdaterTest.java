@@ -108,6 +108,7 @@ public class DefaultInterfaceDataUpdaterTest {
                             .toInstance(new MockMidolmanActorsService());
                     expose(MidolmanActorsService.class);
                     bind(NanoClock.class).toInstance(new MockClock());
+                    expose(NanoClock.class);
                 }
             },
             new ResourceProtectionModule(),

@@ -22,7 +22,7 @@ import java.util.HashSet
 import org.junit.runner.RunWith
 import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.midolman.PacketWorkflow.HandlePackets
+
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
@@ -168,6 +168,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
         { ip4 src srcIp.toNetworkAddress dst dstIp.toNetworkAddress } <<
         { icmp.echo id pingId }
 
+
     feature ("ICMP errors are reverse NATed") {
         scenario ("For TCP/UDP packets") {
             val table = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
@@ -213,7 +214,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
                 passed = true
             }
 
-            workflow.receive(HandlePackets(Array(packet)))
+            workflow.handlePackets(packet)
             mockDpChannel.packetsSent should have size 1
             passed should be (true)
         }
@@ -260,7 +261,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
                 passed = true
             }
 
-            workflow.receive(HandlePackets(Array(packet)))
+            workflow.handlePackets(packet)
             mockDpChannel.packetsSent should have size 1
             passed should be (true)
         }

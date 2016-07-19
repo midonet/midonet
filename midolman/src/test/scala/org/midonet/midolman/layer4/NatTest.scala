@@ -42,6 +42,7 @@ import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.MockPacketWorkflow
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.odp.flows._
 import org.midonet.packets._
@@ -103,7 +104,7 @@ class NatTest extends MidolmanSpec {
     private var rtrOutChain: Chain = null
     private var rtrInChain: Chain = null
 
-    private var pktWkfl: TestActorRef[PacketWorkflow] = null
+    private var pktWkfl: MockPacketWorkflow = null
     private val packetOutQueue: ju.Queue[(Packet, ju.List[FlowAction])] =
         new ju.LinkedList[(Packet, ju.List[FlowAction])]
 
@@ -312,6 +313,7 @@ class NatTest extends MidolmanSpec {
         fetchTopology(vmPorts:_*)
 
         pktWkfl = packetWorkflow(portMap, natTable = natTable)
+        pktWkfl.process()
 
         mockDpChannel.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueue.add((packet,actions)) )
@@ -407,7 +409,7 @@ class NatTest extends MidolmanSpec {
 
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForRouter(router.getId))
 
-        pktWkfl.underlyingActor.process()
+        pktWkfl.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()
@@ -419,6 +421,7 @@ class NatTest extends MidolmanSpec {
     }
 
     def testSnat() {
+        pktWkfl.process()
         log.info("Sending a tcp packet that should be SNAT'ed")
         injectTcp(vmPorts.head.getId, vmMacs.head, vmIps.head, 30501,
             routerMac, IPv4Addr("62.72.82.1"), 22,
@@ -468,8 +471,8 @@ class NatTest extends MidolmanSpec {
         mapping.flowCount should be (2)
 
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForRouter(router.getId))
+        pktWkfl.process()
 
-        pktWkfl.underlyingActor.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()
@@ -626,11 +629,11 @@ class NatTest extends MidolmanSpec {
 
     def inject(inPort: UUID, frame: Ethernet): Unit = {
         val inPortNum = portMap.map(_.swap).toMap.apply(inPort)
-        val packets = List(new Packet(frame,
-                                      FlowMatches.fromEthernetPacket(frame)
-                                          .addKey(FlowKeys.inPort(inPortNum))
-                                          .setInputPortNumber(inPortNum)))
-        pktWkfl ! PacketWorkflow.HandlePackets(packets.toArray)
+        val packet = new Packet(frame,
+                                FlowMatches.fromEthernetPacket(frame)
+                                    .addKey(FlowKeys.inPort(inPortNum))
+                                    .setInputPortNumber(inPortNum))
+        pktWkfl.handlePackets(packet)
     }
 
     def injectTcp(inPort: UUID, srcMac: MAC, srcIp: IPv4Addr, srcPort: Short,

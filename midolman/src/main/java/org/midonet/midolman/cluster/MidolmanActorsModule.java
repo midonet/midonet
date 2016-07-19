@@ -21,6 +21,7 @@ import java.lang.annotation.Target;
 
 import scala.concurrent.duration.Duration;
 
+import akka.actor.ActorSystem;
 import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
@@ -36,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.DatapathController;
 import org.midonet.midolman.MtuIncreaser;
 import org.midonet.midolman.NetlinkCallbackDispatcher;
-import org.midonet.midolman.PacketsEntryPoint;
 import org.midonet.midolman.SupervisorActor;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.io.DatapathConnectionPool;
@@ -87,6 +87,7 @@ public class MidolmanActorsModule extends PrivateModule {
         requireBinding(HostIdProviderService.class);
         requireBinding(UpcallDatapathConnectionManager.class);
         requireBinding(FlowStateStorageFactory.class);
+        requireBinding(ActorSystem.class);
 
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);
@@ -110,7 +111,6 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(VirtualTopologyActor.class);
         bind(VirtualToPhysicalMapper.class);
         bind(DatapathController.class);
-        bind(PacketsEntryPoint.class);
         bind(NetlinkCallbackDispatcher.class);
         //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(RoutingManagerActor.class);

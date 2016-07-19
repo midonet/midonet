@@ -96,8 +96,9 @@ public abstract class AbstractNetlinkConnection {
         // default implementation runs callbacks out of the calling thread one by one
         this.dispatcher = new BatchCollector<Runnable>() {
             @Override
-            public void submit(Runnable r) {
+            public boolean submit(Runnable r) {
                 r.run();
+                return true;
             }
 
             @Override
@@ -442,7 +443,10 @@ public abstract class AbstractNetlinkConnection {
                         // if the seq number is zero we are handling a PacketIn.
                         if (bucket.consumeToken()) {
                             try {
-                                handleNotification(type, cmd, seq, pid, reply);
+                                if (!handleNotification(type, cmd, seq,
+                                                        pid, reply)) {
+                                    bucket.giveBack();
+                                }
                             } catch (Throwable e) {
                                 bucket.giveBack();
                                 throw e;
@@ -509,8 +513,8 @@ public abstract class AbstractNetlinkConnection {
         return request;
     }
 
-    protected abstract void handleNotification(short type, byte cmd, int seq,
-                                               int pid, ByteBuffer buffer);
+    protected abstract boolean handleNotification(short type, byte cmd, int seq,
+                                                  int pid, ByteBuffer buffer);
 
     private int writeSeqToNetlinkRequest(NetlinkRequest request, ByteBuffer out) {
         int seq = nextSequenceNumber();

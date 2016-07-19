@@ -534,8 +534,9 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
         Packet packet;
 
         @Override
-        public void submit(Packet data) {
+        public boolean submit(Packet data) {
             packet = data;
+            return true;
         }
 
         public Packet getPacket() {

@@ -18,6 +18,7 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -32,6 +33,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Entity, Router => ClusterRouter}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
@@ -141,6 +143,18 @@ class AdminStateTest extends MidolmanSpec {
 
         VirtualToPhysicalMapper ! LocalPortActive(exteriorBridgePort.getId,
                                                   active = true, 1L)
+    }
+
+    def getAndClearBC(backChannel: SimulationBackChannel)
+            : mutable.Buffer[BackChannelMessage] = {
+        val messages = mutable.Buffer[BackChannelMessage]()
+        backChannel.process(
+            new BackChannelHandler() {
+                override def handle(message: BackChannelMessage): Unit = {
+                    messages += message
+                }
+            })
+        messages
     }
 
     lazy val fromBridgeSide = (exteriorBridgePort, bridgeSidePkt)
@@ -463,6 +477,7 @@ class AdminStateTest extends MidolmanSpec {
 
         scenario("the admin state of a bridge is set to up") {
             Given("a bridge with its state set to down")
+
             bridge.setAdminStateUp(false)
             clusterDataClient.bridgesUpdate(bridge)
             VirtualTopologyActor.getAndClear()
@@ -495,6 +510,7 @@ class AdminStateTest extends MidolmanSpec {
 
         scenario("the admin state of a bridge port is set to up") {
             Given("interior and exterior bridge ports with their state set to down")
+
             interiorBridgePort.setAdminStateUp(false)
             exteriorBridgePort.setAdminStateUp(false)
             clusterDataClient.portsUpdate(interiorBridgePort)
@@ -529,6 +545,7 @@ class AdminStateTest extends MidolmanSpec {
 
         scenario("the admin state of a router is set to up") {
             Given("a router with its state set to down")
+
             router.setAdminStateUp(false)
             clusterDataClient.routersUpdate(router)
             VirtualTopologyActor.getAndClear()
@@ -561,6 +578,7 @@ class AdminStateTest extends MidolmanSpec {
 
         scenario("the admin state of a router port is set to up") {
             Given("interior and exterior router ports with their state set to down")
+
             interiorRouterPort.setAdminStateUp(false)
             exteriorRouterPort.setAdminStateUp(false)
             clusterDataClient.portsUpdate(interiorRouterPort)

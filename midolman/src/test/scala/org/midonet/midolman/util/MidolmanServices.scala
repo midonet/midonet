@@ -32,6 +32,7 @@ import com.typesafe.scalalogging.Logger
 import org.midonet.cluster.Client
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.state.StateStorage
+import org.midonet.midolman.ShardedSimulationBackChannel
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
 import org.midonet.midolman.flows.{FlowInvalidation, FlowInvalidator}
@@ -84,11 +85,13 @@ trait MidolmanServices {
                 .asInstanceOf[MockFlowProcessor]
     }
 
+    lazy val simBackChannel = injector.getInstance(
+        classOf[ShardedSimulationBackChannel]).registerProcessor
+
     def flowInvalidator =
         injector.getInstance(classOf[FlowInvalidator])
 
     val mockFlowInvalidation = new FlowInvalidation() {
-        val log = Logger(NOPLogger.NOP_LOGGER)
         var tags = List[FlowTag]()
 
         def getAndClear() = {

@@ -214,11 +214,11 @@ class PingTest extends MidolmanSpec {
             new Packet(frame, FlowMatches.fromEthernetPacket(frame)
                            .addKey(FlowKeys.inPort(rtrPort1DpNum))
                            .setInputPortNumber(rtrPort1DpNum)) }
-        val packets = (1 to howMany) map makePacket toArray
+        val packets = (1 to howMany) map makePacket
 
         packetWorkflow(Map(
             `rtrPort1DpNum` -> rtrPort1.getId,
-            `vm2PortDpNum` -> vm2Port.getId)) ! PacketWorkflow.HandlePackets(packets)
+            `vm2PortDpNum` -> vm2Port.getId)).handlePackets(packets:_*)
 
         mockDpChannel.packetsSent should have size 20
 

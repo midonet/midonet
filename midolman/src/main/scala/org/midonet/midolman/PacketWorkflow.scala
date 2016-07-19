@@ -27,6 +27,7 @@ import scala.util.{Failure, Success}
 import akka.actor._
 import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.flows.FlowExpiration.Expiration
+import com.lmax.disruptor._
 
 import org.slf4j.{LoggerFactory, MDC}
 
@@ -34,10 +35,11 @@ import org.jctools.queues.MpscArrayQueue
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
+import org.midonet.midolman.SimulationBackChannel._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
 import org.midonet.midolman.flows.{FlowExpiration, FlowInvalidator}
-import org.midonet.midolman.logging.{ActorLogWithoutPath, FlowTracingContext}
+import org.midonet.midolman.logging.{FlowTracingContext, MidolmanLogging}
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.topology.{VxLanPortMapper, VirtualTopologyActor}
 import org.midonet.midolman.topology.devices.Port
@@ -61,10 +63,16 @@ import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent._
 
 object PacketWorkflow {
-    case class HandlePackets(packet: Array[Packet])
-    case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
+    sealed class PacketRef(var packet: Packet)
 
-    case class DuplicateFlow(index: Int)
+    object PacketRefFactory extends EventFactory[PacketRef] {
+        override def newInstance() = new PacketRef(null)
+    }
+
+    case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
+            extends BackChannelMessage
+    case class DuplicateFlow(index: Int) extends BackChannelMessage
+            with Broadcast
 
     trait SimulationResult
     case object NoOp extends SimulationResult
@@ -158,37 +166,41 @@ class PacketWorkflow(
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val flowRecorder: FlowRecorder,
-            val packetOut: Int => Unit)
-        extends Actor with ActorLogWithoutPath with Stash with Backchannel
+            val packetOut: Int => Unit,
+            val backChannel: SimulationBackChannel,
+            implicit val system: ActorSystem)
+        extends EventHandler[PacketWorkflow.PacketRef]
+        with TimeoutHandler
+        with Backchannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
         with FlowController {
 
     import DatapathController.DatapathReady
     import PacketWorkflow._
 
-    override def logSource = "org.midonet.packet-worker"
+    override def logSource = s"org.midonet.packet-worker.packet-workflow-$id"
     val resultLogger = Logger(LoggerFactory.getLogger("org.midonet.packets.results"))
 
+    var initialized = false
     var dpState: DatapathState = null
     var datapathId: Int = _
 
-    implicit val dispatcher = this.context.system.dispatcher
-    implicit val system = this.context.system
+    implicit val dispatcher = this.system.dispatcher
 
     protected val simulationExpireMillis = 5000L
 
     private val waitingRoom = new WaitingRoom[PacketContext](
                                         (simulationExpireMillis millis).toNanos)
 
-    private val genPacketEmitter = new PacketEmitter(new MpscArrayQueue(512), self)
+    private val genPacketEmitter = new PacketEmitter(new MpscArrayQueue(512))
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
     protected val traceStateTx = new FlowStateTransaction(traceStateTable)
+
     protected var replicator: FlowStateReplicator = _
 
-    protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, flowInvalidator,
-                                                   () => self ! CheckBackchannels)
+    protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, flowInvalidator)
 
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
@@ -205,67 +217,62 @@ class PacketWorkflow(
             }
         }
 
-    context.become {
-        case DatapathReady(dp, state) =>
-            dpState = state
-            datapathId = dp.getIndex
-            replicator = new FlowStateReplicator(connTrackStateTable,
-                                                 natStateTable,
-                                                 traceStateTable,
-                                                 storage,
-                                                 dpState,
-                                                 this,
-                                                 config.datapath.controlPacketTos)
-            context.become(receive)
-            system.scheduler.schedule(20 millis, 5 seconds, self, CheckBackchannels)
-            unstashAll()
-        case _ => stash()
+    override def onEvent(event: PacketRef, sequence: Long,
+                         endOfBatch: Boolean): Unit = {
+        if (initialized) {
+            handlePacket(event.packet)
+            if (endOfBatch) {
+                process()
+            }
+        } else {
+            packetOut(1) // return token to HTB
+        }
     }
 
-    override def receive = {
-        case m: FlowStateBatch =>
-            replicator.importFromStorage(m)
-
-        case HandlePackets(packets) =>
-            var i = 0
-            while (i < packets.length && packets(i) != null) {
-                handlePacket(packets(i))
-                i += 1
-            }
+    override def onTimeout(sequence: Long): Unit =
+        if (shouldProcess) {
             process()
+        }
 
-        case CheckBackchannels =>
-            process()
-
-        case DuplicateFlow(mark) =>
-            duplicateFlow(mark)
-
-        case RestartWorkflow(pktCtx, error) =>
-            if (pktCtx.idle) {
-                metrics.packetsOnHold.dec()
-                pktCtx.log.debug("Restarting workflow")
-                MDC.put("cookie", pktCtx.cookieStr)
-                if (error eq null) {
-                    runWorkflow(pktCtx)
-                    process()
-                } else {
-                    handleErrorOn(pktCtx, error)
-                    waitingRoom leave pktCtx
+    val backChannelHandler = new BackChannelHandler {
+        def handle(message: SimulationBackChannel.BackChannelMessage): Unit = {
+            if (!initialized) {
+                message match {
+                    case DatapathReady(dp, state) =>
+                        dpState = state
+                        datapathId = dp.getIndex
+                        replicator = new FlowStateReplicator(connTrackStateTable,
+                                                             natStateTable,
+                                                             traceStateTable,
+                                                             storage,
+                                                             state,
+                                                             PacketWorkflow.this,
+                                                             config.datapath.controlPacketTos)
+                        initialized = true
+                    case _ =>
+                        log.warn(s"Invalid backchannel message in uninitialized state: $message")
                 }
-                MDC.remove("cookie")
-                FlowTracingContext.clearContext()
+            } else {
+                message match {
+                    case m: FlowStateBatch => replicator.importFromStorage(m)
+                    case DuplicateFlow(mark) => duplicateFlow(mark)
+                    case RestartWorkflow(pktCtx, error) => restart(pktCtx, error)
+                    case _ => log.warn(s"Unknown backchannel message $message")
+                }
             }
-            // Else the packet may have already been expired and dropped
+        }
     }
 
     override def shouldProcess(): Boolean =
         super.shouldProcess() ||
-        genPacketEmitter.pendingPackets > 0 ||
-        arpBroker.shouldProcess()
+            backChannel.hasMessages ||
+            genPacketEmitter.pendingPackets > 0 ||
+            arpBroker.shouldProcess()
 
     override def process(): Unit = {
         super.process()
         genPacketEmitter.process(runGeneratedPacket)
+        backChannel.process(backChannelHandler)
         connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
         natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
         natLeaser.obliterateUnusedBlocks()
@@ -300,9 +307,9 @@ class PacketWorkflow(
         pktCtx.postpone()
         f.onComplete {
             case Success(_) =>
-                self ! RestartWorkflow(pktCtx, null)
+                backChannel.tell(RestartWorkflow(pktCtx, null))
             case Failure(ex) =>
-                self ! RestartWorkflow(pktCtx, ex)
+                backChannel.tell(RestartWorkflow(pktCtx, ex))
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         giveUpWorkflows(waitingRoom enter pktCtx)
@@ -321,6 +328,22 @@ class PacketWorkflow(
             i += 1
         }
     }
+
+    private def restart(pktCtx: PacketContext, error: Throwable): Unit =
+        if (pktCtx.idle) {
+            metrics.packetsOnHold.dec()
+            pktCtx.log.debug("Restarting workflow")
+            MDC.put("cookie", pktCtx.cookieStr)
+            if (error eq null) {
+                runWorkflow(pktCtx)
+            } else {
+                handleErrorOn(pktCtx, error)
+                waitingRoom leave pktCtx
+            }
+            MDC.remove("cookie")
+            FlowTracingContext.clearContext()
+        } // Else the packet may have already been expired and dropped
+
 
     private def drop(context: PacketContext): Unit =
         try {
@@ -399,7 +422,7 @@ class PacketWorkflow(
                 handleErrorOn(pktCtx, ex)
         }
 
-    private def handlePacket(packet: Packet): Unit =
+    protected def handlePacket(packet: Packet): Unit =
         if (FlowStatePackets.isStateMessage(packet.getMatch)) {
             handleStateMessage(packetContext(packet))
             packetOut(1)

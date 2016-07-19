@@ -27,6 +27,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.PacketWorkersService;
 import org.midonet.midolman.host.services.HostService;
 
 /**
@@ -42,6 +43,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject
     MidolmanActorsService actorsService;
+
+    @Inject
+    PacketWorkersService packetWorkersService;
 
     @Inject
     DatapathConnectionService datapathConnectionService;
@@ -124,6 +128,8 @@ public class MidolmanService extends AbstractService {
         if (hostService != null)
             services.add(hostService);
         services.add(actorsService);
+        services.add(packetWorkersService);
+
         return services;
     }
 }

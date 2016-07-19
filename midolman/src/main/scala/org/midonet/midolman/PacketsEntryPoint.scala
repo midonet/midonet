@@ -15,7 +15,7 @@
  */
 
 package org.midonet.midolman
-
+/*
 import org.midonet.midolman.PacketWorkflow.{DuplicateFlow, DuplicatedFlow}
 
 import scala.collection.immutable
@@ -181,3 +181,4 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
         case GetWorkers => sender ! Workers(workers)
     }
 }
+*/

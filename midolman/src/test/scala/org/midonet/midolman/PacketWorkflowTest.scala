@@ -36,6 +36,7 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.monitoring.NullFlowRecorder
 import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
@@ -57,8 +58,7 @@ import org.midonet.packets.util.PacketBuilder.{udp, _}
 @RunWith(classOf[JUnitRunner])
 class PacketWorkflowTest extends MidolmanSpec {
     var packetsSeen = List[PacketContext]()
-    var ddaRef: TestActorRef[TestableDDA] = _
-    def dda = ddaRef.underlyingActor
+    var packetWorkflow: TestablePacketWorkflow = _
     var packetsOut = 0
     var stateMessagesSeen = 0
 
@@ -72,36 +72,14 @@ class PacketWorkflowTest extends MidolmanSpec {
     val cookie = 42
 
     override def beforeTest() {
-        createDda()
+        createPacketWorkflow()
     }
 
-    def createDda(simulationExpireMillis: Long = 5000L): Unit = {
-        if (ddaRef != null)
-            actorSystem.stop(ddaRef)
-
-        val ddaProps = Props {
-            new TestableDDA(new CookieGenerator(1, 1),
-            mockDpChannel, clusterDataClient,
-            (x: Int) => { packetsOut += x },
-            simulationExpireMillis)
-        }
-
-        ddaRef = TestActorRef(ddaProps)(actorSystem)
-        dda should not be null
-        ddaRef ! DatapathController.DatapathReady(new Datapath(0, "midonet"), new DatapathState {
-            override def getDpPortForInterface(itfName: String): Option[DpPort] = ???
-            override def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = ???
-            override def getVportForDpPortNumber(portNum: Integer): Option[UUID] = ???
-            override def getDpPortNumberForVport(vportId: UUID): Option[Integer] = ???
-            override def getDpPortName(num: Integer): Option[String] = ???
-            override def host = new ResolvedHost(UUID.randomUUID(), true,
-                                                 Map(), Map())
-            override def peerTunnelInfo(peer: UUID): Option[Route] = ???
-            override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
-            override def isOverlayTunnellingPort(portNumber: Integer): Boolean = ???
-            override def vtepTunnellingOutputAction: FlowActionOutput = ???
-            override def getDescForInterface(itfName: String) = ???
-        })
+    def createPacketWorkflow(simulationExpireMillis: Long = 5000L): Unit = {
+        packetWorkflow = new TestablePacketWorkflow(new CookieGenerator(1, 1),
+                                                    mockDpChannel,
+                                                    (x: Int) => { packetsOut += x },
+                                                    simulationExpireMillis)
     }
 
     def makeFrame(variation: Short) =
@@ -129,15 +107,15 @@ class PacketWorkflowTest extends MidolmanSpec {
 
     def makeUniquePacket(variation: Short): Packet = makeUniqueFrame(variation)
 
-    feature("DeduplicationActor handles packets") {
+    feature("Packet workflow handles packets") {
         scenario("state messages are not deduplicated") {
             Given("four identical state packets")
             val pkts = (1 to 4) map (_ => makeStatePacket())
 
-            When("they are fed to the DDA")
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            When("they are fed to the packet workflow")
+            packetWorkflow.handlePackets(pkts:_*)
 
-            Then("the DDA should accept the state")
+            Then("the packet workflow should accept the state")
             stateMessagesSeen should be (4)
             And("packetOut should have been called with the correct number")
             packetsOut should be (4)
@@ -150,8 +128,8 @@ class PacketWorkflowTest extends MidolmanSpec {
             Given("4 packets with 3 different matches")
             val pkts = List(makePacket(1), makePacket(2), makePacket(3), makePacket(2))
 
-            When("they are fed to the DDA")
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            When("they are fed to the packet workflow")
+            packetWorkflow.handlePackets(pkts:_*)
 
             Then("a packetOut should have been called for the pending packets")
             packetsOut should be (4)
@@ -163,12 +141,17 @@ class PacketWorkflowTest extends MidolmanSpec {
         scenario("simulates generated packets") {
             Given("a simulation that generates a packet")
             val pkt = makePacket(1)
-            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
+            packetWorkflow.handlePackets(pkt)
 
             When("the simulation completes")
             val id = UUID.randomUUID()
-            val frame: Ethernet = makeFrame(1)
-            dda.completeWithGenerated(List(output(1)), GeneratedPacket(id, frame))
+
+            val frame: Ethernet = makeFrame(2)
+            packetWorkflow.completeWithGenerated(
+                List(output(1)), GeneratedPacket(id, frame))
+            while (packetWorkflow.shouldProcess) {
+                packetWorkflow.process()
+            }
 
             Then("the generated packet should be simulated")
             packetsSeen map { _.ethernet } should be (List(pkt.getEthernet, frame))
@@ -179,14 +162,14 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         scenario("expires packets") {
             Given("a pending packet in the packet workflow")
-            createDda(0)
+            createPacketWorkflow(0)
             val pkts = List(makePacket(1), makePacket(1))
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            packetWorkflow.handlePackets(pkts:_*)
             packetsOut should be (2)
 
             When("putting another packet handler in the waiting room")
             val pkt2 = makePacket(2)
-            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt2))
+            packetWorkflow.handlePackets(pkt2)
 
             Then("packets are expired and dropped")
             isCleared(packetsSeen.head)
@@ -202,11 +185,11 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         scenario("packet context is cleared in the waiting room") {
             Given("a simulation result")
-            dda.nextActions = List(FlowActions.output(1))
+            packetWorkflow.nextActions = List(FlowActions.output(1))
 
             When("a packet is placed in the waiting room")
-            val pkts = List(makePacket(1))
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            val pkt = makePacket(1)
+            packetWorkflow.handlePackets(pkt)
             packetsOut should be (1)
 
             Then("the packet context should be clear")
@@ -217,10 +200,11 @@ class PacketWorkflowTest extends MidolmanSpec {
         scenario("packet context is cleared when dropping") {
             Given("a simulation that generates a packet")
             val pkt = makePacket(1)
-            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
+            packetWorkflow.handlePackets(pkt)
 
             When("the simulation completes with an error")
-            dda.completeWithException(new Exception("c'est ne pas une exception"))
+            packetWorkflow.completeWithException(
+                new Exception("c'est ne pas une exception"))
 
             Then("the packet is dropped")
             isCleared(packetsSeen.head)
@@ -427,31 +411,29 @@ class PacketWorkflowTest extends MidolmanSpec {
     val applyEmptyActions = List[Check](checkEmptyActions, checkExecPacket)
     val applyOutputActions = List[Check](checkOutputActions, checkExecPacket)
            */
-    class TestableDDA(cookieGen: CookieGenerator,
-                      dpChannel: DatapathChannel,
-                      clusterDataClient: DataClient,
-                      packetOut: Int => Unit,
-                      override val simulationExpireMillis: Long)
+    class TestablePacketWorkflow(cookieGen: CookieGenerator,
+                                 dpChannel: DatapathChannel,
+                                 packetOut: Int => Unit,
+                                 override val simulationExpireMillis: Long)
             extends PacketWorkflow(0,
                                    injector.getInstance(classOf[MidolmanConfig]),
-                                   cookieGen, clock, dpChannel,
-                                   clusterDataClient, flowInvalidator, flowProcessor,
+                                   cookieGen, clock,
+                                   dpChannel, clusterDataClient,
+                                   flowInvalidator, flowProcessor,
                                    conntrackTable, natTable,
                                    new ShardedFlowStateTable[TraceKey, TraceContext](),
                                    Future.successful(new MockStateStorage()),
                                    HappyGoLuckyLeaser,
                                    metrics,
-                                   injector.getInstance(
-                                       classOf[FlowRecorderFactory])
-                                       .newFlowRecorder(),
-                                   packetOut)
-            with MessageAccumulator {
-
-        implicit override val dispatcher = this.context.dispatcher
+                                   new NullFlowRecorder(),
+                                   packetOut,
+                                   simBackChannel, actorSystem) {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
         var nextActions: List[FlowAction] = _
         var exception: Exception = _
+
+        initialized = true
 
         def completeWithGenerated(actions: List[FlowAction],
                                   generatedPacket: GeneratedPacket): Unit = {
@@ -467,6 +449,11 @@ class PacketWorkflowTest extends MidolmanSpec {
         def complete(actions: List[FlowAction]): Unit = {
             nextActions = actions
             p success null
+        }
+
+        def handlePackets(packets: Packet*): Unit = {
+            packets foreach handlePacket
+            process()
         }
 
         protected override def handleStateMessage(context: PacketContext): Unit =

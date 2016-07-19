@@ -37,10 +37,6 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 
-object MidolmanActorsService {
-    var actorSystem: ActorSystem = _
-}
-
 /*
  * A base trait for a simple guice service that starts an actor system,
  * a SupervisorActor and set of top-level actors below the supervisor.
@@ -58,7 +54,9 @@ class MidolmanActorsService extends AbstractService {
     @Inject
     val config: MidolmanConfig = null
 
-    private var _system: ActorSystem = null
+    @Inject
+    val _system: ActorSystem = null
+
     implicit def system: ActorSystem = _system
     implicit def ex: ExecutionContext = _system.dispatcher
     implicit protected val childActorTimeout = 200.milliseconds
@@ -72,7 +70,6 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[VirtualToPhysicalMapper]).
                 withDispatcher("actors.stash-dispatcher"),
                 VirtualToPhysicalMapper.Name),
-            (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[MtuIncreaser]).
                 withDispatcher("actors.pinned-dispatcher"), MtuIncreaser.Name),
             (propsFor(classOf[DatapathController]), DatapathController.Name),
@@ -92,8 +89,6 @@ class MidolmanActorsService extends AbstractService {
             log.info("Booting up actors service")
 
             PacketTracing.registerAsMXBean()
-            _system = createActorSystem()
-            MidolmanActorsService.actorSystem = _system
             supervisorActor = startTopActor(
                                 propsFor(classOf[SupervisorActor]),
                                 SupervisorActor.Name)
@@ -166,10 +161,6 @@ class MidolmanActorsService extends AbstractService {
         log.debug("Request for starting actor {}", name)
         (supervisorActor ? StartChild(props, name)).mapTo[ActorRef]
     }
-
-    protected def createActorSystem(): ActorSystem =
-        ActorSystem.create("midolman", ConfigFactory.load()
-                .getConfig("midolman"))
 
     def initProcessing() {
         log.debug("Sending Initialization message to datapath controller.")

@@ -16,14 +16,42 @@
 
 package org.midonet.midolman.util.guice
 
+import scala.collection.IndexedSeq
+
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import akka.actor.ActorSystem
+
+import org.midonet.midolman.{BackChannelHandler, DatapathController, SimulationBackChannel, ShardedSimulationBackChannel}
+import org.midonet.midolman.{MockScheduler, PacketWorker, PacketWorkersService}
 import org.midonet.midolman.cluster.MidolmanModule
 import org.midonet.midolman.state.{MockNatBlockAllocator, NatBlock, NatRange, NatBlockAllocator}
 import org.midonet.util.functors.Callback
 
 class MockMidolmanModule extends MidolmanModule {
-
     protected override def bindAllocator() {
         bind(classOf[NatBlockAllocator]).toInstance(new MockNatBlockAllocator)
         expose(classOf[NatBlockAllocator])
+    }
+    override def bindActorSystem() {
+        val config = ConfigFactory.load()
+            .getConfig("midolman")
+            .withValue("akka.scheduler.implementation",
+                       ConfigValueFactory.fromAnyRef(
+                           classOf[MockScheduler].getName))
+        val as = ActorSystem.create("MidolmanActors", config)
+        bind(classOf[ActorSystem]).toInstance(as)
+        expose(classOf[ActorSystem])
+    }
+
+    override def bindPacketWorkersService() {
+        val packetWorkersService = new PacketWorkersService() {
+            override def workers: IndexedSeq[PacketWorker] = IndexedSeq()
+            def initWithDatapath(msg: DatapathController.DatapathReady): Unit = {}
+            override def doStart(): Unit = notifyStarted()
+            override def doStop(): Unit = notifyStopped()
+        }
+        bind(classOf[PacketWorkersService])
+            .toInstance(packetWorkersService)
+        expose(classOf[PacketWorkersService])
     }
 }
