@@ -32,7 +32,7 @@ import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 import rx.Observable.OnSubscribe
 
-import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
+import org.midonet.cluster.data.storage.StorageMetrics
 import org.midonet.cluster.util.PathDirectoryObservable.State
 import org.midonet.cluster.util.PathDirectoryObservable.State.State
 import org.midonet.util.functors.makeAction0
@@ -76,7 +76,7 @@ object PathDirectoryObservable {
       */
     def create(curator: CuratorFramework, path: String,
                completeOnDelete: Boolean = true,
-               metrics: ZoomMetrics = BlackHoleZoomMetrics,
+               metrics: StorageMetrics = StorageMetrics.Nil,
                onClose: => Unit = OnCloseDefault)
     :PathDirectoryObservable = {
         new PathDirectoryObservable(
@@ -88,7 +88,7 @@ object PathDirectoryObservable {
 private[util]
 class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
                              onClose: => Unit, completeOnDelete: Boolean,
-                             metrics: ZoomMetrics)
+                             metrics: StorageMetrics)
     extends OnSubscribe[Set[String]] with Logging {
 
     override def logSource = "org.midonet.nsdb.nsdb-directory"
@@ -219,7 +219,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
             children.set(event.getChildren.asScala.toSet)
             subject.onNext(children.get)
         } else if (event.getResultCode == Code.NONODE.intValue) {
-            metrics.zkNoNodeTriggered()
+            metrics.noNodeTriggered()
             if (completeOnDelete) {
                 log.debug("Node deleted: closing the observable")
                 close(new ParentDeletedException(path))
