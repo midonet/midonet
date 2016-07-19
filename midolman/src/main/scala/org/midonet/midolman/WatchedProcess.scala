@@ -18,17 +18,17 @@ package org.midonet.midolman
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import java.nio.file.FileSystems
-import java.nio.file.Path
-import java.nio.file.StandardOpenOption
-import java.util.Timer
-import java.util.TimerTask
+import java.nio.file.{FileSystems, Path, StandardOpenOption}
+import java.util.{Timer, TimerTask}
 import java.util.concurrent.TimeoutException
 
-import com.typesafe.scalalogging.Logger
-import org.midonet.util.concurrent.CallingThreadExecutionContext
-import org.slf4j.LoggerFactory
 import scala.concurrent.Promise
+
+import com.typesafe.scalalogging.Logger
+
+import org.slf4j.LoggerFactory
+
+import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 class WatchedProcess {
     val log = Logger(LoggerFactory.getLogger("org.midonet.midolman.watchdog"))
@@ -40,14 +40,6 @@ class WatchedProcess {
     private var pipe: FileChannel = null
     private var timer: Timer = null
 
-    private val shutdownHook = new Thread() {
-        override def run() {
-            log.info("Stopping watchdog thread")
-            timer.cancel()
-            running = false
-        }
-    }
-
     private def initializationTimeout(promise: Promise[_]) = {
         new TimerTask() {
             override def run() {
@@ -57,7 +49,7 @@ class WatchedProcess {
     }
 
     private val tick = new TimerTask() {
-        val buf = ByteBuffer.allocate(1);
+        val buf = ByteBuffer.allocate(1)
         buf.put(57.toByte)
         buf.flip()
 
@@ -93,7 +85,7 @@ class WatchedProcess {
                 log.warn(s"Disabling watchdog: Invalid WDOG_TIMEOUT value: $timeoutStr")
                 false
             } else {
-                pipePath = FileSystems.getDefault().getPath(pipeStr);
+                pipePath = FileSystems.getDefault.getPath(pipeStr)
                 true
             }
         } catch {
@@ -115,7 +107,7 @@ class WatchedProcess {
         }
     }
 
-    def start(initializationWitness: Promise[_], timeout: Int) {
+    def start(initializationWitness: Promise[_], timeout: Int): Unit = {
         if (running)
             return
         if (!readConfig())
@@ -125,7 +117,6 @@ class WatchedProcess {
 
         log.info("Starting watchdog thread")
         running = true
-        Runtime.getRuntime.addShutdownHook(shutdownHook)
         timer = new Timer("watchdog", true)
         timer.scheduleAtFixedRate(tick, 0, intervalMillis)
 
@@ -136,5 +127,11 @@ class WatchedProcess {
                 timer.cancel()
                 pipe.close()
         }(CallingThreadExecutionContext)
+    }
+
+    def close(): Unit = {
+        log.info("Stopping watchdog thread")
+        timer.cancel()
+        running = false
     }
 }

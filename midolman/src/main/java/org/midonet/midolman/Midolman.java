@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.nio.file.Paths;
@@ -125,24 +126,7 @@ public class Midolman {
         }
     }
 
-    private void setUncaughtExceptionHandler() {
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
-                log.error("Unhandled exception: ", e);
-                dumpStacks();
-                System.exit(-1);
-            }
-        });
-    }
-
-    private void run(String[] args) throws Exception {
-        Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
-        setUncaughtExceptionHandler();
-        int initTimeout = Integer.valueOf(
-            System.getProperty("midolman.init_timeout", "120"));
-        watchedProcess.start(initializationPromise, initTimeout);
-
+    private void initialize(String[] args) throws IOException {
         // log git commit info
         Properties properties = new Properties();
         properties.load(
@@ -167,12 +151,38 @@ public class Midolman {
         log.info("-------------------------------------");
 
         log.info("Adding shutdown hook");
-        Runtime.getRuntime().addShutdownHook(new Thread() {
+        Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
             @Override
             public void run() {
                 doServicesCleanup();
             }
         });
+    }
+
+    private void setUncaughtExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                log.error("Unhandled exception: ", e);
+                dumpStacks();
+                System.exit(-1);
+            }
+        });
+    }
+
+    private void run(String[] args) throws Exception {
+        Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
+        setUncaughtExceptionHandler();
+        int initTimeout = Integer.valueOf(
+            System.getProperty("midolman.init_timeout", "120"));
+        try {
+            watchedProcess.start(initializationPromise, initTimeout);
+            initialize(args);
+        } catch (Throwable t) {
+            log.error("Exception while initializing the MidoNet Agent", t);
+            watchedProcess.close();
+            throw t;
+        }
 
         minionProcess = ProcessHelper
             .newDemonProcess("/usr/share/midolman/minions-start", log,
@@ -277,6 +287,7 @@ public class Midolman {
         } catch (Exception e) {
             log.error("Agent service failed while stopping", e);
         } finally {
+            watchedProcess.close();
             log.info("MidoNet Agent exiting. Bye!");
         }
     }
