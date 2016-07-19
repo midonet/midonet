@@ -20,7 +20,7 @@ import java.util.ArrayDeque
 
 import scala.concurrent.duration._
 
-import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.{FlowStateStore => FlowState}
 
 object FlowExpirationIndexer {
@@ -55,10 +55,9 @@ object FlowExpirationIndexer {
  * but it is still kept in these data structures until it expires. This is to
  * avoid linear remove operations or smarter, more expensive data structures.
  */
-trait FlowExpirationIndexer extends FlowIndexer {
+trait FlowExpirationIndexer extends FlowIndexer with MidolmanLogging {
     import FlowExpirationIndexer._
 
-    protected val log: Logger
     protected val maxFlows: Int
 
     private val expirationQueues = new Array[ArrayDeque[ManagedFlow]](maxType)

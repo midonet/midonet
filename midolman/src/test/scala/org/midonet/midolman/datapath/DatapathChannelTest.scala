@@ -166,8 +166,7 @@ class DatapathChannelTest extends MidolmanSpec {
 
             context.flow.sequence should be (0)
 
-            val flowDelete = new FlowOperation(TestProbe().ref,
-                                               new ArrayObjectPool(0, _ => null),
+            val flowDelete = new FlowOperation(new ArrayObjectPool(0, _ => null),
                                                new SpscArrayQueue(16))
             val managedFlow = new ManagedFlow(null)
             managedFlow.flowMatch.reset(context.origMatch)
@@ -203,8 +202,7 @@ class DatapathChannelTest extends MidolmanSpec {
             val seq = context.flow.sequence
             seq should be (0)
             val queue = new LinkedBlockingQueue[FlowOperation]()
-            val flowDelete = new FlowOperation(TestProbe().ref,
-                                               new ArrayObjectPool(0, _ => null),
+            val flowDelete = new FlowOperation(new ArrayObjectPool(0, _ => null),
                                                queue)
             val managedFlow = new ManagedFlow(null)
             managedFlow.flowMatch.reset(context.origMatch)
