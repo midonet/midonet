@@ -70,8 +70,7 @@ def do_request(
 
     try:
         response, content = (httplib2.Http(
-            disable_ssl_certificate_validation=
-            disable_ssl_certificate_validation)
+            disable_ssl_certificate_validation=disable_ssl_certificate_validation)  # noqa
             .request(uri, method, data, headers=headers))
     except socket.error:
         raise exc.MidoApiConnectionError()

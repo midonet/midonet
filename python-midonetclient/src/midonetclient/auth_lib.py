@@ -65,8 +65,7 @@ class Auth(object):
                 LOG.info("Logging in to MidoNet API server")
                 resp, _body = api_lib.do_request(
                     self.uri, 'POST', body={}, headers=headers,
-                    disable_ssl_certificate_validation=
-                    self.disable_ssl_certificate_validation)
+                    disable_ssl_certificate_validation=self.disable_ssl_certificate_validation)  # noqa
                 set_cookie = resp['set-cookie']
                 session, sep, exp = set_cookie.partition(";")
                 session_key, sep, _token = session.partition("=")
@@ -106,16 +105,14 @@ class Auth(object):
         try:
             return api_lib.do_request(
                 uri, method, body=body, query=query, headers=headers,
-                disable_ssl_certificate_validation=
-                self.disable_ssl_certificate_validation)
+                disable_ssl_certificate_validation=self.disable_ssl_certificate_validation)  # noqa
         except exc.HTTPUnauthorized:
             # Try one more time after logging in
             LOG.info("Got HTTPUnauthorized error, try logging in again")
             self.set_header_token(headers, force=True)
             return api_lib.do_request(
                 uri, method, body=body, query=query, headers=headers,
-                disable_ssl_certificate_validation=
-                self.disable_ssl_certificate_validation)
+                disable_ssl_certificate_validation=self.disable_ssl_certificate_validation)  # noqa
 
     def do_upload(self, uri, body=None, query=None, headers=None):
         '''Wrapper for api_lib.do_upload that includes auth logic.
