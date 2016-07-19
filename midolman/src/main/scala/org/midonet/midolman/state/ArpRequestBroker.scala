@@ -24,10 +24,8 @@ import scala.concurrent.{Future, Promise}
 import scala.util.Random
 
 import com.google.common.collect.ArrayListMultimap
-import com.typesafe.scalalogging.Logger
 
 import org.jctools.queues.SpscGrowableArrayQueue
-import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.midolman.{NotYetException, SimulationBackChannel}
@@ -82,7 +80,6 @@ object ArpRequestBroker {
  */
 class ArpRequestBroker(config: MidolmanConfig,
                        backChannel: SimulationBackChannel,
-                       triggerBackChannel: () => Unit,
                        clock: UnixClock = UnixClock())
     extends MidolmanLogging {
 
@@ -97,7 +94,7 @@ class ArpRequestBroker(config: MidolmanConfig,
             case null =>
                 log.info(s"Building new arp request broker for router ${router.id}")
                 val broker = new SingleRouterArpRequestBroker(router.id,
-                        router.arpCache, config, backChannel, triggerBackChannel, clock)
+                        router.arpCache, config, backChannel, clock)
                 brokers.put(router.id, broker)
                 broker
             case broker => broker
@@ -158,7 +155,6 @@ class SingleRouterArpRequestBroker(id: UUID,
                                    arpCache: ArpCache,
                                    config: MidolmanConfig,
                                    backChannel: SimulationBackChannel,
-                                   triggerBackChannel: () => Unit,
                                    clock: UnixClock = UnixClock())
     extends MidolmanLogging {
 
@@ -220,7 +216,6 @@ class SingleRouterArpRequestBroker(id: UUID,
      */
     arpCache.observable.subscribe(makeAction1[ArpCacheUpdate] { u =>
         macsDiscovered.add(MacChange(u.ipAddr, u.oldMac, u.newMac))
-        triggerBackChannel()
     })
 
     private val stalenessJitter: Long = {

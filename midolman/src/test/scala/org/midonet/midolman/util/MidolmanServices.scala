@@ -33,7 +33,7 @@ import org.slf4j.helpers.NOPLogger
 import org.midonet.cluster.data.dhcp.{Host, Subnet}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
-import org.midonet.midolman.SimulationBackChannel
+import org.midonet.midolman.ShardedSimulationBackChannel
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.FlowTagIndexer
@@ -105,10 +105,10 @@ trait MidolmanServices {
                 .asInstanceOf[MockFlowProcessor]
     }
 
-    def simBackChannel = injector.getInstance(classOf[SimulationBackChannel])
+    lazy val simBackChannel = injector.getInstance(
+        classOf[ShardedSimulationBackChannel]).registerProcessor
 
     val mockFlowInvalidation = new FlowTagIndexer() {
-        val log = Logger(NOPLogger.NOP_LOGGER)
         var tags = List[FlowTag]()
 
         def getAndClear() = {

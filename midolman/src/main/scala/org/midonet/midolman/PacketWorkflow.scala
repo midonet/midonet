@@ -26,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.Failure
 
-import akka.actor._
+import com.lmax.disruptor._
 
 import org.slf4j.{LoggerFactory, MDC}
 
@@ -35,7 +35,8 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.FlowExpirationIndexer
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
-import org.midonet.midolman.logging.{ActorLogWithoutPath, FlowTracingContext}
+import org.midonet.midolman.logging.FlowTracingContext
+import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.FlowRecorder
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -62,6 +63,12 @@ import org.midonet.util.concurrent._
 import org.midonet.util.logging.Logger
 
 object PacketWorkflow {
+    sealed class PacketRef(var packet: Packet)
+
+    object PacketRefFactory extends EventFactory[PacketRef] {
+        override def newInstance() = new PacketRef(null)
+    }
+
     case class HandlePackets(packet: Array[Packet])
     case class RestartWorkflow(context: PacketContext, error: Throwable)
         extends BackChannelMessage
@@ -182,17 +189,16 @@ class PacketWorkflow(
             val flowRecorder: FlowRecorder,
             val vt: VirtualTopology,
             val packetOut: Int => Unit)
-        extends Actor with ActorLogWithoutPath with Stash with DisruptorBackChannel
+        extends EventHandler[PacketWorkflow.PacketRef]
+        with TimeoutHandler
+        with DisruptorBackChannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
-        with MetadataServiceWorkflow with FlowController {
+        with MetadataServiceWorkflow with FlowController with MidolmanLogging {
 
     import PacketWorkflow._
 
-    override def logSource = "org.midonet.packet-worker"
+    override def logSource = s"org.midonet.packet-worker.packet-workflow-$workerId"
     val resultLogger = Logger(LoggerFactory.getLogger("org.midonet.packets.results"))
-
-    implicit val dispatcher = this.context.system.dispatcher
-    implicit val system = this.context.system
 
     protected val simulationExpireMillis = 5000L
     private val maxPooledContexts = config.maxPooledContexts
@@ -218,8 +224,7 @@ class PacketWorkflow(
 
     protected val datapathId = dpState.datapath.getIndex
 
-    protected val arpBroker = new ArpRequestBroker(config, backChannel,
-                                                   () => self ! CheckBackchannels)
+    protected val arpBroker = new ArpRequestBroker(config, backChannel)
 
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
@@ -236,20 +241,18 @@ class PacketWorkflow(
             }
         }
 
-    system.scheduler.schedule(20 millis, 5 seconds, self, CheckBackchannels)
-
-    override def receive = {
-        case HandlePackets(packets) =>
-            var i = 0
-            while (i < packets.length && packets(i) != null) {
-                handlePacket(packets(i))
-                i += 1
-            }
+    override def onEvent(event: PacketRef, sequence: Long,
+                         endOfBatch: Boolean): Unit = {
+        handlePacket(event.packet)
+        if (endOfBatch) {
             process()
-
-        case CheckBackchannels =>
-            process()
+        }
     }
+
+    override def onTimeout(sequence: Long): Unit =
+        if (shouldProcess) {
+            process()
+        }
 
     override def shouldProcess(): Boolean =
         super.shouldProcess() ||
@@ -482,7 +485,7 @@ class PacketWorkflow(
                 handleErrorOn(pktCtx, ex)
         }
 
-    private def handlePacket(packet: Packet): Unit =
+    protected def handlePacket(packet: Packet): Unit =
         if (FlowState.isStateMessage(packet.getMatch)) {
             handleStateMessage(packetContext(packet))
             packetOut(1)
