@@ -15,23 +15,22 @@
  */
 package org.midonet.midolman.io
 
-import java.util.concurrent.{TimeUnit, ConcurrentHashMap}
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 
-import scala.concurrent.{Promise, ExecutionContext, Future}
+import scala.collection.IndexedSeq
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
-import akka.util.Timeout
 import org.slf4j.{Logger, LoggerFactory}
 
 import com.codahale.metrics.MetricRegistry
 
 import org.midonet.ErrorCode.{EBUSY, EEXIST, EADDRINUSE}
-import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.FlowState
-import org.midonet.midolman.{PacketWorkflow, NetlinkCallbackDispatcher, PacketsEntryPoint}
+import org.midonet.midolman.{PacketWorker, NetlinkCallbackDispatcher}
 import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
@@ -61,12 +60,10 @@ trait UpcallDatapathConnectionManager {
  * the possible threading model.
  */
 abstract class UpcallDatapathConnectionManagerBase(
-        val config: MidolmanConfig,
-        val tbPolicy: TokenBucketPolicy) extends UpcallDatapathConnectionManager {
+    val config: MidolmanConfig,
+    val tbPolicy: TokenBucketPolicy) extends UpcallDatapathConnectionManager {
 
     protected val log: Logger
-
-    private val workers = Promise[Workers]()
 
     protected def makeConnection(name: String, bucket: Bucket,
                                  channelType: ChannelType)
@@ -77,28 +74,9 @@ abstract class UpcallDatapathConnectionManagerBase(
     protected val portToChannel = new ConcurrentHashMap[(Datapath, Int),
                                                         ManagedDatapathConnection]()
 
-    protected def setUpcallHandler(conn: OvsDatapathConnection,
-                                   w: Workers)
-                                  (implicit as: ActorSystem)
+    protected def setUpcallHandler(conn: OvsDatapathConnection)
 
     protected def makeBufferPool() = new BufferPool(1, 8, 8*1024)
-
-    def askForWorkers()
-                     (implicit ec: ExecutionContext, as: ActorSystem) = {
-        if (!workers.isCompleted) {
-            workers.tryCompleteWith(doAskForWorkers())
-        }
-        workers.future
-    }
-
-    private def doAskForWorkers()
-                               (implicit ec: ExecutionContext, as: ActorSystem)
-    : Future[Workers] = {
-        implicit val tout = Timeout(3, TimeUnit.SECONDS)
-        (PacketsEntryPoint ? GetWorkers).mapTo[Workers].recoverWith { case e =>
-            doAskForWorkers()
-        }
-    }
 
     def getDispatcher()(implicit as: ActorSystem) =
         NetlinkCallbackDispatcher.makeBatchCollector()
@@ -120,17 +98,16 @@ abstract class UpcallDatapathConnectionManagerBase(
         }
 
         conn.start()
-        askForWorkers() flatMap { workers =>
-            val dpConn = conn.getConnection
-            dpConn setCallbackDispatcher getDispatcher()
-            setUpcallHandler(dpConn, workers)
-            ensurePortPid(port, datapath, dpConn)
-        } andThen {
+
+        val dpConn = conn.getConnection
+        dpConn setCallbackDispatcher getDispatcher()
+        setUpcallHandler(dpConn)
+        ensurePortPid(port, datapath, dpConn) andThen {
             case Success((createdPort, _)) =>
                 portToChannel.put((datapath, createdPort.getPortNo.intValue), conn)
             case Failure(e) =>
                 log.error("failed to create or retrieve datapath port "
-                          + port.getName, e)
+                              + port.getName, e)
                 stopConnection(conn)
                 tbPolicy.unlink(port)
         }
@@ -153,8 +130,8 @@ abstract class UpcallDatapathConnectionManagerBase(
         } map { (_, con.getChannel.getLocalAddress.getPid) }
     }
 
-    def deleteDpPort(datapath: Datapath, port: DpPort)(
-        implicit ec: ExecutionContext, as: ActorSystem): Future[_] =
+    def deleteDpPort(datapath: Datapath, port: DpPort)
+                    (implicit ec: ExecutionContext, as: ActorSystem): Future[_] =
         portToChannel.remove((datapath, port.getPortNo)) match {
             case null => Future.successful(null)
             case conn =>
@@ -174,30 +151,17 @@ abstract class UpcallDatapathConnectionManagerBase(
                 }
         }
 
-    protected def makeUpcallHandler(workers: Workers)
-                                   (implicit as: ActorSystem) =
+    protected def makeUpcallHandler(workers: IndexedSeq[PacketWorker]) =
         new BatchCollector[Packet] {
 
             val BATCH_SIZE: Int = 16
-            val NUM_WORKERS = workers.list.length
-            var packets = Array.ofDim[Packet](workers.list.length, BATCH_SIZE)
+            val NUM_WORKERS = workers.length
+            var packets = Array.ofDim[Packet](NUM_WORKERS, BATCH_SIZE)
             var cursors = Array.fill[Int](NUM_WORKERS)(0)
             val log = LoggerFactory.getLogger("PacketInHook")
 
-            def endBatch(worker: Int) {
-                if (cursors(worker) > 0) {
-                    workers.list(worker) ! PacketWorkflow.HandlePackets(packets(worker))
-                    cursors(worker) = 0
-                    packets(worker) = new Array[Packet](BATCH_SIZE)
-                }
-            }
-
             override def endBatch() {
-                var i = 0
-                while (i < NUM_WORKERS) {
-                    endBatch(i)
-                    i += 1
-                }
+                // noop
             }
 
             override def submit(data: Packet) {
@@ -206,24 +170,12 @@ abstract class UpcallDatapathConnectionManagerBase(
                 data.startTimeNanos = NanoClock.DEFAULT.tick
 
                 if (FlowState.isStateMessage(data.getMatch)) {
-                    var i = 0
-                    while (i < NUM_WORKERS) {
-                        addToWorkerBatch(i, data)
-                        i += 1
-                    }
+                    workers foreach { w => w.submit(data) }
                 } else {
                     val worker = Math.abs(data.getMatch.connectionHash) % NUM_WORKERS
-                    addToWorkerBatch(worker, data)
+                    workers(worker).submit(data)
                 }
             }
-
-            private def addToWorkerBatch(worker: Int, data: Packet): Unit = {
-                packets(worker)(cursors(worker)) = data
-                cursors(worker) += 1
-                if (cursors(worker) == BATCH_SIZE)
-                    endBatch(worker)
-            }
-
         }
 }
 
@@ -232,9 +184,10 @@ abstract class UpcallDatapathConnectionManagerBase(
  * channel gets its own thread and select loop.
  */
 class OneToOneDpConnManager(c: MidolmanConfig,
+                            workers: IndexedSeq[PacketWorker],
                             tbPolicy: TokenBucketPolicy,
-                            metrics: MetricRegistry) extends
-        UpcallDatapathConnectionManagerBase(c, tbPolicy) {
+                            metrics: MetricRegistry)
+        extends UpcallDatapathConnectionManagerBase(c, tbPolicy) {
 
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
@@ -247,10 +200,8 @@ class OneToOneDpConnManager(c: MidolmanConfig,
         conn.stop()
     }
 
-    protected override def setUpcallHandler(conn: OvsDatapathConnection,
-                                            w: Workers)
-                                           (implicit as: ActorSystem) {
-        conn.datapathsSetNotificationHandler(makeUpcallHandler(w))
+    protected override def setUpcallHandler(conn: OvsDatapathConnection) {
+        conn.datapathsSetNotificationHandler(makeUpcallHandler(workers))
     }
 }
 
@@ -259,6 +210,7 @@ class OneToOneDpConnManager(c: MidolmanConfig,
  * thread and a single select loop is used for all the input channels.
  */
 class OneToManyDpConnManager(c: MidolmanConfig,
+                             workers: IndexedSeq[PacketWorker],
                              tbPolicy: TokenBucketPolicy,
                              metrics: MetricRegistry)
         extends UpcallDatapathConnectionManagerBase(c, tbPolicy) {
@@ -291,13 +243,11 @@ class OneToManyDpConnManager(c: MidolmanConfig,
         threadPair.removeConnection(conn)
     }
 
-    protected override def setUpcallHandler(conn: OvsDatapathConnection,
-                                            w: Workers)
-                                           (implicit as: ActorSystem) {
+    protected override def setUpcallHandler(conn: OvsDatapathConnection) {
         lock.lock()
         try {
             if (upcallHandler == null) {
-                upcallHandler = makeUpcallHandler(w)
+                upcallHandler = makeUpcallHandler(workers)
                 threadPair.getReadLoop.setEndOfLoopCallback(new Runnable {
                     override def run() {
                         upcallHandler.endBatch()
