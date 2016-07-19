@@ -121,7 +121,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     }
 
     def throwAwayArpBroker(): ArpRequestBroker =
-        new ArpRequestBroker(config, simBackChannel, () => { }, UnixClock.MOCK)
+        new ArpRequestBroker(config, simBackChannel, UnixClock.MOCK)
 
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard())
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard())
@@ -261,43 +261,10 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override def hostRecircOutputAction: FlowActionOutput = null
         }
 
-        val dhcpConfig = new DhcpConfigFromNsdb(
-            injector.getInstance(classOf[VirtualTopology]))
-
-        TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
-            1,
-            0,
-            config,
-            hostId,
-            dpState,
-            new CookieGenerator(0, 1),
-            clock,
-            dpChannel,
-            dhcpConfig,
-            simBackChannel,
-            flowProcessor,
-            conntrackTable,
-            natTable,
-            traceTable,
-            peerResolver,
-            HappyGoLuckyLeaser,
-            metrics,
-            flowRecorder,
-            injector.getInstance(classOf[VirtualTopology]),
-            _ => { }) {
-
-            override def runWorkflow(pktCtx: PacketContext) = {
-                packetCtxTrap.offer(pktCtx)
-                super.runWorkflow(pktCtx)
-            }
-
-            override def start(pktCtx: PacketContext): SimulationResult =
-                if (workflowTrap ne null) {
-                    pktCtx.prepareForSimulation()
-                    workflowTrap(pktCtx)
-                } else {
-                    super.start(pktCtx)
-                }
-        }))
+        new MockPacketWorkflow(config, hostId, dpState, clock, dpChannel,
+                               virtualTopology, simBackChannel, flowProcessor,
+                               conntrackTable, natTable,
+                               traceTable, peerResolver, metrics, flowRecorder,
+                               packetCtxTrap, workflowTrap)
     }
 }

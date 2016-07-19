@@ -76,7 +76,6 @@ class MidolmanActorsService extends AbstractService {
         val actors = ListBuffer(
             (propsFor(classOf[NetlinkCallbackDispatcher]),
                 NetlinkCallbackDispatcher.Name),
-            (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[DatapathController]), DatapathController.Name),
             (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name))
         if (config.healthMonitor.enable)
