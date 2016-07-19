@@ -16,6 +16,24 @@
       "revId": "59b0ec3aca625767f6888bf859e0bd5c716c765b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a04c9642",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageMetrics.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-19T15:59:25Z",
+      "side": 1,
+      "message": "Cool, that fits perfectly, will add",
+      "parentUuid": "baa041b7_c0cb1aa3",
+      "revId": "59b0ec3aca625767f6888bf859e0bd5c716c765b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
