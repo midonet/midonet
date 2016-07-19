@@ -17,8 +17,8 @@ package org.midonet.services.flowstate.handlers
 
 import java.nio.ByteBuffer
 import java.util
-import java.util.concurrent.ConcurrentHashMap
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -40,11 +40,6 @@ import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowS
 import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.socket.DatagramPacket
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
-
-trait FlowStateOp
-case class PushState(encoder: SbeEncoder) extends FlowStateOp
-case class UpdateOwnedPorts(portIds: Set[UUID]) extends FlowStateOp
-case class InvalidOp(e: Throwable) extends FlowStateOp
 
 /** Handler used to receive, parse and submit flow state messages from agents
   * to a local file and, if a legacy flag is active, also to the Cassandra
@@ -85,19 +80,6 @@ class FlowStateWriteHandler(context: Context,
 
     override def channelRead0(ctx: ChannelHandlerContext,
                               msg: DatagramPacket): Unit = {
-        parseDatagram(msg) match {
-            case PushState(sbe) => // push state to storage
-                pushNewState(sbe)
-            case UpdateOwnedPorts(portIds) =>
-                Log debug s"Received new owned ports: $portIds}"
-                cachedOwnedPortIds = portIds
-            case InvalidOp(e) =>
-                Log warn s"Invalid flow state message, ignoring -> ${e.getMessage}"
-        }
-    }
-
-    @VisibleForTesting
-    protected[flowstate] def parseDatagram(msg: DatagramPacket): FlowStateOp = {
         try {
             val bb = msg.content().nioBuffer(0, FlowStateInternalMessageHeaderSize)
             val messageType = bb.getInt
@@ -109,29 +91,34 @@ class FlowStateWriteHandler(context: Context,
                 case FlowStateInternalMessageType.OwnedPortsUpdate =>
                     handleUpdateOwnedPorts(messageData)
                 case _ =>
-                    InvalidOp(new IllegalArgumentException(
-                        s"Message header invalid: $messageType"))
+                    Log warn s"Invalid flow state message header, ignoring."
             }
         } catch {
             case NonFatal(e) =>
-                InvalidOp(e)
+                Log.error(s"Unkown error handling internal flow state message", e)
         }
     }
 
-    private def handleFlowStateMessage(buffer: ByteBuffer): FlowStateOp = {
+    private def handleFlowStateMessage(buffer: ByteBuffer): Unit = {
         val encoder = new SbeEncoder()
         val data = new Array[Byte](buffer.capacity())
         buffer.get(data)
         val flowStateMessage = encoder.decodeFrom(data)
-        PushState(encoder)
+        pushNewState(encoder)
     }
 
-    private def handleUpdateOwnedPorts(buffer: ByteBuffer): FlowStateOp = {
+    private def handleUpdateOwnedPorts(buffer: ByteBuffer): Unit = {
         var ownedPorts = Set.empty[UUID]
         while (buffer.position < buffer.limit()) {
             ownedPorts += new UUID(buffer.getLong, buffer.getLong)
         }
-        UpdateOwnedPorts(ownedPorts)
+        Log debug s"Received new owned ports: $ownedPorts}"
+        // check the difference to release the writers
+        val unboundPorts = cachedOwnedPortIds -- ownedPorts
+        for (unboundPort <- unboundPorts) {
+            context.ioManager.close(unboundPort)
+        }
+        cachedOwnedPortIds = ownedPorts
     }
 
     @VisibleForTesting
@@ -189,6 +176,8 @@ class FlowStateWriteHandler(context: Context,
         egressPortIds: util.ArrayList[UUID],
         conntrackKeys: mutable.MutableList[ConnTrackKeyStore],
         natKeys: mutable.MutableList[(NatKeyStore, NatBinding)]) = {
+
+        Log debug s"Writing flow state message to legacy storage for port $ingressPortId."
 
         val legacyStorage = getLegacyStorage
 
