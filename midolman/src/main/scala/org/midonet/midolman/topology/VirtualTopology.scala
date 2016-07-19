@@ -157,7 +157,7 @@ object VirtualTopology {
  */
 class VirtualTopology(val backend: MidonetBackend,
                       val config: MidolmanConfig,
-                      val simBackChannel: SimulationBackChannel,
+                      simBackChannel: SimulationBackChannel,
                       val metricRegistry: MetricRegistry,
                       val vtExecutor: ExecutorService,
                       val ioExecutor: ExecutorService,
