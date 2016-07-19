@@ -372,6 +372,7 @@ class ConditionBase(object):
         self._dto()['invIcmpDataDstIp'] = cond_invert
         return self
 
+
 class Condition(resource_base.ResourceBase, ConditionBase):
 
     media_type = vendor_media_type.APPLICATION_CONDITION_JSON
