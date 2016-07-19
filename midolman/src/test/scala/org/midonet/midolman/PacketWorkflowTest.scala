@@ -57,8 +57,7 @@ import org.midonet.util.functors.Callback0
 @RunWith(classOf[JUnitRunner])
 class PacketWorkflowTest extends MidolmanSpec {
     var packetsSeen = List[PacketContext]()
-    var ddaRef: TestActorRef[TestableDDA] = _
-    def dda = ddaRef.underlyingActor
+    var packetWorkflow: TestablePacketWorkflow = _
     var packetsOut = 0
     var stateMessagesSeen = 0
 
@@ -72,22 +71,14 @@ class PacketWorkflowTest extends MidolmanSpec {
     val cookie = 42
 
     override def beforeTest() {
-        createDda()
+        createPacketWorkflow()
     }
 
-    def createDda(simulationExpireMillis: Long = 5000L): Unit = {
-        if (ddaRef != null)
-            actorSystem.stop(ddaRef)
-
-        val ddaProps = Props {
-            new TestableDDA(new CookieGenerator(1, 1),
-            mockDpChannel,
-            (x: Int) => { packetsOut += x },
-            simulationExpireMillis)
-        }
-
-        ddaRef = TestActorRef(ddaProps)(actorSystem)
-        dda should not be null
+    def createPacketWorkflow(simulationExpireMillis: Long = 5000L): Unit = {
+        packetWorkflow = new TestablePacketWorkflow(new CookieGenerator(1, 1),
+                                                    mockDpChannel,
+                                                    (x: Int) => { packetsOut += x },
+                                                    simulationExpireMillis)
     }
 
     def makeFrame(variation: Short) =
@@ -115,15 +106,15 @@ class PacketWorkflowTest extends MidolmanSpec {
 
     def makeUniquePacket(variation: Short): Packet = makeUniqueFrame(variation)
 
-    feature("DeduplicationActor handles packets") {
+    feature("Packet workflow handles packets") {
         scenario("state messages are not deduplicated") {
             Given("four identical state packets")
             val pkts = (1 to 4) map (_ => makeStatePacket())
 
-            When("they are fed to the DDA")
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            When("they are fed to the packet workflow")
+            packetWorkflow.handlePackets(pkts:_*)
 
-            Then("the DDA should accept the state")
+            Then("the packet workflow should accept the state")
             stateMessagesSeen should be (4)
             And("packetOut should have been called with the correct number")
             packetsOut should be (4)
@@ -136,8 +127,8 @@ class PacketWorkflowTest extends MidolmanSpec {
             Given("4 packets with 3 different matches")
             val pkts = List(makePacket(1), makePacket(2), makePacket(3), makePacket(2))
 
-            When("they are fed to the DDA")
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            When("they are fed to the packet workflow")
+            packetWorkflow.handlePackets(pkts:_*)
 
             Then("a packetOut should have been called for the pending packets")
             packetsOut should be (4)
@@ -149,13 +140,13 @@ class PacketWorkflowTest extends MidolmanSpec {
         scenario("simulates generated logical packets") {
             Given("a simulation that generates a packet")
             val pkt = makePacket(1)
-            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
+            packetWorkflow.handlePackets(pkt)
 
             When("the simulation completes")
             val id = UUID.randomUUID()
             val frame: Ethernet = makeFrame(1)
-            dda.completeWithGenerated(List(output(1)),
-                                      GeneratedLogicalPacket(id, frame, -1))
+            packetWorkflow.completeWithGenerated(
+                List(output(1)), GeneratedLogicalPacket(id, frame, -1))
 
             Then("the generated packet should be simulated")
             packetsSeen map { _.ethernet } should be (List(frame))
@@ -167,12 +158,12 @@ class PacketWorkflowTest extends MidolmanSpec {
         scenario("simulates generated physical packets") {
             Given("a simulation that generates a packet")
             val pkt = makePacket(1)
-            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
+            packetWorkflow.handlePackets(pkt)
 
             When("the simulation completes")
             val frame: Ethernet = makeFrame(1)
-            dda.completeWithGenerated(List(),
-                                      GeneratedPhysicalPacket(2, frame, -1))
+            packetWorkflow.completeWithGenerated(
+                List(), GeneratedPhysicalPacket(2, frame, -1))
 
             Then("the generated packet should be seen")
             packetsSeen map { _.ethernet } should be (List(frame))
@@ -183,14 +174,14 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         scenario("expires packets") {
             Given("a pending packet in the packet workflow")
-            createDda(0)
+            createPacketWorkflow(0)
             val pkts = List(makePacket(1), makePacket(1))
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            packetWorkflow.handlePackets(pkts:_*)
             packetsOut should be (2)
 
             When("putting another packet handler in the waiting room")
             val pkt2 = makePacket(2)
-            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt2))
+            packetWorkflow.handlePackets(pkt2)
 
             Then("packets are expired and dropped")
             isCleared(packetsSeen.head)
@@ -206,11 +197,11 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         scenario("packet context is cleared in the waiting room") {
             Given("a simulation result")
-            dda.nextActions = List(FlowActions.output(1))
+            packetWorkflow.nextActions = List(FlowActions.output(1))
 
             When("a packet is placed in the waiting room")
-            val pkts = List(makePacket(1))
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            val pkt = makePacket(1)
+            packetWorkflow.handlePackets(pkt)
             packetsOut should be (1)
 
             Then("the packet context should be clear")
@@ -221,10 +212,11 @@ class PacketWorkflowTest extends MidolmanSpec {
         scenario("packet context is cleared when dropping") {
             Given("a simulation that generates a packet")
             val pkt = makePacket(1)
-            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
+            packetWorkflow.handlePackets(pkt)
 
             When("the simulation completes with an error")
-            dda.completeWithException(new Exception("c'est ne pas une exception"))
+            packetWorkflow.completeWithException(
+                new Exception("c'est ne pas une exception"))
 
             Then("the packet is dropped")
             isCleared(packetsSeen.head)
@@ -237,34 +229,34 @@ class PacketWorkflowTest extends MidolmanSpec {
         }
 
         scenario("Processed context not restarted after postpone") {
-            createDda(0)
+            createPacketWorkflow(0)
 
             Given("A postponed simulation")
-            val packet = List(makePacket(1)).toArray
-            ddaRef ! PacketWorkflow.HandlePackets(packet)
+            val packet = makePacket(1)
+            packetWorkflow.handlePackets(packet)
 
             When("Processes finishes")
             mockDpChannel.contextsSeen.asScala foreach { c =>
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
-            ddaRef ! CheckBackchannels
+            packetWorkflow.process()
 
             And("Completing the postpone future")
-            ddaRef.underlyingActor.p.trySuccess(null)
+            packetWorkflow.p.trySuccess(null)
 
             Then("The workflow is not restarted")
-            ddaRef.underlyingActor.backChannel.hasMessages shouldBe false
+            packetWorkflow.backChannel.hasMessages shouldBe false
         }
     }
 
     feature("Packet Context pooling") {
         scenario("Successful contexts are returned to the pool") {
             Given("A successful simulation")
-            val packet = List(makePacket(1)).toArray
-            ddaRef ! PacketWorkflow.HandlePackets(packet)
-            dda.complete(null)
-            ddaRef ! CheckBackchannels
+            val packet = makePacket(1)
+            packetWorkflow.handlePackets(packet)
+            packetWorkflow.complete(null)
+            packetWorkflow.process()
             packetsOut should be (1)
 
             Then("1 context should have been allocated")
@@ -277,7 +269,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
-            ddaRef ! CheckBackchannels
+            packetWorkflow.process()
 
             Then("the context should be returned to the pool")
             metrics.contextsPooled.getCount shouldBe 1
@@ -286,10 +278,10 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         scenario("dropped contexts are returned to the pool") {
             Given("A failed simulation")
-            val packet = List(makePacket(1)).toArray
-            ddaRef ! PacketWorkflow.HandlePackets(packet)
-            dda.completeWithException(new Exception("foobar"))
-            ddaRef ! CheckBackchannels
+            val packet = makePacket(1)
+            packetWorkflow.handlePackets(packet)
+            packetWorkflow.completeWithException(new Exception("foobar"))
+            packetWorkflow.process()
 
             When("the packet is dropped")
             isCleared(packetsSeen.head)
@@ -305,7 +297,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
-            ddaRef ! CheckBackchannels
+            packetWorkflow.process()
 
             Then("1 context should have been allocated and returned to pool")
             metrics.contextsAllocated.getCount shouldBe 1
@@ -314,11 +306,11 @@ class PacketWorkflowTest extends MidolmanSpec {
         }
 
         scenario("expired postponed context are returned") {
-            createDda(0)
+            createPacketWorkflow(0)
 
             Given("A postponed simulation")
-            val packet = List(makePacket(1)).toArray
-            ddaRef ! PacketWorkflow.HandlePackets(packet)
+            val packet = makePacket(1)
+            packetWorkflow.handlePackets(packet)
 
             Then("a context is allocated, should be timed out immediately")
             metrics.contextsAllocated.getCount shouldBe 1
@@ -330,7 +322,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
-            ddaRef ! CheckBackchannels
+            packetWorkflow.process()
 
             Then("the context should be returned to the pool")
             metrics.contextsAllocated.getCount shouldBe 1
@@ -340,8 +332,8 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         scenario("Generated packets get returned to pool on drop") {
             Given("A successful simulation")
-            val packet = List(makePacket(1)).toArray
-            ddaRef ! PacketWorkflow.HandlePackets(packet)
+            val packet = makePacket(1)
+            packetWorkflow.handlePackets(packet)
 
             Then("a context is allocated")
             metrics.contextsAllocated.getCount shouldBe 1
@@ -350,10 +342,10 @@ class PacketWorkflowTest extends MidolmanSpec {
 
             When("Completed with a failing generated packet")
             val frame: Ethernet = makeFrame(1)
-            dda.completeWithFailingGenerated(
+            packetWorkflow.completeWithFailingGenerated(
                 List(), GeneratedPhysicalPacket(2, frame, -1),
                 new Exception("fail generated"))
-            ddaRef ! CheckBackchannels
+            packetWorkflow.process()
 
             Then("the original packet should be processed")
             metrics.contextsBeingProcessed.getCount shouldBe 1
@@ -369,7 +361,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
-            ddaRef ! CheckBackchannels
+            packetWorkflow.process()
 
             Then("the pool should contain both allocated contexts")
             metrics.contextsAllocated.getCount shouldBe 2
@@ -379,12 +371,12 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         scenario("Pool never exceeds size") {
             Given("More packets than there are pool places")
-            val packets = 1.to(1200) map { i => makePacket(i.toShort) } toArray
+            val packets = 1.to(1200) map { i => makePacket(i.toShort) }
 
             When("the packets are simulated")
-            ddaRef ! PacketWorkflow.HandlePackets(packets)
-            dda.complete(null)
-            ddaRef ! CheckBackchannels
+            packetWorkflow.handlePackets(packets:_*)
+            packetWorkflow.complete(null)
+            packetWorkflow.process()
             packetsOut should be (1200)
 
             Then("contexts should have been allocated, but not pooled")
@@ -397,13 +389,13 @@ class PacketWorkflowTest extends MidolmanSpec {
                 c.setFlowProcessed()
                 c.setPacketProcessed()
             }
-            ddaRef ! CheckBackchannels
+            packetWorkflow.process()
 
             Then("the max number of contexts should be pooled")
             metrics.contextsPooled.getCount shouldBe 1024
 
             When("Another packet is sent")
-            ddaRef ! PacketWorkflow.HandlePackets(List(makePacket(2222)).toArray)
+            packetWorkflow.handlePackets(makePacket(2222))
 
             Then("No new contexts are allocated, there's one less pooled")
             metrics.contextsAllocated.getCount shouldBe 1200
@@ -605,10 +597,10 @@ class PacketWorkflowTest extends MidolmanSpec {
     val applyEmptyActions = List[Check](checkEmptyActions, checkExecPacket)
     val applyOutputActions = List[Check](checkOutputActions, checkExecPacket)
            */
-    class TestableDDA(cookieGen: CookieGenerator,
-                      dpChannel: DatapathChannel,
-                      packetOut: Int => Unit,
-                      override val simulationExpireMillis: Long)
+    class TestablePacketWorkflow(cookieGen: CookieGenerator,
+                                 dpChannel: DatapathChannel,
+                                 packetOut: Int => Unit,
+                                 override val simulationExpireMillis: Long)
             extends PacketWorkflow(1, 0, injector.getInstance(classOf[MidolmanConfig]),
                                    hostId, new DatapathStateDriver(new Datapath(0, "midonet")),
                                    cookieGen, clock, dpChannel,
@@ -622,9 +614,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    metrics,
                                    NullFlowRecorder,
                                    injector.getInstance(classOf[VirtualTopology]),
-                                   packetOut)
-            with MessageAccumulator {
-        implicit override val dispatcher = this.context.dispatcher
+                                   packetOut) {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
         var generatedException: Exception = _
@@ -653,6 +643,11 @@ class PacketWorkflowTest extends MidolmanSpec {
         def complete(actions: List[FlowAction]): Unit = {
             nextActions = actions
             p success null
+        }
+
+        def handlePackets(packets: Packet*): Unit = {
+            packets foreach handlePacket
+            process()
         }
 
         protected override def handleStateMessage(context: PacketContext): Unit =
