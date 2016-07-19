@@ -63,8 +63,11 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void handleNotification(short type, byte cmd, int seq,
-                                      int pid, ByteBuffer buffer) { /* no op */ }
+    protected boolean handleNotification(short type, byte cmd, int seq,
+                                         int pid, ByteBuffer buffer) {
+        /* no op */
+        return true;
+    }
 
     BatchCollector<Packet> notificationHandler;
 

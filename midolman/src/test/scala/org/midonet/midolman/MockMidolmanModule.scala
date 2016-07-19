@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.midonet.midolman
 
-import java.util.{LinkedList, UUID}
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
+import scala.collection.IndexedSeq
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
@@ -30,15 +31,15 @@ import org.reflections.Reflections
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.FlowStateStorage
-import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.datapath._
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.FlowTracingAppender
-import org.midonet.midolman.monitoring.NullFlowRecorder
-import org.midonet.midolman.services.{MidolmanActorsService, SelectLoopService}
+import org.midonet.midolman.monitoring.{FlowRecorder, NullFlowRecorder}
+import org.midonet.midolman.services.{HostIdProvider, MidolmanActorsService, SelectLoopService}
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state._
@@ -47,8 +48,9 @@ import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, M
 import org.midonet.netlink.NetlinkChannelFactory
 import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
-import org.midonet.util.concurrent.SameThreadButAfterExecutorService
+import org.midonet.util.concurrent._
 import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
+import org.midonet.util._
 
 class MockMidolmanModule(override val hostId: UUID,
                          injector: Injector,
@@ -58,17 +60,6 @@ class MockMidolmanModule(override val hostId: UUID,
                                new Reflections("org.midonet")) {
 
     val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
-
-    override def simulationBackChannel(as: ActorSystem) = {
-        bind(classOf[ShardedSimulationBackChannel]).toInstance(
-            new ShardedSimulationBackChannel(() => {}))
-        new SimulationBackChannel() {
-            private val q = new LinkedList[BackChannelMessage]()
-            override def tell(msg: BackChannelMessage): Unit = q.offer(msg)
-            override def hasMessages: Boolean = !q.isEmpty
-            override def poll(): BackChannelMessage = q.pop()
-        }
-    }
 
     protected override def bindSelectLoopService(): Unit = {
         bind(classOf[SelectLoop])
@@ -108,11 +99,33 @@ class MockMidolmanModule(override val hostId: UUID,
                 Future.successful(new MockStateStorage())
         }
 
-    protected override def flowRecorder(hostId: UUID) =
+    protected override def createPacketWorkersService(config: MidolmanConfig,
+                                                      hostIdProvider: HostIdProvider,
+                                                      dpChannel: DatapathChannel,
+                                                      dpState: DatapathState,
+                                                      flowProcessor: FlowProcessor,
+                                                      natBlockAllocator: NatBlockAllocator,
+                                                      peerResolver: PeerResolver,
+                                                      backChannel: ShardedSimulationBackChannel,
+                                                      vt: VirtualTopology,
+                                                      clock: NanoClock,
+                                                      flowRecorder: FlowRecorder,
+                                                      metricsRegistry: MetricRegistry,
+                                                      counter: StatisticalCounter,
+                                                      actorSystem: ActorSystem)
+            : PacketWorkersService =
+        new PacketWorkersService() {
+            override def workers: IndexedSeq[PacketWorker] = IndexedSeq()
+            override def doStart(): Unit = notifyStarted()
+            override def doStop(): Unit = notifyStopped()
+
+        }
+
+    protected override def createFlowRecorder(hostId: UUID) =
         NullFlowRecorder
 
     protected override def upcallDatapathConnectionManager(
-            tbPolicy: TokenBucketPolicy) =
+            tbPolicy: TokenBucketPolicy, workers: IndexedSeq[PacketWorker]) =
         new MockUpcallDatapathConnectionManager(config)
 
     protected override def datapathStateDriver(

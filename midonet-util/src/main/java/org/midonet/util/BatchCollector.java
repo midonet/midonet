@@ -16,7 +16,7 @@
 package org.midonet.util;
 
 public interface BatchCollector<T> {
-    void submit(T item);
+    boolean submit(T item);
 
     void endBatch();
 }
