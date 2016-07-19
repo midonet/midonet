@@ -31,6 +31,7 @@ import rx.Observable
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.cluster.data.storage.StorageTestClasses.{PojoBridge, PojoRouter}
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.ConnectionState
@@ -42,7 +43,8 @@ object ZookeeperStateTableTest {
     private class ScoreStateTable(val key: StateTable.Key,
                                   val directory: Directory,
                                   val proxy: StateTableClient,
-                                  val connection: Observable[ConnectionState])
+                                  val connection: Observable[ConnectionState],
+                                  val metrics: StorageMetrics)
         extends StateTable[Int, String] {
 
         override def start(): Unit = ???
