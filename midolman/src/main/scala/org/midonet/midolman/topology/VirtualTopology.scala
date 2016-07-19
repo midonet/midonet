@@ -165,7 +165,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val config: MidolmanConfig,
                                  val state: LegacyStorage,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
-                                 val simBackChannel: SimulationBackChannel,
+                                 simBackChannel: SimulationBackChannel,
                                  val actorsService: MidolmanActorsService,
                                  @Named(VirtualTopology.VtExecutorName)
                                  val vtExecutor: ExecutorService,

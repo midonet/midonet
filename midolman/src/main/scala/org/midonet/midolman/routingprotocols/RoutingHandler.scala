@@ -32,6 +32,7 @@ import rx.Subscription
 
 import org.midonet.cluster.data.Route
 import org.midonet.midolman._
+import org.midonet.midolman.SimulationBackChannel._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VirtualMachine}
 import org.midonet.midolman.logging.ActorLogWithoutPath

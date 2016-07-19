@@ -18,8 +18,6 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.{Objects, UUID}
 
-import akka.actor.ActorSystem
-
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.sdn.flows.FlowTagger
@@ -40,7 +38,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
     val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
     val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)
 
-    def processInbound(context: PacketContext)(implicit actorSystem: ActorSystem)
+    def processInbound(context: PacketContext)
     : RuleResult = {
 
         implicit val packetContext = context
@@ -74,8 +72,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         }
     }
 
-    def processOutbound(context: PacketContext)
-                       (implicit actorSystem: ActorSystem): RuleResult = {
+    def processOutbound(context: PacketContext): RuleResult = {
         implicit val packetContext = context
 
         context.log.debug("Load balancer {} applying outbound rules", id)

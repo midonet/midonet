@@ -18,8 +18,6 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 import java.util.{List => JList}
 
-import akka.actor.ActorSystem
-
 import org.midonet.midolman.PacketWorkflow.{NoOp, SimulationResult}
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.Simulator.ToPortAction
@@ -31,8 +29,7 @@ trait MirroringDevice extends SimDevice {
     def outboundMirrors: JList[UUID]
 
     private final def mirror(mirrors: JList[UUID], context: PacketContext,
-                             next: SimulationResult, as: ActorSystem): SimulationResult = {
-        implicit val _as: ActorSystem = as
+                             next: SimulationResult): SimulationResult = {
         var result: SimulationResult = next
 
         var i = 0
@@ -49,21 +46,21 @@ trait MirroringDevice extends SimDevice {
         result
     }
 
-    final def mirroringInbound(context: PacketContext, next: SimulationResult,
-                               as: ActorSystem): SimulationResult = {
-        continue(context, mirror(inboundMirrors, context, next, as))(as)
+    final def mirroringInbound(context: PacketContext, next: SimulationResult)
+            : SimulationResult = {
+        continue(context, mirror(inboundMirrors, context, next))
     }
 
-    final def mirroringOutbound(context: PacketContext, next: SimulationResult,
-                                as: ActorSystem): SimulationResult = {
-        continue(context, mirror(outboundMirrors, context, next, as))(as)
+    final def mirroringOutbound(context: PacketContext, next: SimulationResult)
+            : SimulationResult = {
+        continue(context, mirror(outboundMirrors, context, next))
     }
 }
 
 case class Mirror(id: UUID, conditions: JList[Condition], toPort: UUID) extends VirtualDevice {
     override val deviceTag = FlowTagger.tagForMirror(id)
 
-    def process(context: PacketContext)(implicit as: ActorSystem): SimulationResult = {
+    def process(context: PacketContext): SimulationResult = {
         context.log.debug(s"Processing mirror $id")
         context.addFlowTag(deviceTag)
         var i = 0

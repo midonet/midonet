@@ -101,7 +101,7 @@ class HostService @Inject()(config: MidolmanConfig,
     private final val stateStore = backend.stateStore
 
     private final val timeout = 5 seconds
-    @volatile private var hostIdInternal: UUID = null
+    private val hostIdInternal: UUID = HostIdGenerator.getHostId
     @volatile private var hostName: String = "UNKNOWN"
 
     private val interfacesLatch = new CountDownLatch(1)
@@ -235,7 +235,6 @@ class HostService @Inject()(config: MidolmanConfig,
             throw new IllegalStateException(
                 "Timeout while waiting for interfaces")
         }
-        hostIdInternal = HostIdGenerator.getHostId
         try {
             hostName = InetAddress.getLocalHost.getHostName
         } catch {

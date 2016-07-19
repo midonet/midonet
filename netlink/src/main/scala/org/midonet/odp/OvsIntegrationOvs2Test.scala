@@ -74,11 +74,12 @@ trait MegaFlowTest extends TapTrafficInjectBase {
     private[this] class Handler extends BatchCollector[Packet] {
 
         val counter = new java.util.concurrent.atomic.AtomicInteger(0)
-        def submit(p: Packet) {
+        override def submit(p: Packet): Boolean = {
             counter.getAndIncrement()
+            true
         }
+        override def endBatch() {}
 
-        def endBatch() {}
         def stats() = counter.getAndSet(0)
     }
 
