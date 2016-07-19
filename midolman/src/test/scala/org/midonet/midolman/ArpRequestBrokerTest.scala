@@ -29,6 +29,7 @@ import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.{Second, Span}
 
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.LegacyArpCacheImpl
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
@@ -182,7 +183,7 @@ class ArpRequestBrokerTest extends Suite
         arps.clear()
         invalidations.clear()
 
-        emitter = new PacketEmitter(arps, actorSystem.deadLetters)
+        emitter = new PacketEmitter(arps)
         val invalidator = new SimulationBackChannel {
             override def tell(t: BackChannelMessage) {
                 invalidations.add(t.asInstanceOf[FlowTag])
@@ -191,8 +192,8 @@ class ArpRequestBrokerTest extends Suite
             override def hasMessages: Boolean = !invalidations.isEmpty
             override def process(handler: BackChannelHandler): Unit = ???
         }
-        arpBroker = new ArpRequestBroker(emitter, config, invalidator, () => { }, clock)
-        router = new Router(routerId, Router.Config(), null, null, arpCache)(actorSystem)
+        arpBroker = new ArpRequestBroker(emitter, config, invalidator, clock)
+        router = new Router(routerId, Router.Config(), null, null, arpCache)
     }
 
     after {

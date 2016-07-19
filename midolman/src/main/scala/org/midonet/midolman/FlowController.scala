@@ -37,15 +37,13 @@ import org.midonet.util.concurrent.{Backchannel, NanoClock}
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
 trait FlowController extends FlowIndexer with FlowTagIndexer
-                     with FlowExpirationIndexer with Backchannel { this: Actor =>
+                     with FlowExpirationIndexer with Backchannel {
 
     protected val config: MidolmanConfig
     protected val clock: NanoClock
     protected val flowProcessor: FlowProcessor
     protected val datapathId: Int
     val metrics: PacketPipelineMetrics
-
-    implicit val system: ActorSystem
 
     val maxFlows = ((config.datapath.maxFlowCount / config.simulationThreads) * 1.2).toInt
 
@@ -59,7 +57,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
         flowProcessor.capacity)
     private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
-        flowProcessor.capacity, new FlowOperation(self, _, completedFlowOperations))
+        flowProcessor.capacity, new FlowOperation(_, completedFlowOperations))
     private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
         flowProcessor.capacity)
 

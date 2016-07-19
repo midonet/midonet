@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.Util;
 import org.midonet.midolman.DatapathState;
 import org.midonet.midolman.DatapathStateDriver;
+import org.midonet.midolman.PacketWorkersService;
 import org.midonet.midolman.UnderlayResolver;
 import org.midonet.midolman.VirtualPortsResolver;
 import org.midonet.midolman.config.MidolmanConfig;
@@ -283,15 +284,22 @@ public class DatapathModule extends PrivateModule {
         @Inject
         MetricRegistry registry;
 
+        @Inject
+        PacketWorkersService workers;
+
         @Override
         public UpcallDatapathConnectionManager get() {
             String val = config.inputChannelThreading();
             switch (val) {
                 case "one_to_many":
-                    return new OneToManyDpConnManager(config, tbPolicy,
+                    return new OneToManyDpConnManager(config,
+                                                      workers.workers(),
+                                                      tbPolicy,
                                                       registry);
                 case "one_to_one":
-                    return new OneToOneDpConnManager(config, tbPolicy,
+                    return new OneToOneDpConnManager(config,
+                                                     workers.workers(),
+                                                     tbPolicy,
                                                      registry);
                 default:
                     throw new IllegalArgumentException(

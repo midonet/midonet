@@ -85,7 +85,6 @@ class Router(override val id: UUID,
              override val rTable: RoutingTable,
              override val routerMgrTagger: TagManager,
              val arpCache: ArpCache)
-            (implicit system: ActorSystem)
         extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) with MirroringDevice {
 
     import Router._

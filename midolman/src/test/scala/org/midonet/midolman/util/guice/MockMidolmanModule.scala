@@ -19,10 +19,17 @@ package org.midonet.midolman.util.guice
 import java.util.LinkedList
 import java.util.concurrent.ExecutorService
 
+import scala.collection.IndexedSeq
+
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.name.Names
+
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import akka.actor.ActorSystem
 
 import org.midonet.midolman.services.SelectLoopService
 import org.midonet.midolman.{BackChannelHandler, SimulationBackChannel, ShardedSimulationBackChannel}
+import org.midonet.midolman.{MockScheduler, PacketWorker, PacketWorkersService}
 import org.midonet.midolman.cluster.MidolmanModule
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.{MockNatBlockAllocator, NatBlockAllocator}
@@ -33,20 +40,12 @@ import org.midonet.util.functors.{makePredicate, Predicate}
 
 class MockMidolmanModule extends MidolmanModule {
     protected override def bindSimulationBackChannel(): Unit = {
-        bind(classOf[SimulationBackChannel]).toInstance(new  SimulationBackChannel() {
-            private val q = new LinkedList[BackChannelMessage]()
-
-            override def tell(msg: BackChannelMessage): Unit = q.offer(msg)
-
-            override def hasMessages: Boolean = !q.isEmpty
-
-            override def process(handler: BackChannelHandler): Unit =
-                while (hasMessages) {
-                    handler.handle(q.pop())
-                }
-        })
+        val backChannel = new ShardedSimulationBackChannel()
+        bind(classOf[SimulationBackChannel])
+            .toInstance(backChannel)
         expose(classOf[SimulationBackChannel])
-        bind(classOf[ShardedSimulationBackChannel]).toInstance(new ShardedSimulationBackChannel(null))
+        bind(classOf[ShardedSimulationBackChannel])
+            .toInstance(backChannel)
         expose(classOf[ShardedSimulationBackChannel])
 
         IPv4InvalidationArray.reset()
@@ -80,5 +79,27 @@ class MockMidolmanModule extends MidolmanModule {
         bind(classOf[VirtualTopology])
             .asEagerSingleton()
         expose(classOf[VirtualTopology])
+    }
+
+    override def bindActorSystem() {
+        val config = ConfigFactory.load()
+            .getConfig("midolman")
+            .withValue("akka.scheduler.implementation",
+                       ConfigValueFactory.fromAnyRef(
+                           classOf[MockScheduler].getName))
+        val as = ActorSystem.create("MidolmanActors", config)
+        bind(classOf[ActorSystem]).toInstance(as)
+        expose(classOf[ActorSystem])
+    }
+
+    override def bindPacketWorkersService() {
+        val packetWorkersService = new PacketWorkersService() {
+            override def workers: IndexedSeq[PacketWorker] = IndexedSeq()
+            override def doStart(): Unit = notifyStarted()
+            override def doStop(): Unit = notifyStopped()
+        }
+        bind(classOf[PacketWorkersService])
+            .toInstance(packetWorkersService)
+        expose(classOf[PacketWorkersService])
     }
 }

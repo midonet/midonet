@@ -18,8 +18,9 @@ package org.midonet.midolman
 
 import java.util.ArrayList
 
-import org.jctools.queues.MpscArrayQueue
+import org.jctools.queues.MpscLinkedQueue8
 
+import org.midonet.midolman.SimulationBackChannel._
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
@@ -38,17 +39,7 @@ trait BackChannelHandler {
     def handle(message: SimulationBackChannel.BackChannelMessage): Unit
 }
 
-object ShardedSimulationBackChannel {
-    // TODO: having to pass the actorsService here, ugly as it
-    //       may be, is an artifact of our bootstrap process
-    def apply(as: MidolmanActorsService): ShardedSimulationBackChannel = {
-        new ShardedSimulationBackChannel(
-            () => PacketsEntryPoint.getRef()(as.system) ! CheckBackchannels
-        )
-    }
-}
-
-final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
+final class ShardedSimulationBackChannel
     extends SimulationBackChannel {
     import SimulationBackChannel._
 
@@ -81,7 +72,6 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
                 p.offer(msg)
             i += 1
         }
-        triggerChannelCheck()
     }
 
     override def hasMessages: Boolean = {
@@ -94,14 +84,13 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
         false
     }
 
-     override def process(handler: BackChannelHandler): Unit =
+    override def process(handler: BackChannelHandler): Unit =
         throw new UnsupportedOperationException(
             "Calling process on the main back channel is not supported")
 
     final class BackChannelShard extends SimulationBackChannel with Parkable {
-        private val MAX_PENDING = 1024
 
-        private val q = new MpscArrayQueue[BackChannelMessage](MAX_PENDING)
+        private val q = new MpscLinkedQueue8[BackChannelMessage]()
 
         private[ShardedSimulationBackChannel] def offer(msg: BackChannelMessage): Unit = {
             while (!q.offer(msg)) {
@@ -117,8 +106,6 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
             offer(msg)
             if (msg.isInstanceOf[BackChannelMessage with Broadcast])
                 tellOthers(this, msg)
-            else
-                triggerChannelCheck()
         }
 
         override def hasMessages: Boolean = !q.isEmpty

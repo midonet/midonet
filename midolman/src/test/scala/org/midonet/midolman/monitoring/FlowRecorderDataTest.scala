@@ -73,7 +73,7 @@ class FlowRecorderDataTest extends MidolmanSpec {
             val workflow = packetWorkflow(
                 dpPortToVport = Map(1 -> port1, 2 -> port2),
                 flowRecorder = recorder)
-            workflow.receive(HandlePackets(Array(packet)))
+            workflow.handlePackets(packet)
             val pktCtx = recorder.next().ctx
 
             val tags = pktCtx.flowTags.asScala

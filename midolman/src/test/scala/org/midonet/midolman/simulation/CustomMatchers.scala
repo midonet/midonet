@@ -218,7 +218,6 @@ trait CustomMatchers {
         def clear(): List[FlowTag] = {
             val invalidatedTags = mutable.ListBuffer[FlowTag]()
             flowInvalidator.process(new FlowTagIndexer with BackChannelHandler {
-                override val log: Logger = Logger(NOPLogger.NOP_LOGGER)
                 override def handle(message: BackChannelMessage): Unit = {
                     message match {
                         case tag: FlowTag =>

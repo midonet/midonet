@@ -25,6 +25,7 @@ import akka.actor.ActorRef
 
 import rx.Subscription
 
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
@@ -40,7 +41,8 @@ object HostRequestProxy {
     case class FlowStateBatch(strongConnTrack: JSet[ConnTrackKey],
                               weakConnTrack: JSet[ConnTrackKey],
                               strongNat: JMap[NatKey, NatBinding],
-                              weakNat: JMap[NatKey, NatBinding]) {
+                              weakNat: JMap[NatKey, NatBinding])
+            extends BackChannelMessage with Broadcast {
         def merge(other: FlowStateBatch): FlowStateBatch = {
             strongConnTrack.addAll(other.strongConnTrack)
             weakConnTrack.addAll(other.strongConnTrack)
@@ -70,6 +72,7 @@ object HostRequestProxy {
   * the host object.
   */
 class HostRequestProxy(val hostId: UUID,
+                       backChannel: SimulationBackChannel,
                        val storageFuture: Future[FlowStateStorage],
                        val subscriber: ActorRef) extends ReactiveActor[DevicesHost]
                                                  with ActorLogWithoutPath
@@ -169,7 +172,7 @@ class HostRequestProxy(val hostId: UUID,
                 storageFuture.flatMap(stateForPorts(_, ps)).andThen {
                     case Success(stateBatch) =>
                         log.debug(s"Fetched ${stateBatch.size()} pieces of flow state for ports $ps")
-                        PacketsEntryPoint ! stateBatch
+                        backChannel tell stateBatch
                     case Failure(e) =>
                         log.warn("Failed to fetch state", e)
                 }(singleThreadExecutionContext)

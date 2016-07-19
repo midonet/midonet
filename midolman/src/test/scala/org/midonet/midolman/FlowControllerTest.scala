@@ -49,7 +49,6 @@ class FlowControllerTest extends MidolmanSpec {
              val clock = FlowControllerTest.this.clock
              val datapathId = 0
              implicit val system = FlowControllerTest.this.actorSystem
-             val log = Logger(NOPLogger.NOP_LOGGER)
              val actor = TestProbe()(system).ref
         } with FlowController with Actor { def receive: Receive = { case _ => } }).underlyingActor
 

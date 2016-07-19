@@ -164,7 +164,7 @@ class PingRouterWithNat extends MidolmanSpec {
             passed = true
         }
 
-        workflow.receive(HandlePackets(Array(packet)))
+        workflow.handlePackets(packet)
         mockDpChannel.packetsSent should have size 1
         passed should be (true)
     }

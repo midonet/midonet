@@ -21,6 +21,7 @@ import java.lang.annotation.Target;
 
 import scala.concurrent.duration.Duration;
 
+import akka.actor.ActorSystem;
 import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
@@ -38,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.DatapathController;
 import org.midonet.midolman.DatapathState;
 import org.midonet.midolman.NetlinkCallbackDispatcher;
-import org.midonet.midolman.PacketsEntryPoint;
 import org.midonet.midolman.SupervisorActor;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
@@ -94,6 +94,7 @@ public class MidolmanActorsModule extends PrivateModule {
         requireBinding(UpcallDatapathConnectionManager.class);
         requireBinding(FlowStateStorageFactory.class);
         requireBinding(NetlinkChannelFactory.class);
+        requireBinding(ActorSystem.class);
 
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);
@@ -115,7 +116,6 @@ public class MidolmanActorsModule extends PrivateModule {
          * start the actor with a null context). */
         bind(SupervisorActor.class);
         bind(DatapathController.class);
-        bind(PacketsEntryPoint.class);
         bind(NetlinkCallbackDispatcher.class);
         bind(MetadataServiceManagerActor.class);
         bind(RoutingManagerActor.class);
