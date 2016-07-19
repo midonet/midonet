@@ -18,6 +18,7 @@ package org.midonet.cluster.data.storage
 
 import java.util
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue}
+import java.util.concurrent.TimeUnit.NANOSECONDS
 import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.util.control.NonFatal
@@ -1084,7 +1085,10 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
             return
         }
 
-        log trace s"Read ${entries.size()} entries in ${latency(context)} ms"
+        val lat = latency(context)
+        table.metrics.performance.addNotificationLatency(lat)
+
+        log trace s"Read ${entries.size()} entries in $lat ms"
         update(entries, stat.getPzxid)
     }
 
@@ -1165,7 +1169,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
     private def latency(context: AnyRef): Long = {
         context match {
             case startTime: java.lang.Long =>
-                System.currentTimeMillis() - startTime
+                NANOSECONDS.toMillis(System.nanoTime() - startTime)
             case _ => -1L
         }
     }

@@ -42,6 +42,7 @@ import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
@@ -831,7 +832,8 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         val constructor = provider.clazz.getConstructor(classOf[StateTable.Key],
                                                         classOf[Directory],
                                                         classOf[StateTableClient],
-                                                        classOf[Observable[ConnectionState]])
+                                                        classOf[Observable[ConnectionState]],
+                                                        classOf[StorageMetrics])
         val objectId = id match {
             case uuid: UUID => uuid
             case uuid: Commons.UUID => uuid.asJava

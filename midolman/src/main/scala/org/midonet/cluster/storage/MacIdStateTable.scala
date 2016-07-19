@@ -26,6 +26,7 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.storage.StateTable.Key
 import org.midonet.cluster.data.storage.{DirectoryStateTable, ScalableStateTable, StateTable}
 import org.midonet.cluster.data.storage.StateTableEncoder.MacToIdEncoder
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.packets.MAC
 
@@ -43,7 +44,8 @@ import org.midonet.packets.MAC
 final class MacIdStateTable(override val tableKey: Key,
                             override val directory: Directory,
                             override val proxy: StateTableClient,
-                            override val connection: Observable[ConnectionState])
+                            override val connection: Observable[ConnectionState],
+                            override val metrics: StorageMetrics)
     extends DirectoryStateTable[MAC, UUID]
     with ScalableStateTable[MAC, UUID]
     with MacToIdEncoder {

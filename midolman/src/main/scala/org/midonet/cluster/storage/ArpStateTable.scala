@@ -23,6 +23,7 @@ import rx.Observable
 
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.storage.StateTable.Key
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.data.storage.{DirectoryStateTable, ScalableStateTable, StateTableEncoder}
 import org.midonet.cluster.rpc.State.KeyValue
@@ -66,7 +67,8 @@ object ArpStateTable {
 final class ArpStateTable(override val tableKey: Key,
                           override val directory: Directory,
                           override val proxy: StateTableClient,
-                          override val connection: Observable[ConnectionState])
+                          override val connection: Observable[ConnectionState],
+                          override val metrics: StorageMetrics)
     extends DirectoryStateTable[IPv4Addr, ArpEntry]
     with ScalableStateTable[IPv4Addr, ArpEntry]
     with ArpEncoder {

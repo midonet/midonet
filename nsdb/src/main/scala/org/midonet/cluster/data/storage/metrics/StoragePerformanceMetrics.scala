@@ -53,6 +53,8 @@ class StoragePerformanceMetrics(registry: MetricRegistry) {
     private val multiTimer =
         registry.timer(name(classOf[StorageTimer], "multiTimer"))
 
+    private val notificationLatencies = registry.histogram("notificationLatencies")
+
     def addReadLatency(latencyInNanos: Long): Unit =
         readTimer.update(latencyInNanos, NANOSECONDS)
 
@@ -64,6 +66,9 @@ class StoragePerformanceMetrics(registry: MetricRegistry) {
 
     def addMultiLatency(latencyInNanos: Long): Unit =
         multiTimer.update(latencyInNanos, NANOSECONDS)
+
+    def addNotificationLatency(latencyInMillis: Long): Unit =
+        notificationLatencies.update(latencyInMillis)
 
     def connectionStateListener(): ConnectionStateListener = {
         new ConnectionStateListener {
