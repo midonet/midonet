@@ -192,7 +192,7 @@ class ArpRequestBrokerTest extends Suite
         arps.clear()
         invalidations.clear()
 
-        arpBroker = new ArpRequestBroker(config, backChannel, () => { }, clock)
+        arpBroker = new ArpRequestBroker(config, backChannel, clock)
         router = new Router(routerId, Router.Config(), null, null,
                             new HashMap[Int, UUID], arpCache)
     }

@@ -17,6 +17,7 @@ package org.midonet.midolman.io
 
 import org.midonet.conf.MidoTestConfigurator
 
+import scala.collection.IndexedSeq
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -26,7 +27,7 @@ import com.codahale.metrics.MetricRegistry
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 
 import org.midonet.midolman.NetlinkCallbackDispatcher
-import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.midolman.PacketWorker
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.odp._
 import org.midonet.odp.ports._
@@ -35,7 +36,6 @@ import org.midonet.util._
 object UpcallChannelsTest {
 
     import IntegrationTests._
-    import PacketsEntryPoint.Workers
 
     class Deaf extends Actor {
         def receive = { case _ => }
@@ -43,10 +43,7 @@ object UpcallChannelsTest {
 
     trait TestMixin { self: UpcallDatapathConnectionManagerBase  =>
         val dispatcher: ActorRef
-        val packetHandler: ActorRef
-        override def askForWorkers()(implicit ec: ExecutionContext,
-                                              as: ActorSystem) =
-            Future successful Workers(Vector(packetHandler))
+
         override def getDispatcher()(implicit as: ActorSystem) =
             NetlinkCallbackDispatcher.makeBatchCollector(Some(dispatcher))(as)
     }
@@ -61,21 +58,24 @@ object UpcallChannelsTest {
 
         implicit val sys = ActorSystem("upcallChannelsTest")
         val act = sys actorOf Props[Deaf]
+        val workers = IndexedSeq(new PacketWorker() {
+                                     override def submit(packet: Packet) = {}
+                                 })
         val nlDispatcher = sys actorOf Props[NetlinkCallbackDispatcher]
 
         val conf = new MidolmanConfig(MidoTestConfigurator.forAgents)
 
         val metrics = new MetricRegistry()
         val mngr1 =
-            new OneToOneDpConnManager(conf, tbPolicy(conf), metrics) with TestMixin {
+            new OneToOneDpConnManager(conf, workers, tbPolicy(conf), metrics)
+                    with TestMixin {
                 val dispatcher: ActorRef = nlDispatcher
-                val packetHandler: ActorRef = act
             }
 
         val mngr2 =
-            new OneToManyDpConnManager(conf, tbPolicy(conf), metrics) with TestMixin {
+            new OneToManyDpConnManager(conf, workers, tbPolicy(conf), metrics)
+                    with TestMixin {
                 val dispatcher: ActorRef = nlDispatcher
-                val packetHandler: ActorRef = act
             }
 
         var status = printReport(runSuite(test("OneToOneDpConnManager", mngr1)))
