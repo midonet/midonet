@@ -22,6 +22,30 @@
       "revId": "881f7a9a5150328ea3bfbf58f1ef2078f0f77fd6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_554b4ab1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-07-19T14:14:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_b50df690",
+      "range": {
+        "startLine": 67,
+        "startChar": 12,
+        "endLine": 67,
+        "endChar": 17
+      },
+      "revId": "881f7a9a5150328ea3bfbf58f1ef2078f0f77fd6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
