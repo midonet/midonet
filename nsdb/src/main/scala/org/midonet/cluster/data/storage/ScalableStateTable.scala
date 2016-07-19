@@ -28,6 +28,7 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.data.storage.ScalableStateTable._
 import org.midonet.cluster.data.storage.ScalableStateTableManager.ProtectedSubscriber
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.StateTableClient
@@ -104,6 +105,7 @@ trait ScalableStateTable[K, V] extends StateTable[K, V] with StateTableEncoder[K
     protected[storage] def directory: Directory
     protected[storage] def connection: Observable[StorageConnectionState]
     protected[storage] def proxy: StateTableClient
+    protected[storage] def metrics: StorageMetrics
 
     protected[storage] def nullValue: V
 
