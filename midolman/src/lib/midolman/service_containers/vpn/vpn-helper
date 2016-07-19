@@ -129,7 +129,7 @@ init_conns() {
     for ENDPOINT in $(cat $CONF_FILE | awk -F= '/right=/  { print $2 }'); do
         ip netns exec $NAME ip route add $ENDPOINT/32 via $GATEWAY_IP dev $NS
     done
-    for SUBNET in $(cat $CONF_FILE | awk '/leftsubnets=/ { print $2 }'); do
+    for SUBNET in $(cat $CONF_FILE | awk '/leftsubnets=/ { print $2 }' | tr , ' '); do
         ip netns exec $NAME ip route add $SUBNET via $GATEWAY_IP dev $NS
     done
 
@@ -154,7 +154,7 @@ cleanns() {
         echo "no name specified (-n)"
         exit 1
     fi
-    if [ -z $(ip netns list | grep $NAME) ]; then
+    if ! ip netns list | grep -q "$NAME" ; then
         exit 0
     fi
     for pid in $(ip netns pids $NAME)
