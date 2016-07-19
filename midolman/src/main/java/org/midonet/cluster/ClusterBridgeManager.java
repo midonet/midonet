@@ -151,8 +151,11 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
         try {
             logicalPortIDs = portMgr.getBridgeLogicalPortIDs(bridgeId, watcher);
+        } catch (NoStatePathException e) {
+            log.debug("Logical port IDs for bridge {} not found", bridgeId);
+            throw e;
         } catch (StateAccessException e) {
-            log.error("Failed to retrieve the logical port IDs for bridge {}",
+            log.warn("Failed to retrieve the logical port IDs for bridge {}",
                       bridgeId);
             throw e;
         }

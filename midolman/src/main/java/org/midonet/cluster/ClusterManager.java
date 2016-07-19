@@ -131,7 +131,7 @@ abstract class ClusterManager<T> {
 
         @Override
         public void pathDeleted(String path) {
-            log.warn("Path deleted at {}, event not handled", path);
+            log.debug("Path deleted at {}, event not handled", path);
         }
 
         @Override

@@ -350,7 +350,7 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
       */
     private def manageDevice(req: DeviceRequest) : Unit = {
         if (!managers.containsKey(req.id)) {
-            log.info("Manage device {}", req.id)
+            log.debug("Manage device {}", req.id)
             val managerFactory = req.managerFactory(clusterClient, config)
             val props = Props {
                 managerFactory()
@@ -492,14 +492,14 @@ class VirtualTopologyActor extends Actor with MidolmanLogging {
             log.debug("Received a PortGroup for {}", pg.id)
             deviceUpdated(pg.id, pg)
         case PoolHealthMonitorMap(mappings) =>
-            log.info("Received PoolHealthMonitorMappings")
+            log.debug("Received PoolHealthMonitorMappings")
             deviceUpdated(PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY,
                           PoolHealthMonitorMap(mappings))
         case InvalidateFlowsByTag(tag) =>
             log.debug("Invalidating flows for tag {}", tag)
             flowInvalidator.scheduleInvalidationFor(tag)
         case DeleteDevice(id) =>
-            log.info("Device {} deleted", id)
+            log.debug("Device {} deleted", id)
             deviceDeleted(id)
         case unexpected: AnyRef =>
             log.error("Received unexpected message: {}", unexpected)
