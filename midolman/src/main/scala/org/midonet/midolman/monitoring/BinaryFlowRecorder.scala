@@ -21,7 +21,7 @@ import java.util.{ArrayList, List, UUID}
 
 import uk.co.real_logic.sbe.codec.java._
 
-import org.midonet.cluster.flowhistory.{proto, ActionEncoder, BinarySerialization}
+import org.midonet.cluster.flowhistory.{ActionEncoder, BinarySerialization}
 import org.midonet.cluster.flowhistory.proto.{SimulationResult => SbeSimResult,
                                               RuleResult => SbeRuleResult,
                                               DeviceType => SbeDeviceType,
@@ -317,7 +317,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                             actionEnc.etherType(k.etherType)
                         case k: FlowKeyICMPEcho =>
                             actionEnc.icmpEcho(k.icmp_type,
-                                               k.icmp_code, k.icmp_id)
+                                               k.icmp_code, k.icmp_id.toShort)
                         case k: FlowKeyICMPError =>
                             actionEnc.icmpError(k.icmp_type, k.icmp_code,
                                                 k.icmp_data)

@@ -151,11 +151,11 @@ public class ICMP extends BasePacket {
      * @param seq
      * @param data
      */
-    public void setEchoRequest(short id, short seq, byte[] data) {
+    public void setEchoRequest(int id, short seq, byte[] data) {
         type = TYPE_ECHO_REQUEST;
         code = CODE_NONE;
         checksum = 0;
-        quench = id << 16 | seq & 0xffff;
+        quench = ((id & 0xffff) << 16) | seq & 0xffff;
         this.data = data;
     }
 
@@ -166,20 +166,20 @@ public class ICMP extends BasePacket {
      * @param seq
      * @param data
      */
-    public void setEchoReply(short id, short seq, byte[] data) {
+    public void setEchoReply(int id, short seq, byte[] data) {
         type = TYPE_ECHO_REPLY;
         code = CODE_NONE;
         checksum = 0;
-        quench = (id << 16) | (seq & 0xffff);
+        quench = ((id & 0xffff) << 16) | (seq & 0xffff);
         this.data = data;
     }
 
-    public void setIdentifier(short id) {
-        quench |= id << 16;
+    public void setIdentifier(int id) {
+        quench |= (id & 0xffff) << 16;
     }
 
-    public short getIdentifier() {
-        return (short)(quench >> 16);
+    public int getIdentifier() {
+        return quench >>> 16;
     }
 
     public short getSequenceNum() {

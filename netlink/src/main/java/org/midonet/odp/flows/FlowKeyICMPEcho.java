@@ -22,9 +22,9 @@ package org.midonet.odp.flows;
  * functional and can be used for WildcardFlows.
  */
 public class FlowKeyICMPEcho extends FlowKeyICMP {
-    public short icmp_id;
+    public int icmp_id;
 
-    FlowKeyICMPEcho(byte type, byte code, short icmpId) {
+    FlowKeyICMPEcho(byte type, byte code, int icmpId) {
         super(type, code);
         icmp_id = icmpId;
     }

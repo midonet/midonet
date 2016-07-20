@@ -32,9 +32,9 @@ public class FlowKeyICMPEchoTest {
 
     @Test
     public void testEquals() {
-        FlowKeyICMPEcho k1 = icmpEcho(ICMP_ECHO_REQ, CODE_NONE, (short)9507);
-        FlowKeyICMPEcho k2 = icmpEcho(ICMP_ECHO_REQ, CODE_NONE, (short)9507);
-        FlowKeyICMPEcho k3 = icmpEcho(ICMP_ECHO_REPLY, CODE_NONE, (short)9508);
+        FlowKeyICMPEcho k1 = icmpEcho(ICMP_ECHO_REQ, CODE_NONE, 49507);
+        FlowKeyICMPEcho k2 = icmpEcho(ICMP_ECHO_REQ, CODE_NONE, 49507);
+        FlowKeyICMPEcho k3 = icmpEcho(ICMP_ECHO_REPLY, CODE_NONE, 49508);
 
         Assert.assertEquals(k1, k2);
         Assert.assertEquals(k1.hashCode(), k2.hashCode());
