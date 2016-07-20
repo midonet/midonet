@@ -22,6 +22,30 @@
       "revId": "42a14d5d4a0d43d8ed995f4649cdf34678cd00bb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dbcd4b31",
+        "filename": "midolman/src/lib/midolman/bgpd-helper",
+        "patchSetId": 4
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-07-20T02:34:30Z",
+      "side": 1,
+      "message": "We still need the router id to get the correct name of the namespace.",
+      "parentUuid": "baa041b7_1bd4d31d",
+      "range": {
+        "startLine": 177,
+        "startChar": 63,
+        "endLine": 177,
+        "endChar": 75
+      },
+      "revId": "42a14d5d4a0d43d8ed995f4649cdf34678cd00bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
