@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_816634eb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-20T10:28:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_26ef7e88",
+      "range": {
+        "startLine": 131,
+        "startChar": 27,
+        "endLine": 131,
+        "endChar": 52
+      },
+      "revId": "3587f240d5a3a052b2dfed957667505d7a64991d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_46f6025e",
         "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_615fb00f",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-20T10:28:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_46f6025e",
+      "range": {
+        "startLine": 199,
+        "startChar": 25,
+        "endLine": 199,
+        "endChar": 55
+      },
+      "revId": "3587f240d5a3a052b2dfed957667505d7a64991d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e6cd1631",
         "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-07-20T09:42:33Z",
       "side": 1,
       "message": "Nit: Maybe \"\\s+\" ?",
+      "range": {
+        "startLine": 580,
+        "startChar": 61,
+        "endLine": 580,
+        "endChar": 67
+      },
+      "revId": "3587f240d5a3a052b2dfed957667505d7a64991d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_415cac18",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 580,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-20T10:28:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e6cd1631",
       "range": {
         "startLine": 580,
         "startChar": 61,
