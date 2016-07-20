@@ -82,7 +82,7 @@ public class DhcpSubnet extends UriResource {
     @Min(0)
     @Max(65536)
     @ZoomField(name = "interface_mtu")
-    public int interfaceMTU;
+    public Integer interfaceMTU;
 
     @ZoomField(name = "opt121_routes")
     public List<DhcpOption121> opt121Routes;
