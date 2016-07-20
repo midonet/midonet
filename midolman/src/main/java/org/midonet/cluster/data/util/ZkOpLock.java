@@ -18,20 +18,19 @@ package org.midonet.cluster.data.util;
 
 import java.util.concurrent.TimeUnit;
 
-import org.midonet.cluster.ZookeeperLockFactory;
-
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.ZookeeperLockFactory;
 
 public class ZkOpLock {
     private static final Logger LOGGER =
         LoggerFactory.getLogger(ZkOpLock.class);
 
-    public static final int LOCK_TIMEOUT = 5;
-    public static final TimeUnit LOCK_TIMEOUT_UNIT = TimeUnit.SECONDS;
+    private static final int LOCK_TIMEOUT = 5;
+    private static final TimeUnit LOCK_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
     private final InterProcessSemaphoreMutex lock;
     private final StopWatch timeHeld;
@@ -54,18 +53,16 @@ public class ZkOpLock {
         StopWatch timeToAcquire = new StopWatch();
         timeToAcquire.start();
         try {
-            LOGGER.debug("Attempting to acquire lock for operation " +
-                         opNumber);
+            LOGGER.debug("Attempting to acquire lock for operation {}", opNumber);
             if (!lock.acquire(timeout, timeUnit)) {
                 throw new RuntimeException("Could not acquire lock in time");
             }
             timeToAcquire.stop();
             timeHeld.start();
 
-            LOGGER.debug(name + "ZK lock acquired for operation " +
-                         opNumber + ". Operation took " +
-                         timeToAcquire.getTime() +
-                         " milliseconds.");
+            LOGGER.debug("ZK lock {} acquired for operation {} operation took "
+                         + "{} milliseconds", name, opNumber,
+                         timeToAcquire.getTime());
         } catch (Exception ex){
             throw new RuntimeException(ex);
         }
@@ -75,9 +72,8 @@ public class ZkOpLock {
         try {
             lock.release();
             timeHeld.stop();
-            LOGGER.debug(name + " ZK lock operation for " + opNumber +
-                         " held the lock for " + timeHeld.getTime() +
-                         " milliseconds.");
+            LOGGER.debug("ZK lock {} operation for {} held the lock for {} "
+                         + "milliseconds",name, opNumber, timeHeld.getTime());
         } catch (Exception ex){
             throw new RuntimeException(ex);
         }
