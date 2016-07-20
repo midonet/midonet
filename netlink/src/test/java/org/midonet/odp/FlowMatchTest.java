@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.midonet.odp.flows;
+package org.midonet.odp;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.odp.FlowMatch;
-import org.midonet.odp.FlowMatches;
+import org.midonet.odp.flows.FlowKey;
+import org.midonet.odp.flows.FlowKeyEtherType;
+import org.midonet.odp.flows.FlowKeyEthernet;
+import org.midonet.odp.flows.FlowKeyICMP;
+import org.midonet.odp.flows.FlowKeyIPv4;
+import org.midonet.odp.flows.FlowKeys;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.ICMP;
 import org.midonet.packets.IPv4;
@@ -58,7 +61,7 @@ public class FlowMatchTest {
         supported.add(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
         supported.add(arp(null, null, (short) 0, 0, 0));
         supported.add(tcp(0, 0));
-        unsupported.add(icmpEcho(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE, (short)0));
+        unsupported.add(icmpEcho(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE, 0));
         unsupported.add(icmpError(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE, null));
     }
 
@@ -110,10 +113,10 @@ public class FlowMatchTest {
         ICMP icmp2 = new ICMP();
         ICMP icmp3 = new ICMP();
         ICMP icmp4 = new ICMP();
-        icmp1.setEchoRequest((short)9507, (short)10, "hello".getBytes());
-        icmp2.setEchoRequest((short)9507, (short)10, "hello".getBytes());
-        icmp3.setEchoRequest((short)9508, (short)11, "hello".getBytes());
-        icmp4.setEchoRequest((short)9508, (short)12, "hello".getBytes());
+        icmp1.setEchoRequest(49507, (short)10, "hello".getBytes());
+        icmp2.setEchoRequest(49507, (short)10, "hello".getBytes());
+        icmp3.setEchoRequest(49508, (short)11, "hello".getBytes());
+        icmp4.setEchoRequest(49508, (short)12, "hello".getBytes());
         Ethernet eth1 = makeFrame(srcMac, dstMac, srcIp, dstIp, icmp1);
         Ethernet eth2 = makeFrame(srcMac, dstMac, srcIp, dstIp, icmp2);
         Ethernet eth3 = makeFrame(srcMac, dstMac, srcIp, dstIp, icmp3);
@@ -250,7 +253,7 @@ public class FlowMatchTest {
     public void testSetIcmpIdentifier() {
         FlowMatch wmatch = new FlowMatch();
         org.junit.Assert.assertFalse(wmatch.userspaceFieldsSeen());
-        short icmpId = 0x25;
+        int icmpId = 0x9025;
         wmatch.setIcmpIdentifier(icmpId);
         assertEquals(icmpId, wmatch.getIcmpIdentifier());
         assertThat(Long.bitCount(wmatch.getUsedFields()), is(1));
