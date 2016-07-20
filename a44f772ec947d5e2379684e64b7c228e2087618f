@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9621d5a0",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-20T16:43:48Z",
+      "side": 1,
+      "message": "should use a value defined further up.",
+      "range": {
+        "startLine": 168,
+        "startChar": 28,
+        "endLine": 168,
+        "endChar": 30
+      },
+      "revId": "a44f772ec947d5e2379684e64b7c228e2087618f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_763bf1d1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/WatchedProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-20T16:43:48Z",
+      "side": 1,
+      "message": "timer can be null.",
+      "range": {
+        "startLine": 134,
+        "startChar": 8,
+        "endLine": 134,
+        "endChar": 13
+      },
+      "revId": "a44f772ec947d5e2379684e64b7c228e2087618f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
