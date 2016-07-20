@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b3faab75",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/metrics/MetricRegister.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-20T15:18:00Z",
+      "side": 1,
+      "message": "This trait adds nothing, so should be removed.",
+      "revId": "adbeab36760ec107f6f1d13467df5640492ec9d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_93ffa765",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/metrics/StorageErrorMetrics.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-20T15:18:00Z",
+      "side": 1,
+      "message": "This trait adds nothing. Make StorageErrorMetrics the concrete class. likewise for the others that follow this pattern.",
+      "range": {
+        "startLine": 24,
+        "startChar": 15,
+        "endLine": 24,
+        "endChar": 16
+      },
+      "revId": "adbeab36760ec107f6f1d13467df5640492ec9d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_13ecb7b9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/metrics/StorageErrorMetrics.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-20T15:18:00Z",
+      "side": 1,
+      "message": "These methods shouldn\u0027t be here. The client should just call\nerrorMetrics.nodeObservablePrematurelyClosed.inc()",
+      "range": {
+        "startLine": 58,
+        "startChar": 17,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "adbeab36760ec107f6f1d13467df5640492ec9d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
