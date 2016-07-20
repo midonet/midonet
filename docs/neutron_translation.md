@@ -1133,6 +1133,57 @@ Note: A mirror list can have multiple entries for the same mirror.
 It can happen when duplicated flows are configured.  This step should
 remove only one of them.
 
+## FIREWALLLOG
+
+The Firewall Log object in neutron is translated to a RuleLogger object
+in Midonet. In The FrewallLogTranslator, we also do some extra work
+to ensure other objects are in place. This is the metadata on the chain
+representing the Firewall, and the LoggingResource. In fact, we do not
+create the corresponding LoggingResource at all until there exists a
+FirewallLog object that uses it.
+
+### CREATE
+
+If the LoggingResource that this FirewallLog references does not exist,
+create it and set the 'enabled' flag.
+
+Create a RuleLogger associated with the Firewall chain on the router
+that this FirewallLog is associated with.
+
+If the metadata on the Firewall chain has not yet been created, create it.
+
+### UPDATE
+
+The only field that may be updated on the RuleLogger is the even type.
+Update it.
+
+### DELETE
+
+Delete the RuleLogger associated with this Firewall Log.
+
+If there are no other RuleLoggers associated with this RuleLoggers
+LoggingResource, delete that LoggingResource.
+
+## LOGGINGRESOURCE
+
+The LoggingResource in Neutron corresponds directly to a LoggingResource
+in Midonet. The Create and Delete operations are handled by the
+FirewallLogTranslator because the Logging Resource is only useful when
+a Firewall Log exists to use it.
+
+### CREATE
+
+Do nothing. Assume it is created if a Firewall Log uses it.
+
+### UPDATE
+
+If the LoggingResource exists at all (meaning it is used by a FirewallLog)
+then update the Enabled flag.
+
+### DELETE
+
+Do nothing. Assume it is deleted if no Firewall Log uses it.
+
 
 # References
 
