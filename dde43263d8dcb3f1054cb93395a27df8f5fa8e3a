@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_93e8c7b4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-20T15:09:55Z",
+      "side": 1,
+      "message": "sure",
+      "parentUuid": "baa041b7_262d3e46",
+      "range": {
+        "startLine": 125,
+        "startChar": 25,
+        "endLine": 125,
+        "endChar": 29
+      },
+      "revId": "dde43263d8dcb3f1054cb93395a27df8f5fa8e3a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c0de7a3d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 4
