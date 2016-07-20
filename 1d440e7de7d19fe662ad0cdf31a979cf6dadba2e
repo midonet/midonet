@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_13d5d7e3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-20T15:09:55Z",
+      "side": 1,
+      "message": "I would make it even more fine grained than this, just protecting the shutdownFuture. This method makes calls to shutdown() which calls to curator. It calls out to zookeeper for the session Id. I\u0027m afraid that these could cause a deadlock.",
+      "range": {
+        "startLine": 265,
+        "startChar": 7,
+        "endLine": 265,
+        "endChar": 40
+      },
+      "revId": "1d440e7de7d19fe662ad0cdf31a979cf6dadba2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
