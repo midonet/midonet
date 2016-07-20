@@ -16,7 +16,6 @@
 
 package org.midonet.migrator.converters;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
