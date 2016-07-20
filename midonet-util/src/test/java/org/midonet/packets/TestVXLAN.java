@@ -73,7 +73,7 @@ public class TestVXLAN {
         ICMP innerIcmp = (ICMP) innerIp.getPayload();
         assertThat(innerIcmp.getCode(), is(ICMP.CODE_NONE));
         assertThat(innerIcmp.getType(), is(ICMP.TYPE_ECHO_REQUEST));
-        assertThat(innerIcmp.getIdentifier(), is((short)1292));
+        assertThat(innerIcmp.getIdentifier(), is(1292));
 
         assertThat(outerEth.serialize(), is(data));
     }
