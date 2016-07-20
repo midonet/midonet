@@ -44,7 +44,7 @@ class ConntrackStateTest extends MidolmanSpec {
     val ping: Ethernet =
         { eth src MAC.random() dst MAC.random() } <<
         { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
-        { icmp.echo id 42 }
+        { icmp.echo id 42000.toShort }
 
     val portId = UUID.randomUUID()
     val ingressDevice = UUID.randomUUID()
