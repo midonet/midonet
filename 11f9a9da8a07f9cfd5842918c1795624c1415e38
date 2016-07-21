@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_e7ee2d21",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 1
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-21T15:20:21Z",
+      "side": 1,
+      "message": "wouldn\u0027t this be the wdog process itself? so in the end it\u0027s killing itself instead of just the agent and minion?",
+      "range": {
+        "startLine": 203,
+        "startChar": 20,
+        "endLine": 203,
+        "endChar": 24
+      },
+      "revId": "11f9a9da8a07f9cfd5842918c1795624c1415e38",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_56cfcd55",
         "filename": "midolman/src/deb/bin/wdog",
         "patchSetId": 1
