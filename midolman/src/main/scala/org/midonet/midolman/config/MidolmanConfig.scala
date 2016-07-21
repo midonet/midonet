@@ -243,6 +243,8 @@ class FlowStateConfig(val conf: Config, val schema: Config)
                                                TimeUnit.MILLISECONDS) millis
     def expirationDelay: Duration = getDuration(s"$prefix.expiration_delay",
                                                TimeUnit.MILLISECONDS) millis
+    def cleanFilesDelay: Duration = getDuration(s"$prefix.clean_unused_files_delay",
+                                                TimeUnit.MILLISECONDS) millis
     def logDirectory: String = getString(s"$prefix.log_directory")
     def legacyPushState: Boolean = getBoolean(s"$prefix.legacy_push_state")
     def legacyReadState: Boolean = getBoolean(s"$prefix.legacy_read_state")
