@@ -51,12 +51,13 @@ trait TimedBlockInvalidator[T <: TimedBlockHeader] { this: ByteBufferBlockWriter
     def invalidateBlocks(excludeBlocks: Int = 1): Int = {
         var invalidatedBlocks = 0
         var finished = false
-        while (buffers.length > excludeBlocks && !finished) {
+        while (!finished) {
             var bb: ByteBuffer = null
             buffers.synchronized {
-                if (isBlockStale(blockBuilder(buffers.peek.get), currentClock)) {
-                    bb = buffers.take().get
-                    invalidatedBlocks += 1
+                if (buffers.length > excludeBlocks &&
+                    isBlockStale(blockBuilder(buffers.peek.get), currentClock)) {
+                        bb = buffers.take().get
+                        invalidatedBlocks += 1
                 } else {
                     finished = true
                 }

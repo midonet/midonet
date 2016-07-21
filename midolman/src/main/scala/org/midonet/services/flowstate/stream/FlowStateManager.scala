@@ -136,8 +136,6 @@ class FlowStateManager(config: FlowStateConfig) {
             val ring = open(portId)
             val blockWriter = new BlockWriter(
                 FlowStateBlock, ring, config.expirationTime toNanos)
-            // Expire blocks before actually start writting to it.
-            blockWriter.invalidateBlocks(excludeBlocks = 0)
             blockWriter
         })
     }
