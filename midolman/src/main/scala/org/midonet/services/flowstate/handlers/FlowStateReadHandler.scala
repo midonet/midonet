@@ -152,6 +152,11 @@ class FlowStateReadHandler(context: Context)
     }
 
     private def readFromLocalState(portId: UUID): Unit = {
+        // Expire blocks before actually start reading from it. Expiration
+        // is done lazily to avoid excessive delays on the boot sequence.
+        context.ioManager.blockWriter(portId).invalidateBlocks(excludeBlocks = 0)
+
+        // Blocks are up to date, read and send it back to the agent.
         val in = getFlowStateReader(portId)
 
         var next = in.read()
