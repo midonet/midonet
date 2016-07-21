@@ -17,6 +17,7 @@
 package org.midonet.services.flowstate
 
 import java.nio.ByteBuffer
+import java.nio.file.{Files, Paths}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -41,8 +42,11 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
 
     private var config: MidolmanConfig = _
     private var configChangedPort: MidolmanConfig = _
+    private var configAlt: MidolmanConfig = _
+
     private var streamContext: Context = _
     private var streamContextChangedPort: Context = _
+    private var streamContextAlt: Context = _
 
     private var internalClient: FlowStateInternalClient = _
     private var remoteClient: FlowStateRemoteClient = _
@@ -51,11 +55,11 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
     private var handler: TestableReadHandler = _
     private var server: ServerFrontEnd = _
 
-    private def currentRawState(config: MidolmanConfig, portId: UUID) = {
+    private def currentRawState(context: Context, portId: UUID) = {
         var raw = new collection.mutable.ArrayBuffer[Byte]()
-        val in = ByteBufferBlockReader(streamContext, portId)
+        val in = ByteBufferBlockReader(context, portId)
         val headerBuff = new Array[Byte](FlowStateBlock.headerSize)
-        val blockBuff = new Array[Byte](config.flowState.blockSize)
+        val blockBuff = new Array[Byte](context.config.blockSize)
 
         in.read(headerBuff)
         var header = FlowStateBlock(ByteBuffer.wrap(headerBuff))
@@ -87,19 +91,24 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
 
         config = MidolmanConfig.forTests(getConfig)
         configChangedPort = MidolmanConfig.forTests(getConfig)
+        configAlt = MidolmanConfig.forTests(getConfig)
         val manager = new FlowStateManager(config.flowState)
+        val managerChangedPort = new FlowStateManager(configChangedPort.flowState)
+        val managerAlt = new FlowStateManager(configAlt.flowState)
 
         streamContext = Context(config.flowState,
                                 manager)
         streamContextChangedPort = Context(configChangedPort.flowState,
-                                           manager)
+                                           managerChangedPort)
+        streamContextAlt = Context(configAlt.flowState,
+                                   managerAlt)
 
-        internalClient = new FlowStateInternalClient(config.flowState)
-        remoteClient = new FlowStateRemoteClient(config.flowState)
+        internalClient = new FlowStateInternalClient(configAlt.flowState)
+        remoteClient = new FlowStateRemoteClient(configAlt.flowState)
 
-        ports = createValidFlowStatePorts(streamContext)
-        handler = new TestableReadHandler(streamContext, ports)
-        server = ServerFrontEnd.tcp(handler, config.flowState.port)
+        ports = createValidFlowStatePorts(streamContextAlt)
+        handler = new TestableReadHandler(streamContextAlt, ports)
+        server = ServerFrontEnd.tcp(handler, configAlt.flowState.port)
         server.startAsync().awaitRunning(20, TimeUnit.SECONDS)
     }
 
@@ -112,7 +121,7 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
             Given("A previous port id of the server agent")
             val portId = handler.validPortId
             And("The raw state for the port")
-            val initialRaw = currentRawState(config, portId)
+            val initialRaw = currentRawState(streamContextAlt, portId)
 
             When("The flow state is requested by the TCP client")
             val writer = mock(classOf[ByteBufferBlockWriter[TimedBlockHeader]])
@@ -141,10 +150,7 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
         scenario("A remote flow state request between minion and agent") {
             Given("A flow state read message handler")
             val localPorts = Seq.empty
-            // We need a new TCP port for the test, since the raw request that
-            // will be chained from the initial remote request, will be on the
-            // same server and we will need to bind to 2 different ports
-            server.stopAsync().awaitTerminated(20, TimeUnit.SECONDS)
+            val internalClient = new FlowStateInternalClient(config.flowState)
             val localHandler = new TestableReadHandler(
                 streamContextChangedPort, localPorts)
             And("A TCP server frontend handling requests")
@@ -159,6 +165,10 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
                                                   configChangedPort.flowState.port)
             And("A previous port id of the remote agent")
             val portId = remoteHandler.validPortId
+            And("The file on the remote host should exist")
+            val fsFileName = s"${streamContext.ioManager.storageDirectory}/$portId"
+            log.debug(s"Filename to check: $fsFileName")
+            Files.exists(Paths.get(fsFileName)) shouldBe true
 
             try {
                 localServer.startAsync()
@@ -173,6 +183,12 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
                 Then("The flow state for the given portId was received")
                 sc should not be empty
                 sn should not be empty
+
+                And("The file on the remote side was deleted")
+                eventually {
+                    Files.exists(Paths.get(fsFileName)) shouldBe false
+                }
+
             } finally {
                 localServer.stopAsync()
                 remoteServer.stopAsync()
