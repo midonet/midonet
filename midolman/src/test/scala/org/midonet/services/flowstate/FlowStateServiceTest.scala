@@ -61,12 +61,20 @@ class FlowStateServiceTest extends FlowStateBaseTest
         extends FlowStateService(nodeContext, executor, config) {
 
         var numInvalidations = 0
+        var numCleans = 0
 
         override def blockInvalidator: Runnable = new TestBlockInvalidator()
+        override def fileCleaner: Runnable = new TestFileCleaner()
 
         class TestBlockInvalidator extends Runnable {
             override def run(): Unit = {
                 numInvalidations += 1
+            }
+        }
+
+        class TestFileCleaner extends Runnable {
+            override def run(): Unit = {
+                numCleans += 1
             }
         }
 
@@ -194,7 +202,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             val config = midolmanConfig
             val service = new FlowStateServiceTest(
                 Context(UUID.randomUUID()), executor, config)
-            service.startBlockInvalidator()
+            service.startBackgroundTasks()
             val expirationDelay = config.flowState.expirationDelay
             Thread.sleep((expirationDelay toMillis) / 2)
             Then("The background invalidator is run at specified intervals")
@@ -202,6 +210,22 @@ class FlowStateServiceTest extends FlowStateBaseTest
                 service.numInvalidations shouldBe i
                 Thread.sleep(expirationDelay toMillis)
             }
+        }
+
+        scenario("Background file cleaner runs at specified intervals") {
+            Given("A flow state service that is started")
+            val config = midolmanConfig
+            val service = new FlowStateServiceTest(
+                Context(UUID.randomUUID()), executor, config)
+            service.startBackgroundTasks()
+            val cleanFilesDelay = config.flowState.cleanFilesDelay
+            Thread.sleep((cleanFilesDelay toMillis) / 2)
+            Then("The background cleaner task is run at specified intervals")
+            for (i <- 0 to 5) {
+                service.numCleans shouldBe i
+                Thread.sleep(cleanFilesDelay toMillis)
+            }
+
         }
 
     }
