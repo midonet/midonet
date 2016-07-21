@@ -81,7 +81,7 @@ class FlowStateReadHandler(context: Context)
                 Log debug s"Flow state internal request for port: ${fromProto(portId)}"
                 respondInternal(portId)
             case StateRequestRemote(portId, address) =>
-                Log debug s"Flow state remote[$address] request for port: ${fromProto(portId)}"
+                Log debug s"Flow state remote [${address.getAddress}] request for port: ${fromProto(portId)}"
                 respondRemote(portId, address)
             case StateRequestRaw(portId) =>
                 Log debug s"Flow state raw request for port: ${fromProto(portId)}"
@@ -120,6 +120,8 @@ class FlowStateReadHandler(context: Context)
             }
 
             ctx.writeAndFlush(eof)
+
+            context.ioManager.remove(portId)
         } catch {
             case NonFatal(e) => handleStorageError(portId, e)
         }

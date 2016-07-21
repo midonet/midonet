@@ -90,6 +90,8 @@ class FlowStateService @Inject()(nodeContext: Context,
 
     protected def blockInvalidator: Runnable = new BlockInvalidator()
 
+    protected def fileCleaner: Runnable = new FileCleaner()
+
     /**
       * Block invalidation task that runs periodically over the existing
       * blocks.
@@ -101,6 +103,16 @@ class FlowStateService @Inject()(nodeContext: Context,
             for (writer <- ioManager.blockWriters.valuesIterator) {
                 invalidatedBlocks += writer.invalidateBlocks()
             }
+
+            // Invalidate blocks from the waiting room to be deleted and
+            // remove the file if no valid blocks
+            for ((portId, writer) <- ioManager.writersToRemove.iterator) {
+                invalidatedBlocks += writer.invalidateBlocks(excludeBlocks = 0)
+                if (writer.buffers.isEmpty) {
+                    ioManager.remove(portId)
+                }
+            }
+
             val elapsed = Duration(System.nanoTime - startTime,
                                    TimeUnit.NANOSECONDS).toMillis
             Log debug s"Flow state block invalidator task took $elapsed ms " +
@@ -108,13 +120,36 @@ class FlowStateService @Inject()(nodeContext: Context,
         }
     }
 
+    /**
+      * Housekeeping task that removes unused flow state files from storage.
+      * When a port is unbound during a reboot, the flow state file won't be
+      * removed from storage (because the agent does not know about its
+      * existence). Do a regular check on the existing files to see if there
+      * are dangling files that can be removed.
+      */
+    class FileCleaner extends Runnable {
+        override def run(): Unit = {
+            val startTime = System.nanoTime()
+            val erasedFiles = ioManager.removeInvalid()
+            val elapsed = Duration(System.nanoTime() - startTime,
+                                   TimeUnit.NANOSECONDS).toMillis
+            Log debug s"Erased $erasedFiles flow state files that were not " +
+                      s"being used in $elapsed ms."
+        }
+    }
+
     /** Initializes the block invalidator thread */
-    private[flowstate] def startBlockInvalidator() = {
+    private[flowstate] def startBackgroundTasks() = {
         if (config.flowState.localPushState) {
             executor.scheduleWithFixedDelay(
                 blockInvalidator,
                 config.flowState.expirationDelay toMillis,
                 config.flowState.expirationDelay toMillis,
+                TimeUnit.MILLISECONDS)
+            executor.scheduleWithFixedDelay(
+                fileCleaner,
+                config.flowState.cleanFilesDelay toMillis,
+                config.flowState.cleanFilesDelay toMillis,
                 TimeUnit.MILLISECONDS)
         }
     }
@@ -188,7 +223,7 @@ class FlowStateService @Inject()(nodeContext: Context,
 
     private def startAndNotify(): Unit = {
         try {
-            startBlockInvalidator()
+            startBackgroundTasks()
             startServerFrontEnds()
             Log info "Flow state service registered and listening" +
                      s"for TCP and UDP connections on 0.0.0.0:$port"
