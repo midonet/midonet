@@ -18,7 +18,7 @@ package org.midonet.services.flowstate
 
 import java.io.{File, IOException}
 import java.nio.ByteBuffer
-import java.nio.file.{Files => JFiles, Paths}
+import java.nio.file.{Path, Paths, Files => JFiles}
 import java.util.UUID
 
 import scala.collection.mutable
@@ -380,6 +380,60 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
             val readEncoder = readMsg.get
             assertEqualMessages(readEncoder, writeEncoder)
             // TODO: add check on number of messages and equality on all of them
+        }
+    }
+
+    feature("Flow state files are cleaned when unused") {
+        scenario("No files present") {
+            Given("An empty flow state manager")
+            context.ioManager.buffers should have size 0
+
+            Then("Removing the unused files should not remove anything")
+            context.ioManager.removeInvalid() shouldBe 0
+        }
+
+        scenario("Openend files are not removed by the cleaner") {
+            Given("An opened file")
+            val portId = UUID.randomUUID()
+            context.ioManager.open(portId)
+            context.ioManager.buffers should have size 1
+
+            Then("Removing the unused files should not remove anything")
+            context.ioManager.removeInvalid() shouldBe 0
+        }
+
+        scenario("Closed files are not removed by the cleaner") {
+            Given("An opened file")
+            val portId = UUID.randomUUID()
+            context.ioManager.open(portId)
+            context.ioManager.buffers should have size 1
+
+            When("Closing it")
+            context.ioManager.close(portId)
+
+            Then("Removing the unused files should not remove anything")
+            context.ioManager.removeInvalid() shouldBe 0
+        }
+
+        scenario("Not opened and not closed files are removed by the cleaner") {
+            Given("An opened file")
+            val portId1 = UUID.randomUUID()
+            context.ioManager.open(portId1)
+            And("A closed one")
+            val portId2 = UUID.randomUUID()
+            context.ioManager.open(portId2)
+            And("A random file in the flow state directory")
+            val fileName = s"${context.ioManager.storageDirectory}/${UUID.randomUUID}"
+            new File(fileName).createNewFile()
+
+            context.ioManager.buffers should have size 2
+
+            Then("Removing the unused files should remove a single file")
+            context.ioManager.removeInvalid() shouldBe 1
+            JFiles.list(Paths.get(context.ioManager.storageDirectory)).toArray.foreach {
+                case p: Path =>
+                   context.ioManager.buffers.keySet should contain (UUID.fromString(p.getFileName.toString))
+            }
         }
     }
 

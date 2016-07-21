@@ -17,6 +17,7 @@
 package org.midonet.services.flowstate
 
 import java.nio.ByteBuffer
+import java.nio.file.{Files, Paths}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -159,6 +160,9 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
                                                   configChangedPort.flowState.port)
             And("A previous port id of the remote agent")
             val portId = remoteHandler.validPortId
+            And("The file on the remote host should exist")
+            val fsFileName = s"${streamContext.ioManager.storageDirectory}/$portId"
+            Files.exists(Paths.get(fsFileName)) shouldBe true
 
             try {
                 localServer.startAsync()
@@ -173,6 +177,10 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
                 Then("The flow state for the given portId was received")
                 sc should not be empty
                 sn should not be empty
+
+                And("The file on the remote side was deleted")
+                Files.exists(Paths.get(fsFileName)) shouldBe false
+
             } finally {
                 localServer.stopAsync()
                 remoteServer.stopAsync()
