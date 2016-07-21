@@ -39,7 +39,7 @@ fi
 
 MIDO_CFG_FILE=midolman.conf
 
-exec >> $MIDO_LOG_DIR/upstart-stderr.log
+exec >> $MIDO_LOG_DIR/minions-stderr.log
 exec 2>&1
 
 if [ -f $MIDO_HOME/prepare-java ]; then
