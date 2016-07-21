@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.data.storage
 
+import java.util.concurrent.TimeUnit.NANOSECONDS
+
 import scala.reflect.ClassTag
 
 import com.codahale.metrics._
@@ -64,11 +66,11 @@ trait StorageMetrics {
     final def addLatency(eventType: CuratorEventType, latencyInNanos: Long)
     : Unit = eventType match {
         case CREATE | DELETE | SET_DATA =>
-            addWriteLatency(latencyInNanos / 1000L)
+            addWriteLatency(latencyInNanos)
         case EXISTS | GET_DATA =>
-            addReadLatency(latencyInNanos / 1000L)
+            addReadLatency(latencyInNanos)
         case CHILDREN =>
-            addReadChildrenLatency(latencyInNanos / 1000L)
+            addReadChildrenLatency(latencyInNanos)
         case _ =>
     }
 
@@ -86,7 +88,7 @@ trait StorageMetrics {
     def nodeWatcherTriggered(): Unit
 
     /**
-      * Increment the count of children watcher triggered (the on.
+      * Increment the count of children watcher triggered.
       */
     def childrenWatcherTriggered(): Unit
 
@@ -96,12 +98,12 @@ trait StorageMetrics {
     protected def nodeObservablePrematurelyClosed(): Unit
 
     /**
-      * Increment the count of ZooKeeper timeout exception encountered.
+      * Increment the count of ZooKeeper timeout exceptions encountered.
       */
     protected def nodeExistsTriggered(): Unit
 
     /**
-      * Increment the count of ZooKeeper NoNode exception encountered.
+      * Increment the count of ZooKeeper NoNode exceptions encountered.
       */
     def noNodeTriggered(): Unit
 
@@ -145,16 +147,16 @@ class JmxStorageMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
     extends StorageMetrics {
 
     override def addReadLatency(latencyInNanos: Long): Unit =
-        readLatencies.update(latencyInNanos / 1000L)
+        readTimer.update(latencyInNanos, NANOSECONDS)
 
     override def addReadChildrenLatency(latencyInNanos: Long): Unit =
-        readChildrenLatencies.update(latencyInNanos / 1000L)
+        readChildrenTimer.update(latencyInNanos, NANOSECONDS)
 
     override def addWriteLatency(latencyInNanos: Long): Unit =
-        writeLatencies.update(latencyInNanos / 1000L)
+        writeTimer.update(latencyInNanos, NANOSECONDS)
 
     override def addMultiLatency(latencyInNanos: Long): Unit =
-        multiLatencies.update(latencyInNanos / 1000L)
+        multiTimer.update(latencyInNanos, NANOSECONDS)
 
     override def nodeWatcherTriggered(): Unit =
         nodeTriggeredWatchers.inc()
@@ -192,10 +194,10 @@ class JmxStorageMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
     val nodeExistsExceptions = counter("nodeExistsExceptions")
     val noNodesExceptions = counter("noNodesExceptions")
 
-    val readLatencies = histogram("readLatencies")
-    val readChildrenLatencies = histogram("readChildrenLatencies")
-    val writeLatencies = histogram("writeLatencies")
-    val multiLatencies = histogram("multiLatencies")
+    val readTimer = timer("readTimer")
+    val readChildrenTimer = timer("readChildrenTimer")
+    val writeTimer = timer("writeTimer")
+    val multiTimer = timer("multiTimer")
 
     val zkConnectionState = registerGauge(gauge {
             zoom.zkConnectionState _
@@ -240,5 +242,9 @@ class JmxStorageMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
 
     private def histogram(names: String*) = {
         registry.histogram(name(classOf[StorageHistogram], names: _*))
+    }
+
+    private def timer(names: String*) = {
+        registry.timer(name(classOf[StorageHistogram], names: _*))
     }
 }
