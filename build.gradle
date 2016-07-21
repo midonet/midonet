@@ -15,7 +15,7 @@
  */
 
 project.ext {
-    midonetVersion = "5.0.3-rc2"
+    midonetVersion = "5.0.3"
     vendor = 'MidoNet'
     maintainer = "MidoNet user list <midonet-user@midonet.org>"
     url = "http://midonet.org"
