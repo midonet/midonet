@@ -21,15 +21,16 @@ import java.nio.channels.FileChannel
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import java.util.UUID
 
+import scala.collection.concurrent.TrieMap
+import scala.util.control.NonFatal
+
 import com.google.common.annotations.VisibleForTesting
+
 import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.services.flowstate.stream.FlowStateManager.{BlockWriter, Buffers}
 import org.midonet.services.flowstate.stream.snappy.SnappyBlockWriter
 import org.midonet.util.collection.RingBufferWithFactory
 import org.midonet.util.io.stream._
-
-import scala.collection.concurrent.TrieMap
-import scala.util.control.NonFatal
 
 object FlowStateManager {
     type Buffers = RingBufferWithFactory[ByteBuffer]
@@ -38,7 +39,8 @@ object FlowStateManager {
 
 class FlowStateManager(config: FlowStateConfig) {
 
-    protected[this] val buffers = TrieMap.empty[UUID, Buffers]
+
+    protected[flowstate] val buffers = TrieMap.empty[UUID, Buffers]
 
     /**
       * Mapping between the [[UUID]] of a port and its corresponding
@@ -51,6 +53,12 @@ class FlowStateManager(config: FlowStateConfig) {
       * [[BlockWriter]].
       */
     val blockWriters = TrieMap.empty[UUID, BlockWriter]
+
+    /**
+      * List of writers in the waiting list to be removed. We add them here
+      * when we close a given port, or
+      */
+    val writersToRemove = TrieMap.empty[UUID, BlockWriter]
 
     /**
       * Open memory mapped backed file with read/write access. If the file
@@ -145,6 +153,7 @@ class FlowStateManager(config: FlowStateConfig) {
       * to be done before starting to send the flow state to a remote request.
       * A subsequent call to stateWriter will return a new instance of a writer
       * over the same port.
+      *
       * @param portId
       */
     def close(portId: UUID): Unit = {
@@ -158,6 +167,7 @@ class FlowStateManager(config: FlowStateConfig) {
             case Some(writer) =>
                 Log debug s"Invalidating flow state for port $portId"
                 writer.invalidateBlocks(excludeBlocks = 0)
+                writersToRemove.put(portId, writer)
             case _ =>
         }
     }
@@ -179,10 +189,37 @@ class FlowStateManager(config: FlowStateConfig) {
         }
     }
 
+    /**
+      * Load the list of files from storage, remove those not opened. As this
+      * is a housekeeping activity, it should not be executed very often.
+      */
+    def removeInvalid(): Int = {
+        var count = 0
+        try {
+            val existingFiles = Paths.get(storageDirectory)
+            Files.list(existingFiles).toArray().foreach { case p: Path =>
+                val portId = UUID.fromString(p.getFileName.toString)
+                if (!buffers.contains(portId)) {
+                    Files.delete(p)
+                    count += 1
+                }
+            }
+            count
+        } catch {
+            case NonFatal(e) =>
+                log.warn("Unexpected error while cleaning invalid flow state " +
+                         "files. Check that the flow state directory " +
+                         s"$storageDirectory exists and is writable by the " +
+                         s"MidoNet Agent process.")
+                count
+        }
+    }
+
     @VisibleForTesting
     private[flowstate] def clear(portId: UUID): Unit = {
         buffers.remove(portId)
         blockWriters.remove(portId)
+        writersToRemove.remove(portId)
         stateWriters.remove(portId) match {
             case Some(writer) => writer.clear()
             case _ =>
@@ -190,9 +227,12 @@ class FlowStateManager(config: FlowStateConfig) {
     }
 
     @inline
+    private[flowstate] def storageDirectory =
+        s"${System.getProperty("minions.db.dir")}${config.logDirectory}"
+
+    @inline
     private def getFileForPort(portId: UUID): Path = {
-        val fileName = System.getProperty("minions.db.dir") +
-                       s"${config.logDirectory}/$portId"
+        val fileName = s"$storageDirectory/$portId"
         Paths.get(fileName)
     }
 
