@@ -190,7 +190,7 @@ class FlowStateService @Inject()(nodeContext: Context,
         try {
             startBlockInvalidator()
             startServerFrontEnds()
-            Log info "Flow state service registered and listening" +
+            Log info "Flow state service registered and listening " +
                      s"for TCP and UDP connections on 0.0.0.0:$port"
             notifyStarted()
         } catch {

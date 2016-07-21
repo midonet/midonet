@@ -153,7 +153,7 @@ object AgentServicesNode extends App {
         injector.getInstance(classOf[MidonetBackend])
                 .startAsync().awaitRunning()
         daemon.startAsync().awaitRunning()
-        log info "MidoNet Agent services is up!"
+        log info "MidoNet Agent services are up!"
     } catch {
         case e: Throwable =>
             e.getCause match {
