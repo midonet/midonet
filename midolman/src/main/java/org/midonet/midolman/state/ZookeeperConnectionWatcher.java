@@ -175,8 +175,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
         else if (e instanceof KeeperException.OperationTimeoutException)
             handleTimeout(retry);
         else if (e instanceof KeeperException.NoNodeException)
-            log.warn("Expected a ZK node for {} but not found: {}",
-                     operationDesc, e);
+            log.debug("Path for {} was deleted", operationDesc);
         else if (e instanceof KeeperException.SessionExpiredException ||
                  e instanceof KeeperException.SessionMovedException) {
             log.error("Exiting: Non-recoverable error on ZK operation for " +
