@@ -20,9 +20,9 @@ import java.util.UUID
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
 
-import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 import com.google.protobuf.{ByteString, Message}
 import com.typesafe.config.ConfigFactory
@@ -33,6 +33,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import org.junit.runner.RunWith
 import org.mockito.Matchers.any
 import org.mockito.Mockito
+import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
@@ -43,7 +44,6 @@ import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.rpc.State
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
-import org.midonet.util.MidonetEventually
 
 abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
 
@@ -67,7 +67,7 @@ abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
     }
 
     private def handleRequest(msg: ProxyRequest): Unit = {
-        log.debug(s"Received message $msg")
+        log.debug(s"Received message: $msg")
         msg.getDataCase match {
             case ProxyRequest.DataCase.SUBSCRIBE =>
                 onSubscribe(msg.getRequestId,msg.getSubscribe)
@@ -94,11 +94,16 @@ abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
     protected def onUnsubscribe(requestId: Long, msg: ProxyRequest.Unsubscribe): Unit
 }
 
+trait ExtendedEventually extends Eventually {
+    val expiration: Duration = 30 seconds
+    override implicit val patienceConfig = PatienceConfig(timeout = scaled(expiration))
+}
+
 @RunWith(classOf[JUnitRunner])
 class StateProxyClientTest extends FeatureSpec
                                    with Matchers
                                    with GivenWhenThen
-                                   with MidonetEventually {
+                                   with ExtendedEventually {
 
     val goodUUID = UUID.randomUUID()
     val existingTable = new StateSubscriptionKey(
@@ -119,6 +124,11 @@ class StateProxyClientTest extends FeatureSpec
                        Nil),
         None)
 
+    val executor = new ScheduledThreadPoolExecutor(2)
+    executor.setMaximumPoolSize(2)
+
+    implicit val exctx = ExecutionContext.fromExecutor(executor)
+
     class TestObjects(val softReconnectDelay: Duration = 200 milliseconds,
                       val maxAttempts: Int = 30,
                       val hardReconnectDelay: Duration = 1 second) {
@@ -126,11 +136,10 @@ class StateProxyClientTest extends FeatureSpec
         val executor = new ScheduledThreadPoolExecutor(1)
         executor.setMaximumPoolSize(1)
 
-        val executor2 = new ScheduledThreadPoolExecutor(2)
-        implicit val exctx = ExecutionContext.fromExecutor(executor2)
+        implicit val exctx = ExecutionContext.fromExecutor(executor)
 
-        val numPoolThreads = 2
-        implicit val eventLoopGroup = new NioEventLoopGroup(numPoolThreads)
+        val numPoolThreads = 1
+        val eventLoopGroup = new NioEventLoopGroup(numPoolThreads)
 
         val server = new TestServer(ProxyRequest.getDefaultInstance)
         server.attachedObserver = new TestServerHandler(server) {
@@ -184,20 +193,22 @@ class StateProxyClientTest extends FeatureSpec
         val client = new StateProxyClient(conf,
                                           discoveryService,
                                           executor,
-                                          eventLoopGroup)(exctx)
+                                          eventLoopGroup)
 
         def close(): Unit = {
-            if (server.hasClient) server.close()
-            server.serverChannel.close().await()
-            client.stop()
-            eventually {
-                client.isConnected shouldBe false
+            try {
+                client.stop()
+                server.serverChannel.close().await()
+                eventually {
+                    server.hasClient shouldBe false
+                }
+                executor.shutdownNow()
+                for (g <- List(server.workerGroup, server.bossGroup, eventLoopGroup)) {
+                    g.shutdownGracefully(0,100,MILLISECONDS).await()
+                }
+            } catch {
+                case NonFatal(_) =>
             }
-            server.workerGroup.shutdownGracefully()
-            server.boosGroup.shutdownGracefully()
-            eventLoopGroup.shutdownGracefully()
-            executor.shutdown()
-            executor2.shutdown()
         }
     }
 
@@ -276,6 +287,10 @@ class StateProxyClientTest extends FeatureSpec
             And("it is started")
             client.start()
 
+            eventually {
+                client.isConnected shouldBe true
+            }
+
             Then("subscription works after start")
             val subscription = observable.subscribe(observer)
             eventually {
@@ -338,8 +353,7 @@ class StateProxyClientTest extends FeatureSpec
             client.stop() shouldBe true
 
             Then("further subscriptions are not possible")
-            val subscription = client.observable(existingTable)
-                .subscribe(observer)
+            val subscription = observable.subscribe(observer)
             eventually {
                 subscription.isUnsubscribed shouldBe true
             }
@@ -957,6 +971,8 @@ class StateProxyClientTest extends FeatureSpec
 
             And("The client is not handling the subscription anymore")
             t.client.numActiveSubscriptions shouldBe 0
+
+            t.close()
         }
     }
 }
