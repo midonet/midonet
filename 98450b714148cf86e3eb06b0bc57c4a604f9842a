@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b8b042fe",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclingContext.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-22T13:57:04Z",
+      "side": 1,
+      "message": "not sure this is needed, since it should naturally throttle with the synchronous calls.",
+      "range": {
+        "startLine": 325,
+        "startChar": 16,
+        "endLine": 325,
+        "endChar": 24
+      },
+      "revId": "98450b714148cf86e3eb06b0bc57c4a604f9842a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
