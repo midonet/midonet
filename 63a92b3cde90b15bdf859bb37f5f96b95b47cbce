@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bd083481",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-22T10:58:59Z",
+      "side": 1,
+      "message": "debug? does this log when a device was removed but a packet was in the pipeline?",
+      "range": {
+        "startLine": 190,
+        "startChar": 20,
+        "endLine": 190,
+        "endChar": 24
+      },
+      "revId": "63a92b3cde90b15bdf859bb37f5f96b95b47cbce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
