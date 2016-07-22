@@ -18,16 +18,14 @@ package org.midonet.cluster.services.state.client
 
 import java.util.concurrent.atomic.AtomicReference
 
-import scala.concurrent.{ExecutionContext, Future, Promise, blocking}
-
 import com.google.protobuf.{Message, MessageLite}
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
-
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.ServerSocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.protobuf._
 import io.netty.handler.logging.LoggingHandler
@@ -44,30 +42,37 @@ class TestServer(decoder: MessageLite,
 
     private val log = Logger(LoggerFactory.getLogger(classOf[TestServer]))
 
-    val boosGroup = new NioEventLoopGroup()
-    val workerGroup = new NioEventLoopGroup()
+    val bossGroup = new NioEventLoopGroup(1)
+    val workerGroup = new NioEventLoopGroup(1)
 
-    var serverChannel: NioServerSocketChannel = null
+    var serverChannel: ServerSocketChannel = null
 
     var port: Int = 0
 
     setOnline
 
     def setOnline(): Unit = {
-        val serverFuture = new ServerBootstrap()
-            .group(boosGroup, workerGroup)
+        val bootstrap = new ServerBootstrap()
+            .group(bossGroup, workerGroup)
+            .option(ChannelOption.SO_REUSEADDR, Boolean.box(true))
+            .childOption(ChannelOption.TCP_NODELAY, Boolean.box(true))
+            .childOption(ChannelOption.SO_LINGER, Int.box(-1))
+            .childOption(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
             .channel(classOf[NioServerSocketChannel])
             .childHandler(new ChannelInitializer[io.netty.channel.Channel] {
                 override def initChannel(ch: Channel) = {
                     initPipeline(ch.pipeline())
                 }
             })
-            .bind(port)
+            .validate()
 
-        assert(serverFuture.sync().isSuccess)
+        val serverFuture = bootstrap.bind(port)
+
+        serverFuture.await()
+        assert(serverFuture.isSuccess)
 
         serverChannel = serverFuture.channel match {
-            case c: NioServerSocketChannel => c
+            case c: ServerSocketChannel => c
         }
 
         port = serverChannel.localAddress.getPort
@@ -76,7 +81,7 @@ class TestServer(decoder: MessageLite,
     }
 
     def setOffline(): Unit = {
-        serverChannel.close()
+        serverChannel.close().await()
         if (hasClient) close()
     }
 
@@ -96,6 +101,7 @@ class TestServer(decoder: MessageLite,
         if(!state.compareAndSet(Inactive,Client(c))) {
             throw new Exception("Only one concurrent client supported")
         }
+        log debug s"Testing client connected"
     }
 
     private def unregister(c: Channel): Unit = {
@@ -103,6 +109,7 @@ class TestServer(decoder: MessageLite,
             case cur @ Client(_) => assert(state.compareAndSet(cur,Inactive))
             case _ =>
         }
+        log debug s"Testing client disconnected"
     }
 
     def write(msg: Message): Unit = {
@@ -116,7 +123,7 @@ class TestServer(decoder: MessageLite,
 
     def close(): Unit = {
         state.get match {
-            case Client(channel) => channel.close()
+            case Client(channel) => channel.close().await()
             case Inactive => throw new IllegalStateException(
                 "Close when disconnected")
         }
