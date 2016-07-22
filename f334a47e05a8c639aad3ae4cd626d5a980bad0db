@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9e8d677e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/StateProxyClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-22T16:50:51Z",
+      "side": 1,
+      "message": "Add this to the string",
+      "range": {
+        "startLine": 268,
+        "startChar": 52,
+        "endLine": 268,
+        "endChar": 70
+      },
+      "revId": "f334a47e05a8c639aad3ae4cd626d5a980bad0db",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
