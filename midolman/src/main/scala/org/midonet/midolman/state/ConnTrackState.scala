@@ -74,9 +74,7 @@ object ConnTrackState {
 
     private def icmpIdOr(wcMatch: FlowMatch, or: Integer): Int = {
         if (ICMP.PROTOCOL_NUMBER == wcMatch.getNetworkProto) {
-            val icmpId: java.lang.Short = wcMatch.getIcmpIdentifier
-            if (icmpId ne null)
-                return icmpId.intValue()
+            return wcMatch.getIcmpIdentifier
         }
         or.intValue()
     }
