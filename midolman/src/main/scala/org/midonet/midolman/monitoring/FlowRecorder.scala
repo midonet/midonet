@@ -131,7 +131,7 @@ object FlowRecordBuilder {
                         fmatch.getNetworkTTL, fmatch.getNetworkTOS,
                         fmatch.getIpFragmentType.value,
                         fmatch.getSrcPort, fmatch.getDstPort,
-                        fmatch.getIcmpIdentifier, fmatch.getIcmpData,
+                        fmatch.getIcmpIdentifier.toShort, fmatch.getIcmpData,
                         fmatch.getVlanIds)
     }
 
@@ -149,7 +149,8 @@ object FlowRecordBuilder {
                     recActions.add(Actions.EtherType(a.etherType))
                 case a: FlowKeyICMPEcho =>
                     recActions.add(Actions.IcmpEcho(a.icmp_type,
-                                                    a.icmp_code, a.icmp_id))
+                                                    a.icmp_code,
+                                                    a.icmp_id.toShort))
                 case a: FlowKeyICMPError =>
                     recActions.add(Actions.IcmpError(a.icmp_type,
                                                      a.icmp_code,

@@ -359,14 +359,14 @@ public class FlowMatch {
     private int dstPort = 0;
 
     // Extended fields only supported inside MM
-    private short icmpId = 0;
+    private int icmpId = 0;
     private byte[] icmpData;
     private ArrayList<Short> vlanIds = new ArrayList<>();
 
     private long trackSeenFields = 1L;
 
-    protected long usedFields = 0;
-    protected long seenFields = 0;
+    private long usedFields = 0;
+    private long seenFields = 0;
 
     private final ArrayList<FlowKey> keys = new ArrayList<>();
     private int hashCode = 0;
@@ -780,13 +780,13 @@ public class FlowMatch {
         return dstPort;
     }
 
-    public FlowMatch setIcmpIdentifier(Short identifier) {
+    public FlowMatch setIcmpIdentifier(int identifier) {
         fieldUsed(Field.IcmpId);
         this.icmpId = identifier;
         return this;
     }
 
-    public short getIcmpIdentifier() {
+    public int getIcmpIdentifier() {
         fieldSeen(Field.IcmpId);
         return icmpId;
     }
@@ -797,7 +797,7 @@ public class FlowMatch {
         if (icmpData != null)
             this.icmpData = Arrays.copyOf(icmpData, icmpData.length);
         else
-            icmpData = null;
+            this.icmpData = null;
         return this;
     }
 
