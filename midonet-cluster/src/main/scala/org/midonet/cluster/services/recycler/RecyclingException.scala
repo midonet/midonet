@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.midonet.minion
+package org.midonet.cluster.services.recycler
 
-import java.util.concurrent.TimeUnit
+class RecyclingException(message: String, val isError: Boolean, inner: Throwable)
+    extends Exception(message, inner)
 
-import com.typesafe.config.Config
+class RecyclingCanceledException
+    extends RecyclingException("Recycling canceled", isError = false,
+                               inner = null)
 
-class ExecutorsConfig(val conf: Config, val prefix: String) {
-
-    def threadPoolName = conf.getString(s"$prefix.executors.thread_pool_name")
-
-    def threadPoolSize = conf.getInt(s"$prefix.executors.max_thread_pool_size")
-
-    def threadPoolShutdownTimeoutMs =
-            conf.getDuration(s"$prefix.executors.thread_pool_shutdown_timeout",
-                             TimeUnit.MILLISECONDS)
-
-}
+class RecyclingStorageException(inner: Throwable)
+    extends RecyclingException(s"Storage operation failed ${inner.getMessage}",
+                               isError = true, inner)
