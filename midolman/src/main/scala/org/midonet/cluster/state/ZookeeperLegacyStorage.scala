@@ -131,7 +131,7 @@ class ZookeeperLegacyStorage @Inject()(@Named("directoryReactor") reactor: React
         val bridgeVlansPath = pathBuilder.getBridgeVlansPath(bridgeId)
 
         // Create the bridge path if it does not exist.
-        log.info("Creating bridge {} path in state storage.", bridgeId)
+        log.debug("Creating bridge {} path in state storage.", bridgeId)
         createPath(bridgesPath)
         createPath(bridgePath)
         createPath(bridgeMacPortsPath)
@@ -145,8 +145,8 @@ class ZookeeperLegacyStorage @Inject()(@Named("directoryReactor") reactor: React
         // Create the VLAN if different from the default VLAN.
         if (vlanId != UntaggedVlanId) {
 
-            log.info("Creating bridge {} VLAN {} path in state storage.",
-                     bridgeId, Short.box(vlanId))
+            log.debug("Creating bridge {} VLAN {} path in state storage.",
+                      bridgeId, Short.box(vlanId))
 
             val bridgeVlanPath = pathBuilder.getBridgeVlanPath(bridgeId, vlanId)
             val bridgeVlanMacPortsPath =
@@ -167,7 +167,7 @@ class ZookeeperLegacyStorage @Inject()(@Named("directoryReactor") reactor: React
         val routerRoutingTablePath = pathBuilder.getRouterRoutingTablePath(routerId)
 
         // Create the router path if it does not exist.
-        log.info("Creating router {} path in state storage.", routerId)
+        log.debug("Creating router {} path in state storage.", routerId)
         createPath(routersPath)
         createPath(routerPath)
         createPath(routerArpTablePath)

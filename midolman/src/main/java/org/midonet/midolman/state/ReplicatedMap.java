@@ -86,14 +86,16 @@ public abstract class ReplicatedMap<K, V> {
             try {
                 // TODO(pino, rossella): make this asynchronous.
                 paths = dir.getChildren("/", this);
+            } catch (KeeperException.NoNodeException e) {
+                log.debug("Replicated map deleted", e);
             } catch (KeeperException e) {
-                log.warn("DirectoryWatcher.run {}", e);
+                log.warn("Error reading replicated map entries", e);
                 if (connectionWatcher == null) {
                     throw new RuntimeException(e);
                 }
                 connectionWatcher.handleError("ReplicatedMap", this, e);
             } catch (InterruptedException e) {
-                log.error("DirectoryWatcher.run {}", e);
+                log.error("Replicated map interrupted", e);
                 Thread.currentThread().interrupt();
             }
             return paths;
