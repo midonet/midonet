@@ -130,12 +130,12 @@ object BridgeMapper {
         /** Adds a new MAC-port mapping to the MAC learning table. */
         override def add(mac: MAC, portId: UUID): Unit = {
             try {
-                log.info("Mapping MAC {}, VLAN {} to port {}",
-                         mac, Short.box(vlanId), portId)
+                log.debug("Mapping MAC {}, VLAN {} to port {}",
+                          mac, Short.box(vlanId), portId)
                 map.put(mac, portId)
             } catch {
                 case NonFatal(e) =>
-                    log.error(s"Failed to map MAC {}, VLAN {} to port {}",
+                    log.error("Failed to map MAC {}, VLAN {} to port {}",
                               mac, Short.box(vlanId), portId)
             }
         }
@@ -465,6 +465,10 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         for ((portId, portState) <- localPorts.toList
              if !portIds.contains(portId)) {
             portState.complete()
+            if (portState.peer ne null) {
+                peerPorts -= portState.peer.portId
+                portState.peer.complete()
+            }
             localPorts -= portId
             exteriorPorts -= portId
         }
