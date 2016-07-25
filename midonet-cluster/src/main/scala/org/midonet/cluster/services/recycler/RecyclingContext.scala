@@ -34,14 +34,16 @@ import org.apache.zookeeper.data.Stat
 
 import org.midonet.cluster.RecyclerConfig
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper
-import org.midonet.cluster.models.Topology.Host
+import org.midonet.cluster.models.Topology.{Host, Network, Router}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.util.UnixClock
 
 object RecyclingContext {
 
     private val ClusterNamespaceId = Seq(MidonetBackend.ClusterNamespaceId.toString)
-    private val StepCount = 10
+    private val StepCount = 12
+    private val LegacyClasses = Map(classOf[Network] -> "/bridges",
+                                    classOf[Router] -> "/routers")
 
 }
 
@@ -71,6 +73,7 @@ class RecyclingContext(val config: RecyclerConfig,
     private val modelObjects = new util.HashMap[Class[_], Set[String]]()
     private val stateObjects = new util.HashMap[(String, Class[_]), Set[String]]()
     private val tableObjects = new util.HashMap[Class[_], Set[String]]()
+    private val legacyObjects = new util.HashMap[Class[_], Set[String]]()
 
     private val limiter = RateLimiter.create(config.throttlingRate)
 
@@ -132,6 +135,8 @@ class RecyclingContext(val config: RecyclerConfig,
             deleteObjects()
             collectTables()
             deleteTables()
+            collectLegacyTables()
+            deleteLegacyTables()
         } finally {
             state.countDown()
         }
@@ -381,6 +386,76 @@ class RecyclingContext(val config: RecyclerConfig,
                     log.warn("Failed to delete tables for object " +
                              s"${clazz.getSimpleName}:$id", e)
                     skippedTables += 1
+            }
+        }
+    }
+
+    /**
+      * Collects all state tables at the legacy paths from NSDB. The legacy
+      * paths are the paths created with MidoNet versions previous to MidoNet
+      * 5.2 and generally are: [root]/bridges or [root]/routers.
+      */
+    @throws[RecyclingException]
+    private def collectLegacyTables(): Unit = {
+
+        log debug s"Collecting legacy tables for bridges ${step()}"
+
+        for ((clazz, path) <- RecyclingContext.LegacyClasses) {
+            val objectsPath = s"${store.rootPath}$path"
+
+            if (zk.exists(objectsPath, null) ne null) {
+                val objects = getChildren(objectsPath).asScala.toSet
+                legacyObjects.put(clazz, objects)
+                totalLegacy += objects.size
+
+                log debug s"Collected legacy tables for ${objects.size} " +
+                          s"objects for class ${clazz.getSimpleName}"
+            } else {
+                log debug s"Skipping legacy tables for class ${clazz.getSimpleName}"
+                legacyObjects.put(clazz, Set.empty)
+            }
+        }
+    }
+
+    /**
+      * Deletes the orphan legacy state table paths by comparing the collected
+      * objects and legacy state paths, and deleting those that do not
+      * correspond to an existing object. To delete a legacy path, it must have
+      * been created before the beginning of the recycling operation.
+      */
+    @throws[RecyclingException]
+    private def deleteLegacyTables(): Unit = {
+
+        log debug s"Deleting orphan object legacy tables ${step()}"
+
+        val stat = new Stat()
+        for (clazz <- RecyclingContext.LegacyClasses.keys;
+             id <- legacyObjects.get(clazz)
+             if !modelObjects.get(clazz).contains(id)) {
+
+            try {
+                log debug s"Verifying legacy tables for object " +
+                          s"${clazz.getSimpleName}:$id"
+
+                val path =
+                    s"${store.rootPath}${RecyclingContext.LegacyClasses(clazz)}/$id"
+                getData(path, stat)
+
+                if (stat.getCtime < timestamp) {
+                    log debug "Deleting legacy tables for object with timestamp " +
+                              s"${stat.getCtime}"
+                    deleteWithChildren(path, stat.getVersion)
+                    deletedLegacy += 1
+                } else {
+                    log debug "Skipping legacy tables for object with timestamp " +
+                              s"${stat.getCtime}"
+                    skippedLegacy += 1
+                }
+            } catch {
+                case NonFatal(e) =>
+                    log.warn("Failed to delete legacy tables for object " +
+                             s"${clazz.getSimpleName}:$id", e)
+                    skippedLegacy += 1
             }
         }
     }

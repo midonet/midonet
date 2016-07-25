@@ -36,7 +36,7 @@ import rx.observers.TestObserver
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Topology.{Host, Port}
+import org.midonet.cluster.models.Topology.{Host, Network, Port, Router}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.util.MidonetBackendTest
@@ -553,6 +553,136 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             And("The object table path should exist")
             curator.checkExists()
                 .forPath(store.tablesObjectPath(classOf[Port], portId)) should not be null
+        }
+    }
+
+    feature("Recycler deletes orphan legacy paths") {
+        scenario("Table for non-existing bridge") {
+            Given("A recycling service")
+            val recycler = newRecycler()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            And("A node for an object table")
+            val path = s"${store.rootPath}/bridges/${UUID.randomUUID()}"
+            curator.create()
+                   .creatingParentContainersIfNeeded()
+                   .forPath(path)
+
+            When("The recycler starts")
+            recycler.startAsync().awaitRunning()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            Then("The recycler should run the recycling task")
+            val result = recycler.tasks.toBlocking.first()
+
+            And("Recycling should not be skipped")
+            result.isSuccess shouldBe true
+            result.get.totalLegacy shouldBe 1
+            result.get.deletedLegacy shouldBe 1
+
+            And("The recycler stops")
+            recycler.stopAsync().awaitTerminated()
+
+            And("The object table path should be deleted")
+            curator.checkExists().forPath(path) shouldBe null
+        }
+
+        scenario("Table for existing bridge") {
+            Given("A recycling service")
+            val recycler = newRecycler()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            And("A node for an object table")
+            val bridgeId = UUID.randomUUID()
+            val path = s"${store.rootPath}/bridges/$bridgeId"
+            curator.create().forPath(store.objectPath(classOf[Network], bridgeId))
+            curator.create().creatingParentContainersIfNeeded().forPath(path)
+
+            When("The recycler starts")
+            recycler.startAsync().awaitRunning()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            Then("The recycler should run the recycling task")
+            val result = recycler.tasks.toBlocking.first()
+
+            And("Recycling should not be skipped")
+            result.isSuccess shouldBe true
+            result.get.totalLegacy shouldBe 1
+            result.get.deletedLegacy shouldBe 0
+
+            And("The recycler stops")
+            recycler.stopAsync().awaitTerminated()
+
+            And("The object table path should exist")
+            curator.checkExists().forPath(path) should not be null
+        }
+
+        scenario("Table for non-existing router") {
+            Given("A recycling service")
+            val recycler = newRecycler()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            And("A node for an object table")
+            val path = s"${store.rootPath}/routers/${UUID.randomUUID()}"
+            curator.create()
+                   .creatingParentContainersIfNeeded()
+                   .forPath(path)
+
+            When("The recycler starts")
+            recycler.startAsync().awaitRunning()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            Then("The recycler should run the recycling task")
+            val result = recycler.tasks.toBlocking.first()
+
+            And("Recycling should not be skipped")
+            result.isSuccess shouldBe true
+            result.get.totalLegacy shouldBe 1
+            result.get.deletedLegacy shouldBe 1
+
+            And("The recycler stops")
+            recycler.stopAsync().awaitTerminated()
+
+            And("The object table path should be deleted")
+            curator.checkExists().forPath(path) shouldBe null
+        }
+
+        scenario("Table for existing router") {
+            Given("A recycling service")
+            val recycler = newRecycler()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            And("A node for an object table")
+            val routerId = UUID.randomUUID()
+            val path = s"${store.rootPath}/routers/$routerId"
+            curator.create().forPath(store.objectPath(classOf[Router], routerId))
+            curator.create().creatingParentContainersIfNeeded().forPath(path)
+
+            When("The recycler starts")
+            recycler.startAsync().awaitRunning()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            Then("The recycler should run the recycling task")
+            val result = recycler.tasks.toBlocking.first()
+
+            And("Recycling should not be skipped")
+            result.isSuccess shouldBe true
+            result.get.totalLegacy shouldBe 1
+            result.get.deletedLegacy shouldBe 0
+
+            And("The recycler stops")
+            recycler.stopAsync().awaitTerminated()
+
+            And("The object table path should exist")
+            curator.checkExists().forPath(path) should not be null
         }
     }
 }
