@@ -18,6 +18,7 @@ package org.midonet.cluster
 
 import java.nio.file.{Files, Paths}
 import java.util.UUID
+
 import javax.sql.DataSource
 
 import scala.collection.JavaConversions._
@@ -26,7 +27,9 @@ import scala.util.control.NonFatal
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice, Singleton}
+import com.typesafe.config.ConfigRenderOptions
 import com.typesafe.scalalogging.Logger
+
 import org.apache.commons.dbcp2.BasicDataSource
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
@@ -97,6 +100,13 @@ object ClusterNode extends App {
     configurator.centralPerNodeConfig(nodeId)
 
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
+    val renderOpts = ConfigRenderOptions.defaults
+        .setComments(false)
+        .setOriginComments(false)
+        .setFormatted(true)
+        .setJson(true)
+    log.info("Loaded configuration: {}",
+             configurator.dropSchema(clusterConf.conf).root.render(renderOpts))
 
     log.info("Scanning classpath for Cluster Minions..")
     private val reflections = new Reflections("org.midonet")

@@ -233,10 +233,11 @@ public class Midolman {
             .startAsync()
             .awaitRunning();
 
-        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults().
-                    setComments(false).
-                    setOriginComments(false).
-                    setFormatted(true);
+        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
+            .setJson(true)
+            .setComments(false)
+            .setOriginComments(false)
+            .setFormatted(true);
         Config conf = injector.getInstance(MidolmanConfig.class).conf();
         log.info("Loaded configuration: {}",
                  configurator.dropSchema(conf).root().render(renderOpts));
