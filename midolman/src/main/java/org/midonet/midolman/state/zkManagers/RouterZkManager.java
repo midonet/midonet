@@ -196,7 +196,7 @@ public class RouterZkManager
                      " to load balancer ID " + loadBalancerId + " but the" +
                      " router had a reference to a different load balancer," +
                      " ID " + config.loadBalancer);
-            return Collections.<Op>emptyList();
+            return Collections.emptyList();
         }
 
         config.loadBalancer = null;
@@ -272,13 +272,14 @@ public class RouterZkManager
      * @param id
      *            The ID of a virtual router to delete.
      * @return A list of Op objects representing the operations to perform.
+     * @throws IllegalStateException if the router is bound to a load balancer
      * @throws SerializationException
      *             Serialization error occurred.
      * @throws org.midonet.midolman.state.StateAccessException
      */
-    public List<Op> prepareRouterDelete(UUID id) throws StateAccessException,
-            SerializationException {
-        List<Op> ops = new ArrayList<Op>();
+    public List<Op> prepareRouterDelete(UUID id) throws IllegalStateException,
+            StateAccessException, SerializationException {
+        List<Op> ops = new ArrayList<>();
 
         // delete any trace requests for device
         traceReqZkManager.deleteForDevice(id);
@@ -327,7 +328,10 @@ public class RouterZkManager
         ops.add(Op.delete(arpTablePath, -1));
 
         if (config.loadBalancer != null) {
-            ops.addAll(updateLoadBalancerAssociation(id, config, null));
+            String msg = String.format("Router: %s is bound to Load balancer:" +
+                " %s. Unable to delete", id, config.loadBalancer);
+            log.warn(msg);
+            throw new IllegalStateException(msg);
         }
 
         String routerPath = paths.getRouterPath(id);

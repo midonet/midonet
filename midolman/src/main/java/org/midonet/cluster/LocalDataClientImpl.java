@@ -2920,7 +2920,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void routersDelete(UUID id)
-            throws StateAccessException, SerializationException {
+            throws IllegalStateException, StateAccessException,
+            SerializationException {
         Router router = routersGet(id);
         if (router == null) {
             return;

@@ -822,7 +822,8 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void routersDelete(UUID id)
-            throws StateAccessException, SerializationException;
+            throws IllegalStateException, StateAccessException,
+            SerializationException;
 
     UUID routersCreate(@Nonnull Router router)
             throws StateAccessException, SerializationException;

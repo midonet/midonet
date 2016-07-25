@@ -51,9 +51,13 @@ public final class NeutronDataConsistencyTest extends NeutronPluginTest {
      */
     @Test
     public void testDeleteMidonetRouterThenNeutronRouter()
-        throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException,
+               MappingStatusException {
 
-        // Delete the MidoNet router
+        // Delete the MidoNet router.
+        // First we have to delete the associated Load balancer
+        UUID lbId = dataClient.poolGet(pool.id).getLoadBalancerId();
+        this.dataClient.loadBalancerDelete(lbId);
         this.dataClient.routersDelete(router.id);
 
         // Try deleting the same router using NeutronPlugin - it should not
