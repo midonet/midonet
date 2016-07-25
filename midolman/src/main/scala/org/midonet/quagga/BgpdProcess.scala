@@ -31,8 +31,8 @@ trait BgpdProcess {
     def start(): Unit
     def assignAddr(iface: String, ip: String, mac: String): Unit
     def remAddr(iface: String, ip: String): Unit
-    def addArpEntry(iface: String, ip: String, mac: String): Unit
-    def remArpEntry(iface: String, ip: String): Unit
+    def addArpEntry(iface: String, ip: String, mac: String, peerIp: String): Unit
+    def remArpEntry(iface: String, ip: String, peerIp: String): Unit
 }
 
 case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
@@ -98,9 +98,9 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         }
     }
 
-    def addArpEntry(iface: String, ip: String, mac: String): Unit = {
+    def addArpEntry(iface: String, ip: String, mac: String, peerIp: String): Unit = {
         val cmd = s"$bgpdHelperScript add_arp $bgpIndex $iface $ip $mac " +
-                  s"$router"
+                  s"$router $peerIp"
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -113,8 +113,8 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         }
     }
 
-    def remArpEntry(iface: String, ip: String): Unit = {
-        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router"
+    def remArpEntry(iface: String, ip: String, peerIp: String): Unit = {
+        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router $peerIp"
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {

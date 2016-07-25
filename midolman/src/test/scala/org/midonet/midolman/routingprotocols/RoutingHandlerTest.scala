@@ -149,20 +149,25 @@ class RoutingHandlerTest extends FeatureSpecLike
             containerRoutingHandler ! containerRport
             containerRoutingHandler ! BgpPort(containerRport, baseConfig.copy(neighbors = Map.empty), Set.empty)
             bgpd.currentArpEntries.size should be (0)
+            val pbi1 = PortBgpInfo(UUID.randomUUID(), "fakemac", "fakecidr", peer1.toString)
+            val pbi2 = PortBgpInfo(UUID.randomUUID(), "fakemac2", "fakecidr2", peer2.toString)
 
-            containerRoutingHandler ! PortBgpInfos(Seq(PortBgpInfo(UUID.randomUUID(), "fakemac", "fakecidr", "fakeip")))
+            containerRoutingHandler ! PortBgpInfos(Seq(pbi1))
             containerRoutingHandler ! BgpPort(containerRport, baseConfig, Set(peer1Id))
             bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString)
 
             val update = new BgpRouter(MY_AS, rport.portAddress,
                 Map(peer1 -> Neighbor(peer1, 100),
                     peer2 -> Neighbor(peer2, 200)))
+            containerRoutingHandler ! PortBgpInfos(Seq(pbi1, pbi2))
             containerRoutingHandler ! BgpPort(containerRport, update, Set(peer1Id, peer2Id))
             bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString, peer2.toString)
 
+            containerRoutingHandler ! PortBgpInfos(Seq(pbi1))
             containerRoutingHandler ! BgpPort(containerRport, baseConfig, Set(peer1Id))
             bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString)
 
+            containerRoutingHandler ! PortBgpInfos(Seq())
             containerRoutingHandler ! BgpPort(containerRport, baseConfig.copy(neighbors = Map.empty), Set.empty)
             bgpd.currentArpEntries.size should be (0)
         }
@@ -529,11 +534,11 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
         currentIps -= ip
     }
 
-    def addArpEntry(iface: String, ip: String, mac: String): Unit = {
+    def addArpEntry(iface: String, ip: String, mac: String, peerIp: String): Unit = {
         currentArpEntries += ip
     }
 
-    def remArpEntry(iface: String, ip: String): Unit = {
+    def remArpEntry(iface: String, ip: String, peerIp: String): Unit = {
         currentArpEntries -= ip
     }
 }

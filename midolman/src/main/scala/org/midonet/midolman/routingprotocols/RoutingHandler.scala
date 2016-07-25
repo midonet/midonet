@@ -641,10 +641,6 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             log.info(s"Forgetting BGP neighbor ${peer.as} at ${peer.address}")
             bgpd.vty.deletePeer(bgpConfig.as, peer.address)
             routingInfo.peers.remove(peer.address)
-            if (isQuagga) {
-                log.info(s"Removing Arp entry ${peer.address} -> ${rport.portMac}")
-                bgpd.remArpEntry(rport.interfaceName, peer.address.toString)
-            }
         }
 
         for (peer <- gained) {
@@ -652,9 +648,6 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             routingInfo.peers.add(peer.address)
             if (isQuagga) {
                 bgpd.vty.addPeerBgpIpOpts(bgpConfig.as, peer.address)
-                log.info(s"Adding Arp entry ${peer.address} -> ${rport.portMac}")
-                bgpd.addArpEntry(rport.interfaceName, peer.address.toString,
-                    rport.portMac.toString)
             } else {
                 bgpd.vty.addPeerExteriorBgpOpts(bgpConfig.as, peer.address)
             }
@@ -684,10 +677,15 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpd.vty.setMaximumPaths(bgpConfig.as, bgpConfig.neighbors.size)
 
         log.debug("Updating local CIDRs from {} to {}", currentPortBgps, newPortBgps)
-        for (pbi <- currentPortBgps diff newPortBgps)
+        for (pbi <- currentPortBgps diff newPortBgps) {
+            bgpd.remArpEntry(rport.interfaceName, pbi.bgpPeerIp, pbi.cidr)
             bgpd.remAddr(rport.interfaceName, pbi.cidr)
-        for (pbi <- newPortBgps diff currentPortBgps)
+        }
+        for (pbi <- newPortBgps diff currentPortBgps) {
             bgpd.assignAddr(rport.interfaceName, pbi.cidr, pbi.mac)
+            bgpd.addArpEntry(rport.interfaceName, pbi.bgpPeerIp,
+                             rport.portMac.toString, pbi.cidr)
+        }
         currentPortBgps = newPortBgps
 
         for (neigh <- bgpConfig.neighbors.values) {
@@ -695,9 +693,6 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             routingInfo.peers.add(neigh.address)
             if (isQuagga && newPortBgps.nonEmpty) {
                 bgpd.vty.addPeerBgpIpOpts(bgpConfig.as, neigh.address)
-                log.info(s"Adding Arp entry ${neigh.address} -> ${rport.portMac}")
-                bgpd.addArpEntry(rport.interfaceName, neigh.address.toString,
-                    rport.portMac.toString)
             } else if (!isQuagga) {
                 bgpd.vty.addPeerExteriorBgpOpts(bgpConfig.as, neigh.address)
             }
