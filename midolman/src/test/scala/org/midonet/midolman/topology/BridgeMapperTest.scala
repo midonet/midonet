@@ -1243,6 +1243,12 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("The bridge VLAN peer port ID should be None")
             device.vlanPortId shouldBe None
+
+            When("The peer port is updated")
+            store.update(peerPort.setPortAddress(IPv4Addr.random))
+
+            Then("The observer should not receive a new update")
+            obs.getOnNextEvents should have size 4
         }
 
         scenario("Delete interior port peered to router port") {
