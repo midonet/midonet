@@ -20,6 +20,8 @@ import java.net.{DatagramPacket, DatagramSocket, InetAddress}
 import java.nio.ByteBuffer
 import java.util.{ArrayList, Collection, UUID, HashSet => JHashSet, Iterator => JIterator, Set => JSet}
 
+import scala.util.control.NonFatal
+
 import com.google.common.annotations.VisibleForTesting
 import com.typesafe.scalalogging.Logger
 
@@ -333,15 +335,24 @@ class FlowStateReplicator(
         }
 
         // Read the rest of the message so we know the actual encoded length
-        val portIds = msg.portIds
-        if (portIds.hasNext) {
-            portIds.next
-            val egressPorts = portIds.egressPortIds
-            while (egressPorts.hasNext) egressPorts.next
-        }
+        try {
+            val portIds = msg.portIds
+            if (portIds.hasNext) {
+                portIds.next
+                val egressPorts = portIds.egressPortIds
+                while (egressPorts.hasNext) egressPorts.next
+            }
 
-        if (config.flowState.localPushState) {
-            sendState(encoder.flowStateBuffer.array, encoder.encodedLength())
+            if (config.flowState.localPushState) {
+                sendState(encoder.flowStateBuffer.array,
+                          encoder.encodedLength())
+            }
+        } catch {
+            case NonFatal(e) =>
+                // If we have a failure here means that we tried to read past
+                // the buffer limit (meaning the message came from an older
+                // agent version). Just ignore it as in that case we don't
+                // need to send it to the minion.
         }
     }
 
