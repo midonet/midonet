@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2d374f00",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-25T13:32:24Z",
+      "side": 1,
+      "message": "This is a call to a method. I didn\u0027t put the parenthesis because none of the previous calls had them. I can add them if it helps on readability (same below)",
+      "range": {
+        "startLine": 334,
+        "startChar": 33,
+        "endLine": 334,
+        "endChar": 52
+      },
+      "revId": "85666fefd4a8493bf044d691874cae3357a98e5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
