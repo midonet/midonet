@@ -126,7 +126,7 @@ object BridgeMapper {
                 table.add(mac, portId)
             } catch {
                 case NonFatal(e) =>
-                    log.warn(s"Failed to map MAC {}, VLAN {} to port {}",
+                    log.warn("Failed to map MAC {}, VLAN {} to port {}",
                              mac, Short.box(vlanId), portId)
             }
         }
@@ -485,9 +485,11 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         for ((portId, portState) <- localPorts.toList
              if !portIds.contains(portId)) {
             portState.complete()
-            localPorts -= portId
-            if (portState.peer ne null)
+            if (portState.peer ne null) {
                 peerPorts -= portState.peer.portId
+                portState.peer.complete()
+            }
+            localPorts -= portId
             exteriorPorts -= portId
         }
 
