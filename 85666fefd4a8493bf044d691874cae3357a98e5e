@@ -70,6 +70,30 @@
       "revId": "85666fefd4a8493bf044d691874cae3357a98e5e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f8ffe363",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-25T14:33:16Z",
+      "side": 1,
+      "message": "Look at FlowState.java:1870 if you are curious.",
+      "parentUuid": "baa041b7_78d513e3",
+      "range": {
+        "startLine": 334,
+        "startChar": 33,
+        "endLine": 334,
+        "endChar": 52
+      },
+      "revId": "85666fefd4a8493bf044d691874cae3357a98e5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
