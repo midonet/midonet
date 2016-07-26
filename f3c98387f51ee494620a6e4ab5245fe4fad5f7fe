@@ -22,6 +22,30 @@
       "revId": "f3c98387f51ee494620a6e4ab5245fe4fad5f7fe",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_08791682",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-07-26T06:33:04Z",
+      "side": 1,
+      "message": "yes.  i coded this way because the list might grow in future.",
+      "parentUuid": "baa041b7_c52677cd",
+      "range": {
+        "startLine": 232,
+        "startChar": 0,
+        "endLine": 236,
+        "endChar": 62
+      },
+      "revId": "f3c98387f51ee494620a6e4ab5245fe4fad5f7fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
