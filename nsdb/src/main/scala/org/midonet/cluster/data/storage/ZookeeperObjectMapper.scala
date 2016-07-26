@@ -108,7 +108,7 @@ import org.midonet.util.functors.makeFunc1
  * Port.class, "peerId", CLEAR);
  *
  */
-class ZookeeperObjectMapper(protected override val rootPath: String,
+class ZookeeperObjectMapper(override val rootPath: String,
                             protected override val namespace: String,
                             protected override val curator: CuratorFramework,
                             protected override val failFastCurator: CuratorFramework,
