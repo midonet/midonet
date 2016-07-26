@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3ed4101e",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/FlowStateService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-26T13:56:29Z",
+      "side": 1,
+      "message": "Yes, that\u0027s right. The only difference is that when we close a file, we still invalidate blocks including the header (because we are no longer writting to it).",
+      "parentUuid": "baa041b7_1ba15ef8",
+      "range": {
+        "startLine": 110,
+        "startChar": 16,
+        "endLine": 110,
+        "endChar": 79
+      },
+      "revId": "ad8944b7f9252e0dbcf998951975fbefb568e46a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_884be6b0",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/FlowStateService.scala",
         "patchSetId": 9
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1ed94c57",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/FlowStateService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-26T13:56:29Z",
+      "side": 1,
+      "message": "will do.",
+      "parentUuid": "baa041b7_884be6b0",
+      "range": {
+        "startLine": 141,
+        "startChar": 4,
+        "endLine": 141,
+        "endChar": 51
+      },
+      "revId": "ad8944b7f9252e0dbcf998951975fbefb568e46a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a8c8ea55",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateManager.scala",
         "patchSetId": 9
@@ -59,6 +107,30 @@
       "writtenOn": "2016-07-26T09:36:33Z",
       "side": 1,
       "message": "Nit: finish comment",
+      "range": {
+        "startLine": 59,
+        "startChar": 36,
+        "endLine": 59,
+        "endChar": 38
+      },
+      "revId": "ad8944b7f9252e0dbcf998951975fbefb568e46a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fed90857",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateManager.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-26T13:56:29Z",
+      "side": 1,
+      "message": "will do.",
+      "parentUuid": "baa041b7_a8c8ea55",
       "range": {
         "startLine": 59,
         "startChar": 36,
