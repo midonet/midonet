@@ -21,6 +21,7 @@ import java.util.Formatter
 import scala.concurrent.duration._
 import scala.util.Random
 
+import com.codahale.metrics.MetricRegistry
 import com.google.protobuf.ByteString
 
 import org.apache.zookeeper.data.Stat
@@ -33,6 +34,7 @@ import rx.Observable
 import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkDirectory}
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
@@ -64,6 +66,8 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
             Observable.never()
         override def start(): Unit = { }
     }
+
+    val metrics: StorageMetrics = new StorageMetrics(null, new MetricRegistry)
 
     protected override def setup(): Unit = {
         connection = new CuratorZkConnection(curator, reactor)
@@ -102,7 +106,8 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support ephemeral CRUD operations for single entry" in {
         Given("A state table")
-        val table = new ArpStateTable(tableKey, directory, proxy, Observable.never())
+        val table = new ArpStateTable(tableKey, directory, proxy,
+                                      Observable.never(), metrics)
 
         And("An observer to the table")
         val obs = new TestAwaitableObserver[Update[IPv4Addr, ArpEntry]]
@@ -159,7 +164,8 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support ephemeral CRUD operations for multiple entries" in {
         Given("A state table")
-        val table = new ArpStateTable(tableKey, directory, proxy, Observable.never())
+        val table = new ArpStateTable(tableKey, directory, proxy,
+                                      Observable.never(), metrics)
 
         And("An observer to the table")
         val obs = new TestAwaitableObserver[Update[IPv4Addr, ArpEntry]]
@@ -250,7 +256,8 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support persistent operations" in {
         Given("A state table")
-        val table = new ArpStateTable(tableKey, directory, proxy, Observable.never())
+        val table = new ArpStateTable(tableKey, directory, proxy,
+                                      Observable.never(), metrics)
 
         And("An observer to the table")
         val obs = new TestAwaitableObserver[Update[IPv4Addr, ArpEntry]]
@@ -294,7 +301,8 @@ class ArpStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
     "State table" should "support get by value" in {
         Given("A state table")
-        val table = new ArpStateTable(tableKey, directory, proxy, Observable.never())
+        val table = new ArpStateTable(tableKey, directory, proxy,
+                                      Observable.never(), metrics)
         table.start()
 
         When("Adding three IP-entry pair to the table")
