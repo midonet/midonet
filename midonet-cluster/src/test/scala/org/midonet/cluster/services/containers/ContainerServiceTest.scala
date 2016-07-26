@@ -346,16 +346,16 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
             val service = newService(andStartIt = true)
 
             When("The scheduler emits errors below limit they are tolerated")
-            while(service.schedulerObserverErrorCount < MaximumFailures) {
-                val left = MaximumFailures - service.schedulerObserverErrorCount
-                service.events onError new Throwable(s"Recoverable, left $left")
-                eventually { service.isSubscribed shouldBe true }
+            for (index <- 1 until MaximumFailures) {
+                service.events onError new Throwable(s"Recoverable $index")
+                eventually { service.schedulerObserverErrorCount shouldBe index}
+                service.isSubscribed shouldBe true
             }
 
             When("The scheduler emits one error too many")
             service.events onError new Throwable(s"Non recoverable")
 
-            Then("We give up")
+            Then("The service should be unsubscribed")
             eventually { service.isSubscribed shouldBe false }
 
             service.state() shouldBe Service.State.FAILED
