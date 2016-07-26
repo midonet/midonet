@@ -118,11 +118,12 @@ class ContainerService @Inject()(nodeContext: Context,
             log info "Containers notification stream closed"
         }
         override def onError(e: Throwable): Unit = {
-            errorCount += 1
-            log.warn(s"Unexpected error $errorCount on the container " +
-                     s"notification stream", e)
-            if (errorCount < MaximumFailures) {
+            val newCount = errorCount + 1
+            log.warn(s"Unexpected error $newCount on the container " +
+                     "notification stream", e)
+            if (newCount < MaximumFailures) {
                 startScheduling()
+                errorCount = newCount
             } else {
                 log.error("Too many errors emitted by container notification " +
                           "stream, closing and giving up leadership. This is " +
