@@ -56,7 +56,8 @@ class FlowStateManager(config: FlowStateConfig) {
 
     /**
       * List of writers in the waiting list to be removed. We add them here
-      * when we close a given port, or
+      * when we close a given port so the block invalidator knows that it is
+      * safe to remove the header (because we are no longer writing to it).
       */
     val writersToRemove = TrieMap.empty[UUID, BlockWriter]
 
