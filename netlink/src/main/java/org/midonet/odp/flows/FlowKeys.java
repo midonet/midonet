@@ -117,7 +117,7 @@ public class FlowKeys {
         return intern(new FlowKeyICMP(type, code));
     }
 
-    public static FlowKeyICMPEcho icmpEcho(byte type, byte code, short id) {
+    public static FlowKeyICMPEcho icmpEcho(byte type, byte code, int id) {
         return intern(new FlowKeyICMPEcho(type, code, id));
     }
 
@@ -135,9 +135,8 @@ public class FlowKeys {
 
     public static FlowKeyARP arp(byte[] sourceAddress, byte[] targetAddress,
                                  short opcode, int sourceIp, int targetIp) {
-        return
-            intern(new FlowKeyARP(sourceAddress, targetAddress, opcode,
-                                  sourceIp, targetIp));
+        return intern(new FlowKeyARP(sourceAddress, targetAddress, opcode,
+                                     sourceIp, targetIp));
     }
 
     public static FlowKeyTCP tcp(int src, int dst) {
