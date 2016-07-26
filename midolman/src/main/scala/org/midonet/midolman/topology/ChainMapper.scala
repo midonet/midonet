@@ -46,7 +46,8 @@ object ChainMapper {
      */
     private final class RuleState(val ruleId: UUID, vt: VirtualTopology)
             extends MidolmanLogging {
-        override def logSource = s"org.midonet.devices.rule.rule-$ruleId"
+        override def logSource = "org.midonet.devices.rule"
+        override def logMark = s"rule:$ruleId"
 
         private val mark = PublishSubject.create[SimRule]()
         private var _previousRule: SimRule = null
