@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_28505a31",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-26T09:22:05Z",
+      "side": 1,
+      "message": "make it larger to start with, a couple of thousand at least. And make the fact that it\u0027s a power of 2 explicit, (1 \u003c\u003c X)",
+      "range": {
+        "startLine": 275,
+        "startChar": 37,
+        "endLine": 275,
+        "endChar": 40
+      },
+      "revId": "29f025d409127277e629bf5d9e1ceaf6c0d7b31b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1b2cbe97",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/rule/RuleLogEventChannel.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-26T09:22:05Z",
+      "side": 1,
+      "message": "better to tryNext and if you can\u0027t get a sequence, drop the logging, and maybe mark a statistic so we know it will drop. We don\u0027t want blocking in the simulation thread.",
+      "range": {
+        "startLine": 96,
+        "startChar": 29,
+        "endLine": 96,
+        "endChar": 33
+      },
+      "revId": "29f025d409127277e629bf5d9e1ceaf6c0d7b31b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1b539e18",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/rule/RuleLogEventHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-07-26T09:22:05Z",
+      "side": 1,
+      "message": "You need to add log rolling. Otherwise this will continue until it fills the disk.",
+      "revId": "29f025d409127277e629bf5d9e1ceaf6c0d7b31b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
