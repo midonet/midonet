@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c827ae10",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-26T08:30:28Z",
+      "side": 1,
+      "message": "I would suggest to remove this in a next patch",
+      "range": {
+        "startLine": 117,
+        "startChar": 59,
+        "endLine": 117,
+        "endChar": 80
+      },
+      "revId": "3e906d718aca8000c656c3aa8695cf4a32e413ae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_487a7ef2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/metrics/StorageMetrics.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-26T08:30:28Z",
+      "side": 1,
+      "message": "Move up",
+      "range": {
+        "startLine": 72,
+        "startChar": 12,
+        "endLine": 72,
+        "endChar": 52
+      },
+      "revId": "3e906d718aca8000c656c3aa8695cf4a32e413ae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
