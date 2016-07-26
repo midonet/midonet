@@ -186,7 +186,13 @@ class Recycler @Inject()(context: Context, backend: MidonetBackend,
                      s"${context.skippedNamespaces} skipped] " +
                      s"[objects: ${context.totalObjects} total " +
                      s"${context.deletedObjects} deleted " +
-                     s"${context.skippedObjects} skipped]"
+                     s"${context.skippedObjects} skipped] " +
+                     s"[tables: ${context.totalTables} total " +
+                     s"${context.deletedTables} deleted " +
+                     s"${context.skippedTables} skipped] " +
+                     s"[legacy: ${context.totalLegacy} total " +
+                     s"${context.deletedLegacy} deleted " +
+                     s"${context.skippedLegacy} skipped]"
 
             tasksSubject onNext Success(context)
 
