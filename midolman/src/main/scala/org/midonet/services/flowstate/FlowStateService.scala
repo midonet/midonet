@@ -138,7 +138,8 @@ class FlowStateService @Inject()(nodeContext: Context,
         }
     }
 
-    /** Initializes the block invalidator thread */
+    /** Initializes the background thread running the block invalidator and
+      * the file cleaner tasks. */
     private[flowstate] def startBackgroundTasks() = {
         if (config.flowState.localPushState) {
             executor.scheduleWithFixedDelay(
