@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c52677cd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-07-26T05:56:25Z",
+      "side": 1,
+      "message": "The logic here is that the only device owner changes that are allowed are changing COMPUTE to ROUTER_INTERFACE, and vice-versa? You can simplify and clarify this a bit by just testing the sets for equality:\n\n   if (newOwner !\u003d oldOwner \u0026\u0026 Set(newOwner, oldOwner) !\u003d\n       Set(DeviceOwner.COMPUTE, DeviceOwner.ROUTER_INTERFACE))",
+      "range": {
+        "startLine": 232,
+        "startChar": 0,
+        "endLine": 236,
+        "endChar": 62
+      },
+      "revId": "f3c98387f51ee494620a6e4ab5245fe4fad5f7fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
