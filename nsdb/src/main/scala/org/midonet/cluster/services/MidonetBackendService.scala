@@ -16,22 +16,24 @@
 
 package org.midonet.cluster.services
 
-import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
+import com.typesafe.scalalogging.Logger
 
 import io.netty.channel.nio.NioEventLoopGroup
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
+import org.apache.curator.framework.state.ConnectionState
 import org.reflections.Reflections
-import org.slf4j.LoggerFactory.getLogger
+import org.slf4j.LoggerFactory
 
-import rx.Observable
+import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher
 import org.midonet.cluster.data.storage._
@@ -46,6 +48,7 @@ import org.midonet.cluster.util.ConnectionObservable
 import org.midonet.conf.HostIdGenerator
 import org.midonet.util.concurrent.Executors
 import org.midonet.util.eventloop.TryCatchReactor
+import org.midonet.util.functors.makeRunnable
 
 /** Class responsible for providing services to access to the new Storage
   * services. */
@@ -56,7 +59,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
                             reflections: Option[Reflections])
     extends MidonetBackend {
 
-    private val log = getLogger("org.midonet.nsdb")
+    private val log = Logger(LoggerFactory.getLogger("org.midonet.nsdb"))
 
     private val namespaceId =
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
@@ -94,6 +97,33 @@ class MidonetBackendService(config: MidonetBackendConfig,
         }
 
         override def start(): Unit = { }
+    }
+
+    private val connectionSubscriber = new Subscriber[ConnectionState] {
+        override def onNext(state: ConnectionState): Unit = {
+            connectionStateChanged(state)
+        }
+
+        override def onCompleted(): Unit = {
+            log warn s"Backend connection notification stream has completed"
+        }
+
+        override def onError(e: Throwable): Unit = {
+            log.error("Error on connection notification stream", e)
+        }
+    }
+    private var connectionSuspendedTime = -1L
+    private var sessionId = 0L
+    private var shutdownFuture: ScheduledFuture[_] = null
+    private val shutdownHandle = makeRunnable {
+        connectionSubscriber.synchronized {
+            if (isRunning) {
+                log error "Backend connection is lost after being disconnected " +
+                          s"for ${config.graceTime} milliseconds: shutting " +
+                          "down"
+                shutdown(MidonetBackend.NsdbErrorCodeGraceTimeExpired)
+            }
+        }
     }
 
     private val zoom =
@@ -144,7 +174,6 @@ class MidonetBackendService(config: MidonetBackendConfig,
                 stateProxyClient.start()
             }
 
-            notifyStarted()
             log.info("Setting up storage bindings")
             MidonetBackend.setupBindings(zoom, zoom, () => {
                 setup(zoom)
@@ -152,6 +181,11 @@ class MidonetBackendService(config: MidonetBackendConfig,
                     setupFromClasspath(zoom, zoom, reflections.get)
                 }
             })
+
+            log.info("Start observing backend connection")
+            connectionState subscribe connectionSubscriber
+
+            notifyStarted()
         } catch {
             case NonFatal(e) =>
                 log.error("Failed to start backend service", e)
@@ -161,22 +195,37 @@ class MidonetBackendService(config: MidonetBackendConfig,
 
     protected def doStop(): Unit = {
         log.info("Stopping backend store for host {}", namespaceId)
+
+        connectionSubscriber.synchronized {
+            if (shutdownFuture ne null) {
+                shutdownFuture.cancel(true)
+                shutdownFuture = null
+            }
+        }
+
+        connectionSubscriber.unsubscribe()
         reactor.shutDownNow()
+
         curator.close()
         failFastCurator.close()
-        notifyStopped()
+
         if (config.stateClient.enabled) {
             stateProxyClient.stop()
             stateProxyClientExecutor.shutdown()
         }
+
         discoveryService.stop()
         discoveryServiceExecutor.shutdown()
+
+        notifyStopped()
     }
 
-    /** This method allows hooks to be inserted in the classpath, so that setup
+    /**
+      * This method allows hooks to be inserted in the classpath, so that setup
       * code can be executed before the MidoNet backend is built. Such hook
       * classes must implement ZoomInitializer and have the @ZoomInit
-      * annotation. */
+      * annotation.
+      */
     private def setupFromClasspath(store: Storage, stateStore: StateStorage,
                                    reflections: Reflections): Unit = {
         log.info("Scanning classpath for storage plugins...")
@@ -198,4 +247,95 @@ class MidonetBackendService(config: MidonetBackendConfig,
                 }
             }
     }
+
+    /**
+      * Handles changes to the backend connection state, as follows:
+      *
+      * - When the connection is [[ConnectionState.SUSPENDED]] (aka
+      * [[org.apache.zookeeper.Watcher.Event.KeeperState.Disconnected]])
+      * the method will install a timer that expires after the configured
+      * grace time. On timer expiration, the backend will shutdown the current
+      * process.
+      *
+      * - When the connection is [[ConnectionState.RECONNECTED]] (aka
+      * [[org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected]])
+      * the method will check whether it reconnected with the same session
+      * identifier, and otherwise shutdown the process.
+      */
+    private def connectionStateChanged(state: ConnectionState): Unit = {
+        state match {
+            case ConnectionState.CONNECTED =>
+                sessionId = curator.getZookeeperClient.getZooKeeper.getSessionId
+                log info "Backend is connected with session identifier " +
+                         s"$sessionId"
+
+            case ConnectionState.SUSPENDED =>
+                log warn "Backend connection is suspended: MidoNet will " +
+                         "shutdown after a grace time of " +
+                         s"${config.graceTime} milliseconds if the " +
+                         "session is not restored"
+                if (connectionSuspendedTime < 0) {
+                    connectionSuspendedTime = System.currentTimeMillis()
+                }
+
+                connectionSubscriber.synchronized {
+                    if (shutdownFuture ne null) {
+                        shutdownFuture.cancel(true)
+                    }
+                    shutdownFuture = reactor.schedule(shutdownHandle,
+                                                      config.graceTime,
+                                                      TimeUnit.MILLISECONDS)
+                }
+
+            case ConnectionState.RECONNECTED =>
+                val currentSessionId =
+                    curator.getZookeeperClient.getZooKeeper.getSessionId
+                if (sessionId != currentSessionId) {
+                    log error "The backend has reconnected with a different " +
+                              s"session identifier old=$sessionId " +
+                              s"new=$currentSessionId: shutting down"
+                    shutdown(MidonetBackend.NsdbErrorCodeSessionExpired)
+                }
+
+                val suspendedTime = connectionSuspendedTime
+                if (suspendedTime > 0) {
+                    val duration = System.currentTimeMillis() - suspendedTime
+                    connectionSuspendedTime = -1L
+                    log info "Backend is reconnected after being disconnected " +
+                             s"for $duration milliseconds with session " +
+                             s"identifier $sessionId"
+                } else {
+                    log info "Backend is reconnected with session identifier " +
+                             s"$sessionId"
+                }
+
+                connectionSubscriber.synchronized {
+                    if (shutdownFuture ne null) {
+                        shutdownFuture.cancel(true)
+                        shutdownFuture = null
+                    }
+                }
+
+            case ConnectionState.READ_ONLY =>
+                log warn "Backend connection is read-only"
+
+            case ConnectionState.LOST =>
+                if (isRunning) {
+                    log error "Backend session has expired: shutting down"
+                    shutdown(MidonetBackend.NsdbErrorCodeSessionExpired)
+                }
+        }
+    }
+
+    /**
+      * Shuts down the current process with the given exit code upon losing the
+      * ZooKeeper session. The method first closes the Curator instances, since
+      * they do not use daemon threads.
+      */
+    private def shutdown(code: Int): Unit = {
+        curator.close()
+        failFastCurator.close()
+        System.exit(code)
+    }
+
 }
