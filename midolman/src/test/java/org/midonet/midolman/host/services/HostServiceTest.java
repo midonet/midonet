@@ -23,6 +23,7 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import com.codahale.metrics.MetricRegistry;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -131,7 +132,8 @@ public class HostServiceTest {
                 .toInstance(backendConfig);
             MidonetBackendService backend =
                 new MidonetBackendService(backendConfig, curator, curator,
-                                          null, scala.Option.apply(null));
+                                          new MetricRegistry(),
+                                          scala.Option.apply(null));
             bind(MidonetBackend.class).toInstance(backend);
             bind(Reactor.class)
                 .toProvider(ZookeeperConnectionModule.ZookeeperReactorProvider.class)
