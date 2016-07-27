@@ -17,8 +17,10 @@
 package org.midonet.services.flowstate.transfer.client
 
 import java.io.{Closeable, DataInputStream, IOException}
-import java.net.Socket
+import java.net.{InetSocketAddress, Socket}
 import java.util.UUID
+
+import scala.concurrent.duration._
 
 import org.midonet.cluster.flowstate.FlowStateTransfer.{StateRequest, StateResponse}
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -28,16 +30,20 @@ import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser._
 import org.midonet.services.flowstate.transfer.internal._
 import org.midonet.util.io.stream.ByteBufferBlockWriter
-import org.midonet.util.ClosingRetriable
+import org.midonet.util.{AwaitRetriable, ClosingRetriable}
 
-trait FlowStateRequestClient extends ClosingRetriable {
+trait FlowStateRequestClient extends ClosingRetriable with AwaitRetriable {
 
-    private val Retries = 5
+    override def interval = flowStateConfig.connectionTimeout millis
+
+    override def maxRetries = 5
 
     def flowStateConfig: FlowStateConfig
 
-    protected def initSocket(clientHost: String = "0.0.0.0") = {
-        val socket = new Socket(clientHost, flowStateConfig.port)
+    protected def initSocket(host: String = "0.0.0.0") = {
+        val socket = new Socket(host, flowStateConfig.port)
+        val endpoint = new InetSocketAddress(host, flowStateConfig.port)
+        socket.connect(endpoint, flowStateConfig.connectionTimeout)
         socket.setSoTimeout(flowStateConfig.connectionTimeout)
         socket
     }
@@ -69,7 +75,7 @@ trait FlowStateRequestClient extends ClosingRetriable {
 
     protected def retryClosing(closeable: Closeable, message: String)
                               (retriable: => Unit): Unit =
-        retryClosing(Retries, log, message)(closeable)(retriable)
+        retryClosing(log, message)(closeable)(retriable)
 
 }
 
