@@ -18,7 +18,6 @@ package org.midonet.midolman
 
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,7 +34,6 @@ import org.reflections.Reflections
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
-import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{FlowStateStorage, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
@@ -388,7 +386,6 @@ class MidolmanModule(injector: Injector,
         new VirtualTopology(
             injector.getInstance(classOf[MidonetBackend]),
             config,
-            injector.getInstance(classOf[ZkConnectionAwareWatcher]),
             simBackChannel,
             metricRegistry,
             vtExecutor,
