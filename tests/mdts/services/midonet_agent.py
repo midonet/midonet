@@ -79,7 +79,8 @@ class MidonetAgentHost(Service):
         return str(self.midonet_host_id)
 
     def get_service_logs(self):
-        return ['/var/log/midolman/midolman.log']
+        return ['/var/log/midolman/midolman.log',
+                '/var/log/midolman/minions.log']
 
     def get_debug_logs(self):
         # Dump jstack
