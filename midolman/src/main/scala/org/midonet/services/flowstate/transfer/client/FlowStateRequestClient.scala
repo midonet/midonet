@@ -17,7 +17,7 @@
 package org.midonet.services.flowstate.transfer.client
 
 import java.io.{Closeable, DataInputStream, IOException}
-import java.net.Socket
+import java.net.{InetSocketAddress, Socket}
 import java.util.UUID
 
 import org.midonet.cluster.flowstate.FlowStateTransfer.{StateRequest, StateResponse}
@@ -36,8 +36,10 @@ trait FlowStateRequestClient extends ClosingRetriable {
 
     def flowStateConfig: FlowStateConfig
 
-    protected def initSocket(clientHost: String = "0.0.0.0") = {
-        val socket = new Socket(clientHost, flowStateConfig.port)
+    protected def initSocket(host: String = "0.0.0.0") = {
+        val socket = new Socket()
+        val endpoint = new InetSocketAddress(host, flowStateConfig.port)
+        socket.connect(endpoint, flowStateConfig.connectionTimeout)
         socket.setSoTimeout(flowStateConfig.connectionTimeout)
         socket
     }
