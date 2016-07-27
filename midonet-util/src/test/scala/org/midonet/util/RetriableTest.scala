@@ -17,14 +17,19 @@ package org.midonet.util
 
 import java.io.Closeable
 
+import com.typesafe.scalalogging.Logger
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
+import org.slf4j.LoggerFactory
 
 @RunWith(classOf[JUnitRunner])
 class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
 
     private val Retries = 3
+
+    private val Log = Logger(LoggerFactory.getLogger("RetriableTest"))
 
     class TestableClosable extends Closeable {
 
@@ -41,9 +46,10 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
 
         var calls = 0
 
-        override def retry[T](retries: Int) (retriable: => T) = {
+        override def retry[T](retries: Int, log: Logger, message: String)
+                             (retriable: => T): Either[Throwable, T] = {
             calls += 1
-            super.retry(retries)(retriable)
+            super.retry(retries, log, message)(retriable)
         }
     }
 
@@ -54,7 +60,7 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
 
             When("Called on a successful function")
             val expected = "ok"
-            val result = mockedRetriable.retry(Retries) { "ok" }
+            val result = mockedRetriable.retry(Retries, Log, "ok") { "ok" }
 
             Then("The retriable is called only once")
             mockedRetriable.calls shouldBe 1
@@ -67,7 +73,9 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
             val mockedRetriable = new TestableRetriable
 
             When("Called on a failing function")
-            val result = mockedRetriable.retry(Retries) { throw new Exception }
+            val result = mockedRetriable.retry(Retries, Log, "ko") {
+                throw new Exception
+            }
 
             Then("The retriable is called all times")
             mockedRetriable.calls shouldBe Retries
@@ -86,7 +94,7 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
 
             When("Called on a successful function")
             val expected = "ok"
-            val result = mockedRetriable.retryClosing(Retries)(closeable)("ok")
+            val result = mockedRetriable.retryClosing(Retries, Log, "ok") (closeable) ("ok")
 
             Then("The retriable is called only once")
             mockedRetriable.calls shouldBe 1
@@ -104,7 +112,9 @@ class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
             closeable.closed shouldBe false
 
             When("Called on a failing function")
-            val result = mockedRetriable.retryClosing(Retries)(closeable) { throw new Exception }
+            val result = mockedRetriable.retryClosing(Retries, Log, "ko")(closeable) {
+                throw new Exception
+            }
 
             Then("The retriable is called all times")
             mockedRetriable.calls shouldBe Retries
