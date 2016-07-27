@@ -48,7 +48,7 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
 
     override def bindPort(portId: UUID, hostId: UUID,
                           deviceName: String): Unit = {
-        val update = retry(UpdateBindingRetries) {
+        val update = retry(UpdateBindingRetries, Log, s"Binding port $portId") {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
             val newPortBldr = oldPort.toBuilder
@@ -76,7 +76,7 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
     override def unbindPort(portId: UUID, hostId: UUID): Unit = {
         val pHostId = UUIDUtil.toProto(hostId)
 
-        val update = retry(UpdateBindingRetries) {
+        val update = retry(UpdateBindingRetries, Log, s"Unbinding port $portId") {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
 

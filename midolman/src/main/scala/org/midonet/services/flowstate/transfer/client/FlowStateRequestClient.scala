@@ -67,8 +67,9 @@ trait FlowStateRequestClient extends ClosingRetriable {
         buffer
     }
 
-    protected def retryClosing(closeable: Closeable) (retriable: => Unit): Unit =
-        retryClosing(Retries)(closeable)(retriable)
+    protected def retryClosing(closeable: Closeable, message: String)
+                              (retriable: => Unit): Unit =
+        retryClosing(Retries, log, message)(closeable)(retriable)
 
 }
 
@@ -83,7 +84,7 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
         val aggregator = new FlowStateAggregator
         var socket: Socket = null
 
-        retryClosing(socket) {
+        retryClosing(socket, s"Request flow state to $host for port $portId") {
             socket = initSocket()
             val dis = new DataInputStream(socket.getInputStream)
 
@@ -110,7 +111,7 @@ class FlowStateInternalClient(override val flowStateConfig: FlowStateConfig)
         val aggregator = new FlowStateAggregator
         var socket: Socket = null
 
-        retryClosing(socket) {
+        retryClosing(socket, s"Request flow state to internal minion for port $portId") {
             socket = initSocket()
             val dis = new DataInputStream(socket.getInputStream)
 
@@ -163,7 +164,7 @@ class FlowStateRemoteClient(override val flowStateConfig: FlowStateConfig)
                                   writer: ByteBufferBlockWriter[_]): Unit = {
         var socket: Socket = null
 
-        retryClosing(socket) {
+        retryClosing(socket, s"Request raw flow state to $host for port $portId") {
             socket = initSocket(host)
             val dis = new DataInputStream(socket.getInputStream)
 

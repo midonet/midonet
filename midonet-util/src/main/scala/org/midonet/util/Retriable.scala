@@ -19,23 +19,32 @@ import java.io.Closeable
 
 import scala.util.control.NonFatal
 
+import com.typesafe.scalalogging.Logger
+
 trait Retriable {
 
-    def retry[T](retries: Int) (retriable: => T): Either[Throwable, T] = {
+    def retry[T](retries: Int, log: Logger, message: String)
+                (retriable: => T): Either[Throwable, T] = {
         try {
             Right(retriable)
         } catch {
-            case NonFatal(e) if retries > 1 => retry (retries - 1) (retriable)
-            case NonFatal(e) => Left(e)
+            case NonFatal(e) if retries > 1 =>
+                log debug s"$message failed. Remaining attempts: ${retries-1}"
+                retry (retries - 1, log, message) (retriable)
+            case NonFatal(e) =>
+                log debug s"$message failed. Giving up: $e"
+                Left(e)
         }
     }
 }
 
 trait ClosingRetriable extends Retriable {
 
-    def retryClosing[T](retries: Int) (closeable: Closeable) (retriable: => T): Either[Throwable, T] = {
+    def retryClosing[T](retries: Int, log: Logger, message: String)
+                       (closeable: Closeable)
+                       (retriable: => T): Either[Throwable, T] = {
         try {
-            retry(retries) { retriable }
+            retry(retries, log, message) { retriable }
         } finally {
             if (closeable ne null) closeable.close()
         }
