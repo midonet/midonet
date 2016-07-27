@@ -26,7 +26,6 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.{CreateOp, SingleValueKey, ZookeeperObjectMapper}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
@@ -58,7 +57,6 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
     // version.
 
     var backend: MidonetBackend = _
-    var connectionWatcher: ZkConnectionAwareWatcher = _
     var fpManager: FloodingProxyManager = _
     var obs: TestAwaitableObserver[FloodingProxy] = _
 

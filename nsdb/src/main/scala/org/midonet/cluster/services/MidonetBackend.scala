@@ -25,7 +25,6 @@ import org.apache.curator.framework.state.ConnectionState
 
 import rx.Observable
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage.{StateStorage, StateTableStorage, Storage}
@@ -305,15 +304,10 @@ abstract class MidonetBackend extends AbstractService {
     /** The Curator instance being used */
     def curator: CuratorFramework
     /** A 2nd curator instance with a small session timeout to implement fast
-      *failure detection of ephemeral nodes. */
+      * failure detection of ephemeral nodes. */
     def failFastCurator: CuratorFramework
     /** Provides an executor for handing of asynchronous storage events. */
     def reactor: Reactor
-    /** Wraps the legacy ZooKeeper connection around the Curator instance. */
-    @Deprecated
-    def connection: ZkConnection
-    /** Watches the storage connection. */
-    def connectionWatcher: ZkConnectionAwareWatcher
 
     /** Emits notifications with the current connection state for
       * [[curator]]. */
