@@ -24,6 +24,7 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
+import com.codahale.metrics.MetricRegistry
 import com.datastax.driver.core.Session
 import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
@@ -46,6 +47,8 @@ object FlowStateService {
     val FrontEndTimeout = 30
     val FrontEndTimeoutUnit = TimeUnit.SECONDS
 
+    var globalRegistry: MetricRegistry = null
+
 }
 
 /**
@@ -57,8 +60,11 @@ object FlowStateService {
 @MinionService(name = "flow-state", runsOn = TargetNode.AGENT)
 class FlowStateService @Inject()(nodeContext: Context,
                                  @Named("agent-services-pool") executor: ScheduledExecutorService,
-                                 config: MidolmanConfig)
+                                 config: MidolmanConfig,
+                                 registry: MetricRegistry)
     extends Minion(nodeContext) with Logging {
+
+    globalRegistry = registry
 
     override def logSource = FlowStateLog
     override def logMark = "FlowStateService"
@@ -77,7 +83,7 @@ class FlowStateService @Inject()(nodeContext: Context,
     private val ioManager = new FlowStateManager(config.flowState)
 
     @VisibleForTesting
-    protected val streamContext = stream.Context(config.flowState, ioManager)
+    protected val streamContext = stream.Context(config.flowState, ioManager, registry)
 
     @VisibleForTesting
     protected var readMessageHandler: FlowStateReadHandler = _

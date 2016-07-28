@@ -97,11 +97,14 @@ class FlowStateTransferTest extends FlowStateBaseTest with TopologyBuilder {
         val managerAlt = new FlowStateManager(configAlt.flowState)
 
         streamContext = Context(config.flowState,
-                                manager)
+                                manager,
+                                null)
         streamContextChangedPort = Context(configChangedPort.flowState,
-                                           managerChangedPort)
+                                           managerChangedPort,
+                                           null)
         streamContextAlt = Context(configAlt.flowState,
-                                   managerAlt)
+                                   managerAlt,
+                                   null)
 
         internalClient = new FlowStateInternalClient(configAlt.flowState)
         remoteClient = new FlowStateRemoteClient(configAlt.flowState)
