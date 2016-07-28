@@ -528,7 +528,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         }
 
-        scenario("Flow state not sent to local storage by default") {
+        scenario("Flow state sent to local storage by default") {
             Given("A storage handler with default configuration")
             val config = MidolmanConfig.forTests(ConfigFactory.empty())
             val context = stream.Context(config.flowState,
@@ -543,8 +543,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
             When("The message is handled")
             handler.channelRead0(null, datagram)
 
-            Then("The handler does not write the message to the local storage")
-            handler.getWrites shouldBe 0
+            Then("The handler writes the message to the local storage")
+            handler.getWrites shouldBe 1
         }
 
         scenario("Flow state sent to local storage when local storage enabled") {
