@@ -19,6 +19,7 @@ from mdts.services import service
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils.utils import await_port_active
 from mdts.tests.utils.utils import bindings
+from mdts.tests.utils.utils import execute_mn_conf
 from mdts.tests.utils.utils import wait_on_futures
 from mdts.tests.utils import conf
 
@@ -250,6 +251,15 @@ def test_compat_flowstate():
     Verify that new flows can be created in both directions
     """
 
+    # Given: mn-conf configured to
+    # - push to cassandra
+    # - push locally
+    # - read from cassandra
+    configBeforeUpgrade = {'agent.minions.flow_state.legacy_read_state': True,
+                           'agent.minions.flow_state.legacy_push_state': True,
+                           'agent.minions.flow_state.local_read_state': False}
+    execute_mn_conf('-t', 'default', configBeforeUpgrade)
+
     # vms on midolman1
     public_vm1 = BM.get_interface_on_vport('public_1')
     private_vm1 = BM.get_interface_on_vport('private_1')
@@ -308,3 +318,48 @@ def test_compat_flowstate():
 
     snat_2 = check_forward_flow(private_vm2, public_vm1, fip1, 50001, 81)
     check_return_flow(public_vm1, private_vm2, snat_2['ip'], snat_2['port'], 50001, 81)
+
+    # When: generate some traffic for 2 minutes to make sure we renew the flow state
+    for i in range(12):
+        snat_1 = check_forward_flow(private_vm1, public_vm2, fip2, 50000, 80)
+        check_return_flow(public_vm2, private_vm1, snat_1['ip'], snat_1['port'], 50000, 80)
+        snat_2 = check_forward_flow(private_vm2, public_vm1, fip1, 50000, 80)
+        check_return_flow(public_vm1, private_vm2, snat_2['ip'], snat_2['port'], 50000, 80)
+        time.sleep(10)
+
+    # When: switching to NOT use cassandra
+    # Need to restart
+    configAfterUpgrade = {'agent.minions.flow_state.legacy_read_state': False,
+                          'agent.minions.flow_state.legacy_push_state': False,
+                          'agent.minions.flow_state.local_read_state': True}
+    execute_mn_conf('-t', 'default', configAfterUpgrade)
+
+    # And: restart the agent so it picks the flow state from local storage
+    agent.stop(wait=True)
+    await_port_active(public_vm1_id, active=False)
+    await_port_active(private_vm1_id, active=False)
+    agent.start(wait=True)
+    await_port_active(public_vm1_id, active=True)
+    await_port_active(private_vm1_id, active=True)
+
+    # Eventually: it may take some time before we gather flow state from storage
+    #             keep trying until we succeed.
+    attempts = 10
+    while True:
+        try:
+            # Check that flow state keys are fetched from storage
+            check_return_flow(public_vm2, private_vm1, snat_1['ip'], snat_1['port'], 50000, 80)
+            check_return_flow(public_vm1, private_vm2, snat_2['ip'], snat_2['port'], 50000, 80)
+            break
+        except:
+            if attempts > 0:
+                time.sleep(5)
+                attempts -= 1
+            else:
+                raise
+
+    # And: Check that the same port is used on same forward flow
+    assert_that(check_forward_flow(private_vm1, public_vm2, fip2, 50000, 80),
+                equal_to(snat_1))
+    assert_that(check_forward_flow(private_vm2, public_vm1, fip1, 50000, 80),
+                equal_to(snat_2))
