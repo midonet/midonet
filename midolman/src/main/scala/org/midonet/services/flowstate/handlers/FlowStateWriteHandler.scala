@@ -26,6 +26,7 @@ import scala.collection.mutable
 import scala.collection.mutable.MutableList
 import scala.util.control.NonFatal
 
+import com.codahale.metrics.Timer
 import com.datastax.driver.core.Session
 import com.google.common.annotations.VisibleForTesting
 
@@ -93,8 +94,15 @@ class FlowStateWriteHandler(context: Context,
     @volatile
     protected[flowstate] var cachedOwnedPortIds: Set[UUID] = Set.empty[UUID]
 
+    // Metrics
+    @volatile var duration: Timer = null
+
     override def channelRead0(ctx: ChannelHandlerContext,
                               msg: DatagramPacket): Unit = {
+        if (duration == null) {
+            duration = context.registry.timer("writeRate")
+        }
+        val elapsedTime = duration.time()
         try {
             val bb = msg.content().nioBuffer(0, FlowStateInternalMessageHeaderSize)
             val messageType = bb.getInt
@@ -111,6 +119,8 @@ class FlowStateWriteHandler(context: Context,
         } catch {
             case NonFatal(e) =>
                 log.error(s"Unkown error handling internal flow state message", e)
+        } finally {
+            elapsedTime.stop()
         }
     }
 
