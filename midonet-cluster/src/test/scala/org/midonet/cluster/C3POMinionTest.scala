@@ -133,6 +133,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
           |zookeeper.use_new_stack : true
           |# The following is for legacy Data Client
           |zookeeper.zookeeper_hosts : "$ZK_HOST"
+          |state_proxy.enabled : false
         """.stripMargin)
 
     private val clusterCfg = ClusterConfig.forTests(C3PO_CFG_OBJECT)
