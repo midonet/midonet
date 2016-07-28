@@ -36,7 +36,6 @@ import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateResponse
 import org.midonet.cluster.storage.FlowStateStorageWriter
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.minion.Context
 import org.midonet.services.flowstate.handlers._
@@ -58,7 +57,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
     private class FlowStateServiceTest(nodeContext: Context,
                                        executor: ScheduledExecutorService,
                                        config: MidolmanConfig)
-        extends FlowStateService(nodeContext, executor, config) {
+        extends FlowStateService(nodeContext, executor, config, null) {
 
         var numInvalidations = 0
         var numCleans = 0
@@ -113,7 +112,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
         val config = midolmanConfig.flowState
         val manager = new FlowStateManager(config)
-        streamContext = stream.Context(config, manager)
+        streamContext = stream.Context(config, manager, null)
     }
 
     feature("Test service lifecycle") {
@@ -507,7 +506,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
                |""".stripMargin)
             val config = MidolmanConfig.forTests(flowStateConfig)
             val context = stream.Context(config.flowState,
-                                         streamContext.ioManager)
+                                         streamContext.ioManager,
+                                         null)
             val handler = new TestableWriteHandler(context)
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numConntracks = 1,
@@ -535,7 +535,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
             Given("A storage handler with default configuration")
             val config = MidolmanConfig.forTests(ConfigFactory.empty())
             val context = stream.Context(config.flowState,
-                                         streamContext.ioManager)
+                                         streamContext.ioManager,
+                                         null)
             val handler = new TestableWriteHandler(context)
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numConntracks = 1,
@@ -558,7 +559,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
                |""".stripMargin)
             val config = MidolmanConfig.forTests(flowStateConfig)
             val context = stream.Context(config.flowState,
-                                         streamContext.ioManager)
+                                         streamContext.ioManager,
+                                         null)
             val handler = new TestableWriteHandler(context)
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numConntracks = 1,

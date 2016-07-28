@@ -78,8 +78,12 @@ class FlowStateWriteHandler(context: Context,
     @volatile
     protected[flowstate] var cachedOwnedPortIds: Set[UUID] = Set.empty[UUID]
 
+    // Metrics
+    val duration = context.registry.timer("writeRate")
+
     override def channelRead0(ctx: ChannelHandlerContext,
                               msg: DatagramPacket): Unit = {
+        val elapsedTime = duration.time()
         try {
             val bb = msg.content().nioBuffer(0, FlowStateInternalMessageHeaderSize)
             val messageType = bb.getInt
@@ -97,6 +101,7 @@ class FlowStateWriteHandler(context: Context,
             case NonFatal(e) =>
                 Log.error(s"Unkown error handling internal flow state message", e)
         }
+        elapsedTime.stop()
     }
 
     private def handleFlowStateMessage(buffer: ByteBuffer): Unit = {

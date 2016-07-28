@@ -102,8 +102,9 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
                |agent.minions.flow_state.expiration_time : 20s
                |""".stripMargin)
         config = MidolmanConfig.forTests(flowStateConfig).flowState
+        log debug s"HELLOWWWW ${config.connectionTimeout}"
         portId = UUID.randomUUID()
-        context = stream.Context(config, new FlowStateManager(config))
+        context = stream.Context(config, new FlowStateManager(config), null)
     }
 
     feature("FlowState builder handles headers") {

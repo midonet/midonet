@@ -55,20 +55,26 @@ trait FlowStateBaseTest extends FeatureSpec
     protected def midolmanConfig: MidolmanConfig =
         MidolmanConfig.forTests(getConfig)
 
-    protected def getConfig = {
+    protected def midolmanConfig(port: Int): MidolmanConfig =
+        MidolmanConfig.forTests(getConfig(port, Files.createTempDir().getName))
+
+    protected def getConfig: String = getConfig(getFreePort,
+                                                Files.createTempDir().getName)
+
+    protected def getConfig(port: Int, directory: String): String = {
         s"""
            |agent.minions.flow_state.enabled : true
            |agent.minions.flow_state.legacy_push_state : true
            |agent.minions.flow_state.legacy_read_state : true
            |agent.minions.flow_state.local_push_state : true
            |agent.minions.flow_state.local_read_state : true
-           |agent.minions.flow_state.port : $getFreePort
+           |agent.minions.flow_state.port : $port
            |agent.minions.flow_state.connection_timeout : 5s
            |agent.minions.flow_state.block_size : 1
            |agent.minions.flow_state.blocks_per_port : 10
            |agent.minions.flow_state.expiration_delay : 5s
            |agent.minions.flow_state.clean_unused_files_delay : 5s
-           |agent.minions.flow_state.log_directory: ${Files.createTempDir().getName}
+           |agent.minions.flow_state.log_directory: $directory
            |cassandra.servers : "127.0.0.1:9142"
            |cassandra.cluster : "midonet"
            |cassandra.replication_factor : 1
