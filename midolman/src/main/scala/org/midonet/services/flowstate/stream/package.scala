@@ -19,8 +19,10 @@ package org.midonet.services.flowstate
 import java.io.IOException
 import java.util.UUID
 
+import com.codahale.metrics.MetricRegistry
 import com.google.common.annotations.VisibleForTesting
 import com.typesafe.scalalogging.Logger
+
 import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.util.io.stream._
 import org.slf4j.LoggerFactory
@@ -33,7 +35,8 @@ package object stream {
         LoggerFactory.getLogger("org.midonet.services.stream.flowstate-stream"))
 
     case class Context(config: FlowStateConfig,
-                       ioManager: FlowStateManager)
+                       ioManager: FlowStateManager,
+                       registry: MetricRegistry)
 
     /**
       * Output/Input stream builders for a given port.
