@@ -19,6 +19,7 @@ package org.midonet.services.flowstate
 import java.io.IOException
 import java.util.UUID
 
+import com.codahale.metrics.MetricRegistry
 import com.google.common.annotations.VisibleForTesting
 
 import org.midonet.midolman.config.FlowStateConfig
@@ -29,7 +30,8 @@ package object stream {
     val LengthSize = 4
 
     case class Context(config: FlowStateConfig,
-                       ioManager: FlowStateManager)
+                       ioManager: FlowStateManager,
+                       registry: MetricRegistry)
 
     /**
       * Output/Input stream builders for a given port.

@@ -18,6 +18,9 @@ package org.midonet.services.flowstate.stream.snappy
 
 import java.nio.ByteBuffer
 
+import com.codahale.metrics._
+import com.codahale.metrics.RatioGauge.Ratio
+
 import org.xerial.snappy.Snappy
 
 import org.midonet.util.Clearable
@@ -39,13 +42,25 @@ import org.midonet.util.io.stream.{ByteBufferBlockWriter, TimedBlockHeader}
 class SnappyBlockWriter(val out: ByteBufferBlockWriter[TimedBlockHeader],
                         blockSize: Int) extends Clearable {
 
+    private class CompressionRatio(compressed: Counter, uncompressed: Counter) extends RatioGauge {
+
+        override def getRatio: Ratio = Ratio.of(uncompressed.getCount,
+                                                compressed.getCount)
+    }
+
     private var pointer: Int = 0
 
     private val compressedSize = new Array[Byte](4)
     private val uncompressed = new Array[Byte](blockSize)
     private val compressed = new Array[Byte](
         Snappy.maxCompressedLength(blockSize + compressedSize.length))
-
+    /*
+    private val compressedData: Counter = metrics.counter("compressedData")
+    private val uncompressedData: Counter = metrics.counter("uncompressedData")
+    private val compressionRatio = metrics.register(
+        "compressionRatio",
+        new CompressionRatio(compressedData, uncompressedData))
+*/
     /**
       * Compress the raw byte array data. If the whole chunk does not fit
       * into the uncompressed buffer, then the current raw data is compressed
@@ -79,6 +94,8 @@ class SnappyBlockWriter(val out: ByteBufferBlockWriter[TimedBlockHeader],
             // Write compressed size to compressed buffer
             ByteBuffer.wrap(compressed, 0, 4).putInt(compressedSize)
             out.write(compressed, 0, compressedSize + 4)
+            //compressedData.inc(compressedSize)
+            //uncompressedData.inc(pointer)
             pointer = 0
         }
     }
