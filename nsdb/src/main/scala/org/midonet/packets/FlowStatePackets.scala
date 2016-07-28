@@ -16,15 +16,16 @@
 
 package org.midonet.packets
 
+import java.nio.ByteBuffer
 import java.util.ArrayList
 import java.util.UUID
 
 import uk.co.real_logic.sbe.codec.java.DirectBuffer
 
-import org.midonet.cluster.flowstate.proto.FlowState.{Trace, Nat}
-import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, MessageHeader, InetAddrType, NatKeyType}
+import org.midonet.cluster.flowstate.proto.FlowState.{Nat, Trace}
+import org.midonet.cluster.flowstate.proto.{InetAddrType, MessageHeader, NatKeyType, FlowState => FlowStateSbe}
 import org.midonet.packets.ConnTrackState.{ConnTrackKeyAllocator, ConnTrackKeyStore}
-import org.midonet.packets.NatState.{NatKeyStore, NatBinding}
+import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
 import org.midonet.packets.TraceState.{TraceKeyAllocator, TraceKeyStore}
 import org.midonet.packets.NatState._
 
