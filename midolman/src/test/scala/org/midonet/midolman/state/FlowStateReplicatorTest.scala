@@ -185,10 +185,11 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
 
     val midolmanConfig = MidolmanConfig.forTests
 
-    val localStoreMidolmanConfig = MidolmanConfig.forTests(
+    val legacyStoreMidolmanConfig = MidolmanConfig.forTests(
         ConfigFactory.parseString(
             s"""
-               |agent.minions.flow_state.local_push_state : true
+               |agent.minions.flow_state.local_push_state : false
+               |agent.minions.flow_state.legacy_push_state : true
             """.stripMargin
         ))
 
@@ -389,7 +390,6 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
 
         scenario("Incoming keys are forwarded to the minion in local storage") {
             Given("A conntrack key in a transaction using the local store")
-            recipient.localConfig = localStoreMidolmanConfig
             connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
 
             When("Sending the state and accepting it on the recipient")
@@ -402,7 +402,8 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("Incoming keys are NOT forwarded to the minion in legacy storage") {
-            Given("A conntrack key in a transaction using the local store")
+            Given("A conntrack key in a transaction using the legacy store")
+            recipient.localConfig = legacyStoreMidolmanConfig
             connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
 
             When("Sending the state and accepting it on the recipient")
