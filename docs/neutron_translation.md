@@ -451,6 +451,7 @@ data, add the NAT translation rules between 'fixed_ip_address' and
 
  * Static DNAT rule on the outbound chain
  * Static SNAT rule on the inbound chain
+ * Static reverse ICMP Data DNAT rule on the inbound chain
 
 These rules should be with fragment_policy = ANY.
 
@@ -459,6 +460,10 @@ FIP address, and b) has a corresponding Neutron port (i.e., is not a Midonet-
 only port).  On the external network to which this router port's peer belongs,
 add an ARP entry for floating IP, and add the router port's MAC to the network's
 ARP table.
+
+The reverse ICMP data DNAT rule is necessary so that if there is an ICMP error
+response to a packet which has been modified by DNAT, it will be possible to match
+the error to the sent packet at the sending host.
 
 ASSUMPTION: The floating IP's IP address does not change.
 
