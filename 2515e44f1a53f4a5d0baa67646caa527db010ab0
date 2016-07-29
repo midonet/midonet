@@ -22,6 +22,30 @@
       "revId": "2515e44f1a53f4a5d0baa67646caa527db010ab0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3d61ab05",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-29T08:38:05Z",
+      "side": 1,
+      "message": "So we can mock it on the tests and not rely on actual sleeps. Should I make it inline?",
+      "parentUuid": "baa041b7_7de613b1",
+      "range": {
+        "startLine": 78,
+        "startChar": 4,
+        "endLine": 79,
+        "endChar": 62
+      },
+      "revId": "2515e44f1a53f4a5d0baa67646caa527db010ab0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
