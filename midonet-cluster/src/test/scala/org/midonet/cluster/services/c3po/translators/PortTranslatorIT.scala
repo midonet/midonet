@@ -19,17 +19,15 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import scala.collection.JavaConverters._
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Subnet => SubnetType}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Rule.Action
+import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.MAC
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.concurrent.toFutureOps
@@ -382,6 +380,66 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
                          securityGroups = Seq())
         insertUpdateTask(80, PortType, pJson, pId)
         eventually(checkAddrGroupAddrPortCounts(Seq(Seq(1), Seq(1), Seq())))
+    }
+
+    it should "add dhcp extra opts" in {
+        val ip = "10.0.0.3"
+        val nwId = createTenantNetwork(10)
+        createTenantNetwork(11)
+
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+        createSubnet(21, nwId, "10.0.0.0/24")
+
+        val opt1 = ExtraDhcpOpts.newBuilder.setOptName("12").setOptValue("A").build()
+        val opt2 = ExtraDhcpOpts.newBuilder.setOptName("13").setOptValue("B").build()
+        val pId = createVifPort(50, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                                extraDhcpOpts = List(opt1, opt2))
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            val eopts = dhcp.getHostsList.get(0).getExtraDhcpOptsList.asScala
+            eopts.map(e => (e.getName, e.getValue)) should contain only (("12", "A"), ("13", "B"))
+        }
+    }
+
+    it should "update dhcp extra opts" in {
+        val ip = "10.0.0.3"
+        val nwId = createTenantNetwork(10)
+        createTenantNetwork(11)
+
+        val snId = createSubnet(20, nwId, "10.0.0.0/24")
+        createSubnet(21, nwId, "10.0.0.0/24")
+
+        val opt1 = ExtraDhcpOpts.newBuilder.setOptName("12").setOptValue("A").build()
+        val opt2 = ExtraDhcpOpts.newBuilder.setOptName("13").setOptValue("B").build()
+        val pId = createVifPort(50, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+            extraDhcpOpts = List(opt1, opt2))
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            val eopts = dhcp.getHostsList.get(0).getExtraDhcpOptsList.asScala
+            eopts.map(e => (e.getName, e.getValue)) should contain only (("12", "A"), ("13", "B"))
+        }
+
+        var pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                             extraOpt = List())
+        insertUpdateTask(60, PortType, pJson, pId)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            val eopts = dhcp.getHostsList.get(0).getExtraDhcpOptsList.asScala
+            eopts.size shouldBe 0
+        }
+
+        pJson = portJson(pId, nwId, fixedIps = Seq(IPAlloc(ip, snId)),
+                         extraOpt = List(opt1))
+        insertUpdateTask(70, PortType, pJson, pId)
+
+        eventually {
+            val dhcp = storage.get(classOf[Dhcp], snId).await()
+            val eopts = dhcp.getHostsList.get(0).getExtraDhcpOptsList.asScala
+            eopts.map(e => (e.getName, e.getValue)) should contain only (("12", "A"))
+        }
     }
 
     it should "update ip addr groups with updated IPs" in {
