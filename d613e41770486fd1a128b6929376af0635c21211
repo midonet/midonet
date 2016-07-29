@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3dde4bdd",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-29T08:14:03Z",
+      "side": 1,
+      "message": "Ignore this, I didn\u0027t see the $.",
+      "parentUuid": "baa041b7_fd4c63c9",
+      "range": {
+        "startLine": 32,
+        "startChar": 29,
+        "endLine": 32,
+        "endChar": 44
+      },
+      "revId": "d613e41770486fd1a128b6929376af0635c21211",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3d576b59",
         "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
         "patchSetId": 2
