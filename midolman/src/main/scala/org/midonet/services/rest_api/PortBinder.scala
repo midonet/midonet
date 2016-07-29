@@ -23,7 +23,7 @@ import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.conf.HostIdGenerator
-import org.midonet.util.Retriable
+import org.midonet.util.ImmediateRetriable
 
 trait PortBinder {
 
@@ -41,14 +41,15 @@ trait PortBinder {
 
 class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
                      lockFactory: ZookeeperLockFactory) extends PortBinder
-                                                        with Retriable {
+                                                        with ImmediateRetriable {
 
     import RestApiService.Log
-    private val UpdateBindingRetries = 3
+
+    override def maxRetries = 3
 
     override def bindPort(portId: UUID, hostId: UUID,
                           deviceName: String): Unit = {
-        val update = retry(UpdateBindingRetries) {
+        val update = retry(Log, s"Binding port $portId") {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
             val newPortBldr = oldPort.toBuilder
@@ -76,7 +77,7 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
     override def unbindPort(portId: UUID, hostId: UUID): Unit = {
         val pHostId = UUIDUtil.toProto(hostId)
 
-        val update = retry(UpdateBindingRetries) {
+        val update = retry(Log, s"Unbinding port $portId") {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
 
