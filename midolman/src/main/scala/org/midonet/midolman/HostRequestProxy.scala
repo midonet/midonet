@@ -254,11 +254,11 @@ class HostRequestProxy(hostId: UUID,
                     yield id -> previousHost
 
                 lastPorts = h.portBindings.keySet
-
-                stateForPorts(ports, requestLegacyStateForPort,
-                              "legacy storage (Cassandra).")
-                stateForPorts(ports, requestStateForPort,
-                              "local storage.")
+                Future.sequence(Seq(
+                    stateForPorts(ports, requestLegacyStateForPort,
+                                  "legacy storage (Cassandra)."),
+                    stateForPorts(ports, requestStateForPort,
+                                  "local storage.")))
             })
 
         case OnCompleted =>
