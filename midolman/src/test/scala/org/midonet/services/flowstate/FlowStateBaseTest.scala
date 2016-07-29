@@ -59,9 +59,7 @@ trait FlowStateBaseTest extends FeatureSpec
         s"""
            |agent.minions.flow_state.enabled : true
            |agent.minions.flow_state.legacy_push_state : true
-           |agent.minions.flow_state.legacy_read_state : true
            |agent.minions.flow_state.local_push_state : true
-           |agent.minions.flow_state.local_read_state : true
            |agent.minions.flow_state.port : $getFreePort
            |agent.minions.flow_state.connection_timeout : 5s
            |agent.minions.flow_state.block_size : 1
