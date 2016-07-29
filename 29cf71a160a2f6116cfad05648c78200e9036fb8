@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_129251f6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-29T15:30:23Z",
+      "side": 1,
+      "message": "You\u0027re ignoring the first future. User either a andThen if the loads should be in sequence of Future.sequence if you allow then in parallel.",
+      "range": {
+        "startLine": 258,
+        "startChar": 16,
+        "endLine": 259,
+        "endChar": 60
+      },
+      "revId": "29cf71a160a2f6116cfad05648c78200e9036fb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
