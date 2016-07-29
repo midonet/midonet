@@ -34,7 +34,10 @@ FPM_BASE_ARGS=$(cat <<EOF
 --url 'http://midonet.org' \
 --description 'Python client library for MidoNet API' \
 -d 'python-webob' -d 'python-eventlet' -d 'python-httplib2' \
--s dir
+-s dir \
+--before-remove package-hooks/before-remove.sh \
+--after-install package-hooks/after-install.sh \
+--after-upgrade package-hooks/after-upgrade.sh
 EOF
 )
 
@@ -77,6 +80,7 @@ function package_rpm() {
     RPM_ARGS="$RPM_ARGS -d 'python >= 2.6' -d 'python < 2.8'"
     RPM_ARGS="$RPM_ARGS --epoch 2"
     RPM_ARGS="$RPM_ARGS --iteration $rpm_revision"
+
     eval fpm $FPM_BASE_ARGS $RPM_ARGS -t rpm .
 }
 

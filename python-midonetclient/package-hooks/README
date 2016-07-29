@@ -1,0 +1,6 @@
+The files in this directory are not intended to be executed directly, but
+included by FPM tool into generated packages, to be triggered by the
+user packaging system.
+
+The syntax should be 'sh', not 'bash', and as usual with this kind of scripts
+they must be idempotent (not doing any if harm if executed more than once).
