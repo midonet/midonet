@@ -36,7 +36,6 @@ import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateResponse
 import org.midonet.cluster.storage.FlowStateStorageWriter
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.minion.Context
 import org.midonet.services.flowstate.handlers._
@@ -501,9 +500,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             val flowStateConfig = ConfigFactory.parseString(
             s"""
                |agent.minions.flow_state.legacy_push_state : false
-               |agent.minions.flow_state.legacy_read_state : false
                |agent.minions.flow_state.local_push_state : true
-               |agent.minions.flow_state.local_read_state : true
                |""".stripMargin)
             val config = MidolmanConfig.forTests(flowStateConfig)
             val context = stream.Context(config.flowState,
