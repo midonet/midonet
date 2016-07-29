@@ -41,13 +41,16 @@ package object flowstate {
     /**
       * Maximum message size to send to the flow state minion. Set to 64k
       * as this is a typical value for the MTU loopback interface. We will reach
-      * that limit when the agent has 8192 ports bound considering that UUIDs
-      * are 8 bytes long (4096 ports * 16 bytes = 64kB). Actually, it's one less
-      * because we already fill 8 bytes for the header.
+      * that limit when the agent has 4096 ports bound considering that UUIDs
+      * are 8 bytes long (4096 ports * 16 bytes = 64kB). Actually, it's three
+      * less (4093) because we already fill 8 bytes for the message header plus
+      * the IP and UDP header (28). WARNING: If we ever reach that limit in a
+      * hypervisor, we'll need to deal with fragmented messages.
       */
-    val MaxMessageSize = 65536
-    val MaxPortIds = (65536 / 16) - 1
+    private val PacketHeader = 28 // 20 bytes IP + 8 bytes UDP
     val FlowStateInternalMessageHeaderSize = 8
+    val MaxMessageSize = 65535 - FlowStateInternalMessageHeaderSize - PacketHeader
+    val MaxPortIds = MaxMessageSize / 16
 
 }
 
