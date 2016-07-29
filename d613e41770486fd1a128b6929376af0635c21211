@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8f7abe75",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/client/FlowStateRequestClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-29T09:18:48Z",
+      "side": 1,
+      "message": "Any suggestion on how to address this? I can only think on using a variable length argument list on retry method. \n\nSomething to consider is that this client is only used on port migration and on reboot, so not on the fastpath (it wouldn\u0027t generate much garbage I assume).",
+      "parentUuid": "baa041b7_9dcc3736",
+      "range": {
+        "startLine": 87,
+        "startChar": 29,
+        "endLine": 87,
+        "endChar": 77
+      },
+      "revId": "d613e41770486fd1a128b6929376af0635c21211",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fd4c63c9",
         "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
         "patchSetId": 2
@@ -83,6 +107,30 @@
       "writtenOn": "2016-07-29T08:12:11Z",
       "side": 1,
       "message": "I think this will just display the object ref. use e.getMessage or add as separate argument.",
+      "range": {
+        "startLine": 35,
+        "startChar": 56,
+        "endLine": 35,
+        "endChar": 58
+      },
+      "revId": "d613e41770486fd1a128b6929376af0635c21211",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6f7d3a6c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-29T09:18:48Z",
+      "side": 1,
+      "message": "will do.",
+      "parentUuid": "baa041b7_3d576b59",
       "range": {
         "startLine": 35,
         "startChar": 56,
