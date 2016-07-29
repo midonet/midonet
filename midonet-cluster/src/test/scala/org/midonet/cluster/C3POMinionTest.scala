@@ -20,18 +20,16 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager, Statement}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable.{ArrayBuffer => ABuf}
 import scala.util.Try
-
 import com.codahale.metrics.MetricRegistry
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode}
 import com.google.inject.{Guice, Inject, Injector, PrivateModule}
 import com.typesafe.config.ConfigFactory
-
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
@@ -40,7 +38,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, BgpPeer => BgpPeerType, Config => ConfigType, Firewall => FirewallType, Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
@@ -49,7 +46,7 @@ import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.data.storage.model.ArpEntry
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronRoute, NeutronRouter}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{Commons, Topology}
@@ -426,7 +423,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                            hostId: UUID = null,
                            ifName: String = null,
                            allowedAddrPairs: Seq[AddrPair] = null,
-                           portSecurityEnabled: Boolean = true): JsonNode = {
+                           portSecurityEnabled: Boolean = true,
+                           extraOpt: List[ExtraDhcpOpts] = null)
+    : JsonNode = {
         val p = nodeFactory.objectNode
         p.put("id", id.toString)
         p.put("network_id", networkId.toString)
@@ -449,6 +448,15 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         if (securityGroups != null) {
             val sgList = p.putArray("security_groups")
             securityGroups.foreach(sgid => sgList.add(sgid.toString))
+        }
+        if (extraOpt != null) {
+            val eoList = p.putArray("extra_dhcp_opts")
+            for (eo <- extraOpt) {
+                val eoN = nodeFactory.objectNode
+                eoN.put("opt_name", eo.getOptName)
+                eoN.put("opt_value", eo.getOptValue)
+                eoList.add(eoN)
+            }
         }
         if (hostId != null) p.put("binding:host_id", hostId.toString)
         if (ifName != null)
@@ -955,12 +963,15 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                 id: UUID = UUID.randomUUID(),
                                 mac: String = MAC.random().toString,
                                 sgs: Seq[UUID] = Seq(),
-                                securityEnabled: Boolean = true): UUID = {
+                                securityEnabled: Boolean = true,
+                                extraDhcpOpts: List[ExtraDhcpOpts] = null)
+    : UUID = {
 
         val json = portJson(id, nwId, macAddr = mac, fixedIps = fixedIps,
                             deviceOwner = DeviceOwner.COMPUTE,
                             securityGroups = sgs,
-                            portSecurityEnabled = securityEnabled)
+                            portSecurityEnabled = securityEnabled,
+                            extraOpt = extraDhcpOpts)
         insertCreateTask(taskId, PortType, json, id)
         id
     }
