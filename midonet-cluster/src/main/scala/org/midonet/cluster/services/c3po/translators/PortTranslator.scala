@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import java.util.{List => JList}
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -24,6 +26,7 @@ import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Upd
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet._
 import org.midonet.cluster.services.c3po.neutron
@@ -339,16 +342,24 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* Adds a host entry with the given mac / IP address pair to DHCP. */
     private def addDhcpHost(
-            dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress) {
-        dhcp.addHostsBuilder()
-            .setMac(mac)
-            .setIpAddress(ipAddr)
+            dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress,
+            extraDhcpOpts: JList[ExtraDhcpOpts]) {
+        val dhcpHost = dhcp.addHostsBuilder()
+              .setMac(mac)
+              .setIpAddress(ipAddr)
+        for (opt <- extraDhcpOpts.asScala) {
+            dhcpHost.addExtraDhcpOptsBuilder()
+                  .setName(opt.getOptName)
+                  .setValue(opt.getOptValue)
+        }
     }
 
     /* Configures the DHCP server and an OPT 121 route to it with the given IP
      * address (the mac is actually not being used here). */
     private def addDhcpServer(dhcp: Dhcp.Builder, mac: String,
-                              ipAddr: IPAddress): Unit = if (dhcp.isIpv4) {
+                              ipAddr: IPAddress,
+                              opts: JList[ExtraDhcpOpts])
+    : Unit = if (dhcp.isIpv4) {
         dhcp.setServerAddress(ipAddr)
         val opt121 = dhcp.addOpt121RoutesBuilder()
         opt121.setDstSubnet(RouteManager.META_DATA_SRVC)
@@ -358,7 +369,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     /* Removes the DHCP server and OPT 121 route configurations with the given
      * IP address from DHCP (the mac is actually not being used here). */
     private def delDhcpServer(dhcp: Dhcp.Builder, mac: String,
-                              nextHopGw: IPAddress): Unit = if (dhcp.isIpv4) {
+                              nextHopGw: IPAddress,
+                              opts: JList[ExtraDhcpOpts])
+    : Unit = if (dhcp.isIpv4) {
         if (dhcp.hasDefaultGateway) {
             dhcp.setServerAddress(dhcp.getDefaultGateway)
         } else {
