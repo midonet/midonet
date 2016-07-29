@@ -101,18 +101,10 @@ class HostRequestProxy(hostId: UUID,
     private var subscription: Subscription = null
 
     private val tcpClientExecutionContext =
-        if (flowStateConfig.localReadState) {
-            ExecutionContext.fromExecutor(newSingleThreadExecutor)
-        } else {
-            null
-        }
+        ExecutionContext.fromExecutor(newSingleThreadExecutor)
 
     private val tcpClient: FlowStateInternalClient =
-        if (flowStateConfig.localReadState) {
-            new FlowStateInternalClient(flowStateConfig)
-        } else {
-            null
-        }
+        new FlowStateInternalClient(flowStateConfig)
 
     override def preStart(): Unit = {
         VTPM.hosts(hostId).subscribe(this)
@@ -171,17 +163,19 @@ class HostRequestProxy(hostId: UUID,
         }(tcpClientExecutionContext)
     }
 
-    private def stateForPorts(bindings: Map[UUID, UUID]): Future[FlowStateBatch] =
-        if (flowStateConfig.legacyReadState) {
-            mergedBatches(bindings map requestLegacyStateForPort)
-        } else if (flowStateConfig.localReadState) {
-            mergedBatches(bindings map requestStateForPort)
-        } else {
-            log warn "Flow state not being recovered from local nor legacy " +
-                     "storage. Check the agent's configuration to turn on " +
-                     "one of the flags for flow state recovery"
-            Future.successful(EmptyFlowStateBatch)
-        }
+    private def stateForPorts(bindings: Map[UUID, UUID],
+                              request: ((UUID, UUID)) => Future[FlowStateBatch],
+                              source: String): Future[FlowStateBatch] =
+        mergedBatches(bindings map request)
+            .andThen {
+                case Success(stateBatch) =>
+                    log.debug(s"Fetched ${stateBatch.size()} pieces of " +
+                              s"flow state for ports ${bindings.keySet} " +
+                              s"from $source.")
+                    backChannel tell stateBatch
+                case Failure(e) =>
+                    log.warn("Failed to fetch state from legacy storage", e)
+            }(singleThreadExecutionContext)
 
     private def mergedBatches(batches: Iterable[Future[FlowStateBatch]]) =
         Future.fold(batches)(EmptyFlowStateBatch) {
@@ -261,14 +255,10 @@ class HostRequestProxy(hostId: UUID,
 
                 lastPorts = h.portBindings.keySet
 
-                stateForPorts(ports).andThen {
-                    case Success(stateBatch) =>
-                        log.debug(s"Fetched ${stateBatch.size()} pieces of " +
-                                  s"flow state for ports ${ports.keySet}")
-                        backChannel tell stateBatch
-                    case Failure(e) =>
-                        log.warn("Failed to fetch state", e)
-                }(singleThreadExecutionContext)
+                stateForPorts(ports, requestLegacyStateForPort,
+                              "legacy storage (Cassandra).")
+                stateForPorts(ports, requestStateForPort,
+                              "local storage.")
             })
 
         case OnCompleted =>
