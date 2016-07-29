@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9dcc3736",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/transfer/client/FlowStateRequestClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-29T08:12:11Z",
+      "side": 1,
+      "message": "Here we do string interpolation even when debug is disabled. Is that an issue?",
+      "range": {
+        "startLine": 87,
+        "startChar": 29,
+        "endLine": 87,
+        "endChar": 77
+      },
+      "revId": "d613e41770486fd1a128b6929376af0635c21211",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fd4c63c9",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-29T08:12:11Z",
+      "side": 1,
+      "message": "What does this mean in the context of a Retriable class? Same below. Also capitalize.",
+      "range": {
+        "startLine": 32,
+        "startChar": 29,
+        "endLine": 32,
+        "endChar": 44
+      },
+      "revId": "d613e41770486fd1a128b6929376af0635c21211",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3d576b59",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/Retriable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-29T08:12:11Z",
+      "side": 1,
+      "message": "I think this will just display the object ref. use e.getMessage or add as separate argument.",
+      "range": {
+        "startLine": 35,
+        "startChar": 56,
+        "endLine": 35,
+        "endChar": 58
+      },
+      "revId": "d613e41770486fd1a128b6929376af0635c21211",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
