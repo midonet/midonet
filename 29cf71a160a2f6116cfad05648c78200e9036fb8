@@ -22,6 +22,30 @@
       "revId": "29cf71a160a2f6116cfad05648c78200e9036fb8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_52b33998",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-07-29T15:38:14Z",
+      "side": 1,
+      "message": "There\u0027s something I dont\u0027 understand. If we were ignoring the first future, the compatibility test would have failed (as it wouldn\u0027t have loaded the flow state from storage). But it passed. I thought that specifying the andThen inside stateForPorts already creates the callback to process the result of the future.",
+      "parentUuid": "baa041b7_129251f6",
+      "range": {
+        "startLine": 258,
+        "startChar": 16,
+        "endLine": 259,
+        "endChar": 60
+      },
+      "revId": "29cf71a160a2f6116cfad05648c78200e9036fb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
