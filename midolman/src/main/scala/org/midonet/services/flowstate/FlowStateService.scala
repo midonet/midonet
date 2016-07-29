@@ -161,7 +161,7 @@ class FlowStateService @Inject()(nodeContext: Context,
     private[flowstate] def startServerFrontEnds() = {
         writeMessageHandler = new FlowStateWriteHandler(streamContext,
             cassandraSession)
-        udpFrontend = ServerFrontEnd.udp(writeMessageHandler, port)
+        udpFrontend = ServerFrontEnd.udp(writeMessageHandler, port, MaxMessageSize)
 
         readMessageHandler = new FlowStateReadHandler(streamContext)
         tcpFrontend = ServerFrontEnd.tcp(readMessageHandler, port)
