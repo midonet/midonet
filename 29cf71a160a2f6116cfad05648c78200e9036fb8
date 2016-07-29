@@ -46,6 +46,30 @@
       "revId": "29cf71a160a2f6116cfad05648c78200e9036fb8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_72451d6d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-07-29T15:47:09Z",
+      "side": 1,
+      "message": "I didn\u0027t mean that the future won\u0027t complete and the code won\u0027t execute. I meant that we\u0027re using the conveyor belt to serialize the fetching of the flowState wrt to port changes. If you ignore the first future that serialization won\u0027t happen because the belt will move to the next tasks without waiting for the previous ones to complete.\n\nI assume this serialization is needed?",
+      "parentUuid": "baa041b7_52b33998",
+      "range": {
+        "startLine": 258,
+        "startChar": 16,
+        "endLine": 259,
+        "endChar": 60
+      },
+      "revId": "29cf71a160a2f6116cfad05648c78200e9036fb8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
