@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_48426caf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-07-30T00:56:07Z",
+      "side": 1,
+      "message": "Is this related to this patch?",
+      "revId": "fd5c37f49686adbf0342af980046acd1f21975fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_283de82a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-07-30T00:56:07Z",
+      "side": 1,
+      "message": "This does not seem to be used",
+      "revId": "fd5c37f49686adbf0342af980046acd1f21975fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2824c80a",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-07-30T00:56:07Z",
+      "side": 1,
+      "message": "how about:\n\nval dhcpOpts \u003d List((\"A\", \"12\"), (\"B\", \"13\"))\n\nval extraDhcpOpts \u003d dhcpOpts.map(ExtraDhcpOpts.newBuilder.setOptName(_._1).setOptValue(_._2).build)\n\ncreateVipPort(..., extraDhcpOpts \u003d extraDhcpOpts)\n\nand then:\n\nepots.map((_.getName, _.getValue)) should only contain dhcpOpts",
+      "revId": "fd5c37f49686adbf0342af980046acd1f21975fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
