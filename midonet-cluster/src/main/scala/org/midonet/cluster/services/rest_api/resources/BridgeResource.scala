@@ -24,8 +24,6 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.apache.curator.framework.CuratorFramework
-
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
@@ -47,8 +45,7 @@ import org.midonet.midolman.state.PathBuilder
                    APPLICATION_JSON))
 @AllowDelete
 class BridgeResource @Inject()(resContext: ResourceContext,
-                               pathBuilder: PathBuilder,
-                               curator: CuratorFramework)
+                               pathBuilder: PathBuilder)
     extends MidonetResource[Bridge](resContext) {
 
     @Path("{id}/ports")

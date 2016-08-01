@@ -360,6 +360,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def listResources[U >: Null <: UriResource](clazz: Class[U])
     : Seq[U] = {
+        checkIfZookeeperAvailable()
         store.getAll(UriResource.getZoomClass(clazz))
              .map(_.map(fromProto(_, clazz)))
              .getOrThrow
@@ -368,6 +369,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     protected def listResources[U >: Null <: UriResource](clazz: Class[U],
                                                           ids: Seq[Any])
     : Seq[U] = {
+        checkIfZookeeperAvailable()
         store.getAll(UriResource.getZoomClass(clazz), ids)
              .map(_.map(fromProto(_, clazz)))
              .getOrThrow
@@ -375,6 +377,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def getResource[U >: Null <: UriResource](clazz: Class[U], id: Any)
     : U = {
+        checkIfZookeeperAvailable()
         store.get(UriResource.getZoomClass(clazz), id)
              .map(fromProto(_, clazz))
              .getOrThrow
@@ -382,6 +385,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def getResources[U >: Null <: UriResource](clazz: Class[U], ids: Seq[Any])
     : Seq[U] = {
+        checkIfZookeeperAvailable()
         store.getAll(UriResource.getZoomClass(clazz), ids)
              .map { r => r.map(fromProto(_, clazz)) }
              .getOrThrow
@@ -391,6 +395,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
                                                              clazz: Class[U],
                                                              id: Any, key: String)
     : StateKey = {
+        checkIfZookeeperAvailable()
         stateStore.getKey(host, UriResource.getZoomClass(clazz), id, key)
                   .asFuture
                   .getOrThrow
@@ -421,6 +426,12 @@ abstract class MidonetResource[T >: Null <: UriResource]
                     "Can't handle resource " +  resource)
         }
     }
+
+    protected def checkIfZookeeperAvailable(): Unit =
+        if (!resContext.backend.curator.getZookeeperClient.isConnected) {
+            throw new ServiceUnavailableHttpException(
+                "Zookeeper client disconnected")
+        }
 
     /** Guaranteed to return a non-null value, or throw 405
       */

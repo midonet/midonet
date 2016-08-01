@@ -33,7 +33,7 @@ import org.midonet.packets.MAC
 import org.midonet.packets.TCP
 
 object MetadataServiceWorkflow {
-    var mdInfo: ProxyInfo = null  /* null means diabled */
+    var mdInfo: ProxyInfo = null  /* null means disabled */
 }
 
 // Note: Ingress/Egress here are from the POV of metadata proxy, not VMs.

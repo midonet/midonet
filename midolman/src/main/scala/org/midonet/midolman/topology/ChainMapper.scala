@@ -106,8 +106,7 @@ object ChainMapper {
      *                      start observing.
      * @param vt The virtual topology object.
      */
-    final class IpAddressGroupState(ipAddrGroupId: UUID,
-                                    vt: VirtualTopology) {
+    final class IpAddressGroupState(ipAddrGroupId: UUID, vt: VirtualTopology) {
         /** The number of rules that reference this IP address group. */
         var refCount = 1
 

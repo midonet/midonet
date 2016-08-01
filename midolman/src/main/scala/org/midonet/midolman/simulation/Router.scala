@@ -180,7 +180,7 @@ class Router(override val id: UUID,
         }
 
         // gratuitous arp request
-        if (tpa == spa && tha == MAC.fromString("00:00:00:00:00:00")) {
+        if (tpa == spa && tha == MAC.ALL_ZEROS) {
             context.log.debug("Received a gratuitous ARP request from {}", spa)
             // TODO(pino, gontanon): check whether the refresh is needed?
             context.arpBroker.set(spa, sha, this)
