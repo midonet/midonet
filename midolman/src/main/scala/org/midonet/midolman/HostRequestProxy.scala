@@ -174,7 +174,7 @@ class HostRequestProxy(hostId: UUID,
                               s"from $source.")
                     backChannel tell stateBatch
                 case Failure(e) =>
-                    log.warn("Failed to fetch state from legacy storage", e)
+                    log.warn(s"Failed to fetch state from $source", e)
             }(singleThreadExecutionContext)
 
     private def mergedBatches(batches: Iterable[Future[FlowStateBatch]]) =
@@ -254,11 +254,11 @@ class HostRequestProxy(hostId: UUID,
                     yield id -> previousHost
 
                 lastPorts = h.portBindings.keySet
-
-                stateForPorts(ports, requestLegacyStateForPort,
-                              "legacy storage (Cassandra).")
-                stateForPorts(ports, requestStateForPort,
-                              "local storage.")
+                Future.sequence(Seq(
+                    stateForPorts(ports, requestLegacyStateForPort,
+                                  "legacy storage (Cassandra)."),
+                    stateForPorts(ports, requestStateForPort,
+                                  "local storage.")))
             })
 
         case OnCompleted =>
