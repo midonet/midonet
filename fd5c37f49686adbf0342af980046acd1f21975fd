@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1e801a8a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-01T06:18:55Z",
+      "side": 1,
+      "message": "woops, different patch. Removed.",
+      "parentUuid": "baa041b7_48426caf",
+      "revId": "fd5c37f49686adbf0342af980046acd1f21975fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_283de82a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_be4fee90",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-01T06:18:55Z",
+      "side": 1,
+      "message": "I needed to make the function definition match that \"updateFun\". I don\u0027t know of any \"optional argument\" feature in scala, and having this unused defaulted arg is the closest I could get.",
+      "parentUuid": "baa041b7_283de82a",
+      "revId": "fd5c37f49686adbf0342af980046acd1f21975fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2824c80a",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2016-07-30T00:56:07Z",
       "side": 1,
       "message": "how about:\n\nval dhcpOpts \u003d List((\"A\", \"12\"), (\"B\", \"13\"))\n\nval extraDhcpOpts \u003d dhcpOpts.map(ExtraDhcpOpts.newBuilder.setOptName(_._1).setOptValue(_._2).build)\n\ncreateVipPort(..., extraDhcpOpts \u003d extraDhcpOpts)\n\nand then:\n\nepots.map((_.getName, _.getValue)) should only contain dhcpOpts",
+      "revId": "fd5c37f49686adbf0342af980046acd1f21975fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b9a028f5",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-01T06:18:55Z",
+      "side": 1,
+      "message": "done.",
+      "parentUuid": "baa041b7_2824c80a",
       "revId": "fd5c37f49686adbf0342af980046acd1f21975fd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
