@@ -21,7 +21,9 @@ import java.util.concurrent.TimeoutException
 
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.ConfigFactory
+
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -74,7 +76,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
 
         zkClient.create().creatingParentsIfNeeded().forPath(backendCfg.rootKey)
         backend = new MidonetBackendService(backendCfg, zkClient, zkClient,
-                                            metricRegistry = null, None)
+                                            new MetricRegistry, None)
         backend.startAsync().awaitRunning()
         fpManager = new FloodingProxyManager(backend)
         obs = new TestAwaitableObserver[FloodingProxy]

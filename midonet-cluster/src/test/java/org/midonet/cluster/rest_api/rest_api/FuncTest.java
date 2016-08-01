@@ -24,6 +24,7 @@ import javax.servlet.ServletContextEvent;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.ExecutionContext$;
 
+import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -133,7 +134,7 @@ public class FuncTest {
             );
 
             backend = new MidonetBackendService(cfg.backend(), curator, curator,
-                                                null /* metricRegistry */,
+                                                new MetricRegistry(),
                                                 scala.Option.apply(null)) {
                     @Override
                     public void setup(StateTableStorage storage) {
