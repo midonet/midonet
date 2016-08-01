@@ -19,29 +19,25 @@ import java.util.UUID
 import java.util.{HashSet => JSet}
 
 import scala.util.Random
-
 import scala.collection.JavaConversions._
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{Bridge => ClusterBridge,
-                                 Router => ClusterRouter,
-                                 PortGroup => ClusterPortGroup,
-                                 _}
+import org.midonet.cluster.data.TunnelZone.HostConfig
+import org.midonet.cluster.data.{Bridge => ClusterBridge, PortGroup => ClusterPortGroup, Router => ClusterRouter, _}
 import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
+import org.midonet.cluster.data.ports.{BridgePort, RouterPort, VxLanPort}
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
 import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
+import org.midonet.midolman.rules.{Condition, FragmentPolicy, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{IPv4Subnet, TCP, MAC}
-import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
-                                      HealthMonitor}
-import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC, TCP}
+import org.midonet.cluster.data.l4lb.{HealthMonitor, LoadBalancer, Pool, PoolMember, VIP}
+import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod, VipSessionPersistence}
 
 trait VirtualConfigurationBuilders {
 
@@ -233,11 +229,16 @@ trait VirtualConfigurationBuilders {
 
     def greTunnelZone(name: String): TunnelZone = {
         val tunnelZone = new TunnelZone().
-            setName("default").
+            setName(name).
             setType(TunnelZone.Type.gre)
         clusterDataClient().tunnelZonesCreate(tunnelZone)
         Thread.sleep(50)
         tunnelZone
+    }
+
+    def addTunnelZoneMember(tz: TunnelZone, host: Host, ip: IPv4Addr): Unit = {
+        val hostConfig = new HostConfig(host.getId).setIp(ip)
+        clusterDataClient().tunnelZonesAddMembership(tz.getId, hostConfig)
     }
 
     def newBridge(bridge: ClusterBridge): ClusterBridge = {

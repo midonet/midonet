@@ -479,8 +479,10 @@ object DhcpValueParser {
 
 object DhcpImpl {
     def apply(dataClient: DataClient, inPort: Port, request: DHCP,
-              sourceMac: MAC, mtu: Option[Short], log: Logger) =
-        new DhcpImpl(dataClient, request, sourceMac, mtu, log).handleDHCP(inPort)
+              sourceMac: MAC, underlayMtu: Short, configMtu: Short,
+              log: Logger) = {
+        new DhcpImpl(dataClient, request, sourceMac, underlayMtu, configMtu, log).handleDHCP(inPort)
+    }
 }
 
 class DhcpException extends Exception {
@@ -492,7 +494,8 @@ object MalformedDhcpRequestException extends DhcpException {}
 
 class DhcpImpl(val dataClient: DataClient,
                val request: DHCP, val sourceMac: MAC,
-               val mtu: Option[Short], val log: Logger) {
+               val underlayMtu: Short, val configMtu: Short,
+               val log: Logger) {
     import DhcpValueParser._
 
     private var serverAddr: IPv4Addr = null
@@ -554,7 +557,7 @@ class DhcpImpl(val dataClient: DataClient,
     private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
         getHostAndAssignedSubnet(port) match {
             case (Some(host: Host), Some(sub: Subnet)) =>
-                log.debug(s"Found DHCP static assignment for MAC $sourceMac => "+
+                log.debug(s"Found DHCP static assignment for MAC $sourceMac => " +
                           s"${host.getName} @ ${host.getIp}")
 
                 // TODO(pino): the server MAC should be in configuration.
@@ -569,13 +572,19 @@ class DhcpImpl(val dataClient: DataClient,
                         .map { _.toBytes }
                 opt121Routes = sub.getOpt121Routes
 
+                // NOTES on MTU:
+                // - We should never send a DHCP offer MTU option higher than the underlayMtu.
+                // - Subnet mtu takes precedence over global configuration
+
                 (sub.getInterfaceMTU match {
-                    case 0 => mtu
-                    case s: Short => Some(s)
+                    case 0 =>
+                        Some(Math.min(configMtu, underlayMtu).toShort)
+                    case subnetMtu: Short =>
+                        Some(Math.min(subnetMtu, underlayMtu).toShort)
                 }) match {
-                    case Some(mtu) =>
-                        interfaceMTU = mtu
-                        log.debug(s"Building DHCP reply for MAC $sourceMac with MTU $mtu")
+                    case Some(minMtu) =>
+                        interfaceMTU = minMtu
+                        log.debug(s"Building DHCP reply for MAC $sourceMac with MTU $interfaceMTU")
                         makeDhcpReply(port, host)
                     case _ =>
                         interfaceMTU = 0
