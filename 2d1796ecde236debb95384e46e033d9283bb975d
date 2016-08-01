@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_34665ded",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/rule/RuleLogEventChannel.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-01T10:57:06Z",
+      "side": 1,
+      "message": "just use AbstractService for this rather than rolling your own.",
+      "revId": "2d1796ecde236debb95384e46e033d9283bb975d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f45b5520",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/rule/RuleLogEventChannel.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-01T10:57:06Z",
+      "side": 1,
+      "message": "See comment from PS11",
+      "range": {
+        "startLine": 114,
+        "startChar": 29,
+        "endLine": 114,
+        "endChar": 33
+      },
+      "revId": "2d1796ecde236debb95384e46e033d9283bb975d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_146119d3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/rule/RuleLogEventHandler.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-01T10:57:06Z",
+      "side": 1,
+      "message": "see comment from PS11",
+      "range": {
+        "startLine": 121,
+        "startChar": 17,
+        "endLine": 121,
+        "endChar": 24
+      },
+      "revId": "2d1796ecde236debb95384e46e033d9283bb975d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
