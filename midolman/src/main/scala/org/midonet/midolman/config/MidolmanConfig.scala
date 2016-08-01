@@ -247,9 +247,7 @@ class FlowStateConfig(val conf: Config, val schema: Config)
                                                 TimeUnit.MILLISECONDS) millis
     def logDirectory: String = getString(s"$prefix.log_directory")
     def legacyPushState: Boolean = getBoolean(s"$prefix.legacy_push_state")
-    def legacyReadState: Boolean = getBoolean(s"$prefix.legacy_read_state")
     def localPushState: Boolean = getBoolean(s"$prefix.local_push_state")
-    def localReadState: Boolean = getBoolean(s"$prefix.local_read_state")
     def connectionTimeout: Int = getDuration(s"$prefix.connection_timeout",
                                         TimeUnit.MILLISECONDS).toInt
 }
