@@ -17,10 +17,9 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConversions._
-
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronBgpPeer, NeutronBgpSpeaker, NeutronPort, NeutronRoute, NeutronRouter, NeutronSubnet}
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.translators.RouteManager.extraRouteId
@@ -138,15 +137,21 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
 
 
     def addNetworks(router: Router): OperationList = {
+        val ops = new OperationListBuffer
         val rPorts = storage.getAll(classOf[Port], router.getPortIdsList).await()
         val rPortPeerIds = rPorts.map(_.getPeerId)
         val nPorts = storage.getAll(classOf[NeutronPort], rPortPeerIds).await()
 
-        for (nPort <- nPorts.toList) yield {
-            val subId = nPort.getFixedIpsList.get(0).getSubnetId
-            val sub = storage.get(classOf[NeutronSubnet], subId).await()
-            Create(makeBgpNetwork(router.getId, sub.getCidr, nPort.getId))
+        for (nPort <- nPorts.toList) {
+            val netId = nPort.getNetworkId
+            val net = storage.get(classOf[NeutronNetwork], netId).await()
+            if (!net.getExternal) {
+                val subId = nPort.getFixedIpsList.get(0).getSubnetId
+                val sub = storage.get(classOf[NeutronSubnet], subId).await()
+                ops += Create(makeBgpNetwork(router.getId, sub.getCidr, nPort.getId))
+            }
         }
+        ops.toList
     }
 
     def scheduleService(portId: UUID, routerId: UUID): OperationList = {

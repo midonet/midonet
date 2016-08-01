@@ -362,6 +362,50 @@ class BgpTranslationIT extends C3POMinionTestBase {
         }
     }
 
+    "BgpPeerTranslator" should "not add external networks to " +
+                               "the list of peer networks" in {
+        val rtrId = createRouter(10)
+        val rifPortId = createNetworkAndRouterInterface(
+            20, rtrId, "10.0.0.0/24", "10.0.0.1")
+        val rifPort2Id = createNetworkAndRouterInterface(
+            30, rtrId, "10.0.1.0/24", "10.0.1.1", external = true)
+        val peerId = createBgpPeer(40, rtrId, "30.0.0.1")
+        val peer2Id = createBgpPeer(50, rtrId, "40.0.0.1")
+        eventually {
+            checkQuaggaContainer(rtrId)
+            checkBgpPeer(rtrId, peerId)
+            checkBgpPeer(rtrId, peer2Id)
+            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+            checkNoBgpNetwork(rifPort2Id)
+        }
+    }
+
+    "BgpPeerTranslator" should "not add external networks to " +
+                               "the list of peer networks " +
+                               "after the peer has been created" in {
+
+        val rtrId = createRouter(10)
+        val rifPortId = createNetworkAndRouterInterface(
+            20, rtrId, "10.0.0.0/24", "10.0.0.1")
+        val peerId = createBgpPeer(40, rtrId, "30.0.0.1")
+        val peer2Id = createBgpPeer(50, rtrId, "40.0.0.1")
+        eventually {
+            checkQuaggaContainer(rtrId)
+            checkBgpPeer(rtrId, peerId)
+            checkBgpPeer(rtrId, peer2Id)
+            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+        }
+        val rifPort2Id = createNetworkAndRouterInterface(
+            30, rtrId, "10.0.1.0/24", "10.0.1.1", external = true)
+        eventually {
+            checkQuaggaContainer(rtrId)
+            checkBgpPeer(rtrId, peerId)
+            checkBgpPeer(rtrId, peer2Id)
+            checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
+            checkNoBgpNetwork(rifPort2Id)
+        }
+    }
+
     def checkRoutesAndNetworks(rId: UUID, numRoutes: Int,
                                oldRts: Option[Iterable[NeutronRoute]] = None,
                                exists: Boolean = true)
@@ -380,9 +424,10 @@ class BgpTranslationIT extends C3POMinionTestBase {
     }
 
     private def createNetworkAndRouterInterface(firstTaskId: Int, rtrId: UUID,
-                                                cidr: String, ipAddr: String)
+                                                cidr: String, ipAddr: String,
+                                                external: Boolean = false)
     : UUID = {
-        val nwId = createTenantNetwork(firstTaskId)
+        val nwId = createTenantNetwork(firstTaskId, external = external)
         val snId = createSubnet(firstTaskId + 1, nwId, cidr)
         val rifPortId = createRouterInterfacePort(
             firstTaskId + 2, nwId, snId, rtrId, ipAddr)
