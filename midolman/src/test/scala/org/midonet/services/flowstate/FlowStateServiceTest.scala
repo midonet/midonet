@@ -130,8 +130,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
                 @volatile var second_storage: FlowStateStorageWriter = _
 
                 override def run: Unit = {
-                    storage = handler.getLegacyStorage
-                    second_storage = handler.getLegacyStorage
+                    storage = handler.getLegacyStorage.get
+                    second_storage = handler.getLegacyStorage.get
                 }
             }
             val executor1 = new HandlingThread()
@@ -237,12 +237,12 @@ class FlowStateServiceTest extends FlowStateBaseTest
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
                 numConntracks = 1, numNats = 1)
+            val mockedLegacyStorage = handler.getLegacyStorage.get
 
             When("The message is handled")
             handler.channelRead0(null, datagram)
 
             Then("The message received by the handler is sent to legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage
             verify(mockedLegacyStorage, times(1)).touchConnTrackKey(
                 mockito.eq(protos.conntrackKeys.head),
                 mockito.eq(protos.ingressPort), mockito.any())
@@ -268,7 +268,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The message received by the handler is sent to legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage
+            val mockedLegacyStorage = handler.getLegacyStorage.get
             verify(mockedLegacyStorage, times(1)).touchConnTrackKey(
                 mockito.eq(protos.conntrackKeys.head),
                 mockito.eq(protos.ingressPort), mockito.any())
@@ -292,7 +292,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The message is ignored in legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage
+            val mockedLegacyStorage = handler.getLegacyStorage.get
             verify(mockedLegacyStorage, times(0)).touchConnTrackKey(mockito.any(),
                 mockito.any(),
                 mockito.any())
@@ -319,7 +319,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The handler does not send any key to legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage
+            val mockedLegacyStorage = handler.getLegacyStorage.get
             verify(mockedLegacyStorage, times(0)).touchConnTrackKey(mockito.any(),
                 mockito.any(),
                 mockito.any())
@@ -342,7 +342,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The handler sends all keys to legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage
+            val mockedLegacyStorage = handler.getLegacyStorage.get
             verify(mockedLegacyStorage, times(2)).touchConnTrackKey(
                 mockito.any(), mockito.eq(protos.ingressPort), mockito.any())
             verify(mockedLegacyStorage, times(2)).touchNatKey(
@@ -516,7 +516,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The handler does not send state to cassandra")
-            val mockedStorage = handler.getLegacyStorage
+            val mockedStorage = handler.getLegacyStorage.get
             verify(mockedStorage, times(0)).touchConnTrackKey(mockito.any(),
                                                               mockito.any(),
                                                               mockito.any())
