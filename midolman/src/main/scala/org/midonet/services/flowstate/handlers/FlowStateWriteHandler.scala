@@ -33,7 +33,7 @@ import org.midonet.cluster.storage.{FlowStateStorage, FlowStateStorageWriter}
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
 import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
-import org.midonet.packets.SbeEncoder
+import org.midonet.packets.{FlowStateEthernet, SbeEncoder}
 import org.midonet.services.flowstate.FlowStateService._
 import org.midonet.services.flowstate.stream.{Context, FlowStateWriter}
 import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType}
@@ -74,6 +74,13 @@ class FlowStateWriteHandler(context: Context,
         }
     }
 
+    protected val bufferProvider: ThreadLocal[Array[Byte]] =
+        new ThreadLocal[Array[Byte]] {
+            override def initialValue(): Array[Byte] = {
+                new Array[Byte](FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
+            }
+        }
+
     protected[flowstate] val portWriters = new ConcurrentHashMap[UUID, FlowStateWriter]()
 
     @volatile
@@ -102,9 +109,8 @@ class FlowStateWriteHandler(context: Context,
 
     private def handleFlowStateMessage(buffer: ByteBuffer): Unit = {
         val encoder = new SbeEncoder()
-        val data = new Array[Byte](buffer.capacity())
-        buffer.get(data)
-        val flowStateMessage = encoder.decodeFrom(data)
+        buffer.get(bufferProvider.get, 0, buffer.capacity)
+        encoder.decodeFrom(bufferProvider.get)
         pushNewState(encoder)
     }
 
