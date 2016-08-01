@@ -817,6 +817,9 @@ MidoNet BGP peer object is created with the same ID on the router.
 If there is no Quagga container associated with this router, create one, with
 its ID derived from the router ID.
 
+For each non-external network interface attached to this router, create a
+BGP network on this router.
+
 Create a redirect rule on the router so that BGP traffic is forwarded to the
 container.
 
