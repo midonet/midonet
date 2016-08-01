@@ -41,7 +41,7 @@ object ExecutorsModule {
       */
     def apply(config: ExecutorsConfig, log: Logger): ScheduledExecutorService = {
         var poolSize = Runtime.getRuntime.availableProcessors()
-        if (poolSize < config.threadPoolSize) {
+        if (poolSize > config.threadPoolSize) {
             poolSize = config.threadPoolSize
         }
         log info s"Cluster thread pool started with $poolSize threads"
