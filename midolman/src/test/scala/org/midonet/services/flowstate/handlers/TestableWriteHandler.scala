@@ -18,24 +18,28 @@ package org.midonet.services.flowstate.handlers
 import java.util
 import java.util.UUID
 
-import org.midonet.cluster.storage.FlowStateStorageWriter
+import com.datastax.driver.core.Session
+
+import org.mockito.Mockito._
+
+import org.midonet.cluster.storage.FlowStateStorage
+import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
+import org.midonet.packets.NatState.NatKeyStore
 import org.midonet.packets.SbeEncoder
 import org.midonet.services.flowstate.stream
 import org.midonet.services.flowstate.stream.FlowStateWriter
-import org.mockito.Mockito._
 
 class TestableWriteHandler (context: stream.Context)
-    extends FlowStateWriteHandler(context, null) {
+    extends FlowStateWriteHandler(context, mock(classOf[Session])) {
 
-    private var legacyStorage: FlowStateStorageWriter = _
+    private var legacyStorage: FlowStateStorage[ConnTrackKeyStore, NatKeyStore] = _
     private var writes = 0
 
-    def getStorageProvider = storageProvider
     def getWrites = writes
 
     override def getLegacyStorage = {
         if (legacyStorage eq null)
-            legacyStorage = mock(classOf[FlowStateStorageWriter])
+            legacyStorage = mock(classOf[FlowStateStorage[ConnTrackKeyStore, NatKeyStore]])
         legacyStorage
     }
 

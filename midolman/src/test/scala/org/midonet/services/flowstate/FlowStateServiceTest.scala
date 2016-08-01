@@ -237,12 +237,12 @@ class FlowStateServiceTest extends FlowStateBaseTest
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
                 numConntracks = 1, numNats = 1)
+            val mockedLegacyStorage = handler.getLegacyStorage
 
             When("The message is handled")
             handler.channelRead0(null, datagram)
 
             Then("The message received by the handler is sent to legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage
             verify(mockedLegacyStorage, times(1)).touchConnTrackKey(
                 mockito.eq(protos.conntrackKeys.head),
                 mockito.eq(protos.ingressPort), mockito.any())
