@@ -20,9 +20,12 @@ import java.util.UUID
 
 import scala.collection.mutable
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import akka.actor.{Actor, ActorRef, Stash}
 import akka.pattern.pipe
+
+import org.apache.zookeeper.KeeperException.ConnectionLossException
 
 import org.midonet.cluster.client.BGPListBuilder
 import org.midonet.cluster.data.{AdRoute, BGP, Route}
@@ -249,7 +252,12 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             case Disabled => AllStates
         }
         theBgpSession foreach {
-            bgp => dataClient.bgpSetStatus(bgp.getId, next.toString)
+            bgp =>
+                try dataClient.bgpSetStatus(bgp.getId, next.toString)
+                catch {
+                    case _: ConnectionLossException =>
+                    case NonFatal(e) => log.warn("Failed to set BGP status", e)
+                }
         }
         _phase = next
         context.become(receive)
