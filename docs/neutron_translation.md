@@ -347,7 +347,8 @@ The following fields are updated in the MidoNet router:
 'name' could be updated too, but it is unused in MidoNet.
 
 For each extra route provided, add a new route entry in the routing table of
-the router.
+the router. If BGP is configured on this router, then add a new BGP network
+on this router corresponding to the extra route.
 
 ### DELETE
 
@@ -820,6 +821,9 @@ its ID derived from the router ID.
 For each non-external network interface attached to this router, create a
 BGP network on this router.
 
+For each 'extra route' associated with this router, create a BGP network
+on this router.
+
 Create a redirect rule on the router so that BGP traffic is forwarded to the
 container.
 
@@ -838,6 +842,9 @@ MidoNet BGP peer object is also deleted.
 
 If there is no more BGP peer configured on this router, delete the Quagga
 container and the redirect rule.
+
+If there are extra routes associated with this router, delete all of the
+corresponding BGP networks.
 
 
 ## PORTBINDING
