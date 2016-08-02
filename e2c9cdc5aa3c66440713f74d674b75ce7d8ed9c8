@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a0b22847",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-02T06:29:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e0103050",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 8
+      },
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e03ef0b6",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2016-08-02T06:06:29Z",
       "side": 1,
       "message": "You have this aliased to JList in the imports; might as well use it.",
+      "range": {
+        "startLine": 141,
+        "startChar": 24,
+        "endLine": 141,
+        "endChar": 38
+      },
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_00b2f44b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-02T06:29:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e03ef0b6",
       "range": {
         "startLine": 141,
         "startChar": 24,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e0acb0ee",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-02T06:29:21Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "baa041b7_c01bec71",
+      "range": {
+        "startLine": 162,
+        "startChar": 57,
+        "endLine": 162,
+        "endChar": 71
+      },
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a016a846",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2016-08-02T04:41:56Z",
       "side": 1,
       "message": "is the default value necessary?",
+      "range": {
+        "startLine": 409,
+        "startChar": 56,
+        "endLine": 409,
+        "endChar": 71
+      },
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_40a35c00",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-02T06:29:21Z",
+      "side": 1,
+      "message": "It is not. Removed.",
+      "parentUuid": "baa041b7_a016a846",
       "range": {
         "startLine": 409,
         "startChar": 56,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_20a6180f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-02T06:29:21Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "baa041b7_80284487",
+      "range": {
+        "startLine": 421,
+        "startChar": 56,
+        "endLine": 421,
+        "endChar": 71
+      },
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_406c7ccf",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
         "patchSetId": 4
@@ -128,6 +248,24 @@
       "writtenOn": "2016-08-02T06:06:29Z",
       "side": 1,
       "message": "How about:\n\n    def checkDhcpHostExtraOpts(dhcpId: UUID, expectedOpts: List[ExtraDhcpOpt]): Unit \u003d {\n        val dhcp \u003d storage.get(classOf[Dhcp], dhcpId).await()\n        val eopts \u003d dhcp.getHostsList.get(0)\n                        .getExtraDhcpOptsList.asScala\n                        .map(e \u003d\u003e (e.getName, e.getValue))\n        val expectedEopts \u003d expectedOpts.map(e \u003d\u003e (e.getOptName, e.getOptValue))\n        eopts should conatain theSameElementsAs expectedEOpts\n    }\n\nI think this should work for the case at lines 438-442, as well, so you can use this four times.",
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_60a0a0f4",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-02T06:29:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_406c7ccf",
       "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
