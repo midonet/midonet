@@ -111,10 +111,14 @@ Note that in MidoNet a router port could only be assigned at most one IP
 address.  This is a current limitation of MidoNet.  Also, MidoNet does not
 store IP addresses on the MidoNet network ports.
 
-If the port is a VIF port (device_owner == 'compute:nova'):
+If the port is not a VIF port (device_owner == 'compute:nova'):
 
  * For each IP address assigned to the port, create a DHCP Host entry.  Copy
    the DHCP extra options if they are provided.
+
+A port is trusted unless it's a VIF port.
+If the port is not a trusted port:
+
  * Create the security group - port bindings as follows:
 
       * Create new outbound and inbound chains for the port
@@ -159,17 +163,15 @@ For each IP address on the port, update the MidoNet network ARP table entry:
 
   * mac_address, ip_address
 
+Update security rules if necessary.  See CREATE for translation details.
+
+ * Inbound/outbound/anti-spoof chains and rules
+ * IP address group association
+
 If the port is a VIF port (device_owner == 'compute:nova'):
 
- * Refresh the chain rules associated with the new set of SG rules supplied in
-   the request.
  * If IP address changed, refresh the DHCP Host entries on the MidoNet network.
  * Update the DHCP extra options in DHCP Host entries.
- * If IP address or security group association changed, update the ip address
-   group - port associations appropriately.  Make sure that this is handled
-   even if port security is disabled because it is possible that a single
-   update request could disable port security and change security group
-   associations.
 
 If the port is a DHCP port (device_owner == 'network:dhcp'):
 
@@ -192,13 +194,16 @@ indicates unbinding.  Perform unbinding in such case.
 
 ### DELETE
 
+If the port is not a trusted port:
+
+ * Delete all the associations with the security groups by removing its IP
+   address from the IP address groups.
+ * Remove the chains associated with the port.
+
 If the port is a VIF port (device_owner == 'compute:nova'):
 
  * Disassociate floating IP (if associated) by removing the static DNAT/SNAT
    rules from the chains of the tenant router.
- * Delete all the associations with the security groups by removing its IP
-   address from the IP address groups.
- * Remove the chains associated with the port.
  * Remove the DHCP Host entries referencing the each IP addresses of this port
    on the MidoNet network.
 

@@ -199,6 +199,10 @@ object PortManager {
     def isVipPort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.LOADBALANCER
 
+    // NOTE(yamamoto): This is intended to be sync with Neutron's
+    // is_port_trusted.
+    def isTrustedPort(nPort: NeutronPortOrBuilder) = !isVifPort(nPort)
+
     def hasMacAndArpTableEntries(nPort: NeutronPortOrBuilder): Boolean =
         isVifPort(nPort) || isRouterInterfacePort(nPort) ||
         isRouterGatewayPort(nPort)
