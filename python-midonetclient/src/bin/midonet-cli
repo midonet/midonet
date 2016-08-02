@@ -269,7 +269,10 @@ class RelativeObjectRef(ObjectRef):
             try:
                 o = self._dereference(uuid, path)
                 if o: return o
-            except Exception as e:
+            except exc.HTTPNotFound:
+                # If the reference was deleted we still return the UUID
+                return DeletedResource(uuid)
+            except Exception:
                 pass
         return None
 
@@ -304,7 +307,7 @@ class L4PortNumber(ValueType):
     def is_valid(self, value):
         try:
             port = int(value)
-            return  port >= 0 and port <= 65535
+            return 0 <= port <= 65535
         except:
             return False
 
@@ -490,7 +493,7 @@ class ListAttr(SingleAttr):
         vals = value
         if isinstance(self.element_type, ObjectRef):
             objs = map(lambda v: self.element_type.dereference(v), vals)
-            vals = map(lambda o: ":".join(aliases.add(o)), objs)
+            vals = [o.get_id() if isinstance(o, DeletedResource) else ":".join(aliases.add(o)) for o in objs]
         return ",".join(vals)
 
     def _cli_to_api(self, value):
@@ -1141,6 +1144,21 @@ class FieldType():
                 v = "!%s" % (v)
             return v
         return self.value
+
+class DeletedResource:
+    """
+    This class serves as a wrapper for data on previously deleted resources
+    that we still want to show on the CLI. e.g: In the current implementation
+    if a certain Port associated with a Rule is deleted, these references are
+    not. We still want to show the Port id in the CLI when a client wants to
+    see the rule.
+    """
+    def __init__(self, id):
+        self.id = id
+
+    def get_id(self):
+        return self.id
+
 
 class ObjectType(object):
     """ This is the base class to define CLI wrappers around REST API objects.
