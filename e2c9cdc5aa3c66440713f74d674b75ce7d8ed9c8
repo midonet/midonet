@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e0103050",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-02T04:41:56Z",
+      "side": 1,
+      "message": "MI?",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 8
+      },
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c01bec71",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-02T04:41:56Z",
+      "side": 1,
+      "message": "is the default value necessary?",
+      "range": {
+        "startLine": 162,
+        "startChar": 57,
+        "endLine": 162,
+        "endChar": 71
+      },
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a016a846",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-02T04:41:56Z",
+      "side": 1,
+      "message": "is the default value necessary?",
+      "range": {
+        "startLine": 409,
+        "startChar": 56,
+        "endLine": 409,
+        "endChar": 71
+      },
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_80284487",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-02T04:41:56Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 421,
+        "startChar": 56,
+        "endLine": 421,
+        "endChar": 71
+      },
+      "revId": "e2c9cdc5aa3c66440713f74d674b75ce7d8ed9c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
