@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_00fb147a",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-02T08:45:09Z",
+      "side": 1,
+      "message": "there seems to be List() vs null confusion.",
+      "revId": "b5a6b6030bf300f88200d9e76d052d41370280cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
