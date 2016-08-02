@@ -68,8 +68,7 @@ class StorageMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry) {
     registry.register(name(classOf[StorageGauge], "typeObservableList"),
                       gauge { () =>
         val classes = zoom.startedClassObservables
-        classes.foldLeft(
-            new StringBuilder)((builder, clazz) => {
+        classes.foldLeft(new StringBuilder)((builder, clazz) => {
             builder.append(clazz.getName + "\n")
         }).toString()
     })
