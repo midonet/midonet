@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a0890871",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/BgpPeerTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-02T06:46:31Z",
+      "side": 1,
+      "message": "This can have high latency if the router has many ports. We should await futures in parallel where possible. Maybe something like this (untested):\n\n        val netIds \u003d nPorts.map(_.getNetworkId)\n        val nNets \u003d storage.getAll(classOf[NeutronNetwork], netIds).await()\n        val opFtrs \u003d for ((nPort, nNet) \u003c- nPorts.zip(nNets)\n                          if !nNet.getExternal) yield {\n            val subId \u003d nPort.getFixedIpsList.get(0).getSubnetId\n            val subFtr \u003d storage.get(classOf[NeutronSubnet], subId)\n            subFtr.map(sub \u003d\u003e makeBgpNetwork(router.getId, sub.getCidr, nPort.getId))\n        }\n        opFtrs.map(_.await()).toList",
+      "range": {
+        "startLine": 145,
+        "startChar": 0,
+        "endLine": 154,
+        "endChar": 18
+      },
+      "revId": "5cace5e491a6dad680fa5ffed0f9d8d89e922f33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
