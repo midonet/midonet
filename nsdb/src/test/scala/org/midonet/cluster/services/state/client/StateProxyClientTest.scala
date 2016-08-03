@@ -33,7 +33,6 @@ import io.netty.channel.nio.NioEventLoopGroup
 import org.junit.runner.RunWith
 import org.mockito.Matchers.any
 import org.mockito.Mockito
-import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
@@ -44,6 +43,7 @@ import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.rpc.State
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify.Update
 import org.midonet.cluster.rpc.State.{ProxyRequest, ProxyResponse}
+import org.midonet.util.MidonetEventually
 
 abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
 
@@ -94,16 +94,11 @@ abstract class TestServerHandler(server: TestServer) extends Observer[Message] {
     protected def onUnsubscribe(requestId: Long, msg: ProxyRequest.Unsubscribe): Unit
 }
 
-trait ExtendedEventually extends Eventually {
-    val expiration: Duration = 30 seconds
-    override implicit val patienceConfig = PatienceConfig(timeout = scaled(expiration))
-}
-
 @RunWith(classOf[JUnitRunner])
 class StateProxyClientTest extends FeatureSpec
                                    with Matchers
                                    with GivenWhenThen
-                                   with ExtendedEventually {
+                                   with MidonetEventually {
 
     val goodUUID = UUID.randomUUID()
     val existingTable = new StateSubscriptionKey(
@@ -852,6 +847,62 @@ class StateProxyClientTest extends FeatureSpec
             val took = System.nanoTime() - startTime
             val ratio = took.toDouble / hardDelay.toNanos
             ratio should be >= 0.8
+            t.close()
+        }
+        scenario("regression - close before connect callback") {
+
+            Given("a started client")
+            val softDelay = 200 milliseconds
+            val hardDelay = 500 milliseconds
+            val t = new TestObjects(softDelay, 0, hardDelay)
+
+            @volatile var blocking = true
+            @volatile var ready = false
+
+            And("A busy execution context")
+            Future{
+                while (blocking) {
+                    ready = true
+                    Thread.sleep(100)
+                }
+            }(t.exctx)
+            while (!ready) {blocking = true}
+
+            t.client.start()
+
+            And("an observer")
+            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observer).isUnsubscribed shouldBe false
+
+            eventually {
+                Mockito.verify(observer).onNext(Connected)
+            }
+
+            eventually {
+                t.server.hasClient shouldBe true
+            }
+
+            When("Server closes the connection")
+            t.server.setOffline()
+
+            And("The execution context resumes after the close")
+            Future {
+                Thread.sleep(1000)
+                blocking = false
+            }
+
+            Then("The client realises it's disconnected")
+
+            eventually {
+                Mockito.verify(observer).onNext(Disconnected)
+            }
+
+            t.server.setOnline()
+
+            Then("And it reconnects after a while")
+            eventually {
+                Mockito.verify(observer, Mockito.times(2)).onNext(Connected)
+            }
             t.close()
         }
 

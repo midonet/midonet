@@ -79,7 +79,6 @@ abstract class PersistentConnection[S <: Message, R <: Message]
     protected val log =
         Logger(LoggerFactory.getLogger("org.midonet.nsdb.state-proxy-client"))
     private val state = new AtomicReference(Init : State)
-
     private var currentAddress: Option[MidonetServiceHostAndPort] = None
 
     def isConnected: Boolean = cond(state.get) { case Connected(_) => true }
@@ -190,6 +189,9 @@ abstract class PersistentConnection[S <: Message, R <: Message]
 
             case Dead =>
 
+            case Connecting =>
+                log debug s"Detected early close"
+
             case _ =>
                 throw new UnexpectedStateException(current)
         }
@@ -214,7 +216,17 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                             if (state.compareAndSet(Connecting,
                                                     Connected(connection))) {
                                 log.info(s"$this Connection established")
+                                // if a close event arrived while in Connecting
+                                // state, it needs to be re-fired after onConnect
+                                // to ensure that a re-connection is scheduled
+                                val earlyClosed = state.get match {
+                                    case Connected(_) => !connection.isConnected
+                                    case _ => false
+                                }
                                 onConnect()
+                                if (earlyClosed) {
+                                    onCompleted()
+                                }
                             } else {
                                 connection.close()
                             }
