@@ -17,7 +17,7 @@
 package org.midonet.cluster.services.state.client
 
 import java.nio.channels.ClosedChannelException
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 import java.util.concurrent.ScheduledExecutorService
 
 import scala.util.{Failure, Success}
@@ -79,7 +79,7 @@ abstract class PersistentConnection[S <: Message, R <: Message]
     protected val log =
         Logger(LoggerFactory.getLogger("org.midonet.nsdb.state-proxy-client"))
     private val state = new AtomicReference(Init : State)
-
+    private val earlyClosed = new AtomicBoolean(false)
     private var currentAddress: Option[MidonetServiceHostAndPort] = None
 
     def isConnected: Boolean = cond(state.get) { case Connected(_) => true }
@@ -190,6 +190,10 @@ abstract class PersistentConnection[S <: Message, R <: Message]
 
             case Dead =>
 
+            case Connecting =>
+                log debug s"Detected early close"
+                earlyClosed.set(true)
+
             case _ =>
                 throw new UnexpectedStateException(current)
         }
@@ -205,6 +209,7 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                 case Some(address) =>
                     log.info(s"$this Connecting to $address")
 
+                    earlyClosed.set(false)
                     val connection = new ConnectionType(address.address,
                                                         address.port,
                                                         this,
@@ -215,6 +220,9 @@ abstract class PersistentConnection[S <: Message, R <: Message]
                                                     Connected(connection))) {
                                 log.info(s"$this Connection established")
                                 onConnect()
+                                if (earlyClosed.compareAndSet(true, false)) {
+                                    onCompleted()
+                                }
                             } else {
                                 connection.close()
                             }
