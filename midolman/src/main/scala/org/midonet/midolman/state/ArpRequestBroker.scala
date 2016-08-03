@@ -142,8 +142,9 @@ class ArpRequestBroker(config: MidolmanConfig,
     def shouldProcess(): Boolean = {
         val tables = brokers.values.iterator()
         var should = false
-        while (tables.hasNext) {
-            should ||= tables.next().shouldProcess()
+        while (tables.hasNext && !should) {
+            val next = tables.next()
+            should = should || next.shouldProcess()
         }
         should
     }
