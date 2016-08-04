@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_17e0f127",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-04T03:46:19Z",
+      "side": 1,
+      "message": "why to switch to disruptor?\nfor performance?",
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f7da2d77",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-04T03:46:19Z",
+      "side": 1,
+      "message": "is \"All\" necessary?  (just about naming)",
+      "range": {
+        "startLine": 52,
+        "startChar": 15,
+        "endLine": 52,
+        "endChar": 18
+      },
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_17c7d196",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-04T03:46:19Z",
+      "side": 1,
+      "message": "is single producer ok for one-to-one case?",
+      "range": {
+        "startLine": 153,
+        "startChar": 13,
+        "endLine": 153,
+        "endChar": 33
+      },
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b7b70520",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-04T03:46:19Z",
+      "side": 1,
+      "message": "why 50us?",
+      "range": {
+        "startLine": 154,
+        "startChar": 66,
+        "endLine": 154,
+        "endChar": 68
+      },
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_573f9986",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-04T03:46:19Z",
+      "side": 1,
+      "message": "unused vars",
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
