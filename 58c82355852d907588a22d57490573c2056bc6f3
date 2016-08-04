@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f7f58d82",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T07:53:29Z",
+      "side": 1,
+      "message": "This is another state variable, so it can be done much cleaner. Rather that the boolean, just set the state to Dead. Then during the completion, in connect(), you it\u0027ll go to the else branch and clean the connection.",
+      "range": {
+        "startLine": 195,
+        "startChar": 16,
+        "endLine": 195,
+        "endChar": 27
+      },
+      "revId": "58c82355852d907588a22d57490573c2056bc6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
