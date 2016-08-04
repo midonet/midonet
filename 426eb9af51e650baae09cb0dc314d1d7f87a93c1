@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b5a37d42",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-08-04T15:18:58Z",
+      "side": 1,
+      "message": "The method that throws the exception is getFlowStateWriter and the only exception is the \"too many open files\" (FileSystemException). \n\nNow, if one port in the matchingPorts fails for this reason, the next one will also probably fail. I just wanted to avoid several attempts that will invariably fail. The log is done closer to the failure in FlowStateManager.open.\n\nI can change it to make it more fine grained if this explanation does not convince you.",
+      "parentUuid": "baa041b7_75f3b573",
+      "range": {
+        "startLine": 210,
+        "startChar": 8,
+        "endLine": 220,
+        "endChar": 9
+      },
+      "revId": "426eb9af51e650baae09cb0dc314d1d7f87a93c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_158c69d8",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateManager.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-08-04T15:12:28Z",
       "side": 1,
       "message": "refactor this to a separate method/methods ? it\u0027s getting a bit hard to read",
+      "range": {
+        "startLine": 81,
+        "startChar": 44,
+        "endLine": 116,
+        "endChar": 13
+      },
+      "revId": "426eb9af51e650baae09cb0dc314d1d7f87a93c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9565191f",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-08-04T15:18:58Z",
+      "side": 1,
+      "message": "will do.",
+      "parentUuid": "baa041b7_158c69d8",
       "range": {
         "startLine": 81,
         "startChar": 44,
