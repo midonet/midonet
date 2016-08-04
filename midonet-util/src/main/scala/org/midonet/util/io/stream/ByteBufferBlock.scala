@@ -120,7 +120,7 @@ class MemoryMappedBlockFactory[T <: BlockHeader](val fileChannel: FileChannel,
     extends BlockFactory[T] {
 
     def allocate(index: Int): ByteBuffer = {
-        val offset = index * blockSize
+        val offset = index * blockSize.toLong
         val bb = fileChannel.map(FileChannel.MapMode.READ_WRITE, offset, blockSize)
         blockBuilder.init(bb)
         bb
@@ -139,7 +139,7 @@ class ReadOnlyMemoryMappedBlockFactory[T <: BlockHeader](val fileChannel: FileCh
     extends BlockFactory[T] {
 
     def allocate(index: Int): ByteBuffer = {
-        val offset = index * blockSize
+        val offset = index * blockSize.toLong
         fileChannel.map(FileChannel.MapMode.READ_ONLY, offset, blockSize)
     }
 }
