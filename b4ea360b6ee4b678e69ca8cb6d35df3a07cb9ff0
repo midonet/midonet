@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_37365551",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T08:27:10Z",
+      "side": 1,
+      "message": "1) akka queue is unbounded. With a high amount of ingress traffic, like during a security scan, it will grow until it fills memory. After this happens, the agent can take half an hour or more to return to normal, if it doesn\u0027t crash first.\n2) akka allocates for every message it sends, so is not suitable for the fast path.",
+      "parentUuid": "baa041b7_17e0f127",
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f7da2d77",
         "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2016-08-04T03:46:19Z",
       "side": 1,
       "message": "is \"All\" necessary?  (just about naming)",
+      "range": {
+        "startLine": 52,
+        "startChar": 15,
+        "endLine": 52,
+        "endChar": 18
+      },
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7765fd42",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T08:27:10Z",
+      "side": 1,
+      "message": "Not really, was called AllPacketWorkers to start with, before I made it a service.",
+      "parentUuid": "baa041b7_f7da2d77",
       "range": {
         "startLine": 52,
         "startChar": 15,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_977be1f4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T08:27:10Z",
+      "side": 1,
+      "message": "We do our own multiplexing in the UpcallDatapathConnectionManager, so yes, we only have a single producer.",
+      "parentUuid": "baa041b7_17c7d196",
+      "range": {
+        "startLine": 153,
+        "startChar": 13,
+        "endLine": 153,
+        "endChar": 33
+      },
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b7b70520",
         "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
         "patchSetId": 5
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_370d358f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T08:27:10Z",
+      "side": 1,
+      "message": "Had to be something. This isn\u0027t something I want people to configure. If we don\u0027t know the ideal value ourselves, our users certainly won\u0027t. It\u0027s a trade off between CPU and latency. With this, when there\u0027s nothing on the ring buffer, we will wait 50us to check if anything has changed in the backchannels.",
+      "parentUuid": "baa041b7_b7b70520",
+      "range": {
+        "startLine": 154,
+        "startChar": 66,
+        "endLine": 154,
+        "endChar": 68
+      },
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_573f9986",
         "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
         "patchSetId": 5
@@ -99,6 +189,24 @@
       "writtenOn": "2016-08-04T03:46:19Z",
       "side": 1,
       "message": "unused vars",
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_777e1de5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T08:27:10Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "baa041b7_573f9986",
       "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
