@@ -66,7 +66,7 @@ class StateProxyProtocolHandler(manager: StateTableManager)
             manager.register(context.channel().remoteAddress(), handler)
         } catch {
             case NonFatal(e) =>
-                Log.warn(s"Unhandled exception for client registration " +
+                Log.warn("Unhandled exception for client registration " +
                          s"client=${context.channel().remoteAddress()}", e)
         }
     }
@@ -79,8 +79,11 @@ class StateProxyProtocolHandler(manager: StateTableManager)
         try {
             manager.unregister(context.channel().remoteAddress())
         } catch {
+            case e: IllegalArgumentException =>
+                Log.debug("Client unregistration during shutdown" +
+                          s"client=${context.channel().remoteAddress()}")
             case NonFatal(e) =>
-                Log.warn(s"Unhandled exception for client unregistration " +
+                Log.warn("Unhandled exception for client unregistration " +
                          s"client=${context.channel().remoteAddress()}", e)
         }
     }
@@ -145,7 +148,7 @@ class StateProxyProtocolHandler(manager: StateTableManager)
             case e: ClientUnregisteredException =>
                 sendClientUnregisteredError(context, requestId, e)
             case NonFatal(e) =>
-                Log.warn(s"Unhandled exception for " +
+                Log.warn("Unhandled exception for " +
                          s"client=${context.channel().remoteAddress()} " +
                          s"reqId=$requestId", e)
         }
@@ -170,7 +173,7 @@ class StateProxyProtocolHandler(manager: StateTableManager)
             case e: ClientUnregisteredException =>
                 sendClientUnregisteredError(context, requestId, e)
             case NonFatal(e) =>
-                Log.warn(s"Unhandled exception for " +
+                Log.warn("Unhandled exception for " +
                          s"client=${context.channel().remoteAddress()} " +
                          s"reqId=$requestId", e)
         }
