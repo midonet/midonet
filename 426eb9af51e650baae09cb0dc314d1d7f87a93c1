@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_75f3b573",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-08-04T15:12:28Z",
+      "side": 1,
+      "message": "Can this be a little bit more fine-grained? i.e.: try { writer.write() } \n\nAlso: add some debug logging maybe in the catch clause",
+      "range": {
+        "startLine": 210,
+        "startChar": 8,
+        "endLine": 220,
+        "endChar": 9
+      },
+      "revId": "426eb9af51e650baae09cb0dc314d1d7f87a93c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_158c69d8",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-08-04T15:12:28Z",
+      "side": 1,
+      "message": "refactor this to a separate method/methods ? it\u0027s getting a bit hard to read",
+      "range": {
+        "startLine": 81,
+        "startChar": 44,
+        "endLine": 116,
+        "endChar": 13
+      },
+      "revId": "426eb9af51e650baae09cb0dc314d1d7f87a93c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
