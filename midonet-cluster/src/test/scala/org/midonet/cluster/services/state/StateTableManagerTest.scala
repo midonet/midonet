@@ -69,7 +69,7 @@ class StateTableManagerTest extends FeatureSpec with Matchers
             Mockito.when(curator.getChildren).thenReturn(getChildren)
             Mockito.when(getChildren.usingWatcher(any[Watcher]()))
                    .thenReturn(getChildren)
-            Mockito.when(getChildren.inBackground(any(), any(), any()))
+            Mockito.when(getChildren.inBackground(any(), any[Object]()))
                    .thenReturn(getChildren)
             curator
         }
@@ -424,7 +424,7 @@ class StateTableManagerTest extends FeatureSpec with Matchers
 
             And("The cache requests the table entries")
             Mockito.verify(backend.getChildren).usingWatcher(any[Watcher]())
-            Mockito.verify(backend.getChildren).inBackground(any(), any(), any())
+            Mockito.verify(backend.getChildren).inBackground(any(), any[Object]())
             Mockito.verify(backend.getChildren).forPath(any())
 
             When("The client unsubscribes from the state table")
@@ -483,7 +483,7 @@ class StateTableManagerTest extends FeatureSpec with Matchers
             Mockito.verify(backend.getChildren, times(1))
                    .usingWatcher(any[Watcher]())
             Mockito.verify(backend.getChildren, times(1))
-                   .inBackground(any(), any(), any())
+                   .inBackground(any(), any[Object]())
             Mockito.verify(backend.getChildren, times(1)).forPath(any())
 
             When("The first client unsubscribes")
