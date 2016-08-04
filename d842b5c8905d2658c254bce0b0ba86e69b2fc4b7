@@ -22,6 +22,30 @@
       "revId": "d842b5c8905d2658c254bce0b0ba86e69b2fc4b7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ba280c98",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-04T13:02:34Z",
+      "side": 1,
+      "message": "I was postponing the call to onConnect() to make sure no side-effect could cause connection.isConnected to be false. But that\u0027s unlikely, as state would also change.\n\nYour suggestion needs a little rework as it will call the cleanup code when state is not Connected, causing duplication of delayed start. (Whoever set a different state already did the cleanup).\n\nAnyway, I was overcomplicating myself by double-checking state (which has been just compareAndSwap\u0027ed). I will follow up with a cleaner patch",
+      "parentUuid": "baa041b7_fa79f42f",
+      "range": {
+        "startLine": 227,
+        "startChar": 32,
+        "endLine": 227,
+        "endChar": 41
+      },
+      "revId": "d842b5c8905d2658c254bce0b0ba86e69b2fc4b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
