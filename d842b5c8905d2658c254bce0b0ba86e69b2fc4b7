@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_fa79f42f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T10:59:53Z",
+      "side": 1,
+      "message": "since we call this every time anyhow, put it before the check.\n\nonConnect()\n\nstate.get match {\n    case Connected(_) if connection.isConnected \u003d\u003e\n    case _ \u003d\u003e onCompleted()\n}\n\nIn fact, we probably don\u0027t want to notify connected. The client will see it as connected, try to do something and fail. Instead I\u0027d do:\n\nstate.get match {\n    case Connected(c) if c.isConnected \u003d\u003e onConnect()\n    case _ \u003d\u003e c.close()\n              onFailedConnection()\n              delayedStart(Connecting)\n}\n\nI\u0027m starting to think it may make sense to make put all the state transitions on a single thread (since they\u0027re non-blocking anyhow) because we don\u0027t have any guarantee about ordering of notifications.",
+      "range": {
+        "startLine": 227,
+        "startChar": 32,
+        "endLine": 227,
+        "endChar": 41
+      },
+      "revId": "d842b5c8905d2658c254bce0b0ba86e69b2fc4b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
