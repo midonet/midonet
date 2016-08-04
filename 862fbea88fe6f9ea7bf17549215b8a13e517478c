@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f548e52e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorker.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T13:26:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1aded8dc",
+      "range": {
+        "startLine": 36,
+        "startChar": 16,
+        "endLine": 36,
+        "endChar": 64
+      },
+      "revId": "862fbea88fe6f9ea7bf17549215b8a13e517478c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_fa6a1419",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorker.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2016-08-04T12:51:25Z",
       "side": 1,
       "message": "Nit: 2 words",
+      "range": {
+        "startLine": 55,
+        "startChar": 37,
+        "endLine": 55,
+        "endChar": 47
+      },
+      "revId": "862fbea88fe6f9ea7bf17549215b8a13e517478c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_154ea93a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorker.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T13:26:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_fa6a1419",
       "range": {
         "startLine": 55,
         "startChar": 37,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_753cd592",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkersService.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T13:26:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_1a05b844",
+      "range": {
+        "startLine": 74,
+        "startChar": 8,
+        "endLine": 74,
+        "endChar": 19
+      },
+      "revId": "862fbea88fe6f9ea7bf17549215b8a13e517478c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3ad2bcd1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2016-08-04T12:51:25Z",
       "side": 1,
       "message": "Maybe we should make this:\n\norg.midonet.packet-workflow.packet-workflow-$id\n\nso we can filter, also don\u0027t forget to update the loggers schema in agent.conf. Same for other new loggers.",
+      "range": {
+        "startLine": 200,
+        "startChar": 29,
+        "endLine": 200,
+        "endChar": 69
+      },
+      "revId": "862fbea88fe6f9ea7bf17549215b8a13e517478c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_953999a6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-04T13:26:15Z",
+      "side": 1,
+      "message": "I\u0027ve updated to org.midonet.packet-worker.packet-worker-$workerId\n\nagent.conf doesn\u0027t need update, because it already has org.midonet.packet-worker.",
+      "parentUuid": "baa041b7_3ad2bcd1",
       "range": {
         "startLine": 200,
         "startChar": 29,
