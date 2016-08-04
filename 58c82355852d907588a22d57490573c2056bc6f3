@@ -22,6 +22,30 @@
       "revId": "58c82355852d907588a22d57490573c2056bc6f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_fae4540d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/state/client/PersistentConnection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-04T13:02:34Z",
+      "side": 1,
+      "message": "In that case there be no recovery from Dead state and the PersistentConnection would be unable to reconnect in the future. I can\u0027t re-use an existing state",
+      "parentUuid": "baa041b7_f7f58d82",
+      "range": {
+        "startLine": 195,
+        "startChar": 16,
+        "endLine": 195,
+        "endChar": 27
+      },
+      "revId": "58c82355852d907588a22d57490573c2056bc6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
