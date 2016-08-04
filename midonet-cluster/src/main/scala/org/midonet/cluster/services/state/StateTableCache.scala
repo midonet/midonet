@@ -373,6 +373,10 @@ class StateTableCache(val config: StateProxyConfig,
     // acceptable since this is expected only for few subscriptions.
     private val pending =
         new AtomicReference[Map[Subscription, Runnable]](EmptyPendingMap)
+    // Queue of size one to store the last event notified from backend for this
+    // state table cache, allowing the cache to handle notifications arriving
+    // faster than the cache can process.
+    private val eventQueue = new AtomicReference[CuratorEvent](null)
 
     private val diffAddCache = new util.ArrayList[TableEntry](8)
     private val diffRemoveCache = new util.ArrayList[TableEntry](8)
@@ -565,7 +569,7 @@ class StateTableCache(val config: StateProxyConfig,
             val context = Long.box(System.currentTimeMillis())
             curator.getChildren
                    .usingWatcher(watcher)
-                   .inBackground(callback, context, executor)
+                   .inBackground(callback, context)
                    .forPath(path)
         } catch {
             case NonFatal(e) =>
@@ -585,7 +589,7 @@ class StateTableCache(val config: StateProxyConfig,
         if (event.getResultCode == Code.OK.intValue()) {
             Log trace s"($logId) Read ${event.getChildren.size()} entries in " +
                       s"${latency(event.getContext)} ms"
-            processEntries(event.getChildren, event.getStat)
+            enqueueEvent(event)
         } else if (event.getResultCode == Code.NONODE.intValue()) {
             Log debug s"($logId) State table does not exist or deleted"
             close(KeeperException.create(Code.NONODE, event.getPath))
@@ -640,26 +644,42 @@ class StateTableCache(val config: StateProxyConfig,
     }
 
     /**
+      * Enqueues a backend entries event to the event queue, and if this is the
+      * first event in the queue schedules it for execution. The current event
+      * always overwrites any previous event in the queue, such that the state
+      * table cache can keep up with processing the updates.
+      */
+    private def enqueueEvent(event: CuratorEvent): Unit = {
+        val current = eventQueue.getAndSet(event)
+        if (current eq null) {
+            executor.submit(makeRunnable {
+                val last = eventQueue.getAndSet(null)
+                if (last ne null) {
+                    processEntries(last.getChildren, last.getStat)
+                }
+            })
+        }
+    }
+
+    /**
       * Processes the entries received by an update operation. The method
       * updates the cache and notifies all subscriber of the map changes.
       * Processing is done on the dispatcher thread.
       */
     private def processEntries(entries: util.List[String], stat: Stat): Unit = {
-        executor.submit(makeRunnable {
-            try {
-                processEntriesUnsafe(entries, stat)
-            } catch {
-                case NonFatal(e) =>
-                    // We should never get here, when we do there is a bug, in
-                    // which case the cache may be corrupted: terminate all
-                    // subscriptions.
-                    val message =
-                        s"($logId) Unexpected exception when processing " +
-                        s"cache entries for version ${stat.getPzxid}"
-                    Log.error(message, e)
-                    close(new IllegalStateException(message))
-            }
-        })
+        try {
+            processEntriesUnsafe(entries, stat)
+        } catch {
+            case NonFatal(e) =>
+                // We should never get here, when we do there is a bug, in
+                // which case the cache may be corrupted: terminate all
+                // subscriptions.
+                val message =
+                    s"($logId) Unexpected exception when processing " +
+                    s"cache entries for version ${stat.getPzxid}"
+                Log.error(message, e)
+                close(new IllegalStateException(message))
+        }
     }
 
     /**
