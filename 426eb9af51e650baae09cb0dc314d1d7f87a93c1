@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d57f21a9",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-08-04T15:21:29Z",
+      "side": 1,
+      "message": "No, that\u0027s ok, I assumed you had your reasons but I was curious :). That makes sense then, let\u0027s leave it as is",
+      "parentUuid": "baa041b7_b5a37d42",
+      "range": {
+        "startLine": 210,
+        "startChar": 8,
+        "endLine": 220,
+        "endChar": 9
+      },
+      "revId": "426eb9af51e650baae09cb0dc314d1d7f87a93c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_158c69d8",
         "filename": "midolman/src/main/scala/org/midonet/services/flowstate/stream/FlowStateManager.scala",
         "patchSetId": 1
