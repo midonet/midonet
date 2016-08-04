@@ -18,7 +18,7 @@ package org.midonet.services.flowstate.stream
 
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import java.nio.file.{Files, Path, Paths, StandardOpenOption}
+import java.nio.file._
 import java.util.UUID
 
 import scala.collection.concurrent.TrieMap
@@ -40,7 +40,7 @@ object FlowStateManager {
 class FlowStateManager(config: FlowStateConfig) {
 
 
-    protected[flowstate] val buffers = TrieMap.empty[UUID, Buffers]
+    protected[flowstate] val buffers = TrieMap.empty[UUID, (Buffers, FileChannel)]
 
     /**
       * Mapping between the [[UUID]] of a port and its corresponding
@@ -75,41 +75,55 @@ class FlowStateManager(config: FlowStateConfig) {
       * @param portId
       * @return
       */
+    @throws[FileSystemException]
     def open(portId: UUID): Buffers = {
-        buffers.getOrElseUpdate(portId, {
-            val filePath = getFileForPort(portId)
-            val buffer = if (Files.exists(filePath)) {
-                // open for read/write.
-                // TODO:
-                // the block factories are hardcoded to memory mapped files.
-                // Generalize.
-                val fileChannel = FileChannel.open(filePath,
-                                                   StandardOpenOption.READ,
-                                                   StandardOpenOption.WRITE)
-                val readFactory =
-                    new ReadOnlyMemoryMappedBlockFactory[TimedBlockHeader](
-                        fileChannel, config.blockSize, FlowStateBlock)
-                val writeFactory =
-                    new MemoryMappedBlockFactory[TimedBlockHeader](
-                        fileChannel, config.blockSize, FlowStateBlock)
-                loadBuffersFromFile(config,
-                                    fileChannel,
-                                    readFactory,
-                                    writeFactory)
-            } else {
-                val fileChannel = FileChannel.open(filePath,
-                                                   StandardOpenOption.CREATE,
-                                                   StandardOpenOption.READ,
-                                                   StandardOpenOption.WRITE)
-                val factory =
-                    new MemoryMappedBlockFactory[TimedBlockHeader](
-                        fileChannel, config.blockSize, FlowStateBlock)
-                new RingBufferWithFactory[ByteBuffer](
-                    config.blocksPerPort, null, factory.allocate)
-            }
-            buffers.put(portId, buffer)
-            buffer
-        })
+        try {
+            buffers.getOrElseUpdate(portId, {
+                val filePath = getFileForPort(portId)
+                val (buffer, fileHandler) = if (Files.exists(filePath)) {
+                    // open for read/write.
+                    // TODO:
+                    // the block factories are hardcoded to memory mapped files.
+                    // Generalize.
+                    val fileChannel = FileChannel.open(filePath,
+                                                       StandardOpenOption.READ,
+                                                       StandardOpenOption.WRITE)
+                    val readFactory =
+                        new ReadOnlyMemoryMappedBlockFactory[TimedBlockHeader](
+                            fileChannel, config.blockSize, FlowStateBlock)
+                    val writeFactory =
+                        new MemoryMappedBlockFactory[TimedBlockHeader](
+                            fileChannel, config.blockSize, FlowStateBlock)
+                    val buffers = loadBuffersFromFile(config,
+                                                      fileChannel,
+                                                      readFactory,
+                                                      writeFactory)
+                    (buffers, fileChannel)
+                } else {
+                    val fileChannel = FileChannel.open(filePath,
+                                                       StandardOpenOption
+                                                           .CREATE,
+                                                       StandardOpenOption.READ,
+                                                       StandardOpenOption.WRITE)
+                    val factory =
+                        new MemoryMappedBlockFactory[TimedBlockHeader](
+                            fileChannel, config.blockSize, FlowStateBlock)
+                    val buffers = new RingBufferWithFactory[ByteBuffer](
+                        config.blocksPerPort, null, factory.allocate)
+                    (buffers, fileChannel)
+                }
+                (buffer, fileHandler)
+            })._1
+        } catch {
+            case e: FileSystemException =>
+                Log warn s"Failed to get a flow state file handle to write to " +
+                         s"(${e.getMessage}). Try increasing the number of " +
+                         s"allowed open files with ulimit -n. The Midonet Agent " +
+                         s"needs at least one file per active port bound, so " +
+                         s"this limit should be higher than the number of " +
+                         s"active ports bound to this MidoNet Agent."
+                throw e
+        }
     }
 
     /** Wether the underlying memory mapped file has been created */
@@ -125,6 +139,7 @@ class FlowStateManager(config: FlowStateConfig) {
       * @param portId
       * @return
       */
+    @throws[FileSystemException]
     def stateWriter(portId: UUID): FlowStateWriter = {
         stateWriters.getOrElseUpdate(portId, {
             val writer = blockWriter(portId)
@@ -140,6 +155,7 @@ class FlowStateManager(config: FlowStateConfig) {
       * @param portId
       * @return
       */
+    @throws[FileSystemException]
     def blockWriter(portId: UUID): ByteBufferBlockWriter[TimedBlockHeader] = {
         blockWriters.getOrElseUpdate(portId, {
             val ring = open(portId)
@@ -218,11 +234,15 @@ class FlowStateManager(config: FlowStateConfig) {
 
     @VisibleForTesting
     private[flowstate] def clear(portId: UUID): Unit = {
-        buffers.remove(portId)
         blockWriters.remove(portId)
         writersToRemove.remove(portId)
         stateWriters.remove(portId) match {
             case Some(writer) => writer.clear()
+            case _ =>
+        }
+        buffers.remove(portId) match {
+            case Some((_, channel)) =>
+                channel.close()
             case _ =>
         }
     }

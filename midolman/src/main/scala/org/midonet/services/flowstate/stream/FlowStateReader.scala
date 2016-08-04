@@ -47,8 +47,8 @@ object FlowStateReader {
             val snappyReader = new SnappyBlockReader(blockReader)
             new FlowStateReaderImpl(snappyReader)
         } else {
-            throw new FileNotFoundException(
-                s"Flow state file for port $portId does not exist.")
+            Log warn s"Flow state file for port $portId does not exist."
+            throw new FileNotFoundException
         }
     }
 }
