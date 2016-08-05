@@ -520,7 +520,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         store.update(p.toBuilder
                          .setHostId(hostId.asProto)
                          .setInterfaceName(portName).build())
-        stateStore.setPortActive(port, hostId, active = true).toBlocking.first()
+        stateStore.setPortActive(port, hostId, active = true, tunnelKey = 0L)
+                  .toBlocking.first()
     }
 
     override def newLoadBalancer(id: UUID = UUID.randomUUID): UUID = {

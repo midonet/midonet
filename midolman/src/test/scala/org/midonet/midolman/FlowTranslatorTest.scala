@@ -118,7 +118,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def activatePorts(localPorts: Seq[UUID]): Unit = {
         localPorts foreach { p =>
-            VirtualToPhysicalMapper.setPortActive(p, active = true)
+            VirtualToPhysicalMapper.setPortActive(p, active = true, tunnelKey = 0L)
         }
     }
 
