@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4bb49480",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-05T05:59:56Z",
+      "side": 1,
+      "message": "sorry, i don\u0027t get it.\nin case of OneToOneDpConnManager, per connection threads created by SelectorBasedDatapathConnection are producers, aren\u0027t they?",
+      "parentUuid": "baa041b7_977be1f4",
+      "range": {
+        "startLine": 153,
+        "startChar": 13,
+        "endLine": 153,
+        "endChar": 33
+      },
+      "revId": "b4ea360b6ee4b678e69ca8cb6d35df3a07cb9ff0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b7b70520",
         "filename": "midolman/src/main/scala/org/midonet/midolman/AllPacketWorkers.scala",
         "patchSetId": 5
