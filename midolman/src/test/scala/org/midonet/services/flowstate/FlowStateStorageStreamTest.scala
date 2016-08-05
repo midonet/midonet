@@ -435,6 +435,16 @@ class FlowStateStorageStreamTest extends FlowStateBaseTest {
                    context.ioManager.buffers.keySet should contain (UUID.fromString(p.getFileName.toString))
             }
         }
+
+        scenario("File descriptor is closed when writer is closed") {
+            Given("An openend file")
+            val portId = UUID.randomUUID
+            context.ioManager.open(portId)
+            val (buffers, fileHandler) = context.ioManager.buffers.get(portId).get
+            fileHandler.isOpen shouldBe true
+            context.ioManager.clear(portId)
+            fileHandler.isOpen shouldBe false
+        }
     }
 
     feature("Writting/reading from heap memory byte buffers") {
