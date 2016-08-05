@@ -15,7 +15,6 @@
  */
 package org.midonet.services.flowstate.handlers
 
-import java.io.FileNotFoundException
 import java.nio.ByteBuffer
 import java.nio.file.FileSystemException
 import java.util.UUID
@@ -57,7 +56,6 @@ class FlowStateReadHandler(context: Context)
     extends SimpleChannelInboundHandler[ByteBuf] {
 
     private val tcpClient = new FlowStateRemoteClient(context.config)
-    private var ctx: ChannelHandlerContext = _
 
     private def eof = copyInt(0)
 
@@ -76,32 +74,32 @@ class FlowStateReadHandler(context: Context)
 
     override def channelRead0(context: ChannelHandlerContext,
                               msg: ByteBuf): Unit = {
-        ctx = context
 
         parseSegment(msg) match {
             case StateRequestInternal(portId) =>
                 Log debug s"Flow state internal request for port: ${fromProto(portId)}"
-                respondInternal(portId)
+                respondInternal(context, portId)
             case StateRequestRemote(portId, address) =>
-                Log debug s"Flow state remote [${address.getAddress}] request for port: ${fromProto(portId)}"
-                respondRemote(portId, address)
+                Log debug s"Flow state remote [${address.getAddress}] request " +
+                          s"for port: ${fromProto(portId)}"
+                respondRemote(context, portId, address)
             case StateRequestRaw(portId) =>
                 Log debug s"Flow state raw request for port: ${fromProto(portId)}"
-                respondRaw(portId)
+                respondRaw(context, portId)
             case InvalidStateRequest(e) =>
                 Log warn s"Invalid flow state request: ${e.getMessage}"
                 val error = buildError(Error.Code.BAD_REQUEST, e).toByteArray
 
-                writeAndFlushWithHeader(error)
+                writeAndFlushWithHeader(context, error)
         }
 
-        ctx.close()
+        context.close()
     }
 
-    private def respondRaw(portId: UUID): Unit = {
+    private def respondRaw(ctx: ChannelHandlerContext, portId: UUID): Unit = {
         try {
             val ack = buildAck(portId).toByteArray
-            writeAndFlushWithHeader(ack)
+            writeAndFlushWithHeader(ctx, ack)
 
             val in = getByteBufferBlockReader(portId)
             val headerBuff = new Array[Byte](FlowStateBlock.headerSize)
@@ -125,37 +123,39 @@ class FlowStateReadHandler(context: Context)
 
             context.ioManager.remove(portId)
         } catch {
-            case NonFatal(e) => handleStorageError(portId, e)
+            case NonFatal(e) => handleStorageError(ctx, portId, e)
         }
     }
 
-    private def respondInternal(portId: UUID): Unit = {
+    private def respondInternal(ctx: ChannelHandlerContext, portId: UUID): Unit = {
         try {
             val ack = buildAck(portId).toByteArray
-            writeAndFlushWithHeader(ack)
+            writeAndFlushWithHeader(ctx, ack)
 
-            readFromLocalState(portId)
+            readFromLocalState(ctx, portId)
         } catch {
-            case NonFatal(e) => handleStorageError(portId, e)
+            case NonFatal(e) => handleStorageError(ctx, portId, e)
         }
     }
 
-    private def respondRemote(portId: UUID, address: IPAddress): Unit = {
+    private def respondRemote(ctx: ChannelHandlerContext,
+                              portId: UUID, address: IPAddress): Unit = {
         try {
             // Request and save all flow state locally
             val out = getByteBufferBlockWriter(portId)
             tcpClient.rawPipelinedFlowStateFrom(address.getAddress, portId, out)
 
             val ack = buildAck(portId).toByteArray
-            writeAndFlushWithHeader(ack)
+            writeAndFlushWithHeader(ctx, ack)
 
-            readFromLocalState(portId)
+            readFromLocalState(ctx, portId)
         } catch {
-            case NonFatal(e) => handleStorageError(portId, e)
+            case NonFatal(e) => handleStorageError(ctx, portId, e)
         }
     }
 
-    private def readFromLocalState(portId: UUID): Unit = {
+    private def readFromLocalState(ctx: ChannelHandlerContext,
+                                   portId: UUID): Unit = {
         // Expire blocks before actually start reading from it. Expiration
         // is done lazily to avoid excessive delays on the boot sequence.
         try {
@@ -167,22 +167,23 @@ class FlowStateReadHandler(context: Context)
             var next = in.read()
             while (next.isDefined) {
                 val sbeRaw = next.get.flowStateBuffer.array()
-                writeAndFlushWithHeader(sbeRaw)
+                writeAndFlushWithHeader(ctx, sbeRaw)
                 next = in.read()
             }
 
             ctx.writeAndFlush(eof)
         } catch {
-            case NonFatal(e) => handleStorageError(portId, e)
+            case NonFatal(e) => handleStorageError(ctx, portId, e)
         }
     }
 
-    private def handleStorageError(portId: UUID, e: Throwable): Unit = {
+    private def handleStorageError(ctx: ChannelHandlerContext,
+                                   portId: UUID, e: Throwable): Unit = {
         Log warn s"Error handling flow state request for port $portId: " +
                  s"${e.getMessage}"
         val error = buildError(Error.Code.STORAGE_ERROR, e)
 
-        writeAndFlushWithHeader(error.toByteArray)
+        writeAndFlushWithHeader(ctx, error.toByteArray)
     }
 
     private def parseSegment(msg: ByteBuf) = {
@@ -197,7 +198,8 @@ class FlowStateReadHandler(context: Context)
     }
 
     // Helper to send an array through the stream prepending its size
-    private def writeAndFlushWithHeader(data: Array[Byte]): Unit = {
+    private def writeAndFlushWithHeader(ctx: ChannelHandlerContext,
+                                        data: Array[Byte]): Unit = {
         val sizeHeader = copyInt(data.size)
         ctx.write(sizeHeader)
         ctx.writeAndFlush(copiedBuffer(data))
