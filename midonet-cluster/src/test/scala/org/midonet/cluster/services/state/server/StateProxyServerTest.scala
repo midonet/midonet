@@ -618,10 +618,12 @@ class StateProxyServerTest extends FeatureSpec with Matchers
             }
 
             And("The client should have the subscription")
-            manager.clients.get(client.channel.localAddress())
-                   .subscriptions should have size 1
-            manager.clients.get(client.channel.localAddress())
-                   .subscriptions.get(1L) shouldBe request.getSubscribe
+            eventually {
+                manager.clients.get(client.channel.localAddress())
+                       .subscriptions should have size 1
+                manager.clients.get(client.channel.localAddress())
+                       .subscriptions.get(1L) shouldBe request.getSubscribe
+            }
 
             And("The client should receive a response")
             client.observer.awaitOnNext(1, timeout)
