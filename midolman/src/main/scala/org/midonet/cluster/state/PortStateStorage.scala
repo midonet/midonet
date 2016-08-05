@@ -36,12 +36,17 @@ object PortStateStorage {
 
     final val UuidStringSize = 36
 
-    trait PortState { def isActive: Boolean; }
-    case class PortActive(hostId: UUID, tunnelKey: Option[Long]) extends PortState {
+    trait PortState {
+        def isActive: Boolean
+        def tunnelKey: Option[Long]
+    }
+    case class PortActive(hostId: UUID,
+                          override val tunnelKey: Option[Long]) extends PortState {
         override def isActive = true
     }
     case object PortInactive extends PortState {
         override def isActive = false
+        override def tunnelKey = None
     }
 
     implicit def asPort(store: StateStorage): PortStateStorage = {

@@ -19,6 +19,7 @@ import java.util.UUID
 
 import scala.collection.mutable
 import scala.concurrent.duration._
+import scala.util.Random
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -29,11 +30,12 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.ActiveKey
+import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.topology.TopologyBuilder._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
-import org.midonet.midolman.simulation.{BridgePort, Port => SimPort, RouterPort, VxLanPort}
+import org.midonet.midolman.simulation.{BridgePort, RouterPort, VxLanPort, Port => SimPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.reactivex._
 
@@ -43,6 +45,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
 
     private var vt: VirtualTopology = _
     private var store: InMemoryStorage = _
+    private val random = new Random()
     private final val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
@@ -248,6 +251,59 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val device3 = obs.getOnNextEvents.get(2).asInstanceOf[BridgePort]
             device3 shouldBeDeviceOf port
             device3.isActive shouldBe false
+        }
+
+        scenario("The mapper emits new device on port state update") {
+            Given("A bridge port")
+            val bridge = createBridge()
+            val port = createBridgePort(bridgeId = Some(bridge.getId),
+                                        hostId = Some(InMemoryStorage.namespaceId))
+            store.multi(Seq(CreateOp(bridge), CreateOp(port)))
+
+            And("A port mapper")
+            val mapper = new PortMapper(port.getId, vt, mutable.Map())
+
+            And("An observer to the port mapper")
+            val obs = new DeviceObserver[SimPort](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0).asInstanceOf[BridgePort]
+            device1 shouldBeDeviceOf port
+
+            And("The port tunnel key should be read from topology")
+            device1.isActive shouldBe false
+            device1.tunnelKey shouldBe port.getTunnelKey
+
+            When("Setting the port state to active")
+            val tunnelKey = random.nextLong()
+            store.setPortActive(port.getId, InMemoryStorage.namespaceId,
+                                active = true, tunnelKey = tunnelKey)
+                 .await(timeout)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(1).asInstanceOf[BridgePort]
+
+            And("The port tunnel key should be read from state")
+            device2.isActive shouldBe true
+            device2.tunnelKey shouldBe tunnelKey
+
+            When("Setting the port state to inactive")
+            store.setPortActive(port.getId, InMemoryStorage.namespaceId,
+                                active = false)
+                 .await(timeout)
+
+            Then("The observer should receive the port")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(2).asInstanceOf[BridgePort]
+
+            And("The port tunnel key should be read from topology")
+            device3.isActive shouldBe false
+            device3.tunnelKey shouldBe port.getTunnelKey
         }
 
         scenario("The mapper handles port migration") {
