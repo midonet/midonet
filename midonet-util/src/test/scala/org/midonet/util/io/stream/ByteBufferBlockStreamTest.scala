@@ -18,6 +18,8 @@ package org.midonet.util.io.stream
 
 import java.io.IOException
 import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
+import java.nio.file.{StandardOpenOption, Files => JFiles}
 
 import scala.concurrent.duration.Duration
 import scala.util.Random
@@ -95,14 +97,30 @@ class ByteBufferBlockStreamTest extends FeatureSpec
 
     }
 
-    private def getStreams(blockBuilder: BlockHeaderBuilder[TimedBlockHeader]): (
-        ByteBufferBlockWriter[TimedBlockHeader] with TimedBlockInvalidator[TimedBlockHeader],
+    private def heapBlockFactory(blockBuilder: BlockHeaderBuilder[TimedBlockHeader])
+    : BlockFactory[TimedBlockHeader] = {
+        val testBlockSize = blockSize + blockBuilder.headerSize
+        new HeapBlockFactory[TimedBlockHeader](testBlockSize, blockBuilder)
+    }
+
+    private def fileBlockFactory(blockBuilder: BlockHeaderBuilder[TimedBlockHeader])
+    : BlockFactory[TimedBlockHeader] = {
+        val testBlockSize = blockSize + blockBuilder.headerSize
+        val tmpFile = JFiles.createTempFile(null, null)
+        val channel = FileChannel.open(tmpFile,
+                                       StandardOpenOption.CREATE,
+                                       StandardOpenOption.READ,
+                                       StandardOpenOption.WRITE)
+        new MemoryMappedBlockFactory[TimedBlockHeader](
+            channel, testBlockSize, blockBuilder)
+    }
+
+    private def getStreams(blockBuilder: BlockHeaderBuilder[TimedBlockHeader],
+                           blockFactory: BlockFactory[TimedBlockHeader])
+    : (ByteBufferBlockWriter[TimedBlockHeader] with TimedBlockInvalidator[TimedBlockHeader],
         ByteBufferBlockReader[TimedBlockHeader],
         TestRingBufferWithFactory) = {
         val testBlockSize = blockSize + blockBuilder.headerSize
-
-        val blockFactory = new HeapBlockFactory[TimedBlockHeader](testBlockSize,
-                                                                  blockBuilder)
 
         val buffers = new TestRingBufferWithFactory(
             poolSize, null, blockFactory.allocate)
@@ -122,7 +140,8 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("Writing/reading a message smaller than the block size") {
             Given("A byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (outStream, _, buffers) = getStreams(blockBuilder)
+            val (outStream, _, buffers) = getStreams(blockBuilder,
+                                                     heapBlockFactory(blockBuilder))
 
             When("Writing to the stream")
             val outBlock = ByteBuffer.allocate(5)
@@ -147,7 +166,8 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("Writing/reading a message exactly the same block size") {
             Given("A byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (outStream, _, buffers) = getStreams(blockBuilder)
+            val (outStream, _, buffers) = getStreams(blockBuilder,
+                                                     heapBlockFactory(blockBuilder))
 
             When("Writing to the stream up to the boundary")
             val outBlock1 = ByteBuffer.allocate(10)
@@ -187,7 +207,8 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("Writing/reading a message bigger than the block size") {
             Given("A byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (outStream, _, buffers) = getStreams(blockBuilder)
+            val (outStream, _, buffers) = getStreams(blockBuilder,
+                                                     heapBlockFactory(blockBuilder))
 
             When("Writing to the stream a chunk smaller than block size")
             val outBlock1 = ByteBuffer.allocate(11)
@@ -202,7 +223,8 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("Writting/reading a chunk of data bigger than remianing bytes") {
             Given("A byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (outStream, _, buffers) = getStreams(blockBuilder)
+            val (outStream, _, buffers) = getStreams(blockBuilder,
+                                                     heapBlockFactory(blockBuilder))
 
             When("Writing to the stream up to half the size")
             val outBlock1 = ByteBuffer.allocate(5)
@@ -245,7 +267,8 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("Reading from an empty stream") {
             Given("A byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (_, inStream, _) = getStreams(blockBuilder)
+            val (_, inStream, _) = getStreams(blockBuilder,
+                                              heapBlockFactory(blockBuilder))
 
             Then("Reading from an empty stream returns -1")
             val bb = ByteBuffer.allocate(blockSize)
@@ -257,7 +280,34 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("Writting to a full ring buffer") {
             Given("A byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (outStream, inStream, buffers) = getStreams(blockBuilder)
+            val (outStream, _, buffers) = getStreams(blockBuilder,
+                                                    heapBlockFactory(blockBuilder))
+
+            When("Filling up the capacity of the ring buffer")
+            val outBlock = ByteBuffer.allocate(blockSize)
+            Random.nextBytes(outBlock.array())
+            (1 to poolSize) foreach { _ =>
+                outStream.write(outBlock.array())
+            }
+
+            Then("The ring buffer is full")
+            buffers.isFull shouldBe true
+            val tailHeader = blockBuilder(buffers.peek.get)
+
+            When("When writting a new block")
+            outStream.write(outBlock.array())
+
+            Then("The oldest block in the queue is overwritten")
+            buffers.isFull shouldBe true
+            val newTailHeader = blockBuilder(buffers.peek.get)
+            tailHeader should be !== newTailHeader
+        }
+
+        scenario("Writting to a full ring buffer backed by mem mapped files") {
+            Given("A byte buffer block stream")
+            val blockBuilder = TestTimedBlockBuilder
+            val (outStream, _, buffers) = getStreams(blockBuilder,
+                                                     fileBlockFactory(blockBuilder))
 
             When("Filling up the capacity of the ring buffer")
             val outBlock = ByteBuffer.allocate(blockSize)
@@ -282,7 +332,8 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("Clearing a stream releases references on the underlying buffers") {
             Given("A byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (outStream, inStream, buffers) = getStreams(blockBuilder)
+            val (outStream, _, buffers) = getStreams(blockBuilder,
+                                                     heapBlockFactory(blockBuilder))
 
             When("Filling up the capacity of the ring buffer")
             val outBlock = ByteBuffer.allocate(blockSize)
@@ -311,7 +362,8 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("The running block is not expired") {
             Given("An expiration byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (outStream, _, _) = getStreams(blockBuilder)
+            val (outStream, _, _) = getStreams(blockBuilder,
+                                               heapBlockFactory(blockBuilder))
 
             When("Starting the clock")
             currentTime = 0
@@ -337,7 +389,8 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("Blocks are removed after expiration time.") {
             Given("An expiration byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (outStream, _, _) = getStreams(blockBuilder)
+            val (outStream, _, _) = getStreams(blockBuilder,
+                                               heapBlockFactory(blockBuilder))
 
             When("Starting the clock")
             currentTime = 0
@@ -376,7 +429,8 @@ class ByteBufferBlockStreamTest extends FeatureSpec
         scenario("Expiring a single block on a multiblock stream.") {
             Given("An expiration byte buffer block stream")
             val blockBuilder = TestTimedBlockBuilder
-            val (outStream, _, _) = getStreams(blockBuilder)
+            val (outStream, _, _) = getStreams(blockBuilder,
+                                               heapBlockFactory(blockBuilder))
 
             When("Starting the clock")
             currentTime = 0

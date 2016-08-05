@@ -98,7 +98,7 @@ trait BlockFactory[T <: BlockHeader]{
       * byte buffer should initialize the header of the block (if any) and
       * move the current position of the array to the first writable byte
       * (i.e. after the header).
- *
+      *
       * @param index
       * @return
       */
