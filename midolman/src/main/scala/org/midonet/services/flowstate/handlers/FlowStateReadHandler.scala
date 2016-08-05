@@ -17,6 +17,7 @@ package org.midonet.services.flowstate.handlers
 
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
+import java.nio.file.FileSystemException
 import java.util.UUID
 
 import scala.util.control.NonFatal
@@ -69,6 +70,7 @@ class FlowStateReadHandler(context: Context)
         FlowStateReader(context, portId)
 
     @VisibleForTesting
+    @throws[FileSystemException]
     protected def getByteBufferBlockWriter(portId: UUID) =
         context.ioManager.blockWriter(portId)
 
@@ -156,29 +158,28 @@ class FlowStateReadHandler(context: Context)
     private def readFromLocalState(portId: UUID): Unit = {
         // Expire blocks before actually start reading from it. Expiration
         // is done lazily to avoid excessive delays on the boot sequence.
-        context.ioManager.blockWriter(portId).invalidateBlocks(excludeBlocks = 0)
+        try {
+            context.ioManager.blockWriter(portId).invalidateBlocks(excludeBlocks = 0)
 
-        // Blocks are up to date, read and send it back to the agent.
-        val in = getFlowStateReader(portId)
+            // Blocks are up to date, read and send it back to the agent.
+            val in = getFlowStateReader(portId)
 
-        var next = in.read()
-        while (next.isDefined) {
-            val sbeRaw = next.get.flowStateBuffer.array()
-            writeAndFlushWithHeader(sbeRaw)
-            next = in.read()
+            var next = in.read()
+            while (next.isDefined) {
+                val sbeRaw = next.get.flowStateBuffer.array()
+                writeAndFlushWithHeader(sbeRaw)
+                next = in.read()
+            }
+
+            ctx.writeAndFlush(eof)
+        } catch {
+            case NonFatal(e) => handleStorageError(portId, e)
         }
-
-        ctx.writeAndFlush(eof)
     }
 
     private def handleStorageError(portId: UUID, e: Throwable): Unit = {
-        e match {
-            case ex: FileNotFoundException =>
-                Log debug s"${ex.getMessage}"
-            case _ =>
-                Log warn s"Error handling flow state request for port $portId: $e"
-
-        }
+        Log warn s"Error handling flow state request for port $portId: " +
+                 s"${e.getMessage}"
         val error = buildError(Error.Code.STORAGE_ERROR, e)
 
         writeAndFlushWithHeader(error.toByteArray)

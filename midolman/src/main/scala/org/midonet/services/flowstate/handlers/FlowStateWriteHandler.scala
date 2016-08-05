@@ -16,6 +16,7 @@
 package org.midonet.services.flowstate.handlers
 
 import java.nio.ByteBuffer
+import java.nio.file.FileSystemException
 import java.util
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -124,6 +125,7 @@ class FlowStateWriteHandler(context: Context,
     @VisibleForTesting
     protected[flowstate] def getLegacyStorage = storageProvider.get
 
+    @throws[FileSystemException]
     protected[flowstate] def getFlowStateWriter(portId: UUID) =
         context.ioManager.stateWriter(portId)
 
@@ -205,12 +207,16 @@ class FlowStateWriteHandler(context: Context,
             }
         }
 
-        for (portId <- matchingPorts) {
-            val writer = getFlowStateWriter(portId)
-            writer.synchronized {
-                Log debug s"Writing flow state message to $portId writer."
-                writer.write(encoder)
+        try {
+            for (portId <- matchingPorts) {
+                val writer = getFlowStateWriter(portId)
+                writer.synchronized {
+                    Log debug s"Writing flow state message to $portId writer."
+                    writer.write(encoder)
+                }
             }
+        } catch {
+            case NonFatal(e) =>
         }
     }
 }
