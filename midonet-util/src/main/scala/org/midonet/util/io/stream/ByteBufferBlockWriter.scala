@@ -113,7 +113,10 @@ class ByteBufferBlockWriter[H <: TimedBlockHeader]
                     "is an indication that the rate of flow state " +
                     "generation is too high for the allocated file. Try " +
                     "increasing the number of blocks allowed per port.")
-                buffers.take()
+                buffers.take() match {
+                    case Some(bb) => blockBuilder.reset(bb)
+                    case None =>
+                }
             }
             buffers.allocateAndPut()
         }
