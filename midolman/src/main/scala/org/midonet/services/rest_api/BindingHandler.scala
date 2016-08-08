@@ -31,7 +31,7 @@ import com.google.inject.Inject
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.ZookeeperLockFactory
 
-import RestApiService.Log
+import RestApiService.log
 
 
 /*
@@ -52,7 +52,7 @@ class BindingHandler @Inject()(
     @Consumes(Array(MediaType.APPLICATION_JSON))
     @Produces(Array(MediaType.APPLICATION_JSON))
     def put(@PathParam("portId") portId: String, body: BindingInfo) = {
-        Log info s"PUT ${portId} ${body}"
+        log info s"PUT ${portId} ${body}"
         binder.bindPort(UUID.fromString(portId), body.interfaceName)
         body
     }
@@ -60,7 +60,7 @@ class BindingHandler @Inject()(
     @DELETE
     @Path("{portId}")
     def delete(@PathParam("portId") portId: String) = {
-        Log info s"DELETE ${portId}"
+        log info s"DELETE ${portId}"
         binder.unbindPort(UUID.fromString(portId))
     }
 }

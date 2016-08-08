@@ -27,5 +27,9 @@ package object services {
 
     final val FlowStateLog =  "org.midonet.services.flowstate"
 
+    final val FlowStateStreamLog = "org.midonet.services.flowstate.stream"
+
+    final val FlowStateTransferLog = "org.midonet.services.flowstate.transfer"
+
     final val BindingApiLog = "org.midonet.services.binding-api"
 }

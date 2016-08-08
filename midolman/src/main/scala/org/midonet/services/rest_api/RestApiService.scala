@@ -18,31 +18,19 @@ package org.midonet.services.rest_api
 
 import java.io.File
 import java.util.EnumSet
-import java.util.concurrent.ExecutorService
-
-import scala.concurrent.ExecutionContext
-import scala.util.control.NonFatal
 
 import javax.servlet.DispatcherType
 
-import org.apache.curator.framework.CuratorFramework
-import org.eclipse.jetty.servlet.DefaultServlet
-import org.eclipse.jetty.servlet.ServletContextHandler
-import org.eclipse.jetty.server.Connector
-import org.eclipse.jetty.server.HttpConnectionFactory
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.util.thread.ExecutorThreadPool
-import org.slf4j.LoggerFactory
+import scala.util.control.NonFatal
 
-import com.google.inject.Guice
-import com.google.inject.Inject
-import com.google.inject.name.Named
-import com.google.inject.servlet.GuiceFilter
-import com.google.inject.servlet.GuiceServletContextListener
-import com.sun.jersey.spi.container.servlet.ServletContainer
+import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
+import com.google.inject.{Guice, Inject}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
-import com.typesafe.scalalogging.Logger
+
+import org.apache.curator.framework.CuratorFramework
+import org.eclipse.jetty.server.{Connector, Server}
+import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.services.MidonetBackend
@@ -52,9 +40,12 @@ import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.services.BindingApiLog
 import org.midonet.services.rest_api.hacks.UnixDomainServerConnector
+import org.midonet.util.logging.Logging
 
-object RestApiService {
-    val Log = Logger(LoggerFactory.getLogger(BindingApiLog))
+object RestApiService extends Logging {
+
+    override def logSource = BindingApiLog
+
 }
 
 /**
@@ -73,7 +64,7 @@ class RestApiService @Inject()(
         config: MidolmanConfig)
     extends Minion(nodeContext) {
 
-    import RestApiService.Log
+    import RestApiService.log
 
     var server: Server = null
 
@@ -112,7 +103,7 @@ class RestApiService @Inject()(
     }
 
     protected override def doStart(): Unit = {
-        Log info "Starting binding-api service"
+        log info "Starting binding-api service"
 
         val socketPath = config.bindingApi.unixSocket
         try {
@@ -129,13 +120,13 @@ class RestApiService @Inject()(
             notifyStarted()
         } catch {
             case NonFatal(e) =>
-                Log error "Failed to start binding-api service"
+                log error "Failed to start binding-api service"
                 notifyFailed(e)
         }
     }
 
     protected override def doStop(): Unit = {
-        Log info "Stopping binding-api service"
+        log info "Stopping binding-api service"
 
         if (server != null) {
             server.stop
