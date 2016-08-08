@@ -26,8 +26,9 @@ import com.google.protobuf.ByteString
 import ch.qos.logback.classic.{Level, Logger}
 import org.apache.curator.framework.state.ConnectionState
 import org.apache.curator.utils.ZKPaths
-import org.apache.zookeeper.CreateMode
+import org.apache.zookeeper.{CreateMode, KeeperException}
 import org.apache.zookeeper.KeeperException.ConnectionLossException
+import org.apache.zookeeper.data.Stat
 import org.junit.runner.RunWith
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
@@ -37,7 +38,7 @@ import rx.observers.TestObserver
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.backend.zookeeper.ZkDirectory
-import org.midonet.cluster.backend.{Directory, MockDirectory}
+import org.midonet.cluster.backend.{Directory, DirectoryCallback, MockDirectory}
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.rpc.State.KeyValue
@@ -1624,6 +1625,149 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             proxy.updates onNext Notify.Update.newBuilder()
                 .setType(Notify.Update.Type.RELATIVE).build()
         }
+
+        scenario("Table ignores stale entries in updates") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, directory) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The table adds an entry")
+            table.add("key0", "value0")
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            And("The directory contains the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe true
+
+            When("The table updates the entry")
+            table.add("key0", "value1")
+
+            Then("The table contains the updated entry")
+            table.localSnapshot shouldBe Map("key0" -> "value1")
+
+            And("The directory contains the entry")
+            directory.exists("/key0,value1,0000000001") shouldBe true
+
+            When("The proxy publishes a diff for the old value")
+            diff(proxy, 1L, Seq(("key0", "value0", 0)))
+
+            Then("The table keeps the newer value")
+            table.localSnapshot shouldBe Map("key0" -> "value1")
+
+            And("The directory does not contains the old entry")
+            directory.exists("/key0,value0,0000000000") shouldBe false
+
+            And("The directory does contains the new entry")
+            directory.exists("/key0,value1,0000000001") shouldBe true
+        }
+
+        scenario("Table ignores stale entries in snapshots") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend")
+            val (table, directory) = mockTable(proxy = proxy)
+            table.start()
+
+            When("The table adds an entry")
+            table.add("key0", "value0")
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            And("The directory contains the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe true
+
+            When("The table updates the entry")
+            table.add("key0", "value1")
+
+            Then("The table contains the updated entry")
+            table.localSnapshot shouldBe Map("key0" -> "value1")
+
+            And("The directory contains the entry")
+            directory.exists("/key0,value1,0000000001") shouldBe true
+
+            When("The proxy publishes a diff for the old value")
+            snapshot(proxy, true, true, 1L, Map(("key0" -> ("value0", 0))))
+
+            Then("The table keeps the newer value")
+            table.localSnapshot shouldBe Map("key0" -> "value1")
+
+            And("The directory does not contains the old entry")
+            directory.exists("/key0,value0,0000000000") shouldBe false
+
+            And("The directory does contains the new entry")
+            directory.exists("/key0,value1,0000000001") shouldBe true
+        }
+
+        scenario("Table doesn't send duplicate remove requests") {
+            Given("A connected proxy client")
+            val proxy = new TestableProxyClient
+            proxy.state onNext ProxyConnectionState.Connected
+
+            And("A state table with mock backend and special directory")
+
+            val directory = new MockDirectory {
+
+                var deletesSent = 0
+                val dummyCallback = new DirectoryCallback[Void] {
+                    override def onSuccess(data: Void,
+                                           stat: Stat,
+                                           context: scala.Any): Unit = { }
+
+                    override def onError(e: KeeperException,
+                                         context: scala.Any): Unit = { }
+                }
+
+                override def asyncDelete(relativePath: String,
+                                         version: Int,
+                                         callback: DirectoryCallback[Void],
+                                         context: scala.Any): Unit = {
+                    deletesSent += 1
+                    super.asyncDelete(relativePath,
+                                      version,
+                                      dummyCallback,
+                                      context)
+                }
+            }
+
+            val table = new Table(UUID.randomUUID(), directory, proxy,
+                                  Observable.never())
+
+            table.start()
+
+            When("The table adds an entry")
+            table.add("key0", "value0")
+
+            Then("The table contains the entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            And("The directory contains the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe true
+
+            When("The table removes the entry but the confirmation has not arrived")
+            table.remove("key0", "value0") shouldBe true
+            directory.deletesSent shouldBe 1
+
+            Then("The table still contains the updated entry")
+            table.localSnapshot shouldBe Map("key0" -> "value0")
+
+            And("The directory has already removed the entry")
+            directory.exists("/key0,value0,0000000000") shouldBe false
+
+            When("The proxy publishes a diff for the removed entry")
+            diff(proxy, 1L, Seq(("key0", null, 1)))
+
+            Then("The table does not schedule another removal")
+            directory.deletesSent shouldBe 1
+        }
+
     }
 
     feature("Table publishes ready notifications") {
