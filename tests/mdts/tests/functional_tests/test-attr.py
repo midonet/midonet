@@ -38,10 +38,8 @@ import test_vxlangw
 
 test_bgp.test_icmp_failback.gate=1
 test_bgp.test_icmp_failback.slow=1
-test_bgp.test_icmp_failback.flaky=1 # MI-593
 test_bgp.test_mn_1172.slow=1
 test_bgp.test_snat.gate=1
-test_bgp.test_snat.flaky=1
 test_bgp.test_snat.slow=1
 test_chains.test_dst_mac_masking.gate=1
 test_chains.test_filter_ipv6.gate=1
