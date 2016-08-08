@@ -24,10 +24,12 @@ import com.google.common.annotations.VisibleForTesting
 
 import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.packets.{FlowStateEthernet, SbeEncoder}
+import org.midonet.services.FlowStateStreamLog
 import org.midonet.services.flowstate.stream.snappy.SnappyBlockWriter
 import org.midonet.util.Clearable
 import org.midonet.util.collection.RingBufferWithFactory
 import org.midonet.util.io.stream._
+import org.midonet.util.logging.Logging
 
 object FlowStateWriter {
 
@@ -65,7 +67,10 @@ trait FlowStateWriter extends Closeable with Flushable with Clearable {
 
 protected[flowstate] class FlowStateWriterImpl(val config: FlowStateConfig,
                                                val out: SnappyBlockWriter)
-    extends FlowStateWriter {
+    extends FlowStateWriter with Logging {
+
+    override def logSource = FlowStateStreamLog
+    override def logMark = "FlowStateWriter"
 
     private[flowstate] val buff =
         ByteBuffer.allocate(LengthSize +
