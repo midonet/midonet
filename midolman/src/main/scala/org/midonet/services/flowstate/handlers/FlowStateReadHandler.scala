@@ -27,12 +27,14 @@ import org.midonet.cluster.flowstate.FlowStateTransfer.StateRequest
 import org.midonet.cluster.flowstate.FlowStateTransfer.StateResponse.Error
 import org.midonet.cluster.models.Commons.IPAddress
 import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.services.FlowStateLog
 import org.midonet.services.flowstate.FlowStateService._
 import org.midonet.services.flowstate.stream._
 import org.midonet.services.flowstate.transfer.StateTransferProtocolBuilder._
 import org.midonet.services.flowstate.transfer.StateTransferProtocolParser._
 import org.midonet.services.flowstate.transfer.client.FlowStateRemoteClient
 import org.midonet.services.flowstate.transfer.internal.{InvalidStateRequest, StateRequestInternal, StateRequestRaw, StateRequestRemote}
+import org.midonet.util.logging.Logging
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled._
@@ -53,7 +55,10 @@ import io.netty.channel._
   */
 @Sharable
 class FlowStateReadHandler(context: Context)
-    extends SimpleChannelInboundHandler[ByteBuf] {
+    extends SimpleChannelInboundHandler[ByteBuf] with Logging {
+
+    override def logSource = FlowStateLog
+    override def logMark = "FlowStateReadHandler"
 
     private val tcpClient = new FlowStateRemoteClient(context.config)
 
@@ -77,17 +82,17 @@ class FlowStateReadHandler(context: Context)
 
         parseSegment(msg) match {
             case StateRequestInternal(portId) =>
-                Log debug s"Flow state internal request for port: ${fromProto(portId)}"
+                log debug s"Flow state internal request for port: ${fromProto(portId)}"
                 respondInternal(context, portId)
             case StateRequestRemote(portId, address) =>
-                Log debug s"Flow state remote [${address.getAddress}] request " +
+                log debug s"Flow state remote [${address.getAddress}] request " +
                           s"for port: ${fromProto(portId)}"
                 respondRemote(context, portId, address)
             case StateRequestRaw(portId) =>
-                Log debug s"Flow state raw request for port: ${fromProto(portId)}"
+                log debug s"Flow state raw request for port: ${fromProto(portId)}"
                 respondRaw(context, portId)
             case InvalidStateRequest(e) =>
-                Log warn s"Invalid flow state request: ${e.getMessage}"
+                log warn s"Invalid flow state request: ${e.getMessage}"
                 val error = buildError(Error.Code.BAD_REQUEST, e).toByteArray
 
                 writeAndFlushWithHeader(context, error)
@@ -179,7 +184,7 @@ class FlowStateReadHandler(context: Context)
 
     private def handleStorageError(ctx: ChannelHandlerContext,
                                    portId: UUID, e: Throwable): Unit = {
-        Log warn s"Error handling flow state request for port $portId: " +
+        log warn s"Error handling flow state request for port $portId: " +
                  s"${e.getMessage}"
         val error = buildError(Error.Code.STORAGE_ERROR, e)
 
