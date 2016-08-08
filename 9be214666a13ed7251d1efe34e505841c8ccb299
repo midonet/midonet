@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_13e6baaf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-08T11:25:33Z",
+      "side": 1,
+      "message": "Good catch!",
+      "range": {
+        "startLine": 497,
+        "startChar": 12,
+        "endLine": 497,
+        "endChar": 61
+      },
+      "revId": "9be214666a13ed7251d1efe34e505841c8ccb299",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

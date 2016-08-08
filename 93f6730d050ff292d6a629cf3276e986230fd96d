@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_73f5064f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ScalableStateTableManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 851,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-08T11:25:33Z",
+      "side": 0,
+      "message": "So this happens because the entry is also removed on the remove callback is that right?",
+      "range": {
+        "startLine": 851,
+        "startChar": 20,
+        "endLine": 851,
+        "endChar": 77
+      },
+      "revId": "93f6730d050ff292d6a629cf3276e986230fd96d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
