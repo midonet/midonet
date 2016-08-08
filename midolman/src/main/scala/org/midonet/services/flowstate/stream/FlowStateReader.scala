@@ -25,10 +25,12 @@ import scala.util.control.NonFatal
 import com.google.common.annotations.VisibleForTesting
 
 import org.midonet.packets.SbeEncoder
+import org.midonet.services.FlowStateStreamLog
 import org.midonet.services.flowstate.stream.snappy.SnappyBlockReader
 import org.midonet.util.Clearable
 import org.midonet.util.collection.RingBuffer
 import org.midonet.util.io.stream._
+import org.midonet.util.logging.Logging
 
 object FlowStateReader {
 
@@ -78,7 +80,10 @@ trait FlowStateReader extends Clearable {
 }
 
 protected[flowstate] class FlowStateReaderImpl(var in: SnappyBlockReader)
-    extends FlowStateReader {
+    extends FlowStateReader with Logging {
+
+    override def logSource = FlowStateStreamLog
+    override def logMark = "FlowStateReader"
 
     def read(): Option[SbeEncoder] = {
         try {

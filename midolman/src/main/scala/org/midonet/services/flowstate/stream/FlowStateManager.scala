@@ -27,18 +27,23 @@ import scala.util.control.NonFatal
 import com.google.common.annotations.VisibleForTesting
 
 import org.midonet.midolman.config.FlowStateConfig
+import org.midonet.services.FlowStateStreamLog
 import org.midonet.services.flowstate.stream.FlowStateManager.{BlockWriter, Buffers}
 import org.midonet.services.flowstate.stream.snappy.SnappyBlockWriter
 import org.midonet.util.collection.RingBufferWithFactory
 import org.midonet.util.io.stream._
+import org.midonet.util.logging.Logging
 
 object FlowStateManager {
     type Buffers = RingBufferWithFactory[ByteBuffer]
     type BlockWriter = ByteBufferBlockWriter[TimedBlockHeader]
 }
 
-class FlowStateManager(config: FlowStateConfig) {
+class FlowStateManager(config: FlowStateConfig) extends Logging {
 
+
+    override def logSource = FlowStateStreamLog
+    override def logMark = "FlowStateManager"
 
     protected[flowstate] val buffers = TrieMap.empty[UUID, (Buffers, FileChannel)]
 

@@ -1,8 +1,3 @@
-package org.midonet.services.flowstate.transfer
-
-import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
-
 /*
  * Copyright 2016 Midokura SARL
  *
@@ -18,8 +13,15 @@ import org.slf4j.LoggerFactory
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package object client {
 
-    val log = Logger(
-        LoggerFactory.getLogger("org.midonet.services.flowstate.transfer"))
+package org.midonet.services.flowstate.transfer
+
+import org.midonet.services.FlowStateTransferLog
+import org.midonet.util.logging.Logging
+
+package object client extends Logging {
+
+    override def logSource = FlowStateTransferLog
+    override def logMark = "FlowStateClient"
+
 }
