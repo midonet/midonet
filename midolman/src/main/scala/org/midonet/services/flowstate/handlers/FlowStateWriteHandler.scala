@@ -55,6 +55,9 @@ class FlowStateWriteHandler(context: Context,
     override def logSource = FlowStateLog
     override def logMark = "FlowStateWriteHandler"
 
+    private val legacyPushState = context.config.legacyPushState
+    private val localPushState = context.config.localPushState
+
     /**
       * Flow state storage provider for the calling thread. Necessary as
       * the FlowStateStorage implementation is not thread safe. To overcome
@@ -65,7 +68,7 @@ class FlowStateWriteHandler(context: Context,
       * initialized if the legacyPushState flag is true.
       */
     protected val storageProvider: ThreadLocal[FlowStateStorageWriter] = {
-        if (context.config.legacyPushState) {
+        if (legacyPushState) {
             new ThreadLocal[FlowStateStorageWriter] {
                 override def initialValue(): FlowStateStorageWriter = {
                     log debug "Getting the initial value for the flow state storage."
@@ -171,11 +174,11 @@ class FlowStateWriteHandler(context: Context,
         val portsIter = msg.portIds
         if (portsIter.count == 1) {
             val (ingressPortId, egressPortIds) = portIdsFromSbe(portsIter.next)
-            if (context.config.legacyPushState) {
+            if (legacyPushState) {
                 writeInLegacyStorage(
                     ingressPortId, egressPortIds, conntrackKeys, natKeys)
             }
-            if (context.config.localPushState) {
+            if (localPushState) {
                 writeInLocalStorage(ingressPortId, egressPortIds, encoder)
             }
         } else {
