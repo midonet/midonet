@@ -494,7 +494,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
                 publish(Update(entry.key, entry.value, table.nullValue))
             }
             owned.remove(entry.version)
-            removing.remove(KeyValue(entry.key, entry.version))
+            removing.remove(KeyValue(entry.key, entry.value))
         }
     }
 
@@ -830,16 +830,19 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
             if (entry.hasValue) {
                 // This entry is added or updated.
                 val newEntry = table.decodeEntry(entry)
-                val oldEntry = cache.put(newEntry.key, newEntry)
+                val oldEntry = cache.get(newEntry.key)
                 if (oldEntry eq null) {
+                    cache.put(newEntry.key, newEntry)
                     updates.add(Update(newEntry.key, table.nullValue,
                                        newEntry.value))
-                } else if (oldEntry.value != newEntry.value ||
-                           oldEntry.version != newEntry.version) {
+                } else if (oldEntry.version < newEntry.version) {
+                    cache.put(newEntry.key, newEntry)
                     updates.add(Update(newEntry.key, oldEntry.value,
                                        newEntry.value))
                     // Remove owned deleted entry.
-                    if (owned.contains(oldEntry.version)) {
+                    if (owned.contains(oldEntry.version)
+                        && !removing.contains(KeyValue(oldEntry.key,
+                                                       oldEntry.value))) {
                         removals.add(oldEntry)
                     }
                 }
@@ -847,13 +850,13 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
                 // This entry is removed.
                 val oldKey = table.accessibleDecodeKey(entry.getKey)
                 val oldEntry = cache.remove(oldKey)
-                if (oldEntry eq null) {
-                    log warn s"Inconsistent diff: removing $oldKey not found"
-                } else {
+                if (oldEntry ne null) {
                     updates.add(Update(oldEntry.key, oldEntry.value,
                                        table.nullValue))
                     // Remove owned deleted entry.
-                    if (owned.contains(oldEntry.version)) {
+                    if (owned.contains(oldEntry.version)
+                        && !removing.contains(KeyValue(oldEntry.key,
+                                                       oldEntry.value))) {
                         removals.add(oldEntry)
                     }
                 }
@@ -928,7 +931,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
                 cache.put(newEntry.key, newEntry)
                 updates.add(Update(newEntry.key, table.nullValue,
                                    newEntry.value))
-            } else if (oldEntry.version != newEntry.version) {
+            } else if (oldEntry.version < newEntry.version) {
                 cache.put(newEntry.key, newEntry)
                 updates.add(Update(newEntry.key, oldEntry.value,
                                    newEntry.value))
