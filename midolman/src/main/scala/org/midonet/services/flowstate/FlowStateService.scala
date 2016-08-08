@@ -28,9 +28,6 @@ import com.datastax.driver.core.Session
 import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import com.typesafe.scalalogging.Logger
-
-import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.storage.FlowStateStorage
@@ -41,11 +38,10 @@ import org.midonet.services.FlowStateLog
 import org.midonet.services.flowstate.FlowStateService._
 import org.midonet.services.flowstate.handlers.{FlowStateReadHandler, FlowStateWriteHandler}
 import org.midonet.services.flowstate.stream.FlowStateManager
+import org.midonet.util.logging.Logging
 import org.midonet.util.netty.ServerFrontEnd
 
 object FlowStateService {
-
-    val Log = Logger(LoggerFactory.getLogger(FlowStateLog))
 
     val FrontEndTimeout = 30
     val FrontEndTimeoutUnit = TimeUnit.SECONDS
@@ -61,8 +57,11 @@ object FlowStateService {
 @MinionService(name = "flow-state", runsOn = TargetNode.AGENT)
 class FlowStateService @Inject()(nodeContext: Context,
                                  @Named("agent-services-pool") executor: ScheduledExecutorService,
-                                 config: MidolmanConfig)
-    extends Minion(nodeContext) {
+                                 config: MidolmanConfig,
+    extends Minion(nodeContext) with Logging {
+
+    override def logSource = FlowStateLog
+    override def logMark = "FlowStateService"
 
     override def isEnabled: Boolean = config.flowState.isEnabled
 
@@ -115,7 +114,7 @@ class FlowStateService @Inject()(nodeContext: Context,
 
             val elapsed = Duration(System.nanoTime - startTime,
                                    TimeUnit.NANOSECONDS).toMillis
-            Log debug s"Flow state block invalidator task took $elapsed ms " +
+            log debug s"Flow state block invalidator task took $elapsed ms " +
                       s"and invalidated $invalidatedBlocks blocks."
         }
     }
@@ -133,7 +132,7 @@ class FlowStateService @Inject()(nodeContext: Context,
             val erasedFiles = ioManager.removeInvalid()
             val elapsed = Duration(System.nanoTime() - startTime,
                                    TimeUnit.NANOSECONDS).toMillis
-            Log debug s"Erased $erasedFiles flow state files that were not " +
+            log debug s"Erased $erasedFiles flow state files that were not " +
                       s"being used in $elapsed ms."
         }
     }
@@ -182,7 +181,7 @@ class FlowStateService @Inject()(nodeContext: Context,
     }
 
     protected override def doStart(): Unit = {
-        Log info "Starting flow state service"
+        log info "Starting flow state service"
 
         if (legacyPushState) {
             cassandraClient.connect() onComplete {
@@ -206,7 +205,7 @@ class FlowStateService @Inject()(nodeContext: Context,
 
     protected override def doStop(): Unit = {
         this.synchronized {
-            Log info "Stopping flow state service"
+            log info "Stopping flow state service"
             tcpFrontend.stopAsync()
             udpFrontend.stopAsync()
 
@@ -226,7 +225,7 @@ class FlowStateService @Inject()(nodeContext: Context,
         try {
             startBackgroundTasks()
             startServerFrontEnds()
-            Log info "Flow state service registered and listening " +
+            log info "Flow state service registered and listening " +
                      s"for TCP and UDP connections on 0.0.0.0:$port"
             notifyStarted()
         } catch {

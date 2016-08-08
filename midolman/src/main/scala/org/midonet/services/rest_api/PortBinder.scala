@@ -43,13 +43,13 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
                      lockFactory: ZookeeperLockFactory) extends PortBinder
                                                         with ImmediateRetriable {
 
-    import RestApiService.Log
+    import RestApiService.log
 
     override def maxRetries = 3
 
     override def bindPort(portId: UUID, hostId: UUID,
                           deviceName: String): Unit = {
-        val update = retry(Log, s"Binding port $portId") {
+        val update = retry(log.underlying, s"Binding port $portId") {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
             val newPortBldr = oldPort.toBuilder
@@ -69,7 +69,7 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
 
         if (update.isLeft) {
             val e = update.left.get
-            Log.error(s"Unable to bind port $portId to host $hostId", e)
+            log.error(s"Unable to bind port $portId to host $hostId", e)
             throw e
         }
     }
@@ -77,7 +77,7 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
     override def unbindPort(portId: UUID, hostId: UUID): Unit = {
         val pHostId = UUIDUtil.toProto(hostId)
 
-        val update = retry(Log, s"Unbinding port $portId") {
+        val update = retry(log.underlying, s"Unbinding port $portId") {
             val tx = storage.transaction()
             val oldPort = tx.get(classOf[Port], portId)
 
@@ -98,7 +98,7 @@ class ZoomPortBinder(storage: Storage, stateStorage: StateStorage,
 
         if (update.isLeft) {
             val e = update.left.get
-            Log.error(
+            log.error(
                 s"Unable to unbind port $portId from host $hostId", e)
             throw e
         }

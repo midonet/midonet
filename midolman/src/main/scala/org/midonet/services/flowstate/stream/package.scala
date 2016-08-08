@@ -20,17 +20,13 @@ import java.io.IOException
 import java.util.UUID
 
 import com.google.common.annotations.VisibleForTesting
-import com.typesafe.scalalogging.Logger
+
 import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.util.io.stream._
-import org.slf4j.LoggerFactory
 
 package object stream {
 
     val LengthSize = 4
-
-    val log = Logger(
-        LoggerFactory.getLogger("org.midonet.services.stream.flowstate-stream"))
 
     case class Context(config: FlowStateConfig,
                        ioManager: FlowStateManager)

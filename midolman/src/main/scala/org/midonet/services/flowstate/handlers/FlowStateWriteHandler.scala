@@ -34,9 +34,10 @@ import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
 import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
 import org.midonet.packets.{FlowStateEthernet, SbeEncoder}
-import org.midonet.services.flowstate.FlowStateService._
+import org.midonet.services.FlowStateLog
 import org.midonet.services.flowstate.stream.{Context, FlowStateWriter}
 import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType}
+import org.midonet.util.logging.Logging
 
 import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.socket.DatagramPacket
@@ -49,7 +50,10 @@ import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 @Sharable
 class FlowStateWriteHandler(context: Context,
                             session: Session)
-    extends SimpleChannelInboundHandler[DatagramPacket] {
+    extends SimpleChannelInboundHandler[DatagramPacket] with Logging {
+
+    override def logSource = FlowStateLog
+    override def logMark = "FlowStateWriteHandler"
 
     /**
       * Flow state storage provider for the calling thread. Necessary as
@@ -64,7 +68,7 @@ class FlowStateWriteHandler(context: Context,
         if (context.config.legacyPushState) {
             new ThreadLocal[FlowStateStorageWriter] {
                 override def initialValue(): FlowStateStorageWriter = {
-                    Log debug "Getting the initial value for the flow state storage."
+                    log debug "Getting the initial value for the flow state storage."
                     FlowStateStorage[ConnTrackKeyStore, NatKeyStore](
                         session, NatKeyStore, ConnTrackKeyStore)
                 }
@@ -99,11 +103,11 @@ class FlowStateWriteHandler(context: Context,
                 case FlowStateInternalMessageType.OwnedPortsUpdate =>
                     handleUpdateOwnedPorts(messageData)
                 case _ =>
-                    Log warn s"Invalid flow state message header, ignoring."
+                    log warn s"Invalid flow state message header, ignoring."
             }
         } catch {
             case NonFatal(e) =>
-                Log.error(s"Unkown error handling internal flow state message", e)
+                log.error(s"Unkown error handling internal flow state message", e)
         }
     }
 
@@ -119,7 +123,7 @@ class FlowStateWriteHandler(context: Context,
         while (buffer.position < buffer.limit()) {
             ownedPorts += new UUID(buffer.getLong, buffer.getLong)
         }
-        Log debug s"Received new owned ports: $ownedPorts}"
+        log debug s"Received new owned ports: $ownedPorts}"
         // check the difference to release the writers
         val unboundPorts = cachedOwnedPortIds -- ownedPorts
         for (unboundPort <- unboundPorts) {
@@ -144,7 +148,7 @@ class FlowStateWriteHandler(context: Context,
         while (conntrackIter.hasNext) {
             val k = connTrackKeyFromSbe(conntrackIter.next(), ConnTrackKeyStore)
             conntrackKeys += k
-            Log debug s"Got new ConnTrack key: $k"
+            log debug s"Got new ConnTrack key: $k"
         }
 
         val natKeys = MutableList.empty[(NatKeyStore, NatBinding)]
@@ -154,7 +158,7 @@ class FlowStateWriteHandler(context: Context,
             val k = natKeyFromSbe(nat, NatKeyStore)
             val v = natBindingFromSbe(nat)
             natKeys += ((k, v))
-            Log debug s"Got new NAT mapping: $k -> $v"
+            log debug s"Got new NAT mapping: $k -> $v"
         }
 
         // Bypass trace messages, not interested in them
@@ -175,7 +179,7 @@ class FlowStateWriteHandler(context: Context,
                 writeInLocalStorage(ingressPortId, egressPortIds, encoder)
             }
         } else {
-            Log.warn(s"Unexpected number (${portsIter.count}) of ingress/egress " +
+            log.warn(s"Unexpected number (${portsIter.count}) of ingress/egress " +
                      s"port id groups in the flow state message. Ignoring.")
         }
     }
@@ -185,7 +189,7 @@ class FlowStateWriteHandler(context: Context,
         conntrackKeys: mutable.MutableList[ConnTrackKeyStore],
         natKeys: mutable.MutableList[(NatKeyStore, NatBinding)]) = {
 
-        Log debug s"Writing flow state message to legacy storage for port $ingressPortId."
+        log debug s"Writing flow state message to legacy storage for port $ingressPortId."
 
         val legacyStorage = getLegacyStorage
 
@@ -217,7 +221,7 @@ class FlowStateWriteHandler(context: Context,
             for (portId <- matchingPorts) {
                 val writer = getFlowStateWriter(portId)
                 writer.synchronized {
-                    Log debug s"Writing flow state message to $portId writer."
+                    log debug s"Writing flow state message to $portId writer."
                     writer.write(encoder)
                 }
             }
