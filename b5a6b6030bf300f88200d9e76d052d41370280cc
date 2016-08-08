@@ -16,6 +16,24 @@
       "revId": "b5a6b6030bf300f88200d9e76d052d41370280cc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_987549fb",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-08T06:08:25Z",
+      "side": 1,
+      "message": "nice catch, thanks. Fixed.",
+      "parentUuid": "baa041b7_00fb147a",
+      "revId": "b5a6b6030bf300f88200d9e76d052d41370280cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
