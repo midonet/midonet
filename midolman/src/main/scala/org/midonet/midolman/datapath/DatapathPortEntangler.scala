@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.datapath
 
-import java.util.{UUID, Set => JSet}
+import java.util.{HashSet, Set => JSet, Random, UUID}
 
 import scala.concurrent.Future
 
@@ -28,11 +28,18 @@ import org.midonet.util.collection.Bimap
 import org.midonet.util.concurrent._
 
 object DatapathPortEntangler {
+    // this only exists to ensure that agent generated tunnel keys don't
+    // conflict with legacy tunnel keys. Once all agents are using agent
+    // generated tunnel keys, this is unnecessary
+    final val LocalTunnelKeyBit = 1 << 22;
+    final val LocalTunnelKeyMask = LocalTunnelKeyBit - 1;
+
     trait Controller {
         def addToDatapath(interfaceName: String): Future[(DpPort, Int)]
         def removeFromDatapath(port: DpPort): Future[_]
         def setVportStatus(port: DpPort, binding: PortBinding,
-                           isActive: Boolean): Future[_]
+                           isActive: Boolean,
+                           tunnelKey: Long): Future[_]
     }
 }
 
@@ -109,6 +116,12 @@ trait DatapathPortEntangler {
     var interfaceToVport = new Bimap[String, UUID]()
     var bindings = Map[String, PortBinding]()
     var keysForLocalPorts = Map[Long, DpPort]()
+     // can't use bimap, because a port may have multiple keys (legacy & new)
+    var localPortsToKey = Map[DpPort, Long]()
+
+    private val random = new Random()
+    private val localKeys = new HashSet[Long]
+
 
     // Sequentializes updates to a particular port. Note that while an update
     // is in progress, new updates can be scheduled.
@@ -332,11 +345,30 @@ trait DatapathPortEntangler {
         }
     }
 
-    private def setVportStatus(port: DpPort, binding: PortBinding, active: Boolean): Future[_] = {
-        if (active)
-            keysForLocalPorts += binding.tunnelKey -> port
-        else
-            keysForLocalPorts -= binding.tunnelKey
-        controller.setVportStatus(port, binding, active)
+    private def setVportStatus(port: DpPort, binding: PortBinding,
+                               active: Boolean): Future[_] = {
+        val tunnelKey = if (active) {
+            var tunnelKey = 0L
+            do {
+                tunnelKey = random.nextLong() &
+                    DatapathPortEntangler.LocalTunnelKeyMask |
+                    DatapathPortEntangler.LocalTunnelKeyBit
+            } while (!localKeys.add(tunnelKey))
+
+            keysForLocalPorts += binding.legacyTunnelKey -> port
+            keysForLocalPorts += tunnelKey -> port
+            localPortsToKey += port -> tunnelKey
+
+            tunnelKey
+        } else {
+            keysForLocalPorts -= binding.legacyTunnelKey
+
+            val tunnelKey = localPortsToKey.get(port).getOrElse(0L)
+            localPortsToKey -= port
+            keysForLocalPorts -= tunnelKey
+            localKeys.remove(tunnelKey)
+            tunnelKey
+        }
+        controller.setVportStatus(port, binding, active, tunnelKey)
     }
 }

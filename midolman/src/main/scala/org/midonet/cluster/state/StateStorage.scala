@@ -61,8 +61,10 @@ trait StateStorage {
      * @param host The identifier of the host where it's active
      * @param active True / false depending on what state we want in the end
      *               for the port
+     * @param tunnelKey the tunnelKey the agent has allocated for the port
      */
-    def setPortLocalAndActive(portId: UUID, host: UUID, active: Boolean): Unit
+    def setPortLocalAndActive(portId: UUID, host: UUID, active: Boolean,
+                              tunnelKey: Long): Unit
 
     /**
      * An observable that emits notifications when a local port becomes active,

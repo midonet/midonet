@@ -173,7 +173,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages(1) shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(portId -> PortBinding(portId, port.tunnelKey, "eth0")),
+                    Map(portId -> PortBinding(portId, "eth0", port.tunnelKey)),
                     Map())
         }
 
@@ -199,7 +199,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages.head shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(port.id -> PortBinding(port.id, port.tunnelKey, "eth0")),
+                    Map(port.id -> PortBinding(port.id, "eth0", port.tunnelKey)),
                     Map())
         }
 
@@ -229,7 +229,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages.head shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(port1.id -> PortBinding(port1.id, port1.tunnelKey, "eth0")),
+                    Map(port1.id -> PortBinding(port1.id, "eth0", port1.tunnelKey)),
                     Map())
 
             And("The VTA should receive an Ask request for the second port")
@@ -249,8 +249,8 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages(1) shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(port1.id -> PortBinding(port1.id, port1.tunnelKey, "eth0"),
-                        port2.id -> PortBinding(port2.id, port2.tunnelKey, "eth1")),
+                    Map(port1.id -> PortBinding(port1.id, "eth0", port1.tunnelKey),
+                        port2.id -> PortBinding(port2.id, "eth1", port2.tunnelKey)),
                     Map())
         }
 
@@ -297,7 +297,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages(1) shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(port1.id -> PortBinding(port1.id, port1.tunnelKey, "eth0")),
+                    Map(port1.id -> PortBinding(port1.id, "eth0", port1.tunnelKey)),
                     Map())
 
             When("The VTA caches and completes the request for the second port")
@@ -315,8 +315,8 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages(2) shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(port1.id -> PortBinding(port1.id, port1.tunnelKey, "eth0"),
-                        port2.id -> PortBinding(port2.id, port2.tunnelKey, "eth0")),
+                    Map(port1.id -> PortBinding(port1.id, "eth0", port1.tunnelKey),
+                        port2.id -> PortBinding(port2.id, "eth0", port2.tunnelKey)),
                     Map())
         }
 
@@ -378,7 +378,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages(2) shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(port2.id -> PortBinding(port2.id, port2.tunnelKey, "eth1")),
+                    Map(port2.id -> PortBinding(port2.id, "eth1", port2.tunnelKey)),
                     Map())
 
             When("The VTA caches the port and completes the request for the first port")
@@ -391,8 +391,8 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages(3) shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(portId1 -> PortBinding(portId1, port1.tunnelKey, "eth0"),
-                        port2.id -> PortBinding(port2.id, port2.tunnelKey, "eth1")),
+                    Map(portId1 -> PortBinding(portId1, "eth0", port1.tunnelKey),
+                        port2.id -> PortBinding(port2.id, "eth1", port2.tunnelKey)),
                     Map())
         }
 
@@ -437,7 +437,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages(1) shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(port2.id -> PortBinding(port2.id, port2.tunnelKey, "eth1")),
+                    Map(port2.id -> PortBinding(port2.id, "eth1", port2.tunnelKey)),
                     Map())
 
             When("The VTA caches the port and completes the request")
@@ -450,8 +450,8 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             subscriber.underlyingActor.messages(2) shouldBe
                 ResolvedHost(
                     hostId, alive = true,
-                    Map(portId1 -> PortBinding(portId1, port1.tunnelKey, "eth0"),
-                        port2.id -> PortBinding(port2.id, port2.tunnelKey, "eth1")),
+                    Map(portId1 -> PortBinding(portId1, "eth0", port1.tunnelKey),
+                        port2.id -> PortBinding(port2.id, "eth1", port2.tunnelKey)),
                     Map())
         }
 

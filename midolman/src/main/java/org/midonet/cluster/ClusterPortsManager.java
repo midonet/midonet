@@ -30,8 +30,10 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 
 import org.midonet.cluster.client.PortBuilder;
+import org.midonet.cluster.data.PortActiveTunnelKey;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.StateAccessException;
@@ -130,18 +132,22 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
             watcher.run();
     }
 
-    private boolean isActive(final UUID portId, final Runnable watcher) {
+    private PortActiveTunnelKey isActive(final UUID portId,
+                                         final Runnable watcher) {
         try {
             return portMgr.isActivePort(portId, watcher);
         } catch (StateAccessException e) {
             log.warn("Exception retrieving Port liveness", e);
             connectionWatcher.handleError(
                     "Port Liveness:" + portId, watcher, e);
+        } catch (SerializationException e) {
+            log.error("Exception deserializing Port liveness", e);
         }
-        return false;
+        return null;
     }
 
-    private boolean isActive(final UUID portId, final PortBuilder builder) {
+    private PortActiveTunnelKey isActive(final UUID portId,
+                                         final PortBuilder builder) {
         return isActive(portId, aliveWatcher(portId, builder));
     }
 

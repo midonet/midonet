@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -34,6 +35,8 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+
+import org.midonet.cluster.data.PortActiveTunnelKey;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -938,9 +941,13 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     }
 
     public Observable<Void> setActivePort(UUID portId, UUID owner,
-            boolean active) throws StateAccessException {
+                                          boolean active, long tunnelKey)
+            throws SerializationException, StateAccessException {
         final String parentPath = paths.getPortActivePath(portId);
         final String path = parentPath + "/" + owner.toString();
+
+        final byte[] tunnelKeyData = serializer.serialize(
+                new PortActiveTunnelKey().setTunnelKey(tunnelKey));
 
         // NOTE(guillermo): creating this path here ensures backwards
         // compatibility for ports that were created without an 'active' subnode.
@@ -958,7 +965,8 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
                                 return Observable.create(new OnSubscribe<String>() {
                                         @Override
                                         public void call(final Subscriber<? super String> sub) {
-                                            zk.asyncAdd(parentPath, new byte[0],
+                                            zk.asyncAdd(parentPath,
+                                                        new byte[0],
                                                         CreateMode.PERSISTENT,
                                                         DirectoryCallbackFactory.wrap(sub));
                                         }
@@ -973,7 +981,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
                         public Observable<String> call(final String v) {
                             return Observable.create(new OnSubscribe<String>() {
                                     public void call(final Subscriber<? super String> sub) {
-                                        zk.ensureEphemeralAsync(path, new byte[0],
+                                        zk.ensureEphemeralAsync(path, tunnelKeyData,
                                                                 DirectoryCallbackFactory.wrap(sub));
                                     }
                                 });
@@ -994,16 +1002,50 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         }
     }
 
-    public boolean isActivePort(UUID portId, Runnable watcher) throws StateAccessException {
+    private PortActiveTunnelKey childrenToTunnelKey(String parent,
+                                                    Iterator<String> children)
+        throws StateAccessException, SerializationException {
+        if (children.hasNext()) {
+            // try to read the tunnel key from the first child,
+            // if the children change, we read this again.
+            String childpath = parent + "/" + children.next();
+            // we don't need a watcher on the get, because we never setData
+            // on the zknode and the getChildren watcher will catch deletes.
+            byte[] data = zk.get(childpath);
+
+            if (data.length == 0) {
+                return PortActiveTunnelKey.EMPTY;
+            } else {
+                return serializer.deserialize(
+                        data, PortActiveTunnelKey.class);
+            }
+        }
+        return null;
+    }
+    public PortActiveTunnelKey isActivePort(UUID portId, Runnable watcher)
+            throws StateAccessException, SerializationException {
         String path = paths.getPortActivePath(portId);
         log.debug("checking port liveness");
-        return zk.exists(path, watcher) && (zk.getChildren(path, watcher).size() > 0);
+
+        if (zk.exists(path, watcher)) {
+            Iterator<String> children = zk.getChildren(path, watcher).iterator();
+            return childrenToTunnelKey(path, children);
+        }
+
+        return null;
     }
 
-    public boolean isActivePort(UUID portId) throws StateAccessException {
+    public PortActiveTunnelKey isActivePort(UUID portId)
+            throws StateAccessException, SerializationException {
         String path = paths.getPortActivePath(portId);
         log.debug("checking port liveness");
-        return zk.exists(path) && (zk.getChildren(path).size() > 0);
+
+        if (zk.exists(path)) {
+            Iterator<String> children = zk.getChildren(path).iterator();
+            return childrenToTunnelKey(path, children);
+        }
+
+        return null;
     }
 
     public PortDirectory.RouterPortConfig findFirstRouterPortMatchFromBridge(

@@ -103,7 +103,8 @@ class FlowTranslatorTest extends MidolmanSpec {
     def makePort(host: UUID, bridge: Bridge)(f: BridgePort => BridgePort)
     : BridgePort = {
         val port = newBridgePort(bridge, f(new BridgePort().setHostId(host)))
-        stateStorage.setPortLocalAndActive(port.getId, host, true)
+        stateStorage.setPortLocalAndActive(port.getId, host,
+                                           true, port.getTunnelKey)
         fetchTopology(port)
         port
     }
@@ -122,7 +123,8 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def activatePorts(localPorts: List[Port[_, _]]): Unit = {
         localPorts foreach { p =>
-            VirtualToPhysicalMapper ! LocalPortActive(p.getId, active = true)
+            VirtualToPhysicalMapper ! LocalPortActive(p.getId, active = true,
+                                                      p.getTunnelKey)
         }
     }
 
@@ -188,7 +190,7 @@ class FlowTranslatorTest extends MidolmanSpec {
     var tunKey = 0
     def makeBinding(id: UUID, iface: String) = {
         tunKey += 1
-        (id, PortBinding(id, tunKey, iface))
+        (id, PortBinding(id, iface, tunKey))
     }
 
     def makeHost(bindings: Map[UUID, String],
@@ -308,8 +310,10 @@ class FlowTranslatorTest extends MidolmanSpec {
             }
             val rcuHost = new ResolvedHost(
                 hostId, true,
-                Map(inPort.getId -> PortBinding(inPort.getId, clientInPort.tunnelKey, "inPort"),
-                    port0.getId -> PortBinding(port0.getId, clientPort0.tunnelKey, "port0")),
+                Map(inPort.getId -> PortBinding(inPort.getId, "inPort",
+                                                clientInPort.tunnelKey),
+                    port0.getId -> PortBinding(port0.getId, "port0",
+                                               clientPort0.tunnelKey)),
                 Map(
                     UUID.randomUUID() -> hostIp,
                     tzId -> hostTunIp

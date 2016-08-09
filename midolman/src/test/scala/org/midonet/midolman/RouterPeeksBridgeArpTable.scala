@@ -105,7 +105,7 @@ class RouterPeeksBridgeArpTable extends MidolmanSpec {
                       interiorTenantRouterPort,
                       exteriorTenantRouterPort)
 
-        VirtualToPhysicalMapper ! LocalPortActive(exteriorTenantRouterPort.getId, active = true)
+        VirtualToPhysicalMapper ! LocalPortActive(exteriorTenantRouterPort.getId, active = true, 1234L)
     }
 
     feature ("ARP requests are suppressed") {

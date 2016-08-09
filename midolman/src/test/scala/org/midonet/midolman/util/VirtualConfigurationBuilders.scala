@@ -399,11 +399,12 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsLink(port.getId, peerPort.getId)
     }
 
-    def materializePort(port: Port[_, _], hostId: UUID, portName: String) {
+    def materializePort(port: Port[_, _], hostId: UUID, portName: String,
+                        tunnelKey: Long = 1L) {
         clusterDataClient().hostsAddVrnPortMappingAndReturnPort(hostId,
             port.getId, portName)
 
-        stateStorage.setPortLocalAndActive(port.getId, hostId, true)
+        stateStorage.setPortLocalAndActive(port.getId, hostId, true, tunnelKey)
     }
 
     def newCondition(

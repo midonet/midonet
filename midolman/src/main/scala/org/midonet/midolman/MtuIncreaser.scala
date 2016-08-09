@@ -54,7 +54,7 @@ class MtuIncreaser extends Actor
     var dpState: DatapathState = _
 
     private def receiveLocalPortActive: Receive = {
-        case LocalPortActive(id, true) =>
+        case LocalPortActive(id, true, _) =>
             increaseMtu(id)
     }
 
