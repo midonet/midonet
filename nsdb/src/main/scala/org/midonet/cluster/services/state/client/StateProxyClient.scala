@@ -265,7 +265,7 @@ class StateProxyClient(conf: StateProxyClientConfig,
     override protected def onDisconnect(cause: Throwable): Unit
     = runSingleThreaded("onDisconnect") {
 
-        log.info(s"$this Disconnected from server", cause)
+        log.info(s"$this Disconnected from server: ${cause.getMessage}")
         if (!transitionToWaiting()) {
             log debug s"$this Cancelled by stop"
         }
