@@ -330,7 +330,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             verify(mockedLegacyStorage, times(0)).submit()
 
             Then("The message is ignored in local storage")
-            handler.getWrites shouldBe 0
+            handler.portWriters should have size 0
         }
 
         scenario("Service handle calls to storage with > 1 keys") {

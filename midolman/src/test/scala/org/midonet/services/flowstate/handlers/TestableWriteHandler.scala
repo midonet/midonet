@@ -15,7 +15,6 @@
  */
 package org.midonet.services.flowstate.handlers
 
-import java.util
 import java.util.UUID
 
 import com.datastax.driver.core.Session
@@ -55,10 +54,8 @@ class TestableWriteHandler (context: stream.Context)
         }
 
 
-    override def writeInLocalStorage(ingressPortId: UUID,
-                                     egressPortIds: util.ArrayList[UUID],
-                                     encoder: SbeEncoder): Unit = {
-        super.writeInLocalStorage(ingressPortId, egressPortIds, encoder)
+    override def writeInLocalStorage(encoder: SbeEncoder): Unit = {
+        super.writeInLocalStorage(encoder)
         writes += 1
     }
 
