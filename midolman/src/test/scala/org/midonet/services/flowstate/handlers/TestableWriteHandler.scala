@@ -15,7 +15,7 @@
  */
 package org.midonet.services.flowstate.handlers
 
-import java.util
+import java.nio.ByteBuffer
 import java.util.UUID
 
 import com.datastax.driver.core.Session
@@ -25,7 +25,6 @@ import org.mockito.Mockito._
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.NatState.NatKeyStore
-import org.midonet.packets.SbeEncoder
 import org.midonet.services.flowstate.stream
 import org.midonet.services.flowstate.stream.FlowStateWriter
 
@@ -38,9 +37,7 @@ class TestableWriteHandler (context: stream.Context)
     def getWrites = writes
 
     override def getLegacyStorage = {
-        if (legacyStorage eq null)
-            legacyStorage = mock(classOf[FlowStateStorage[ConnTrackKeyStore, NatKeyStore]])
-        Some(legacyStorage)
+        Some(mock(classOf[FlowStateStorage[ConnTrackKeyStore, NatKeyStore]]))
     }
 
     override def getFlowStateWriter(portId: UUID): FlowStateWriter =
@@ -55,10 +52,8 @@ class TestableWriteHandler (context: stream.Context)
         }
 
 
-    override def writeInLocalStorage(ingressPortId: UUID,
-                                     egressPortIds: util.ArrayList[UUID],
-                                     encoder: SbeEncoder): Unit = {
-        super.writeInLocalStorage(ingressPortId, egressPortIds, encoder)
+    override def writeInLocalStorage(buffer: ByteBuffer): Unit = {
+        super.writeInLocalStorage(buffer)
         writes += 1
     }
 
