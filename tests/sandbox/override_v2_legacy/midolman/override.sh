@@ -94,11 +94,9 @@ agent.loggers.root=DEBUG
 agent.haproxy_health_monitor.namespace_cleanup=true
 agent.haproxy_health_monitor.health_monitor_enable=true
 agent.haproxy_health_monitor.haproxy_file_loc=/etc/midolman/l4lb/
-agent.minions.flow_state.legacy_push_state=false
-agent.minions.flow_state.legacy_read_state=false
-agent.minions.flow_state.local_push_state=true
-agent.minions.flow_state.local_read_state=true
-state_proxy.enabled=true
+agent.minions.flow_state.legacy_push_state=true
+agent.minions.flow_state.local_push_state=false
+state_proxy.enabled=false
 EOF
 
 # enable debug logs from first boot
