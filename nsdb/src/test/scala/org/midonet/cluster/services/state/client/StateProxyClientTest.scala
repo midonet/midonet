@@ -840,6 +840,62 @@ class StateProxyClientTest extends FeatureSpec
             ratio should be >= 0.8
             t.close()
         }
+        scenario("regression - close before connect callback") {
+
+            Given("a started client")
+            val softDelay = 200 milliseconds
+            val hardDelay = 500 milliseconds
+            val t = new TestObjects(softDelay, 0, hardDelay)
+
+            @volatile var blocking = true
+            @volatile var ready = false
+
+            And("A busy execution context")
+            Future{
+                while (blocking) {
+                    ready = true
+                    Thread.sleep(100)
+                }
+            }(t.exctx)
+            while (!ready) {blocking = true}
+
+            t.client.start()
+
+            And("an observer")
+            val observer = Mockito.mock(classOf[Observer[ConnectionState]])
+            t.client.connection.subscribe(observer).isUnsubscribed shouldBe false
+
+            eventually {
+                Mockito.verify(observer).onNext(Connected)
+            }
+
+            eventually {
+                t.server.hasClient shouldBe true
+            }
+
+            When("Server closes the connection")
+            t.server.setOffline()
+
+            And("The execution context resumes after the close")
+            Future {
+                Thread.sleep(1000)
+                blocking = false
+            }
+
+            Then("The client realises it's disconnected")
+
+            eventually {
+                Mockito.verify(observer).onNext(Disconnected)
+            }
+
+            t.server.setOnline()
+
+            Then("And it reconnects after a while")
+            eventually {
+                Mockito.verify(observer, Mockito.times(2)).onNext(Connected)
+            }
+            t.close()
+        }
 
         scenario("completed after stop") {
 
