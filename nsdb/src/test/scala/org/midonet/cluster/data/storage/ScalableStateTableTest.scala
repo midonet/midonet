@@ -1171,7 +1171,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             eventually { subscription.isUnsubscribed shouldBe true }
 
             And("The table should be stopped")
-            table.isStopped shouldBe true
+            eventually { table.isStopped shouldBe true }
         }
 
 
@@ -1193,7 +1193,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             eventually { subscription.isUnsubscribed shouldBe true }
 
             And("The table should be stopped")
-            table.isStopped shouldBe true
+            eventually { table.isStopped shouldBe true }
         }
 
         scenario("Table handles throwing subscriber during onNext") {
