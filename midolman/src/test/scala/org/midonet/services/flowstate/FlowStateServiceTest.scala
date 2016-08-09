@@ -331,6 +331,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
 
             Then("The message is ignored in local storage")
             handler.localWrites shouldBe 0
+            handler.portWriters should have size 0
         }
 
         scenario("Service handle calls to storage with > 1 keys") {
