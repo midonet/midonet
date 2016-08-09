@@ -34,12 +34,6 @@ object SimulationStashes {
                 fork.second = b
             })
 
-    val Continuations = new InstanceStash1[ContinueWith, SimStep](
-            () => ContinueWith(null),
-            (cont, step) => {
-                cont.step = step
-            })
-
     val PooledMatches = new InstanceStash1[FlowMatch, FlowMatch](
             () => new FlowMatch(),
             (fm, template) => fm.reset(template))
@@ -48,6 +42,5 @@ object SimulationStashes {
         Stack.reUp()
         Fork.reUp()
         PooledMatches.reUp()
-        Continuations.reUp()
     }
 }
