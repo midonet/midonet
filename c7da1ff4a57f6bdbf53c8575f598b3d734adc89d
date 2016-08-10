@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_10bfc5d0",
+        "filename": "midolman/src/main/java/org/midonet/midolman/services/MidolmanService.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:26:17Z",
+      "side": 1,
+      "message": "encapsulate in the virtual topology itself",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 9
+      },
+      "revId": "c7da1ff4a57f6bdbf53c8575f598b3d734adc89d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_90cbd571",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/rule/RuleLogEventChannel.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:26:17Z",
+      "side": 1,
+      "message": "this should be done when you\u0027re creating the BatchEventProcessor.",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 60
+      },
+      "revId": "c7da1ff4a57f6bdbf53c8575f598b3d734adc89d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_70c61169",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/rule/RuleLogEventChannel.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:26:17Z",
+      "side": 1,
+      "message": "the metric is important for debugging here.",
+      "range": {
+        "startLine": 108,
+        "startChar": 24,
+        "endLine": 108,
+        "endChar": 25
+      },
+      "revId": "c7da1ff4a57f6bdbf53c8575f598b3d734adc89d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_30a3e9b3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/mock/MockRuleLogEventChannel.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:26:17Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 37,
+        "startChar": 16,
+        "endLine": 37,
+        "endChar": 23
+      },
+      "revId": "c7da1ff4a57f6bdbf53c8575f598b3d734adc89d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
