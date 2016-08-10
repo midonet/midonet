@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_f07fc114",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:41:17Z",
+      "side": 1,
+      "message": "does scala logging do this? :O",
+      "range": {
+        "startLine": 10,
+        "startChar": 9,
+        "endLine": 10,
+        "endChar": 46
+      },
+      "revId": "5bff257a58cf9105601071e3c95b14c3b7bcef8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
