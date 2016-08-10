@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9092b555",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:39:15Z",
+      "side": 1,
+      "message": "PerThreadContext",
+      "range": {
+        "startLine": 45,
+        "startChar": 31,
+        "endLine": 45,
+        "endChar": 42
+      },
+      "revId": "c0b5de5495190d00df4de8000a0ad635660bcbba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f0a8e18d",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:39:15Z",
+      "side": 1,
+      "message": "make this an Option",
+      "range": {
+        "startLine": 46,
+        "startChar": 21,
+        "endLine": 46,
+        "endChar": 37
+      },
+      "revId": "c0b5de5495190d00df4de8000a0ad635660bcbba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b097f946",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:39:15Z",
+      "side": 1,
+      "message": "if you\u0027re really worried about memory, make this an ArrayList. HashSet is backed by a HashMap which allocates a Cell per entry. You\u0027d have to do a contains before adding each time, but the length should be small.",
+      "range": {
+        "startLine": 61,
+        "startChar": 33,
+        "endLine": 61,
+        "endChar": 40
+      },
+      "revId": "c0b5de5495190d00df4de8000a0ad635660bcbba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_709df164",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:39:15Z",
+      "side": 1,
+      "message": "contextProvider",
+      "range": {
+        "startLine": 85,
+        "startChar": 29,
+        "endLine": 85,
+        "endChar": 42
+      },
+      "revId": "c0b5de5495190d00df4de8000a0ad635660bcbba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5098ad74",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:39:15Z",
+      "side": 1,
+      "message": "shouldn\u0027t need to be allocated each time.",
+      "range": {
+        "startLine": 137,
+        "startChar": 20,
+        "endLine": 137,
+        "endChar": 38
+      },
+      "revId": "c0b5de5495190d00df4de8000a0ad635660bcbba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
