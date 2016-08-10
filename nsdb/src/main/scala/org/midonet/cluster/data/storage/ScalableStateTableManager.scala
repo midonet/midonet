@@ -849,9 +849,11 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
                 }
             } else {
                 // This entry is removed.
-                val oldKey = table.accessibleDecodeKey(entry.getKey)
-                val oldEntry = cache.remove(oldKey)
-                if (oldEntry ne null) {
+                val key = table.accessibleDecodeKey(entry.getKey)
+                val newVersion = entry.getVersion
+                val oldEntry = cache.get(key)
+                if ((oldEntry ne null) && oldEntry.version <= newVersion) {
+                    cache.remove(key)
                     updates.add(Update(oldEntry.key, oldEntry.value,
                                        table.nullValue))
                     // Remove owned deleted entry.

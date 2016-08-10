@@ -149,8 +149,8 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             if (value ne null) {
                 entry.setValue(KeyValue.newBuilder().setDataVariable(
                     ByteString.copyFromUtf8(value)))
-                     .setVersion(version)
             }
+            entry.setVersion(version)
             update.addEntries(entry)
         }
         client.updates onNext update.build()
