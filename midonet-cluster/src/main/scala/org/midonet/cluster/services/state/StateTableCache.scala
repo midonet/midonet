@@ -796,7 +796,8 @@ class StateTableCache(val config: StateProxyConfig,
             while (inIndex < diffRemoveCache.size()) {
                 val entry = diffRemoveCache.get(inIndex)
                 builder.addEntries(Notify.Entry.newBuilder()
-                                       .setKey(entry.key))
+                                       .setKey(entry.key)
+                                       .setVersion(entry.version))
                 inIndex += 1
                 if (builder.getEntriesCount == notifyBatchSize) {
                     updates(outIndex) = builder.build()
