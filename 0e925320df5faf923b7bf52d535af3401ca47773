@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_506f8d5f",
+        "filename": "midolman/src/main/scala/org/midonet/services/flowstate/handlers/FlowStateWriteHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-10T14:43:01Z",
+      "side": 1,
+      "message": "you shouldn\u0027t use this twice, but rather, writeInLegacyStorage should be maybeWriteInLegacyStore and the implementation should only write if there\u0027s a store object in the TLS.",
+      "range": {
+        "startLine": 202,
+        "startChar": 16,
+        "endLine": 202,
+        "endChar": 31
+      },
+      "revId": "0e925320df5faf923b7bf52d535af3401ca47773",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
