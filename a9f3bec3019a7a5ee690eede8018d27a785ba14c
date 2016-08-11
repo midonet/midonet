@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bcb6b386",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/recycler/RecyclerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-08-11T11:48:59Z",
+      "side": 1,
+      "message": "Nit, maybe replace with the eventually construct?",
+      "range": {
+        "startLine": 136,
+        "startChar": 4,
+        "endLine": 142,
+        "endChar": 5
+      },
+      "revId": "a9f3bec3019a7a5ee690eede8018d27a785ba14c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
