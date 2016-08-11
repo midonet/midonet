@@ -15,7 +15,7 @@
  */
 package org.midonet.services.flowstate.handlers
 
-import java.util
+import java.nio.ByteBuffer
 import java.util.UUID
 
 import com.datastax.driver.core.Session
@@ -24,11 +24,9 @@ import org.mockito.Mockito._
 
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
-import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
-import org.midonet.packets.SbeEncoder
+import org.midonet.packets.NatState.NatKeyStore
 import org.midonet.services.flowstate.stream
 import org.midonet.services.flowstate.stream.FlowStateWriter
-import scala.collection.mutable
 
 class TestableWriteHandler (context: stream.Context)
     extends FlowStateWriteHandler(context, mock(classOf[Session])) {
@@ -52,20 +50,17 @@ class TestableWriteHandler (context: stream.Context)
         }
 
 
-    override def writeInLocalStorage(ingressPortId: UUID,
-                                     egressPortIds: util.ArrayList[UUID],
-                                     encoder: SbeEncoder): Unit = {
-        super.writeInLocalStorage(ingressPortId, egressPortIds, encoder)
-        localWrites += 1
+    override def writeInLocalStorage(buffer: ByteBuffer): Boolean = {
+        val messageWritten = super.writeInLocalStorage(buffer)
+        if (messageWritten) {
+            localWrites += 1
+        }
+        messageWritten
     }
 
 
-    override def maybeWriteInLegacyStorage(ingressPortId: UUID,
-                                           egressPortIds: util.ArrayList[UUID],
-                                           conntrackKeys: mutable.MutableList[ConnTrackKeyStore],
-                                           natKeys: mutable.MutableList[(NatKeyStore, NatBinding)]): Boolean = {
-        val messageWritten = super.maybeWriteInLegacyStorage(
-            ingressPortId, egressPortIds, conntrackKeys, natKeys)
+    override def maybeWriteInLegacyStorage(buffer: ByteBuffer): Boolean = {
+        val messageWritten = super.maybeWriteInLegacyStorage(buffer)
         if (messageWritten) {
             legacyWrites += 1
         }

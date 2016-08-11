@@ -21,8 +21,6 @@ import java.util
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
-import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.collection.mutable.MutableList
 import scala.util.control.NonFatal
 
@@ -138,9 +136,10 @@ class FlowStateWriteHandler(context: Context,
     }
 
     private def handleFlowStateMessage(buffer: ByteBuffer): Unit = {
-        val encoder = contextProvider.get.encoder
-        encoder.decodeFrom(buffer.array)
-        pushNewState(encoder)
+        maybeWriteInLegacyStorage(buffer)
+        if (localPushState) {
+            writeInLocalStorage(buffer)
+        }
     }
 
     private def handleUpdateOwnedPorts(buffer: ByteBuffer): Unit = {
@@ -167,98 +166,119 @@ class FlowStateWriteHandler(context: Context,
     protected[flowstate] def getFlowStateWriter(portId: UUID) =
         context.ioManager.stateWriter(portId)
 
-    protected[flowstate] def pushNewState(encoder: SbeEncoder): Unit = {
+    protected[flowstate] def maybeWriteInLegacyStorage(buffer: ByteBuffer): Boolean = {
+        contextProvider.get.storage match {
+            case Some(legacyStorage) =>
+                val encoder = contextProvider.get.encoder
+                encoder.decodeFrom(buffer.array)
+                val msg = encoder.flowStateMessage
+                val conntrackKeys = MutableList.empty[ConnTrackKeyStore]
+                val conntrackIter = msg.conntrack()
+                while (conntrackIter.hasNext) {
+                    val k = connTrackKeyFromSbe(conntrackIter.next(),
+                                                ConnTrackKeyStore)
+                    conntrackKeys += k
+                    log debug s"Got new ConnTrack key: $k"
+                }
+
+                val natKeys = MutableList.empty[(NatKeyStore, NatBinding)]
+                val natIter = msg.nat()
+                while (natIter.hasNext) {
+                    val nat = natIter.next()
+                    val k = natKeyFromSbe(nat, NatKeyStore)
+                    val v = natBindingFromSbe(nat)
+                    natKeys += ((k, v))
+                    log debug s"Got new NAT mapping: $k -> $v"
+                }
+
+                // Bypass trace messages, not interested in them
+                val traceIter = msg.trace()
+                while (traceIter.hasNext) traceIter.next()
+                val reqsIter = msg.traceRequestIds()
+                while (reqsIter.hasNext) reqsIter.next()
+
+                val portsIter = msg.portIds()
+                if (portsIter.count == 1) {
+                    val (ingressPortId, egressPortIds) = portIdsFromSbe(portsIter.next())
+                    log debug s"Writing flow state message to legacy storage " +
+                              s"for port $ingressPortId."
+                    for (k <- conntrackKeys) {
+                        legacyStorage.touchConnTrackKey(k, ingressPortId,
+                                                        egressPortIds.iterator)
+                    }
+                    for ((k, v) <- natKeys) {
+                        legacyStorage.touchNatKey(k, v, ingressPortId,
+                                                  egressPortIds.iterator)
+                    }
+                    legacyStorage.submit()
+                    true
+                } else {
+                    log.warn(s"Unexpected number (${portsIter.count}) of " +
+                             s"ingress/egress port id groups in the flow state " +
+                             s"message. Ignoring.")
+                    false
+                }
+            case None =>
+                log debug "Not sending flow state to legacy storage, " +
+                          "disabled in configuration."
+                false
+        }
+    }
+
+    protected[flowstate] def writeInLocalStorage(buffer: ByteBuffer): Boolean = {
+        val encoder = contextProvider.get.encoder
+        encoder.decodeFrom(buffer.array)
         val msg = encoder.flowStateMessage
-        uuidFromSbe(msg.sender)
+        // Bypass all blocks in the message until portIds
+        val conntrackIter = msg.conntrack()
+        while (conntrackIter.hasNext) conntrackIter.next()
+        val natIter = msg.nat()
+        while (natIter.hasNext) natIter.next()
+        val traceIter = msg.trace()
+        while (traceIter.hasNext) traceIter.next()
+        val reqsIter = msg.traceRequestIds()
+        while (reqsIter.hasNext) reqsIter.next()
 
-        val conntrackKeys = MutableList.empty[ConnTrackKeyStore]
-        val conntrackIter = msg.conntrack
-        while (conntrackIter.hasNext) {
-            val k = connTrackKeyFromSbe(conntrackIter.next(), ConnTrackKeyStore)
-            conntrackKeys += k
-            log debug s"Got new ConnTrack key: $k"
-        }
-
-        val natKeys = MutableList.empty[(NatKeyStore, NatBinding)]
-        val natIter = msg.nat
-        while (natIter.hasNext) {
-            val nat = natIter.next()
-            val k = natKeyFromSbe(nat, NatKeyStore)
-            val v = natBindingFromSbe(nat)
-            natKeys += ((k, v))
-            log debug s"Got new NAT mapping: $k -> $v"
-        }
-
-        // Bypass trace messages, not interested in them
-        val traceIter = msg.trace
-        while (traceIter.hasNext) traceIter.next
-        val reqsIter = msg.traceRequestIds
-        while (reqsIter.hasNext) reqsIter.next
-
-        // There's only one group element of portIds in the message
-        val portsIter = msg.portIds
+        val portsIter = msg.portIds()
         if (portsIter.count == 1) {
             val (ingressPortId, egressPortIds) = portIdsFromSbe(portsIter.next)
-            maybeWriteInLegacyStorage(
-                ingressPortId, egressPortIds, conntrackKeys, natKeys)
-            if (localPushState) {
-                writeInLocalStorage(ingressPortId, egressPortIds, encoder)
+            val matchingPorts = matchPorts(ingressPortId, egressPortIds)
+            try {
+                val matchingPortsIter = matchingPorts.iterator
+                while (matchingPortsIter.hasNext) {
+                    val portId = matchingPortsIter.next
+                    val writer = getFlowStateWriter(portId)
+                    writer.synchronized {
+                        log debug s"Writing flow state message to $portId writer."
+                        writer.write(encoder)
+                    }
+                }
+                true
+            } catch {
+                case NonFatal(e) =>
+                    log debug s"Failed writing flow state to writer: ${e.getMessage}"
+                    false
             }
         } else {
             log.warn(s"Unexpected number (${portsIter.count}) of ingress/egress " +
                      s"port id groups in the flow state message. Ignoring.")
+            false
         }
     }
 
-    protected[flowstate] def maybeWriteInLegacyStorage(ingressPortId: UUID,
-        egressPortIds: util.ArrayList[UUID],
-        conntrackKeys: mutable.MutableList[ConnTrackKeyStore],
-        natKeys: mutable.MutableList[(NatKeyStore, NatBinding)]): Boolean = {
-
-        contextProvider.get.storage match {
-            case Some(legacyStorage) =>
-                log debug s"Writing flow state message to legacy storage for " +
-                          s"port $ingressPortId."
-
-                for (k <- conntrackKeys) {
-                    legacyStorage.touchConnTrackKey(k, ingressPortId, egressPortIds.iterator)
-                }
-
-                for ((k, v) <- natKeys) {
-                    legacyStorage.touchNatKey(k, v, ingressPortId, egressPortIds.iterator)
-                }
-
-                legacyStorage.submit()
-                true
-            case None => false
-        }
-
-
-    }
-
-    protected[flowstate] def writeInLocalStorage(ingressPortId: UUID,
-                                                 egressPortIds: util.ArrayList[UUID],
-                                                 encoder: SbeEncoder): Unit = {
+    private def matchPorts(ingressPort: UUID,
+                           egressPorts: util.ArrayList[UUID]): util.ArrayList[UUID] = {
         val matchingPorts = contextProvider.get.matchingPorts()
-        if (cachedOwnedPortIds.contains(ingressPortId)) {
-            matchingPorts += ingressPortId
+        if (cachedOwnedPortIds.contains(ingressPort)) {
+            matchingPorts.add(ingressPort)
         }
-        for (egressPortId <- egressPortIds) {
-            if (cachedOwnedPortIds.contains(egressPortId)) {
-                matchingPorts += egressPortId
+        val egressPortIter = egressPorts.iterator()
+        while (egressPortIter.hasNext) {
+            val egressPort = egressPortIter.next
+            if (cachedOwnedPortIds.contains(egressPort)) {
+                matchingPorts.add(egressPort)
             }
         }
-
-        try {
-            for (portId <- matchingPorts) {
-                val writer = getFlowStateWriter(portId)
-                writer.synchronized {
-                    log debug s"Writing flow state message to $portId writer."
-                    writer.write(encoder)
-                }
-            }
-        } catch {
-            case NonFatal(e) =>
-        }
+        matchingPorts
     }
 }
