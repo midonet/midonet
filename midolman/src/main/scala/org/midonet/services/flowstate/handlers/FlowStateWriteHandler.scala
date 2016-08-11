@@ -29,18 +29,44 @@ import scala.util.control.NonFatal
 import com.datastax.driver.core.Session
 import com.google.common.annotations.VisibleForTesting
 
-import org.midonet.cluster.storage.{FlowStateStorage, FlowStateStorageWriter}
+import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
 import org.midonet.packets.FlowStateStorePackets._
 import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
 import org.midonet.packets.SbeEncoder
 import org.midonet.services.flowstate.FlowStateService._
 import org.midonet.services.flowstate.stream.{Context, FlowStateWriter}
-import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType}
+import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType, MaxMessageSize}
 
 import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.socket.DatagramPacket
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
+
+private[flowstate] final class PerThreadContext(
+        val storage: Option[FlowStateStorage[ConnTrackKeyStore, NatKeyStore]]) {
+
+    private val headerBuff = ByteBuffer.allocate(FlowStateInternalMessageHeaderSize)
+    private val bodyBuff = ByteBuffer.allocate(MaxMessageSize)
+    private val portsSet = new util.ArrayList[UUID]()
+
+    val encoder = new SbeEncoder()
+
+    def header(): ByteBuffer = {
+        headerBuff.clear()
+        headerBuff
+    }
+
+    def body(): ByteBuffer = {
+        bodyBuff.clear()
+        bodyBuff
+    }
+
+    def matchingPorts(): util.ArrayList[UUID] = {
+        portsSet.clear()
+        portsSet
+    }
+
+}
 
 /** Handler used to receive, parse and submit flow state messages from agents
   * to a local file and, if a legacy flag is active, also to the Cassandra
@@ -52,27 +78,26 @@ class FlowStateWriteHandler(context: Context,
     extends SimpleChannelInboundHandler[DatagramPacket] {
 
     /**
-      * Flow state storage provider for the calling thread. Necessary as
-      * the FlowStateStorage implementation is not thread safe. To overcome
-      * this limitation, we use a local thread cache with private copies
-      * of the FlowStateStorageImpl object.
-      *
-      * WARNING: This object assumes that the session parameter is
-      * initialized if the legacyPushState flag is true.
+      * Thread context private copy. Necessary as the FlowStateStorage
+      * implementation is not thread safe. To overcome this limitation, we use
+      * a local thread context with private copies of the FlowStateStorageImpl
+      * object. This context also contains other data structures that don't
+      * need to be allocated on each message received, thus reducing GCs.
       */
-    protected val storageProvider: ThreadLocal[FlowStateStorageWriter] = {
-        if (context.config.legacyPushState) {
-            new ThreadLocal[FlowStateStorageWriter] {
-                override def initialValue(): FlowStateStorageWriter = {
-                    Log debug "Getting the initial value for the flow state storage."
-                    FlowStateStorage[ConnTrackKeyStore, NatKeyStore](
-                        session, NatKeyStore, ConnTrackKeyStore)
+    protected[flowstate] val contextProvider: ThreadLocal[PerThreadContext] =
+        new ThreadLocal[PerThreadContext] {
+            override def initialValue(): PerThreadContext = {
+                Log debug "Getting the initial value for the flow state thread cache."
+                val storage = if (context.config.legacyPushState) {
+                    Some(FlowStateStorage[ConnTrackKeyStore, NatKeyStore](
+                        session, NatKeyStore, ConnTrackKeyStore))
+                } else {
+                    None
                 }
+
+                new PerThreadContext(storage)
             }
-        } else {
-            null
         }
-    }
 
     protected[flowstate] val portWriters = new ConcurrentHashMap[UUID, FlowStateWriter]()
 
@@ -82,15 +107,21 @@ class FlowStateWriteHandler(context: Context,
     override def channelRead0(ctx: ChannelHandlerContext,
                               msg: DatagramPacket): Unit = {
         try {
-            val bb = msg.content().nioBuffer(0, FlowStateInternalMessageHeaderSize)
-            val messageType = bb.getInt
-            val messageSize = bb.getInt
-            val messageData = msg.content().nioBuffer(FlowStateInternalMessageHeaderSize, messageSize)
+            val context = contextProvider.get
+            val header = context.header()
+            val body = context.body()
+            msg.content.getBytes(0, header)
+            header.flip()
+            val messageType = header.getInt
+            val messageSize = header.getInt
+            body.limit(messageSize)
+            msg.content.getBytes(FlowStateInternalMessageHeaderSize, body)
+            body.flip()
             messageType match {
                 case FlowStateInternalMessageType.FlowStateMessage =>
-                    handleFlowStateMessage(messageData)
+                    handleFlowStateMessage(body)
                 case FlowStateInternalMessageType.OwnedPortsUpdate =>
-                    handleUpdateOwnedPorts(messageData)
+                    handleUpdateOwnedPorts(body)
                 case _ =>
                     Log warn s"Invalid flow state message header, ignoring."
             }
@@ -101,10 +132,8 @@ class FlowStateWriteHandler(context: Context,
     }
 
     private def handleFlowStateMessage(buffer: ByteBuffer): Unit = {
-        val encoder = new SbeEncoder()
-        val data = new Array[Byte](buffer.capacity())
-        buffer.get(data)
-        val flowStateMessage = encoder.decodeFrom(data)
+        val encoder = contextProvider.get.encoder
+        encoder.decodeFrom(buffer.array)
         pushNewState(encoder)
     }
 
@@ -123,7 +152,7 @@ class FlowStateWriteHandler(context: Context,
     }
 
     @VisibleForTesting
-    protected[flowstate] def getLegacyStorage = storageProvider.get
+    protected[flowstate] def getLegacyStorage = contextProvider.get.storage
 
     @throws[FileSystemException]
     protected[flowstate] def getFlowStateWriter(portId: UUID) =
@@ -179,25 +208,30 @@ class FlowStateWriteHandler(context: Context,
         conntrackKeys: mutable.MutableList[ConnTrackKeyStore],
         natKeys: mutable.MutableList[(NatKeyStore, NatBinding)]) = {
 
-        Log debug s"Writing flow state message to legacy storage for port $ingressPortId."
+        getLegacyStorage match {
+            case Some(legacyStorage) =>
+                Log debug s"Writing flow state message to legacy storage for " +
+                          s"port $ingressPortId."
 
-        val legacyStorage = getLegacyStorage
+                for (k <- conntrackKeys) {
+                    legacyStorage.touchConnTrackKey(k, ingressPortId, egressPortIds.iterator)
+                }
 
-        for (k <- conntrackKeys) {
-            legacyStorage.touchConnTrackKey(k, ingressPortId, egressPortIds.iterator)
+                for ((k, v) <- natKeys) {
+                    legacyStorage.touchNatKey(k, v, ingressPortId, egressPortIds.iterator)
+                }
+
+                legacyStorage.submit()
+            case None =>
         }
 
-        for ((k, v) <- natKeys) {
-            legacyStorage.touchNatKey(k, v, ingressPortId, egressPortIds.iterator)
-        }
 
-        legacyStorage.submit()
     }
 
     protected[flowstate] def writeInLocalStorage(ingressPortId: UUID,
                                                  egressPortIds: util.ArrayList[UUID],
                                                  encoder: SbeEncoder): Unit = {
-        val matchingPorts = mutable.Set.empty[UUID]
+        val matchingPorts = contextProvider.get.matchingPorts()
         if (cachedOwnedPortIds.contains(ingressPortId)) {
             matchingPorts += ingressPortId
         }
