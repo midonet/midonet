@@ -81,6 +81,9 @@ class FlowStateWriteHandler(context: Context,
     override def logSource = FlowStateLog
     override def logMark = "FlowStateWriteHandler"
 
+    private val legacyPushState = context.config.legacyPushState
+    private val localPushState = context.config.localPushState
+
     /**
       * Thread context private copy. Necessary as the FlowStateStorage
       * implementation is not thread safe. To overcome this limitation, we use
@@ -92,9 +95,8 @@ class FlowStateWriteHandler(context: Context,
         new ThreadLocal[PerThreadContext] {
             override def initialValue(): PerThreadContext = {
                 log debug "Getting the initial value for the flow state thread cache."
-                val storage = if (context.config.legacyPushState) {
-                    Some(FlowStateStorage[ConnTrackKeyStore, NatKeyStore](
-                        session, NatKeyStore, ConnTrackKeyStore))
+                val storage = if (legacyPushState) {
+                    getLegacyStorage
                 } else {
                     None
                 }
@@ -156,7 +158,10 @@ class FlowStateWriteHandler(context: Context,
     }
 
     @VisibleForTesting
-    protected[flowstate] def getLegacyStorage = contextProvider.get.storage
+    protected def getLegacyStorage
+    : Option[FlowStateStorage[ConnTrackKeyStore, NatKeyStore]] =
+        Some(FlowStateStorage[ConnTrackKeyStore, NatKeyStore](
+            session, NatKeyStore, ConnTrackKeyStore))
 
     @throws[FileSystemException]
     protected[flowstate] def getFlowStateWriter(portId: UUID) =
@@ -194,11 +199,9 @@ class FlowStateWriteHandler(context: Context,
         val portsIter = msg.portIds
         if (portsIter.count == 1) {
             val (ingressPortId, egressPortIds) = portIdsFromSbe(portsIter.next)
-            if (context.config.legacyPushState) {
-                writeInLegacyStorage(
-                    ingressPortId, egressPortIds, conntrackKeys, natKeys)
-            }
-            if (context.config.localPushState) {
+            maybeWriteInLegacyStorage(
+                ingressPortId, egressPortIds, conntrackKeys, natKeys)
+            if (localPushState) {
                 writeInLocalStorage(ingressPortId, egressPortIds, encoder)
             }
         } else {
@@ -207,12 +210,12 @@ class FlowStateWriteHandler(context: Context,
         }
     }
 
-    protected[flowstate] def writeInLegacyStorage(ingressPortId: UUID,
+    protected[flowstate] def maybeWriteInLegacyStorage(ingressPortId: UUID,
         egressPortIds: util.ArrayList[UUID],
         conntrackKeys: mutable.MutableList[ConnTrackKeyStore],
-        natKeys: mutable.MutableList[(NatKeyStore, NatBinding)]) = {
+        natKeys: mutable.MutableList[(NatKeyStore, NatBinding)]): Boolean = {
 
-        getLegacyStorage match {
+        contextProvider.get.storage match {
             case Some(legacyStorage) =>
                 log debug s"Writing flow state message to legacy storage for " +
                           s"port $ingressPortId."
@@ -226,7 +229,8 @@ class FlowStateWriteHandler(context: Context,
                 }
 
                 legacyStorage.submit()
-            case None =>
+                true
+            case None => false
         }
 
 

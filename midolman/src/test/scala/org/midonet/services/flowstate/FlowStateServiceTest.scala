@@ -130,8 +130,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
                 @volatile var second_storage: FlowStateStorageWriter = _
 
                 override def run: Unit = {
-                    storage = handler.getLegacyStorage.get
-                    second_storage = handler.getLegacyStorage.get
+                    storage = handler.contextProvider.get.storage.get
+                    second_storage = handler.contextProvider.get.storage.get
                 }
             }
             val executor1 = new HandlingThread()
@@ -237,7 +237,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             val (datagram, protos, _) = validFlowStateInternalMessage(
                 numIngressPorts = 1, numEgressPorts = 1,
                 numConntracks = 1, numNats = 1)
-            val mockedLegacyStorage = handler.getLegacyStorage.get
+            val mockedLegacyStorage = handler.contextProvider.get.storage.get
 
             When("The message is handled")
             handler.channelRead0(null, datagram)
@@ -253,7 +253,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             verify(mockedLegacyStorage, times(1)).submit()
 
             Then("The message received by the handler is saved in local storage")
-            handler.getWrites shouldBe 1
+            handler.localWrites shouldBe 1
         }
 
         scenario("Service handle calls storage with trace keys") {
@@ -268,7 +268,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The message received by the handler is sent to legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage.get
+            val mockedLegacyStorage = handler.contextProvider.get.storage.get
             verify(mockedLegacyStorage, times(1)).touchConnTrackKey(
                 mockito.eq(protos.conntrackKeys.head),
                 mockito.eq(protos.ingressPort), mockito.any())
@@ -279,7 +279,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             verify(mockedLegacyStorage, times(1)).submit()
 
             Then("The message received by the handler is saved in local storage")
-            handler.getWrites shouldBe 1
+            handler.localWrites shouldBe 1
         }
 
         scenario("Service handle ignores non flow state sbe messages") {
@@ -292,7 +292,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The message is ignored in legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage.get
+            val mockedLegacyStorage = handler.contextProvider.get.storage.get
             verify(mockedLegacyStorage, times(0)).touchConnTrackKey(mockito.any(),
                 mockito.any(),
                 mockito.any())
@@ -303,7 +303,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             verify(mockedLegacyStorage, times(0)).submit()
 
             Then("The message is ignored in local storage")
-            handler.getWrites shouldBe 0
+            handler.localWrites shouldBe 0
         }
 
         scenario("Service handle calls storage with valid empty message") {
@@ -319,7 +319,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The handler does not send any key to legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage.get
+            val mockedLegacyStorage = handler.contextProvider.get.storage.get
             verify(mockedLegacyStorage, times(0)).touchConnTrackKey(mockito.any(),
                 mockito.any(),
                 mockito.any())
@@ -330,7 +330,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             verify(mockedLegacyStorage, times(0)).submit()
 
             Then("The message is ignored in local storage")
-            handler.getWrites shouldBe 0
+            handler.localWrites shouldBe 0
         }
 
         scenario("Service handle calls to storage with > 1 keys") {
@@ -342,7 +342,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The handler sends all keys to legacy storage")
-            val mockedLegacyStorage = handler.getLegacyStorage.get
+            val mockedLegacyStorage = handler.contextProvider.get.storage.get
             verify(mockedLegacyStorage, times(2)).touchConnTrackKey(
                 mockito.any(), mockito.eq(protos.ingressPort), mockito.any())
             verify(mockedLegacyStorage, times(2)).touchNatKey(
@@ -350,7 +350,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             verify(mockedLegacyStorage, times(1)).submit()
 
             Then("The message is saved in local storage")
-            handler.getWrites shouldBe 1
+            handler.localWrites shouldBe 1
         }
     }
 
@@ -516,16 +516,8 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The handler does not send state to cassandra")
-            val mockedStorage = handler.getLegacyStorage.get
-            verify(mockedStorage, times(0)).touchConnTrackKey(mockito.any(),
-                                                              mockito.any(),
-                                                              mockito.any())
-            verify(mockedStorage, times(0)).touchNatKey(mockito.any(),
-                                                        mockito.any(),
-                                                        mockito.any(),
-                                                        mockito.any())
-            verify(mockedStorage, times(0)).submit()
-
+            handler.localWrites shouldBe 1
+            handler.legacyWrites shouldBe 0
         }
 
         scenario("Flow state sent to local storage by default") {
@@ -544,7 +536,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The handler writes the message to the local storage")
-            handler.getWrites shouldBe 1
+            handler.localWrites shouldBe 1
         }
 
         scenario("Flow state sent to local storage when local storage enabled") {
@@ -567,7 +559,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The handler does not write to local storage (no owned ports)")
-            handler.getWrites shouldBe 1
+            handler.localWrites shouldBe 1
             handler.portWriters.keySet() should have size 0
 
             And("Updating the owned ports")
@@ -582,7 +574,7 @@ class FlowStateServiceTest extends FlowStateBaseTest
             handler.channelRead0(null, datagram)
 
             Then("The handler writes to local storage (1 owned port)")
-            handler.getWrites shouldBe 2
+            handler.localWrites shouldBe 2
             handler.portWriters.keySet() should have size 1
             handler.portWriters.keySet().asScala shouldBe portsSet
             val mockedWriter = handler.portWriters.get(protos.ingressPort)

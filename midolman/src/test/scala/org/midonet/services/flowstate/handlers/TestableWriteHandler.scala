@@ -24,23 +24,20 @@ import org.mockito.Mockito._
 
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.packets.ConnTrackState.ConnTrackKeyStore
-import org.midonet.packets.NatState.NatKeyStore
+import org.midonet.packets.NatState.{NatBinding, NatKeyStore}
 import org.midonet.packets.SbeEncoder
 import org.midonet.services.flowstate.stream
 import org.midonet.services.flowstate.stream.FlowStateWriter
+import scala.collection.mutable
 
 class TestableWriteHandler (context: stream.Context)
     extends FlowStateWriteHandler(context, mock(classOf[Session])) {
 
-    private var legacyStorage: FlowStateStorage[ConnTrackKeyStore, NatKeyStore] = _
-    private var writes = 0
-
-    def getWrites = writes
+    var legacyWrites = 0
+    var localWrites = 0
 
     override def getLegacyStorage = {
-        if (legacyStorage eq null)
-            legacyStorage = mock(classOf[FlowStateStorage[ConnTrackKeyStore, NatKeyStore]])
-        Some(legacyStorage)
+        Some(mock(classOf[FlowStateStorage[ConnTrackKeyStore, NatKeyStore]]))
     }
 
     override def getFlowStateWriter(portId: UUID): FlowStateWriter =
@@ -59,7 +56,20 @@ class TestableWriteHandler (context: stream.Context)
                                      egressPortIds: util.ArrayList[UUID],
                                      encoder: SbeEncoder): Unit = {
         super.writeInLocalStorage(ingressPortId, egressPortIds, encoder)
-        writes += 1
+        localWrites += 1
+    }
+
+
+    override def maybeWriteInLegacyStorage(ingressPortId: UUID,
+                                           egressPortIds: util.ArrayList[UUID],
+                                           conntrackKeys: mutable.MutableList[ConnTrackKeyStore],
+                                           natKeys: mutable.MutableList[(NatKeyStore, NatBinding)]): Boolean = {
+        val messageWritten = super.maybeWriteInLegacyStorage(
+            ingressPortId, egressPortIds, conntrackKeys, natKeys)
+        if (messageWritten) {
+            legacyWrites += 1
+        }
+        messageWritten
     }
 
 }
