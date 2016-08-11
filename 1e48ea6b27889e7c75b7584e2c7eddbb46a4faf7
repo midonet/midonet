@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_5c1e87bb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorker.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-08-11T11:28:44Z",
+      "side": 1,
+      "message": "Do we use this somewhere?",
+      "range": {
+        "startLine": 54,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 41
+      },
+      "revId": "1e48ea6b27889e7c75b7584e2c7eddbb46a4faf7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
