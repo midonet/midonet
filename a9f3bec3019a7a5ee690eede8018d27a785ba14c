@@ -22,6 +22,30 @@
       "revId": "a9f3bec3019a7a5ee690eede8018d27a785ba14c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bf09052d",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/recycler/RecyclerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-11T12:16:12Z",
+      "side": 1,
+      "message": "Sure. I wanted to avoid eventually but it really fits in here. Also removed the .isEmpty as now I realise it\u0027s totally wrong",
+      "parentUuid": "baa041b7_bcb6b386",
+      "range": {
+        "startLine": 136,
+        "startChar": 4,
+        "endLine": 142,
+        "endChar": 5
+      },
+      "revId": "a9f3bec3019a7a5ee690eede8018d27a785ba14c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
