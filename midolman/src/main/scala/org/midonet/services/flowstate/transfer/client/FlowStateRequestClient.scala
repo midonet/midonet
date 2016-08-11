@@ -74,8 +74,12 @@ trait FlowStateRequestClient extends ClosingRetriable with AwaitRetriable {
     }
 
     protected def retryClosing(closeable: Closeable, message: String)
-                              (retriable: => Unit): Unit =
-        retryClosing(log, message)(closeable)(retriable)
+                              (retriable: => Unit): Unit = {
+        // Using the underlying logger here as scala does not allow
+        // defining the macros on the same compilation unit, and retryClosing
+        // resides in midonet-util, the same module as midonet logging.
+        retryClosing(log.underlying, message)(closeable)(retriable)
+    }
 
 }
 

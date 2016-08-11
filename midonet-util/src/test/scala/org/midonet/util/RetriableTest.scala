@@ -20,17 +20,15 @@ import java.io.Closeable
 import scala.collection.mutable
 import scala.concurrent.duration._
 
-import com.typesafe.scalalogging.Logger
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 @RunWith(classOf[JUnitRunner])
 class RetriableTest extends FeatureSpec with GivenWhenThen with Matchers {
 
-    private val Log = Logger(LoggerFactory.getLogger("RetriableTest"))
+    private val Log = LoggerFactory.getLogger("RetriableTest")
 
     class TestableClosable extends Closeable {
 
