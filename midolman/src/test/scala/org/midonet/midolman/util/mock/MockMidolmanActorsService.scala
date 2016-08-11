@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.midonet.midolman.util.mock
 
 import java.util.concurrent.CountDownLatch
-
 import scala.collection.mutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
@@ -26,8 +25,6 @@ import akka.pattern.ask
 import akka.testkit.TestActorRef
 import com.google.inject.{Inject, Injector}
 
-import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.services.MidolmanActorsService
 
@@ -64,15 +61,6 @@ trait MessageAccumulator extends Actor {
             messages = messages :+ msg
             if (super.receive.isDefinedAt(msg))
                 super.receive.apply(msg)
-    }
-}
-
-final class BackChannelAccessor(val vt: VirtualTopology) extends AnyVal {
-    def getAndClearBC(): mutable.Buffer[BackChannelMessage] = {
-        val messages = mutable.Buffer[BackChannelMessage]()
-        while (vt.simBackChannel.hasMessages)
-            messages += vt.simBackChannel.poll()
-        messages
     }
 }
 
