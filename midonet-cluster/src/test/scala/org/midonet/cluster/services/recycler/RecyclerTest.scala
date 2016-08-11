@@ -128,6 +128,19 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         new Recycler(context = null, backend, executor, config)
     }
 
+    /* This method blocks until the creation time of the given path is not
+       the system's current time. Otherwise the recycler will fail to remove
+       the object identified by this path, as its expecting it to be
+       strictly in the past.
+    */
+    private def waitForExpiry(path: String): Unit = {
+        val stat = new Stat()
+        eventually {
+            curator.getData.storingStatIn(stat).forPath(path)
+            stat.getCtime should not be System.currentTimeMillis()
+        }
+    }
+
     feature("Recycler lifecycle") {
         scenario("Service starts and stops") {
             Given("A recycling service")
@@ -308,7 +321,9 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             And("A node for a namespace")
             val namespace = UUID.randomUUID().toString
-            curator.create().forPath(store.stateNamespacePath(namespace))
+            val path = store.stateNamespacePath(namespace)
+            curator.create().forPath(path)
+            waitForExpiry(path)
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
@@ -425,10 +440,11 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             val namespace = UUID.randomUUID().toString
             val portId = UUID.randomUUID()
             curator.create().forPath(store.objectPath(classOf[Host], namespace))
+            val path = store.stateObjectPath(namespace, classOf[Port], portId)
             curator.create()
                    .creatingParentContainersIfNeeded()
-                   .forPath(store.stateObjectPath(
-                       namespace, classOf[Port], portId))
+                   .forPath(path)
+            waitForExpiry(path)
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
@@ -494,9 +510,11 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             And("A node for an object table")
             val portId = UUID.randomUUID()
+            val path = store.tablesObjectPath(classOf[Port], portId)
             curator.create()
                    .creatingParentContainersIfNeeded()
-                   .forPath(store.tablesObjectPath(classOf[Port], portId))
+                   .forPath(path)
+            waitForExpiry(path)
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
@@ -564,6 +582,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             curator.create()
                    .creatingParentContainersIfNeeded()
                    .forPath(path)
+            waitForExpiry(path)
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
@@ -628,6 +647,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             curator.create()
                    .creatingParentContainersIfNeeded()
                    .forPath(path)
+            waitForExpiry(path)
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
