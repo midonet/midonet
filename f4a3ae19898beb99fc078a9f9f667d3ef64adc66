@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c5a87a8e",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-12T02:43:17Z",
+      "side": 1,
+      "message": "Does checkDhcpHostExtraOpts(snId, List()) work?",
+      "range": {
+        "startLine": 422,
+        "startChar": 0,
+        "endLine": 426,
+        "endChar": 9
+      },
+      "revId": "f4a3ae19898beb99fc078a9f9f667d3ef64adc66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
