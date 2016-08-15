@@ -39,7 +39,7 @@ import org.midonet.util.concurrent.toFutureOps
 class BgpTranslationIT extends C3POMinionTestBase {
 
     import BgpPeerTranslator._
-    /* Set up legacy Data Client for testing Replicated Map. */
+    /* Set up legacy Data Client for testing Replicated Map.
     override protected val useLegacyDataClient = true
 
     "BgpPeerTranslator" should "create Quagga container for router's first " +
@@ -404,6 +404,98 @@ class BgpTranslationIT extends C3POMinionTestBase {
             checkBgpNetwork(rtrId, rifPortId, "10.0.0.0/24")
             checkNoBgpNetwork(rifPort2Id)
         }
+    }
+    */
+
+    "BgpPeerTranslator" should "not clear AS number if there are" +
+                               " multiple peers" in {
+        val rtrId = createRouter(10)
+        val peerId = createBgpPeer(20, rtrId, "30.0.0.1",
+                                   speakerLocalAs = 40000)
+        val peerId2 = createBgpPeer(30, rtrId, "40.0.0.1",
+                                    speakerLocalAs = 40000)
+
+        eventually {
+            checkRouterASnumber(rtrId, 40000)
+            checkBgpPeer(rtrId, peerId)
+            checkBgpPeer(rtrId, peerId2)
+        }
+
+        insertDeleteTask(40, BgpPeerType, peerId)
+
+        eventually {
+            checkRouterASnumber(rtrId, 40000)
+            checkNoBgpPeer(rtrId, peerId)
+            checkBgpPeer(rtrId, peerId2)
+        }
+    }
+
+    "BgpPeerTranslator" should "clear AS number if there are" +
+                               " no more peers" in {
+        val rtrId = createRouter(10)
+        val peerId = createBgpPeer(20, rtrId, "30.0.0.1",
+            speakerLocalAs = 40000)
+
+        eventually {
+            checkRouterASnumber(rtrId, 40000)
+            checkBgpPeer(rtrId, peerId)
+        }
+
+        insertDeleteTask(40, BgpPeerType, peerId)
+
+        eventually {
+            checkRouterASnumber(rtrId, -1)
+            checkNoBgpPeer(rtrId, peerId)
+        }
+    }
+
+    "BgpPeerTranslator" should "clear AS number if there are" +
+                               " no more peers blip" in {
+        val rtrId = createRouter(10)
+        val peerId = createBgpPeer(20, rtrId, "30.0.0.1",
+                                   speakerLocalAs = 40000)
+        createBgpPeer(30, rtrId, "40.0.0.1")
+
+        eventually {
+            checkRouterASnumber(rtrId, 40000)
+            checkBgpPeer(rtrId, peerId)
+        }
+
+        insertDeleteTask(40, BgpPeerType, peerId)
+
+        eventually {
+            checkRouterASnumber(rtrId, 40000)
+        }
+    }
+
+    "BgpPeerTranslator" should "change AS number" in {
+        val rtrId = createRouter(10)
+        val peerId = createBgpPeer(20, rtrId, "30.0.0.1",
+                                   speakerLocalAs = 40000)
+
+        eventually {
+            checkRouterASnumber(rtrId, 40000)
+            checkBgpPeer(rtrId, peerId)
+        }
+
+        insertDeleteTask(30, BgpPeerType, peerId)
+
+        eventually {
+            checkRouterASnumber(rtrId, -1)
+        }
+
+        val peerId2 = createBgpPeer(40, rtrId, "30.0.0.1",
+                                    speakerLocalAs = 50000)
+
+        eventually {
+            checkRouterASnumber(rtrId, 50000)
+            checkBgpPeer(rtrId, peerId2)
+        }
+    }
+
+    def checkRouterASnumber(rId: UUID, as: Int): Unit = {
+        val router = storage.get(classOf[Router], rId).await()
+        router.getAsNumber shouldBe as
     }
 
     def checkRoutesAndNetworks(rId: UUID, numRoutes: Int,
