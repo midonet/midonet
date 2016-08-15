@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8c5856fa",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-15T18:10:22Z",
+      "side": 1,
+      "message": "Use the UnixClock trait, so a mocked clock can be passed in.",
+      "range": {
+        "startLine": 78,
+        "startChar": 12,
+        "endLine": 78,
+        "endChar": 37
+      },
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4c6fee91",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-15T18:10:22Z",
+      "side": 1,
+      "message": "why do you ever need to check the header when writing? If a agent is restarted, it should start with an empty file.",
+      "range": {
+        "startLine": 191,
+        "startChar": 9,
+        "endLine": 191,
+        "endChar": 18
+      },
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
