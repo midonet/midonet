@@ -426,6 +426,12 @@ If the port is on an uplink network, bind the router port according to the
 binding information provided in the Neutron port data.  See the PORT CREATE
 section for more information on port binding.
 
+### UPDATE
+
+If the fixed IP address is changed and the port isn't on the uplink network,
+SNAT rules, neutron port, port and routes will be updated too. Otherwise only
+the ports and routes will be updated.
+
 ### DELETE
 
 If the port is on the uplink network, delete the router port corresponding to
