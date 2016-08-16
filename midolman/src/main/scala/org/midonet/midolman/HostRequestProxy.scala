@@ -67,7 +67,7 @@ object HostRequestProxy {
             weakNat.size()
     }
 
-    val EmptyFlowStateBatch = FlowStateBatch(new JHashSet[ConnTrackKey](),
+    def EmptyFlowStateBatch = FlowStateBatch(new JHashSet[ConnTrackKey](),
                                              new JHashSet[ConnTrackKey](),
                                              new JHashMap[NatKey, NatBinding](),
                                              new JHashMap[NatKey, NatBinding]())
