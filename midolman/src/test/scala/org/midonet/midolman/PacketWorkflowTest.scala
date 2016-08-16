@@ -144,12 +144,14 @@ class PacketWorkflowTest extends MidolmanSpec {
 
             When("the simulation completes")
             val id = UUID.randomUUID()
-            val frame: Ethernet = makeFrame(1)
+            val frame: Ethernet = makeFrame(2)
             packetWorkflow.completeWithGenerated(
                 List(output(1)), GeneratedLogicalPacket(id, frame, -1))
+            packetWorkflow.process()
 
             Then("the generated packet should be simulated")
-            packetsSeen map { _.ethernet } should be (List(frame))
+            packetsSeen map { _.ethernet } should be (List(pkt.getEthernet(),
+                                                           frame))
 
             And("packetsOut should not be called for the generated packet")
             packetsOut should be (1)
@@ -161,12 +163,14 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetWorkflow.handlePackets(pkt)
 
             When("the simulation completes")
-            val frame: Ethernet = makeFrame(1)
+            val frame: Ethernet = makeFrame(2)
             packetWorkflow.completeWithGenerated(
                 List(), GeneratedPhysicalPacket(2, frame, -1))
+            packetWorkflow.process()
 
             Then("the generated packet should be seen")
-            packetsSeen map { _.ethernet } should be (List(frame))
+            packetsSeen map { _.ethernet } should be (List(pkt.getEthernet(),
+                                                           frame))
 
             And("packetsOut should not be called for the generated packet")
             packetsOut should be (1)
