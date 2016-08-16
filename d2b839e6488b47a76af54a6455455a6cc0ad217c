@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_20d6eaf1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-16T15:40:30Z",
+      "side": 1,
+      "message": "What is the advantage of reusing the same file?",
+      "parentUuid": "baa041b7_a7fb337a",
+      "range": {
+        "startLine": 191,
+        "startChar": 9,
+        "endLine": 191,
+        "endChar": 18
+      },
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8c0f36df",
         "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
         "patchSetId": 1
@@ -125,6 +149,24 @@
       "side": 1,
       "message": "I see your point, but the only OutputStream method that doesn\u0027t really make sense here is write(Int). So I guess I could create a different interface that\u0027s the same as OutputStream minus that one method.\n\nBut keep in mind that this needs to share a common interface with the streams that we use for other logging implementations (e.g., I believe we have plans to implement logging over the network). It\u0027s not a big deal, bordering on trivial, to create a shim that wraps a socket\u0027s OutputStream in BlockOutputStream, or whatever we want to call it, but it seems like this just adds an unnecessary layer of complexity.\n\nThe alternative is to say that RollingOutputStream can roll over between writes, because that\u0027s what it does. There\u0027s nothing in the interface that implies the ability to group multiple writes into an atomic transaction that can\u0027t be interrupted by a rollover. If it had startTransaction() and endTransaction() methods and didn\u0027t honor them, that would be one thing, but I don\u0027t think this fails to deliver anything it promises.",
       "parentUuid": "baa041b7_8c0f36df",
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e006c284",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-16T15:40:30Z",
+      "side": 1,
+      "message": "ok, well maybe there\u0027s no contract that states you cannot roll in the middle of a write, but that implies more complexity when reading the binary entries. If you roll in the middle of a write, how do you know were to start reading from (keeping in mind that the old rolled logs may no longer be retained).",
+      "parentUuid": "baa041b7_e705bb79",
       "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
