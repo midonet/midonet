@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c7087793",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-16T06:14:52Z",
+      "side": 1,
+      "message": "I\u0027m embarrassed I didn\u0027t think of that myself.",
+      "parentUuid": "baa041b7_8c5856fa",
+      "range": {
+        "startLine": 78,
+        "startChar": 12,
+        "endLine": 78,
+        "endChar": 37
+      },
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4c6fee91",
         "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a7fb337a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-16T06:14:52Z",
+      "side": 1,
+      "message": "So you\u0027re saying it should always roll over on creation? That\u0027s not obviously wrong, but it\u0027s also not obvious to me that that\u0027s the right thing to do. I asked Ryu about it and he seemed skeptical, too. Let\u0027s check with the architects and see what they want.",
+      "parentUuid": "baa041b7_4c6fee91",
+      "range": {
+        "startLine": 191,
+        "startChar": 9,
+        "endLine": 191,
+        "endChar": 18
+      },
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8c0f36df",
         "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
         "patchSetId": 1
@@ -59,6 +107,24 @@
       "writtenOn": "2016-08-15T18:12:34Z",
       "side": 1,
       "message": "What\u0027s to stop a roll happening in the middle of a record?\n\nI don\u0027t think you should make this inherit from OutputStream, as you have an implicit contract with the upper layer that you\u0027ll be writing a block at a time. Rather, just expose a simpler interface, that you can only write a block to.",
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e705bb79",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-16T06:14:52Z",
+      "side": 1,
+      "message": "I see your point, but the only OutputStream method that doesn\u0027t really make sense here is write(Int). So I guess I could create a different interface that\u0027s the same as OutputStream minus that one method.\n\nBut keep in mind that this needs to share a common interface with the streams that we use for other logging implementations (e.g., I believe we have plans to implement logging over the network). It\u0027s not a big deal, bordering on trivial, to create a shim that wraps a socket\u0027s OutputStream in BlockOutputStream, or whatever we want to call it, but it seems like this just adds an unnecessary layer of complexity.\n\nThe alternative is to say that RollingOutputStream can roll over between writes, because that\u0027s what it does. There\u0027s nothing in the interface that implies the ability to group multiple writes into an atomic transaction that can\u0027t be interrupted by a rollover. If it had startTransaction() and endTransaction() methods and didn\u0027t honor them, that would be one thing, but I don\u0027t think this fails to deliver anything it promises.",
+      "parentUuid": "baa041b7_8c0f36df",
       "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
