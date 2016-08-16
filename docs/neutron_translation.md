@@ -195,6 +195,13 @@ If the port is a DHCP port (device_owner == 'network:dhcp'):
  * If IP address changed, update the option 121 host routes of the DHCP Subnet
    with the new address, and also update the serverAddr to the IP address.
 
+If the port is a Router Interface port (device_owner ==
+'network:router_interface'):
+
+ * If fixed IP address is changed and the port is not on the uplink network,
+   SNAT rules, the port and routes are updated too.
+   Otherwise only the port and routes are updated.
+
 For VIF and DHCP ports, the following fields are copied over directly:
 
  * admin_state_up => adminStateUp
