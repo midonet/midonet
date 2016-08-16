@@ -19,17 +19,14 @@ query = NOT label:Code-Review>=2 NOT(reviewerin:midonet-core label:Code-Review<=
 [section "Wayward Changes (Changes with no code review in the last 2days)"]
 query = NOT label:Code-Review<=2 age:2d branch:master
 
-[section "staging/v5.2"]
+[section "staging/v5.2 (Latest)"]
 query = branch:staging/v5.2
 
-[section "staging/v5.1"]
-query = branch:staging/v5.1
-
-[section "staging/v5.0"]
+[section "staging/v5.0 (LTS)"]
 query = branch:staging/v5.0
 
 [section "staging/v2015.06"]
 query = branch:staging/v2015.06
 
 [section "other branches"]
-query = NOT branch:master AND NOT branch:staging/v5.2 AND NOT branch:staging/v5.1 AND NOT branch:staging/v5.0 AND NOT branch:staging/v2015.06
+query = NOT branch:master AND NOT branch:staging/v5.2 AND NOT branch:staging/v5.0 AND NOT branch:staging/v2015.06
