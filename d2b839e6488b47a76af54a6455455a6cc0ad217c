@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c654f6ff",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-17T03:58:00Z",
+      "side": 1,
+      "message": "Preservation of the specified rotation policy. If you specify rotation once per day, you get one log file per day. If you specify once per hour, you get one log file per hour. If you specify rotation every 100MB, you get a bunch of 100MB log files (approximately, subject to the constraint that writes be atomic).",
+      "parentUuid": "baa041b7_20d6eaf1",
+      "range": {
+        "startLine": 191,
+        "startChar": 9,
+        "endLine": 191,
+        "endChar": 18
+      },
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8c0f36df",
         "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
         "patchSetId": 1
@@ -167,6 +191,24 @@
       "side": 1,
       "message": "ok, well maybe there\u0027s no contract that states you cannot roll in the middle of a write, but that implies more complexity when reading the binary entries. If you roll in the middle of a write, how do you know were to start reading from (keeping in mind that the old rolled logs may no longer be retained).",
       "parentUuid": "baa041b7_e705bb79",
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a659f237",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-17T03:58:00Z",
+      "side": 1,
+      "message": "It doesn\u0027t roll in the middle of a write. It rolls between writes. Whatever data you pass to a single write() call will be written atomically, so if you need something to be written atomically, you should pass it into a single write() call.",
+      "parentUuid": "baa041b7_e006c284",
       "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
