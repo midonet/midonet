@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_663c0ac0",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpTranslationIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-17T04:00:15Z",
+      "side": 1,
+      "message": "That\u0027s not Scala...onic, but I\u0027ll allow it.",
+      "range": {
+        "startLine": 476,
+        "startChar": 39,
+        "endLine": 476,
+        "endChar": 51
+      },
+      "revId": "ff3f620e3913a622a0e8e890d05a7c0b81589d8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
