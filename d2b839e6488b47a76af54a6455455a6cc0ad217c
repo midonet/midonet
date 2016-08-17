@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e665ba1d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-17T08:41:00Z",
+      "side": 1,
+      "message": "For the cost of a lot more complexity. You don\u0027t just check the header. You need to to scan the whole file, because you need to find the boundary of the last valid entry. The process may have crashed with a partial write. Then there\u0027s the issue of schema change. With a new file per process instance, it isn\u0027t a problem. But you\u0027ll end up mixing schemas if you reuse.\n\nI don\u0027t see a couple of extra files around reboots to be problematic. The agent should run for months at a time anyhow, so for the common case it will match the policy you describe.",
+      "parentUuid": "baa041b7_c654f6ff",
+      "range": {
+        "startLine": 191,
+        "startChar": 9,
+        "endLine": 191,
+        "endChar": 18
+      },
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8c0f36df",
         "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
         "patchSetId": 1
@@ -209,6 +233,24 @@
       "side": 1,
       "message": "It doesn\u0027t roll in the middle of a write. It rolls between writes. Whatever data you pass to a single write() call will be written atomically, so if you need something to be written atomically, you should pass it into a single write() call.",
       "parentUuid": "baa041b7_e006c284",
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c66ab6ed",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-17T08:41:00Z",
+      "side": 1,
+      "message": "This is the implicit contract I was talking about. The underlying stream expects blocks of bytes to be written at a time. There\u0027s nothing in the interface provided to the caller that enforces this though.",
+      "parentUuid": "baa041b7_a659f237",
       "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
