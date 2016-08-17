@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_26f7225b",
+        "filename": "misc/dashboards/midonet.dash",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-17T08:09:38Z",
+      "side": 1,
+      "message": "Remove 5.1",
+      "revId": "486cb3a8578fa182419b3223da8e9067ca308661",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0693fe01",
+        "filename": "misc/dashboards/midonet.dash",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-08-17T08:09:38Z",
+      "side": 1,
+      "message": "Remove.",
+      "revId": "486cb3a8578fa182419b3223da8e9067ca308661",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
