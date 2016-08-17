@@ -281,7 +281,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // router gateway ports only allow one ip address
         // only update the rules if that ip changed
         if (isRouterGatewayPort(nPort) &&
-            (nPort.getFixedIpsList ne oldNPort.getFixedIpsList)) {
+            (nPort.getFixedIpsList != oldNPort.getFixedIpsList)) {
             val router = storage.get(classOf[Router], toProto(nPort.getDeviceId)).await()
             if (router.getVpnServiceIdsCount > 0) {
                 // Update the vpn services associated to the router with the
