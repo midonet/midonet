@@ -95,6 +95,8 @@ trait MidolmanSpec extends FeatureSpecLike
                 .startAsync()
                 .awaitRunning()
 
+            simBackChannel // to ensure the processor is registered
+
             beforeTest()
         } catch {
             case e: Throwable => fail(e)

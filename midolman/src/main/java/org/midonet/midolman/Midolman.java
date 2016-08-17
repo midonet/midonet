@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -86,6 +88,10 @@ public class Midolman {
     static private final ServiceEvent serviceEvent = new ServiceEvent();
 
     static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
+
+    public static final int MIDOLMAN_ERROR_CODE_PACKET_WORKER_DIED = 6002;
+
+    private static final long MIDOLMAN_EXIT_TIMEOUT_MILLIS = 30000;
 
     private Injector injector;
 
@@ -409,5 +415,20 @@ public class Midolman {
             serviceEvent.exit();
             System.exit(-1);
         }
+    }
+
+    public static void exitAsync(final int status) {
+        new Thread("exit") {
+            @Override
+            public void run() {
+                Runtime.getRuntime().exit(status);
+            }
+        }.start();
+        new Timer("exit-timer", true).schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Runtime.getRuntime().halt(status);
+            }
+        }, MIDOLMAN_EXIT_TIMEOUT_MILLIS);
     }
 }

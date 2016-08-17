@@ -32,8 +32,6 @@ import org.midonet.sdn.flows.FlowTagger
 class FlowInvalidationTest extends MidolmanSpec {
 
     class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowLifecycle {
-        val log = Logger(NOPLogger.NOP_LOGGER)
-
         override def removeFlow(flow: ManagedFlow): Unit =
             flowsRemoved += flow
     }

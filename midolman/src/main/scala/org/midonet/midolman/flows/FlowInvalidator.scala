@@ -18,7 +18,6 @@ package org.midonet.midolman.flows
 
 import org.jctools.queues.MpscArrayQueue
 
-import org.midonet.midolman.{CheckBackchannels, PacketsEntryPoint}
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.WakerUpper.Parkable
@@ -60,7 +59,6 @@ final class FlowInvalidator(actorsService: MidolmanActorsService,
             }
             i += 1
         }
-        PacketsEntryPoint.getRef()(actorsService.system) ! CheckBackchannels
     }
 
     /**

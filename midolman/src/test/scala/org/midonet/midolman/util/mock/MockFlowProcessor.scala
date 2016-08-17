@@ -29,6 +29,7 @@ import rx.Observer
 
 import com.codahale.metrics.MetricRegistry
 
+import org.midonet.midolman.ShardedSimulationBackChannel
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.netlink.{NetlinkMessage, MockNetlinkChannelFactory}
@@ -43,7 +44,8 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
                               10000, 1023, new MockNetlinkChannelFactory,
                               SelectorProvider.provider(),
                               new DatapathMetrics(new MetricRegistry()),
-                              new MockClock) {
+                              new MockClock,
+                              new ShardedSimulationBackChannel()) {
     var flowDelCb: Flow => Unit = _
 
     private val log = Logger(LoggerFactory.getLogger(

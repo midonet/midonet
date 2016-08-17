@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.PacketWorkflow.DuplicateFlow
-import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.midolman.SimulationBackChannel
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.monitoring.metrics.DatapathMetrics
 import org.midonet.netlink._
@@ -58,7 +58,8 @@ class FlowProcessor(families: OvsNetlinkFamilies,
                     channelFactory: NetlinkChannelFactory,
                     selectorProvider: SelectorProvider,
                     datapathMetrics: DatapathMetrics,
-                    clock: NanoClock)
+                    clock: NanoClock,
+                    backChannel: SimulationBackChannel)
     extends EventPoller.Handler[DatapathEvent]
     with Backchannel
     with LifecycleAware {
@@ -190,8 +191,7 @@ class FlowProcessor(families: OvsNetlinkFamilies,
             case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
                 datapathMetrics.flowCreateDupes.mark()
                 log.debug("Tried to add duplicate DP flow")
-                PacketsEntryPoint.getRef()(MidolmanActorsService.actorSystem) !
-                    DuplicateFlow(ne.seq)
+                backChannel.tell(DuplicateFlow(ne.seq))
             case e: NetlinkException =>
                 datapathMetrics.flowCreateErrors.mark()
                 log.warn("Failed to create flow", e)

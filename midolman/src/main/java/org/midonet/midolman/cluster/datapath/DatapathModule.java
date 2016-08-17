@@ -39,6 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.Util;
+
+import org.midonet.midolman.PacketWorkersService;
+import org.midonet.midolman.SimulationBackChannel;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.datapath.DatapathChannel;
 import org.midonet.midolman.datapath.DisruptorDatapathChannel;
@@ -185,6 +188,9 @@ public class DatapathModule extends PrivateModule {
                 @Inject
                 MetricRegistry registry;
 
+                @Inject
+                SimulationBackChannel backChannel;
+
                 @Override
                 public FlowProcessor get() {
                     return new FlowProcessor(
@@ -194,7 +200,8 @@ public class DatapathModule extends PrivateModule {
                         injector.getInstance(NetlinkChannelFactory.class),
                         SelectorProvider.provider(),
                         new DatapathMetrics(registry),
-                        NanoClock$.MODULE$.DEFAULT());
+                        NanoClock$.MODULE$.DEFAULT(),
+                        backChannel);
                 }
             })
             .in(Singleton.class);
@@ -229,15 +236,22 @@ public class DatapathModule extends PrivateModule {
         @Inject
         MetricRegistry registry;
 
+        @Inject
+        PacketWorkersService workers;
+
         @Override
         public UpcallDatapathConnectionManager get() {
             String val = config.inputChannelThreading();
             switch (val) {
                 case "one_to_many":
-                    return new OneToManyDpConnManager(config, tbPolicy,
+                    return new OneToManyDpConnManager(config,
+                                                      workers.workers(),
+                                                      tbPolicy,
                                                       registry);
                 case "one_to_one":
-                    return new OneToOneDpConnManager(config, tbPolicy,
+                    return new OneToOneDpConnManager(config,
+                                                     workers.workers(),
+                                                     tbPolicy,
                                                      registry);
                 default:
                     throw new IllegalArgumentException(

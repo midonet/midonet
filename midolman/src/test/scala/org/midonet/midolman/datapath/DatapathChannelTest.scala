@@ -73,7 +73,7 @@ class DatapathChannelTest extends MidolmanSpec {
         fp = new FlowProcessor(ovsFamilies, 1024, 2048, factory,
                                SelectorProvider.provider(),
                                new DatapathMetrics(metricRegistry),
-                               clock)
+                               clock, simBackChannel)
         ringBuffer = RingBuffer.createSingleProducer[DatapathEvent](
             DisruptorDatapathChannel.eventFactory(config), capacity)
         val processors = Array(new BackchannelEventProcessor[DatapathEvent](
@@ -149,8 +149,7 @@ class DatapathChannelTest extends MidolmanSpec {
                 nlChannel.packetsWritten.get() should be (1)
             }
 
-            val flowDelete = new FlowOperation(TestProbe().ref,
-                                               new ArrayObjectPool(0, _ => null),
+            val flowDelete = new FlowOperation(new ArrayObjectPool(0, _ => null),
                                                new SpscArrayQueue(16))
             val managedFlow = new ManagedFlow(null)
             managedFlow.flowMatch.reset(packet.getMatch)

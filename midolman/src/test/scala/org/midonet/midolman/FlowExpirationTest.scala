@@ -31,7 +31,6 @@ class FlowExpirationTest extends MidolmanSpec {
 
     class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowLifecycle {
         val log = Logger(NOPLogger.NOP_LOGGER)
-
         val maxFlows = 4
 
         override def removeFlow(flow: ManagedFlow): Unit =

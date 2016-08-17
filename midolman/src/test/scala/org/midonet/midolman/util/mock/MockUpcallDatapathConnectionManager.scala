@@ -23,8 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import akka.actor.ActorSystem
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.PacketsEntryPoint
-import org.midonet.midolman.PacketsEntryPoint.Workers
+import org.midonet.midolman.PacketWorker
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io._
 import org.midonet.odp.protos.OvsDatapathConnection
@@ -42,9 +41,13 @@ class MockUpcallDatapathConnectionManager(config: MidolmanConfig,
 
     var upcallHandler: BatchCollector[Packet] = null
 
+    object NullPacketWorker extends PacketWorker {
+        override def submit(packet: Packet) = true
+    }
+
     def initialize()(implicit ec: ExecutionContext, as: ActorSystem) {
         if (upcallHandler == null) {
-            upcallHandler = makeUpcallHandler(Workers(IndexedSeq(PacketsEntryPoint)))
+            upcallHandler = makeUpcallHandler(IndexedSeq(NullPacketWorker))
             conn.getConnection.datapathsSetNotificationHandler(upcallHandler)
         }
     }
@@ -54,9 +57,7 @@ class MockUpcallDatapathConnectionManager(config: MidolmanConfig,
 
     override def stopConnection(conn: ManagedDatapathConnection) {}
 
-    override protected def setUpcallHandler(conn: OvsDatapathConnection,
-                                            w: Workers)
-                                           (implicit as: ActorSystem) {
+    override protected def setUpcallHandler(conn: OvsDatapathConnection) {
         conn.datapathsSetNotificationHandler(upcallHandler)
     }
 

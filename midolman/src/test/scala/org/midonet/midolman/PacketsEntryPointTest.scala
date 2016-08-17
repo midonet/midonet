@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.midonet.midolman
-
+/*
 import java.util.UUID
 
 import scala.collection.immutable
@@ -118,3 +118,4 @@ class PacketsEntryPointTestCase extends MidolmanSpec
         }
     }
 }
+ */

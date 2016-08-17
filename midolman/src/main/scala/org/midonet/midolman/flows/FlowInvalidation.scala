@@ -18,13 +18,13 @@ package org.midonet.midolman.flows
 
 import java.util._
 
-import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.logging.MidolmanLogging
 
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
-trait FlowInvalidation extends FlowLifecycle {
+trait FlowInvalidation extends FlowLifecycle with MidolmanLogging {
+
     private val tagToFlows = new HashMap[FlowTag, Set[ManagedFlow]]()
-    val log: Logger
 
     abstract override def registerFlow(flow: ManagedFlow): Unit = {
         super.registerFlow(flow)

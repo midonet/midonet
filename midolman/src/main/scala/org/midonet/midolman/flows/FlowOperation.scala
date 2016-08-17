@@ -19,8 +19,6 @@ package org.midonet.midolman.flows
 import java.nio.ByteBuffer
 import java.util.Queue
 
-import akka.actor.{ActorRef, ActorSystem}
-import org.midonet.midolman.CheckBackchannels
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.FlowMetadata
 import org.midonet.util.collection.ObjectPool
@@ -31,10 +29,8 @@ object FlowOperation {
     val DELETE: Byte = 1
 }
 
-final class FlowOperation(actor: ActorRef,
-                          pool: ObjectPool[FlowOperation],
+final class FlowOperation(pool: ObjectPool[FlowOperation],
                           completedRequests: Queue[FlowOperation])
-                         (implicit actorSystem: ActorSystem)
     extends Observer[ByteBuffer] {
 
     val flowMetadata = new FlowMetadata()
@@ -80,7 +76,6 @@ final class FlowOperation(actor: ActorRef,
 
     override def onCompleted(): Unit = {
         completedRequests.offer(this)
-        actor ! CheckBackchannels
     }
 
     override def onError(e: Throwable): Unit = {

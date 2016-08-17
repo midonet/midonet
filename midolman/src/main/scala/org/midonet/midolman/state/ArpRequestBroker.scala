@@ -81,11 +81,8 @@ object ArpRequestBroker {
 class ArpRequestBroker(emitter: PacketEmitter,
                        config: MidolmanConfig,
                        invalidator: InvalidationSource,
-                       triggerBackChannel: () => Unit,
                        clock: UnixClock = UnixClock()) {
-
     val log = Logger(LoggerFactory.getLogger(s"org.midonet.devices.router.arptable"))
-
     private val brokers = new util.HashMap[UUID, SingleRouterArpRequestBroker]()
 
     def numRouters = brokers.size
@@ -95,7 +92,7 @@ class ArpRequestBroker(emitter: PacketEmitter,
             case null =>
                 log.info(s"Building new arp request broker for router ${router.id}")
                 val broker = new SingleRouterArpRequestBroker(router.id,
-                        router.arpCache, emitter, config, invalidator, triggerBackChannel, clock)
+                        router.arpCache, emitter, config, invalidator, clock)
                 brokers.put(router.id, broker)
                 broker
             case broker => broker
@@ -157,7 +154,6 @@ class SingleRouterArpRequestBroker(id: UUID,
                                    emitter: PacketEmitter,
                                    config: MidolmanConfig,
                                    invalidator: InvalidationSource,
-                                   triggerBackChannel: () => Unit,
                                    clock: UnixClock = UnixClock()) {
     import ArpRequestBroker._
 
@@ -217,7 +213,6 @@ class SingleRouterArpRequestBroker(id: UUID,
     arpCache.notify(new Callback3[IPv4Addr, MAC, MAC] {
         override def call(ip: IPv4Addr, oldMac: MAC, newMac: MAC): Unit = {
             macsDiscovered.add(MacChange(ip, oldMac, newMac))
-            triggerBackChannel()
         }
     })
 

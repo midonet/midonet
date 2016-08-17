@@ -23,6 +23,7 @@ import scala.util.{Failure, Success, Try}
 
 import akka.actor.{Actor, ActorRef}
 
+import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.DeviceDeletedException
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
@@ -38,7 +39,8 @@ object HostRequestProxy {
     case class FlowStateBatch(strongConnTrack: JSet[ConnTrackKey],
                               weakConnTrack: JSet[ConnTrackKey],
                               strongNat: JMap[NatKey, NatBinding],
-                              weakNat: JMap[NatKey, NatBinding]) {
+                              weakNat: JMap[NatKey, NatBinding])
+            extends BackChannelMessage with Broadcast {
         def merge(other: FlowStateBatch): FlowStateBatch = {
             strongConnTrack.addAll(other.strongConnTrack)
             weakConnTrack.addAll(other.strongConnTrack)
@@ -72,10 +74,12 @@ object HostRequestProxy {
   * the host object.
   */
 class HostRequestProxy(val hostId: UUID,
+                       backChannel: SimulationBackChannel,
                        val storageFuture: Future[FlowStateStorage],
-                       val subscriber: ActorRef) extends Actor
-                                                 with ActorLogWithoutPath
-                                                 with SingleThreadExecutionContextProvider {
+                       val subscriber: ActorRef)
+        extends Actor
+        with ActorLogWithoutPath
+        with SingleThreadExecutionContextProvider {
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
@@ -129,7 +133,7 @@ class HostRequestProxy(val hostId: UUID,
                 case Success(stateBatch) =>
                     log.debug(s"Fetched ${stateBatch.size()} pieces of flow " +
                               s"state for ports $ps")
-                    PacketsEntryPoint ! stateBatch
+                    backChannel.tell(stateBatch)
                 case Failure(e) =>
                     log.warn("Failed to fetch state", e)
             }(singleThreadExecutionContext)

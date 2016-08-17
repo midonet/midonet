@@ -44,9 +44,10 @@ object HostRequestProxyTest {
     class TestableSubscriberActor extends EmptyActor with MessageAccumulator
 
     class TestableHostRequestProxy(hostId: UUID,
+                                   backChannel: SimulationBackChannel,
                                    storageFuture: Future[FlowStateStorage],
                                    subscriber: ActorRef)
-        extends HostRequestProxy(hostId, storageFuture, subscriber)
+        extends HostRequestProxy(hostId, backChannel, storageFuture, subscriber)
         with MessageAccumulator
 
     class TestableVirtualTopologyActor extends VirtualTopologyActor {
@@ -91,6 +92,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             When("Starting a host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             Then("The VTPM should receive a host request")
@@ -110,6 +112,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -126,6 +129,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -146,6 +150,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -188,6 +193,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -217,6 +223,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -265,6 +272,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -330,6 +338,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -406,6 +415,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -465,6 +475,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -509,6 +520,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")
@@ -543,6 +555,7 @@ class HostRequestProxyTest extends MidolmanSpec with GivenWhenThen {
             And("A host request proxy")
             val proxy = TestActorRef[TestableHostRequestProxy](
                 Props(classOf[TestableHostRequestProxy], hostId,
+                      simBackChannel,
                       flowStateStorage, subscriber))
 
             When("The proxy receives a host with different identifier")

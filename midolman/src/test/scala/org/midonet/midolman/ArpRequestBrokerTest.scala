@@ -31,6 +31,7 @@ import org.scalatest.time.{Second, Span}
 
 import org.midonet.cluster.ClusterRouterManager.ArpCacheImpl
 import org.midonet.cluster.client.ArpCache
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.InvalidationSource
 import org.midonet.midolman.simulation._
@@ -184,13 +185,14 @@ class ArpRequestBrokerTest extends Suite
         arps.clear()
         invalidations.clear()
 
-        emitter = new PacketEmitter(arps, actorSystem.deadLetters)
+        emitter = new PacketEmitter(arps)
         val invalidator = new InvalidationSource {
             override def scheduleInvalidationFor(t: FlowTag) {
                 invalidations.add(t)
             }
         }
-        arpBroker = new ArpRequestBroker(emitter, config, invalidator, () => { }, clock)
+
+        arpBroker = new ArpRequestBroker(emitter, config, invalidator, clock)
         router = new Router(routerId, null, null, null, arpCache)(actorSystem)
     }
 
