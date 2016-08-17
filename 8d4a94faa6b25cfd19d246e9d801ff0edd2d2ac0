@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_232a7491",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpTranslationIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-17T01:50:41Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "baa041b7_c78cf736",
+      "range": {
+        "startLine": 451,
+        "startChar": 0,
+        "endLine": 468,
+        "endChar": 5
+      },
+      "revId": "8d4a94faa6b25cfd19d246e9d801ff0edd2d2ac0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a77fb315",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpTranslationIT.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-08-16T05:32:51Z",
       "side": 1,
       "message": "def checkRouterASNumber(rId: UUID, asNum: Option[Int]): Unit \u003d {\n        val router \u003d storage.get(classOf[Router], rId).await()\n        asNum match {\n            case Some(as) \u003d\u003e\n                router.getAsNumber shouldBe as\n            case None \u003d\u003e\n                router.hasAsNumber shouldBe false\n        }\n    }",
+      "range": {
+        "startLine": 495,
+        "startChar": 0,
+        "endLine": 498,
+        "endChar": 5
+      },
+      "revId": "8d4a94faa6b25cfd19d246e9d801ff0edd2d2ac0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_432d78a7",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/BgpTranslationIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-17T01:50:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a77fb315",
       "range": {
         "startLine": 495,
         "startChar": 0,
