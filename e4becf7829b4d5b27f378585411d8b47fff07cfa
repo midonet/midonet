@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c3418865",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-17T01:03:37Z",
+      "side": 1,
+      "message": "i guess it\u0027s better to reject request explicitly (throw an exception) if !\u003d1",
+      "revId": "e4becf7829b4d5b27f378585411d8b47fff07cfa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c33868f1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-08-17T01:03:37Z",
+      "side": 1,
+      "message": "this seems inappropriate for uplink case",
+      "range": {
+        "startLine": 371,
+        "startChar": 15,
+        "endLine": 371,
+        "endChar": 27
+      },
+      "revId": "e4becf7829b4d5b27f378585411d8b47fff07cfa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
