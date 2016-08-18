@@ -255,24 +255,24 @@ class RelativeObjectPath(object):
 class RelativeObjectRef(ObjectRef):
     """A reference to an object found in any lookup context
        (see class Midonet)"""
-    def __init__(self, paths):
-        self._paths = paths
+    def __init__(self, path):
+        self.path = path
 
-    def _dereference(self, value, path):
-        func = app.reflect(path.root_getter)
+    def _dereference(self, value):
+        func = app.reflect(self.path.root_getter)
         if not func: return None
         v = func(value)
         if not v: return None
-        child = path.child_type(v)
+        child = self.path.child_type(v)
 
-        parent_id = child.fetch_field(path.parent_pointer)
+        parent_id = child.fetch_field(self.path.parent_pointer)
         if not parent_id: return None
 
-        func = app.reflect(path.parent_getter)
+        func = app.reflect(self.path.parent_getter)
         if not func: return None
         v = func(parent_id)
         if not v: return None
-        parent = path.parent_type(v)
+        parent = self.path.parent_type(v)
 
         alias_chain = aliases.add(parent, child)
         child.parent = parent
@@ -284,21 +284,24 @@ class RelativeObjectRef(ObjectRef):
             uuid = aliases.lookup(value)
             if not uuid: return None
 
-        for path in self._paths:
-            try:
-                o = self._dereference(uuid, path)
-                if o: return o
-            except Exception as e:
-                pass
+        try:
+            o = self._dereference(uuid)
+            if o: return o
+        except Exception:
+            pass
         return None
 
-class PortRef(RelativeObjectRef):
+class BridgePortRef(RelativeObjectRef):
     def __init__(self):
-        super(PortRef, self).__init__(
-            [RelativeObjectPath('get_port', 'device', 'get_router',
-                                Router, RouterPort),
+        super(BridgePortRef, self).__init__(
              RelativeObjectPath('get_port', 'device', 'get_bridge',
-                                Bridge, BridgePort)])
+                                Bridge, BridgePort))
+
+class RouterPortRef(RelativeObjectRef):
+    def __init__(self):
+        super(RouterPortRef, self).__init__(
+            RelativeObjectPath('get_port', 'device', 'get_router',
+                               Router, RouterPort))
 
 class MirrorRef(ObjectRef):
     def __init__(self, unused = None):
@@ -331,7 +334,7 @@ class L4PortNumber(ValueType):
     def is_valid(self, value):
         try:
             port = int(value)
-            return  port >= 0 and port <= 65535
+            return 0 <= port <= 65535
         except:
             return False
 
@@ -339,7 +342,7 @@ class FloodingProxyWeight(ValueType):
     def is_valid(self, value):
         try:
             weight = int(value)
-            return weight >= 0 and weight <= 65535
+            return 0 <= weight <= 65535
         except:
             return false
 
@@ -355,7 +358,7 @@ class VNI(ValueType):
     def is_valid(self, value):
         try:
             vni = int(value)
-            return  vni >= 0 and vni <= (2**24 - 1)
+            return 0 <= vni <= (2 ** 24 - 1)
         except:
             return False
 
@@ -1505,7 +1508,7 @@ class Route(ObjectType):
                                  setter = 'next_hop_gateway',
                                  optional = True))
         self.put_attr(SingleAttr(name = 'port',
-                                 value_type = PortRef(),
+                                 value_type = RouterPortRef(),
                                  getter = 'get_next_hop_port',
                                  setter = 'next_hop_port',
                                  optional = True))
@@ -1597,7 +1600,7 @@ class PortGroupPort(ObjectType):
                                  getter = 'get_port_group_id',
                                  optional = False))
         self.put_attr(SingleAttr(name = 'port',
-                                 value_type = PortRef(),
+                                 value_type = BridgePortRef(),
                                  getter = 'get_port_id',
                                  setter = 'port_id',
                                  optional = False))
@@ -2017,7 +2020,7 @@ class Mirror(ObjectType):
     def __init__(self, obj):
         super(Mirror, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'to-port',
-                                 value_type = PortRef(),
+                                 value_type = BridgePortRef(),
                                  getter = 'get_to_port',
                                  setter = 'to_port',
                                  optional = False))
@@ -2033,11 +2036,11 @@ class L2Insertion(ObjectType):
     def __init__(self, obj):
         super(L2Insertion, self).__init__(obj)
         self.put_attr(SingleAttr(name = 'port',
-                                 value_type = PortRef(),
+                                 value_type = BridgePortRef(),
                                  getter = 'get_port',
                                  setter = 'port'))
         self.put_attr(SingleAttr(name = 'srv-port',
-                                 value_type = PortRef(),
+                                 value_type = BridgePortRef(),
                                  getter = 'get_srv_port',
                                  setter = 'srv_port'))
         self.put_attr(SingleAttr(name = 'vlan',
@@ -2203,14 +2206,14 @@ class Condition(ObjectType):
                                  inv_setter = 'inv_ip_addr_group_dst',
                                  optional = True))
         self.put_attr(ListAttr(name = 'in-ports',
-                                 element_type = PortRef(),
+                                 element_type = BridgePortRef(),
                                  getter = 'get_in_ports',
                                  setter = 'in_ports',
                                  inv_getter = 'is_inv_in_ports',
                                  inv_setter = 'inv_in_ports',
                                  optional = True))
         self.put_attr(ListAttr(name = 'out-ports',
-                                 element_type = PortRef(),
+                                 element_type = BridgePortRef(),
                                  getter = 'get_out_ports',
                                  setter = 'out_ports',
                                  inv_getter = 'is_inv_out_ports',
@@ -2300,7 +2303,7 @@ class Rule(Condition):
                                  setter = 'jump_chain_id',
                                  optional = True))
         self.put_attr(SingleAttr(name = 'target-port',
-                                 value_type = PortRef(),
+                                 value_type = BridgePortRef(),
                                  getter = 'get_target_port',
                                  setter = 'target_port',
                                  optional = True))
@@ -2370,7 +2373,7 @@ class BridgePort(ObjectType):
                                  getter = 'get_vlan_id',
                                  optional = True))
         self.put_attr(SingleAttr(name = 'peer',
-                                 value_type = PortRef(),
+                                 value_type = RouterPortRef(),
                                  getter = 'get_peer_id',
                                  setter = 'link',
                                  unsetter = 'unlink',
@@ -2424,7 +2427,7 @@ class PortBinding(ObjectType):
                                  setter = 'interface_name',
                                  optional = False))
         self.put_attr(SingleAttr(name = 'port',
-                                 value_type = PortRef(),
+                                 value_type = BridgePortRef(),
                                  getter = 'get_port_id',
                                  setter = 'port_id',
                                  optional = False))
@@ -2527,7 +2530,7 @@ class RouterPort(ObjectType):
                                addr_setter = 'network_address',
                                mask_setter = 'network_length'))
         self.put_attr(SingleAttr(name = 'peer',
-                                 value_type = PortRef(),
+                                 value_type = BridgePortRef(),
                                  getter = 'get_peer_id',
                                  setter = 'link',
                                  unsetter = 'unlink',
@@ -2886,7 +2889,7 @@ class TraceRequest(Condition):
                                  setter = 'set_name',
                                  getter = 'get_name'))
         self.put_attr(SingleAttr(name = 'port',
-                                 value_type = PortRef(),
+                                 value_type = BridgePortRef(),
                                  setter = 'set_port',
                                  getter = 'get_port'))
         self.put_attr(SingleAttr(name = 'router',
