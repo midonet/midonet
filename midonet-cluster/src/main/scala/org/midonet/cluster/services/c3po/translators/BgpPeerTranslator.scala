@@ -47,6 +47,7 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
         val (chainId, chainOps) = ensureRedirectChain(router)
 
         val ops = new OperationListBuffer
+        ops += Update(router.toBuilder.setAsNumber(speaker.getLocalAs).build())
         ops ++= ensureContainer(router, speaker)
         ops ++= ensureExtraRouteBgpNetworks(router.getId)
         ops ++= chainOps
@@ -77,6 +78,9 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
                                   bgpPeer.getBgpSpeaker.getLogicalRouter).await()
 
         val ops = new OperationListBuffer
+        if (router.getBgpPeerIdsList.size() == 1) {
+            ops += Update(router.toBuilder.clearAsNumber().build())
+        }
         ops ++= deleteBgpPeer(router, bgpPeer.getId)
         ops ++= cleanUpBgpNetworkExtraRoutes(router.getId)
         ops.toList
@@ -127,8 +131,6 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
         val portId = quaggaPortId(router.getId)
         val ops = new OperationListBuffer
         if (!storage.exists(classOf[Port], portId).await()) {
-            ops += Update(
-                router.toBuilder.setAsNumber(bgpSpeaker.getLocalAs).build())
             ops += createQuaggaRouterPort(router)
             ops ++= scheduleService(portId, router.getId)
             ops ++= addNetworks(router)
