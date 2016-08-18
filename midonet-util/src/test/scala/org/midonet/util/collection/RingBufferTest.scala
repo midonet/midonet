@@ -60,7 +60,7 @@ class RingBufferTest extends FeatureSpec with BeforeAndAfterEach with Matchers {
         }
         ring.peek should be (Some("1"))
         ring.isFull should be (true)
-        intercept[IllegalArgumentException] { ring.put("overflow") }
+        intercept[IllegalStateException] { ring.put("overflow") }
     }
 
     private def readAll() {
