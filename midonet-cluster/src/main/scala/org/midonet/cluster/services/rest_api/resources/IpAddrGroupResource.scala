@@ -18,15 +18,18 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util
 import java.util.UUID
+
 import javax.ws.rs.core.{Response, UriInfo}
 import javax.ws.rs.{Path, _}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
@@ -73,11 +76,12 @@ sealed trait IpAddrGroupAddrSubResource {
     protected[this] val store: Storage
     protected[this] val ipAddrGroupId: UUID
     protected[this] val uriInfo: UriInfo
+    protected[this] val requestTimeout: FiniteDuration
 
     protected[resources] def ipg = try {
         Await.result(
             store.get(classOf[Topology.IPAddrGroup], ipAddrGroupId),
-            MidonetResource.Timeout)
+            requestTimeout)
     } catch {
         case e: NotFoundException =>
             throw new NotFoundHttpException("IP addr group not found: " +
@@ -108,6 +112,8 @@ extends IpAddrGroupAddrSubResource {
 
     protected[this] val store = resContext.backend.store
     protected[this] val uriInfo = resContext.uriInfo
+    protected[this] val requestTimeout =
+        resContext.config.requestTimeoutMs millis
 
     protected final implicit val log =
         Logger(LoggerFactory.getLogger(getClass))
@@ -164,6 +170,8 @@ class IpAddrGroupAddrResource @Inject()(protected[this] val ipAddrGroupId: UUID,
 
     protected[this] val store = resContext.backend.store
     protected[this] val uriInfo = resContext.uriInfo
+    protected[this] val requestTimeout =
+        resContext.config.requestTimeoutMs millis
 
     @GET
     @Produces(Array(APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON))
