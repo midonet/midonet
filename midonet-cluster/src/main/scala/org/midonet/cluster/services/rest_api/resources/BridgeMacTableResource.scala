@@ -56,7 +56,7 @@ class BridgeMacTableResource(bridgeId: UUID, vlanOption: Option[Short],
 
         tryLegacyRead {
             if (Await.result(macTable(vlanId).containsRemote(mac, portId),
-                             Timeout)) {
+                             requestTimeout)) {
                 new MacPort(resourceContext.uriInfo.getBaseUri, bridgeId,
                             mac.toString, portId, vlanId)
             } else {
@@ -86,7 +86,7 @@ class BridgeMacTableResource(bridgeId: UUID, vlanOption: Option[Short],
 
     private def addVlanEntries(vlanId: Short, list: util.List[MacPort]): Unit = {
         val entries = tryLegacyRead {
-            Await.result(macTable(vlanId).remoteSnapshot, Timeout)
+            Await.result(macTable(vlanId).remoteSnapshot, requestTimeout)
         }
         for ((mac, portId) <- entries.toList) {
             list add new MacPort(resourceContext.uriInfo.getBaseUri, bridgeId,
@@ -128,7 +128,7 @@ class BridgeMacTableResource(bridgeId: UUID, vlanOption: Option[Short],
 
         tryLegacyWrite {
             Await.result(macTable(macPort.vlanId)
-                             .addPersistent(mac, macPort.portId), Timeout)
+                             .addPersistent(mac, macPort.portId), requestTimeout)
             Response.created(macPort.getUri).build()
         }
     }
@@ -142,7 +142,8 @@ class BridgeMacTableResource(bridgeId: UUID, vlanOption: Option[Short],
         validateVlanId(vlanId)
 
         tryLegacyWrite {
-            Await.result(macTable(vlanId).removePersistent(mac, portId), Timeout)
+            Await.result(macTable(vlanId).removePersistent(mac, portId),
+                         requestTimeout)
             Response.noContent().build()
         }
     }
@@ -150,7 +151,7 @@ class BridgeMacTableResource(bridgeId: UUID, vlanOption: Option[Short],
     private def bridgeVlanIds: Set[Short] = {
         Await.result(stateTableStore.tableArguments(classOf[Network], bridgeId,
                                                     MidonetBackend.MacTable),
-                     Timeout).map(java.lang.Short.valueOf(_).toShort)
+                     requestTimeout).map(java.lang.Short.valueOf(_).toShort)
     }
 
     @throws[NotFoundHttpException]

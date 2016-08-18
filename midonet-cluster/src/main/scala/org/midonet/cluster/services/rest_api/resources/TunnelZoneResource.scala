@@ -31,7 +31,6 @@ import org.midonet.cluster.rest_api.models.{Vtep, TunnelZone}
 import org.midonet.cluster.rest_api.validation.MessageProperty.{UNIQUE_TUNNEL_ZONE_NAME_TYPE, getMessage}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
-import org.midonet.cluster.util.UUIDUtil
 
 @ApiResource(version = 1, name = "tunnelZones", template = "tunnelZoneTemplate")
 @Path("tunnel_zones")

@@ -21,6 +21,7 @@ import java.net.URI
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
+
 import javax.validation.{ConstraintViolation, Validator}
 import javax.ws.rs._
 import javax.ws.rs.core.Response.Status._
@@ -35,6 +36,7 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.protobuf.Message
 import com.typesafe.scalalogging.Logger
+
 import org.eclipse.jetty.http.HttpStatus.METHOD_NOT_ALLOWED_405
 import org.slf4j.LoggerFactory.getLogger
 
@@ -61,7 +63,6 @@ object MidonetResource {
 
     private final val lockOpNumber = new AtomicInteger(1)
 
-    final val Timeout = 30 seconds
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
     final def OkCreated(uri: URI) = Response.created(uri).build()
@@ -77,8 +78,8 @@ object MidonetResource {
     }
 
     final class FutureOps[T](val future: Future[T]) extends AnyVal {
-        def getOrThrow: T = tryRead {
-            Await.result(future, Timeout)
+        def getOrThrow(implicit timeout: FiniteDuration): T = tryRead {
+            Await.result(future, timeout)
         }
     }
 
@@ -95,8 +96,9 @@ object MidonetResource {
             case e: ObjectExistsException =>
                 throw new ConflictHttpException(e.getMessage)
             case e: TimeoutException =>
-                log.warn("Timeout: ", e)
-                throw new ServiceUnavailableHttpException("Timeout")
+                val message = "Resource read timeout"
+                log.warn(message, e)
+                throw new ServiceUnavailableHttpException(message)
         }
     }
 
@@ -186,6 +188,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
                               (implicit tag: ClassTag[T]) {
 
     protected implicit val executionContext = resContext.executionContext
+    protected implicit val requestTimeout =
+        resContext.config.requestTimeoutMs millis
     protected final implicit val log =
         Logger(getLogger(restApiResourceLog(getClass)))
 
