@@ -36,16 +36,16 @@ class RingBuffer[T: Manifest](val capacity: Int, val emptyValue: T) {
     }
 
     def isEmpty: Boolean = readIndex == writeIndex
-    def nonEmpty: Boolean = readIndex != writeIndex
+    def nonEmpty: Boolean = !isEmpty
     def isFull: Boolean =  ((writeIndex + 1) % capacity) == readIndex
     def length: Int = (writeIndex - readIndex + capacity) % capacity
 
     /**
       * Writes an element to the head of the queue.
       */
-    def put(value: T) {
+    def put(value: T): Unit = {
         if (isFull) {
-            throw new IllegalArgumentException("buffer is full")
+            throw new IllegalStateException("buffer is full")
         } else {
             ring(writeIndex) = value
             writeIndex = (writeIndex + 1) % capacity
