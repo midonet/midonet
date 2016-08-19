@@ -305,15 +305,6 @@ if [ "$MIDONET_USE_KEYSTONE" = "True" ]; then
     configure_mn "cluster.auth.provider_class" "org.midonet.cluster.auth.keystone.KeystoneService"
 fi
 
-# Configure the embedded metadata proxy
-if [[ "$USE_METADATA" = "True" ]]; then
-    configure_mn "agent.openstack.metadata.enabled" "true"
-    configure_mn "agent.openstack.metadata.nova_metadata_url" \
-        "$NOVA_METADATA_URL"
-    configure_mn "agent.openstack.metadata.shared_secret" \
-        "$METADATA_SHARED_SECRET"
-fi
-
 cp $TOP_DIR/midonet-util/src/test/resources/logback-test.xml \
    $TOP_DIR/midonet-cluster/build/resources/main
 
@@ -331,6 +322,15 @@ fi
 MM_QUAGGA_CONF_DIR=/etc/midolman/quagga
 sudo mkdir -p $MM_QUAGGA_CONF_DIR
 sudo cp $TOP_DIR/midolman/src/deb/quagga/bgpd.conf $MM_QUAGGA_CONF_DIR
+
+# Configure the embedded metadata proxy
+if [[ "$USE_METADATA" = "True" ]]; then
+    configure_mn "agent.openstack.metadata.enabled" "true"
+    configure_mn "agent.openstack.metadata.nova_metadata_url" \
+        "$NOVA_METADATA_URL"
+    configure_mn "agent.openstack.metadata.shared_secret" \
+        "$METADATA_SHARED_SECRET"
+fi
 
 configure_mn "agent.loggers.root" "DEBUG"
 configure_mn "agent.midolman.lock_memory" "false"
