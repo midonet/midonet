@@ -904,9 +904,11 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected def createTenantNetwork(taskId: Int,
                                       nwId: UUID = UUID.randomUUID(),
-                                      external: Boolean = false): UUID = {
+                                      external: Boolean = false,
+                                      uplink: Boolean = false): UUID = {
         val json = networkJson(nwId, name = "tenant-network-" + nwId,
-                               tenantId = "tenant", external = external)
+                               tenantId = "tenant", external = external,
+                               uplink = uplink)
         insertCreateTask(taskId, NetworkType, json, nwId)
         nwId
     }
@@ -943,9 +945,13 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected def createSubnet(taskId: Int, networkId: UUID, cidr: String,
                                subnetId: UUID = UUID.randomUUID(),
-                               gatewayIp: String = null): UUID = {
+                               gatewayIp: String = null,
+                               dnsServers: List[String] = null,
+                               hostRoutes: List[HostRoute] = null): UUID = {
         val json = subnetJson(subnetId, networkId, cidr = cidr,
-                              gatewayIp = gatewayIp)
+                              gatewayIp = gatewayIp,
+                              dnsNameservers = dnsServers,
+                              hostRoutes = hostRoutes)
         insertCreateTask(taskId, SubnetType, json, subnetId)
         subnetId
     }
