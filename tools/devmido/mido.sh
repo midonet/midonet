@@ -283,6 +283,7 @@ cp nsdb/conf/midonet.conf $CLUSTER_CONF
 iniset ${CLUSTER_CONF} zookeeper zookeeper_hosts $ZOOKEEPER_HOSTS
 
 # Configure the cluster using mn-conf
+configure_mn "cluster.loggers.root" "DEBUG"
 configure_mn "cluster.rest_api.http_port" $API_PORT
 configure_mn "cluster.topology_api.enabled" "true"
 configure_mn "cluster.topology_api.port" $TOPOLOGY_API_PORT
