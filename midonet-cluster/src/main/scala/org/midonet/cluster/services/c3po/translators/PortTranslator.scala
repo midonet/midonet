@@ -23,6 +23,7 @@ import scala.collection.mutable.ListBuffer
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.models.Neutron.FloatingIp
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
@@ -332,6 +333,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
         addMidoOps(portContext, midoOps)
         midoOps ++= mPortOps
+
+        midoOps ++= fipArpTableUpdateOps(oldMPort, oldNPort, nPort)
 
         // TODO if a DHCP port, assert that the fixed IPs haven't changed.
 
@@ -726,10 +729,55 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             MAC.fromString(nPort.getMacAddress), nPort.getId)
     }
 
+    /*
+     * Return a list of operations to update the entries in ARP tables that are
+     * related of FIPs, and that are impacted by a change of MAC in the FIP's
+     * gateway port that invalidates them.
+     */
+    private def fipArpTableUpdateOps(mPort: PortOrBuilder, oldPort: NeutronPort,
+                                     newPort: NeutronPort): OperationList = {
+        if (mPort.getFipNatRuleIdsCount == 0 ||
+            newPort.getMacAddress == oldPort.getMacAddress)
+            return List()
+
+        /*
+         * In order to get all the impacted entries the list of NAT rules of the
+         * port is checked and from them we obtain the FIP, since the gateway
+         * port has no direct back reference to the FIPs it is serving,
+         *
+         * The FIP ID can be obtained from the both SNAT/DNAT rules in a
+         * deterministic from each one. Both are checked in case only one of
+         * them is present, so duplicates in FIP ID list must be ignored
+         */
+        val natRuleIds = mPort.getFipNatRuleIdsList.asScala
+        val natRules = storage.getAll(classOf[Rule], natRuleIds).await()
+        val fipIds = for (natRule <- natRules) yield {
+            val natRuleData = natRule.getNatRuleData
+            if (natRuleData.getDnat) {
+                RouteManager.fipDnatRuleId(natRule.getId)
+            } else {
+                RouteManager.fipSnatRuleId(natRule.getId)
+            }
+        }
+
+        val fips = storage.getAll(classOf[FloatingIp], fipIds.distinct).await()
+        fips.toList.flatMap { fip =>
+            List(DeleteNode(fipArpEntryPath(oldPort, fip)),
+                 CreateNode(fipArpEntryPath(newPort, fip)))
+        }
+    }
+
     private def arpEntryPath(nPort: NeutronPort): String = {
         stateTableStorage.bridgeArpEntryPath(
             nPort.getNetworkId,
             IPv4Addr(nPort.getFixedIps(0).getIpAddress.getAddress),
+            MAC.fromString(nPort.getMacAddress))
+    }
+
+    private def fipArpEntryPath(nPort: NeutronPort, fip: FloatingIp): String = {
+        stateTableStorage.bridgeArpEntryPath(
+            nPort.getNetworkId,
+            IPv4Addr(fip.getFloatingIpAddress.getAddress),
             MAC.fromString(nPort.getMacAddress))
     }
 
