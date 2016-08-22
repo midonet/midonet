@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_126c4acf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 711,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-22T15:09:20Z",
+      "side": 1,
+      "message": "Nit: space",
+      "range": {
+        "startLine": 711,
+        "startChar": 54,
+        "endLine": 711,
+        "endChar": 55
+      },
+      "revId": "d685878c581525d487f50a9a23615b8e41b05f79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
