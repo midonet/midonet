@@ -20,10 +20,11 @@ import java.net.SocketAddress
 import java.util
 import java.util.Collections
 import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
-import java.util.concurrent.{ConcurrentHashMap, Executors, ScheduledExecutorService, ThreadFactory}
+import java.util.concurrent.{Executors, ScheduledExecutorService, ThreadFactory}
 
 import scala.collection.breakOut
 import scala.collection.JavaConverters._
+import scala.collection.immutable.SortedSet
 import scala.concurrent.{Await, Future, TimeoutException}
 
 import com.typesafe.scalalogging.Logger
@@ -37,6 +38,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.state.StateTableManager.{Closed, Init, State}
 import org.midonet.cluster.services.state.server.{ClientContext, ClientHandler, ClientUnregisteredException}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.util.collection.SharedResourceBalancer
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 object StateTableManager {
@@ -94,18 +96,17 @@ class StateTableManager(config: StateProxyConfig, backend: MidonetBackend) {
 
     protected[state] val log = Logger(LoggerFactory.getLogger(StateProxyLog))
 
-    private val caches = new ConcurrentHashMap[StateTableKey, StateTableCache]()
+    private val caches = new util.HashMap[StateTableKey, StateTableCache]()
     private val state = new AtomicReference[State](Init)
     private val subscriptionCounter = new AtomicLong()
 
     private val threadCount =
         if (config.cacheThreads > 0) config.cacheThreads
         else Integer.min(Runtime.getRuntime.availableProcessors(), 4)
-    private val executors = new Array[ScheduledExecutorService](threadCount)
-    private val executorIndex = new AtomicLong()
 
-    for (index <- 0 until threadCount) {
-        executors(index) = Executors.newSingleThreadScheduledExecutor(
+    private val executors = new SharedResourceBalancer[ScheduledExecutorService](
+        for (index <- 0 until threadCount)
+            yield Executors.newSingleThreadScheduledExecutor(
             new ThreadFactory {
                 override def newThread(runnable: Runnable): Thread = {
                     val thread = new Thread(runnable, s"state-proxy-cache-$index")
@@ -113,7 +114,7 @@ class StateTableManager(config: StateProxyConfig, backend: MidonetBackend) {
                     thread
                 }
             })
-    }
+        )
 
     /**
       * Closes the manager. This is a graceful shutdown and releases all
@@ -136,8 +137,10 @@ class StateTableManager(config: StateProxyConfig, backend: MidonetBackend) {
                          s"${config.serverShutdownTimeout.toMillis} milliseconds"
         }
 
-        for (cache <- caches.values().asScala) {
-            cache.close()
+        caches synchronized {
+            for (cache <- caches.values().asScala) {
+                cache.close()
+            }
         }
     }
 
@@ -270,22 +273,28 @@ class StateTableManager(config: StateProxyConfig, backend: MidonetBackend) {
       * map.
       */
     private def getOrCreateTableCache(key: StateTableKey): StateTableCache = {
-        var cache = caches.get(key)
-        if ((cache eq null) || cache.isClosed) {
-            cache = new StateTableCache(
-                config, backend.stateTableStore, backend.curator,
-                subscriptionCounter, key.objectClass, key.objectId,
-                key.keyClass, key.valueClass, key.tableName, key.tableArgs,
-                executors((executorIndex.getAndIncrement() % threadCount).toInt),
-                caches.remove(key, _))
-            cache = caches.putIfAbsent(key, cache) match {
-                case null => cache
-                case c =>
-                    cache.close()
-                    c
+        caches synchronized {
+            var cache = caches.get(key)
+            if ((cache eq null) || cache.isClosed) {
+                val executor = executors.get
+
+                def closeCallback(cache: StateTableCache): Unit = {
+                    caches synchronized {
+                        caches.remove(key, cache)
+                        executors.release(executor)
+                    }
+                }
+
+                cache = new StateTableCache(
+                    config, backend.stateTableStore, backend.curator,
+                    subscriptionCounter, key.objectClass, key.objectId,
+                    key.keyClass, key.valueClass, key.tableName, key.tableArgs,
+                    executor,
+                    closeCallback)
+                caches.put(key, cache)
             }
+            cache
         }
-        cache
     }
 
     @throws[StateTableException]
