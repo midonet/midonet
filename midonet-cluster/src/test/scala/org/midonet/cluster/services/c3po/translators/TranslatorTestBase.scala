@@ -15,10 +15,15 @@
  */
 package org.midonet.cluster.services.c3po.translators
 
-import scala.concurrent.Promise
+import java.util
+
+import scala.concurrent.{Future, Promise}
 import java.util.{UUID => JUUID}
 
+import scala.util.Try
+
 import org.mockito.Mockito.{mock, when}
+import org.mockito.ArgumentMatcher
 import org.mockito.Matchers.any
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
@@ -136,6 +141,41 @@ abstract class TranslatorTestBase  extends FlatSpec
         }
         when(storage.getAll(classOfM, ids))
                     .thenReturn(Promise.successful(msgs).future)
+    }
+
+    /* Return a matcher that match if the sequence of keys contains all the keys
+     * of a given map
+     *
+     * If matched, a sequence of the values matching the order of the input keys
+     * is put in a successful resultPromise.
+     */
+    protected def matchAllKeys[K,V](dictionary: Map[K,V]) =
+        new ArgumentMatcher[Seq[K]]
+        {
+            val resultPromise = Promise[Seq[V]]()
+            override def matches(keysToMatchArg: scala.Any): Boolean = {
+                val keysToMatch = keysToMatchArg.asInstanceOf[Seq[K]]
+                if (dictionary.keySet.equals(keysToMatch.toSet)) {
+                    resultPromise success (keysToMatch map dictionary)
+                    true
+                } else
+                    false
+            }
+        }
+
+    /* Mock exists and getAll on instances of M with its ID in "ids" in any
+     * order.
+     * ids and msgs must NOT be null
+     * ids and msgs must have the same number of elements */
+    protected def bindAllInAnyOrder[K, M](
+            ids: Seq[UUID], msgs: Seq[M], clazz: Class[M] = null): Unit = {
+        assert(ids != null)
+        assert(msgs != null)
+        assert(ids.size == msgs.size)
+        val matcher = matchAllKeys((ids zip msgs).toMap)
+        when(storage.getAll(org.mockito.Matchers.eq(clazz),
+                            org.mockito.Matchers.argThat(matcher)))
+            .thenReturn(matcher.resultPromise.future)
     }
 
     /* Finds an operation on Chain with the specified chain ID, and returns a
