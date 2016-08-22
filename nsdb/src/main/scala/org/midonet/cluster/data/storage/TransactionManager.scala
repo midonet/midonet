@@ -30,7 +30,6 @@ import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.TransactionManager.{BindingsMap, ClassesMap}
 import org.midonet.util.collection.PathMap
-import org.midonet.util.functors.makeFunc1
 
 object TransactionManager {
 
@@ -230,6 +229,10 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
         for (id <- ids) yield get(clazz, id)
     }
 
+    @throws[NotFoundException]
+    @throws[InternalObjectMapperException]
+    @throws[ConcurrentModificationException]
+    @throws[ObjectExistsException]
     override def create(obj: Obj): Unit = {
         assert(isRegistered(obj.getClass))
         // Allow a creation of an object with an exclusive ownership type, whose
@@ -261,6 +264,10 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
         }
     }
 
+    @throws[NotFoundException]
+    @throws[InternalObjectMapperException]
+    @throws[ConcurrentModificationException]
+    @throws[IllegalArgumentException]
     override def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
 
         val clazz = obj.getClass
@@ -334,6 +341,9 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
      * the method silently returns if the specified object does not exist /
      * has already been deleted.
      */
+    @throws[NotFoundException]
+    @throws[InternalObjectMapperException]
+    @throws[ConcurrentModificationException]
     override def delete(clazz: Class[_], id: ObjId, ignoresNeo: Boolean): Unit = {
         assert(isRegistered(clazz))
         val key = getKey(clazz, id)
