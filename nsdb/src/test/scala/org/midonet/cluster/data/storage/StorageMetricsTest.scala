@@ -47,14 +47,12 @@ class StorageMetricsTest extends FeatureSpec
     private val timeout = 5 seconds
     private var registry: MetricRegistry = _
     private var zoom: ZookeeperObjectMapper = _
-    private var assert: () => Unit = _
 
     protected override def setup(): Unit = {
         registry = new MetricRegistry()
         zoom = new ZookeeperObjectMapper(zkRoot, UUID.randomUUID().toString,
                                          curator, registry)
         initAndBuildStorage(zoom)
-        assert = () => {}
     }
 
     private def initAndBuildStorage(storage: ZookeeperObjectMapper): Unit = {
@@ -463,58 +461,6 @@ class StorageMetricsTest extends FeatureSpec
             getCountForCounter("childrenTriggeredWatchers") shouldBe 4
         }
 
-        scenario("Zoom NoNode/NodeExists exceptions") {
-            Given("A request for a non-existing object")
-            val nonExistingId = UUID.randomUUID()
-            intercept[NotFoundException] {
-                Await.result(zoom.get(classOf[PojoBridge], nonExistingId),
-                             timeout)
-            }
-
-            Then("The number of ZK NoNode exceptions should be 1")
-            getCountForCounter("noNodesExceptions") shouldBe 1
-
-            When("We attempt to store the same object twice in Zoom")
-            val bridge = createPojoBridge()
-            zoom.create(bridge)
-            intercept[ObjectExistsException] {
-               zoom.create(bridge)
-            }
-
-            Then("The number of ZK NodeExists exception should be 1")
-            getCountForCounter("nodeExistsExceptions") shouldBe 1
-            getCountForCounter("noNodesExceptions") shouldBe 1
-
-            When("We create an observable for a non-existing object")
-            val obs = zoom.observable(classOf[PojoBridge], nonExistingId)
-            val observer = new TestAwaitableObserver[PojoBridge]
-
-            And("We subscribe to it")
-            obs.subscribe(observer)
-
-            Then("The observer completes")
-            observer.awaitCompletion(timeout)
-
-            And("The number of ZK NoNode exceptions should be 2")
-            getCountForCounter("noNodesExceptions") shouldBe 2
-
-            When("We attempt to delete a non-existing object")
-            intercept[NotFoundException] {
-                zoom.delete(classOf[PojoBridge], nonExistingId)
-            }
-
-            Then("The number of ZK NoNode exceptions should be 3")
-            getCountForCounter("noNodesExceptions") shouldBe 3
-
-            When("We attempt to update a non-existing object")
-            intercept[NotFoundException] {
-                zoom.update(createPojoBridge())
-            }
-
-            Then("The number of ZK NoNode exceptions should be 4")
-            getCountForCounter("noNodesExceptions") shouldBe 4
-        }
-
         scenario("Zoom reads/writes") {
             Given("A set of objects")
             val objects = (1 to 4) map { value =>
@@ -653,35 +599,6 @@ class StorageMetricsTest extends FeatureSpec
 
             And("The number of class watchers triggered should be 2")
             getCountForCounter("childrenTriggeredWatchers") shouldBe 2
-        }
-
-        scenario("Zoom state NoNode exceptions") {
-            Given("A request for a single-value key that doesn't exist")
-            val nonExistingId = UUID.randomUUID()
-            zoom.getKey(classOf[State], nonExistingId, "single").await(timeout)
-
-            Then("The number of ZK NoNode exceptions should be 1")
-            getCountForCounter("noNodesExceptions") shouldBe 1
-
-            When("We request a multi-value key that doesn't exist")
-            zoom.getKey(classOf[State], nonExistingId, "multi").await(timeout)
-
-            Then("The number of ZK NoNode exceptions should be 2")
-            getCountForCounter("noNodesExceptions") shouldBe 2
-
-            When("We attempt to remove a non-existing single value")
-            zoom.removeValue(classOf[State], nonExistingId, "single", "1")
-                .await(timeout)
-
-            Then("The number of ZK NoNode exceptions should be 3")
-            getCountForCounter("noNodesExceptions") shouldBe 3
-
-            When("We attempt to remove a non-existing multi-value")
-            zoom.removeValue(classOf[State], nonExistingId, "multi", "2")
-                .await(timeout)
-
-            Then("The number of ZK NoNode exceptions should be 4")
-            getCountForCounter("noNodesExceptions") shouldBe 4
         }
     }
 

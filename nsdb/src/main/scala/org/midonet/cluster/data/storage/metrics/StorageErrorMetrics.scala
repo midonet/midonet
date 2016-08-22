@@ -15,38 +15,67 @@
  */
 package org.midonet.cluster.data.storage.metrics
 
+import scala.compat.Platform.ConcurrentModificationException
+
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistry.name
 
-import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException}
-
-import org.midonet.cluster.util.{DirectoryObservableClosedException, NodeObservableClosedException}
+import org.midonet.cluster.data.storage._
 
 class StorageErrorMetrics(registry: MetricRegistry) {
 
-    val nodeObservablePrematureCloses =
-        registry.counter(name(classOf[StorageCounter],
-                              "nodeObservablePrematureCloses"))
-    val noNodesExceptions = registry.counter(name(classOf[StorageCounter],
-                                                  "noNodesExceptions"))
-    val nodeExistsExceptions = registry.counter(name(classOf[StorageCounter],
-                                                     "nodeExistsExceptions"))
+    val concurrentModificationExceptionCounter =
+        registry.counter(name(classOf[StorageException],
+                              "concurrentModificationException"))
+    val conflictExceptionCounter =
+        registry.counter(name(classOf[StorageException], "conflictException"))
+    val objectReferencedExceptionCounter =
+        registry.counter(name(classOf[StorageException],
+                              "objectReferencedException"))
+    val objectExistsExceptionCounter =
+        registry.counter(name(classOf[StorageCounter], "objectExistsException"))
+    val objectNotFoundExceptionCounter =
+        registry.counter(name(classOf[StorageCounter], "objectNotFoundException"))
+    val nodeExistsExceptionCounter =
+        registry.counter(name(classOf[StorageCounter], "nodeExistsException"))
+    val nodeNotFoundExceptionCounter =
+        registry.counter(name(classOf[StorageCounter], "nodeNotFoundException"))
 
-    /** Examines the given Throwable, and updates the appropriate counters if
+    val objectObservableClosedCounter =
+        registry.counter(name(classOf[StorageCounter], "objectObservableClosed"))
+    val classObservableClosedCounter =
+        registry.counter(name(classOf[StorageCounter], "classObservableClosed"))
+    val stateObservableClosedCounter =
+        registry.counter(name(classOf[StorageCounter], "stateObservableClosed"))
+
+    val objectObservableErrorCounter =
+        registry.counter(name(classOf[StorageCounter], "objectObservableError"))
+    val classObservableErrorCounter =
+        registry.counter(name(classOf[StorageCounter], "classObservableError"))
+    val stateObservableErrorCounter =
+        registry.counter(name(classOf[StorageCounter], "stateObservableError"))
+
+    /**
+      * Examines the given Throwable, and updates the appropriate counters if
       * relevant.
       */
-    final def count(t: Throwable): Throwable = {
-        t match {
-            case _: DirectoryObservableClosedException =>
-                nodeObservablePrematureCloses.inc()
-            case _: NodeObservableClosedException =>
-                nodeObservablePrematureCloses.inc()
-            case _: NoNodeException =>
-                noNodesExceptions.inc()
-            case _: NodeExistsException =>
-                nodeExistsExceptions.inc()
+    final def count(e: Throwable): Unit = {
+        e match {
+            case _: ConcurrentModificationException =>
+                concurrentModificationExceptionCounter.inc()
+            case _: ReferenceConflictException =>
+                conflictExceptionCounter.inc()
+            case _: ObjectReferencedException =>
+                objectReferencedExceptionCounter.inc()
+            case _: ObjectExistsException =>
+                objectExistsExceptionCounter.inc()
+            case _: StorageNodeExistsException =>
+                nodeExistsExceptionCounter.inc()
+            case _: StorageNodeNotFoundException =>
+                nodeNotFoundExceptionCounter.inc()
+            case _: NotFoundException =>
+                objectNotFoundExceptionCounter.inc()
             case _ =>
         }
-        t
     }
 }

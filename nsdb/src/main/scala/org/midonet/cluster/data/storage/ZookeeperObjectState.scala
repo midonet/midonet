@@ -267,7 +267,6 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, Some(value), ownerId))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    metrics.error.noNodesExceptions.inc()
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, None, NoOwnerId))
                 } else {
@@ -286,7 +285,6 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     Notification.createOnNext[StateKey](
                         MultiValueKey(key,values))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    metrics.error.noNodesExceptions.inc()
                     Notification.createOnNext[StateKey](
                         MultiValueKey(key, Set()))
                 } else {
@@ -567,7 +565,6 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                         event.getStat.getEphemeralOwner))
                 }
             } else if (event.getResultCode == Code.NONODE.intValue()) {
-                metrics.error.noNodesExceptions.inc()
                 // The node does not exist: complete immediately.
                 Observable.just(StateResult(NoOwnerId))
             } else {
@@ -635,10 +632,12 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     singleObservables.remove(index, SingleObservable(ref))
                 }))
                 .onErrorResumeNext(makeFunc1((t: Throwable) => {
-                    metrics.error.count(t) match {
+                    t match {
                         case e: NodeObservableClosedException=>
+                            metrics.error.stateObservableClosedCounter.inc()
                             singleObservable(index, version)
                         case e: Throwable =>
+                            metrics.error.stateObservableErrorCounter.inc()
                             Observable.error(e)
                     }
                 }))
@@ -686,10 +685,12 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                     multiObservables.remove(index, MultiObservable(ref))
                 }))
                 .onErrorResumeNext(makeFunc1((t: Throwable) => {
-                    metrics.error.count(t) match {
+                    t match {
                         case e: DirectoryObservableClosedException =>
+                            metrics.error.stateObservableClosedCounter.inc()
                             multiObservable(index, version)
                         case e: Throwable =>
+                            metrics.error.stateObservableErrorCounter.inc()
                             Observable.error(e)
                     }
                 }))

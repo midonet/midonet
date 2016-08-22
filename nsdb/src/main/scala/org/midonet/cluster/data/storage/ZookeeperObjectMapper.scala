@@ -228,7 +228,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                                         event.getStat.getVersion))
                     }
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
-                    metrics.error.noNodesExceptions.inc()
                     createOnError(new NotFoundException(clazz, id))
                 } else {
                     createOnError(new InternalObjectMapperException(
@@ -303,10 +302,11 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                     // objects that are being updated.
                     throw new ConcurrentModificationException(bve)
                 case e: KeeperException =>
-                    metrics.error.count(e)
                     rethrowException(ops, e)
-                case rce: ReferenceConflictException => throw rce
-                case NonFatal(ex) => throw new InternalObjectMapperException(ex)
+                case rce: ReferenceConflictException =>
+                    throw rce
+                case NonFatal(ex) =>
+                    throw new InternalObjectMapperException(ex)
             } finally {
                 metrics.performance.addMultiLatency(System.nanoTime() - startTime)
             }
@@ -320,9 +320,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             try {
                 curator.getChildren.forPath(path).asScala.map(prefix + _)
             } catch {
-                case nne: NoNodeException =>
-                    metrics.error.count(nne)
-                    Seq.empty
+                case nne: NoNodeException => Seq.empty
             }
         }
 
@@ -359,6 +357,11 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
          * @throws ConcurrentModificationException for all other cases.
          * @throws InternalObjectMapperException for all other cases.
          */
+        @throws[ObjectExistsException]
+        @throws[StorageNodeExistsException]
+        @throws[StorageNodeNotFoundException]
+        @throws[ConcurrentModificationException]
+        @throws[InternalObjectMapperException]
         private def rethrowException(ops: Seq[(Key, TxOp)], e: Throwable)
         : Unit = e match {
             case e: NodeExistsException => opForException(ops, e) match {
@@ -366,14 +369,16 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                         throw new StorageNodeExistsException(path)
                     case (key: Key, _) =>
                         throw new ObjectExistsException(key.clazz, key.id)
-                    case _ => throw new InternalObjectMapperException(e)
+                    case _ =>
+                        throw new InternalObjectMapperException(e)
                 }
             case e: NoNodeException => opForException(ops, e) match {
                     case (Key(_, path), _: TxUpdateNode) =>
                         throw new StorageNodeNotFoundException(path)
                     case (Key(_, path), TxDeleteNode) =>
                         throw new StorageNodeNotFoundException(path)
-                    case _ => throw new ConcurrentModificationException(e)
+                    case _ =>
+                        throw new ConcurrentModificationException(e)
                 }
             case e: NotEmptyException => opForException(ops, e) match {
                 case (_, TxDeleteNode) =>
@@ -381,9 +386,11 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                     // should only happen if there was a concurrent
                     // modification.
                     throw new ConcurrentModificationException(e)
-                case _ => throw new InternalObjectMapperException(e)
+                case _ =>
+                    throw new InternalObjectMapperException(e)
             }
-            case _ => throw new InternalObjectMapperException(e)
+            case _ =>
+                throw new InternalObjectMapperException(e)
         }
     }
 
@@ -471,11 +478,13 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                                   event: CuratorEvent): T = {
         if (event.getResultCode == Code.OK.intValue()) {
             deserialize(event.getData, clazz)
-        } else {
-            if (event.getResultCode == Code.NONODE.intValue()) {
-                metrics.error.noNodesExceptions.inc()
-            }
+        } else if (event.getResultCode == Code.NONODE.intValue()) {
+            metrics.error.objectNotFoundExceptionCounter.inc()
             throw new NotFoundException(clazz, id)
+        } else {
+            throw new InternalObjectMapperException(
+                KeeperException.create(Code.get(event.getResultCode),
+                                       event.getPath))
         }
     }
 
@@ -575,27 +584,37 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
     @throws[ServiceUnavailableException]
+    @throws[StorageNodeExistsException]
+    @throws[StorageNodeNotFoundException]
+    @throws[InternalObjectMapperException]
     override def multi(ops: Seq[PersistenceOp]): Unit = {
         assertBuilt()
         if (ops.isEmpty) return
 
         val manager = new ZoomTransactionManager(version.longValue())
-        ops.foreach {
-            case CreateOp(obj) =>
-                manager.create(obj)
-            case UpdateOp(obj, validator) =>
-                manager.update(obj, validator)
-            case DeleteOp(clazz, id, ignoresNeo) =>
-                manager.delete(clazz, id, ignoresNeo)
-            case CreateNodeOp(path, value) =>
-                manager.createNode(path, value)
-            case UpdateNodeOp(path, value) =>
-                manager.updateNode(path, value)
-            case DeleteNodeOp(path) =>
-                manager.deleteNode(path)
+        try {
+            ops.foreach {
+                case CreateOp(obj) =>
+                    manager.create(obj)
+                case UpdateOp(obj, validator) =>
+                    manager.update(obj, validator)
+                case DeleteOp(clazz, id, ignoresNeo) =>
+                    manager.delete(clazz, id, ignoresNeo)
+                case CreateNodeOp(path, value) =>
+                    manager.createNode(path, value)
+                case UpdateNodeOp(path, value) =>
+                    manager.updateNode(path, value)
+                case DeleteNodeOp(path) =>
+                    manager.deleteNode(path)
+            }
+            manager.commit()
+        } catch {
+            case NonFatal(e) =>
+                metrics.error.count(e)
+                throw e
+        } finally {
+            manager.releaseLock()
         }
-
-        try manager.commit() finally manager.releaseLock()
     }
 
     /**
@@ -657,13 +676,13 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 .dematerialize().asInstanceOf[Observable[T]]
                 .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
                     case e: NodeObservableClosedException =>
-                        metrics.error.count(e)
+                        metrics.error.objectObservableClosedCounter.inc()
                         internalObservable(clazz, id, version, OnCloseDefault)
                     case e: NoNodeException =>
-                        metrics.error.count(e)
+                        metrics.error.objectNotFoundExceptionCounter.inc()
                         Observable.error(new NotFoundException(clazz, id))
                     case e: Throwable =>
-                        metrics.error.count(e)
+                        metrics.error.objectObservableErrorCounter.inc()
                         Observable.error(e)
                 }))
 
@@ -690,11 +709,11 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             val obs = cache.observable
                 .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
                     case e: PathCacheClosedException =>
-                        metrics.error.count(e)
+                        metrics.error.classObservableClosedCounter.inc()
                         classObservables.remove(clazz, ClassObservable(cache))
                         observable(clazz)
                     case e: Throwable =>
-                        metrics.error.count(e)
+                        metrics.error.classObservableErrorCounter.inc()
                         Observable.error(e)
                 }))
             val entry = ClassObservable(cache, obs)
