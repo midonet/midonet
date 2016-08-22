@@ -15,10 +15,15 @@
  */
 package org.midonet.cluster.services.c3po.translators
 
-import scala.concurrent.Promise
+import java.util
+
+import scala.concurrent.{Future, Promise}
 import java.util.{UUID => JUUID}
 
+import scala.util.Try
+
 import org.mockito.Mockito.{mock, when}
+import org.mockito.ArgumentMatcher
 import org.mockito.Matchers.any
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
@@ -136,6 +141,36 @@ abstract class TranslatorTestBase  extends FlatSpec
         }
         when(storage.getAll(classOfM, ids))
                     .thenReturn(Promise.successful(msgs).future)
+    }
+
+    /* Return a matcher that match if a sequence (thatSeq) have all the elements
+     * (and only that elements) of the sequence given as argument (thisSeq) */
+    protected def seqInAnyOrder[T](thisSeq: Seq[T]) = new ArgumentMatcher[Seq[T]] {
+        override def matches(thatSeq: scala.Any): Boolean =
+            thisSeq.toSet.equals(thatSeq.asInstanceOf[Seq[T]].toSet)
+    }
+
+    /* Mock exists and getAll on instances of M with its ID in "ids" in any
+     * order.
+     * ids and msgs must NOT be null
+     * ids and msgs must have the same number of elements */
+    protected def bindAllInAnyOrder[K, M](
+            ids: Seq[UUID], msgs: Seq[M], clazz: Class[M] = null): Unit = {
+        assert(ids != null)
+        assert(msgs != null)
+        assert(ids.size == msgs.size)
+        when(storage.getAll(org.mockito.Matchers.eq(clazz),
+                            org.mockito.Matchers.argThat(seqInAnyOrder(ids))))
+        .thenAnswer(
+            new Answer[Future[Seq[M]]] {
+                val boundIds = (ids zip msgs).toMap
+                override def answer(invocation: InvocationOnMock) = {
+                    val args = invocation.getArguments()
+                    val answerIds = args(1).asInstanceOf[Seq[UUID]]
+                    Promise.successful(answerIds map boundIds).future
+                }
+            }
+        )
     }
 
     /* Finds an operation on Chain with the specified chain ID, and returns a
