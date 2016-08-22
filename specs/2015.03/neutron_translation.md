@@ -147,11 +147,19 @@ If the port is a DHCP port (device_owner == 'network:dhcp'):
  * Add a metadata route on the router that the network of this port is linked
    to where the next hop gateway IP is set to the first IP address of the port.
 
-For all port types, if there is a binding information included in the Neutron
+For all port types:
+
+ * If there is a binding information included in the Neutron
 port data, perform the binding.  The binding information are as follows:
 
  * 'binding:host' => host ID
  * 'binding:profile[interface_name]' => interface name
+
+ * If there is a change in the MAC address and there are FIP NAT rules in the
+   port (so this port is the GW port of at least one FIP):
+
+      * Update with the new MAC address the ARP tables of the network each
+        impacted FIP belongs.
 
 ### UPDATE
 
