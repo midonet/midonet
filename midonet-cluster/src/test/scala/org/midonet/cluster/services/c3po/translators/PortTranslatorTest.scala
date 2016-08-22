@@ -133,6 +133,7 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
         mac_address: '$mac'
         admin_state_up: ${if (adminStateUp) "true" else "false"}
         """
+
     protected val portBaseDown = portBase(adminStateUp = false)
     protected val portBaseUp = portBase(adminStateUp = true)
 
@@ -259,8 +260,9 @@ class VifPortTranslationTest extends PortTranslatorTest {
     val floatingIp1Addr = "118.67.101.185"
     val floatingIp2Addr = "118.67.201.25"
     val tntRouterId = randomUuidProto
-    val gwPortId = randomUuidProto
+    val gwPortId = RouterTranslator.tenantGwPortId(tntRouterId)
     val gwPortMac = "e0:05:2d:fd:16:0b"
+    val gwPortMacUpdated = "e0:05:2d:fd:16:0c"
     val externalNetworkId = randomUuidProto
 
     val vifPortWithFixedIps = nPortFromTxt(s"""
@@ -380,10 +382,53 @@ class VifPortTranslationTest extends PortTranslatorTest {
         id { $tntRouterId }
         gw_port_id { $gwPortId }
         """)
+    val nGwPortUpdatedMac = nPortFromTxt(s"""
+        id { $gwPortId }
+        network_id { $externalNetworkId }
+        mac_address: "$gwPortMacUpdated"
+        device_owner: ROUTER_GATEWAY
+        """)
     val nGwPort = nPortFromTxt(s"""
         id { $gwPortId }
         network_id { $externalNetworkId }
         mac_address: "$gwPortMac"
+        device_owner: ROUTER_GATEWAY
+        """)
+    val fip1SnatRuleId = RouteManager.fipSnatRuleId(fipId1)
+    val fip1SnatRule = mRuleFromTxt(s"""
+        id { $fip1SnatRuleId }
+        nat_rule_data {
+            dnat: false
+        }
+        """)
+    val fip2SnatRuleId = RouteManager.fipSnatRuleId(fipId2)
+    val fip2SnatRule = mRuleFromTxt(s"""
+        id { $fip2SnatRuleId }
+        nat_rule_data {
+            dnat: false
+        }
+        """)
+    val fip1DnatRuleId = RouteManager.fipDnatRuleId(fipId1)
+    val fip1DnatRule = mRuleFromTxt(s"""
+        id { $fip1DnatRuleId }
+        nat_rule_data {
+            dnat: true
+        }
+        """)
+    val fip2DnatRuleId = RouteManager.fipDnatRuleId(fipId2)
+    val fip2DnatRule = mRuleFromTxt(s"""
+        id { $fip2DnatRuleId }
+        nat_rule_data {
+            dnat: true
+        }
+        """)
+    val mGwPort = mPortFromTxt(s"""
+        id { $gwPortId }
+        network_id { $externalNetworkId }
+        fip_nat_rule_ids { $fip1SnatRuleId }
+        fip_nat_rule_ids { $fip1DnatRuleId }
+        fip_nat_rule_ids { $fip2SnatRuleId }
+        fip_nat_rule_ids { $fip2DnatRuleId }
         """)
     val fip1ArpEntryPath =
         stateTableStorage.bridgeArpEntryPath(externalNetworkId,
@@ -393,6 +438,14 @@ class VifPortTranslationTest extends PortTranslatorTest {
         stateTableStorage.bridgeArpEntryPath(externalNetworkId,
                                              IPv4Addr(floatingIp2Addr),
                                              MAC.fromString(gwPortMac))
+    val fip1ArpEntryPathMacUpdated =
+        stateTableStorage.bridgeArpEntryPath(externalNetworkId,
+                                             IPv4Addr(floatingIp1Addr),
+                                             MAC.fromString(gwPortMacUpdated))
+    val fip2ArpEntryPathMacUpdated =
+        stateTableStorage.bridgeArpEntryPath(externalNetworkId,
+                                             IPv4Addr(floatingIp2Addr),
+                                             MAC.fromString(gwPortMacUpdated))
 }
 
 /**
@@ -1076,6 +1129,31 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
                 DeleteOp(classOf[NeutronPort], portId))
         midoOps should contain (DeleteNode(fip1ArpEntryPath))
         midoOps should contain (DeleteNode(fip2ArpEntryPath))
+    }
+
+    "UPDATE MAC address of a VIF port with floating IPs attached" should
+    "delete the old ARP table entries related to old MAC and " +
+    "create the new ARP table entries related to new MAC" in {
+        bind(gwPortId, nGwPortUpdatedMac)
+        bind(tntRouterId, nTntRouter)
+        bind(portId, vifPortWithFloatingIpIds)
+        bind(gwPortId, nGwPort)
+        bind(gwPortId, mGwPort)
+        bind(fipId1, floatingIp1)
+        bind(fipId2, floatingIp2)
+        bind(fip1SnatRuleId, fip1SnatRule)
+        bind(fip2SnatRuleId, fip2SnatRule)
+        bind(fip1DnatRuleId, fip1DnatRule)
+        bind(fip2DnatRuleId, fip2DnatRule)
+        when(storage.getAll(classOf[IPAddrGroup], Seq()))
+            .thenReturn(Future.successful(Seq()))
+
+        val midoUpdateOps = translator.translate(
+                UpdateOp(nGwPortUpdatedMac))
+        midoUpdateOps should contain (DeleteNode(fip1ArpEntryPath))
+        midoUpdateOps should contain (CreateNode(fip1ArpEntryPathMacUpdated))
+        midoUpdateOps should contain (DeleteNode(fip2ArpEntryPath))
+        midoUpdateOps should contain (CreateNode(fip2ArpEntryPathMacUpdated))
     }
 }
 
