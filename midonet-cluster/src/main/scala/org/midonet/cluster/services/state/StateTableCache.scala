@@ -300,10 +300,12 @@ object StateTableCache {
         val Closed = new State(closed = true, NoSubscriptions)
     }
 
-    private class TableEntry(val key: KeyValue, val value: KeyValue,
+    private class TableEntry(val cacheKey: String,
+                             val key: KeyValue,
+                             val value: KeyValue,
                              val version: Int)
 
-    private type TableEntries = util.HashMap[KeyValue, TableEntry]
+    private type TableEntries = util.HashMap[String, TableEntry]
 
     private final val NoSubscriptions = new Array[Subscription](0)
     private final val NoUpdates = new Array[Update](0)
@@ -705,8 +707,8 @@ class StateTableCache(val config: StateProxyConfig,
 
         diffAddCache.clear()
         diffRemoveCache.clear()
-
-        val newCache = new TableEntries
+        // create a table that can hold all the entries without resizing.
+        val newCache = new TableEntries(entries.size()*2)
 
         // Add/update new entries in the cache.
         val entryIterator = entries.iterator()
@@ -716,13 +718,13 @@ class StateTableCache(val config: StateProxyConfig,
             if (newEntry != null) {
                 // Compute the diff with respect to the previous version
                 // of the cache.
-                val currentEntry = newCache.get(newEntry.key)
+                val currentEntry = newCache.get(newEntry.cacheKey)
                 if ((currentEntry eq null) ||
                     currentEntry.version == PersistentVersion ||
                     (currentEntry.version < newEntry.version &&
                      newEntry.version != PersistentVersion)) {
 
-                    newCache.put(newEntry.key, newEntry)
+                    newCache.put(newEntry.cacheKey, newEntry)
                 }
             }
         }
@@ -731,7 +733,7 @@ class StateTableCache(val config: StateProxyConfig,
         var cacheIterator = newCache.values().iterator()
         while (cacheIterator.hasNext) {
             val newEntry = cacheIterator.next()
-            val oldEntry = currentCache.get(newEntry.key)
+            val oldEntry = currentCache.get(newEntry.cacheKey)
             if ((oldEntry eq null) || oldEntry.version != newEntry.version) {
                 diffAddCache.add(newEntry)
             }
@@ -741,7 +743,7 @@ class StateTableCache(val config: StateProxyConfig,
         cacheIterator = currentCache.values().iterator()
         while (cacheIterator.hasNext) {
             val oldEntry = cacheIterator.next()
-            val newEntry = newCache.get(oldEntry.key)
+            val newEntry = newCache.get(oldEntry.cacheKey)
             if (newEntry eq null) {
                 diffRemoveCache.add(oldEntry)
             }
@@ -879,7 +881,7 @@ class StateTableCache(val config: StateProxyConfig,
             val key = keyDecoder.decode(tokens(0))
             val value = valueDecoder.decode(tokens(1))
             val version = Integer.parseInt(tokens(2))
-            new TableEntry(key, value, version)
+            new TableEntry(tokens(0), key, value, version)
         } catch {
             case NonFatal(_) => null
         }
