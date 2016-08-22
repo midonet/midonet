@@ -94,7 +94,7 @@ class StateTableManager(config: StateProxyConfig, backend: MidonetBackend) {
 
     protected[state] val log = Logger(LoggerFactory.getLogger(StateProxyLog))
 
-    private val caches = new ConcurrentHashMap[StateTableKey, StateTableCache]()
+    private val caches = new util.HashMap[StateTableKey, StateTableCache]()
     private val state = new AtomicReference[State](Init)
     private val subscriptionCounter = new AtomicLong()
 
@@ -102,7 +102,7 @@ class StateTableManager(config: StateProxyConfig, backend: MidonetBackend) {
         if (config.cacheThreads > 0) config.cacheThreads
         else Integer.min(Runtime.getRuntime.availableProcessors(), 4)
     private val executors = new Array[ScheduledExecutorService](threadCount)
-    private val executorIndex = new AtomicLong()
+    private var executorIndex = 0
 
     for (index <- 0 until threadCount) {
         executors(index) = Executors.newSingleThreadScheduledExecutor(
@@ -136,8 +136,10 @@ class StateTableManager(config: StateProxyConfig, backend: MidonetBackend) {
                          s"${config.serverShutdownTimeout.toMillis} milliseconds"
         }
 
-        for (cache <- caches.values().asScala) {
-            cache.close()
+        caches synchronized {
+            for (cache <- caches.values().asScala) {
+                cache.close()
+            }
         }
     }
 
@@ -270,22 +272,21 @@ class StateTableManager(config: StateProxyConfig, backend: MidonetBackend) {
       * map.
       */
     private def getOrCreateTableCache(key: StateTableKey): StateTableCache = {
-        var cache = caches.get(key)
-        if ((cache eq null) || cache.isClosed) {
-            cache = new StateTableCache(
-                config, backend.stateTableStore, backend.curator,
-                subscriptionCounter, key.objectClass, key.objectId,
-                key.keyClass, key.valueClass, key.tableName, key.tableArgs,
-                executors((executorIndex.getAndIncrement() % threadCount).toInt),
-                caches.remove(key, _))
-            cache = caches.putIfAbsent(key, cache) match {
-                case null => cache
-                case c =>
-                    cache.close()
-                    c
+        caches synchronized {
+            var cache = caches.get(key)
+            if ((cache eq null) || cache.isClosed) {
+                val executor = executors(executorIndex % threadCount)
+                executorIndex += 1
+                cache = new StateTableCache(
+                    config, backend.stateTableStore, backend.curator,
+                    subscriptionCounter, key.objectClass, key.objectId,
+                    key.keyClass, key.valueClass, key.tableName, key.tableArgs,
+                    executor,
+                    caches synchronized { caches.remove(key, _) } )
+                caches.put(key, cache)
             }
+            cache
         }
-        cache
     }
 
     @throws[StateTableException]
