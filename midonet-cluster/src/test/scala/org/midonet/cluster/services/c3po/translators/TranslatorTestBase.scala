@@ -138,6 +138,24 @@ abstract class TranslatorTestBase  extends FlatSpec
                     .thenReturn(Promise.successful(msgs).future)
     }
 
+    /* Mock exists and getAll on instances of M with its ID in "ids" in any
+     * order.
+     * ids and msgs must NOT be null
+     * ids and msgs must have the same number of elements
+     *
+     * WARNING: avoid usage with list many elements, as the current
+     *          implementations add all the possible permutations of the list
+     *          (so this scalates quickly, as factorial complexity) */
+    protected def bindAllInAnyOrder[M](
+            ids: Seq[UUID], msgs: Seq[M], clazz: Class[M] = null): Unit = {
+        assert(ids != null)
+        assert(msgs != null)
+        assert(ids.size == msgs.size)
+        ids.indices.permutations foreach {
+            p => bindAll(p map ids, p map msgs, clazz)
+        }
+    }
+
     /* Finds an operation on Chain with the specified chain ID, and returns a
      * first one found.
      */
