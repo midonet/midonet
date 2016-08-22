@@ -387,8 +387,8 @@ class StateTableCache(val config: StateProxyConfig,
     protected[state] val logId =
         s"${objectClass.getSimpleName}/$objectId/$name"
 
-    private val keyDecoder = StateEntryDecoder.get(tableKey)
-    private val valueDecoder = StateEntryDecoder.get(tableValue)
+    private val keyDecoder = StateEntryDecoder.getUnsafe(tableKey)
+    private val valueDecoder = StateEntryDecoder.getUnsafe(tableValue)
 
     @volatile
     private var callback = new BackgroundCallback {
@@ -883,7 +883,9 @@ class StateTableCache(val config: StateProxyConfig,
             val version = Integer.parseInt(tokens(2))
             new TableEntry(tokens(0), key, value, version)
         } catch {
-            case NonFatal(_) => null
+            case NonFatal(err) =>
+                Log.error(s"Failed decoding entry $path", err)
+                null
         }
     }
 
