@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d2adc2eb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-22T15:28:34Z",
+      "side": 1,
+      "message": "make this a long with 0L or add a modulo or abs below, otherwise it may overflow to negative values",
+      "range": {
+        "startLine": 278,
+        "startChar": 41,
+        "endLine": 278,
+        "endChar": 68
+      },
+      "revId": "e384fed5f63e7f61c2c346fb034f99af854b972a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
