@@ -284,6 +284,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         addMidoOps(portContext, midoOps)
         midoOps ++= mPortOps
 
+        midoOps ++= fipArpTableUpdateOps(mPort, oldNPort, nPort)
+
         // TODO if a DHCP port, assert that the fixed IPs haven't changed.
 
         midoOps.toList
@@ -671,6 +673,54 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
+    /*
+     * Return a list of operations to update the entries in ARP tables that are
+     * related of FIPs, and that are impacted by a change of MAC in the FIP's
+     * gateway port that invalidates them.
+     */
+    private def fipArpTableUpdateOps(mPort: PortOrBuilder, oldPort: NeutronPort,
+                                  newPort: NeutronPort): MidoOpList = {
+        /*
+         * In order to get all the impacted entries the list of NAT rules of the
+         * port is checked and from them we obtain the FIP, since the gateway
+         * port has no direct back reference to the FIPs it is serving,
+         *
+         * The FIP ID can be obtained from the both SNAT/DNAT rules in a
+         * deterministic from each one. Both are checked in case only one of
+         * them is present, so to avoid duplicates, a Set containing added FIP
+         * IDs is used as guard.
+         */
+        val ops = new MidoOpListBuffer
+        if (newPort.getMacAddress != oldPort.getMacAddress) {
+             if(mPort.getFipNatRuleIdsCount() > 0) {
+                 val fipIdSet = new mutable.HashSet[UUID]()
+                 for(natRuleId <- mPort.getFipNatRuleIdsList.asScala) {
+                     val rule = storage.get(classOf[Rule], natRuleId).await()
+                     val natRuleData = rule.getNatRuleData()
+                     var fipId = if (natRuleData.getDnat()) {
+                         RouteManager.fipDnatRuleId(natRuleId)
+                     } else {
+                         RouteManager.fipSnatRuleId(natRuleId)
+                     }
+                     if(fipIdSet add fipId) { // avoid repeat ops for same FIP
+                         val fip = storage.get(classOf[FloatingIp], fipId)
+                             .await()
+                         val oldArpPath = arpEntryPath(
+                             oldPort.getNetworkId,
+                             fip.getFloatingIpAddress.getAddress,
+                             oldPort.getMacAddress)
+                         ops += DeleteNode(oldArpPath)
+                         val newArpPath = arpEntryPath(
+                             newPort.getNetworkId,
+                             fip.getFloatingIpAddress.getAddress,
+                             newPort.getMacAddress)
+                         ops += CreateNode(newArpPath)
+                     }
+                 }
+             }
+        }
+        ops.toList
+    }
     private def arpEntryPath(nPort: NeutronPort): String = {
         arpEntryPath(nPort.getNetworkId,
                      nPort.getFixedIps(0).getIpAddress.getAddress,
