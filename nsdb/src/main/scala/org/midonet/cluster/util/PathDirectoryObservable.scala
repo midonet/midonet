@@ -219,7 +219,6 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
             children.set(event.getChildren.asScala.toSet)
             subject.onNext(children.get)
         } else if (event.getResultCode == Code.NONODE.intValue) {
-            metrics.error.noNodesExceptions.inc()
             if (completeOnDelete) {
                 log.debug("Node deleted: closing the observable")
                 close(new ParentDeletedException(path))

@@ -18,35 +18,40 @@ package org.midonet.cluster.data.storage.metrics
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistry.name
 
-import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException}
-
-import org.midonet.cluster.util.{DirectoryObservableClosedException, NodeObservableClosedException}
+import org.midonet.cluster.data.storage.StorageException
 
 class StorageErrorMetrics(registry: MetricRegistry) {
 
-    val nodeObservablePrematureCloses =
+    val conflictExceptionCounter =
+        registry.counter(name(classOf[StorageException], "conflictException"))
+    val concurrentModificationExceptionCounter =
+        registry.counter(name(classOf[StorageException],
+                              "concurrentModificationException"))
+    val objectExistsExceptionCounter =
+        registry.counter(name(classOf[StorageCounter], "objectExistsException"))
+    val objectNotFoundExceptionCounter =
+        registry.counter(name(classOf[StorageCounter], "objectNotFoundException"))
+    val nodeExistsExceptionCounter =
+        registry.counter(name(classOf[StorageCounter], "nodeExistsException"))
+    val nodeNotFoundExceptionCounter =
+        registry.counter(name(classOf[StorageCounter], "nodeNotFoundException"))
+    val internalObjectMapperExceptionCounter =
         registry.counter(name(classOf[StorageCounter],
-                              "nodeObservablePrematureCloses"))
-    val noNodesExceptions = registry.counter(name(classOf[StorageCounter],
-                                                  "noNodesExceptions"))
-    val nodeExistsExceptions = registry.counter(name(classOf[StorageCounter],
-                                                     "nodeExistsExceptions"))
+                              "internalObjectMapperException"))
 
-    /** Examines the given Throwable, and updates the appropriate counters if
-      * relevant.
-      */
-    final def count(t: Throwable): Throwable = {
-        t match {
-            case _: DirectoryObservableClosedException =>
-                nodeObservablePrematureCloses.inc()
-            case _: NodeObservableClosedException =>
-                nodeObservablePrematureCloses.inc()
-            case _: NoNodeException =>
-                noNodesExceptions.inc()
-            case _: NodeExistsException =>
-                nodeExistsExceptions.inc()
-            case _ =>
-        }
-        t
-    }
+    val nodeObservableClosedExceptionCounter =
+        registry.counter(name(classOf[StorageCounter],
+                              "nodeObservableClosedException"))
+    val childrenObservableClosedExceptionCounter =
+        registry.counter(name(classOf[StorageCounter],
+                              "childrenObservableClosedException"))
+    val directoryObservableClosedExceptionCounter =
+        registry.counter(name(classOf[StorageCounter],
+                              "directoryObservableClosedException"))
+
+    val objectObservableErrorCounter =
+        registry.counter(name(classOf[StorageCounter], "objectObservableError"))
+    val classObservableErrorCounter =
+        registry.counter(name(classOf[StorageCounter], "classObservableError"))
+
 }
