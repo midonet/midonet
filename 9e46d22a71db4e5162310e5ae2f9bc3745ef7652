@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b2aa3ed1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-22T15:24:32Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 10,
+        "startChar": 43,
+        "endLine": 10,
+        "endChar": 59
+      },
+      "revId": "9e46d22a71db4e5162310e5ae2f9bc3745ef7652",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_52809249",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 887,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-22T15:24:32Z",
+      "side": 1,
+      "message": "maybe we should make this a debug at most? otherwise, if there is a bad entry, it will fill the logs with this error every time the table is updated",
+      "range": {
+        "startLine": 887,
+        "startChar": 20,
+        "endLine": 887,
+        "endChar": 25
+      },
+      "revId": "9e46d22a71db4e5162310e5ae2f9bc3745ef7652",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
