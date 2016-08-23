@@ -45,7 +45,7 @@ import org.midonet.packets.{IPv4Addr, MAC}
   * dependencies linked to any specific service or component. */
 class MidonetBackendModule(val conf: MidonetBackendConfig,
                            reflections: Option[Reflections],
-                           metricRegistry: MetricRegistry = new MetricRegistry)
+                           metricRegistry: MetricRegistry)
     extends AbstractModule {
 
     private val log = LoggerFactory.getLogger("org.midonet.nsdb")
