@@ -22,6 +22,30 @@
       "revId": "3424bcb9a14f6844fcd9b9975381d4e1076349b1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1baea581",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/StorageErrorMetricsTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-23T14:07:29Z",
+      "side": 1,
+      "message": "it could also be 0 with some - although small - probability, the solution for that is just to increase the number of threads, but checking it should be \u003e 0 would make it a flakey test if for some reason we never get a concurrent modification\n\nhowever, I\u0027ve seen that 10 tests are normally enough to guarantee that we get at least one such exception",
+      "parentUuid": "baa041b7_9bef55e9",
+      "range": {
+        "startLine": 109,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 83
+      },
+      "revId": "3424bcb9a14f6844fcd9b9975381d4e1076349b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
