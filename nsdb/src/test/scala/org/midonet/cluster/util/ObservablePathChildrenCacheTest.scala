@@ -49,7 +49,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
     private val log = LoggerFactory.getLogger(classOf[ObservablePathChildrenCache])
     private val timeout = 5
-    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
+    private val metrics = new StorageMetrics(new MetricRegistry)
 
     /** Subscribes to an ObservablePathChildrenCache and also to every child
       * observable that appears, accumulating all the data received. The given
@@ -415,7 +415,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
     override def sessionTimeoutMs = 10000
 
     private val timeout = 5
-    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
+    private val metrics = new StorageMetrics(new MetricRegistry)
 
     def testOnErrorEmittedWhenCacheLosesConnection(): Unit = {
         val ts1 = new TestAwaitableObserver[Observable[ChildData]]

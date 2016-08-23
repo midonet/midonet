@@ -830,7 +830,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
         val provider = getProvider(clazz, key.runtimeClass, value.runtimeClass, name)
         tablesDirectory.ensureHas(path, "".getBytes)
         val directory = tablesDirectory.getSubDirectory(path)
-        val metrics = new StorageMetrics(null, new MetricRegistry)
+        val metrics = new StorageMetrics(null)
 
         val constructor = provider.clazz.getConstructor(classOf[StateTable.Key],
                                                         classOf[Directory],

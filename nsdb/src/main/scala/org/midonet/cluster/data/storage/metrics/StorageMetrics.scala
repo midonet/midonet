@@ -16,8 +16,6 @@
 
 package org.midonet.cluster.data.storage.metrics
 
-import scala.reflect.ClassTag
-
 import com.codahale.metrics._
 import com.codahale.metrics.MetricRegistry.name
 
@@ -34,47 +32,39 @@ trait StorageGauge
 trait StorageHistogram
 trait StorageTimer
 
-class StorageMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry) {
+class StorageMetrics(registry: MetricRegistry) {
 
     val error = new StorageErrorMetrics(registry)
     val performance = new StoragePerformanceMetrics(registry)
     val session = new StorageSessionMetrics(registry)
     val watchers = new StorageWatcherMetrics(registry)
 
-    def connectionStateListeners = Seq(session.connectionStateListener(),
+    val connectionStateListeners = Seq(session.connectionStateListener(),
                                        performance.connectionStateListener())
 
-    registry.register(name(classOf[StorageGauge], "zkConnectionState"), gauge {
-        zoom.zkConnectionState _
-    })
+    def build(zoom: ZookeeperObjectMapper): Unit = {
 
-    registry.register(name(classOf[StorageGauge], "typeObservableCount"), gauge {
-        zoom.startedClassObservableCount _
-    })
-
-    registry.register(name(classOf[StorageGauge], "objectObservableCount"), gauge {
-        zoom.startedObjectObservableCount _
-    })
-
-    registry.register(name(classOf[StorageGauge], "objectObservableCountPerType"),
-                      gauge { () =>
-        val res = new StringBuilder()
-        for ((clazz, count) <- zoom.objectObservableCounters) {
-            res.append(clazz + ":" + count + "\n")
+        registry.register(name(classOf[StorageGauge], "connectionState"), gauge {
+            zoom.connectionState
+        })
+        registry.register(name(classOf[StorageGauge], "failFastConnectionState"), gauge {
+            zoom.failFastConnectionState
+        })
+        registry.register(name(classOf[StorageGauge], "objectObservables"), gauge {
+            zoom.objectObservableCount
+        })
+        registry.register(name(classOf[StorageGauge], "classObservables"), gauge {
+            zoom.classObservableCount
+        })
+        for (clazz <- zoom.classes) {
+            registry.register(name(classOf[StorageGauge], "objectObservables",
+                                   clazz.getSimpleName), gauge {
+                zoom.objectObservableCount(clazz)
+            })
         }
-        res.toString()
-    })
+    }
 
-    registry.register(name(classOf[StorageGauge], "typeObservableList"),
-                      gauge { () =>
-        val classes = zoom.startedClassObservables
-        classes.foldLeft(new StringBuilder)((builder, clazz) => {
-            builder.append(clazz.getName + "\n")
-        }).toString()
-    })
-
-    private def gauge[T](f: () => T)(implicit ct: ClassTag[T]) =
-        new Gauge[T] {
-            override def getValue = f()
-        }
+    private def gauge[T](f: => T): Gauge[T] = {
+        new Gauge[T] { override def getValue = f }
+    }
 }

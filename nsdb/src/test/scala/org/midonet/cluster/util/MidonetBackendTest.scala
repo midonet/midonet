@@ -16,11 +16,14 @@
 
 package org.midonet.cluster.util
 
+import com.codahale.metrics.MetricRegistry
+
 import org.scalatest.Suite
 
 import rx.Observable
 
 import org.midonet.cluster.backend.zookeeper.ZkConnection
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.StateTableClient.ConnectionState.{ConnectionState => StateClientConnectionState}
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
@@ -40,8 +43,7 @@ trait MidonetBackendTest extends Suite with CuratorTestFramework {
         override def start(): Unit = { }
     }
 
-    override def beforeEach(): Unit = {
-        super.beforeEach()
+    protected override def setup(): Unit = {
         reactor = new CallingThreadReactor
         connection = new CuratorZkConnection(curator, reactor)
     }
