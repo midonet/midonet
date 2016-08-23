@@ -195,6 +195,9 @@ class PacketWorkflow(
 
     private val genPacketEmitter = new PacketEmitter(new MpscArrayQueue(512))
 
+    private var lastExpiration = System.nanoTime()
+    private val maxWithoutExpiration = (5 seconds) toNanos
+
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
     protected val traceStateTx = new FlowStateTransaction(traceStateTable)
@@ -245,7 +248,13 @@ class PacketWorkflow(
         super.shouldProcess() ||
         backChannel.hasMessages ||
         genPacketEmitter.pendingPackets > 0 ||
-        arpBroker.shouldProcess()
+        arpBroker.shouldProcess() ||
+        shouldExpire
+
+    // We need to expire leftover flows if no expiration has happened in
+    // maxWithoutExpiration nanoseconds
+    private def shouldExpire =
+        System.nanoTime() - lastExpiration > maxWithoutExpiration
 
     def handle(msg: InvalidateFlows) {
         val InvalidateFlows(id, added, deleted) = msg
@@ -286,6 +295,7 @@ class PacketWorkflow(
         traceStateTable.expireIdleEntries()
         arpBroker.process()
         waitingRoom.doExpirations(giveUpWorkflow)
+        lastExpiration = System.nanoTime()
     }
 
     protected def packetContext(packet: Packet): PacketContext =
