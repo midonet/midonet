@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1b80e5f6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/state/StateTableManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-23T14:02:01Z",
+      "side": 1,
+      "message": "Unused",
+      "range": {
+        "startLine": 27,
+        "startChar": 43,
+        "endLine": 27,
+        "endChar": 43
+      },
+      "revId": "798c5cbb9db70006778b79d2c6cb3d7063ea9c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5b8d4d29",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/SharedResourceBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-23T14:02:01Z",
+      "side": 1,
+      "message": "I\u0027m not sure whether we shouldn\u0027t implement this with mutable sets/maps in order to not generate too much garbage, or maybe even using an O(n) search (by default we only use 4 threads - iterating over a 4/8/16 length array could be less expensive - what do you think?)",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 36,
+        "endChar": 33
+      },
+      "revId": "798c5cbb9db70006778b79d2c6cb3d7063ea9c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bb77b93a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/SharedResourceBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-23T14:02:01Z",
+      "side": 1,
+      "message": "private?",
+      "range": {
+        "startLine": 33,
+        "startChar": 4,
+        "endLine": 36,
+        "endChar": 33
+      },
+      "revId": "798c5cbb9db70006778b79d2c6cb3d7063ea9c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9b9d1569",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/SharedResourceBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-23T14:02:01Z",
+      "side": 1,
+      "message": "Missing scaladoc",
+      "revId": "798c5cbb9db70006778b79d2c6cb3d7063ea9c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
