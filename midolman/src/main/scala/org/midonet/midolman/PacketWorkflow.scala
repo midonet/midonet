@@ -209,6 +209,9 @@ class PacketWorkflow(
     private val contextPool = new ArrayDeque[PacketContext](maxPooledContexts)
     private val processingRoom = new ArrayDeque[PacketContext]()
 
+    private var lastExpiration = System.nanoTime()
+    private val maxWithoutExpiration = (5 seconds) toNanos
+
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
     protected val traceStateTx = new FlowStateTransaction(traceStateTable)
@@ -257,7 +260,13 @@ class PacketWorkflow(
     override def shouldProcess(): Boolean =
         super.shouldProcess() ||
         backChannel.hasMessages ||
-        arpBroker.shouldProcess()
+        arpBroker.shouldProcess() ||
+        shouldExpire
+
+    // We need to expire leftover flows if no expiration has happened in
+    // maxWithoutExpiration nanoseconds
+    private def shouldExpire =
+        System.nanoTime() - lastExpiration > maxWithoutExpiration
 
     private def invalidateRoutedFlows(msg: InvalidateFlows) {
         val InvalidateFlows(id, added, deleted) = msg
@@ -300,6 +309,7 @@ class PacketWorkflow(
         arpBroker.process()
         waitingRoom.doExpirations(giveUpWorkflow)
         checkProcessedContexts()
+        lastExpiration = System.nanoTime()
     }
 
     protected def packetContext(packet: Packet): PacketContext =
