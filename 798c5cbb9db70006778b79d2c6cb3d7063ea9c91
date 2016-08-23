@@ -71,6 +71,54 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a61b201c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/SharedResourceBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-23T17:09:31Z",
+      "side": 1,
+      "message": "You are totally right. It\u0027s better with just an array",
+      "parentUuid": "baa041b7_5b8d4d29",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 36,
+        "endChar": 33
+      },
+      "revId": "798c5cbb9db70006778b79d2c6cb3d7063ea9c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_86181c20",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/SharedResourceBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-23T17:09:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_bb77b93a",
+      "range": {
+        "startLine": 33,
+        "startChar": 4,
+        "endLine": 36,
+        "endChar": 33
+      },
+      "revId": "798c5cbb9db70006778b79d2c6cb3d7063ea9c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9b9d1569",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/SharedResourceBalancer.scala",
         "patchSetId": 4
@@ -82,6 +130,24 @@
       "writtenOn": "2016-08-23T14:02:01Z",
       "side": 1,
       "message": "Missing scaladoc",
+      "revId": "798c5cbb9db70006778b79d2c6cb3d7063ea9c91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_661518e4",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/SharedResourceBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-23T17:09:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_9b9d1569",
       "revId": "798c5cbb9db70006778b79d2c6cb3d7063ea9c91",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
