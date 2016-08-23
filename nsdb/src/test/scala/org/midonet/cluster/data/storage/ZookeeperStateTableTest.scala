@@ -21,6 +21,8 @@ import java.util.UUID
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import org.apache.zookeeper.CreateMode
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -87,7 +89,8 @@ class ZookeeperStateTableTest extends FeatureSpec with MidonetBackendTest
 
     private def newStorage(): ZookeeperObjectMapper = {
         new ZookeeperObjectMapper(zkRoot, namespaceId, curator, curator,
-                                  stateTables, reactor)
+                                  stateTables, reactor,
+                                  new StorageMetrics(new MetricRegistry))
     }
 
     private def setupStorage(): ZookeeperObjectMapper = {

@@ -38,7 +38,7 @@ class PathDirectoryObservableTest extends FlatSpec
 
     private val parentPath = zkRoot + "/parent"
     private val timeout = 5 seconds
-    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
+    private val metrics = new StorageMetrics(new MetricRegistry)
 
     def createParent(): String = {
         curator.create.forPath(parentPath)
@@ -324,7 +324,7 @@ class PathDirectoryObservableConnectionTest extends FlatSpec
     override def cnxnTimeoutMs = 3000
     override def sessionTimeoutMs = 10000
     private val timeout = 1 second
-    private val metrics = new StorageMetrics(zoom = null, new MetricRegistry)
+    private val metrics = new StorageMetrics(new MetricRegistry)
 
     "Directory observable" should "emit error on losing connection" in {
         val path = makePath("1")

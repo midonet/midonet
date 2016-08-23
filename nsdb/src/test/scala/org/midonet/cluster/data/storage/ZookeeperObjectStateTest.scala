@@ -21,11 +21,13 @@ import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.zookeeper.KeeperException.Code
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{GivenWhenThen, Matchers, FeatureSpec}
+import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
@@ -37,7 +39,8 @@ import org.midonet.cluster.data.storage.StorageTestClasses.State
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
 import org.midonet.cluster.storage.CuratorZkConnection
 import org.midonet.cluster.util.MidonetBackendTest
-import org.midonet.cluster.data.storage.KeyType.{Multiple, SingleFirstWriteWins, SingleLastWriteWins, FailFast}
+import org.midonet.cluster.data.storage.KeyType.{FailFast, Multiple, SingleFirstWriteWins, SingleLastWriteWins}
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.util.reactivex._
 import org.midonet.util.reactivex.AwaitableObserver
 
@@ -57,7 +60,8 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
     protected override def setup(): Unit = {
         storage = new ZookeeperObjectMapper(zkRoot, namespaceId, curator,
                                             failFastCurator, stateTables,
-                                            reactor)
+                                            reactor,
+                                            new StorageMetrics(new MetricRegistry))
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         failFastOwnerId = failFastCurator.getZookeeperClient.getZooKeeper
                                                             .getSessionId
@@ -89,7 +93,8 @@ class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
         val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
         val namespaceId2 = if (sameNamespace) namespaceId else UUID.randomUUID().toString
         val storage2 = new ZookeeperObjectMapper(zkRoot, namespaceId2, curator2,
-                                                 curator2, stateTables, reactor)
+                                                 curator2, stateTables, reactor,
+                                                 new StorageMetrics(new MetricRegistry))
         initAndBuildStorage(storage2)
 
         (curator2, ownerId2, namespaceId2, storage2)

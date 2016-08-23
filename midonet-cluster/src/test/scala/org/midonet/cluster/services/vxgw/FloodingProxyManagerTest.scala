@@ -28,6 +28,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.storage.{CreateOp, SingleValueKey, ZookeeperObjectMapper}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
@@ -360,7 +361,8 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         val hostStore =
             new ZookeeperObjectMapper(backendCfg.rootKey, id.toString,
                                       backend.curator, backend.failFastCurator,
-                                      null, backend.reactor)
+                                      null, backend.reactor,
+                                      new StorageMetrics(new MetricRegistry))
         MidonetBackend.setupBindings(hostStore, hostStore)
         if (isAlive) {
             hostStore.addValue(classOf[Host], id, AliveKey, AliveKey)

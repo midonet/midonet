@@ -21,6 +21,8 @@ import java.util.UUID
 import scala.concurrent.duration._
 import scala.util.Random
 
+import com.codahale.metrics.MetricRegistry
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
@@ -29,6 +31,7 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.KeyType._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.storage.{StateResult, ZookeeperObjectMapper}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend.RoutesKey
@@ -53,7 +56,8 @@ class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
 
     protected override def setup(): Unit = {
         storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator,
-                                            curator, null, reactor)
+                                            curator, null, reactor,
+                                            new StorageMetrics(new MetricRegistry))
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }

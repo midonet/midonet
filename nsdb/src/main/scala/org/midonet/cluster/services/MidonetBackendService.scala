@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory
 import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{ZoomInit, ZoomInitializer}
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.discovery.{MidonetDiscovery, MidonetDiscoveryImpl}
@@ -124,7 +125,7 @@ class MidonetBackendService(config: MidonetBackendConfig,
     private val zoom =
         new ZookeeperObjectMapper(config.rootKey, namespaceId.toString, curator,
                                   failFastCurator, stateTableClientWrapper,
-                                  reactor, metricRegistry)
+                                  reactor, new StorageMetrics(metricRegistry))
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
