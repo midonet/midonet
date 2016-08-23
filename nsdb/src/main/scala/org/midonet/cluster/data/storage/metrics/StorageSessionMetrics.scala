@@ -24,6 +24,8 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.state.ConnectionState._
 import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListener}
 
+import org.midonet.cluster.monitoring.metrics.StorageHistogram
+
 class StorageSessionMetrics(registry: MetricRegistry) {
 
     private val timeConnectedHistogram =

@@ -21,6 +21,7 @@ import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistry.name
 
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.monitoring.metrics.StorageCounter
 
 class StorageErrorMetrics(registry: MetricRegistry) {
 

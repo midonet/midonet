@@ -20,17 +20,7 @@ import com.codahale.metrics._
 import com.codahale.metrics.MetricRegistry.name
 
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper
-
-/**
-  * Class names to publish metrics. They are meant to be used while creating
-  * a metrics object from the Metrics library, and will act as a marker to
-  * organize the metrics when exported via JMX.
-  */
-trait StorageCounter
-trait StorageMeter
-trait StorageGauge
-trait StorageHistogram
-trait StorageTimer
+import org.midonet.cluster.monitoring.metrics.StorageGauge
 
 class StorageMetrics(registry: MetricRegistry) {
 
