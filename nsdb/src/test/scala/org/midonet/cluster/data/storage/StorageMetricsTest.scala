@@ -34,6 +34,7 @@ import rx.Observable
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage.StorageTest._
 import org.midonet.cluster.data.storage.StorageTestClasses._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.reactivex.{TestAwaitableObserver, richObservable}
 
@@ -52,7 +53,7 @@ class StorageMetricsTest extends FeatureSpec
         registry = new MetricRegistry()
         zoom = new ZookeeperObjectMapper(zkRoot, UUID.randomUUID().toString,
                                          curator, curator, stateTables, reactor,
-                                         registry)
+                                         new StorageMetrics(registry))
         initAndBuildStorage(zoom)
     }
 
@@ -70,10 +71,10 @@ class StorageMetricsTest extends FeatureSpec
 
     feature("Zoom storage Metrics") {
         scenario("ZK connection state") {
-            zoom.zkConnectionState shouldBe States.CONNECTED.name
+            zoom.connectionState shouldBe States.CONNECTED.name
 
             curator.getZookeeperClient.getZooKeeper.close()
-            zoom.zkConnectionState shouldBe States.CLOSED.name
+            zoom.connectionState shouldBe States.CLOSED.name
         }
 
         scenario("Object watchers") {
@@ -93,11 +94,7 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(1, timeout)
 
             Then("The number of watchers returned by zoom is 1")
-            zoom.startedObjectObservableCount shouldBe 1
-
-            And("The list of object observers is correct")
-            zoom.objectObservableCounters should contain theSameElementsAs
-                Map(classOf[PojoBridge] -> 1)
+            zoom.objectObservableCount shouldBe 1
 
             When("We create a 2nd bridge")
             val bridge2 = createPojoBridge()
@@ -109,22 +106,14 @@ class StorageMetricsTest extends FeatureSpec
             val sub2 = obs2.subscribe(observer2)
 
             Then("The number of watchers returned by zoom is 2")
-            zoom.startedObjectObservableCount shouldBe 2
-
-            And("The list of object observers is correct")
-            zoom.objectObservableCounters should contain theSameElementsAs
-                Map(classOf[PojoBridge] -> 2)
+            zoom.objectObservableCount shouldBe 2
 
             When("A 2nd subscriber subscribes to the 1st bridge")
             val observer3 = new TestAwaitableObserver[PojoBridge]
             val sub3 = obs1.subscribe(observer3)
 
             Then("The number of watchers is 2")
-            zoom.startedObjectObservableCount shouldBe 2
-
-            And("The list of object observers is correct")
-            zoom.objectObservableCounters should contain theSameElementsAs
-                Map(classOf[PojoBridge] -> 2)
+            zoom.objectObservableCount shouldBe 2
 
             When("We create a router")
             val router = createPojoRouter()
@@ -136,50 +125,31 @@ class StorageMetricsTest extends FeatureSpec
             val sub4 = obs3.subscribe(observer4)
 
             Then("The number of watchers returned by zoom is 3")
-            zoom.startedObjectObservableCount shouldBe 3
-
-            And("The list of object observers is correct")
-            zoom.objectObservableCounters should contain theSameElementsAs
-                Map(classOf[PojoBridge] -> 2, classOf[PojoRouter] -> 1)
+            zoom.objectObservableCount shouldBe 3
 
             And("When the 1st observer unsubscribes from the 1st bridge")
             sub1.unsubscribe()
 
             Then("The number of watchers returned by zoom is 3")
-            zoom.startedObjectObservableCount shouldBe 3
-
-            And("The list of object observers is correct")
-            zoom.objectObservableCounters should contain theSameElementsAs
-                Map(classOf[PojoBridge] -> 2, classOf[PojoRouter] -> 1)
+            zoom.objectObservableCount shouldBe 3
 
             And("When the 2nd observer unsubscribes from the 2nd bridge")
             sub2.unsubscribe()
 
             Then("The number of watchers returned by zoom is 2")
-            zoom.startedObjectObservableCount shouldBe 2
-
-            And("The list of object observers is correct")
-            zoom.objectObservableCounters should contain theSameElementsAs
-                Map(classOf[PojoBridge] -> 1, classOf[PojoRouter] -> 1)
+            zoom.objectObservableCount shouldBe 2
 
             And("When the 3rd observer unsubscribes from the 1st bridge")
             sub3.unsubscribe()
 
             Then("The number of watchers returned by zoom is 1")
-            zoom.startedObjectObservableCount shouldBe 1
-
-            And("The list of object observers is correct")
-            zoom.objectObservableCounters should contain theSameElementsAs
-                Map(classOf[PojoRouter] -> 1)
+            zoom.objectObservableCount shouldBe 1
 
             When("The 4th subscriber unsubscribes from the router")
             sub4.unsubscribe()
 
             Then("The number of watchers returned by zoom is 0")
-            zoom.startedObjectObservableCount shouldBe 0
-
-            And("The list of object observers is empty")
-            zoom.objectObservableCounters shouldBe Map.empty
+            zoom.objectObservableCount shouldBe 0
         }
 
         scenario("Class watchers") {
@@ -199,22 +169,14 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(1, timeout)
 
             Then("The number of class watchers returned by zoom is 1")
-            zoom.startedClassObservableCount shouldBe 1
-
-            And("The list of class observers is correct")
-            zoom.startedClassObservables should contain theSameElementsAs
-            Set(classOf[PojoBridge])
+            zoom.classObservableCount shouldBe 1
 
             When("A 2nd observer subscribes to the bridge")
             val observer2 = new TestAwaitableObserver[Observable[PojoBridge]]
             val sub2 = obs1.subscribe(observer2)
 
             Then("The number of class watchers is still 1")
-            zoom.startedClassObservableCount shouldBe 1
-
-            And("The list of class observers is correct")
-            zoom.startedClassObservables should contain theSameElementsAs
-            Set(classOf[PojoBridge])
+            zoom.classObservableCount shouldBe 1
 
             When("We create a 2nd bridge")
             val bridge2 = createPojoBridge()
@@ -224,11 +186,7 @@ class StorageMetricsTest extends FeatureSpec
             observer1.awaitOnNext(2, timeout) shouldBe true
 
             And("The number of class watchers is still 1")
-            zoom.startedClassObservableCount shouldBe 1
-
-            And("The list of class observers is correct")
-            zoom.startedClassObservables should contain theSameElementsAs
-            Set(classOf[PojoBridge])
+            zoom.classObservableCount shouldBe 1
 
             When("We create a router")
             val router = createPojoRouter()
@@ -243,33 +201,20 @@ class StorageMetricsTest extends FeatureSpec
             observer3.awaitOnNext(1, timeout) shouldBe true
 
             And("The number of class watchers is 2")
-            zoom.startedClassObservableCount shouldBe 2
-
-            And("The list of class observers is correct")
-            zoom.startedClassObservables should contain theSameElementsAs
-            Set(classOf[PojoBridge], classOf[PojoRouter])
+            zoom.classObservableCount shouldBe 2
 
             And("When the 3 subscriber unsubscribes")
             sub3.unsubscribe()
 
             Then("The number of class watchers is 1")
-            zoom.startedClassObservableCount shouldBe 1
-
-            And("The list of class observers is correct")
-            zoom.allClassObservables should contain theSameElementsAs
-                Set(classOf[PojoBridge], classOf[PojoRouter])
-            zoom.startedClassObservables should contain theSameElementsAs
-                Set(classOf[PojoBridge])
+            zoom.classObservableCount shouldBe 1
 
             And("When the two remaining subscribers unsubscribe")
             sub1.unsubscribe()
             sub2.unsubscribe()
 
             Then("The list of class watchers is 0")
-            zoom.startedClassObservableCount shouldBe 0
-
-            And("The list of subscribers is empty")
-            zoom.startedClassObservables shouldBe Set.empty
+            zoom.classObservableCount shouldBe 0
         }
 
         scenario("Triggered object watchers") {

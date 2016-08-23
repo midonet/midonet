@@ -29,7 +29,6 @@ import scala.concurrent.{Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
-import com.codahale.metrics.MetricRegistry
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
@@ -114,7 +113,7 @@ class ZookeeperObjectMapper(override val rootPath: String,
                             protected override val failFastCurator: CuratorFramework,
                             protected override val stateTables: StateTableClient,
                             protected override val reactor: Reactor,
-                            metricsRegistry: MetricRegistry = new MetricRegistry)
+                            protected implicit override val metrics: StorageMetrics)
     extends ZookeeperObjectState with ZookeeperStateTable with Storage
     with StorageInternals {
 
@@ -139,42 +138,22 @@ class ZookeeperObjectMapper(override val rootPath: String,
 
     /* Functions and variables to expose metrics using JMX in class
        ZoomMetrics. */
-    implicit protected override val metrics =
-        new StorageMetrics(this, metricsRegistry)
 
     metrics.connectionStateListeners.foreach {
         curator.getConnectionStateListenable.addListener
     }
 
-    private[storage] def totalObjectObservableCount: Int =
+    private[storage] def objectObservableCount: Int =
         objectObservables.size
-    private[storage] def totalClassObservableCount: Int =
-        classObservables.size
-
-    private[storage] def startedObjectObservableCount: Int =
-        objectObservables.values.count(_.nodeObservable.isStarted)
-    private[storage] def startedClassObservableCount: Int =
-        classObservables.values.count(_.cache.isStarted)
-
-    private[storage] def objectObservableCounters: Map[Class[_], Int] = {
-        val map = new mutable.HashMap[Class[_], Int]
-        val it = objectObservables.iterator
-        while (it.hasNext) {
-            val (key, obs) = it.next()
-            if (obs.nodeObservable.isStarted) {
-                map(key.clazz) = map.getOrElse(key.clazz, 0) + 1
-            }
-        }
-        map.toMap
-    }
-
-    private[storage] def allClassObservables: Set[Class[_]] =
-        classObservables.keySet.toSet
-    private[storage] def startedClassObservables: Set[Class[_]] =
-        classObservables.filter(_._2.cache.isStarted).keySet.toSet
-
-    private[storage] def zkConnectionState: String =
+    private[storage] def classObservableCount: Int =
+        classObservables.count(_._2.cache.isStarted)
+    private[storage] def objectObservableCount(clazz: Class[_]): Int =
+        objectObservables.count(_._1.clazz == clazz)
+    private[storage] def connectionState: String =
         curator.getZookeeperClient.getZooKeeper.getState.toString
+    private[storage] def failFastConnectionState: String =
+        failFastCurator.getZookeeperClient.getZooKeeper.getState.toString
+
     /* End of functions and variable used for JMX monitoring. */
 
     /**

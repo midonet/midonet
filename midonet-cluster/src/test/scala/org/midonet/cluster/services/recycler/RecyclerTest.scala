@@ -21,6 +21,7 @@ import java.util.concurrent.{TimeUnit, _}
 
 import scala.util.Try
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.ConfigFactory
 
 import org.apache.curator.framework.CuratorFramework
@@ -36,6 +37,7 @@ import rx.observers.TestObserver
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.models.Topology.{Host, Network, Port, Router}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.state.client.StateTableClient
@@ -98,7 +100,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         System.setProperty(UnixClock.USE_MOCK_CLOCK_PROPERTY, "yes")
         store = new ZookeeperObjectMapper(
             zkRoot, MidonetBackend.ClusterNamespaceId.toString, curator,
-            curator, stateTables, reactor)
+            curator, stateTables, reactor, new StorageMetrics(new MetricRegistry))
         MidonetBackend.setupBindings(store, store)
         backend = new MidonetBackend {
             override def stateStore: StateStorage = RecyclerTest.this.store
