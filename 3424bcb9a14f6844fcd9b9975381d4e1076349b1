@@ -46,6 +46,30 @@
       "revId": "3424bcb9a14f6844fcd9b9975381d4e1076349b1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dbcf1d56",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/StorageErrorMetricsTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-08-23T14:14:04Z",
+      "side": 1,
+      "message": "agreed, let\u0027s keep it like this then!",
+      "parentUuid": "baa041b7_1baea581",
+      "range": {
+        "startLine": 109,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 83
+      },
+      "revId": "3424bcb9a14f6844fcd9b9975381d4e1076349b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
