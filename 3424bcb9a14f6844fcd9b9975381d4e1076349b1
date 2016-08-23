@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9bef55e9",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/StorageErrorMetricsTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-08-23T13:59:31Z",
+      "side": 1,
+      "message": "Couldn\u0027t it also be 0? mabe also check that it was \u003e 0 to see it was actually incremented?",
+      "range": {
+        "startLine": 109,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 83
+      },
+      "revId": "3424bcb9a14f6844fcd9b9975381d4e1076349b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
