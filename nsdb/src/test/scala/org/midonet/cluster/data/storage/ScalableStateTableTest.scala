@@ -59,7 +59,8 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
                         override val directory: Directory,
                         override val proxy: StateTableClient,
                         override val connection: Observable[ConnectionState],
-                        override val metrics: StorageMetrics = new StorageMetrics(null, new MetricRegistry))
+                        override val metrics: StorageMetrics =
+                            new StorageMetrics(new MetricRegistry))
         extends ScalableStateTable[String, String]
         with DirectoryStateTable[String, String] {
 

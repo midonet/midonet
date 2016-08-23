@@ -17,12 +17,15 @@ package org.midonet.cluster.data.storage
 
 import scala.concurrent.Future
 
+import com.codahale.metrics.MetricRegistry
+
 import org.apache.zookeeper.KeeperException
 import org.scalatest.Suite
 
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.models.Topology.{Chain, Network, Port, Router, Rule}
 import org.midonet.cluster.util.MidonetBackendTest
@@ -148,7 +151,8 @@ trait ZoomStorageTester extends StorageTester
 
     override protected def setup(): Unit = {
         zoom = new ZookeeperObjectMapper(zkRoot, "host", curator, curator,
-                                         stateTables, reactor)
+                                         stateTables, reactor,
+                                         new StorageMetrics(new MetricRegistry))
         registerClasses(deviceClasses, bindings)
         zoom.build()
     }

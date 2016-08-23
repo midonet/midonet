@@ -62,7 +62,7 @@ class MacIdStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         override def start(): Unit = { }
     }
 
-    val metrics: StorageMetrics = new StorageMetrics(null, new MetricRegistry)
+    val metrics = new StorageMetrics(new MetricRegistry)
 
     protected override def setup(): Unit = {
         connection = new CuratorZkConnection(curator, reactor)

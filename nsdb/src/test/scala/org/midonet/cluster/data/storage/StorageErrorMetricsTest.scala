@@ -32,6 +32,7 @@ import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.StorageTestClasses.{PojoBridge, PojoChain, PojoPort}
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.functors.makeRunnable
 import org.midonet.util.reactivex.TestAwaitableObserver
@@ -47,15 +48,17 @@ class StorageErrorMetricsTest extends FlatSpec
         def publicInternalObservable[T](clazz: Class[T], id: Any): Observable[T]
     }
 
-    private var registry: MetricRegistry = _
     private var storage: ZookeeperObjectMapper with ZoomIntrospector = _
     private val timeout = 5 seconds
+    private var registry: MetricRegistry = _
 
     protected override def setup(): Unit = {
-        registry = new MetricRegistry()
+
+        registry = new MetricRegistry
         storage = new ZookeeperObjectMapper(zkRoot, UUID.randomUUID().toString,
-                                         curator, curator, stateTables, reactor,
-                                         registry) with ZoomIntrospector {
+                                            curator, curator, stateTables, reactor,
+                                            new StorageMetrics(registry))
+                      with ZoomIntrospector {
             override def publicInternalObservable[T](clazz: Class[T], id: Any)
             : Observable[T] = {
                 internalObservable(clazz, id, version.get, () => {})

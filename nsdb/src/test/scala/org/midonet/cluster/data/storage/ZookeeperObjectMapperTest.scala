@@ -19,6 +19,8 @@ import java.util.{ConcurrentModificationException, UUID}
 
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import org.junit.runner.RunWith
 import org.scalatest.GivenWhenThen
 import org.scalatest.junit.JUnitRunner
@@ -27,6 +29,7 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.StorageTestClasses._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.util.reactivex.{AwaitableObserver, TestAwaitableObserver}
 
@@ -49,7 +52,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
 
     protected override def createStorage: ZookeeperObjectMapper = {
         new ZookeeperObjectMapper(zkRoot, hostId, curator, curator, stateTables,
-                                  reactor)
+                                  reactor, new StorageMetrics(new MetricRegistry))
     }
 
     feature("Test subscribe") {
@@ -66,15 +69,13 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             val obs = storage.observable(classOf[PojoBridge], bridge.id)
 
             And("The storage does not cache any observable")
-            zoom.totalObjectObservableCount shouldBe 0
-            zoom.startedObjectObservableCount shouldBe 0
+            zoom.objectObservableCount shouldBe 0
 
             When("The observer subscribes to the observable")
             val sub = obs.subscribe(observer)
 
             Then("The storage caches one started observable")
-            zoom.totalObjectObservableCount shouldBe 1
-            zoom.startedObjectObservableCount shouldBe 1
+            zoom.objectObservableCount shouldBe 1
 
             And("The observer receives the current bridge")
             observer.awaitOnNext(1, timeout)
@@ -84,16 +85,14 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             sub.unsubscribe()
 
             Then("The storage does not cache any observable")
-            zoom.totalObjectObservableCount shouldBe 0
-            zoom.startedObjectObservableCount shouldBe 0
+            zoom.objectObservableCount shouldBe 0
 
             When("The observer resubscribes")
             storage.observable(classOf[PojoBridge], bridge.id)
                    .subscribe(observer)
 
             Then("The storage caches one started observable")
-            zoom.totalObjectObservableCount shouldBe 1
-            zoom.startedObjectObservableCount shouldBe 1
+            zoom.objectObservableCount shouldBe 1
 
             And("The observer receives the current bridge")
             observer.awaitOnNext(2, timeout)
@@ -113,15 +112,13 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             val obs = storage.observable(classOf[PojoBridge], bridge.id)
 
             And("The storage does not cache any observable")
-            zoom.totalObjectObservableCount shouldBe 0
-            zoom.startedObjectObservableCount shouldBe 0
+            zoom.objectObservableCount shouldBe 0
 
             When("The observer subscribes to the observable")
             val sub1 = obs.subscribe(observer)
 
             Then("The storage caches one started observable")
-            zoom.totalObjectObservableCount shouldBe 1
-            zoom.startedObjectObservableCount shouldBe 1
+            zoom.objectObservableCount shouldBe 1
 
             And("The observer receives the current bridge")
             observer.awaitOnNext(1, timeout)
@@ -131,8 +128,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             obs.subscribe(observer)
 
             Then("The storage caches one started observable")
-            zoom.totalObjectObservableCount shouldBe 1
-            zoom.startedObjectObservableCount shouldBe 1
+            zoom.objectObservableCount shouldBe 1
 
             And("The observer receives the current bridge")
             observer.awaitOnNext(2, timeout)
@@ -142,16 +138,14 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             sub1.unsubscribe()
 
             Then("The storage caches one started observable")
-            zoom.totalObjectObservableCount shouldBe 1
-            zoom.startedObjectObservableCount shouldBe 1
+            zoom.objectObservableCount shouldBe 1
 
             When("The observer resubscribes")
             storage.observable(classOf[PojoBridge], bridge.id)
                 .subscribe(observer)
 
             Then("The storage caches one started observable")
-            zoom.totalObjectObservableCount shouldBe 1
-            zoom.startedObjectObservableCount shouldBe 1
+            zoom.objectObservableCount shouldBe 1
 
             And("The observer receives the current bridge")
             observer.awaitOnNext(3, timeout)
@@ -171,15 +165,13 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             val obs = storage.observable(classOf[PojoBridge], bridge.id)
 
             Then("The storage does not cache any observable")
-            zoom.totalObjectObservableCount shouldBe 0
-            zoom.startedObjectObservableCount shouldBe 0
+            zoom.objectObservableCount shouldBe 0
 
             When("The observer subscribes to the observable")
             obs.subscribe(observer)
 
             Then("The storage caches one started observable")
-            zoom.totalObjectObservableCount shouldBe 1
-            zoom.startedObjectObservableCount shouldBe 1
+            zoom.objectObservableCount shouldBe 1
 
             And("The observer receives the current bridge")
             observer.awaitOnNext(1, timeout)
@@ -192,8 +184,7 @@ class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
             observer.awaitCompletion(timeout)
 
             And("The observable should be removed")
-            zoom.totalObjectObservableCount shouldBe 0
-            zoom.startedObjectObservableCount shouldBe 0
+            zoom.objectObservableCount shouldBe 0
         }
 
         scenario("Test class observable recovers after close") {
