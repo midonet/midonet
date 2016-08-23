@@ -179,7 +179,6 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
                                    e: CuratorEvent): Unit = e.getType match {
             case CuratorEventType.EXISTS if !initialized =>
                 if (e.getResultCode == NONODE.intValue()) {
-                    storageMetrics.error.noNodesExceptions.inc()
                     failWith(new NoNodeException(path))
                 } else if (e.getResultCode == OK.intValue()) {
                     cache.start(StartMode.POST_INITIALIZED_EVENT)

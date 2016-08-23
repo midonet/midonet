@@ -41,8 +41,8 @@ class StorageMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry) {
     val session = new StorageSessionMetrics(registry)
     val watchers = new StorageWatcherMetrics(registry)
 
-    def connectionStateListeners() = Seq(session.connectionStateListener(),
-                                         performance.connectionStateListener())
+    def connectionStateListeners = Seq(session.connectionStateListener(),
+                                       performance.connectionStateListener())
 
     registry.register(name(classOf[StorageGauge], "zkConnectionState"), gauge {
         zoom.zkConnectionState _
