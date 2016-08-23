@@ -25,13 +25,12 @@ import org.midonet.cluster.data.storage._
 class StorageErrorMetrics(registry: MetricRegistry) {
 
     val concurrentModificationExceptionCounter =
-        registry.counter(name(classOf[StorageException],
+        registry.counter(name(classOf[StorageCounter],
                               "concurrentModificationException"))
     val conflictExceptionCounter =
-        registry.counter(name(classOf[StorageException], "conflictException"))
+        registry.counter(name(classOf[StorageCounter], "conflictException"))
     val objectReferencedExceptionCounter =
-        registry.counter(name(classOf[StorageException],
-                              "objectReferencedException"))
+        registry.counter(name(classOf[StorageCounter], "objectReferencedException"))
     val objectExistsExceptionCounter =
         registry.counter(name(classOf[StorageCounter], "objectExistsException"))
     val objectNotFoundExceptionCounter =

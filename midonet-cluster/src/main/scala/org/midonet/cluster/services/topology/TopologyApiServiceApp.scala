@@ -18,8 +18,10 @@ package org.midonet.cluster.services.topology
 
 import java.util.concurrent.CountDownLatch
 
+import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.Service.{Listener, State}
 import com.google.inject.{AbstractModule, Guice, Singleton}
+
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
@@ -50,7 +52,7 @@ object TopologyApiServiceApp extends App {
 
     val reflections = Some(new Reflections("org.midonet"))
     protected[cluster] val injector = Guice.createInjector(
-        new MidonetBackendModule(config.backend, reflections),
+        new MidonetBackendModule(config.backend, reflections, new MetricRegistry),
         topologyApiServiceModule
     )
 
