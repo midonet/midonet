@@ -27,13 +27,11 @@ import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListe
 class StorageSessionMetrics(registry: MetricRegistry) {
 
     private val timeConnectedHistogram =
-        registry.histogram(name(classOf[StorageHistogram],
-                                "timeConnectedHistogram"))
+        registry.histogram(name(classOf[StorageHistogram], "timeConnected"))
     private val timeDisconnectedHistogram =
-        registry.histogram(name(classOf[StorageHistogram],
-                                "timeDisconnectedHistogram"))
+        registry.histogram(name(classOf[StorageHistogram], "timeDisconnected"))
 
-    private var lastTimestamp: Long = _
+    private var lastTimestamp: Long = System.nanoTime()
 
     def connectionStateListener(): ConnectionStateListener = {
         new ConnectionStateListener {

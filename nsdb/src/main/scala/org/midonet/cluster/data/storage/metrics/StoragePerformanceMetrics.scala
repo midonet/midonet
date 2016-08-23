@@ -40,20 +40,21 @@ class StoragePerformanceMetrics(registry: MetricRegistry) {
     }
 
     private val connectionsLostMeter =
-        registry.meter(name(classOf[StorageMeter], "connectionsLostMeter"))
+        registry.meter(name(classOf[StorageMeter], "connectionsLost"))
     private val connectionsCreatedMeter =
-        registry.meter(name(classOf[StorageMeter], "connectionsCreatedMeter"))
+        registry.meter(name(classOf[StorageMeter], "connectionsCreated"))
 
     private val readTimer =
-        registry.timer(name(classOf[StorageTimer], "readTimer"))
+        registry.timer(name(classOf[StorageTimer], "read"))
     private val readChildrenTimer =
-        registry.timer(name(classOf[StorageTimer], "readChildrenTimer"))
+        registry.timer(name(classOf[StorageTimer], "readChildren"))
     private val writeTimer =
-        registry.timer(name(classOf[StorageTimer], "writeTimer"))
+        registry.timer(name(classOf[StorageTimer], "write"))
     private val multiTimer =
-        registry.timer(name(classOf[StorageTimer], "multiTimer"))
+        registry.timer(name(classOf[StorageTimer], "multi"))
 
-    private val notificationLatencies = registry.histogram("notificationLatencies")
+    private val notificationLatency =
+        registry.histogram(name(classOf[StorageHistogram], "notificationLatency"))
 
     def addReadLatency(latencyInNanos: Long): Unit =
         readTimer.update(latencyInNanos, NANOSECONDS)
@@ -68,7 +69,7 @@ class StoragePerformanceMetrics(registry: MetricRegistry) {
         multiTimer.update(latencyInNanos, NANOSECONDS)
 
     def addNotificationLatency(latencyInMillis: Long): Unit =
-        notificationLatencies.update(latencyInMillis)
+        notificationLatency.update(latencyInMillis)
 
     def connectionStateListener(): ConnectionStateListener = {
         new ConnectionStateListener {
