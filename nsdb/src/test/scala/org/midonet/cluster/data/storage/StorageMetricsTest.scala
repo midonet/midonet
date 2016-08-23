@@ -430,10 +430,10 @@ class StorageMetricsTest extends FeatureSpec
 
             Then("The number of values read from ZK should be one for each get")
             // The 3 is because exists is called twice on writes
-            getCountForTimer("readTimer") shouldBe (objects.size * 3)
+            getCountForTimer("read") shouldBe (objects.size * 3)
 
             And("There was a write for each object")
-            getCountForTimer("writeTimer") shouldBe objects.length
+            getCountForTimer("write") shouldBe objects.length
         }
     }
 
