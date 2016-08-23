@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.data.storage.metrics
 
-import com.codahale.metrics.MetricRegistry
-import com.codahale.metrics.MetricRegistry._
+package org.midonet.cluster.monitoring.metrics
 
-import org.midonet.cluster.monitoring.metrics.StorageCounter
-
-class StorageWatcherMetrics(registry: MetricRegistry) {
-
-    val nodeTriggeredWatchers =
-        registry.counter(name(classOf[StorageCounter], "nodeTriggeredWatchers"))
-    val childrenTriggeredWatchers =
-        registry.counter(name(classOf[StorageCounter],
-                              "childrenTriggeredWatchers"))
-}
+/**
+  * Class names to publish metrics. They are meant to be used while creating
+  * a metrics object from the Metrics library, and will act as a marker to
+  * organize the metrics when exported via JMX.
+  */
+trait StorageCounter
+trait StorageMeter
+trait StorageGauge
+trait StorageHistogram
+trait StorageTimer

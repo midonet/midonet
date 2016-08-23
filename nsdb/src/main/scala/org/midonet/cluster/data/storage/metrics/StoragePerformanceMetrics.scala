@@ -26,6 +26,8 @@ import org.apache.curator.framework.api.CuratorEventType._
 import org.apache.curator.framework.state.ConnectionState._
 import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListener}
 
+import org.midonet.cluster.monitoring.metrics.{StorageHistogram, StorageMeter, StorageTimer}
+
 class StoragePerformanceMetrics(registry: MetricRegistry) {
 
     final def addLatency(eventType: CuratorEventType, latencyInNanos: Long)
