@@ -22,11 +22,10 @@ import scala.collection.JavaConverters._
 import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Subnet => SubnetType}
-import org.midonet.cluster.models.Neutron.NeutronSubnet
+import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil._
-
 import org.midonet.util.concurrent.toFutureOps
 import org.scalatest.junit.JUnitRunner
 
@@ -110,6 +109,26 @@ class SubnetTranslatorIT extends C3POMinionTestBase {
 
         insertUpdateTask(30, SubnetType, subJson, subId)
         checkDhcp(subId, netId, cidr, gwIp = gwIp, hostRoutes = hostRoutes)
+    }
+
+    it should "update subnet list in the neutron network" in {
+        val cidr = "10.0.0.0/24"
+        val netId = createTenantNetwork(10)
+        val subId = createSubnet(20, netId, cidr)
+        checkDhcp(subId, netId, cidr)
+
+        eventually {
+            val net = storage.get(classOf[NeutronNetwork], netId).await()
+            net.getSubnetsCount shouldBe 1
+            net.getSubnetsList.get(0) shouldBe toProto(subId)
+        }
+
+        insertDeleteTask(30, SubnetType, subId)
+        checkNoDhcp(subId, nSubExists = false)
+        eventually {
+            val net = storage.get(classOf[NeutronNetwork], netId).await()
+            net.getSubnetsCount shouldBe 0
+        }
     }
 
     private def checkNoDhcp(subId: UUID, nSubExists: Boolean = true): Unit = {
