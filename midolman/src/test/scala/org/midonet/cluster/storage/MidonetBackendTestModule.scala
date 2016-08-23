@@ -17,6 +17,7 @@ package org.midonet.cluster.storage
 
 import java.util.UUID
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.Config
 
 import org.apache.curator.framework.CuratorFramework
@@ -81,7 +82,8 @@ object MidonetBackendTestModule {
 
 /** Provides all dependencies for the new backend, using a FAKE zookeeper. */
 class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
-    extends MidonetBackendModule(new MidonetBackendConfig(cfg), None) {
+    extends MidonetBackendModule(new MidonetBackendConfig(cfg), None,
+                                 new MetricRegistry) {
 
     override protected def bindCuratorFramework() = {
         val curator = mock(classOf[CuratorFramework])

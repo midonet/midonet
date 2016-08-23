@@ -34,6 +34,7 @@ import scala.collection.mutable
 import scala.io.StdIn
 import scala.util.control.NonFatal
 
+import com.codahale.metrics.MetricRegistry
 import com.google.inject.name.Names
 import com.google.inject.servlet.{ServletModule, ServletScopes}
 import com.google.inject.{AbstractModule, Guice, Injector, Key}
@@ -49,7 +50,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, ZkConnectionProvider, ZkConnectionAwareWatcher, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkConnectionProvider, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology
@@ -209,7 +210,8 @@ object Migrator extends App {
                     .asEagerSingleton()
 
                 install(new LegacyClusterModule)
-                install(new MidonetBackendModule(makeConfig, Some(reflections)))
+                install(new MidonetBackendModule(makeConfig, Some(reflections),
+                                                 new MetricRegistry))
                 install(new SerializationModule)
 
                 if (!legacy) {
