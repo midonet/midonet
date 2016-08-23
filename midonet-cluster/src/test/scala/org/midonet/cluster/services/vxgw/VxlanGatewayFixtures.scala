@@ -200,7 +200,7 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
             override def start(): Unit = { }
         }
 
-        val metrics: StorageMetrics = new StorageMetrics(null, new MetricRegistry)
+        private val metrics = new StorageMetrics(new MetricRegistry)
 
         createVxPortForVtep(vtepFix.vtep)
 

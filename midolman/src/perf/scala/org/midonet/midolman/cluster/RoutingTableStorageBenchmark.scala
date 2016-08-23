@@ -25,6 +25,8 @@ import scala.concurrent.duration._
 import scala.util.Random
 import scala.util.control.NonFatal
 
+import com.codahale.metrics.MetricRegistry
+
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.RetryNTimes
 import org.openjdk.jmh.annotations._
@@ -35,6 +37,7 @@ import rx.{Observable, Observer}
 
 import org.midonet.cluster.backend.zookeeper.SessionUnawareConnectionWatcher
 import org.midonet.cluster.data.storage.KeyType._
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.data.storage.{StateResult, ZookeeperObjectMapper}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend._
@@ -110,7 +113,8 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
         val connectionWatcher = new SessionUnawareConnectionWatcher
         connectionWatcher.setZkConnection(connection)
         storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator,
-                                            curator, null, reactor)
+                                            curator, null, reactor,
+                                            new StorageMetrics(new MetricRegistry))
         storage.registerClass(classOf[Port])
         storage.registerKey(classOf[Port], RoutesKey, Multiple)
         storage.build()

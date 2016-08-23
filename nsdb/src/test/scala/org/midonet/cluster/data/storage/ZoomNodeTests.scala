@@ -16,11 +16,14 @@
 
 package org.midonet.cluster.data.storage
 
+import com.codahale.metrics.MetricRegistry
+
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{Matchers, Suite}
 
+import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.util.MidonetBackendTest
 
 @RunWith(classOf[JUnitRunner])
@@ -33,7 +36,8 @@ class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
 
     override protected def setup(): Unit = {
         zom = new ZookeeperObjectMapper(zkRoot, "host", curator, curator,
-                                        stateTables, reactor)
+                                        stateTables, reactor,
+                                        new StorageMetrics(new MetricRegistry))
         zom.build()
     }
 
