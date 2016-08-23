@@ -58,11 +58,20 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
 
         addHostRoutes(dhcp, ns.getHostRoutesList.asScala)
 
-        List(Create(dhcp.build))
+        val net = storage.get(classOf[NeutronNetwork], ns.getNetworkId).await()
+        val updatedNet = net.toBuilder.addSubnets(ns.getId)
+
+        List(Create(dhcp.build), Update(updatedNet.build()))
     }
 
     override protected def translateDelete(ns: NeutronSubnet): OperationList = {
-        List(Delete(classOf[Dhcp], ns.getId))
+        val ops = new OperationListBuffer
+        val net = storage.get(classOf[NeutronNetwork], ns.getNetworkId).await()
+        val subIdx = net.getSubnetsList.indexOf(ns.getId)
+        if (subIdx >= 0)
+            ops += Update(net.toBuilder.removeSubnets(subIdx).build())
+        ops += Delete(classOf[Dhcp], ns.getId)
+        ops.toList
     }
 
     override protected def translateUpdate(ns: NeutronSubnet): OperationList = {
