@@ -119,4 +119,39 @@ class MidonetDiscoverySelectorTest extends FeatureSpec with Matchers {
             expect(selector, List(1,1,1))
         }
     }
+
+    feature("random selector") {
+        scenario("empty list") {
+            expect(MidonetDiscoverySelector.random,
+                   List(),
+                   List())
+        }
+    }
+
+    scenario("single instance") {
+        expect(MidonetDiscoverySelector.random[Int],
+               List(1),
+               List(1,1,1,1,1,1,1))
+    }
+
+    scenario("updated instances") {
+        val client = new MockDiscoveryClient[Int](List())
+        val selector = MidonetDiscoverySelector.random[Int](client)
+
+        def validate(list: List[Int]): Unit = {
+            client.instances = list
+            for ( i <- 1 to 20) {
+                val value = selector.getInstance
+                if (list.nonEmpty) {
+                    value.isDefined shouldBe true
+                    list.contains(value.get) shouldBe true
+                } else {
+                    value.isDefined shouldBe false
+                }
+            }
+        }
+        validate( List(1,2,3) )
+        validate( List(10) )
+        validate( List() )
+    }
 }

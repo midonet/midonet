@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.discovery
 
+import scala.util.Random
+
 /**
   * A trait that encapsulates selection of a service instance from the list
   * of instances returned by a [[MidonetDiscoveryClient]]
@@ -38,14 +40,20 @@ object MidonetDiscoverySelector {
       * round-robin fashion.
       */
     def roundRobin[T]: MidonetDiscoveryClient[T] => MidonetDiscoverySelector[T]
-    = new SelectorImpl(new RoundRobinPolicy[T])(_)
+        = new SelectorImpl(new RoundRobinPolicy[T])(_)
 
     /**
       * a [[MidonetDiscoverySelector]] that always returns the first instance
       * returned by the [[MidonetDiscoveryClient]]
       */
     def first[T]: MidonetDiscoveryClient[T] => MidonetDiscoverySelector[T]
-    = new SelectorImpl(new FirstPolicy[T])(_)
+        = new SelectorImpl(new FirstPolicy[T])(_)
+
+    /**
+      * a [[MidonetDiscoverySelector]] that returns random instances
+      */
+    def random[T]: MidonetDiscoveryClient[T] => MidonetDiscoverySelector[T]
+       = new SelectorImpl(new RandomPolicy[T])(_)
 }
 
 private sealed trait MidonetDiscoveryPolicy[T] {
@@ -74,11 +82,19 @@ private final class RoundRobinPolicy[T] extends MidonetDiscoveryPolicy[T] {
     override def select(instances: Seq[T]): T = {
         val idx = counter % instances.size
         counter += 1
-        instances(idx)
+        instances(if (idx<0) idx + instances.size else idx)
     }
 }
 
 private final class FirstPolicy[T] extends MidonetDiscoveryPolicy[T] {
 
     override def select(instances: Seq[T]): T = instances.head
+}
+
+private final class RandomPolicy[T] extends MidonetDiscoveryPolicy[T] {
+
+    override def select(instances: Seq[T]): T = {
+        val idx = Random.nextInt % instances.size
+        instances(if (idx<0) idx + instances.size else idx)
+    }
 }
