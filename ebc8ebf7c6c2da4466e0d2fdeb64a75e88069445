@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a759da5d",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/services/state/FastDecoders.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-24T15:47:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_07b2c606",
+      "range": {
+        "startLine": 20,
+        "startChar": 19,
+        "endLine": 20,
+        "endChar": 31
+      },
+      "revId": "ebc8ebf7c6c2da4466e0d2fdeb64a75e88069445",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_67ecf2f3",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/services/state/FastDecoders.java",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2016-08-24T14:07:18Z",
       "side": 1,
       "message": "move to line above",
+      "range": {
+        "startLine": 163,
+        "startChar": 8,
+        "endLine": 163,
+        "endChar": 31
+      },
+      "revId": "ebc8ebf7c6c2da4466e0d2fdeb64a75e88069445",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6753d23a",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/services/state/FastDecoders.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-24T15:47:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_67ecf2f3",
       "range": {
         "startLine": 163,
         "startChar": 8,
