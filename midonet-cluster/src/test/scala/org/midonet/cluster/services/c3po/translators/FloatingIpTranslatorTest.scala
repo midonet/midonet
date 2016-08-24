@@ -22,8 +22,8 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Neutron.FloatingIp
-import org.midonet.cluster.models.Topology.{Port, Router, Rule}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Topology.{Network, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
@@ -64,6 +64,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
 
     // Main tenant router setup
     protected val externalNetworkId = randomUuidProto
+    protected val extSubId = randomUuidProto
     protected val nTntRouterGatewayPortId = randomUuidProto
     protected val mTntRouterGatewayPortId =
         tenantGwPortId(nTntRouterGatewayPortId)
@@ -72,7 +73,28 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val tntRouterInternalPortSubnet =
         IPSubnetUtil.toProto("10.10.11.0/24")
     protected val tntRouterInChainId = inChainId(tntRouterId)
-    protected val tntRouterOutChainId =outChainId(tntRouterId)
+    protected val tntRouterOutChainId = outChainId(tntRouterId)
+
+    protected val nExtNetwork = NeutronNetwork.newBuilder()
+        .setId(externalNetworkId)
+        .setTenantId("tenant")
+        .setName("EXTNET")
+        .setAdminStateUp(true)
+        .addSubnets(extSubId)
+        .build()
+
+    protected val mExtNetwork = Network.newBuilder()
+        .setId(externalNetworkId)
+        .setTenantId("tenant")
+        .setName("EXTNET")
+        .setAdminStateUp(true)
+        .build()
+
+    protected val nSubnet = NeutronSubnet.newBuilder()
+        .setId(extSubId)
+        .setTenantId("TENANT")
+        .setCidr(IPSubnetUtil.toProto("10.10.10.0/24"))
+        .build()
 
     protected val mTntRouter = mRouterFromTxt(s"""
         id { $tntRouterId }
@@ -104,6 +126,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val mTntRouterGatwewayPort = Port.newBuilder
         .setId(mTntRouterGatewayPortId)
         .setPortSubnet(IPSubnetUtil.fromAddr(fipIpAddr, 24))
+        .setPeerId(nTntRouterGatewayPortId)
         .build()
     protected val mTntRouterInternalPort = Port.newBuilder
         .setId(tntRouterInternalPortId)
@@ -234,21 +257,34 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
         initMockStorage()
         translator = new FloatingIpTranslator(storage, stateTableStorage)
 
+        bind(externalNetworkId, mExtNetwork)
+        bind(externalNetworkId, nExtNetwork)
+        bind(extSubId, nSubnet)
         bind(tntRouterId, nTntRouter)
         bind(tntRouterId, mTntRouter)
         bind(tntRouterInChainId, tntRouterInChain)
         bind(tntRouterOutChainId, tntRouterOutChain)
         bind(nTntRouterGatewayPortId, nTntRouterGatewayPort)
         bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
+        bindAll(Seq(), Seq(), classOf[NeutronPort])
+        bindAll(Seq(), Seq(), classOf[NeutronNetwork])
+        bindAll(Seq(), Seq(), classOf[NeutronSubnet])
+        bindAll(Seq(nTntRouterGatewayPortId), Seq(nTntRouterGatewayPort))
+        bindAll(Seq(mTntRouterGatewayPortId), Seq(mTntRouterGatwewayPort))
+        bindAll(Seq(tntRouterInternalPortId, nTntRouterGatewayPortId),
+                Seq(mTntRouterInternalPort, mTntRouterGatwewayPort))
+        bindAll(Seq(extSubId), Seq(nSubnet))
+        bindAll(Seq(externalNetworkId), Seq(mExtNetwork))
+        bindAll(Seq(externalNetworkId), Seq(nExtNetwork))
         bindAll(Seq(tntRouterInternalPortId), Seq(mTntRouterInternalPort))
     }
-
+/*
     "Unassociated floating IP" should "not create anything" in {
         translator.translate(transaction, Create(unboundFip))
 
         verifyNoOp(transaction)
     }
-
+*/
     "Associated floating IP" should "create ARP entry and NAT rules" in {
         translator.translate(transaction, Create(boundFip))
 
@@ -318,6 +354,13 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         gw_port_id { $nTntRouter2GwPortId }
         """)
 
+    protected val mTntRouter2 = mRouterFromTxt(s"""
+        id { $tntRouter2Id }
+        inbound_filter_id { $tntRouter2InChainId }
+        outbound_filter_id { $tntRouter2OutChainId }
+        port_ids { $mTntRouter2GwPortId }
+        """)
+
     protected val tntRouter2GwPortMac = "77:88:99:ab:cc:ba"
     protected val nTntRouter2GwPort = nPortFromTxt(s"""
         id { $nTntRouter2GwPortId }
@@ -327,6 +370,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         """)
     protected val mTntRouter2GwPort = Port.newBuilder
         .setId(mTntRouter2GwPortId)
+        .setPeerId(nTntRouter2GwPortId)
         .setPortSubnet(fipIpSubnet)
         .build()
 
@@ -359,6 +403,13 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 
     before {
         initMockStorage()
+        bind(tntRouterId, nTntRouter)
+        bind(tntRouterId, mTntRouter)
+        bind(tntRouter2Id, nTntRouter2)
+        bind(tntRouter2Id, mTntRouter2)
+        bind(externalNetworkId, mExtNetwork)
+        bind(externalNetworkId, nExtNetwork)
+        bind(extSubId, nSubnet)
         bind(tntRouterInChainId, tntRouterInChain)
         bind(tntRouterOutChainId, tntRouterOutChain)
         bind(nTntRouterGatewayPortId, nTntRouterGatewayPort)
@@ -367,9 +418,22 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bind(tntRouter2OutChainId, tntRouter2OutChain)
         bind(nTntRouter2GwPortId, nTntRouter2GwPort)
         bind(mTntRouter2GwPortId, mTntRouter2GwPort)
+        bindAll(Seq(nTntRouter2GwPortId), Seq(nTntRouter2GwPort))
+        bindAll(Seq(mTntRouter2GwPortId), Seq(mTntRouter2GwPort))
+        bindAll(Seq(nTntRouterGatewayPortId), Seq(nTntRouterGatewayPort))
+        bindAll(Seq(mTntRouterGatewayPortId), Seq(mTntRouterGatwewayPort))
+        bindAll(Seq(tntRouterInternalPortId, nTntRouterGatewayPortId),
+                Seq(mTntRouterInternalPort, mTntRouterGatwewayPort))
+        bindAll(Seq(extSubId), Seq(nSubnet))
+        bindAll(Seq(externalNetworkId), Seq(mExtNetwork))
+        bindAll(Seq(externalNetworkId), Seq(nExtNetwork))
         bindAll(Seq(tntRouterId, tntRouter2Id), Seq(nTntRouter, nTntRouter2))
         bindAll(Seq(tntRouterId, tntRouterId), Seq(nTntRouter, nTntRouter))
         bindAll(Seq(tntRouterInternalPortId), Seq(mTntRouterInternalPort))
+        bindAll(Seq(extSubId), Seq(nSubnet))
+        bindAll(Seq(), Seq(), classOf[NeutronNetwork])
+        bindAll(Seq(), Seq(), classOf[NeutronPort])
+        bindAll(Seq(), Seq(), classOf[NeutronSubnet])
 
         translator = new FloatingIpTranslator(storage, stateTableStorage)
     }
@@ -510,14 +574,26 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
     "Deleting an associated floating IP" should "delete the arp entry and " +
     "SNAT/DNAT rules, and remove the IDs fo those rules from the inbound / " +
     "outbound chains of the tenant router" in {
+        bind(tntRouterId, nTntRouter)
+        bind(tntRouterId, mTntRouter)
+        bind(externalNetworkId, mExtNetwork)
+        bind(externalNetworkId, nExtNetwork)
+        bind(extSubId, nSubnet)
         bind(fipId, boundFip)
         bind(tntRouterId, nTntRouter)
         bind(nTntRouterGatewayPortId, nTntRouterGatewayPort)
         bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
         bind(tntRouterInChainId, inChainWithDnat)
         bind(tntRouterOutChainId, outChainWithSnatAndReverseIcmpDnat)
-        translator.translate(transaction, Delete(classOf[FloatingIp], fipId))
+        bindAll(Seq(nTntRouterGatewayPortId), Seq(nTntRouterGatewayPort))
+        bindAll(Seq(mTntRouterGatewayPortId), Seq(mTntRouterGatwewayPort))
+        bindAll(Seq(tntRouterInternalPortId, nTntRouterGatewayPortId),
+                Seq(mTntRouterGatwewayPort, mTntRouterInternalPort))
+        bindAll(Seq(extSubId), Seq(nSubnet))
+        bindAll(Seq(externalNetworkId), Seq(mExtNetwork))
+        bindAll(Seq(externalNetworkId), Seq(nExtNetwork))
 
+        translator.translate(transaction, Delete(classOf[FloatingIp], fipId))
         verify(transaction).deleteNode(fipArpEntryPath)
         verify(transaction).delete(classOf[Rule], snatRuleId, ignoresNeo = true)
         verify(transaction).delete(classOf[Rule], dnatRuleId, ignoresNeo = true)
