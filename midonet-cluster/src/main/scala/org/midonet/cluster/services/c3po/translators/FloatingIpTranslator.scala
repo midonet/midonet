@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPort, NeutronRouter, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
@@ -186,11 +186,17 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         // the router's other ports.
         val rGwPortIdOpt = if (nRouter.hasGwPortId) {
             val nwGwPortId = nRouter.getGwPortId
+            val nPort = storage.get(classOf[NeutronPort], nwGwPortId).await()
             val rGwPortId = tenantGwPortId(nwGwPortId)
-            val rGwPort = storage.get(classOf[Port], rGwPortId).await()
-            val subnet = IPSubnetUtil.fromProto(rGwPort.getPortSubnet)
-            if (subnet.containsAddress(fipAddr))
-                return PortPair(nwGwPortId, tenantGwPortId(nwGwPortId))
+            val gwNetwork = storage.get(classOf[NeutronNetwork],
+                                        nPort.getNetworkId).await()
+            val subs = storage.getAll(classOf[NeutronSubnet],
+                gwNetwork.getSubnetsList.asScala).await()
+            for (sub <- subs map(_.getCidr)) {
+                if (IPSubnetUtil.fromProto(sub).containsAddress(fipAddr))
+                    return PortPair(nwGwPortId, tenantGwPortId(nwGwPortId))
+            }
+
             Some(rGwPortId)
         } else None
 

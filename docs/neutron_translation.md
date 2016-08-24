@@ -58,12 +58,16 @@ MidoNet router ports associated with the network.
 
 Create a new DHCP Subnet.
 
-Only the following fields are updated:
+The following fields are updated:
 
  * gateway_ip => defaultGateway, serverAddr
  * cidr => subnetAddr
  * host_routes => opt121Routes
  * dns_nameservers => dnsServerAddrs
+
+For every other subnet 'sub' attached to the parent network:
+   for every router port on 'sub', create a route with this subnets
+       destination address leaving this router port.
 
 ### UPDATE
 
@@ -82,6 +86,10 @@ without deleting anything.
 
 For other networks, cycle through the subnet's list of gateway routes
 and delete any routes which pass through the deleted subnet.
+
+For every other subnet 'sub' attached to the parent network:
+   for every router port on 'sub', delete the route with this subnets
+       destination address leaving this router port.
 
 ## PORT
 
@@ -425,6 +433,10 @@ If the port is not on an uplink network:
 If the port is on an uplink network, bind the router port according to the
 binding information provided in the Neutron port data.  See the PORT CREATE
 section for more information on port binding.
+
+For every other subnet 'sub' attached to this ports network:
+   for every router port on 'sub', create a route with this subnets
+       destination address leaving this router port.
 
 ### DELETE
 
