@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import org.midonet.cluster.ClusterConfig
@@ -53,6 +54,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
 
     import BgpPeerTranslator._
     import RouterInterfaceTranslator._
+    import RouteManager._
 
     /* NeutronRouterInterface is a binding information and has no unique ID.
      * We don't persist it in Storage. */
@@ -73,16 +75,21 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         val isUplink = isOnUplinkNetwork(nPort)
 
         val ns = storage.get(classOf[NeutronSubnet], ri.getSubnetId).await()
+        val net = storage.get(classOf[NeutronNetwork], ns.getNetworkId).await()
+
+        val otherSubs = storage.getAll(classOf[NeutronSubnet],
+            net.getSubnetsList.asScala - ns.getId).await()
 
         val (rtrPortOps, rtrPort) = buildRouterPort(nPort, isUplink, ri, ns)
 
+        val subRoutes = otherSubs map (addSubRouteOp(rtrPort, _))
+
         // Add a route to the Interface subnet.
-        val routerInterfaceRouteId =
-            RouteManager.routerInterfaceRouteId(rtrPort.getId)
-        val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPort.getId,
-                                           id = routerInterfaceRouteId,
-                                           srcSubnet = univSubnet4,
-                                           dstSubnet = ns.getCidr)
+        val rifRoute = newNextHopPortRoute(
+            nextHopPortId = rtrPort.getId,
+            id = routerInterfaceRouteId(rtrPort.getId),
+            srcSubnet = univSubnet4,
+            dstSubnet = ns.getCidr)
         val localRoute = newLocalRoute(rtrPort.getId, rtrPort.getPortAddress)
 
         val midoOps = new OperationListBuffer
@@ -132,6 +139,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         // Need to do these after the update returned by bindPortOps(), since
         // these creates add route IDs to the port's routeIds list, which would
         // be overwritten by the update.
+        midoOps ++= subRoutes
         midoOps += Create(rifRoute)
         midoOps += Create(localRoute)
 
@@ -142,7 +150,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         val cond = Condition.newBuilder()
                 .addInPortIds(port.getId)
                 .addOutPortIds(port.getId)
-                .setNwDstIp(RouteManager.META_DATA_SRVC)
+                .setNwDstIp(META_DATA_SRVC)
                 .setNwDstInv(true)
                 .setMatchForwardFlow(true).build()
 
