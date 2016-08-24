@@ -28,11 +28,8 @@ import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpt
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
-import org.midonet.cluster.services.c3po.translators.BgpPeerTranslator._
 import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.l2gwNetworkPortId
 import org.midonet.cluster.services.c3po.translators.PortManager._
-import org.midonet.cluster.services.c3po.translators.PortTranslator._
-import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator._
 import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.IPSubnetUtil.{fromAddr, univSubnet4}
@@ -60,7 +57,15 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                      protected val stateTableStorage: StateTableStorage,
                      sequenceDispenser: SequenceDispenser)
         extends Translator[NeutronPort]
-        with ChainManager with PortManager with RouteManager with RuleManager {
+        with ChainManager
+        with PortManager
+        with RouteManager
+        with RuleManager {
+                
+    import BgpPeerTranslator._
+    import RouteManager._
+    import RouterInterfaceTranslator._
+    import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
     /**
       *  Neutron does not maintain the back reference to the Floating IP, so we
