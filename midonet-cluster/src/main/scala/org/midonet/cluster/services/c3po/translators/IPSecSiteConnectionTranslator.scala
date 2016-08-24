@@ -36,6 +36,8 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
         extends Translator[IPSecSiteConnection]
         with RouteManager {
 
+    import RouteManager._
+
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(cnxn: IPSecSiteConnection)
     : OperationList = {

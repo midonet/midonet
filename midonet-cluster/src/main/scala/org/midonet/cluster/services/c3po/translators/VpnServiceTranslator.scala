@@ -38,6 +38,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         with RouteManager
         with RuleManager {
     import VpnServiceTranslator._
+    import RouteManager._
 
     override protected def translateCreate(vpn: VpnService): OperationList = {
         val routerId = vpn.getRouterId
