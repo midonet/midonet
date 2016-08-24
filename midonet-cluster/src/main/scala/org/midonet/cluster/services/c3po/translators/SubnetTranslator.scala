@@ -24,7 +24,7 @@ import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
-import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
+import org.midonet.cluster.models.Topology.{Dhcp, Network, Port, Route}
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 
 // TODO: add code to handle connection to provider router.
@@ -58,6 +58,8 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
 
         tx.create(dhcp.build())
         tx.update(updatedNet.build())
+        for (p <- getSubnetPorts(tx, ns))
+            tx.create(RouteManager.newSubnetRoute(p, ns))
 
         List()
     }
@@ -69,6 +71,12 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
         if (subIdx >= 0)
             tx.update(net.toBuilder.removeSubnets(subIdx).build())
         tx.delete(classOf[Dhcp], ns.getId, ignoresNeo = true)
+
+        val snPorts = getSubnetPorts(tx, ns)
+        val snRouteIds = snPorts.map(
+            snPort => RouteManager.subnetRouteId(snPort.getId, ns.getId))
+        snRouteIds.foreach(tx.delete(classOf[Route], _, ignoresNeo = true))
+
         List()
     }
 
@@ -112,6 +120,14 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
 
         // TODO: connect to provider router if external
         List()
+    }
+
+    private def getSubnetPorts(tx: Transaction, ns: NeutronSubnet)
+    : Seq[Port] = {
+        val net = tx.get(classOf[Network], ns.getNetworkId)
+        val netPorts = tx.getAll(classOf[Port], net.getPortIdsList.asScala)
+        val rPortIds = netPorts.filter(_.hasPeerId).map(_.getPeerId)
+        tx.getAll(classOf[Port], rPortIds)
     }
 
     private def addHostRoutes(dhcp: Dhcp.Builder,

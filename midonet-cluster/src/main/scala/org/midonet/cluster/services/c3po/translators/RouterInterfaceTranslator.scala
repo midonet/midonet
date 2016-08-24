@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import org.midonet.cluster.ClusterConfig
@@ -24,12 +25,11 @@ import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
-import org.midonet.util.concurrent.toFutureOps
 
 object RouterInterfaceTranslator {
 
@@ -52,6 +52,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
             with RuleManager {
 
     import BgpPeerTranslator._
+    import RouteManager._
     import RouterInterfaceTranslator._
 
     /* NeutronRouterInterface is a binding information and has no unique ID.
@@ -75,16 +76,21 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         val isUplink = isOnUplinkNetwork(tx, nPort)
 
         val ns = tx.get(classOf[NeutronSubnet], ri.getSubnetId)
+        val net = tx.get(classOf[NeutronNetwork], ns.getNetworkId)
+
+        val otherSubs = tx.getAll(classOf[NeutronSubnet],
+                                  net.getSubnetsList.asScala - ns.getId)
 
         val rtrPort = buildRouterPort(tx, nPort, isUplink, ri, ns)
 
+        val subRoutes = otherSubs map (newSubnetRoute(rtrPort, _))
+
         // Add a route to the Interface subnet.
-        val routerInterfaceRouteId =
-            RouteManager.routerInterfaceRouteId(rtrPort.getId)
-        val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPort.getId,
-                                           id = routerInterfaceRouteId,
-                                           srcSubnet = univSubnet4,
-                                           dstSubnet = ns.getCidr)
+        val rifRoute = newNextHopPortRoute(
+            nextHopPortId = rtrPort.getId,
+            id = routerInterfaceRouteId(rtrPort.getId),
+            srcSubnet = univSubnet4,
+            dstSubnet = ns.getCidr)
         val localRoute = newLocalRoute(rtrPort.getId, rtrPort.getPortAddress)
 
         // Convert Neutron/network port to router interface port if it isn't
@@ -128,6 +134,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         // Need to do these after the update returned by bindPortOps(), since
         // these creates add route IDs to the port's routeIds list, which would
         // be overwritten by the update.
+        subRoutes.foreach(tx.create)
         tx.create(rifRoute)
         tx.create(localRoute)
 
@@ -138,7 +145,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         val cond = Condition.newBuilder()
                 .addInPortIds(port.getId)
                 .addOutPortIds(port.getId)
-                .setNwDstIp(RouteManager.META_DATA_SRVC)
+                .setNwDstIp(META_DATA_SRVC)
                 .setNwDstInv(true)
                 .setMatchForwardFlow(true).build()
 
