@@ -70,7 +70,21 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
                |cluster.auth.keystone.user_password : $keystonePassword
             """.stripMargin
         val config = ConfigFactory.parseString(configStr)
-            .withFallback(MidoTestConfigurator.forClusters())
+          .withFallback(MidoTestConfigurator.forClusters())
+        new KeystoneClient(new KeystoneConfig(config))
+    }
+
+    private def clientWithURLOverride(version: Int): KeystoneClient = {
+        val configStr =
+            s"""
+               |cluster.auth.keystone.version : $version
+               |cluster.auth.keystone.tenant_name : $keystoneTenant
+               |cluster.auth.keystone.user_name : $keystoneUser
+               |cluster.auth.keystone.user_password : $keystonePassword
+               |cluster.auth.keystone.url : "$keystoneURL1"
+            """.stripMargin
+        val config = ConfigFactory.parseString(configStr)
+          .withFallback(MidoTestConfigurator.forClusters())
         new KeystoneClient(new KeystoneConfig(config))
     }
 
@@ -438,4 +452,14 @@ class KeystoneClientTest extends KeystoneTest with Matchers with GivenWhenThen {
         roles.roles should not be empty
     }
 
+    "Client with URL override" should "list users" in {
+        Given("A valid token")
+        val client = clientWithURLOverride(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+            keystonePassword)
+
+        Then("Listing the users succeeds")
+        val keystoneUsers = client.listUsers(auth.token.id)
+        keystoneUsers.users should not be empty
+    }
 }

@@ -348,8 +348,14 @@ class KeystoneClient(config: KeystoneConfig) {
       */
     private def uriFor(paths: String*)(params: (String, String)*): URI = {
         val version = withVersion { case 2 => "v2.0" case 3 => "v3" }
+        val uriPath =
+            if (StringUtils.isNotBlank(config.urlOverride))
+                config.urlOverride
+            else
+                s"${config.protocol}://${config.host}:${config.port}/$version"
+
         val builder = UriBuilder
-            .fromPath(s"${config.protocol}://${config.host}:${config.port}/$version")
+            .fromPath(uriPath)
             .segment(paths: _*)
         for ((param, value) <- params)
             builder.queryParam(param, value)
