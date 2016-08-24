@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6153c23a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/keystone/KeystoneClient.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-24T06:01:34Z",
+      "side": 1,
+      "message": "nit: you could write this as:\n\nval uriPath \u003d if () config.urlOverride else ...",
+      "range": {
+        "startLine": 351,
+        "startChar": 8,
+        "endLine": 356,
+        "endChar": 9
+      },
+      "revId": "a9f636b1d55c7b1917287b232b285ef8cbb8affd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
