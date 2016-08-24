@@ -214,6 +214,8 @@ class KeystoneTest extends FlatSpec with BeforeAndAfterAll {
     protected val keystoneUser = "admin"
     protected val keystonePassword = "midonet"
     protected val keystoneToken = "somelongtesttoken"
+    protected val keystoneURL1 = "http://127.0.0.1:" + keystonePort + "/v2.0"
+    protected val keystoneURL2 = "http://127.0.0.1:" + keystonePort + "/v2.0"
 
     protected var dateFormat: DateFormat = DateFormat.Iso8601
     protected var currentTime = System.currentTimeMillis()
