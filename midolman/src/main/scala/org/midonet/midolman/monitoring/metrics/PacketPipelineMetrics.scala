@@ -30,25 +30,22 @@ class PacketPipelineMetrics(val registry: MetricRegistry, workerId: Int) {
         name(classOf[PacketPipelineCounter], workerTag, "packetsOnHold"))
 
     val packetsPostponed = registry.meter(
-        name(classOf[PacketPipelineMeter], workerTag,
-             "packetsPostponed", "packets"))
+        name(classOf[PacketPipelineMeter], workerTag, "packetsPostponed"))
 
     val contextsAllocated = registry.counter(name(
-        classOf[PacketPipelineCounter], "contextsAllocated", "contexts"))
+        classOf[PacketPipelineCounter], "contextsAllocated"))
 
     val contextsPooled = registry.counter(name(
-        classOf[PacketPipelineCounter], "contextsPooled", "contexts"))
+        classOf[PacketPipelineCounter], "contextsPooled"))
 
     val contextsBeingProcessed = registry.counter(name(
-        classOf[PacketPipelineCounter], "contextsBeingProcessed", "contexts"))
+        classOf[PacketPipelineCounter], "contextsBeingProcessed"))
 
     val packetsDropped = registry.meter(
-        name(classOf[PacketPipelineMeter], workerTag,
-             "packetsDropped", "packets"))
+        name(classOf[PacketPipelineMeter], workerTag, "packetsDropped"))
 
     val statePacketsProcessed = registry.meter(
-        name(classOf[PacketPipelineMeter], workerTag,
-             "statePacketsProcessed", "packets"))
+        name(classOf[PacketPipelineMeter], workerTag, "statePacketsProcessed"))
 
     val packetsProcessed = registry.register(
         name(classOf[PacketPipelineHistogram], workerTag, "packetsProcessed"),
@@ -64,16 +61,13 @@ class PacketPipelineMetrics(val registry: MetricRegistry, workerId: Int) {
     })
 
     val dpFlowsMetric = registry.meter(
-        name(classOf[FlowTablesMeter], workerTag,
-             "datapathFlowsCreated", "datapathFlows"))
+        name(classOf[FlowTablesMeter], workerTag, "datapathFlowsCreated"))
 
     val dpFlowsRemovedMetric = registry.meter(
-        name(classOf[FlowTablesMeter], workerTag,
-             "datapathFlowsRemoved", "datapathFlowsRemoved"))
+        name(classOf[FlowTablesMeter], workerTag, "datapathFlowsRemoved"))
 
     val workerQueueOverflow = registry.meter(
-        name(classOf[PacketPipelineMeter], workerTag,
-             "packetQueue", "overflow"))
+        name(classOf[PacketPipelineMeter], workerTag, "packetQueue", "overflow"))
 
     def packetPostponed() {
         packetsPostponed.mark()
