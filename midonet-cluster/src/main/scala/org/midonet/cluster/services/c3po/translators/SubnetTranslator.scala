@@ -18,15 +18,15 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 import scala.collection.{breakOut, mutable}
-
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
-import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
+import org.midonet.cluster.models.Topology.{Dhcp, Network, Route, Port}
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
+import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.util.concurrent.toFutureOps
 
 // TODO: add code to handle connection to provider router.
@@ -61,7 +61,12 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
         val net = storage.get(classOf[NeutronNetwork], ns.getNetworkId).await()
         val updatedNet = net.toBuilder.addSubnets(ns.getId)
 
-        List(Create(dhcp.build), Update(updatedNet.build()))
+        val ops = new OperationListBuffer
+        ops += Create(dhcp.build())
+        ops += Update(updatedNet.build())
+        ops ++= getSubnetPorts(ns) map (RouteManager.addSubRouteOp(_, ns))
+
+        ops.toList
     }
 
     override protected def translateDelete(ns: NeutronSubnet): OperationList = {
@@ -71,6 +76,14 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
         if (subIdx >= 0)
             ops += Update(net.toBuilder.removeSubnets(subIdx).build())
         ops += Delete(classOf[Dhcp], ns.getId)
+
+        getSubnetPorts(ns) foreach { rp =>
+            val rId = RouteManager.subnetRouteId(rp.getId, ns.getId)
+            if (storage.exists(classOf[Route], rId).await()) {
+                ops += Delete(classOf[Route], rId)
+            }
+        }
+
         ops.toList
     }
 
@@ -108,6 +121,13 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
 
         // TODO: connect to provider router if external
         Update(newDhcp.build()) +: routeUpdateOps
+    }
+
+    private def getSubnetPorts(ns: NeutronSubnet): List[Port] = {
+        val net = storage.get(classOf[Network], ns.getNetworkId).await()
+        val netPorts = storage.getAll(classOf[Port], net.getPortIdsList.asScala).await()
+        val rPortIds = netPorts.filter(_.hasPeerId).map(_.getPeerId)
+        storage.getAll(classOf[Port], rPortIds).await().toList
     }
 
     private def addHostRoutes(dhcp: Dhcp.Builder,

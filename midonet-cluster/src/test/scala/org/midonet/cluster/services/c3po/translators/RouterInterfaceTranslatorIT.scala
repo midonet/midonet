@@ -403,6 +403,38 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase with ChainManager {
         eventually(checkDhcpAndMetadataRoute(rtr2IfPortId))
     }
 
+    it should "add second route to router port" in {
+        val rId = createRouter(10)
+
+        val cidr = "10.0.0.0/24"
+        val cidr2 = "20.0.0.0/24"
+        val rPortIp = "10.0.0.1"
+        val mac = "ab:cd:ef:01:02:03"
+        val netId = createTenantNetwork(20)
+        val subId = createSubnet(30, netId, cidr)
+        val subId2 = createSubnet(40, netId, cidr2)
+
+        val rifId = createRouterInterfacePort(
+            50, netId, subId, rId, rPortIp, mac)
+        createRouterInterface(60, rId, rifId, subId)
+
+        eventually {
+            val router = storage.get(classOf[Router], rId).await()
+            val ports = storage.getAll(classOf[Port],
+                                       router.getPortIdsList.asScala).await()
+            val port = ports.find(_.getPortAddress.getAddress == rPortIp).get
+            val routes = storage.getAll(classOf[Route],
+                                        port.getRouteIdsList.asScala).await()
+            val portCidrs = for {
+                r <- routes if r.getDstSubnet.getPrefixLength < 32
+            } yield {
+                val rSub = r.getDstSubnet
+                s"${rSub.getAddress}/${rSub.getPrefixLength}"
+            }
+            portCidrs should contain theSameElementsAs Seq(cidr, cidr2)
+        }
+    }
+
     private def checkRouterAndPeerPort(nwPortId: UUID, ipAddr: String,
                                        macAddr: String): Port = {
         val rPortId = routerInterfacePortPeerId(nwPortId.asProto)

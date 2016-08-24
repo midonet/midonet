@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Subnet => SubnetType}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronSubnet}
-import org.midonet.cluster.models.Topology.Dhcp
+import org.midonet.cluster.models.Topology.{Dhcp, Route, Router, Port}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.toFutureOps
@@ -128,6 +128,146 @@ class SubnetTranslatorIT extends C3POMinionTestBase {
         eventually {
             val net = storage.get(classOf[NeutronNetwork], netId).await()
             net.getSubnetsCount shouldBe 0
+        }
+    }
+
+    it should "add multiple routes if multiple subnets" in {
+        val cidr = "10.0.0.0/24"
+        val cidr2 = "20.0.0.0/24"
+        val rPortIp = "10.0.0.1"
+        val mac = "ab:cd:ef:01:02:03"
+        val netId = createTenantNetwork(10)
+
+        val rId = createRouter(30)
+
+        val subId = createSubnet(20, netId, cidr)
+        checkDhcp(subId, netId, cidr)
+
+        val rifId = createRouterInterfacePort(
+            40, netId, subId, rId, rPortIp, mac)
+
+        createSubnet(45, netId, cidr2)
+        checkDhcp(subId, netId, cidr)
+
+        createRouterInterface(50, rId, rifId, subId)
+
+        checkPortRoutes(rId, rPortIp, Seq(cidr, cidr2))
+    }
+
+    it should "delete extra routes if multiple subnets" in {
+        val cidr = "10.0.0.0/24"
+        val cidr2 = "20.0.0.0/24"
+        val rPortIp = "10.0.0.1"
+        val mac = "ab:cd:ef:01:02:03"
+        val netId = createTenantNetwork(10)
+
+        val rId = createRouter(30)
+
+        val subId = createSubnet(20, netId, cidr)
+        checkDhcp(subId, netId, cidr)
+
+        val rifId = createRouterInterfacePort(
+            40, netId, subId, rId, rPortIp, mac)
+
+        val subId2 = createSubnet(45, netId, cidr2)
+        checkDhcp(subId, netId, cidr)
+
+        createRouterInterface(50, rId, rifId, subId)
+
+        checkPortRoutes(rId, rPortIp, Seq(cidr, cidr2))
+
+        insertDeleteTask(60, SubnetType, subId2)
+
+        checkPortRoutes(rId, rPortIp, Seq(cidr))
+    }
+
+    it should "only delete extra routes related to net" in {
+
+        val rId = createRouter(10)
+
+        val cidr = "10.0.0.0/24"
+        val netId = createTenantNetwork(20)
+        val subId = createSubnet(30, netId, cidr)
+        checkDhcp(subId, netId, cidr)
+
+        val rPortIp = "10.0.0.1"
+        val mac = "ab:cd:ef:01:02:03"
+        val rifId = createRouterInterfacePort(
+            40, netId, subId, rId, rPortIp, mac)
+        createRouterInterface(50, rId, rifId, subId)
+
+        checkPortRoutes(rId, rPortIp, Seq(cidr))
+
+        val cidr2 = "20.0.0.0/24"
+        val netId2 = createTenantNetwork(60)
+        val subId2 = createSubnet(70, netId2, cidr2)
+        checkDhcp(subId2, netId2, cidr2)
+
+        val rPortIp2 = "20.0.0.1"
+        val mac2 = "ab:cd:ef:01:02:04"
+        val rifId2 = createRouterInterfacePort(
+            80, netId2, subId2, rId, rPortIp2, mac2)
+        createRouterInterface(90, rId, rifId2, subId2)
+
+        checkPortRoutes(rId, rPortIp, Seq(cidr))
+        checkPortRoutes(rId, rPortIp2, Seq(cidr2))
+
+        val rId2 = createRouter(100)
+
+        val rPortIp3 = "10.0.0.2"
+        val mac3 = "ab:cd:ef:01:02:07"
+        val rifId3 = createRouterInterfacePort(
+            110, netId, subId, rId2, rPortIp3, mac3)
+        createRouterInterface(120, rId2, rifId3, subId)
+
+        checkPortRoutes(rId, rPortIp, Seq(cidr))
+        checkPortRoutes(rId, rPortIp2, Seq(cidr2))
+        checkPortRoutes(rId2, rPortIp3, Seq(cidr))
+
+        val rPortIp4 = "20.0.0.2"
+        val mac4 = "ab:cd:ef:01:04:07"
+        val rifId4 = createRouterInterfacePort(
+            130, netId2, subId2, rId2, rPortIp4, mac4)
+        createRouterInterface(140, rId2, rifId4, subId2)
+
+        checkPortRoutes(rId, rPortIp, Seq(cidr))
+        checkPortRoutes(rId, rPortIp2, Seq(cidr2))
+        checkPortRoutes(rId2, rPortIp3, Seq(cidr))
+        checkPortRoutes(rId2, rPortIp4, Seq(cidr2))
+
+        val cidr3 = "30.0.0.0/24"
+        val subId3 = createSubnet(150, netId2, cidr3)
+        checkDhcp(subId3, netId2, cidr3)
+
+        checkPortRoutes(rId, rPortIp, Seq(cidr))
+        checkPortRoutes(rId, rPortIp2, Seq(cidr2, cidr3))
+        checkPortRoutes(rId2, rPortIp3, Seq(cidr))
+        checkPortRoutes(rId2, rPortIp4, Seq(cidr2, cidr3))
+
+        insertDeleteTask(160, SubnetType, subId3)
+
+        checkPortRoutes(rId, rPortIp, Seq(cidr))
+        checkPortRoutes(rId, rPortIp2, Seq(cidr2))
+        checkPortRoutes(rId2, rPortIp3, Seq(cidr))
+        checkPortRoutes(rId2, rPortIp4, Seq(cidr2))
+    }
+
+    private def checkPortRoutes(rId: UUID, portIp: String,
+                                cidrs: Seq[String]): Unit = {
+        eventually {
+            val router = storage.get(classOf[Router], rId).await()
+            val ports = storage.getAll(classOf[Port], router.getPortIdsList).await()
+            ports.nonEmpty shouldBe true
+            val port = ports.filter(p => p.getPortAddress.getAddress == portIp).head
+
+            val routes = storage.getAll(classOf[Route], port.getRouteIdsList).await()
+            val portCidrs = for {
+                r <- routes if r.getDstSubnet.getPrefixLength < 32
+            } yield {
+                val rSub = r.getDstSubnet
+                s"${rSub.getAddress}/${rSub.getPrefixLength}"
+            }
+            portCidrs should contain theSameElementsAs cidrs
         }
     }
 

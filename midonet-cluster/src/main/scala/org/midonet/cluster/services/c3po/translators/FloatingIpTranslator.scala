@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPort, NeutronRouter, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
@@ -172,6 +172,16 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         ops.toList
     }
 
+    private def hasSubWithAddr(portId: UUID, addr: IPAddr): Boolean = {
+        val port = storage.get(classOf[NeutronPort], portId).await()
+        val net = storage.get(classOf[NeutronNetwork],
+                              port.getNetworkId).await()
+        val subs = storage.getAll(classOf[NeutronSubnet],
+                                  net.getSubnetsList.asScala).await()
+        subs.map(_.getCidr)
+            .exists(IPSubnetUtil.fromProto(_).containsAddress(addr))
+    }
+
     /** Return both port IDs (network and router) of the gateway or interface
       * between the router routerId and the network whose subnet contains the
       * floating IP fipAddrStr.
@@ -186,12 +196,9 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         // the router's other ports.
         val rGwPortIdOpt = if (nRouter.hasGwPortId) {
             val nwGwPortId = nRouter.getGwPortId
-            val rGwPortId = tenantGwPortId(nwGwPortId)
-            val rGwPort = storage.get(classOf[Port], rGwPortId).await()
-            val subnet = IPSubnetUtil.fromProto(rGwPort.getPortSubnet)
-            if (subnet.containsAddress(fipAddr))
+            if (hasSubWithAddr(nwGwPortId, fipAddr))
                 return PortPair(nwGwPortId, tenantGwPortId(nwGwPortId))
-            Some(rGwPortId)
+            Some(tenantGwPortId(nwGwPortId))
         } else None
 
         // The FIP didn't belong to the router's gateway port's subnet, so
@@ -199,9 +206,8 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         val mRouter = storage.get(classOf[Router], routerId).await()
         val portIds = mRouter.getPortIdsList.asScala -- rGwPortIdOpt
         val rPorts = storage.getAll(classOf[Port], portIds).await()
-        for (rPort <- rPorts if rPort.hasPortSubnet) {
-            val subnet = IPSubnetUtil.fromProto(rPort.getPortSubnet)
-            if (subnet.containsAddress(fipAddr)) {
+        for (rPort <- rPorts if rPort.hasPortSubnet && rPort.hasPeerId) {
+            if (hasSubWithAddr(rPort.getPeerId, fipAddr)) {
                 // routerInterfacePortPeerId() is an involution; applying it to
                 // the network port ID gives the peer router port ID, and
                 // vice-versa.
