@@ -42,6 +42,8 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
     private val keystoneUser = "admin"
     private val keystonePassword = "midonet"
     private val keystoneToken = "somelongtesttoken"
+    protected val keystoneURL1 = "http://127.0.0.1:" + keystonePort + "/v2.0"
+    protected val keystoneURL2 = "http://127.0.0.1:" + keystonePort + "/v2.0"
 
     private def clientWithoutAdmin(version: Int): KeystoneClient = {
         val configStr =
@@ -84,6 +86,20 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
             """.stripMargin
         val config = ConfigFactory.parseString(configStr)
             .withFallback(MidoTestConfigurator.forClusters())
+        new KeystoneClient(new KeystoneConfig(config))
+    }
+
+    private def clientWithURLOverride(version: Int): KeystoneClient = {
+        val configStr =
+            s"""
+               |cluster.auth.keystone.version : $version
+               |cluster.auth.keystone.tenant_name : $keystoneTenant
+               |cluster.auth.keystone.user_name : $keystoneUser
+               |cluster.auth.keystone.user_password : $keystonePassword
+               |cluster.auth.keystone.url : "$keystoneURL1"
+            """.stripMargin
+        val config = ConfigFactory.parseString(configStr)
+          .withFallback(MidoTestConfigurator.forClusters())
         new KeystoneClient(new KeystoneConfig(config))
     }
 
@@ -394,6 +410,17 @@ class KeystoneIntegrationTest extends FlatSpec with Matchers with GivenWhenThen 
         val roles = client.getTenantUserRoles(tenant.tenant.id,
                                               user.user.id, auth.tokenId)
         roles.roles should not be empty
+    }
+
+    "Keystone v2 client using URL override" should "list users" in {
+        Given("A valid token")
+        val client = clientWithURLOverride(2)
+        val auth = client.authenticate(keystoneTenant, keystoneUser,
+            keystonePassword)
+
+        Then("Listing the users succeeds")
+        val keystoneUsers = client.listUsers(auth.tokenId)
+        keystoneUsers.users should not be empty
     }
 
     "Keystone v3 client" should "handle get version" in {
