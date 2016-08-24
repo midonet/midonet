@@ -623,6 +623,9 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             val flowState = HostRequestProxy.EmptyFlowStateBatch
             flowState.strongConnTrack.add(connTrackKeys.head)
 
+            val flowState2 = HostRequestProxy.EmptyFlowStateBatch
+            flowState2.strongConnTrack.isEmpty shouldBe true
+
             When("Importing it")
             recipient.importFromStorage(flowState)
 
