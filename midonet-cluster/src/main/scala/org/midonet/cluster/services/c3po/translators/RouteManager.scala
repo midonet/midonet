@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.NeutronRoute
+import org.midonet.cluster.models.Neutron.{NeutronSubnet, NeutronRoute}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
@@ -78,27 +78,6 @@ trait RouteManager {
                             nextHopGwIpAddr = nextHopGw,
                             srcSubnet = srcSubnet,
                             dstSubnet = META_DATA_SRVC)
-    }
-
-    protected def newNextHopPortRoute(nextHopPortId: UUID,
-                                      id: UUID = null,
-                                      nextHopGwIpAddr: IPAddress = null,
-                                      srcSubnet: IPSubnet = univSubnet4,
-                                      dstSubnet: IPSubnet = univSubnet4,
-                                      gatewayDhcpId: UUID = null,
-                                      weight: Int = DEFAULT_WEIGHT,
-                                      ipSecSiteCnxnId: UUID = null): Route = {
-        val bldr = Route.newBuilder
-        bldr.setId(if (id != null) id else UUIDUtil.randomUuidProto)
-        bldr.setNextHop(NextHop.PORT)
-        bldr.setNextHopPortId(nextHopPortId)
-        bldr.setSrcSubnet(srcSubnet)
-        bldr.setDstSubnet(dstSubnet)
-        bldr.setWeight(weight)
-        if (gatewayDhcpId != null) bldr.setGatewayDhcpId(gatewayDhcpId)
-        if (nextHopGwIpAddr != null) bldr.setNextHopGateway(nextHopGwIpAddr)
-        if (ipSecSiteCnxnId != null) bldr.setIpsecSiteConnectionId(ipSecSiteCnxnId)
-        bldr.build()
     }
 
     protected def addLocalRouteToRouter(rPort: PortOrBuilder): OperationList = {
@@ -209,6 +188,9 @@ object RouteManager {
     def fipReverseDnatRuleId(fipId: UUID): UUID =
         fipId.xorWith(0x9a8e6c1863e2232eL, 0xe40c77c188694ac0L)
 
+    def subnetRouteId(routerPortId: UUID, subnetId: UUID): UUID =
+        routerPortId.xorWith(subnetId.getLsb, subnetId.getMsb)
+
     // Deterministically generate the extra route IDs based on the router ID
     // and the route attributes.
     def extraRouteId(routerId:UUID, route: NeutronRoute): UUID = {
@@ -217,5 +199,34 @@ object RouteManager {
         routerId.xorWith(
             destIp.asInstanceOf[Long] << 32 | prefixLen,
             IPv4Addr.stringToInt(route.getNexthop.getAddress))
+    }
+
+    def newNextHopPortRoute(nextHopPortId: UUID,
+                            id: UUID = null,
+                            nextHopGwIpAddr: IPAddress = null,
+                            srcSubnet: IPSubnet = univSubnet4,
+                            dstSubnet: IPSubnet = univSubnet4,
+                            gatewayDhcpId: UUID = null,
+                            weight: Int = DEFAULT_WEIGHT,
+                            ipSecSiteCnxnId: UUID = null): Route = {
+        val bldr = Route.newBuilder
+        bldr.setId(if (id != null) id else UUIDUtil.randomUuidProto)
+        bldr.setNextHop(NextHop.PORT)
+        bldr.setNextHopPortId(nextHopPortId)
+        bldr.setSrcSubnet(srcSubnet)
+        bldr.setDstSubnet(dstSubnet)
+        bldr.setWeight(weight)
+        if (gatewayDhcpId != null) bldr.setGatewayDhcpId(gatewayDhcpId)
+        if (nextHopGwIpAddr != null) bldr.setNextHopGateway(nextHopGwIpAddr)
+        if (ipSecSiteCnxnId != null) bldr.setIpsecSiteConnectionId(ipSecSiteCnxnId)
+        bldr.build()
+    }
+
+    def addSubRouteOp(port: Port, ns: NeutronSubnet): Create[Route] = {
+        val routeId = RouteManager.subnetRouteId(port.getId, ns.getId)
+        Create(newNextHopPortRoute(id = routeId,
+               nextHopPortId = port.getId,
+               srcSubnet = univSubnet4,
+               dstSubnet = ns.getCidr))
     }
 }
