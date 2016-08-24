@@ -61,6 +61,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                 with ChainManager with PortManager with RouteManager with RuleManager
                 with StateTableManager {
     import BgpPeerTranslator._
+    import RouteManager._
     import RouterInterfaceTranslator._
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
 

@@ -16,17 +16,21 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConverters._
+import java.util
 
+import scala.collection.breakOut
+import scala.collection.JavaConverters._
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronNetwork, NeutronPort, NeutronRouter, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
+
+import scala.collection.immutable.HashMap
 
 /** Provides a Neutron model translator for FloatingIp. */
 class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
@@ -182,26 +186,61 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         val fipAddr = IPAddr.fromString(fipAddrStr)
         val nRouter = storage.get(classOf[NeutronRouter], routerId).await()
 
+        /*
+         * Get all the topology we might need up front. This reduces the
+         * number of calls to zookeeper because bulk gets (getAll) take only
+         * one trip, whereas getting each object individually could result
+         * in thousands of trips to zookeeper if there are many ports on a
+         * network
+         */
+        val mRouter = storage.get(classOf[Router], routerId).await()
+
+        def makeMap[T](clazz: Class[T], ids: Seq[UUID]): Map[UUID, T] = {
+            if (ids.nonEmpty) {
+                ids.zip(storage.getAll(clazz, ids).await())(breakOut)
+            } else {
+                new HashMap[UUID, T]()
+            }
+        }
+
+        val portMap = makeMap(
+            classOf[Port], mRouter.getPortIdsList.asScala.toList)
+        val portIds = mRouter.getPortIdsList.asScala
+        val ports =
+            if (portIds.nonEmpty) storage.getAll(classOf[Port], portIds).await()
+            else Seq()
+
+        var rPortIds = ports.filter(_.hasPeerId).map(_.getPeerId)
+        if (nRouter.hasGwPortId)
+            rPortIds = nRouter.getGwPortId +: rPortIds
+        val nPortMap = makeMap(classOf[NeutronPort], rPortIds)
+        val nNetMap = makeMap(classOf[NeutronNetwork],
+                              nPortMap.values.map(_.getNetworkId)(breakOut))
+        val subIds = nNetMap.values.flatMap(_.getSubnetsList.asScala)(breakOut)
+        val nSubMap = makeMap(classOf[NeutronSubnet], subIds)
+
+        def hasSubWithAddr(portId: UUID, addr: IPAddr): Boolean = {
+            val port = nPortMap.get(portId).get
+            val net = nNetMap.get(port.getNetworkId).get
+            val subs = net.getSubnetsList.asScala.map(nSubMap.get(_).get)
+            subs.exists{ sub =>
+                IPSubnetUtil.fromProto(sub.getCidr).containsAddress(addr)
+            }
+        }
+
         // It will usually be the gateway port, so check that before scanning
         // the router's other ports.
         val rGwPortIdOpt = if (nRouter.hasGwPortId) {
             val nwGwPortId = nRouter.getGwPortId
-            val rGwPortId = tenantGwPortId(nwGwPortId)
-            val rGwPort = storage.get(classOf[Port], rGwPortId).await()
-            val subnet = IPSubnetUtil.fromProto(rGwPort.getPortSubnet)
-            if (subnet.containsAddress(fipAddr))
+            if (hasSubWithAddr(nwGwPortId, fipAddr))
                 return PortPair(nwGwPortId, tenantGwPortId(nwGwPortId))
-            Some(rGwPortId)
+            Some(tenantGwPortId(nwGwPortId))
         } else None
 
         // The FIP didn't belong to the router's gateway port's subnet, so
         // we need to scan all of its other ports.
-        val mRouter = storage.get(classOf[Router], routerId).await()
-        val portIds = mRouter.getPortIdsList.asScala -- rGwPortIdOpt
-        val rPorts = storage.getAll(classOf[Port], portIds).await()
-        for (rPort <- rPorts if rPort.hasPortSubnet) {
-            val subnet = IPSubnetUtil.fromProto(rPort.getPortSubnet)
-            if (subnet.containsAddress(fipAddr)) {
+        for (rPort <- ports if rPort.hasPortSubnet && rPort.hasPeerId) {
+            if (rPort.hasPeerId && hasSubWithAddr(rPort.getPeerId, fipAddr)) {
                 // routerInterfacePortPeerId() is an involution; applying it to
                 // the network port ID gives the peer router port ID, and
                 // vice-versa.
