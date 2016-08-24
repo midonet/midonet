@@ -32,5 +32,6 @@ class KeystoneConfig(conf: Config) extends AuthConfig(conf) {
     def protocol = conf.getString(s"$prefix.keystone.protocol")
     def host = conf.getString(s"$prefix.keystone.host")
     def port = conf.getInt(s"$prefix.keystone.port")
+    def urlOverride = conf.getString(s"$prefix.keystone.url")
 
 }
