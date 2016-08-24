@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_07b2c606",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/services/state/FastDecoders.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-24T14:07:18Z",
+      "side": 1,
+      "message": "minor comment: add spaces around binary operators",
+      "range": {
+        "startLine": 20,
+        "startChar": 19,
+        "endLine": 20,
+        "endChar": 31
+      },
+      "revId": "ebc8ebf7c6c2da4466e0d2fdeb64a75e88069445",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_67ecf2f3",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/services/state/FastDecoders.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-24T14:07:18Z",
+      "side": 1,
+      "message": "move to line above",
+      "range": {
+        "startLine": 163,
+        "startChar": 8,
+        "endLine": 163,
+        "endChar": 31
+      },
+      "revId": "ebc8ebf7c6c2da4466e0d2fdeb64a75e88069445",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
