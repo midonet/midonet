@@ -41,6 +41,7 @@ import org.midonet.cluster.backend.zookeeper.ZkDirectory
 import org.midonet.cluster.backend.{Directory, DirectoryCallback, MockDirectory}
 import org.midonet.cluster.data.storage.StateTable.{Key, Update}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
+import org.midonet.cluster.monitoring.metrics.StorageHistogram
 import org.midonet.cluster.rpc.State.KeyValue
 import org.midonet.cluster.rpc.State.ProxyResponse.Notify
 import org.midonet.cluster.services.state.client.{StateSubscriptionKey, StateTableClient}
@@ -59,8 +60,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
                         override val directory: Directory,
                         override val proxy: StateTableClient,
                         override val connection: Observable[ConnectionState],
-                        override val metrics: StorageMetrics =
-                            new StorageMetrics(new MetricRegistry))
+                        override val metrics: StorageMetrics)
         extends ScalableStateTable[String, String]
         with DirectoryStateTable[String, String] {
 
@@ -92,22 +92,26 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
         override def start(): Unit = { }
     }
     private object Proxy extends TestableProxyClient
+    private object DefaultMetrics extends StorageMetrics(new MetricRegistry)
 
     private val reactor = new CallingThreadReactor
     private val timeout = 5 seconds
 
     private def mockTable(connection: Observable[ConnectionState] =
                               Observable.never(),
-                          proxy: StateTableClient = Proxy)
+                          proxy: StateTableClient = Proxy,
+                          metrics: StorageMetrics = DefaultMetrics)
     : (ScalableStateTable[String, String], Directory) = {
         val directory = new MockDirectory()
-        (new Table(UUID.randomUUID(), directory, proxy, connection), directory)
+        (new Table(UUID.randomUUID(), directory, proxy, connection, metrics),
+            directory)
     }
 
     private def zkTable(create: Boolean = true,
                         connection: Observable[ConnectionState] =
                             Observable.never(),
-                        proxy: StateTableClient = Proxy)
+                        proxy: StateTableClient = Proxy,
+                        metrics: StorageMetrics = DefaultMetrics)
     : (ScalableStateTable[String, String], String) = {
         val id = UUID.randomUUID()
         val path = s"$zkRoot/$id"
@@ -116,7 +120,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
         }
         val directory = new ZkDirectory(curator.getZookeeperClient.getZooKeeper,
                                         path, reactor)
-        (new Table(id, directory, proxy, connection), path)
+        (new Table(id, directory, proxy, connection, metrics), path)
     }
 
     private def snapshot(client: TestableProxyClient,
@@ -1739,7 +1743,7 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
             }
 
             val table = new Table(UUID.randomUUID(), directory, proxy,
-                                  Observable.never())
+                                  Observable.never(), DefaultMetrics)
 
             table.start()
 
@@ -1843,6 +1847,50 @@ class ScalableStateTableTest extends FeatureSpec with Matchers
 
             And("The observer should be unsubscribed")
             subscription.isUnsubscribed shouldBe true
+        }
+    }
+
+    feature("Table records metrics") {
+        scenario("Table adds and removes entries") {
+            Given("A state table with ZooKeeper directory")
+            val registry = new MetricRegistry
+            val (table, path) = zkTable(metrics = new StorageMetrics(registry))
+            val histogramZkLatency = registry.getHistograms.get(
+                classOf[StorageHistogram].getName + ".stateTable.readLatency")
+            val histogramCbLatency = registry.getHistograms.get(
+                classOf[StorageHistogram].getName + ".stateTable.addLatency")
+            val histogramRtLatency = registry.getHistograms.get(
+                classOf[StorageHistogram].getName + ".stateTable.roundTripLatency")
+            table.start()
+
+            Then("The table should record the metrics")
+            eventually {
+                histogramZkLatency.getCount shouldBe 1
+                histogramCbLatency.getCount shouldBe 0
+                histogramRtLatency.getCount shouldBe 0
+            }
+
+            When("Adding a new entry")
+            table.add("key0", "value0")
+
+            Then("The table should record the metrics")
+            eventually {
+                histogramZkLatency.getCount shouldBe 2
+                histogramCbLatency.getCount shouldBe 1
+                histogramRtLatency.getCount shouldBe 1
+            }
+
+            When("Adding a new entry")
+            table.add("key1", "value1")
+
+            Then("The table should record the metrics")
+            eventually {
+                histogramZkLatency.getCount shouldBe 3
+                histogramCbLatency.getCount shouldBe 2
+                histogramRtLatency.getCount shouldBe 2
+            }
+
+            table.stop()
         }
     }
 }
