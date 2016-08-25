@@ -372,6 +372,13 @@ class ConditionBase(object):
         self._dto()['invIcmpDataDstIp'] = cond_invert
         return self
 
+    def is_nw_dst_rewritten(self):
+        return self._dto()['nwDstRewritten']
+
+    def nw_dst_rewritten(self, rewritten):
+        self._dto()['nwDstRewritten'] = rewritten
+        return self
+
 
 class Condition(resource_base.ResourceBase, ConditionBase):
 
