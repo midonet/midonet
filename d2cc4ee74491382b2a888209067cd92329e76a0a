@@ -46,6 +46,98 @@
       "revId": "d2cc4ee74491382b2a888209067cd92329e76a0a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_af18901f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/IpAddrGroupResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-25T08:46:03Z",
+      "side": 1,
+      "message": "requestTimeout (it\u0027s not used just for read)",
+      "range": {
+        "startLine": 79,
+        "startChar": 24,
+        "endLine": 79,
+        "endChar": 28
+      },
+      "revId": "d2cc4ee74491382b2a888209067cd92329e76a0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6fd1682f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/IpAddrGroupResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-25T08:46:03Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 115,
+        "startChar": 24,
+        "endLine": 115,
+        "endChar": 35
+      },
+      "revId": "d2cc4ee74491382b2a888209067cd92329e76a0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4fd6a428",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/IpAddrGroupResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-25T08:46:03Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 172,
+        "startChar": 24,
+        "endLine": 172,
+        "endChar": 35
+      },
+      "revId": "d2cc4ee74491382b2a888209067cd92329e76a0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2fdb6051",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-25T08:46:03Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 191,
+        "startChar": 27,
+        "endLine": 191,
+        "endChar": 38
+      },
+      "revId": "d2cc4ee74491382b2a888209067cd92329e76a0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
