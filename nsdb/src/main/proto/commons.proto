@@ -141,5 +141,7 @@ message Condition {
     optional bool inv_in_port_group = 67;
     optional UUID out_port_group_id = 68;
     optional bool inv_out_port_group = 69;
+
+    optional bool match_nw_dst_rewritten = 70;
     // end of condition fields
 }
