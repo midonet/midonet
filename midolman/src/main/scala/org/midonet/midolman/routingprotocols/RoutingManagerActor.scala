@@ -18,7 +18,7 @@ package org.midonet.midolman.routingprotocols
 import java.util.UUID
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import akka.actor._
 
@@ -94,7 +94,12 @@ object RoutingManagerActor extends Referenceable {
     private case class HandlerStop(portId: UUID, value: Boolean)
     private case class HandlerStopError(portId: UUID, e: Throwable)
 
-    var selfRef: ActorRef = null
+    def selfRefFuture: Future[ActorRef] = {
+        selfRefPromise.future
+    }
+
+    private val selfRefPromise = Promise[ActorRef]
+
 }
 
 class RoutingManagerActor extends ReactiveActor[AnyRef]
@@ -222,7 +227,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
 
     override def preStart(): Unit = {
         super.preStart()
-        selfRef = self
+        selfRefPromise trySuccess self
         routingStorage = new RoutingStorageImpl(backend.stateStore)
 
         portsSubscription add VirtualToPhysicalMapper.portsActive.subscribe(this)
