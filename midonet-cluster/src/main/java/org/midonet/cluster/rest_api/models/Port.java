@@ -94,6 +94,10 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "trace_request_ids")
     public List<UUID> traceRequestIds;
 
+    @JsonIgnore
+    @ZoomField(name="fip_nat_rule_ids")
+    public List<UUID> fipNatRuleIds;
+
     @ZoomField(name = "inbound_mirror_ids")
     public List<UUID> inboundMirrorIds;
 
@@ -198,6 +202,7 @@ public abstract class Port extends UriResource {
         }
         portGroupIds = from.portGroupIds;
         traceRequestIds = from.traceRequestIds;
+        fipNatRuleIds = from.fipNatRuleIds;
         mirrorIds = from.mirrorIds;
         insertionIds = from.insertionIds;
         l2insertionInfilterId = from.l2insertionInfilterId;
@@ -219,6 +224,7 @@ public abstract class Port extends UriResource {
             .add("peerId", peerId)
             .add("portGroupIds", portGroupIds)
             .add("traceRequestIds", traceRequestIds)
+            .add("fipNatRuleIds", fipNatRuleIds)
             .add("active", active);
     }
 }
