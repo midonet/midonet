@@ -104,10 +104,13 @@ trait SimDevice {
         val outPortId = context.outPortId
         val outPortGroups = context.outPortGroups
         val curDev = context.currentDevice
+        val nwDstRewritten = context.nwDstRewritten
+        context.nwDstRewritten = false
         try {
             continue(context, result)
         } finally {
             context.currentDevice = curDev
+            context.nwDstRewritten = nwDstRewritten
             context.outPortId = outPortId
             context.outPortGroups = outPortGroups
             context.inPortId = inPortId
