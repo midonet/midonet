@@ -170,6 +170,9 @@ public class Condition extends UriResource {
     @ZoomField(name = "nw_dst_inv")
     public boolean invNwDst;
 
+    @ZoomField(name = "match_nw_dst_rewritten")
+    public boolean matchNwDstRewritten;
+
     @JsonError(message = FRAG_POLICY_UNDEFINED)
     @ZoomField(name = "fragment_policy")
     public FragmentPolicy fragmentPolicy;
