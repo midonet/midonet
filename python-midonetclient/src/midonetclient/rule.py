@@ -27,7 +27,6 @@ class Rule(condition.Condition):
     def __init__(self, uri, dto, auth):
         super(Rule, self).__init__(uri, dto, auth)
 
-# TODO: <move>?
     def is_no_vlan(self):
         return self.dto['noVlan']
 
@@ -48,7 +47,6 @@ class Rule(condition.Condition):
 
     def get_target_port(self):
         return self.dto['targetPortId']
-# TODO: </move>
 
     def get_chain_id(self):
         return self.dto['chainId']
@@ -93,7 +91,6 @@ class Rule(condition.Condition):
         self.dto['jumpChainId'] = jump_chain_id
         return self
 
-# TODO: <move>
     def no_vlan(self, no_vlan):
         self.dto['noVlan'] = no_vlan
         return self
@@ -121,8 +118,6 @@ class Rule(condition.Condition):
     def target_port(self, target_port):
         self.dto['targetPortId'] = target_port
         return self
-
-# TODO: </move>
 
     def chain_id(self, chain_id):
         self.dto['chainId'] = chain_id

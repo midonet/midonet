@@ -25,8 +25,6 @@ import urllib
 import webob
 
 
-# TODO(hugo): lots of duplicates with auth_lib => merge both ?
-
 LOG = logging.getLogger(__name__)
 
 
