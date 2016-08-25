@@ -74,6 +74,7 @@ public class StaticForwardNatRule extends NatRule {
             pktCtx.jlog().debug("DNAT mapping packet dst ip {} to target ip {}",
                                 pktCtx.wcmatch().getNetworkDstIP(), targetIpAddr);
             pktCtx.wcmatch().setNetworkDst(targetIpAddr);
+            pktCtx.markNwDstRewritten();
         }
 
         if (pktCtx.isIcmp()) {

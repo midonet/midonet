@@ -461,7 +461,8 @@ trait TopologyBuilder {
                                          icmpDataSrcIp: Option[IPSubnet[_]] = None,
                                          icmpDataSrcIpInv: Option[Boolean] = None,
                                          icmpDataDstIp: Option[IPSubnet[_]] = None,
-                                         icmpDataDstIpInv: Option[Boolean] = None)
+                                         icmpDataDstIpInv: Option[Boolean] = None,
+                                         matchNwDstRewritten: Option[Boolean] = None)
             : Condition.Builder = {
         if (matchForwardFlow.isDefined) {
             builder.setMatchForwardFlow(matchForwardFlow.get)
@@ -554,6 +555,8 @@ trait TopologyBuilder {
             builder.setIcmpDataDstIp(IPSubnetUtil.toProto(icmpDataDstIp.get))
         if (icmpDataDstIpInv.isDefined)
             builder.setIcmpDataDstIpInv(icmpDataDstIpInv.get)
+        if (matchNwDstRewritten.isDefined)
+            builder.setMatchNwDstRewritten(matchNwDstRewritten.get)
         builder
     }
 
