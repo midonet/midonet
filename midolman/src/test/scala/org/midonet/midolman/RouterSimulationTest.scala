@@ -645,6 +645,58 @@ class RouterSimulationTest extends MidolmanSpec {
         validatePass
     }
 
+    scenario("nw-dst-rewritten match") {
+        deleteRoute(upLinkRoute)
+
+        val fromMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val toMac = MAC.random
+        val toIp = addressInSegment(port2)
+
+        feedArpTable(simRouter, fromIp, fromMac)
+        feedArpTable(simRouter, toIp, toMac)
+
+        val port1dev = fetchDevice[RouterPort](port1)
+
+        def validatePass(ip: IPv4Addr) = {
+            var pkt = { eth src fromMac dst port1dev.portMac } <<
+                      { ip4 src fromIp dst ip } <<
+                      { icmp.echo request }
+            val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
+            simRes should be (AddVirtualWildcardFlow)
+            pktCtx.virtualFlowActions should contain (ToPortAction(port2))
+        }
+
+        def validateDrop(ip: IPv4Addr) = {
+            var pkt = { eth src fromMac dst port1dev.portMac } <<
+                      { ip4 src fromIp dst ip } <<
+                      { icmp.echo request }
+            val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
+            simRes should be (Drop)
+        }
+
+        val preChain = newInboundChainOnRouter("pre_routing", router)
+        val postChain = newOutboundChainOnRouter("post_routing", router)
+
+        val floatingIp = IPv4Addr.fromString("176.28.127.1")
+        val privIp = toIp
+        val dnatCond = new Condition()
+        dnatCond.nwDstIp = floatingIp.subnet()
+        val dnatTarget = new NatTarget(privIp.toInt, privIp.toInt, 0, 0)
+        newForwardNatRuleOnChain(preChain, 1, dnatCond, RuleResult.Action.ACCEPT,
+                                 Set(dnatTarget), isDnat = true)
+
+        validatePass(floatingIp)  // This involves nw dst rewrite
+        validatePass(toIp)
+
+        val cond = new Condition()
+        cond.matchNwDstRewritten = true
+        newLiteralRuleOnChain(postChain, 1, cond, RuleResult.Action.DROP)
+
+        validateDrop(floatingIp)  // This involves nw dst rewrite
+        validatePass(toIp)
+    }
+
     private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,
                           fromIp: IPv4Addr, toIp: IPv4Addr, `type`: Byte,
                           code: Byte): Unit = {
