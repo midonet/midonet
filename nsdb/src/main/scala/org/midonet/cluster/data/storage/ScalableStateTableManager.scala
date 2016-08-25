@@ -18,7 +18,6 @@ package org.midonet.cluster.data.storage
 
 import java.util
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue}
-import java.util.concurrent.TimeUnit.NANOSECONDS
 import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.util.control.NonFatal
@@ -303,7 +302,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
     private val updates = new util.ArrayList[Update[K, V]](64)
     private val removals = new util.ArrayList[TableEntry[K, V]](16)
 
-    private val adding = new util.HashSet[KeyValue[K, V]](4)
+    private val adding = new util.HashMap[KeyValue[K, V], Long](4)
     private val removing = new util.HashSet[KeyValue[K, V]](4)
     private val owned = new util.HashSet[Int]()
 
@@ -376,7 +375,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
                 // (i) in the process of being added, or (ii) the cache already
                 // contains a locally owned version of the same entry, and the
                 // entry is not being removed.
-                if (adding.contains(keyValue)) {
+                if (adding.containsKey(keyValue)) {
                     log debug s"Already adding $key -> $value"
                     return
                 }
@@ -387,7 +386,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
                     log debug s"Entry $key -> $value exists"
                     return
                 }
-                adding.add(keyValue)
+                adding.put(keyValue, System.nanoTime())
             }
             table.directory.asyncAdd(path, null, CreateMode.EPHEMERAL_SEQUENTIAL,
                                      addCallback, keyValue)
@@ -409,6 +408,8 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
 
         val removeEntry = this.synchronized {
             val oldEntry = cache.get(entry.key)
+            entry.timestamp = adding.remove(keyValue)
+            callbackLatency(entry)
             val removeEntry = if (oldEntry eq null) {
                 cache.put(entry.key, entry)
                 publish(Update(entry.key, table.nullValue, entry.value))
@@ -436,7 +437,6 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
             }
 
             owned.add(entry.version)
-            adding.remove(keyValue)
             removeEntry
         }
         if (removeEntry ne null) {
@@ -831,7 +831,9 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
                 // This entry is added or updated.
                 val newEntry = table.decodeEntry(entry)
                 val oldEntry = cache.get(newEntry.key)
-                if (oldEntry eq null) {
+                if (oldEntry == newEntry) {
+                    roundTripLatency(oldEntry)
+                } else if (oldEntry eq null) {
                     cache.put(newEntry.key, newEntry)
                     updates.add(Update(newEntry.key, table.nullValue,
                                        newEntry.value))
@@ -884,7 +886,7 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
             return
         }
 
-        val context = Long.box(System.currentTimeMillis())
+        val context = Long.box(System.nanoTime())
         table.directory.asyncGetChildren("", getCallback, watcher, context)
     }
 
@@ -930,7 +932,9 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
         while (addIterator.hasNext) {
             val newEntry = addIterator.next()
             val oldEntry = cache.get(newEntry.key)
-            if (oldEntry eq null) {
+            if (oldEntry == newEntry) {
+                roundTripLatency(oldEntry)
+            } else if (oldEntry eq null) {
                 cache.put(newEntry.key, newEntry)
                 updates.add(Update(newEntry.key, table.nullValue,
                                    newEntry.value))
@@ -1093,9 +1097,11 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
         }
 
         val lat = latency(context)
-        table.metrics.performance.addNotificationLatency(lat)
+        if (lat > 0) {
+            table.metrics.performance.addStateTableReadLatency(lat)
+        }
 
-        log trace s"Read ${entries.size()} entries in $lat ms"
+        log trace s"Read ${entries.size()} entries in $lat nanoseconds"
         update(entries, stat.getPzxid)
     }
 
@@ -1176,8 +1182,40 @@ private class ScalableStateTableManager[K, V](table: ScalableStateTable[K, V])
     private def latency(context: AnyRef): Long = {
         context match {
             case startTime: java.lang.Long =>
-                NANOSECONDS.toMillis(System.nanoTime() - startTime)
+                System.nanoTime() - startTime
             case _ => -1L
+        }
+    }
+
+    /**
+      * Records the latency for receiving an added entry via the callback
+      * handler of the write operation.
+      */
+    private def callbackLatency(entry: TableEntry[K, V]): Unit = {
+        if (entry.timestamp != 0) {
+            val latency = System.nanoTime() - entry.timestamp
+            table.metrics.performance.addStateTableAddLatency(latency)
+
+            log trace s"Added entry ${entry.key} -> ${entry.value} callback " +
+                      s"in $latency nanoseconds"
+        }
+    }
+
+    /**
+      * Records the latency for receiving an added entry via reading the
+      * complete entry set when using the storage, or via the state proxy when
+      * using the state proxy. This is opposed to receiving the entry via the
+      * write callback, and it intends to approximate the latency of receiving
+      * third-party updates.
+      */
+    private def roundTripLatency(entry: TableEntry[K, V]): Unit = {
+        if (entry.timestamp != 0) {
+            val latency = System.nanoTime() - entry.timestamp
+            entry.timestamp = 0
+            table.metrics.performance.addStateTableRoundTripLatency(latency)
+
+            log trace s"Added entry ${entry.key} -> ${entry.value} notified " +
+                      s"in $latency nanoseconds"
         }
     }
 

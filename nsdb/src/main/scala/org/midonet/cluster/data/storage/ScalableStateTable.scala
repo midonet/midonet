@@ -47,7 +47,9 @@ object ScalableStateTable {
       * @param version The entry version corresponding to the ephemeral sequential
       *                number.
       */
-    private[storage] case class TableEntry[K, V](key: K, value: V, version: Int)
+    private[storage] case class TableEntry[K, V](key: K, value: V, version: Int) {
+        var timestamp = 0L
+    }
 
 }
 
