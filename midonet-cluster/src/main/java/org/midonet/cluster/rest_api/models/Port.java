@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 
+import org.apache.commons.math3.analysis.function.Add;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
@@ -90,6 +91,10 @@ public abstract class Port extends UriResource {
     @JsonIgnore
     @ZoomField(name = "trace_request_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> traceRequestIds;
+
+    @JsonIgnore
+    @ZoomField(name="fip_nat_rule_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> fipNatRuleIds;
 
     @ZoomField(name = "inbound_mirror_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> inboundMirrorIds;
@@ -188,7 +193,7 @@ public abstract class Port extends UriResource {
         }
         portGroupIds = from.portGroupIds;
         traceRequestIds = from.traceRequestIds;
-
+        fipNatRuleIds = from.fipNatRuleIds;
         mirrorIds = from.mirrorIds;
         insertionIds = from.insertionIds;
         l2insertionInfilterId = from.l2insertionInfilterId;
@@ -209,6 +214,7 @@ public abstract class Port extends UriResource {
             .add("peerId", peerId)
             .add("portGroupIds", portGroupIds)
             .add("traceRequestIds", traceRequestIds)
+            .add("fipNatRuleIds", fipNatRuleIds)
             .add("active", active);
     }
 }
