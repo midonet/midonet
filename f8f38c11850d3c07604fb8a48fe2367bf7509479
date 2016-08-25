@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_0fae5c98",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1005043
+      },
+      "writtenOn": "2016-08-25T08:47:11Z",
+      "side": 1,
+      "message": "Are spaces important?",
+      "range": {
+        "startLine": 98,
+        "startChar": 14,
+        "endLine": 98,
+        "endChar": 39
+      },
+      "revId": "f8f38c11850d3c07604fb8a48fe2367bf7509479",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
