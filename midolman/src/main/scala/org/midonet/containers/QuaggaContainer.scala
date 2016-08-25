@@ -18,14 +18,17 @@ package org.midonet.containers
 
 import java.util.UUID
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
+
 import javax.inject.Named
 
 import scala.concurrent.{ExecutionContext, Future}
+
 import com.google.inject.Inject
+
 import rx.subjects.PublishSubject
 import rx.Observable
+
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.midolman.containers._
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpContainerReady
 import org.midonet.midolman.topology.VirtualTopology
@@ -51,9 +54,11 @@ class QuaggaContainer @Inject()(@Named("id") id: UUID,
       * @see [[ContainerHandler.create]]
       */
     override def create(port: ContainerPort): Future[Option[String]] = {
-        RoutingManagerActor.selfRef ! BgpContainerReady(port.portId)
-        statusSubject onNext ContainerHealth(Code.RUNNING, "BGP", "None")
-        Future.successful(None)
+        RoutingManagerActor.selfRefFuture.map { actorRef =>
+            actorRef ! BgpContainerReady(port.portId)
+            statusSubject onNext ContainerHealth(Code.RUNNING, "BGP", "None")
+            None
+        }
     }
 
     /**
