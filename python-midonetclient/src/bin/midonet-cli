@@ -2250,6 +2250,10 @@ class Condition(ObjectType):
                                inv_getter = 'is_inv_icmp_data_dst',
                                inv_setter = 'inv_icmp_data_dst',
                                optional = True))
+        self.put_attr(BooleanAttr(name = 'match-nw-dst-rewritten',
+                                 getter = 'is_match_nw_dst_rewritten',
+                                 setter = 'match_nw_dst_rewritten',
+                                 optional = True))
 
 
 
