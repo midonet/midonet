@@ -870,7 +870,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
                                Option(condition.icmpDataSrcIp),
                                Option(condition.icmpDataSrcIpInv),
                                Option(condition.icmpDataDstIp),
-                               Option(condition.icmpDataDstIpInv))
+                               Option(condition.icmpDataDstIpInv),
+                               Option(condition.matchNwDstRewritten))
         builder
     }
 

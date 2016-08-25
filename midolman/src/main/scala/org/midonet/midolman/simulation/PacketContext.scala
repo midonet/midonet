@@ -390,6 +390,7 @@ class PacketContext extends Clearable
     val outPorts = new ArrayList[UUID]()
     var currentDevice: UUID = _
     var routeTo: Route = _
+    var nwDstRewritten: Boolean = _
 
     val preRoutingMatch = new FlowMatch
     val wcmatch = new FlowMatch
@@ -520,6 +521,11 @@ class PacketContext extends Clearable
 
     def markUserspaceOnly(): Unit =
         wcmatch.markUserspaceOnly()
+
+    def markNwDstRewritten(): Unit = {
+        log.debug("marking a packet rewritten")
+        nwDstRewritten = true
+    }
 
     override def toString = s"PacketContext($cookieStr tags$flowTags actions$virtualFlowActions $origMatch)"
 }
