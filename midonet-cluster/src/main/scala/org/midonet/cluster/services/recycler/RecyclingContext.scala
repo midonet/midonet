@@ -27,7 +27,7 @@ import com.google.common.util.concurrent.RateLimiter
 import com.typesafe.scalalogging.Logger
 
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.utils.ZKPaths
+import org.apache.curator.utils.{PathUtils, ZKPaths}
 import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.ZooKeeper
 import org.apache.zookeeper.data.Stat
@@ -234,7 +234,7 @@ class RecyclingContext(val config: RecyclerConfig,
                 if (stat.getCtime < timestamp) {
                     log debug s"Deleting namespace $namespace verified with " +
                               s"timestamp ${stat.getCtime}"
-                    deleteWithChildren(path, stat.getVersion)
+                    delete(path, stat.getVersion)
                     deletedNamespaces += 1
                 } else {
                     log debug s"Skipping namespace $namespace with timestamp " +
@@ -374,7 +374,7 @@ class RecyclingContext(val config: RecyclerConfig,
                 if (stat.getCtime < timestamp) {
                     log debug "Deleting tables for object with timestamp " +
                               s"${stat.getCtime}"
-                    deleteWithChildren(path, stat.getVersion)
+                    delete(path, stat.getVersion)
                     deletedTables += 1
                 } else {
                     log debug "Skipping tables for object with timestamp " +
@@ -444,7 +444,7 @@ class RecyclingContext(val config: RecyclerConfig,
                 if (stat.getCtime < timestamp) {
                     log debug "Deleting legacy tables for object with timestamp " +
                               s"${stat.getCtime}"
-                    deleteWithChildren(path, stat.getVersion)
+                    delete(path, stat.getVersion)
                     deletedLegacy += 1
                 } else {
                     log debug "Skipping legacy tables for object with timestamp " +
@@ -512,21 +512,38 @@ class RecyclingContext(val config: RecyclerConfig,
     @throws[RecyclingException]
     private def delete(path: String, version: Int): Unit = {
         throttle()
-        try zk.delete(path, version)
-        catch {
+        try {
+            deleteWithChildren(path, version)
+        } catch {
             case NonFatal(e) => throw new RecyclingStorageException(e)
         }
     }
 
-    @throws[RecyclingException]
-    private def deleteWithChildren(path: String, version: Int): Unit = {
-        throttle()
-        try {
-            ZKPaths.deleteChildren(zk, path, false)
-            zk.delete(path, version)
-        } catch {
-            case NonFatal(e) => throw new RecyclingStorageException(e)
+    @throws[Exception]
+    private def deleteWithChildren(path: String, version: Int): Boolean = {
+        PathUtils.validatePath(path)
+
+        val children = zk.getChildren(path, null).asScala
+
+        val stat = new Stat
+        val pathsWithVersion = for (child <- children) yield {
+            val childPath = ZKPaths.makePath(path, child)
+            zk.getData(childPath, null, stat)
+            if (stat.getCtime >= timestamp) {
+                return false
+            }
+            (childPath, stat.getVersion)
         }
+
+        var delete = true
+        for ((childPath, childVersion) <- pathsWithVersion) {
+            delete &= deleteWithChildren(childPath, childVersion)
+        }
+
+        if (delete) {
+            zk.delete(path, version)
+        }
+        delete
     }
 
     /**
