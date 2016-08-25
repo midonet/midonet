@@ -22,6 +22,30 @@
       "revId": "d2cc4ee74491382b2a888209067cd92329e76a0a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ef49f833",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-08-25T08:16:00Z",
+      "side": 1,
+      "message": "How much would you suggest? Unfortunately if we do need a large read timeout margin, I don\u0027t think there is a way to solve this issue correctly :/",
+      "parentUuid": "baa041b7_af6090d0",
+      "range": {
+        "startLine": 255,
+        "startChar": 26,
+        "endLine": 255,
+        "endChar": 28
+      },
+      "revId": "d2cc4ee74491382b2a888209067cd92329e76a0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
