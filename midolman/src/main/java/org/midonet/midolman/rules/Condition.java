@@ -130,6 +130,8 @@ public class Condition extends BaseConfig {
     public IPSubnet<?> icmpDataDstIp;
     @ZoomField(name = "icmp_data_dst_ip_inv")
     public boolean icmpDataDstIpInv;
+    @ZoomField(name = "match_nw_dst_rewritten")
+    public boolean matchNwDstRewritten;
 
 
     // In production, this should always be initialized via the API, but there
@@ -276,6 +278,8 @@ public class Condition extends BaseConfig {
             return conjunctionInv;
         if (!matchIcmpDataDstIp(icmpDataDstIp, pktMatch,
                                 icmpDataDstIpInv))
+            return conjunctionInv;
+        if (matchNwDstRewritten && !pktCtx.nwDstRewritten())
             return conjunctionInv;
         return !conjunctionInv;
     }
@@ -446,6 +450,9 @@ public class Condition extends BaseConfig {
         formatField(sb, icmpDataSrcIpInv, "icmp-data-src-ip", icmpDataSrcIp);
         formatField(sb, icmpDataDstIpInv, "icmp-data-dst-ip", icmpDataDstIp);
 
+        if (matchNwDstRewritten)
+            sb.append("nw-dst-rewritten ");
+
         sb.append(")]");
         return sb.toString();
     }
@@ -493,7 +500,8 @@ public class Condition extends BaseConfig {
                 Objects.equals(tpSrc, c.tpSrc) &&
                 Objects.equals(tpDst, c.tpDst) &&
                 Objects.equals(icmpDataSrcIp, c.icmpDataSrcIp) &&
-                Objects.equals(icmpDataDstIp, c.icmpDataDstIp);
+                Objects.equals(icmpDataDstIp, c.icmpDataDstIp) &&
+                matchNwDstRewritten == c.matchNwDstRewritten;
     }
 
     @Override
@@ -508,7 +516,8 @@ public class Condition extends BaseConfig {
                 inPortIds, outPortIds, portGroup, inPortGroup, outPortGroup,
                 ipAddrGroupIdDst, ipAddrGroupIdSrc, unsignShort(etherType),
                 ethSrc, ethDst, nwTos, nwProto, nwSrcIp, nwDstIp, tpSrc, tpDst,
-                traversedDevice, icmpDataSrcIp, icmpDataDstIp);
+                traversedDevice, icmpDataSrcIp, icmpDataDstIp,
+                matchNwDstRewritten);
     }
 
     public static Integer unsignShort(Integer value) {
