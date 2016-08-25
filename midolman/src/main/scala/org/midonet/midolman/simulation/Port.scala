@@ -211,6 +211,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
             context.inPortId = id
             context.inPortGroups = portGroups
             context.currentDevice = deviceId
+            context.nwDstRewritten = false
             mirroringPreInFilter(context, portIngress)
         }
     }
