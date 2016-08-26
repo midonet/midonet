@@ -50,7 +50,10 @@ class BridgeArpTableResource(bridgeId: UUID, resourceContext: ResourceContext)
         val (address, mac) = parseIpMac(ipMac)
 
         tryLegacyRead {
-            if (Await.result(arpTable.containsRemote(address, mac), Timeout)) {
+            val inArpTable = Await.result(arpTable.containsRemote(address, mac),
+                                          requestTimeout)
+
+            if (inArpTable) {
                 new Ip4MacPair(resourceContext.uriInfo.getBaseUri, bridgeId,
                                address.toString, mac.toString)
             } else {
@@ -65,7 +68,7 @@ class BridgeArpTableResource(bridgeId: UUID, resourceContext: ResourceContext)
     override def list(@HeaderParam("Accept") accept: String)
     : util.List[Ip4MacPair] = {
         val entries = tryLegacyRead {
-            Await.result(arpTable.remoteSnapshot, Timeout)
+            Await.result(arpTable.remoteSnapshot, requestTimeout)
         }
         val result = for ((ip, mac) <- entries.toList) yield
             new Ip4MacPair(resourceContext.uriInfo.getBaseUri, bridgeId,
@@ -97,7 +100,7 @@ class BridgeArpTableResource(bridgeId: UUID, resourceContext: ResourceContext)
             }
 
         tryLegacyWrite {
-            Await.result(arpTable.addPersistent(address, mac), Timeout)
+            Await.result(arpTable.addPersistent(address, mac), requestTimeout)
             Response.created(ipMac.getUri).build()
         }
     }
@@ -108,7 +111,7 @@ class BridgeArpTableResource(bridgeId: UUID, resourceContext: ResourceContext)
         val (address, mac) = parseIpMac(ipMac)
 
         tryLegacyWrite {
-            Await.result(arpTable.removePersistent(address, mac), Timeout)
+            Await.result(arpTable.removePersistent(address, mac), requestTimeout)
             Response.noContent().build()
         }
     }
