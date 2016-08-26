@@ -201,7 +201,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                                          config, zkConnWatcher, zebraLoop,
                                          vt, isQuaggaContainerPort(port))).
                         withDispatcher("actors.pinned-dispatcher"),
-                    name = port.id.toString)
+                    name = s"bgp:${port.id}:$bgpPortIdx")
                 portHandlers.put(port.id, portHandler)
             }
 
