@@ -318,6 +318,7 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
     private def bgpdShouldRun = {
         zookeeperConnected &&
         portActive &&
+        bgpConfig.as > 0 &&
         (isQuagga || bgpConfig.neighbors.nonEmpty)
     }
 
