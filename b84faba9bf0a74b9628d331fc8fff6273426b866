@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9c9981d3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-08-26T15:18:04Z",
+      "side": 1,
+      "message": "I guess is ok, since is just an adaptation of the old code, but having routerPort.id and routerUUID that is a routerPort.deviceId or None as a routerId argument ... make me very confused just reading it :( Maybe is just because it is Friday :)",
+      "range": {
+        "startLine": 161,
+        "startChar": 0,
+        "endLine": 166,
+        "endChar": 72
+      },
+      "revId": "b84faba9bf0a74b9628d331fc8fff6273426b866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3ca835db",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-08-26T15:18:04Z",
+      "side": 1,
+      "message": "this part looks improve the naming/types a lot :)",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 49
+      },
+      "revId": "b84faba9bf0a74b9628d331fc8fff6273426b866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
