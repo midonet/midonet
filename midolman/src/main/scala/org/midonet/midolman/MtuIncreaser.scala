@@ -24,10 +24,10 @@ import scala.sys.process._
 import scala.util.{Failure, Success, Try}
 
 import akka.actor.ActorSystem
-import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.simulation.{BridgePort, Port}
 import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.util.logging.Logger
 
 object MtuIncreaser  {
     val BOUND_INTERFACE_MTU = 65000L
