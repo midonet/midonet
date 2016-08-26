@@ -93,7 +93,7 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
                 out.close()
         } catch {
             case e: IOException =>
-                log.error("Failed to close vty socket", e)
+                log.error("Failed to close VTY connection", e)
         } finally {
             socket = null
             in = null
@@ -108,7 +108,7 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
             out = new PrintWriter(socket.getOutputStream, true)
             in = new BufferedReader(new InputStreamReader(socket.getInputStream))
             initializationSequence()
-            log.info(s"opened vty connection to $addr:$port")
+            log.debug(s"Opened VTY connection to $addr:$port")
         } catch {
             case e: IOException =>
                 log.error("Could not open VTY connection", e)
@@ -136,9 +136,10 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
     }
 
     @tailrec
-    protected final def collectUntilPrompt(output: Queue[String] = Queue.empty): Queue[String] = {
+    protected final def collectUntilPrompt(output: Queue[String] = Queue.empty)
+    : Queue[String] = {
         val outputLine = in.readLine()
-        if (outputLine.endsWith(prompt)) {
+        if ((outputLine ne null) && outputLine.endsWith(prompt)) {
             output
         } else {
             log.debug(s"$outputLine")
@@ -154,7 +155,7 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
             collectUntilPrompt()
         } catch {
             case e: Exception =>
-                log.warn(s"vty command '$command' failed", e)
+                log.warn(s"VTY command '$command' failed", e)
                 disconnectCallbacks.foreach(_(e))
                 throw e
         }
