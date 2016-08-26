@@ -35,7 +35,8 @@ trait BgpdProcess {
     def remArpEntry(iface: String, ip: String, peerIp: String): Unit
 }
 
-case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
+case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
+                              localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
                               routerIp: IPv4Subnet, routerMac: MAC, vtyPortNumber: Int,
                               bgpdHelperScript: String = "/usr/lib/midolman/bgpd-helper",
                               confFile: String = "/etc/midolman/quagga/bgpd.conf",
@@ -43,9 +44,11 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     extends BgpdProcess with MidolmanLogging {
 
     override def logSource = "org.midonet.routing.bgp.bgp-daemon"
-    override def logMark = s"bgp:$bgpIndex"
+    override def logMark = s"bgp:$portId:$bgpIndex"
 
-    val vty = new BgpVtyConnection(remoteVtyIp.getAddress.toString, vtyPortNumber)
+    val vty = new BgpVtyConnection(portId, bgpIndex,
+                                   remoteVtyIp.getAddress.toString,
+                                   vtyPortNumber)
 
     val router = routerId.getOrElse("")
 

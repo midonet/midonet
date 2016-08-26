@@ -21,7 +21,7 @@ import java.util.UUID
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -55,7 +55,6 @@ import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.{AfUnix, UnixClock}
-import org.midonet.util.functors.makeRunnable
 
 class LazyZkConnectionMonitor(down: () => Unit,
                               up: () => Unit,
@@ -157,11 +156,14 @@ object RoutingHandler {
             private final val BGP_VTY_MIRROR_IP =
                 new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx), 30)
 
-            val routerUUID = if (isQuagga) Some(rport.deviceId.toString) else None
+            val routerUUID = if (isQuagga) Some(routerPort.deviceId.toString) else None
 
-            override protected val bgpd: BgpdProcess = new DefaultBgpdProcess(bgpIdx, BGP_VTY_LOCAL_IP,
-                BGP_VTY_MIRROR_IP, new IPv4Subnet(rport.portAddress, rport.portSubnet.getPrefixLen),
-                rport.portMac, BGP_VTY_PORT, routerId = routerUUID)
+            override protected val bgpd: BgpdProcess = new DefaultBgpdProcess(
+                routerPort.id, bgpIdx, BGP_VTY_LOCAL_IP,
+                BGP_VTY_MIRROR_IP,
+                new IPv4Subnet(routerPort.portAddress,
+                               routerPort.portSubnet.getPrefixLen),
+                routerPort.portMac, BGP_VTY_PORT, routerId = routerUUID)
 
             val lazyConnWatcher = new LazyZkConnectionMonitor(
                 () => self ! ZookeeperConnected(false),
@@ -185,16 +187,16 @@ object RoutingHandler {
             private var portBgpSub: Subscription = _
 
             override def preStart(): Unit = {
-                log.info(s"Starting, port ${rport.id}")
+                log.info(s"Starting, port ${routerPort.id}")
                 super.preStart()
 
                 // Subscribe to the BGP port mapper for BGP updates.
                 bgpSubscription = VirtualTopology.observable(classOf[BgpPort],
-                                                             rport.id)
+                                                             routerPort.id)
                                                  .subscribe(this)
 
                 if (isQuagga) {
-                    val portBgpObs = new RouterBgpMapper(rport.routerId, vt)
+                    val portBgpObs = new RouterBgpMapper(routerPort.routerId, vt)
                         .portBgpInfoObservable
                     portBgpSub = portBgpObs.subscribe(new PortBgpObserver)
                 }
@@ -246,7 +248,7 @@ object RoutingHandler {
 
                 log.info("Starting zebra server Actor")
                 val socketAddress = new AfUnix.Address(zebraSocketFile.getAbsolutePath)
-                zebra = ZebraServer(socketAddress, zebraHandler, rport.portAddress,
+                zebra = ZebraServer(socketAddress, zebraHandler, routerPort.portAddress,
                                     BGP_NETDEV_PORT_MIRROR_NAME, selectLoop)
             }
 
@@ -259,7 +261,7 @@ object RoutingHandler {
         }
 }
 
-abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
+abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
                               val flowInvalidator: FlowTag => Unit,
                               val routingStorage: RoutingStorage,
                               val config: MidolmanConfig,
@@ -270,7 +272,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     import RoutingHandler._
 
-    override def logSource = s"org.midonet.routing.bgp.bgp-$bgpIdx"
+    override def logSource = "org.midonet.routing.bgp"
+    override def logMark = s"bgp:${routerPort.id}:$bgpIdx"
 
     protected final val BGP_NETDEV_PORT_NAME = s"mbgp$bgpIdx"
     protected final val BGP_NETDEV_PORT_MIRROR_NAME = s"mbgp${bgpIdx}_m"
@@ -299,7 +302,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     val NO_UPLINK = -1
     val NO_PORT = -1
 
-    private val routingInfo: RoutingInfo = RoutingInfo(rport.id, NO_UPLINK, NO_PORT)
+    private val routingInfo: RoutingInfo = RoutingInfo(routerPort.id, NO_UPLINK, NO_PORT)
 
     private var theDatapathPort: Option[NetDevPort] = None
 
@@ -334,7 +337,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpSubscription = null
         }
         stopBgpd()
-        log.debug(s"Stopped on port ${rport.id}")
+        log.debug(s"Stopped on port ${routerPort.id}")
     }
 
     private val eventHandlerBase: PartialFunction[Any, Future[_]] = {
@@ -380,7 +383,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
             val portId = peerRouteToPort.remove(
                 PeerRoute(destination, gateway))
-                .getOrElse(rport.id)
+                .getOrElse(routerPort.id)
             val route = makeRoute(destination, gateway.toString, portId)
             peerRoutes.remove(route) match {
                 case None => // route missing
@@ -424,20 +427,20 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private def portUpdated(port: RouterPort): Future[_] = {
         if (bgpd.isAlive) {
-            if (port.portAddress != rport.portAddress ||
-                port.portSubnet != rport.portSubnet ||
-                port.portMac != rport.portMac) {
+            if (port.portAddress != routerPort.portAddress ||
+                port.portSubnet != routerPort.portSubnet ||
+                port.portMac != routerPort.portMac) {
                 log.info("Port addresses changed, restarting bgpd")
-                rport = port
+                routerPort = port
                 restartBgpd()
             } else {
                 log.info("Port addresses did not change")
-                rport = port
+                routerPort = port
                 Future.successful(true)
             }
         } else {
             log.info("new port but bgpd is down")
-            rport = port
+            routerPort = port
             Future.successful(true)
         }
     }
@@ -452,13 +455,13 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         log.info(s"Forgetting learned route: " +
             s"${route.getDstNetworkAddr}/${route.getDstNetworkLength} " +
             s"via ${route.getNextHopGateway}")
-        routingStorage.removeRoute(route, rport.id)
+        routingStorage.removeRoute(route, routerPort.id)
     }
 
     private def makeRoute(destination: IPv4Subnet, path: ZebraPath): Route = {
         val portId = currentPortBgps.find(_.bgpPeerIp == path.gateway.toString)
             .map(_.portId)
-            .getOrElse(rport.id)
+            .getOrElse(routerPort.id)
         peerRouteToPort.put(PeerRoute(destination, path.gateway), portId)
 
         val route = makeRoute(destination, path.gateway.toString, portId)
@@ -469,7 +472,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private def makeRoute(destination: IPv4Subnet, gwIp: String,
                           portId: UUID): Route = {
         val route = new Route()
-        route.setRouterId(rport.deviceId)
+        route.setRouterId(routerPort.deviceId)
         route.setDstNetworkAddr(destination.getAddress.toString)
         route.setDstNetworkLength(destination.getPrefixLen)
         route.setNextHopGateway(gwIp)
@@ -548,7 +551,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             s"via ${route.getNextHopGateway}")
 
         peerRoutes.put(route, null)
-        routingStorage.addRoute(route, rport.id).map { _ =>
+        routingStorage.addRoute(route, routerPort.id).map { _ =>
             peerRoutes.put(route, route)
             route
         }(singleThreadExecutionContext)
@@ -556,7 +559,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private def syncPeerRoutes()(implicit cbf: CbfRouteSeq): Unit = {
         handleLearnedRouteError {
-            routingStorage.learnedRoutes(rport.deviceId, rport.id, rport.hostId)
+            routingStorage.learnedRoutes(routerPort.deviceId, routerPort.id, routerPort.hostId)
                           .flatMap {
                 learnedRoutes =>
                 val futures = new ArrayBuffer[Future[Route]]()
@@ -575,7 +578,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def clearRoutingWorkflow(): Unit = {
-        RoutingWorkflow.routerPortToDatapathInfo.remove(rport.id)
+        RoutingWorkflow.routerPortToDatapathInfo.remove(routerPort.id)
         RoutingWorkflow.inputPortToDatapathInfo.remove(routingInfo.dpPortNo)
         routingInfo.dpPortNo = NO_PORT
         routingInfo.uplinkPid = NO_UPLINK
@@ -584,10 +587,10 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private def handleLearnedRouteError(op: => Future[_]): Unit = {
         op.onFailure {
             case e: StateAccessException =>
-                connWatcher.handleError(s"BGP learned routes: ${rport.id}",
+                connWatcher.handleError(s"BGP learned routes: ${routerPort.id}",
                                         learnedRoutesHandler, e)
             case e: KeeperException =>
-                connWatcher.handleError(s"BGP learned routes: ${rport.id}",
+                connWatcher.handleError(s"BGP learned routes: ${routerPort.id}",
                                         learnedRoutesHandler, e)
             case NonFatal(e) =>
                 log.error("BGP learned routes storage operation failed", e)
@@ -608,7 +611,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 case e: Exception => log.warn("Failed to check bgpd status", e)
             }
 
-            routingStorage.setStatus(rport.id, status).onFailure { case e =>
+            routingStorage.setStatus(routerPort.id, status).onFailure { case e =>
                 log.warn("Failed to set bgpd status", e)
             }(singleThreadExecutionContext)
         }(singleThreadExecutionContext)
@@ -678,13 +681,13 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         log.debug("Updating local CIDRs from {} to {}", currentPortBgps, newPortBgps)
         for (pbi <- currentPortBgps diff newPortBgps) {
-            bgpd.remArpEntry(rport.interfaceName, pbi.bgpPeerIp, pbi.cidr)
-            bgpd.remAddr(rport.interfaceName, pbi.cidr)
+            bgpd.remArpEntry(routerPort.interfaceName, pbi.bgpPeerIp, pbi.cidr)
+            bgpd.remAddr(routerPort.interfaceName, pbi.cidr)
         }
         for (pbi <- newPortBgps diff currentPortBgps) {
-            bgpd.assignAddr(rport.interfaceName, pbi.cidr, pbi.mac)
-            bgpd.addArpEntry(rport.interfaceName, pbi.bgpPeerIp,
-                             rport.portMac.toString, pbi.cidr)
+            bgpd.assignAddr(routerPort.interfaceName, pbi.cidr, pbi.mac)
+            bgpd.addArpEntry(routerPort.interfaceName, pbi.bgpPeerIp,
+                             routerPort.portMac.toString, pbi.cidr)
         }
         currentPortBgps = newPortBgps
 
@@ -730,7 +733,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         try {
             startZebra()
             if (isQuagga) {
-                bgpd.prepare(Some(rport.interfaceName))
+                bgpd.prepare(Some(routerPort.interfaceName))
                 Future.successful((null, -1))
             } else {
                 bgpd.prepare()
@@ -759,7 +762,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     RoutingWorkflow.inputPortToDatapathInfo
                         .put(dpPort.getPortNo, routingInfo)
                     RoutingWorkflow.routerPortToDatapathInfo
-                        .put(rport.id, routingInfo)
+                        .put(routerPort.id, routingInfo)
                     invalidateFlows()
                 }
                 bgpd.start()
@@ -773,7 +776,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def stopBgpd()(implicit cbf: CbfRouteSeq): Future[_] = {
-        log.info(s"Disabling BGP on port: ${rport.id}")
+        log.info(s"Disabling BGP on port: ${routerPort.id}")
         clearRoutingWorkflow()
         stopZebra()
 
