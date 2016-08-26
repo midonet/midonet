@@ -15,11 +15,13 @@
  */
 package org.midonet.quagga
 
+import java.util.UUID
+
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.packets.{MAC, IPv4Addr, IPv4Subnet}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.quagga.BgpdConfiguration._
 
 @RunWith(classOf[JUnitRunner])
@@ -39,7 +41,8 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
     implicit def str2ipv4(str: String) = IPv4Addr.fromString(str)
 
     before {
-        bgpd = new DefaultBgpdProcess(idx,
+        bgpd = new DefaultBgpdProcess(
+            UUID.randomUUID(), idx,
             BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
             routerAddress, routerMac, BGP_VTY_PORT,
             "./src/lib/midolman/bgpd-helper",

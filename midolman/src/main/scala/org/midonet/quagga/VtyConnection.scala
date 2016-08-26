@@ -17,18 +17,17 @@
 package org.midonet.quagga
 
 import java.io._
-import java.net.{UnknownHostException, Socket}
+import java.net.{Socket, UnknownHostException}
+import java.util.UUID
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
 
-import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPAddr}
-import org.midonet.quagga.BgpdConfiguration.{Neighbor, BgpdRunningConfig}
-
-import scala.collection.mutable.ListBuffer
+import org.midonet.packets.{IPAddr, IPv4Subnet}
+import org.midonet.quagga.BgpdConfiguration.{BgpdRunningConfig, Neighbor}
+import org.midonet.util.logging.Logger
 
 object VtyConnection {
     class NotConnectedException extends Exception
@@ -94,7 +93,7 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
                 out.close()
         } catch {
             case e: IOException =>
-                log.error("Failed to close vty socket", e)
+                log.error("Failed to close VTY connection", e)
         } finally {
             socket = null
             in = null
@@ -109,7 +108,7 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
             out = new PrintWriter(socket.getOutputStream, true)
             in = new BufferedReader(new InputStreamReader(socket.getInputStream))
             initializationSequence()
-            log.info(s"opened vty connection to $addr:$port")
+            log.info(s"Opened VTY connection to $addr:$port")
         } catch {
             case e: IOException =>
                 log.error("Could not open VTY connection", e)
@@ -139,6 +138,7 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
     @tailrec
     protected final def collectUntilPrompt(output: Queue[String] = Queue.empty): Queue[String] = {
         val outputLine = in.readLine()
+        log info s"Output line >>> $outputLine"
         if (outputLine.endsWith(prompt)) {
             output
         } else {
@@ -155,7 +155,7 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
             collectUntilPrompt()
         } catch {
             case e: Exception =>
-                log.warn(s"vty command '$command' failed", e)
+                log.warn(s"VTY command '$command' failed", e)
                 disconnectCallbacks.foreach(_(e))
                 throw e
         }
@@ -200,10 +200,11 @@ trait BgpConnection {
     def setMaximumPaths(as: Int, paths: Int)
 }
 
-class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port)
-        with BgpConnection {
+class BgpVtyConnection(id: UUID, addr: String, port: Int)
+    extends VtyConnection(addr, port) with BgpConnection {
 
-    override val log = Logger(LoggerFactory.getLogger("org.midonet.routing.bgp.bgp-vty"))
+    override val log = Logger(LoggerFactory.getLogger("org.midonet.routing.bgp.bgp-vty"),
+                              s"bgp:$id")
 
     import VtyConnection._
 
