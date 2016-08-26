@@ -48,9 +48,5 @@ class HostInterface(resource_base.ResourceBase):
     def get_status(self):
         return self.dto['status']
 
-    def get_status_field(self, status_type):
-        #TODO(tomoe)
-        pass
-
     def get_type(self):
         return self.dto['type']
