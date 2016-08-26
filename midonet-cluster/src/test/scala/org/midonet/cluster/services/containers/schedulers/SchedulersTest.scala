@@ -21,16 +21,14 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.util.Random
 
-import com.typesafe.scalalogging.Logger
-
-import org.scalatest.{Matchers, BeforeAndAfter, Suite}
+import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.slf4j.LoggerFactory
 
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.data.storage.InMemoryStorage
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.cluster.models.State.{ContainerStatus, ContainerServiceStatus}
+import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
@@ -38,6 +36,7 @@ import org.midonet.cluster.services.containers.schedulers.ContainerScheduler._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.Context
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
+import org.midonet.util.logging.Logger
 import org.midonet.util.reactivex._
 
 trait SchedulersTest extends Suite with BeforeAndAfter {
