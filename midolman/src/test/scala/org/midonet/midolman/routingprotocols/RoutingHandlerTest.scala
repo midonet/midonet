@@ -64,12 +64,12 @@ class RoutingHandlerTest extends FeatureSpecLike
     implicit var as: ActorSystem = _
     val peerRouteToPortAccount = mutable.Map[PeerRoute, UUID]()
 
-    val MY_AS = 7
+    val asNumber = 7
 
     val peer1 = IPv4Addr.fromString("192.168.80.2")
     val peer1Id = UUID.randomUUID()
-    def baseConfig = new BgpRouter(MY_AS, rport.portAddress,
-                                    Map(peer1 -> Neighbor(peer1, 100)))
+    def baseConfig = new BgpRouter(asNumber, rport.portAddress,
+                                   Map(peer1 -> Neighbor(peer1, 100)))
 
     val peer2 = IPv4Addr.fromString("192.168.80.3")
     val peer2Id = UUID.randomUUID()
@@ -111,10 +111,9 @@ class RoutingHandlerTest extends FeatureSpecLike
         as.shutdown()
     }
 
-    feature ("handles container ports") {
-        scenario ("start bgpd for a container port") {
+    feature("Handles container ports") {
+        scenario("Start BGP daemon for a container port") {
             val ifaceName = "TESTING"
-
             val containerRport = rport.copy(interfaceName = "TESTING",
                                             containerId = UUID.randomUUID())
 
@@ -130,14 +129,35 @@ class RoutingHandlerTest extends FeatureSpecLike
             containerRoutingHandler ! containerRport
             containerRoutingHandler ! BgpPort(containerRport, baseConfig,
                                               Set(peer1Id))
-            bgpd.ifaceOpt.get should be (ifaceName)
+            bgpd.ifaceOpt.get shouldBe ifaceName
         }
 
-        scenario ("applies and removes static arp entries") {
+        scenario("Ignores routers with no AS numbers") {
+            val ifaceName = "TESTING"
             val containerRport = rport.copy(interfaceName = "TESTING",
                                             containerId = UUID.randomUUID())
+            val bgpRouter = new BgpRouter(-1, rport.portAddress)
+
             val containerRoutingHandler = TestActorRef(
                 new TestableRoutingHandler(containerRport,
+                                           invalidations ::= _,
+                                           routingStorage,
+                                           config,
+                                           bgpd,
+                                           true,
+                                           peerRouteToPortAccount))
+
+            containerRoutingHandler ! containerRport
+            containerRoutingHandler ! BgpPort(containerRport, bgpRouter,
+                                              Set(peer1Id))
+            bgpd.ifaceOpt shouldBe None
+        }
+
+        scenario("Applies and removes static ARP entries") {
+            val containerPort = rport.copy(interfaceName = "TESTING",
+                                            containerId = UUID.randomUUID())
+            val containerRoutingHandler = TestActorRef(
+                new TestableRoutingHandler(containerPort,
                     invalidations ::= _,
                     routingStorage,
                     config,
@@ -145,29 +165,29 @@ class RoutingHandlerTest extends FeatureSpecLike
                     true,
                     peerRouteToPortAccount))
 
-            containerRoutingHandler ! containerRport
-            containerRoutingHandler ! BgpPort(containerRport, baseConfig.copy(neighbors = Map.empty), Set.empty)
+            containerRoutingHandler ! containerPort
+            containerRoutingHandler ! BgpPort(containerPort, baseConfig.copy(neighbors = Map.empty), Set.empty)
             bgpd.currentArpEntries.size should be (0)
             val pbi1 = PortBgpInfo(UUID.randomUUID(), "fakemac", "fakecidr", peer1.toString)
             val pbi2 = PortBgpInfo(UUID.randomUUID(), "fakemac2", "fakecidr2", peer2.toString)
 
             containerRoutingHandler ! PortBgpInfos(Seq(pbi1))
-            containerRoutingHandler ! BgpPort(containerRport, baseConfig, Set(peer1Id))
+            containerRoutingHandler ! BgpPort(containerPort, baseConfig, Set(peer1Id))
             bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString)
 
-            val update = new BgpRouter(MY_AS, rport.portAddress,
-                Map(peer1 -> Neighbor(peer1, 100),
+            val update = new BgpRouter(asNumber, rport.portAddress,
+                                       Map(peer1 -> Neighbor(peer1, 100),
                     peer2 -> Neighbor(peer2, 200)))
             containerRoutingHandler ! PortBgpInfos(Seq(pbi1, pbi2))
-            containerRoutingHandler ! BgpPort(containerRport, update, Set(peer1Id, peer2Id))
+            containerRoutingHandler ! BgpPort(containerPort, update, Set(peer1Id, peer2Id))
             bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString, peer2.toString)
 
             containerRoutingHandler ! PortBgpInfos(Seq(pbi1))
-            containerRoutingHandler ! BgpPort(containerRport, baseConfig, Set(peer1Id))
+            containerRoutingHandler ! BgpPort(containerPort, baseConfig, Set(peer1Id))
             bgpd.currentArpEntries should contain theSameElementsAs Set(peer1.toString)
 
             containerRoutingHandler ! PortBgpInfos(Seq())
-            containerRoutingHandler ! BgpPort(containerRport, baseConfig.copy(neighbors = Map.empty), Set.empty)
+            containerRoutingHandler ! BgpPort(containerPort, baseConfig.copy(neighbors = Map.empty), Set.empty)
             bgpd.currentArpEntries.size should be (0)
         }
     }
@@ -177,7 +197,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             PortBgpInfo(null, null, cidr, null)
     }
 
-    feature ("manages router ip addrs") {
+    feature("manages router ip addrs") {
         scenario("adds and deletes ips") {
             routingHandler ! RoutingHandler.PortBgpInfos(Seq())
             bgpd.currentIps.size should be (0)
@@ -202,7 +222,7 @@ class RoutingHandlerTest extends FeatureSpecLike
         }
     }
 
-    feature ("manages the bgpd lifecycle") {
+    feature("manages the bgpd lifecycle") {
         scenario("starts and stops bgpd") {
             routingHandler ! BgpPort(rport, baseConfig.copy(neighbors = Map.empty), Set.empty)
             bgpd.state should be (bgpd.NOT_STARTED)
@@ -403,14 +423,14 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     feature("reacts to changes in the bgp session configuration") {
         scenario("a new peer is added or removed") {
-            val update = new BgpRouter(MY_AS, rport.portAddress,
-                    Map(peer1 -> Neighbor(peer1, 100),
+            val update = new BgpRouter(asNumber, rport.portAddress,
+                                       Map(peer1 -> Neighbor(peer1, 100),
                         peer2 -> Neighbor(peer2, 200)))
 
             routingHandler ! BgpPort(rport, update, Set(peer1Id, peer2Id))
             routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
-            verify(bgpd.vty).addPeer(MY_AS, Neighbor(peer2, 200))
-            verify(bgpd.vty).deletePeer(MY_AS, peer2)
+            verify(bgpd.vty).addPeer(asNumber, Neighbor(peer2, 200))
+            verify(bgpd.vty).deletePeer(asNumber, peer2)
         }
 
         scenario("routes are announced and removed") {
@@ -424,21 +444,21 @@ class RoutingHandlerTest extends FeatureSpecLike
                 baseConfig.copy(networks = Set(net1)), Set(peer1Id))
 
             verify(bgpd.vty, times(3)).addNetwork(anyInt(), anyObject())
-            verify(bgpd.vty).addNetwork(MY_AS, net1.cidr)
-            verify(bgpd.vty).addNetwork(MY_AS, net2.cidr)
-            verify(bgpd.vty).addNetwork(MY_AS, net3.cidr)
+            verify(bgpd.vty).addNetwork(asNumber, net1.cidr)
+            verify(bgpd.vty).addNetwork(asNumber, net2.cidr)
+            verify(bgpd.vty).addNetwork(asNumber, net3.cidr)
 
             verify(bgpd.vty, times(2)).deleteNetwork(anyInt(), anyObject())
-            verify(bgpd.vty).deleteNetwork(MY_AS, net2.cidr)
-            verify(bgpd.vty).deleteNetwork(MY_AS, net3.cidr)
+            verify(bgpd.vty).deleteNetwork(asNumber, net2.cidr)
+            verify(bgpd.vty).deleteNetwork(asNumber, net3.cidr)
         }
 
         scenario("timer values change") {
-            val update = new BgpRouter(MY_AS, rport.portAddress,
-                Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
+            val update = new BgpRouter(asNumber, rport.portAddress,
+                                       Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
             routingHandler ! BgpPort(rport, update, Set(peer1Id))
-            verify(bgpd.vty).addPeer(MY_AS, Neighbor(peer1, 100, Some(29), Some(30), Some(31)))
+            verify(bgpd.vty).addPeer(asNumber, Neighbor(peer1, 100, Some(29), Some(30), Some(31)))
         }
     }
 }
