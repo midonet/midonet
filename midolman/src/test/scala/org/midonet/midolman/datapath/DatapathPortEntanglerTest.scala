@@ -21,20 +21,19 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
-import org.midonet.midolman.DatapathStateDriver
-import org.midonet.midolman.DatapathStateDriver.DpTriad
-import org.slf4j.helpers.NOPLogger
-import com.typesafe.scalalogging.Logger
-
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.helpers.NOPLogger
 
+import org.midonet.midolman.DatapathStateDriver
+import org.midonet.midolman.DatapathStateDriver.DpTriad
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.rcu.PortBinding
-import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.odp.ports.{InternalPort, NetDevPort}
+import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.util.concurrent._
+import org.midonet.util.logging.Logger
 
 @RunWith(classOf[JUnitRunner])
 class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneInstancePerTest {
