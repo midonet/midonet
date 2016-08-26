@@ -20,7 +20,6 @@ import java.util.UUID
 
 import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
-import scala.concurrent.duration._
 
 import akka.actor._
 import akka.testkit.TestActorRef
@@ -259,7 +258,7 @@ class RoutingHandlerTest extends FeatureSpecLike
 
         scenario("bgp dies") {
             bgpd.die()
-            routingHandler ! RoutingHandler.FETCH_BGPD_STATUS
+            routingHandler ! RoutingHandler.FetchBgpdStatus
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
         }
@@ -391,7 +390,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             routingStorage.unbreak()
             reset(routingStorage)
 
-            routingHandler ! RoutingHandler.SYNC_PEER_ROUTES
+            routingHandler ! RoutingHandler.SyncPeerRoutes
 
             verify(routingStorage, times(2)).addRoute(anyObject(),
                                                       Eq(rport.id))
@@ -555,7 +554,6 @@ class TestableRoutingHandler(rport: RouterPort,
                                    config, new MockZkConnWatcher(), isQuagga) {
 
     override val peerRouteToPort = peerPortMap
-    override val bgdpBootstrapDelay = 0 seconds
 
     override def createDpPort(port: String): Future[(DpPort, Int)]  = {
         val p = DpPort.fakeFrom(new NetDevPort("bgpd"), 27).asInstanceOf[NetDevPort]
