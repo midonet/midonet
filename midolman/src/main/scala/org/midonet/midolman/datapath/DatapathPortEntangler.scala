@@ -20,8 +20,6 @@ import java.util.{UUID, HashSet => JHashSet, Set => JSet}
 import scala.concurrent.Future
 import scala.util.Random
 
-import com.typesafe.scalalogging.Logger
-
 import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.DatapathStateDriver.DpTriad
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -29,6 +27,7 @@ import org.midonet.midolman.topology.rcu.PortBinding
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
 import org.midonet.util.concurrent._
+import org.midonet.util.logging.Logger
 
 /**
  * This class manages the relationships between interfaces, datapath ports,

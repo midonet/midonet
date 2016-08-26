@@ -17,18 +17,17 @@
 package org.midonet.quagga
 
 import java.io._
-import java.net.{UnknownHostException, Socket}
+import java.net.{Socket, UnknownHostException}
+import java.util.UUID
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
 
-import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPAddr}
-import org.midonet.quagga.BgpdConfiguration.{Neighbor, BgpdRunningConfig}
-
-import scala.collection.mutable.ListBuffer
+import org.midonet.packets.{IPAddr, IPv4Subnet}
+import org.midonet.quagga.BgpdConfiguration.{BgpdRunningConfig, Neighbor}
+import org.midonet.util.logging.Logger
 
 object VtyConnection {
     class NotConnectedException extends Exception
@@ -200,10 +199,12 @@ trait BgpConnection {
     def setMaximumPaths(as: Int, paths: Int)
 }
 
-class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port)
-        with BgpConnection {
+class BgpVtyConnection(portId: UUID, bgpIndex: Int, addr: String, port: Int)
+    extends VtyConnection(addr, port) with BgpConnection {
 
-    override val log = Logger(LoggerFactory.getLogger("org.midonet.routing.bgp.bgp-vty"))
+    override val log =
+        Logger(LoggerFactory.getLogger("org.midonet.routing.bgp.bgp-vty"),
+               s"bgp:$portId:$bgpIndex")
 
     import VtyConnection._
 
