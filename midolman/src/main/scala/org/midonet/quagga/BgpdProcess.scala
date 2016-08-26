@@ -16,8 +16,6 @@
 
 package org.midonet.quagga
 
-import java.util.UUID
-
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.{IPv4Subnet, MAC}
 import org.midonet.util.process.ProcessHelper
@@ -72,7 +70,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     def assignAddr(iface: String, ip: String, mac: String): Unit = {
         val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip $mac " +
                   s"$router"
-        log.debug(s"bgpd command line: $cmd")
+        log.debug(s"BGP daemon command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
@@ -86,7 +84,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
 
     def remAddr(iface: String, ip: String): Unit = {
         val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router"
-        log.debug(s"bgpd command line: $cmd")
+        log.debug(s"BGP daemon command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
@@ -106,10 +104,10 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         result.returnValue match {
             case 0 =>
                 logProcOutput(result, s => log.debug(s))
-                log.info(s"Successfully added arp entry $ip -> $mac to $iface")
+                log.info(s"Successfully added ARP entry $ip -> $mac to $iface")
             case err =>
                 logProcOutput(result, s => log.info(s))
-                log.info(s"Failed to add arp entry $ip -> $mac to $iface")
+                log.info(s"Failed to add ARP entry $ip -> $mac to $iface")
         }
     }
 
@@ -120,10 +118,10 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         result.returnValue match {
             case 0 =>
                 logProcOutput(result, s => log.debug(s))
-                log.info(s"Successfully removed arp entry $ip from $iface")
+                log.info(s"Successfully removed ARP entry $ip from $iface")
             case err =>
                 logProcOutput(result, s => log.info(s))
-                log.info(s"Failed to remove arp entry $ip from $iface")
+                log.info(s"Failed to remove ARP entry $ip from $iface")
         }
     }
 
@@ -131,15 +129,16 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         val ifaceOpt = iface.getOrElse("")
         val cmd = s"$bgpdHelperScript prepare $bgpIndex $localVtyIp " +
                   s"$remoteVtyIp $routerIp $routerMac $ifaceOpt $router"
-        log.debug(s"bgpd command line: $cmd")
+        log.debug(s"BGP daemon command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
                 logProcOutput(result, s => log.debug(s))
-                log.info(s"Successfully prepared environment")
+                log.info(s"Successfully prepared BGP daemon environment")
             case err =>
                 logProcOutput(result, s => log.info(s))
-                throw new Exception(s"Failed to prepare environment, exit status $err")
+                throw new Exception("Failed to prepare BGP daemon environment: " +
+                                    s"exit status $err")
         }
     }
 
@@ -147,16 +146,16 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         vty.close()
 
         val cmd = s"$bgpdHelperScript down $bgpIndex $router"
-        log.debug(s"bgpd command line: $cmd")
+        log.debug(s"BGP daemon command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
             case 0 =>
                 logProcOutput(result, s => log.debug(s))
-                log.info(s"Successfully stopped")
+                log.info(s"BGP daemon stopped successfully")
                 true
             case err =>
                 logProcOutput(result, s => log.info(s))
-                log.warn(s"Failed to stop, exit status $err")
+                log.warn(s"BGP daemon failed to stop, exit status $err")
                 false
         }
     }
@@ -188,8 +187,8 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
         val cmd = s"$bgpdHelperScript up $bgpIndex $vtyPortNumber $confFile " +
                   s"$LOGDIR $router"
 
-        log.debug(s"Starting bgpd process VTY: $vtyPortNumber")
-        log.debug(s"bgpd command line: $cmd")
+        log.debug(s"Starting BGP daemon process VTY: $vtyPortNumber")
+        log.debug(s"BGP daemon command line: $cmd")
         val logPrefix = router.length match {
             case 0 => "bgpd-" + vtyPortNumber
             case _ => router.substring(0, 7)
@@ -202,16 +201,17 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
             try {
                 Thread.sleep(100)
                 connectVty()
-                log.info(s"bgpd started VTY: $vtyPortNumber")
+                log.info(s"BGP daemon started VTY: $vtyPortNumber")
             } catch {
                 case e: Throwable =>
-                    log.warn("bgpd started but vty connection failed, aborting")
+                    log.warn("BGP daemon started but VTY connection failed: " +
+                             "aborting")
                     stop()
                     throw e
             }
         } else {
             stop()
-            throw new Exception("bgpd subprocess failed to start")
+            throw new Exception("BGP daemon subprocess failed to start")
         }
     }
 }
