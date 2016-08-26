@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5cf1b900",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-08-26T15:25:04Z",
+      "side": 1,
+      "message": "Yes, I mean, it was already confusing (at least to me at first sight) in the previous version, nothing to object to what you added :)",
+      "parentUuid": "baa041b7_7c859d57",
+      "range": {
+        "startLine": 161,
+        "startChar": 0,
+        "endLine": 166,
+        "endChar": 72
+      },
+      "revId": "b84faba9bf0a74b9628d331fc8fff6273426b866",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_3ca835db",
         "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
         "patchSetId": 1
