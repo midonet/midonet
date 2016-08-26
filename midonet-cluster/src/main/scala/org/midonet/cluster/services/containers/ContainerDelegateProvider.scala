@@ -19,13 +19,13 @@ package org.midonet.cluster.services.containers
 import scala.reflect.classTag
 
 import com.google.inject.{AbstractModule, Guice}
-import com.typesafe.scalalogging.Logger
 
 import org.reflections.Reflections
 
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.containers.{ContainerDelegate, ContainerProvider}
+import org.midonet.util.logging.Logger
 
 /**
   * Scans the current classpath for service container delegates.

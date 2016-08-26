@@ -141,7 +141,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private val containerObservable = Observable.create(containerMapper)
 
     private val provider =
-        new ContainerHandlerProvider(reflections, vt, ioExecutor, log.wrapper)
+        new ContainerHandlerProvider(reflections, vt, ioExecutor, log)
 
     private val logger = new ContainerLogger(vt.config.containers, log.wrapper)
 

@@ -23,7 +23,6 @@ import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
-import com.typesafe.scalalogging.Logger
 
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener
 import org.reflections.Reflections
@@ -42,6 +41,7 @@ import org.midonet.minion.MinionService.TargetNode
 import org.midonet.minion.{Context, Minion, MinionService}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.makeAction0
+import org.midonet.util.logging.Logger
 
 object ContainerService {
 

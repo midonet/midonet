@@ -18,7 +18,7 @@ package org.midonet.containers
 
 import java.io.File
 import java.util.UUID
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit, ExecutorService}
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService, TimeUnit}
 
 import javax.inject.Named
 
@@ -28,18 +28,17 @@ import scala.util.control.NonFatal
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.MoreObjects
 import com.google.inject.Inject
-import com.typesafe.scalalogging.Logger
 
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
-import rx.{Observer, Observable, Subscription}
+import rx.{Observable, Observer, Subscription}
 
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
-import org.midonet.cluster.models.Neutron.IPSecSiteConnection.{DpdAction, IkePolicy, Initiator, IPSecPolicy, IPSecAuthAlgorithm, IPSecEncryptionAlgorithm, IPSecPfs}
+import org.midonet.cluster.models.Neutron.IPSecSiteConnection.{DpdAction, IPSecAuthAlgorithm, IPSecEncryptionAlgorithm, IPSecPfs, IPSecPolicy, IkePolicy, Initiator}
 import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.models.Topology.{Port, Router}
@@ -47,12 +46,12 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.containers.IPSecContainer._
-import org.midonet.midolman.containers._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet}
 import org.midonet.util.concurrent._
 import org.midonet.util.functors._
 import org.midonet.util.io.Tailer
+import org.midonet.util.logging.Logger
 
 case class IPSecServiceDef(name: String,
                            filepath: String,
@@ -311,6 +310,7 @@ class IPSecContainer @Inject()(@Named("id") id: UUID,
     extends ContainerHandler with ContainerCommons {
 
     override def logSource = "org.midonet.containers.ipsec"
+    override def logMark = s"ipsec:$id"
 
     private val statusSubject = PublishSubject.create[ContainerStatus]
     private implicit val ec = ExecutionContext.fromExecutor(containerExecutor)

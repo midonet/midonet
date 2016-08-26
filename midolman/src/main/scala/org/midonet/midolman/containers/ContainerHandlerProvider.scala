@@ -23,13 +23,13 @@ import scala.reflect.classTag
 
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice}
-import com.typesafe.scalalogging.Logger
 
 import org.reflections.Reflections
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.containers.{ContainerHandler, ContainerProvider}
 import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.util.logging.Logger
 
 /**
   * Scans the current classpath for service container handlers.
