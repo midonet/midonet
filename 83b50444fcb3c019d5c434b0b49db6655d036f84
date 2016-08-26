@@ -22,6 +22,30 @@
       "revId": "83b50444fcb3c019d5c434b0b49db6655d036f84",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7c2fdd3e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscoverySelector.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-26T16:01:19Z",
+      "side": 1,
+      "message": "Turns out there is, thank you",
+      "parentUuid": "baa041b7_dc0149b1",
+      "range": {
+        "startLine": 97,
+        "startChar": 18,
+        "endLine": 97,
+        "endChar": 49
+      },
+      "revId": "83b50444fcb3c019d5c434b0b49db6655d036f84",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
