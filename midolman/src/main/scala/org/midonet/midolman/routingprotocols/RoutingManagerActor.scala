@@ -191,6 +191,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                 !portHandlers.contains(port.id)) {
                 bgpPortIdx += 1
                 val portIndexForHandler = bgpPortIdx
+                val actorName = s"bgp-${port.id}"
 
                 log.debug(s"Creating routing handler for port {}", port.id)
 
@@ -201,7 +202,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                                          config, zkConnWatcher, zebraLoop,
                                          vt, isQuaggaContainerPort(port))).
                         withDispatcher("actors.pinned-dispatcher"),
-                    name = port.id.toString)
+                    name = actorName)
                 portHandlers.put(port.id, portHandler)
             }
 

@@ -259,7 +259,7 @@ class RoutingHandlerTest extends FeatureSpecLike
 
         scenario("bgp dies") {
             bgpd.die()
-            routingHandler ! RoutingHandler.FETCH_BGPD_STATUS
+            routingHandler ! RoutingHandler.FetchBgpdStatus
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
         }
@@ -391,7 +391,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             routingStorage.unbreak()
             reset(routingStorage)
 
-            routingHandler ! RoutingHandler.SYNC_PEER_ROUTES
+            routingHandler ! RoutingHandler.SyncPeerRoutes
 
             verify(routingStorage, times(2)).addRoute(anyObject(),
                                                       Eq(rport.id))
