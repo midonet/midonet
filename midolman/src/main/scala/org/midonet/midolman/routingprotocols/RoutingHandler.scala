@@ -21,7 +21,7 @@ import java.util.UUID
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -55,7 +55,6 @@ import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.{AfUnix, UnixClock}
-import org.midonet.util.functors.makeRunnable
 
 class LazyZkConnectionMonitor(down: () => Unit,
                               up: () => Unit,
@@ -159,7 +158,8 @@ object RoutingHandler {
 
             val routerUUID = if (isQuagga) Some(rport.deviceId.toString) else None
 
-            override protected val bgpd: BgpdProcess = new DefaultBgpdProcess(bgpIdx, BGP_VTY_LOCAL_IP,
+            override protected val bgpd: BgpdProcess = new DefaultBgpdProcess(
+                rport.id, bgpIdx, BGP_VTY_LOCAL_IP,
                 BGP_VTY_MIRROR_IP, new IPv4Subnet(rport.portAddress, rport.portSubnet.getPrefixLen),
                 rport.portMac, BGP_VTY_PORT, routerId = routerUUID)
 
