@@ -217,7 +217,6 @@ final class BgpRouterMapper(routerId: UUID,
 
     @volatile private var router: Router = null
     @volatile private var error: Throwable = null
-    @volatile private var publishedBgp: BgpRouter = null
 
     private val networks = new mutable.HashMap[UUID, NetworkState]
     private val peers = new mutable.HashMap[UUID, PeerState]
