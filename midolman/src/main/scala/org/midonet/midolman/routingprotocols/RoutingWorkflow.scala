@@ -101,9 +101,9 @@ trait RoutingWorkflow {
              fmatch.getNetworkProto == ICMP.PROTOCOL_NUMBER)
 
     private def matchTcp(fmatch: FlowMatch) =
-        if (fmatch.getSrcPort == RoutingHandler.BGP_TCP_PORT) {
+        if (fmatch.getSrcPort == RoutingHandler.BgpTcpPort) {
             true
-        } else if (fmatch.getDstPort == RoutingHandler.BGP_TCP_PORT) {
+        } else if (fmatch.getDstPort == RoutingHandler.BgpTcpPort) {
             fmatch.fieldUnseen(Field.SrcPort)
             true
         } else {
