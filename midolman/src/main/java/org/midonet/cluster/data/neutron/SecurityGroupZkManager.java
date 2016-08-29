@@ -309,6 +309,12 @@ public class SecurityGroupZkManager extends BaseZkManager {
         UUID outboundChainId = group.getPropertyUuid(RuleDirection.INGRESS);
         ops.addAll(chainZkManager.prepareDelete(outboundChainId));
 
+        // Delete the security group rules
+        for(SecurityGroupRule sgr : getSecurityGroupRules(sgId)) {
+            String rulePath = paths.getNeutronSecurityGroupRulePath(sgr.id);
+            ops.add(zk.getDeleteOp(rulePath));
+        }
+
         String path = paths.getNeutronSecurityGroupPath(sgId);
         ops.add(zk.getDeleteOp(path));
     }
