@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_36396cd9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclingContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-08-29T10:15:42Z",
+      "side": 1,
+      "message": "All seems ok, and the \"\u003e\u003d timestamp\" seems aligned with other comparisons in the code using \"\u003c timestamp\", but I am wondering if this could lead to a problem at deleting a node that whose children have the same timestamp as the parent (same millisecond, for example). Maybe not an issue, but just to comment.",
+      "range": {
+        "startLine": 532,
+        "startChar": 12,
+        "endLine": 532,
+        "endChar": 45
+      },
+      "revId": "14ee7bc780e0211b940c5a4720da1b8232aa9ff9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
