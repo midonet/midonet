@@ -54,4 +54,4 @@ if [ ! -e "$CLASSPATH" ]; then
 fi
 
 exec $JAVA -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
-    $JAVA_LIBRARY_PATH -cp $CLASSPATH $MAIN_CLASS $*
+    $JAVA_LIBRARY_PATH -cp $CLASSPATH $MAIN_CLASS "$@"
