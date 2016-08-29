@@ -94,6 +94,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_43d67b28",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-29T03:11:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_6816fe59",
+      "range": {
+        "startLine": 191,
+        "startChar": 0,
+        "endLine": 198,
+        "endChar": 13
+      },
+      "revId": "42cc9de465cbe72742664c6cd969e259e6322a32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_481b3a81",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 3
@@ -105,6 +129,30 @@
       "writtenOn": "2016-08-26T06:31:01Z",
       "side": 1,
       "message": "Why not filter the IDs first, before fetching the objects, like:\n\n  storage.getAll(classOf[NeutronSubnet],\n                 net.getSubnetsList.asScala - ns.getId)",
+      "range": {
+        "startLine": 81,
+        "startChar": 31,
+        "endLine": 81,
+        "endChar": 59
+      },
+      "revId": "42cc9de465cbe72742664c6cd969e259e6322a32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e3e58f0a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-29T03:11:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_481b3a81",
       "range": {
         "startLine": 81,
         "startChar": 31,
@@ -140,6 +188,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_03e073f9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-29T03:11:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e3110f55",
+      "range": {
+        "startLine": 88,
+        "startChar": 34,
+        "endLine": 88,
+        "endChar": 45
+      },
+      "revId": "42cc9de465cbe72742664c6cd969e259e6322a32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a332e7f0",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 3
@@ -151,6 +223,30 @@
       "writtenOn": "2016-08-26T06:31:01Z",
       "side": 1,
       "message": "Move this down to just before the three lines that add to it, to make it clear that we don\u0027t add to it anywhere else.",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 39,
+        "endChar": 41
+      },
+      "revId": "42cc9de465cbe72742664c6cd969e259e6322a32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_63b85fe9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-29T03:11:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a332e7f0",
       "range": {
         "startLine": 39,
         "startChar": 8,
@@ -186,6 +282,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c5672cb6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-29T03:11:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c33ccbc1",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 5
+      },
+      "revId": "42cc9de465cbe72742664c6cd969e259e6322a32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_037193a8",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
         "patchSetId": 3
@@ -197,6 +317,30 @@
       "writtenOn": "2016-08-26T06:31:01Z",
       "side": 1,
       "message": "netName?",
+      "range": {
+        "startLine": 911,
+        "startChar": 44,
+        "endLine": 911,
+        "endChar": 48
+      },
+      "revId": "42cc9de465cbe72742664c6cd969e259e6322a32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a50308be",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 911,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-29T03:11:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_037193a8",
       "range": {
         "startLine": 911,
         "startChar": 44,
@@ -232,6 +376,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_850804db",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-29T03:11:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_03a873da",
+      "range": {
+        "startLine": 425,
+        "startChar": 23,
+        "endLine": 425,
+        "endChar": 85
+      },
+      "revId": "42cc9de465cbe72742664c6cd969e259e6322a32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_439e7bb9",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
         "patchSetId": 3
@@ -243,6 +411,30 @@
       "writtenOn": "2016-08-26T06:31:01Z",
       "side": 1,
       "message": "How about:\n\n  val portCidrs \u003d for {\n      r \u003c- routes if r.getDstSubnet.getPrefixLength \u003c 32\n  } yield r.getDstSubnet.asJava.toString\n\nor:\n\n  val portCidrs \u003d routers.collect {\n      case r if r.getDstSubnet.getPrefixLength \u003c 32 \u003d\u003e\n          r.getDstSubnet.asJava.toString\n  }\n\nFor either to work, you\u0027ll need to import IPSubnetUtil.richProtoIpSubnet",
+      "range": {
+        "startLine": 428,
+        "startChar": 0,
+        "endLine": 434,
+        "endChar": 19
+      },
+      "revId": "42cc9de465cbe72742664c6cd969e259e6322a32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_25f818c4",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-08-29T03:11:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_439e7bb9",
       "range": {
         "startLine": 428,
         "startChar": 0,
