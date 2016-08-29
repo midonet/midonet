@@ -35,7 +35,6 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.ClusterConfig
-import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
 import org.midonet.cluster.models.Topology.{Host, Network, Port, Router}
@@ -432,7 +431,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
     }
 
     feature("Recycler deletes orphan object state") {
-        scenario("State for non-existing objects") {
+        scenario("Single-value state for non-existing objects") {
             Given("A recycling service")
             val recycler = newRecycler()
             clock.time = System.currentTimeMillis() +
@@ -444,8 +443,8 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             curator.create().forPath(store.objectPath(classOf[Host], namespace))
             val path = store.stateObjectPath(namespace, classOf[Port], portId)
             curator.create()
-                   .creatingParentContainersIfNeeded()
-                   .forPath(path)
+                .creatingParentContainersIfNeeded()
+                .forPath(path)
             waitForExpiry(path)
 
             When("The recycler starts")
@@ -467,7 +466,43 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
                     namespace, classOf[Port], portId)) shouldBe null
         }
 
-        scenario("State for existing objects") {
+        scenario("Multi-value state for non-existing objects") {
+            Given("A recycling service")
+            val recycler = newRecycler()
+            clock.time = System.currentTimeMillis() +
+                         config.recycler.interval.toMillis
+
+            And("A node for an object state")
+            val namespace = UUID.randomUUID().toString
+            val portId = UUID.randomUUID()
+            curator.create().forPath(store.objectPath(classOf[Host], namespace))
+            val path = store.stateObjectPath(namespace, classOf[Port], portId) +
+                       "/value"
+            curator.create()
+                .creatingParentContainersIfNeeded()
+                .forPath(path)
+            waitForExpiry(path)
+
+            When("The recycler starts")
+            recycler.startAsync().awaitRunning()
+
+            Then("The recycler should run the recycling task")
+            val result = recycler.tasks.toBlocking.first()
+
+            And("Recycling should not be skipped")
+            result.isSuccess shouldBe true
+            result.get.deletedObjects shouldBe 1
+
+            And("The recycler stops")
+            recycler.stopAsync().awaitTerminated()
+
+            And("The object state path should be deleted")
+            curator.checkExists()
+                .forPath(store.stateObjectPath(
+                    namespace, classOf[Port], portId)) shouldBe null
+        }
+
+        scenario("Single-value state for existing objects") {
             Given("A recycling service")
             val recycler = newRecycler()
             clock.time = System.currentTimeMillis() +
