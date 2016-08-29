@@ -22,6 +22,30 @@
       "revId": "14ee7bc780e0211b940c5a4720da1b8232aa9ff9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b6ce9cb5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/recycler/RecyclingContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-29T10:56:05Z",
+      "side": 1,
+      "message": "So if the condition is true (equal timestamps) then we don\u0027t delete.",
+      "parentUuid": "baa041b7_36396cd9",
+      "range": {
+        "startLine": 532,
+        "startChar": 12,
+        "endLine": 532,
+        "endChar": 45
+      },
+      "revId": "14ee7bc780e0211b940c5a4720da1b8232aa9ff9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
