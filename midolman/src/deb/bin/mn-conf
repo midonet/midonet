@@ -67,4 +67,4 @@ fi
 MAIN_CLASS='org.midonet.conf.MidoConfTool'
 CLASSPATH=$MIDO_HOME/*:$MIDO_HOME/dep/*
 
-exec $JAVA -cp $CLASSPATH $MAIN_CLASS $*
+exec $JAVA -cp $CLASSPATH $MAIN_CLASS "$@"
