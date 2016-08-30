@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_03af492c",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T05:03:23Z",
+      "side": 1,
+      "message": "This is fine, but for future reference, when comparing a protobuf UUID to a regular UUID, it\u0027s better to convert the protobuf UUID to a regular one rather than the other way around. This way if the test fails, the error message is a single line with UUIDs displayed in canonical form, rather than like eight lines long with UUIDs displayed with the protobuf serialization format.",
+      "range": {
+        "startLine": 128,
+        "startChar": 12,
+        "endLine": 128,
+        "endChar": 53
+      },
+      "revId": "d43915a3cc8450a9ab91e68c312f2386d64d079f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e3ab451d",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T05:03:23Z",
+      "side": 1,
+      "message": "Here too, although it\u0027s not as bad as with UUIDs.",
+      "range": {
+        "startLine": 132,
+        "startChar": 48,
+        "endLine": 132,
+        "endChar": 75
+      },
+      "revId": "d43915a3cc8450a9ab91e68c312f2386d64d079f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
