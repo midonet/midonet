@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_f1e2809f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T08:32:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_f69cb66b",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 26
+      },
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b6898e28",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Chain.scala",
         "patchSetId": 8
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d1df7cd4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T08:32:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_b6898e28",
+      "range": {
+        "startLine": 47,
+        "startChar": 41,
+        "endLine": 47,
+        "endChar": 48
+      },
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_167b9a29",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
         "patchSetId": 8
@@ -59,6 +107,30 @@
       "writtenOn": "2016-07-14T21:03:39Z",
       "side": 1,
       "message": "lower case? same below",
+      "range": {
+        "startLine": 40,
+        "startChar": 18,
+        "endLine": 40,
+        "endChar": 19
+      },
+      "revId": "c4d6e16da68f8f1db3f137e0289e1046741d75b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b1ef5886",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RuleLogger.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T08:32:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_167b9a29",
       "range": {
         "startLine": 40,
         "startChar": 18,
