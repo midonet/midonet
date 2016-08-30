@@ -101,7 +101,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
                 }
             }
 
-            log.debug("Input: " + newMapByName);
+            log.trace("Input: " + newMapByName);
             if (!createdInterfaces.isEmpty()) {
                 log.debug("Created: " + createdInterfaces);
             }
