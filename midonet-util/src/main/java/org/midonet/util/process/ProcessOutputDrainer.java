@@ -31,6 +31,11 @@ import org.apache.commons.io.LineIterator;
  */
 public class ProcessOutputDrainer {
 
+    private static Runnable NO_EXIT_HANDLER = new Runnable() {
+        @Override
+        public void run() { }
+    };
+
     private Process process;
     private boolean separateErrorStream;
 
@@ -44,15 +49,16 @@ public class ProcessOutputDrainer {
     }
 
     public void drainOutput(DrainTarget drainTarget) {
-        drainOutput(drainTarget, true);
+        drainOutput(drainTarget, true, NO_EXIT_HANDLER);
     }
 
-    public void drainOutput(DrainTarget drainTarget, boolean wait) {
+    public void drainOutput(DrainTarget drainTarget, boolean wait,
+                            Runnable exitHandler) {
 
         Thread stdoutThread =
             new Thread(
                 new InputStreamDrainer(process.getInputStream(),
-                                       drainTarget, false));
+                                       drainTarget, false, exitHandler));
         stdoutThread.start();
 
         Thread stderrThread = null;
@@ -60,7 +66,7 @@ public class ProcessOutputDrainer {
             stderrThread =
                 new Thread(
                     new InputStreamDrainer(process.getErrorStream(),
-                                           drainTarget, true));
+                                           drainTarget, true, NO_EXIT_HANDLER));
             stderrThread.start();
         }
         if (wait) {
@@ -95,16 +101,19 @@ public class ProcessOutputDrainer {
 
     private class InputStreamDrainer implements Runnable {
 
-        private InputStream inputStream;
-        private DrainTarget drainTarget;
-        private boolean drainStdError;
+        private final InputStream inputStream;
+        private final DrainTarget drainTarget;
+        private final boolean drainStdError;
+        private final Runnable exitHandler;
 
         public InputStreamDrainer(InputStream inputStream,
                                   DrainTarget drainTarget,
-                                  boolean drainStdError) {
+                                  boolean drainStdError,
+                                  Runnable exitHandler) {
             this.inputStream = inputStream;
             this.drainTarget = drainTarget;
             this.drainStdError = drainStdError;
+            this.exitHandler = exitHandler;
         }
 
         @Override
@@ -139,6 +148,8 @@ public class ProcessOutputDrainer {
                 // reading input stream (which is connected to a process) is
                 // closed which usually means that the process died or it was
                 // killed. So we bail the loop and end the draining thread.
+            } finally {
+                exitHandler.run();
             }
         }
     }
