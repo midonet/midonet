@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e307c51b",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T06:08:38Z",
+      "side": 1,
+      "message": "Alternatively:\n\n  net.getSubnetsList.asScala.map(_.asJava) shouldBe List(subId)",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 61
+      },
+      "revId": "537eb64940d6eb7bfb0a7dded4a4b54130549102",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
