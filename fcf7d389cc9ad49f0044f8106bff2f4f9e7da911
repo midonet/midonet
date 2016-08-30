@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8616c756",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-30T10:18:46Z",
+      "side": 1,
+      "message": "Nit: change first character to upper-case.",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 16
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4610bf59",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-30T10:18:46Z",
+      "side": 1,
+      "message": "For here and below: do you need to check that out is not null?",
+      "range": {
+        "startLine": 203,
+        "startChar": 8,
+        "endLine": 203,
+        "endChar": 20
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_39a39c02",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-30T10:18:46Z",
+      "side": 1,
+      "message": "Nit: this is fine as is, but in guava FileUtils you have many methods such as writeStringToFile that may simplify part of this code",
+      "range": {
+        "startLine": 235,
+        "startChar": 8,
+        "endLine": 237,
+        "endChar": 25
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2615bb48",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-30T10:18:46Z",
+      "side": 1,
+      "message": "make out null in case anything below throws an exception",
+      "range": {
+        "startLine": 248,
+        "startChar": 12,
+        "endLine": 248,
+        "endChar": 23
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5929c088",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-30T10:18:46Z",
+      "side": 1,
+      "message": "I\u0027m commenting this just in case: the scala process adds some overhead, including starting 3 new i/o threads every time running a command, if this overhead is not acceptable I suggest to use the java ProcessBuilder directly (see ContainerCommons for an example). alternatively, our own ProcessHelper is a bit more lightweight, yet it still needs 2 threads per command to drain the output streams.\n\nif not an issue here, leave as is",
+      "range": {
+        "startLine": 252,
+        "startChar": 8,
+        "endLine": 254,
+        "endChar": 49
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b949ec62",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-30T10:18:46Z",
+      "side": 1,
+      "message": "This only logs one argument as an array. Use the scala logger wrapper that provides macros so you wouldn\u0027t need this array, and you can also use string interpolation.",
+      "range": {
+        "startLine": 257,
+        "startChar": 22,
+        "endLine": 258,
+        "endChar": 47
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_19a8d8da",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/logging/RollingOutputStreamTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-30T10:18:46Z",
+      "side": 1,
+      "message": "Move above",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 61
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
