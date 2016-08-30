@@ -213,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_dc46de20",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1137,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-08-30T13:47:21Z",
+      "side": 1,
+      "message": "Yes, this is dead-code, probably I forget to remove it during editing. Thanks for spotting it.",
+      "parentUuid": "baa041b7_4310b159",
+      "range": {
+        "startLine": 1137,
+        "startChar": 0,
+        "endLine": 1137,
+        "endChar": 41
+      },
+      "revId": "609b91c6b55b9a1e78c17199c0efb6c4a3fccdbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2315ad48",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
         "patchSetId": 1
