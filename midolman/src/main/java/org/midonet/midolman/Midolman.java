@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
@@ -69,14 +70,19 @@ public class Midolman {
     public static final int MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP = 2;
     public static final int MIDOLMAN_ERROR_CODE_UNHANDLED_EXCEPTION = 6001;
     public static final int MIDOLMAN_ERROR_CODE_PACKET_WORKER_DIED = 6002;
+    public static final int MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED = 6003;
 
     private static final long MIDOLMAN_EXIT_TIMEOUT_MILLIS = 30000;
+    private static final int MINION_PROCESS_MAXIMUM_STARTS = 3;
 
     private Injector injector;
 
-    WatchedProcess watchedProcess = new WatchedProcess();
+    private WatchedProcess watchedProcess = new WatchedProcess();
 
-    Process minionProcess;
+    private volatile boolean shuttingDown = false;
+    private volatile Process minionProcess = null;
+    private AtomicInteger minionProcessStartCounter =
+        new AtomicInteger(MINION_PROCESS_MAXIMUM_STARTS);
 
     private Midolman() {
     }
@@ -186,12 +192,7 @@ public class Midolman {
             throw t;
         }
 
-        minionProcess = ProcessHelper
-            .newDaemonProcess("/usr/share/midolman/minions-start", log,
-                              "org.midonet.services")
-            .run();
-        log.info("Starting Agent minions in process " +
-                 ProcessHelper.getProcessPid(minionProcess));
+        startMinionProcess();
 
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
@@ -270,12 +271,53 @@ public class Midolman {
 
         injector.getInstance(MidolmanService.class).awaitTerminated();
     }
+    private void startMinionProcess() {
+        final Runnable exitHandler = new Runnable() {
+            @Override
+            public void run() {
+                Process process = minionProcess;
+                if (process != null) {
+                    log.warn("Agent minion process exited with error code {}",
+                             process.exitValue());
+                } else {
+                    log.warn("Agent minion process exited");
+                }
+                if (!shuttingDown) {
+                    startMinionProcess();
+                }
+            }
+        };
+
+        Runnable startHandler = new Runnable() {
+            @Override
+            public void run() {
+                Process process = ProcessHelper
+                    .newDaemonProcess("/usr/share/midolman/minions-start", log,
+                                      "org.midonet.services")
+                    .addExitHandler(exitHandler)
+                    .run();
+                log.info("Starting Agent minions in process " +
+                         ProcessHelper.getProcessPid(process));
+                minionProcess = process;
+            }
+        };
+
+        if (minionProcessStartCounter.getAndDecrement() > 0) {
+            startHandler.run();
+        } else {
+            log.error("MidoNet Agent minion process failed after {} times: "
+                      + "shutting down", MINION_PROCESS_MAXIMUM_STARTS);
+            System.exit(MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED);
+        }
+    }
 
     private void doServicesCleanup() {
         log.info("MidoNet Agent shutting down...");
 
-        if (minionProcess != null) {
-            minionProcess.destroy();
+        shuttingDown = true;
+        Process process = minionProcess;
+        if (process != null) {
+            process.destroy();
             log.info("Agent minion process stopped");
         }
 
