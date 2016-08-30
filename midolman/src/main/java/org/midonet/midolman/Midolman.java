@@ -187,8 +187,8 @@ public class Midolman {
         }
 
         minionProcess = ProcessHelper
-            .newDemonProcess("/usr/share/midolman/minions-start", log,
-                             "org.midonet.services")
+            .newDaemonProcess("/usr/share/midolman/minions-start", log,
+                              "org.midonet.services")
             .run();
         log.info("Starting Agent minions in process " +
                  ProcessHelper.getProcessPid(minionProcess));

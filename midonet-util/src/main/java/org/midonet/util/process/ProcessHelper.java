@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,16 +35,13 @@ import static org.midonet.util.process.ProcessOutputDrainer.DrainTarget;
 /**
  * Class that takes care of launching processes on local/remote connections,
  * monitors then, executes them using sudo support, etc.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 11/24/11
  */
 public class ProcessHelper {
 
     private static final Logger log =
         LoggerFactory.getLogger(ProcessHelper.class);
 
-    public static RunnerConfiguration newDemonProcess(String commandLine) {
+    public static RunnerConfiguration newDaemonProcess(String commandLine) {
         RunnerConfiguration configuration = newProcess(commandLine);
 
         configuration.setDrainTarget(DrainTargets.noneTarget());
@@ -51,7 +49,7 @@ public class ProcessHelper {
         return configuration;
     }
 
-    public static RunnerConfiguration newDemonProcess(
+    public static RunnerConfiguration newDaemonProcess(
              @Nonnull String commandLine,
              @Nonnull Logger logger,
              @Nonnull String prefix) {
@@ -62,16 +60,12 @@ public class ProcessHelper {
         return configuration;
     }
 
-    public static RunnerConfiguration newLocalProcess(String commandLine) {
-        return newProcess(commandLine);
-    }
-
     public static RunnerConfiguration newProcess(final String commandLine) {
 
         return new RunnerConfiguration() {
             DrainTarget drainTarget;
             String procCommandLine = commandLine;
-            Map<String, String> envVars = new HashMap<String, String>();
+            Map<String, String> envVars = new HashMap<>();
 
             EnumSet<OutputStreams> streamsToLog =
                 EnumSet.allOf(OutputStreams.class);
@@ -186,7 +180,7 @@ public class ProcessHelper {
                 if (envVars.isEmpty()) {
                     return Runtime.getRuntime().exec(procCommandLine);
                 } else {
-                    List<String> param = new ArrayList<String>();
+                    List<String> param = new ArrayList<>();
                     for (Map.Entry<String, String> var : envVars.entrySet()) {
                         param.add(var.getKey() + "=" + var.getValue());
                     }
@@ -201,7 +195,7 @@ public class ProcessHelper {
     }
 
     public static int getProcessPid(Process process) {
-        Field field = null;
+        Field field;
         try {
             field = process.getClass().getDeclaredField("pid");
             field.setAccessible(true);
@@ -220,20 +214,20 @@ public class ProcessHelper {
 
     public interface RunnerConfiguration {
 
-        public RunnerConfiguration logOutput(Logger log, String marker,
-                                             OutputStreams... streams);
+        RunnerConfiguration logOutput(Logger log, String marker,
+                                      OutputStreams... streams);
 
-        public RunnerConfiguration setDrainTarget(DrainTarget drainTarget);
+        RunnerConfiguration setDrainTarget(DrainTarget drainTarget);
 
-        public int runAndWait();
+        int runAndWait();
 
-        public Process run();
+        Process run();
 
-        public RunnerConfiguration withSudo();
+        RunnerConfiguration withSudo();
 
-        public RunnerConfiguration setEnvVariables(Map<String, String> vars);
+        RunnerConfiguration setEnvVariables(Map<String, String> vars);
 
-        public RunnerConfiguration setEnvVariable(String var, String value);
+        RunnerConfiguration setEnvVariable(String var, String value);
 
     }
 
@@ -247,8 +241,8 @@ public class ProcessHelper {
 
     public static ProcessResult executeCommandLine(String command, boolean ignoreErrors) {
         ProcessResult result = new ProcessResult();
-        List<String> outputList = new ArrayList<String>();
-        List<String> errorList = new ArrayList<String>();
+        List<String> outputList = new ArrayList<>();
+        List<String> errorList = new ArrayList<>();
 
         RunnerConfiguration runner = newProcess(command);
 
@@ -276,7 +270,7 @@ public class ProcessHelper {
         public int returnValue;
 
         public ProcessResult() {
-            this.returnValue = 666;
+            this.returnValue = 0;
             this.consoleOutput = Collections.emptyList();
             this.errorOutput = Collections.emptyList();
         }
