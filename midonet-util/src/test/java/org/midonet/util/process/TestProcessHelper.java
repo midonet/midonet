@@ -15,9 +15,8 @@
  */
 package org.midonet.util.process;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import javax.swing.*;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,15 +25,11 @@ import org.slf4j.LoggerFactory;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
-
 import static org.midonet.util.process.ProcessHelper.OutputStreams.StdError;
 import static org.midonet.util.process.ProcessHelper.OutputStreams.StdOutput;
 
 /**
  * Tests that test the ProcessHelper internal api entry point.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 3/30/12
  */
 public class TestProcessHelper {
 
@@ -63,9 +58,16 @@ public class TestProcessHelper {
                    greaterThan(TimeUnit.SECONDS.toMillis(1)));
     }
 
-    private void assertCommandOutpout(String command, String stdOutput, String stdError) {
-//        ProcessHelper.newProcess(command)
-//                   .setDrainTarget(DrainTargets.stringCollector());
+    @Test
+    public void testExitHandler() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        ProcessHelper.newProcess("echo command").addExitHandler(new Runnable() {
+            @Override
+            public void run() {
+                latch.countDown();
+            }
+        }).run();
+        latch.await();
     }
 
     private void assertCommandCode(String command, int code) {
