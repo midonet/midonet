@@ -199,7 +199,7 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
             case _ => router.substring(0, 7)
         }
         val daemonRunConfig =
-            ProcessHelper.newDemonProcess(cmd, log.underlying, logPrefix)
+            ProcessHelper.newDaemonProcess(cmd, log.underlying, logPrefix)
         bgpdProcess = daemonRunConfig.run()
 
         if (isAlive) {
