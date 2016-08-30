@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2647fb78",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 16
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-30T09:27:48Z",
+      "side": 1,
+      "message": "Wrap",
+      "range": {
+        "startLine": 9,
+        "startChar": 68,
+        "endLine": 9,
+        "endChar": 80
+      },
+      "revId": "76b003d0897c6bb7bf940673528a0705f49de904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6663c342",
+        "filename": "nsdb/src/main/scala/org/midonet/logging/rule/BinaryLogTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-30T09:27:48Z",
+      "side": 1,
+      "message": "2016?",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "76b003d0897c6bb7bf940673528a0705f49de904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4642ff69",
+        "filename": "nsdb/src/main/scala/org/midonet/logging/rule/BinaryLogTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-08-30T09:27:48Z",
+      "side": 1,
+      "message": "why precisely 8096? Maybe you meant 8192?",
+      "range": {
+        "startLine": 121,
+        "startChar": 39,
+        "endLine": 121,
+        "endChar": 43
+      },
+      "revId": "76b003d0897c6bb7bf940673528a0705f49de904",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
