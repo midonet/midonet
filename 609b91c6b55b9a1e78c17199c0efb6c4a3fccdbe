@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8348f98b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 737,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T06:01:31Z",
+      "side": 1,
+      "message": "Add three spaces to align with mPort in previous line.",
+      "range": {
+        "startLine": 737,
+        "startChar": 34,
+        "endLine": 737,
+        "endChar": 74
+      },
+      "revId": "609b91c6b55b9a1e78c17199c0efb6c4a3fccdbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_832fd9a6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T06:01:31Z",
+      "side": 1,
+      "message": "To avoid the arrow anti-pattern (unnecessarily deep nesting), delete these two enclosing if blocks and add this at the beginning of the function:\n\n  if (newPort.getMacAddress \u003d\u003d oldPort.getMacAddress ||\n      mPort.getFipNatRuleIdsCount \u003d\u003d 0)\n      return List()\n\nThen the for loop doesn\u0027t have to be nested so deeply.\n\nAlso, note the lack of empty parentheses after getFipNatRuleIdsCount. The preferred style in Scala is to omit empty parentheses on calls to functions that take no arguments and have no side effects.",
+      "range": {
+        "startLine": 749,
+        "startChar": 0,
+        "endLine": 750,
+        "endChar": 52
+      },
+      "revId": "609b91c6b55b9a1e78c17199c0efb6c4a3fccdbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6334d5fa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 751,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T06:01:31Z",
+      "side": 1,
+      "message": "No parentheses. Also on getNatRuleData and getDnat below.",
+      "range": {
+        "startLine": 751,
+        "startChar": 57,
+        "endLine": 751,
+        "endChar": 59
+      },
+      "revId": "609b91c6b55b9a1e78c17199c0efb6c4a3fccdbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e359055d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 753,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T06:01:31Z",
+      "side": 1,
+      "message": "If you do this, then for each item in the loop, you\u0027ll need to wait for a round trip to Zookeeper, serially. This can add up, especially if Zookeeper is on a different server. It\u0027s better to do something like this:\n\n  val natRuleIds \u003d mPort.getFipNatRuleIdsList.asScala\n  val natRules \u003d storage.getAll(classOf[Rule], natRuleIds).await()\n  val fipIds \u003d for (natRule \u003c- natRules) yield {\n      val natRuleData \u003d rule.getNatRuleData\n      if (natRuleData.getDnat) {\n          RouteManager.fipDnatRuleId(natRuleId)\n      } else {\n          RouteManager.fipSnatRuleId(natRuleId)\n      }\n  }\n\n  val fips \u003d storage.getAll(classOf[FloatingIp], fipIds.distinct).await()\n  fips flatMap { fip \u003d\u003e\n      List(DeleteNode(fipArpEntryPath(oldPort, fip)),\n           CreateNode(fipArpEntryPath(newPort, fip)))\n  }\n\nI just typed that out in Gerrit, so I\u0027m not 100% sure it works or even compiles, but that\u0027s the general approach to take. This allows us to await the futures in parallel, rather than serially.",
+      "range": {
+        "startLine": 753,
+        "startChar": 21,
+        "endLine": 753,
+        "endChar": 77
+      },
+      "revId": "609b91c6b55b9a1e78c17199c0efb6c4a3fccdbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4310b159",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1137,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T06:01:31Z",
+      "side": 1,
+      "message": "This shouldn\u0027t be here, should it? This is what you\u0027re updating the port to, so the store should only contain the old version, which you bind further down.",
+      "range": {
+        "startLine": 1137,
+        "startChar": 0,
+        "endLine": 1137,
+        "endChar": 41
+      },
+      "revId": "609b91c6b55b9a1e78c17199c0efb6c4a3fccdbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2315ad48",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1140,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T06:01:31Z",
+      "side": 1,
+      "message": "Here.",
+      "range": {
+        "startLine": 1140,
+        "startChar": 8,
+        "endLine": 1140,
+        "endChar": 31
+      },
+      "revId": "609b91c6b55b9a1e78c17199c0efb6c4a3fccdbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
