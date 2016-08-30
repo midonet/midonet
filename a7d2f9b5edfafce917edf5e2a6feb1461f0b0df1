@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_c6c28f34",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/RuleLogging.scala",
+        "patchSetId": 23
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-30T08:32:58Z",
+      "side": 1,
+      "message": "This whole file doesn\u0027t need to exist. The original idea was to use it as a testing hook, but I found a workaround.",
+      "revId": "a7d2f9b5edfafce917edf5e2a6feb1461f0b0df1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
