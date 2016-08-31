@@ -22,6 +22,30 @@
       "revId": "7011cde5e97b46969896460dc6fcf721787b1174",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_77980b1c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-08-31T01:54:21Z",
+      "side": 1,
+      "message": "You are correct.  I think this is an artifact silently added by IntelliJ, as it sometimes acts quite UN-Intelli-gent by adding spurious imports it thinks it needs to cover code changes, all without telling you what it\u0027s doing.",
+      "parentUuid": "baa041b7_c61e0fbb",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 54
+      },
+      "revId": "7011cde5e97b46969896460dc6fcf721787b1174",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
