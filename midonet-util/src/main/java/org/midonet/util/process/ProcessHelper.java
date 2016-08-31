@@ -69,6 +69,7 @@ public class ProcessHelper {
 
             EnumSet<OutputStreams> streamsToLog =
                 EnumSet.allOf(OutputStreams.class);
+            final List<Runnable> exitHandlers = new ArrayList<>(1);
 
             @Override
             public RunnerConfiguration logOutput(Logger log, String marker,
@@ -103,6 +104,14 @@ public class ProcessHelper {
             public RunnerConfiguration setEnvVariable(String var,
                                                       String value) {
                 this.envVars.put(var, value);
+                return this;
+            }
+
+            @Override
+            public RunnerConfiguration addExitHandler(Runnable handler) {
+                synchronized (exitHandlers) {
+                    exitHandlers.add(handler);
+                }
                 return this;
             }
 
@@ -151,22 +160,36 @@ public class ProcessHelper {
 
             private Process createProcess(boolean wait) {
                 try {
-                    Process p = launchProcess();
+                    final Process process = launchProcess();
                     if (drainTarget == null) {
                         drainTarget = DrainTargets.noneTarget();
                     }
 
+                    Runnable exitHandler = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                process.waitFor();
+                            } catch (InterruptedException e) { }
+                            synchronized (exitHandlers) {
+                                for (Runnable handler : exitHandlers) {
+                                    handler.run();
+                                }
+                            }
+                        }
+                    };
+
                     ProcessOutputDrainer outputDrainer;
 
                     if (streamsToLog.contains(OutputStreams.StdError)) {
-                        outputDrainer = new ProcessOutputDrainer(p, true);
+                        outputDrainer = new ProcessOutputDrainer(process, true);
                     } else {
-                        outputDrainer = new ProcessOutputDrainer(p);
+                        outputDrainer = new ProcessOutputDrainer(process);
                     }
 
-                    outputDrainer.drainOutput(drainTarget, wait);
+                    outputDrainer.drainOutput(drainTarget, wait, exitHandler);
 
-                    return p;
+                    return process;
                 } catch (IOException e) {
                     log.error("Error while executing command: \"{}\"",
                               commandLine, e);
@@ -228,6 +251,8 @@ public class ProcessHelper {
         RunnerConfiguration setEnvVariables(Map<String, String> vars);
 
         RunnerConfiguration setEnvVariable(String var, String value);
+
+        RunnerConfiguration addExitHandler(Runnable handler);
 
     }
 
