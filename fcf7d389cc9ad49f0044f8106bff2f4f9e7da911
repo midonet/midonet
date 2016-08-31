@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_72637942",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-08-31T08:08:01Z",
+      "side": 1,
+      "message": "the logger such that it\u0027s added to the schema, and the logging level can be enabled/disabled via mn-conf",
+      "parentUuid": "baa041b7_d25365e1",
+      "range": {
+        "startLine": 176,
+        "startChar": 24,
+        "endLine": 176,
+        "endChar": 57
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4610bf59",
         "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
         "patchSetId": 8
