@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d25365e1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-31T07:20:36Z",
+      "side": 1,
+      "message": "Add what to agent.conf?",
+      "parentUuid": "baa041b7_d946f020",
+      "range": {
+        "startLine": 176,
+        "startChar": 24,
+        "endLine": 176,
+        "endChar": 57
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4610bf59",
         "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
         "patchSetId": 8
@@ -128,6 +152,30 @@
       "writtenOn": "2016-08-30T10:18:46Z",
       "side": 1,
       "message": "I\u0027m commenting this just in case: the scala process adds some overhead, including starting 3 new i/o threads every time running a command, if this overhead is not acceptable I suggest to use the java ProcessBuilder directly (see ContainerCommons for an example). alternatively, our own ProcessHelper is a bit more lightweight, yet it still needs 2 threads per command to drain the output streams.\n\nif not an issue here, leave as is",
+      "range": {
+        "startLine": 252,
+        "startChar": 8,
+        "endLine": 254,
+        "endChar": 49
+      },
+      "revId": "fcf7d389cc9ad49f0044f8106bff2f4f9e7da911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_19f698f9",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-31T07:20:36Z",
+      "side": 1,
+      "message": "I think it\u0027s fine. This happens very infrequently, probably not more often than once every hour or once per million flows.",
+      "parentUuid": "baa041b7_5929c088",
       "range": {
         "startLine": 252,
         "startChar": 8,
