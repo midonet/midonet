@@ -168,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ef622d3d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-08-31T07:20:36Z",
+      "side": 1,
+      "message": "Fixed in latest patch.",
+      "parentUuid": "baa041b7_e665ba1d",
+      "range": {
+        "startLine": 191,
+        "startChar": 9,
+        "endLine": 191,
+        "endChar": 18
+      },
+      "revId": "d2b839e6488b47a76af54a6455455a6cc0ad217c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8c0f36df",
         "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
         "patchSetId": 1
