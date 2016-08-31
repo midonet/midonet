@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,12 @@
 
 package org.midonet.util.process;
 
-import org.slf4j.Logger;
-
 import java.util.List;
+
+import org.slf4j.Logger;
 
 import static org.midonet.util.process.ProcessOutputDrainer.DrainTarget;
 
-/**
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 11/20/11
- */
 public class DrainTargets {
 
     /**

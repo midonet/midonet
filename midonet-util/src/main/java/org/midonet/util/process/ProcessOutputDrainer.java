@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,6 @@ import org.apache.commons.io.LineIterator;
  *
  * Used by the {@link ProcessHelper} class to make sure a launched process
  * is not stalled when the stdout buffer is full.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 11/20/11
  */
 public class ProcessOutputDrainer {
 
@@ -85,14 +82,14 @@ public class ProcessOutputDrainer {
          *
          * @param line the printed line
          */
-        public void outLine(String line);
+        void outLine(String line);
 
         /**
          * Called when a line was printed on a stderr device.
          *
          * @param line the printed line
          */
-        public void errLine(String line);
+        void errLine(String line);
 
     }
 
