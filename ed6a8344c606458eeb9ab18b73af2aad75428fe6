@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b481eac5",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-01T09:44:00Z",
+      "side": 1,
+      "message": "The content looks fine, but could you move this up to the PORT UPDATE section?",
+      "revId": "ed6a8344c606458eeb9ab18b73af2aad75428fe6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f45e5278",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-01T09:44:00Z",
+      "side": 1,
+      "message": "This check could apply to all port types, not just router interface.  Move this out of this if block, or alternatively, since it is not really part of this change, consider moving this out of this patch.",
+      "revId": "ed6a8344c606458eeb9ab18b73af2aad75428fe6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d4634e40",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-01T09:44:00Z",
+      "side": 1,
+      "message": "var -\u003e val",
+      "revId": "ed6a8344c606458eeb9ab18b73af2aad75428fe6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b4e68aae",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-01T09:44:00Z",
+      "side": 1,
+      "message": "nit: unrelated change",
+      "revId": "ed6a8344c606458eeb9ab18b73af2aad75428fe6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
