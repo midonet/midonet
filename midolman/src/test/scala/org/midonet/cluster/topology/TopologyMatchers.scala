@@ -133,9 +133,9 @@ object TopologyMatchers {
             bridge.adminStateUp shouldBe b.getAdminStateUp
             bridge.tunnelKey shouldBe b.getTunnelKey
             if (b.hasInboundFilterId)
-                bridge.infilters should contain (b.getInboundFilterId.asJava)
+                bridge.inboundFilters should contain (b.getInboundFilterId.asJava)
             if (b.hasOutboundFilterId)
-                bridge.outfilters should contain (b.getOutboundFilterId.asJava)
+                bridge.outboundFilters should contain (b.getOutboundFilterId.asJava)
         }
     }
 

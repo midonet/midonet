@@ -112,7 +112,7 @@ class Router(override val id: UUID,
                     Drop
                 }
             case _ =>
-                context.log.warn("Non-ARP packet with ethertype ARP: {}", pkt)
+                context.log.warn("Non-ARP packet with EtherType ARP: {}", pkt)
                 Drop
         }
 
@@ -175,7 +175,7 @@ class Router(override val id: UUID,
 
         if (!inPort.portSubnet.containsAddress(spa)) {
             context.log.debug("Ignoring ARP request from address {} not in the " +
-                "ingress port network {}", spa, inPort.portSubnet)
+                              "ingress port network {}", spa, inPort.portSubnet)
             return
         }
 
@@ -187,8 +187,9 @@ class Router(override val id: UUID,
             return
         }
         if (!inPort.portAddress.equals(tpa)) {
-            context.log.debug("Ignoring ARP Request to dst ip {} instead of " +
-                "inPort's {}", tpa, inPort.portAddress)
+            context.log.debug("Ignoring ARP request to destination address {} " +
+                              "instead of ingress port address {}", tpa,
+                              inPort.portAddress)
             return
         }
 
@@ -200,8 +201,8 @@ class Router(override val id: UUID,
         // needed.
         context.arpBroker.setAndGet(spa, pkt.getSenderHardwareAddress, inPort,
                                     this, cookie).onSuccess { case _ =>
-            log.debug(s"replying to ARP request from $spa for $tpa " +
-                              s"with own mac ${inPort.portMac}")
+            log.debug(s"Replying to ARP request from $spa for $tpa with own " +
+                      s"MAC ${inPort.portMac}")
 
             // Construct the reply, reversing src/dst fields from the request.
             val eth = ARP.makeArpReply(inPort.portMac, sha,
@@ -217,8 +218,9 @@ class Router(override val id: UUID,
         // the MAC for an IPv4 address.
         if (pkt.getHardwareType != ARP.HW_TYPE_ETHERNET ||
                 pkt.getProtocolType != ARP.PROTO_TYPE_IP) {
-            context.log.debug("ignoring ARP reply on port {} because hwtype "+
-                "wasn't Ethernet or prototype wasn't IPv4.", port.id)
+            context.log.debug("Ignoring ARP reply on port {} because hardware " +
+                              "type is not Ethernet or protocol type is not IPv4",
+                              port.id)
             return
         }
 
@@ -231,21 +233,21 @@ class Router(override val id: UUID,
                                 tha == port.portMac
 
         if (isGratuitous) {
-            context.log.debug("got a gratuitous ARP reply from {}", spa)
+            context.log.debug("Received a gratuitous ARP reply from {}", spa)
         } else if (!isAddressedToThis) {
             // The ARP is not gratuitous, so it should be intended for us.
-            context.log.debug("ignoring ARP reply on port {} because tpa or "+
-                      "tha doesn't match.", port.id)
+            context.log.debug("Ignoring ARP reply on port {} because TPA or "+
+                              "THA does not match", port.id)
             return
         } else {
-            context.log.debug("received an ARP reply from {}", id, spa)
+            context.log.debug("Received an ARP reply from {}", id, spa)
         }
 
         // Question:  Should we check if the ARP reply disagrees with an
         // existing cache entry and make noise if so?
         if (!port.portSubnet.containsAddress(spa)) {
-            context.log.debug("Ignoring ARP reply from address {} not in the ingress " +
-                      "port network {}", spa, port.portSubnet)
+            context.log.debug("Ignoring ARP reply from address {} not in the " +
+                              "ingress port network {}", spa, port.portSubnet)
             return
         }
 
@@ -307,12 +309,12 @@ class Router(override val id: UUID,
             case extAddr: IPv4Subnet if extAddr.containsAddress(nextHopIP) =>
                 context.arpBroker.get(nextHopIP, port, this, context.cookie)
             case extAddr: IPv4Subnet =>
-                context.log.warn("cannot get MAC for {} - address not " +
+                context.log.warn("Cannot get MAC for {} address not " +
                                  "in network segment of port {} ({})",
                                  nextHopIP, port.id, extAddr)
                 null
             case _ =>
-                throw new IllegalArgumentException("ARP'ing for non-IPv4 addr")
+                throw new IllegalArgumentException("ARP-ing for non-IPv4 address")
         }
     }
 
@@ -394,8 +396,8 @@ class Router(override val id: UUID,
                  * to ourselves, probably means that somebody sent an IP packet
                  * with a forged source address belonging to this router.
                  */
-                context.log.warn("Router {} trying to send a packet {} to itself.",
-                          id, packet)
+                context.log.warn("Router {} trying to send a packet {} to itself",
+                                 id, packet)
                 return false
             }
 
@@ -430,8 +432,8 @@ class Router(override val id: UUID,
                         case RuleResult.Action.REJECT =>
                             false
                         case other =>
-                            context.log.warn("PostRouting for returned {}, not " +
-                                      "ACCEPT, DROP or REJECT.", other)
+                            context.log.warn("Post routing for returned {}, not " +
+                                             "ACCEPT, DROP or REJECT.", other)
                             false
                     }
             }
