@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_dd9371ff",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-02T03:27:23Z",
+      "side": 1,
+      "message": "what\u0027s this \"neutron port\" about?",
+      "range": {
+        "startLine": 194,
+        "startChar": 15,
+        "endLine": 194,
+        "endChar": 27
+      },
+      "revId": "d1fc9d6eee1ac6bfbfc38b97903916eb7eab136f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
