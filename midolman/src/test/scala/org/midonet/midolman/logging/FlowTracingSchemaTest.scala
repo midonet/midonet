@@ -17,20 +17,17 @@
 package org.midonet.midolman.logging
 
 import java.util.{Date, UUID}
+
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
+import com.datastax.driver.core.utils.UUIDs
+
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
-
-import ch.qos.logback.classic.Logger
-import com.datastax.driver.core.PreparedStatement
-import com.datastax.driver.core.utils.UUIDs
-
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
@@ -40,10 +37,8 @@ import org.midonet.packets.MAC
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingSchemaTest extends FeatureSpec
-        with BeforeAndAfter
-        with ShouldMatchers
-        with CuratorTestFramework
-        with OneInstancePerTest {
+                                    with ShouldMatchers
+                                    with CuratorTestFramework {
     val log = LoggerFactory.getLogger(classOf[FlowTracingSchemaTest])
 
     var cass: CassandraClient = _
@@ -60,16 +55,19 @@ class FlowTracingSchemaTest extends FeatureSpec
     Thread.sleep(10)
     val flowTraceId4 = UUIDs.timeBased
 
-    before {
+    override def beforeAll(): Unit = {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
         Thread.sleep(15000L)
+        super.beforeAll()
+    }
 
+    override def setup(): Unit = {
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
         val confValues = s"""
-          |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
-          |cassandra.servers = "127.0.0.1:9142"
+            |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
+            |cassandra.servers = "127.0.0.1:9142"
         """.stripMargin
         val config = MidolmanConfig.forTests(confValues)
-
         cass = new CassandraClient(
             config.zookeeper, config.cassandra,
             FlowTracingSchema.KEYSPACE_NAME + System.currentTimeMillis,
@@ -83,7 +81,7 @@ class FlowTracingSchemaTest extends FeatureSpec
 
     feature("Writing flow traces to cassandra") {
         scenario("Reading the count of traces") {
-            insertFlows
+            insertFlows()
 
             val res1 = cass.session.execute(
                 schema.bindFlowCountStatement(traceId1))
@@ -117,7 +115,7 @@ class FlowTracingSchemaTest extends FeatureSpec
         }
 
         scenario("Reading traces from cassandra") {
-            insertFlows
+            insertFlows()
 
             val res1 = cass.session.execute(
                 schema.bindGetFlowsStatement(traceId1))
@@ -139,7 +137,7 @@ class FlowTracingSchemaTest extends FeatureSpec
         }
 
         scenario("Reading trace data from cassandra") {
-            insertFlows
+            insertFlows()
 
             // interleave data
             var countId1 = 100
@@ -215,7 +213,7 @@ class FlowTracingSchemaTest extends FeatureSpec
                     traceId1, flowTraceId1,
                     minTime=Some(new Date(startTime)),
                     limit=Some(1), ascending=true))
-            var rows1 = res1.all
+            val rows1 = res1.all
             rows1.size should be (1)
             rows1.get(0).getString("data") should be ("data1")
 
@@ -225,13 +223,13 @@ class FlowTracingSchemaTest extends FeatureSpec
                     traceId1, flowTraceId1,
                     minTime=Some(new Date(secondTime)),
                     limit=Some(1), ascending=true))
-            var rows2 = res2.all
+            val rows2 = res2.all
             rows2.size should be (1)
             rows2.get(0).getString("data") should be ("data2")
         }
     }
 
-    private def insertFlows: Unit = {
+    private def insertFlows(): Unit = {
         cass.session.execute(schema.bindFlowInsertStatement(
                                  traceId1, flowTraceId1,
                                  MAC.random.toString, MAC.random.toString,
