@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_cb9968d2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1160,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-02T12:06:22Z",
+      "side": 1,
+      "message": "This seems useful to have for all tests.  How about we move it up to the base class (something like bindAllPermutations(ids, objs, clazz) )?",
+      "revId": "174950cd1598468baff10d8cb1f78dc79f66e9da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
