@@ -109,8 +109,7 @@ cobertura {
             '.*org.midonet.cluster.backend.cassandra.*',
             // The TopologySnooopy is a dev tool
             '.*org.midonet.cluster.tools.TopologySnoopy.*',
-            '.*org.midonet.cluster.services.topology.client.*',
-            '.*org.midonet.cluster.services.topology.TopologyServiceApp.*',
+            '.*org.midonet.cluster.services.topology.*'
     ]
 }
 

@@ -62,6 +62,7 @@ task jarTest (type: Jar, dependsOn: testClasses) {
 
 cobertura {
     coverageExcludes = [
+        '.*org.midonet.ErrorCode.*',
         '.*org.midonet.util.http.HttpSupport.*',
     ]
 }
