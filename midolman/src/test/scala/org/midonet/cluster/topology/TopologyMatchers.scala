@@ -15,13 +15,12 @@
  */
 package org.midonet.cluster.topology
 
-import org.midonet.cluster.data.ZoomConvert
-
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
 import org.scalatest.Matchers
 
+import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Commons.{Condition => TopologyCondition}
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain,
@@ -47,7 +46,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, DynamicForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, Vip}
 import org.midonet.midolman.state.l4lb
-import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, ConditionMatcher, _}
+import org.midonet.cluster.topology.TopologyMatchers._
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.simulation.{BridgePort, Port, _}
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -58,7 +57,8 @@ object TopologyMatchers {
         def shouldBeDeviceOf(d: M): Unit
     }
 
-    abstract class PortMatcher(val port: Port) extends DeviceMatcher[TopologyPort] {
+    abstract class PortMatcher(val port: Port) extends TopologyMatchers
+                                               with DeviceMatcher[TopologyPort] {
         override def shouldBeDeviceOf(p: TopologyPort) = {
             port.id shouldBe p.getId.asJava
             if (p.hasInboundFilterId)
@@ -74,6 +74,14 @@ object TopologyMatchers {
                 p.getInterfaceName else null)
             port.adminStateUp shouldBe p.getAdminStateUp
             port.vlanId shouldBe p.getVlanId
+            if (p.hasServiceContainerId)
+                port.containerId shouldBe p.getServiceContainerId.asJava
+            else
+                port.containerId shouldBe null
+            if (p.hasVppBinding)
+                port.vppBinding shouldBeDeviceOf p.getVppBinding
+            else
+                port.vppBinding shouldBe null
         }
     }
 
@@ -114,7 +122,8 @@ object TopologyMatchers {
         }
     }
 
-    class MirrorMatcher(mirror: Mirror) extends TopologyMatchers with DeviceMatcher[TopologyMirror] {
+    class MirrorMatcher(mirror: Mirror) extends TopologyMatchers
+                                        with DeviceMatcher[TopologyMirror] {
         override def shouldBeDeviceOf(m: TopologyMirror): Unit = {
             mirror.id shouldBe m.getId.asJava
             mirror.toPort shouldBe m.getToPortId.asJava
@@ -311,6 +320,13 @@ object TopologyMatchers {
         }
     }
 
+    class VppBindingMatcher(vppBinding: VppBinding)
+        extends DeviceMatcher[TopologyPort.VppBinding] {
+        override def shouldBeDeviceOf(vb: TopologyPort.VppBinding): Unit = {
+            vppBinding.interfaceName shouldBe vb.getInterfaceName
+        }
+    }
+
 }
 
 trait TopologyMatchers {
@@ -381,5 +397,8 @@ trait TopologyMatchers {
 
     implicit def asMatcher(healthMonitor: HealthMonitor): HealthMonitorMatcher =
         new HealthMonitorMatcher(healthMonitor)
+
+    implicit def asMatcher(vppBinding: VppBinding): VppBindingMatcher =
+        new VppBindingMatcher(vppBinding)
 
 }

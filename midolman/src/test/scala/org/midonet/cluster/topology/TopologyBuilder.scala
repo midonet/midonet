@@ -34,6 +34,7 @@ import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleDa
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology.LoggingResource.{Type => LRType}
+import org.midonet.cluster.models.Topology.Port.VppBinding
 import org.midonet.cluster.models.Topology.{LoggingResource, _}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -61,7 +62,8 @@ trait TopologyBuilder {
                          adminStateUp: Boolean = false,
                          portGroupIds: Set[UUID] = Set.empty,
                          vlanId: Option[Int] = None,
-                         containerId: Option[UUID] = None): Port = {
+                         containerId: Option[UUID] = None,
+                         vppBinding: Option[VppBinding] = None): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
@@ -71,6 +73,8 @@ trait TopologyBuilder {
             builder.setVlanId(vlanId.get)
         if (containerId.isDefined)
             builder.setServiceContainerId(containerId.get.asProto)
+        if (vppBinding.isDefined)
+            builder.setVppBinding(vppBinding.get)
         builder.build()
     }
 
@@ -92,7 +96,8 @@ trait TopologyBuilder {
                          tunnelIp: Option[IPv4Addr] = None,
                          bgpId: Option[UUID] = None,
                          routeIds: Set[UUID] = Set.empty,
-                         containerId: Option[UUID] = None): Port = {
+                         containerId: Option[UUID] = None,
+                         vppBinding: Option[VppBinding] = None): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
@@ -107,12 +112,11 @@ trait TopologyBuilder {
             builder.setRouterId(routerId.get.asProto)
         if (containerId.isDefined)
             builder.setServiceContainerId(containerId.get.asProto)
+        if (vppBinding.isDefined)
+            builder.setVppBinding(vppBinding.get)
         builder.build()
     }
 
-    /** Creates a VxLAN port.  IMPORTANT: note that upon saving, you'll have
-      * to update the backreferences list in the corresponding Network, as this
-      * is not explicitly declared in the bindings. */
     def createVxLanPort(id: UUID = UUID.randomUUID,
                         bridgeId: Option[UUID] = None,
                         inboundFilterId: Option[UUID] = None,
@@ -1097,13 +1101,17 @@ trait TopologyBuilder {
                          id: UUID = UUID.randomUUID(),
                          logEvent: LogEvent = LogEvent.ALL,
                          fileName: Option[String] = None): RuleLogger = {
-        val bldr = RuleLogger.newBuilder
+        val builder = RuleLogger.newBuilder
             .setLoggingResourceId(loggingResourceId.asProto)
             .setChainId(chainId.asProto)
             .setId(id.asProto)
             .setEvent(logEvent)
-        fileName.foreach(bldr.setFileName)
-        bldr.build()
+        fileName.foreach(builder.setFileName)
+        builder.build()
+    }
+
+    def createVppBinding(interfaceName: String): VppBinding = {
+        VppBinding.newBuilder().setInterfaceName(interfaceName).build()
     }
 }
 

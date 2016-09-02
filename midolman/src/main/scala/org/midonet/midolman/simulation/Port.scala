@@ -21,6 +21,7 @@ import java.util.Collections.emptyList
 
 import scala.collection.JavaConverters._
 
+import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.Topology
@@ -29,6 +30,7 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, Drop, ErrorDrop, SimStep, SimulationResult}
 import org.midonet.midolman.simulation.Simulator.{ContinueWith, SimHook, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
+import org.midonet.midolman.topology.devices.VppBinding
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 
@@ -37,26 +39,35 @@ object Port {
     import IPSubnetUtil._
     import UUIDUtil.{fromProto, fromProtoList}
 
-    def apply(proto: Topology.Port,
+    def apply(port: Topology.Port,
               state: PortState,
               inFilters: JList[UUID],
               outFilters: JList[UUID],
               servicePorts: JList[UUID] = emptyList(),
               peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty): Port = {
-        if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
-            servicePort(proto, state, inFilters)
-        else if (proto.hasVtepId)
-            vxLanPort(proto, state, inFilters, outFilters)
-        else if (proto.hasNetworkId)
-            bridgePort(proto, state, inFilters, outFilters, servicePorts)
-        else if (proto.hasRouterId)
-            routerPort(proto, state, inFilters, outFilters, peeringTable)
+
+        def vppBinding =
+            if (port.hasVppBinding)
+                ZoomConvert.fromProto(port.getVppBinding, classOf[VppBinding])
+            else null
+
+        if (port.getSrvInsertionIdsCount > 0 && port.hasNetworkId)
+            servicePort(port, state, inFilters)
+        else if (port.hasVtepId)
+            vxLanPort(port, state, inFilters, outFilters)
+        else if (port.hasNetworkId)
+            bridgePort(port, state, vppBinding, inFilters, outFilters,
+                       servicePorts)
+        else if (port.hasRouterId)
+            routerPort(port, state, vppBinding, inFilters, outFilters,
+                       peeringTable)
         else
             throw new ConvertException("Unknown port type")
     }
 
     private def bridgePort(p: Topology.Port,
                            state: PortState,
+                           vppBinding: VppBinding,
                            inFilters: JList[UUID],
                            outFilters: JList[UUID],
                            servicePorts: JList[UUID]) =
@@ -78,10 +89,12 @@ object Port {
             postOutFilterMirrors = p.getOutboundMirrorIdsList,
             postInFilterMirrors = p.getPostInFilterMirrorIdsList,
             preOutFilterMirrors = p.getPreOutFilterMirrorIdsList,
-            servicePorts = servicePorts)
+            servicePorts = servicePorts,
+            vppBinding = vppBinding)
 
     private def routerPort(p: Topology.Port,
                            state: PortState,
+                           vppBinding: VppBinding,
                            inFilters: JList[UUID],
                            outFilters: JList[UUID],
                            peeringTable: StateTable[MAC, IPv4Addr]) =
@@ -108,7 +121,8 @@ object Port {
             preOutFilterMirrors = p.getPreOutFilterMirrorIdsList,
             vni = if (p.hasVni) p.getVni else 0,
             tunnelIp = if (p.hasTunnelIp) toIPv4Addr(p.getTunnelIp) else null,
-            peeringTable = peeringTable)
+            peeringTable = peeringTable,
+            vppBinding = vppBinding)
 
     private def vxLanPort(p: Topology.Port,
                           state: PortState,
@@ -158,12 +172,13 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     def previousHostId: UUID
     def interfaceName: String
     def adminStateUp: Boolean
-    def portGroups: JList[UUID] = emptyList()
-    def isActive: Boolean = false
+    def portGroups: JList[UUID]
+    def isActive: Boolean
     def containerId: UUID = null
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
     def servicePorts: JList[UUID]
+    def vppBinding: VppBinding
 
     val action = ToPortAction(id)
 
@@ -288,11 +303,13 @@ class BridgePort(override val id: UUID,
                  override val postOutFilterMirrors: JList[UUID] = emptyList(),
                  override val postInFilterMirrors: JList[UUID] = emptyList(),
                  override val preOutFilterMirrors: JList[UUID] = emptyList(),
-                 override val servicePorts: JList[UUID] = emptyList())
+                 override val servicePorts: JList[UUID] = emptyList(),
+                 override val vppBinding: VppBinding = null)
         extends Port {
 
     override def toString =
-        s"BridgePort [${super.toString} networkId=$networkId]"
+        s"BridgePort [${super.toString} networkId=$networkId " +
+        s"vppBinding=$vppBinding]"
 
     override def deviceId = networkId
 
@@ -412,7 +429,8 @@ case class RouterPort(override val id: UUID,
                         emptyList(),
                       vni: Int = 0,
                       tunnelIp: IPv4Addr = null,
-                      peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty)
+                      peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty,
+                      override val vppBinding: VppBinding = null)
     extends Port {
 
     override val servicePorts: JList[UUID] = emptyList()
@@ -453,7 +471,8 @@ case class RouterPort(override val id: UUID,
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
         s"portSubnet=$portSubnet portAddress=$portAddress portMac=$portMac " +
-        s"${if (isL2) s"vni=$vni tunnelIp=$tunnelIp" else ""} routeIds=$routeIds]"
+        s"${if (isL2) s"vni=$vni tunnelIp=$tunnelIp" else ""} " +
+        s"routeIds=$routeIds vppBinding=$vppBinding]"
 }
 
 case class VxLanPort(override val id: UUID,
@@ -482,6 +501,7 @@ case class VxLanPort(override val id: UUID,
     override def isInterior = false
     override def isActive = true
     override def servicePorts: JList[UUID] = emptyList()
+    override def vppBinding = null
 
     protected def device = tryGet(classOf[Bridge], networkId)
 

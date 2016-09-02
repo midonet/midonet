@@ -15,35 +15,37 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util.UUID
+import java.util.{Collections, UUID}
 
-import akka.actor.ActorSystem
-
-import org.junit.runner.RunWith
-
-import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec, Matchers}
-import com.google.common.collect.Lists
-
-import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology
-import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
-import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import scala.util.Random
 
+import com.google.common.collect.Lists
+
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FeatureSpec, Matchers}
+
+import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.state.PortStateStorage.PortInactive
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
+import org.midonet.cluster.util.UUIDUtil._
 
 @RunWith(classOf[JUnitRunner])
-class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
-                         with TopologyMatchers {
+class PortTest extends FeatureSpec with Matchers with TopologyBuilder
+               with TopologyMatchers {
 
     private val random = new Random()
-    implicit val as: ActorSystem = ActorSystem("port-conversion-test")
 
-    feature("Conversion for bridge port") {
-        scenario("Test conversion from Protocol Buffers message") {
+    feature("Test port conversion") {
+        scenario("Unknown port type") {
+            val port = createBridgePort()
+            intercept[ConvertException] {
+                Port(port, PortInactive, Collections.emptyList(),
+                     Collections.emptyList())
+            }
+        }
+
+        scenario("Bridge port") {
             val port = createBridgePort(
                 bridgeId = Some(UUID.randomUUID),
                 inboundFilterId = Some(UUID.randomUUID),
@@ -64,10 +66,8 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
             device shouldBeDeviceOf port
             device.deviceTag should not be null
         }
-    }
 
-    feature("Conversion for router port") {
-        scenario("Test conversion from Protocol Buffers message") {
+        scenario("Router port") {
             val port = createRouterPort(
                 routerId = Some(UUID.randomUUID),
                 inboundFilterId = Some(UUID.randomUUID),
@@ -87,10 +87,8 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
             device shouldBeDeviceOf port
             device.deviceTag should not be null
         }
-    }
 
-    feature("Conversion for VXLAN port") {
-        scenario("Test conversion from Protocol Buffers message") {
+        scenario("VXLAN port") {
             val port = createVxLanPort(
                 bridgeId = Some(UUID.randomUUID),
                 inboundFilterId = Some(UUID.randomUUID),
@@ -98,6 +96,7 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 tunnelKey = random.nextLong(),
                 peerId = Some(UUID.randomUUID),
                 vifId = Some(UUID.randomUUID),
+                vtepId = Some(UUID.randomUUID()),
                 hostId = None,
                 interfaceName = None,
                 adminStateUp = random.nextBoolean(),
@@ -110,5 +109,26 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
             device shouldBeDeviceOf port
             device.deviceTag should not be null
         }
+
+        scenario("Bridge port with VPP binding") {
+            val port = createBridgePort(
+                bridgeId = Some(UUID.randomUUID()),
+                vppBinding = Some(createVppBinding(random.nextString(3))))
+            val device = Port(port, PortInactive, Collections.emptyList(),
+                              Collections.emptyList())
+
+            device shouldBeDeviceOf port
+        }
+
+        scenario("Router port with VPP binding") {
+            val port = createRouterPort(
+                routerId = Some(UUID.randomUUID()),
+                vppBinding = Some(createVppBinding(random.nextString(3))))
+            val device = Port(port, PortInactive, Collections.emptyList(),
+                              Collections.emptyList())
+
+            device shouldBeDeviceOf port
+        }
+
     }
 }
