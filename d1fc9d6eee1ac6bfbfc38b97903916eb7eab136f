@@ -22,6 +22,30 @@
       "revId": "d1fc9d6eee1ac6bfbfc38b97903916eb7eab136f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_58764cd9",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1009145
+      },
+      "writtenOn": "2016-09-02T11:12:49Z",
+      "side": 1,
+      "message": "Just a mistake.\nI looked at midonet-cluster log file when I wrote this doc part. The log contains the following line:\n...\n/midonet/zoom/0/models/NeutronPort/fd9acd91-e6b5-4f84-8bf0-ff07443e90c2\n/midonet/zoom/0/models/Port/61aafd9f-2faa-409d-83b4-6230a225f032\n/midonet/zoom/0/models/Route/d322567f-eade-47ff-b014-2922e60e414b\n...\n\nThe first line is an updating NeutronPort therefore I put it in the doc.\nActually it\u0027s not related to the patch. I\u0027ll fix it.",
+      "parentUuid": "baa041b7_dd9371ff",
+      "range": {
+        "startLine": 194,
+        "startChar": 15,
+        "endLine": 194,
+        "endChar": 27
+      },
+      "revId": "d1fc9d6eee1ac6bfbfc38b97903916eb7eab136f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
