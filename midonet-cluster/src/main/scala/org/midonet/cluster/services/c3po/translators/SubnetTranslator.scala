@@ -22,9 +22,9 @@ import scala.collection.{breakOut, mutable}
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
 import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
-import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 import org.midonet.util.concurrent.toFutureOps
@@ -135,8 +135,7 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
             } catch {
                 case nfe: NotFoundException => null
             }
-            if (port != null &&
-                port.getDeviceOwner.name() == DeviceOwner.DHCP.name) {
+            if (port != null && port.getDeviceOwner == DeviceOwner.DHCP) {
                 if (port.getFixedIpsCount == 0) {
                     return None
                 }
