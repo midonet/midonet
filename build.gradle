@@ -152,6 +152,7 @@ project.ext {
                           "nl.jqno.equalsverifier:equalsverifier:1.4.1"],
         typesafeconf: "com.typesafe:config:1.2.1",
         validation: "javax.validation:validation-api:1.0.0.GA",
+        vpp: "io.fd.vpp:jvpp:16.06",
         zookeeper: dependencies.create("org.apache.zookeeper:zookeeper:3.4.8") {
             exclude group: 'jline', module: 'jline'
             exclude group: 'javax.jms', module: 'javax.jms'
@@ -478,6 +479,7 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
 configure(subprojects) {
     repositories {
         maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
+        maven { url "https://nexus.fd.io/content/repositories/fd.io.release/" }
     }
 }
 
