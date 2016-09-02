@@ -27,6 +27,10 @@ Only the following fields are updated:
  * name => name
  * tenantId => tenantId
 
+If a QOS policy ID is specified, it should be set on the network object:
+
+ * qos_policy_id_ => qosDefaultPolicyId
+
 ### UPDATE
 
 If 'provider:network_type' key exists in the network data, and the value is
@@ -43,6 +47,13 @@ Only the following fields are updated:
 For an uplink network, where there is no corresponding MidoNet network, setting
 admin state down means setting 'adminStateUp' to False all the MidoNet router
 ports associated with the uplink network.
+
+If a QOS policy ID is specified, it should be updated on the network object:
+
+ * qos_policy_id_ => qosDefaultPolicyId
+
+If a QOS policy ID is not specified, that field should be cleared on the
+port object.
 
 ### DELETE
 
@@ -162,6 +173,12 @@ port data, perform the binding.  The binding information are as follows:
  * 'binding:host' => Neutron host ID (find the MidoNet host ID from this ID)
  * 'binding:profile[interface_name]' => interface name
 
+If a QOS policy ID is specified, first check that the port's device_owner
+is "nova:compute", otherwise, throw an exception (Only VM ports can have
+QoS set).  After verifying this, set the policy ID on the port object:
+
+ * qos_policy_id_ => qosPolicyId
+
 ### UPDATE
 
 Update the MidoNet network MAC table entry:
@@ -200,6 +217,12 @@ port data, perform the binding.  The binding information are as follows:
 If there is 'binding:profile' in the Port data but the value is null, it
 indicates unbinding.  Perform unbinding in such case.
 
+If a QOS policy ID is specified, first check that the port's device_owner
+is "nova:compute", and if so, update the port object with the policy ID:
+
+ * qos_policy_id_ => qosPolicyId
+
+If a QOS policy ID is not specified, the field should be cleared.
 
 ### DELETE
 
@@ -577,6 +600,81 @@ Additionally, for an L4 rule, create an extra rule for later IP fragments:
 
 Delete the MidoNet chain rule matching the ID of the security group rule
 provided.
+
+
+## QOS
+
+### CREATE
+
+Create a new MidoNet QoS object.  The following fields are copied over
+directly:
+
+ * id => id
+ 
+If present (rare), the bandwidth limit rules are copied over from the list
+of neutron objects to the MidoNet objects:
+
+ * bandwidth_limit_rules => bandwidthLimitRules
+ 
+This is a list of BandwidthLimitRule objects defined as:
+
+```
+BandwidthLimitRule {
+  INT max_kbps;
+  INT max_burst_kbps;
+}
+```
+
+For each BandwidthLimitRule, the following fields are copied over
+directly:
+
+ * max_kbps => maxKBPS
+ * max_burst_kbps => MaxBurstKBPS
+
+If present (rare), the DSCP marking rules are copied over from the list
+of neutron objects to the MidoNet objects:
+
+ * dscp_marking_rules => dscpMarkingRules
+
+This is a list of DSCPMarkingRule objects defined as:
+
+```
+DSCPMarkingRule {
+  INT dscp_mark;
+}
+```
+
+For each DSCPMarkingRule, the following fields are copied over
+directly:
+
+ * dscp_mark => dscpMark
+
+As each QOS object contains its own set of rules, there is no sharing of
+BandwidthLimitRules DSCPMarkingRules from one QOS object to another.  They
+are entirely contained as children to a parent QOS object.
+
+### UPDATE
+
+Update the provided fields as follows:
+
+ * id => id
+
+For these rule list fields, if they are specified in the provided info
+(the usual method for adding rules to a QoS object), clear the list of 
+rules and replace them entirely with the new set provided (see above for
+the definitions of the item types in these lists):
+
+ * bandwidth_limit_rules => bandwidthLimitRules
+ * dscp_marking_rules => dscpMarkingRules
+
+Most rule-setting will occur through the updates.  Each time an update
+comes in, we will receive the entire neutron object, so we can just reset
+the fields to the object data we get.
+
+### DELETE
+
+Clear the rule list and delete the object.  Any ports which have a link to 
+the deleted object should have their qosPolicyId field cleared.
 
 
 ## POOL
