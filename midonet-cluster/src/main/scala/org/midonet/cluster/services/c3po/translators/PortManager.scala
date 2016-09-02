@@ -242,19 +242,19 @@ trait PortManager extends ChainManager with RouteManager {
 
 object PortManager {
     def isVifPort(nPort: NeutronPortOrBuilder) =
-        !nPort.hasDeviceOwner || nPort.getDeviceOwner == DeviceOwner.COMPUTE
+        nPort.getDeviceOwner == DeviceOwner.COMPUTE
     def isDhcpPort(nPort: NeutronPortOrBuilder) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.DHCP
+        nPort.getDeviceOwner == DeviceOwner.DHCP
     def isFloatingIpPort(nPort: NeutronPortOrBuilder) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.FLOATINGIP
+        nPort.getDeviceOwner == DeviceOwner.FLOATINGIP
     def isRouterInterfacePort(nPort: NeutronPortOrBuilder) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_INTERFACE
+        nPort.getDeviceOwner == DeviceOwner.ROUTER_INTERFACE
     def isRouterGatewayPort(nPort: NeutronPortOrBuilder) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
+        nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
     def isVipPort(nPort: NeutronPortOrBuilder) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.LOADBALANCER
+        nPort.getDeviceOwner == DeviceOwner.LOADBALANCER
     def isRemoteSitePort(nPort: NeutronPortOrBuilder) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.REMOTE_SITE
+        nPort.getDeviceOwner == DeviceOwner.REMOTE_SITE
 
     // NOTE(yamamoto): This is intended to be sync with Neutron's
     // is_port_trusted.
