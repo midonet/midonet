@@ -283,6 +283,7 @@ cp nsdb/conf/midonet.conf $CLUSTER_CONF
 iniset ${CLUSTER_CONF} zookeeper zookeeper_hosts $ZOOKEEPER_HOSTS
 
 # Configure the cluster using mn-conf
+configure_mn "cluster.loggers.root" "DEBUG"
 configure_mn "cluster.rest_api.http_port" $API_PORT
 configure_mn "cluster.topology_api.enabled" "true"
 configure_mn "cluster.topology_api.port" $TOPOLOGY_API_PORT
@@ -305,15 +306,6 @@ if [ "$MIDONET_USE_KEYSTONE" = "True" ]; then
     configure_mn "cluster.auth.provider_class" "org.midonet.cluster.auth.keystone.KeystoneService"
 fi
 
-# Configure the embedded metadata proxy
-if [[ "$USE_METADATA" = "True" ]]; then
-    configure_mn "agent.openstack.metadata.enabled" "true"
-    configure_mn "agent.openstack.metadata.nova_metadata_url" \
-        "$NOVA_METADATA_URL"
-    configure_mn "agent.openstack.metadata.shared_secret" \
-        "$METADATA_SHARED_SECRET"
-fi
-
 cp $TOP_DIR/midonet-util/src/test/resources/logback-test.xml \
    $TOP_DIR/midonet-cluster/build/resources/main
 
@@ -331,6 +323,15 @@ fi
 MM_QUAGGA_CONF_DIR=/etc/midolman/quagga
 sudo mkdir -p $MM_QUAGGA_CONF_DIR
 sudo cp $TOP_DIR/midolman/src/deb/quagga/bgpd.conf $MM_QUAGGA_CONF_DIR
+
+# Configure the embedded metadata proxy
+if [[ "$USE_METADATA" = "True" ]]; then
+    configure_mn "agent.openstack.metadata.enabled" "true"
+    configure_mn "agent.openstack.metadata.nova_metadata_url" \
+        "$NOVA_METADATA_URL"
+    configure_mn "agent.openstack.metadata.shared_secret" \
+        "$METADATA_SHARED_SECRET"
+fi
 
 configure_mn "agent.loggers.root" "DEBUG"
 configure_mn "agent.midolman.lock_memory" "false"
