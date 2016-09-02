@@ -74,8 +74,10 @@ cobertura {
     coverageExcludes = ['.*org.midonet.cluster.models.*',
                         '.*org.midonet.cluster.rpc.*',
                         '.*org.midonet.cluster.data.storage.StorageEval.*',
+                        '.*org.midonet.cluster.flowstate.FlowStateTransfer.*',
                         '.*org.midonet.cluster.flowstate.proto.*',
                         '.*org.midonet.cluster.flowhistory.proto.*',
+                        '.*org.midonet.containers.models.*',
                         '.*org.midonet.nsdb.BaseConfig.*',
                         '.*org.midonet.nsdb.ConfigWithProperties.*']
 }
