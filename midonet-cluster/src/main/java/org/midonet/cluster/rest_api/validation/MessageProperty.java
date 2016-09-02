@@ -56,8 +56,12 @@ public class MessageProperty {
             "{midokura.javarx.HostIdIsInvalid.message}";
     public static final String HOST_INTERFACE_IS_USED =
             "{midokura.javarx.HostInterfaceIsAlreadyUsed.message}";
+    public static final String HOST_INTERFACE_PORT_NOT_FOUND =
+            "{midokura.javarx.HostInterfacePortNotFound.message}";
     public static final String HOST_IS_NOT_IN_ANY_TUNNEL_ZONE =
             "{midokura.javarx.HostIsNotInAnyTunnelZone.message}";
+    public static final String HOST_VPP_BINDING_NOT_FOUND =
+            "{midokura.javarx.HostVppBindingNotFound.message}";
     public static final String IP_ADDR_GROUP_ID_EXISTS =
             "{midokura.javarx.IpAddrGroupIdExists.message}";
     public static final String IP_ADDR_INVALID =
@@ -98,6 +102,8 @@ public class MessageProperty {
             "{midokura.javarx.PortNotVxLanPort.message}";
     public static final String PORT_ALREADY_BOUND =
             "{midokura.javarx.PortAlreadyBound.message}";
+    public static final String PORT_NOT_BOUND =
+            "{midokura.javarx.PortNotBound.message}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable.message}";
     public static final String RESOURCE_EXISTS =

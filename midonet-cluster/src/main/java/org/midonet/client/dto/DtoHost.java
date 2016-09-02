@@ -15,15 +15,12 @@
  */
 package org.midonet.client.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import java.net.URI;
 import java.util.UUID;
 
-/**
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 1/31/12
- */
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
 @XmlRootElement
 public class DtoHost {
 
@@ -33,6 +30,7 @@ public class DtoHost {
     private DtoInterface[] hostInterfaces;
     private URI interfaces;
     private URI ports;
+    private URI vppBindings;
     private boolean alive;
     private Integer floodingProxyWeight;
     private Integer containerWeight;
@@ -136,5 +134,13 @@ public class DtoHost {
 
     public void setPorts(URI ports) {
         this.ports = ports;
+    }
+
+    public URI getVppBindings() {
+        return vppBindings;
+    }
+
+    public void setVppBindings(URI vppBindings) {
+        this.vppBindings = vppBindings;
     }
 }

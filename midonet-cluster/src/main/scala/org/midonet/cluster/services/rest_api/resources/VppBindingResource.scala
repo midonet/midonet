@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,45 +27,55 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
+import org.midonet.cluster.rest_api.models.{Host, Port, VppBinding}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
-class HostInterfacePortResource @Inject()(hostId: UUID,
-                                          resContext: ResourceContext)
-    extends MidonetResource[HostInterfacePort](resContext) {
+class VppBindingResource @Inject()(hostId: UUID,
+                                   resourceContext: ResourceContext)
+    extends MidonetResource[VppBinding](resourceContext) {
 
     @GET
     @Path("{id}")
+    @Produces(Array(APPLICATION_HOST_VPP_BINDING_JSON))
     override def get(@PathParam("id") id: String,
-                     @HeaderParam("Accept") accept: String)
-    : HostInterfacePort = {
+                     @HeaderParam("Accept") accept: String): VppBinding = {
         val portId = UUID.fromString(id)
         getResource(classOf[Host], hostId).portIds.asScala
             .find(_ == portId)
-            .map(getResource(classOf[HostInterfacePort], _))
-            .filter(_.interfaceName ne null)
+            .map(getResource(classOf[Port], _))
+            .filter(_.vppBinding ne null)
+            .map(port => {
+                port.vppBinding.setBaseUri(resourceContext.uriInfo.getBaseUri)
+                port.vppBinding.create(hostId, portId)
+                port.vppBinding
+            })
             .getOrElse(throw new NotFoundHttpException(
-                getMessage(HOST_INTERFACE_PORT_NOT_FOUND, hostId, portId)))
+                getMessage(HOST_VPP_BINDING_NOT_FOUND, hostId, portId)))
     }
 
     @GET
-    @Produces(Array(APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON))
+    @Produces(Array(APPLICATION_HOST_VPP_BINDING_COLLECTION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
-    : JList[HostInterfacePort] = {
+    : JList[VppBinding] = {
         val host = getResource(classOf[Host], hostId)
-        listResources(classOf[HostInterfacePort], host.portIds.asScala)
-            .filter(_.interfaceName ne null)
+        listResources(classOf[Port], host.portIds.asScala)
+            .filter(_.vppBinding ne null)
+            .map(port => {
+                port.vppBinding.setBaseUri(resourceContext.uriInfo.getBaseUri)
+                port.vppBinding.create(hostId, port.id)
+                port.vppBinding
+            })
             .asJava
     }
 
     @POST
-    @Consumes(Array(APPLICATION_HOST_INTERFACE_PORT_JSON,
+    @Consumes(Array(APPLICATION_HOST_VPP_BINDING_JSON,
                     APPLICATION_JSON))
-    override def create(binding: HostInterfacePort,
+    override def create(binding: VppBinding,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = tryTx { tx =>
         val host = tx.get(classOf[Host], hostId)
@@ -73,26 +83,16 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
             throw new ConflictHttpException(
                 getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, hostId))
         }
-
         val port = tx.get(classOf[Port], binding.portId)
         if ((port.interfaceName ne null) || (port.vppBinding ne null)) {
             throw new ConflictHttpException(
                 getMessage(PORT_ALREADY_BOUND, binding.portId))
         }
 
-        tx.list(classOf[Port], host.portIds.asScala)
-            .find(_.interfaceName == binding.interfaceName) match {
-                case Some(conflictingPort) =>
-                    throw new ConflictHttpException(
-                        getMessage(HOST_INTERFACE_IS_USED,
-                                   binding.interfaceName))
-                case _ =>
-            }
-
-        binding.setBaseUri(resContext.uriInfo.getBaseUri)
-        binding.create(hostId)
+        binding.setBaseUri(resourceContext.uriInfo.getBaseUri)
+        binding.create(hostId, port.id)
         port.hostId = hostId
-        port.interfaceName = binding.interfaceName
+        port.vppBinding = binding
         tx.update(port)
         Response.created(binding.getUri).build()
     }
@@ -102,13 +102,13 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
     override def delete(@PathParam("id") id: String): Response = tryTx { tx =>
         val port = tx.get(classOf[Port], id)
 
-        if (port.interfaceName eq null) {
+        if (port.vppBinding eq null) {
             throw new BadRequestHttpException(getMessage(PORT_NOT_BOUND, id))
         }
 
         port.previousHostId = port.hostId
         port.hostId = null
-        port.interfaceName = null
+        port.vppBinding = null
         tx.update(port)
         MidonetResource.OkNoContentResponse
     }

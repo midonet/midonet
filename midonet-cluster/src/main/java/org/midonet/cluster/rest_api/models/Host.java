@@ -91,6 +91,10 @@ public class Host extends UriResource {
 
     public URI getPorts() { return relativeUri(ResourceUris.PORTS()); }
 
+    public URI getVppBindings() {
+        return relativeUri(ResourceUris.VPP_BINDINGS());
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this).omitNullValues()
