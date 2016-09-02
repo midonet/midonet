@@ -368,6 +368,12 @@ message Port {
     optional bool off_ramp_vxlan = 41;
     optional IPAddress tunnel_ip = 42;
 
+    // VPP Binding
+    message VppBinding {
+        optional string interface_name = 1;
+    }
+    optional VppBinding vpp_binding = 43;
+
     // Backreferences
 
     // For Router gateway port only. Back-references to VIPs that are associated
