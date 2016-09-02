@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_953ffd86",
+        "filename": "docs/qos.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-02T09:27:04Z",
+      "side": 1,
+      "message": "I can\u0027t find the reference for [1].",
+      "revId": "5346aef840052baa7ca1a254306e2ab1ec2f9597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_98c854aa",
+        "filename": "docs/qos.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-02T09:27:04Z",
+      "side": 1,
+      "message": "The design is that the low level midonet models are exactly the same as the Neutron QoS models.  C3PO translator just stores the Neutron models exactly as they are in ZK.  MidoNet agents will handle these Neutron models directly in simulation.",
+      "revId": "5346aef840052baa7ca1a254306e2ab1ec2f9597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d8cedcb6",
+        "filename": "docs/qos.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-02T09:27:04Z",
+      "side": 1,
+      "message": "Trailing white space",
+      "revId": "5346aef840052baa7ca1a254306e2ab1ec2f9597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_18bd6402",
+        "filename": "docs/qos.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-02T09:27:04Z",
+      "side": 1,
+      "message": "involves",
+      "revId": "5346aef840052baa7ca1a254306e2ab1ec2f9597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_584acc28",
+        "filename": "docs/qos.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-02T09:27:04Z",
+      "side": 1,
+      "message": "I would like to see more detail on how this is done.  Perhaps some mention of tc and how midonet agent interfaces with tc would be useful.",
+      "revId": "5346aef840052baa7ca1a254306e2ab1ec2f9597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f85080d6",
+        "filename": "docs/qos.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-02T09:27:04Z",
+      "side": 1,
+      "message": "I believe these simply extend qos_rule object.",
+      "revId": "5346aef840052baa7ca1a254306e2ab1ec2f9597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_785b50f7",
+        "filename": "docs/qos.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-02T09:27:04Z",
+      "side": 1,
+      "message": "\u0027similar\u0027 -\u003e \u0027identical\u0027",
+      "revId": "5346aef840052baa7ca1a254306e2ab1ec2f9597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
