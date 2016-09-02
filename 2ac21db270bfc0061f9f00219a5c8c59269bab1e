@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4939e0d7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-09-02T17:21:07Z",
+      "side": 1,
+      "message": "Why here it is maintained the in/outFilters instead of in/out(bound)Filters, as done in Bridge class.",
+      "range": {
+        "startLine": 42,
+        "startChar": 12,
+        "endLine": 43,
+        "endChar": 21
+      },
+      "revId": "2ac21db270bfc0061f9f00219a5c8c59269bab1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
