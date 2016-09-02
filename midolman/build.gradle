@@ -76,6 +76,8 @@ dependencies {
             libraries.jctools,
             libraries.reflections,
             libraries.snappy,
+            libraries.vpp_core,
+            libraries.vpp_registry,
             "com.fasterxml.jackson.core:jackson-databind:2.3.0"
 
     runtime libraries.jackson_jaxrs
