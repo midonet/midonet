@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_35f5d1ca",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-02T08:09:26Z",
+      "side": 1,
+      "message": "this trailing _ is a part of the name?",
+      "range": {
+        "startLine": 53,
+        "startChar": 16,
+        "endLine": 53,
+        "endChar": 17
+      },
+      "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b53a0197",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 1
@@ -18,6 +41,29 @@
         "startChar": 33,
         "endLine": 178,
         "endChar": 9
+      },
+      "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_950dbdea",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-02T08:09:26Z",
+      "side": 1,
+      "message": "you should use isVifPort which handles other cases.  eg. kuryr",
+      "range": {
+        "startLine": 221,
+        "startChar": 3,
+        "endLine": 221,
+        "endChar": 17
       },
       "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
