@@ -15,9 +15,7 @@
  */
 package org.midonet.midolman.topology
 
-import java.util.{ArrayList => JArrayList, List => JList, UUID}
-
-import org.midonet.packets.{MAC, IPv4Addr}
+import java.util.{UUID, ArrayList => JArrayList, List => JList}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -25,11 +23,12 @@ import scala.collection.mutable
 import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
-import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.data.storage.StateTable
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, L2Insertion}
+import org.midonet.cluster.models.Topology.{L2Insertion, Port => TopologyPort}
 import org.midonet.cluster.state.PortStateStorage._
-import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.simulation.{Chain, Mirror, Port => SimulationPort}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc4}
 
 /**
@@ -83,25 +82,25 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             (state: PortState, traceChain: Option[UUID],
              servicePorts: JList[UUID], port: TopologyPort) => {
 
-                val infilters = new JArrayList[UUID](1)
-                val outfilters = new JArrayList[UUID](1)
-                traceChain.foreach(infilters.add)
+                val inFilters = new JArrayList[UUID](1)
+                val outFilters = new JArrayList[UUID](1)
+                traceChain.foreach(inFilters.add)
                 if (port.hasL2InsertionInfilterId) {
-                    infilters.add(port.getL2InsertionInfilterId)
+                    inFilters.add(port.getL2InsertionInfilterId)
                 }
                 if (port.hasInboundFilterId) {
-                    infilters.add(port.getInboundFilterId)
+                    inFilters.add(port.getInboundFilterId)
                 }
                 if (port.hasOutboundFilterId) {
-                    outfilters.add(port.getOutboundFilterId)
+                    outFilters.add(port.getOutboundFilterId)
                 }
                 if (port.hasL2InsertionOutfilterId) {
-                    outfilters.add(port.getL2InsertionOutfilterId)
+                    outFilters.add(port.getL2InsertionOutfilterId)
                 }
                 val portState = if (portStateReady) state else PortInactive
 
-                SimulationPort(port, portState, infilters, outfilters, servicePorts,
-                               peeringTable)
+                SimulationPort(port, portState, inFilters, outFilters,
+                               servicePorts, peeringTable)
             })
 
     private lazy val portObservable = Observable
