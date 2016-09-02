@@ -117,6 +117,8 @@ object MidonetMediaTypes {
     // Host interface - port mapping
     final val APPLICATION_HOST_INTERFACE_PORT_JSON = "application/vnd.org.midonet.HostInterfacePort-v1+json"
     final val APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.HostInterfacePort-v1+json"
+    final val APPLICATION_HOST_VPP_BINDING_JSON = "application/vnd.org.midonet.HostVppBinding-v1+json"
+    final val APPLICATION_HOST_VPP_BINDING_COLLECTION_JSON = "application/vnd.org.midonet.collection.HostVppBinding-v1+json"
 
     // Upgrade Control
     final val APPLICATION_SYSTEM_STATE_JSON_V2 = "application/vnd.org.midonet.SystemState-v2+json"

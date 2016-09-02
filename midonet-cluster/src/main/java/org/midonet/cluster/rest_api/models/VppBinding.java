@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
@@ -28,25 +29,22 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 
-@ZoomClass(clazz = Topology.Port.class)
-public class HostInterfacePort extends UriResource {
+@ZoomClass(clazz = Topology.Port.VppBinding.class)
+public class VppBinding extends UriResource {
 
     @NotNull
-    @ZoomField(name = "id")
     public UUID portId;
 
     @NotNull
-    @ZoomField(name = "host_id")
     public UUID hostId;
 
-    @NotNull
     @ZoomField(name = "interface_name")
     public String interfaceName;
 
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.HOSTS(), hostId,
-                           ResourceUris.PORTS(), portId);
+                           ResourceUris.VPP_BINDINGS(), portId);
     }
 
     public URI getHost() {
@@ -58,8 +56,9 @@ public class HostInterfacePort extends UriResource {
     }
 
     @JsonIgnore
-    public void create(UUID hostId) {
+    public void create(UUID hostId, UUID portId) {
         this.hostId = hostId;
+        this.portId = portId;
     }
 
     @Override

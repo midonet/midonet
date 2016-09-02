@@ -121,6 +121,11 @@ class HostResource @Inject()(resContext: ResourceContext)
         new HostInterfacePortResource(hostId, resContext)
     }
 
+    @Path("{id}/vpp_bindings")
+    def vppBindings(@PathParam("id") hostId: UUID): VppBindingResource = {
+        new VppBindingResource(hostId, resContext)
+    }
+
     protected override def getFilter(host: Host): Host = {
         initHost(host)
     }

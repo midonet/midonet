@@ -58,6 +58,7 @@ object ResourceUris {
     val VERSIONS: String = "versions"
     val VIPS: String = "vips"
     val VLANS: String = "vlans"
+    val VPP_BINDINGS: String = "vpp_bindings"
     val VTEPS: String = "vteps"
     val VTEP_BINDINGS: String = "vtep_bindings"
     val VXLAN_PORTS: String = "vxlan_ports"

@@ -129,6 +129,10 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "srv_insertion_ids")
     public List<UUID> serviceInsertionIds;
 
+    @JsonIgnore
+    @ZoomField(name = "vpp_binding")
+    public VppBinding vppBinding;
+
     public boolean active;
 
     public Port() {
@@ -176,6 +180,11 @@ public abstract class Port extends UriResource {
         return absoluteUri(ResourceUris.CHAINS(), outboundFilterId);
     }
 
+    public URI getVppBinding() {
+        return absoluteUri(ResourceUris.HOSTS(), hostId,
+                           ResourceUris.VPP_BINDINGS(), id);
+    }
+
     @JsonIgnore
     @Override
     public void create() {
@@ -208,6 +217,7 @@ public abstract class Port extends UriResource {
         l2insertionInfilterId = from.l2insertionInfilterId;
         l2insertionOutfilterId = from.l2insertionOutfilterId;
         serviceInsertionIds = from.serviceInsertionIds;
+        vppBinding = from.vppBinding;
     }
 
     protected ToStringHelper toStringHelper() {
