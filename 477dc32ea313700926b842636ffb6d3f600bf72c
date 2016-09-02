@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_b53a0197",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-02T08:00:49Z",
+      "side": 1,
+      "message": "Question: If neutron already does this validation for us, do we really want to make the check as well?",
+      "range": {
+        "startLine": 176,
+        "startChar": 33,
+        "endLine": 178,
+        "endChar": 9
+      },
+      "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_554a9528",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-02T08:00:49Z",
+      "side": 1,
+      "message": "We might need the ID as well, because we will have to check which rules were added/removed on an update.",
+      "range": {
+        "startLine": 622,
+        "startChar": 0,
+        "endLine": 622,
+        "endChar": 18
+      },
+      "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3547111f",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 642,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-02T08:00:49Z",
+      "side": 1,
+      "message": "Ditto: might need an ID.",
+      "range": {
+        "startLine": 642,
+        "startChar": 0,
+        "endLine": 642,
+        "endChar": 15
+      },
+      "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_15540dc8",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 677,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-02T08:00:49Z",
+      "side": 1,
+      "message": "I guess this applies to networks as well?",
+      "range": {
+        "startLine": 677,
+        "startChar": 55,
+        "endLine": 677,
+        "endChar": 62
+      },
+      "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
