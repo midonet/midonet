@@ -22,6 +22,30 @@
       "revId": "2ac21db270bfc0061f9f00219a5c8c59269bab1e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4967a0ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-02T17:37:52Z",
+      "side": 1,
+      "message": "I guess it\u0027s because who added them wanted a shorter identifier. I\u0027m okay with either as long as we don\u0027t duplicate them.",
+      "parentUuid": "baa041b7_4939e0d7",
+      "range": {
+        "startLine": 42,
+        "startChar": 12,
+        "endLine": 43,
+        "endChar": 21
+      },
+      "revId": "2ac21db270bfc0061f9f00219a5c8c59269bab1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
