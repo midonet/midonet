@@ -57,8 +57,8 @@ abstract class RouterBase[IP <: IPAddr]()
 
     val routeBalancer = new RouteBalancer(rTable)
     override val deviceTag = FlowTagger.tagForRouter(id)
-    override def infilters = cfg.inboundFilters
-    override def outfilters = cfg.outboundFilters
+    override def inboundFilters = cfg.inboundFilters
+    override def outboundFilters = cfg.outboundFilters
     override def adminStateUp = cfg.adminStateUp
 
     private val routeAndMirrorOut: ContinueWith = ContinueWith(context => {
@@ -84,6 +84,8 @@ abstract class RouterBase[IP <: IPAddr]()
         implicit val packetContext = context
         context.preRoutingMatch.reset(context.wcmatch)
 
+        context.log.debug(s"Packet ingressing $this")
+
         if (context.wcmatch.isVlanTagged) {
             context.log.debug("Dropping VLAN tagged traffic")
             Drop
@@ -92,12 +94,14 @@ abstract class RouterBase[IP <: IPAddr]()
                 context.log.debug("Stripping off VLAN 0 tag")
 
             if (!isValidEthertype(context.wcmatch.getEtherType)) {
-                context.log.debug(s"Dropping unsupported EtherType ${context.wcmatch.getEtherType}")
+                context.log.debug(s"Dropping unsupported EtherType " +
+                                  s"${context.wcmatch.getEtherType}")
                 Drop
             } else {
                 tryGet(classOf[RouterPort], context.inPortId) match {
                     case inPort if !cfg.adminStateUp =>
-                        context.log.debug("Router {} state is down, DROP", id)
+                        context.log.debug(s"Router $id is administratively down: " +
+                                          "dropping")
                         sendAnswer(inPort.id,
                                    icmpErrors.unreachableProhibitedIcmp(
                                        inPort, context, context.preRoutingMatch))
@@ -151,7 +155,8 @@ abstract class RouterBase[IP <: IPAddr]()
             }
 
             if (hwDst != inPort.portMac) { // Not addressed to us, log.warn and drop
-                context.log.warn("{} neither broadcast nor inPort's MAC ({})",
+                context.log.warn("Destination MAC {} is neither broadcast nor " +
+                                 "ingress port MAC ({}): dropping",
                                  hwDst, inPort.portMac)
                 return Drop
             }
@@ -224,8 +229,8 @@ abstract class RouterBase[IP <: IPAddr]()
                 vxlan.deserialize(ByteBuffer.wrap(data.getData))
                 vxlan
             case _ =>
-                context.log.warn("UDP packet to VXLAN port has " +
-                                 "unparseable payload.")
+                context.log.warn("UDP packet to VXLAN port has unparseable " +
+                                 "payload")
                 return null
             }
 
@@ -238,12 +243,12 @@ abstract class RouterBase[IP <: IPAddr]()
         if (outPort.tunnelIp != context.wcmatch.getNetworkDstIP)
             return null
 
-        context.log.debug(s"Processing vxlan packet with vni=$vni " +
-                          s"and udpSrc=${context.wcmatch.getSrcPort}")
+        context.log.debug(s"Processing VXLAN packet with VNI $vni " +
+                          s"and source port ${context.wcmatch.getSrcPort}")
         context.decap(
             inner = vxlan.getPayload.asInstanceOf[Ethernet],
             vni = vni)
-        context.log.debug(s"Decapsulated packet ${context.wcmatch}")
+        context.log.debug(s"Decapsulated packet: ${context.wcmatch}")
         outPort
     }
 
@@ -298,7 +303,8 @@ abstract class RouterBase[IP <: IPAddr]()
 
             if (rt == null) {
                 // No route to network
-                context.log.debug(s"No route to network (dst:$dstIP)")
+                context.log.debug(s"No route to network for destination " +
+                                  s"address: $dstIP")
                 sendAnswer(inPort.id,
                            icmpErrors.unreachableNetIcmp(inPort, context,
                                                          context.preRoutingMatch))
@@ -307,36 +313,37 @@ abstract class RouterBase[IP <: IPAddr]()
 
             val action = rt.nextHop match {
                 case Route.NextHop.LOCAL if isIcmpEchoRequest(fmatch) =>
-                    context.log.debug("Got ICMP echo req, will reply")
+                    context.log.debug("Received ICMP echo request: replying")
                     sendIcmpEchoReply(context)
                     NoOp
 
                 case Route.NextHop.LOCAL =>
                     handleBgp(context, inPort) match {
                         case NoOp =>
-                            context.log.debug("Dropping non icmp_req addressed to local port")
+                            context.log.debug("Non ICMP request sent to local " +
+                                              "port: dropping")
                             ErrorDrop
                         case simRes =>
-                            context.log.debug("Matched BGP traffic")
+                            context.log.debug("Received BGP traffic")
                             simRes
                     }
 
                 case Route.NextHop.BLACKHOLE =>
-                    context.log.debug("Dropping packet, BLACKHOLE route (dst:{})",
-                        fmatch.getNetworkDstIP)
+                    context.log.debug("BLACKHOLE route for destination address " +
+                                      "{}: dropping", fmatch.getNetworkDstIP)
                     ErrorDrop
 
                 case Route.NextHop.REJECT =>
                     sendAnswer(inPort.id,
                                icmpErrors.unreachableProhibitedIcmp(
                                    inPort, context, context.preRoutingMatch))
-                    context.log.debug("Dropping packet, REJECT route (dst:{})",
-                        fmatch.getNetworkDstIP)
+                    context.log.debug("REJECT route for destination address " +
+                                      "{}: dropping", fmatch.getNetworkDstIP)
                     ShortDrop
 
                 case Route.NextHop.PORT if rt.nextHopPort == null =>
-                    context.log.error(
-                        "Routing table lookup for {} forwarded to port null.", dstIP)
+                    context.log.error("Routing table lookup for {} returned " +
+                                      "null port: dropping", dstIP)
                     ErrorDrop
 
                 case Route.NextHop.PORT =>
@@ -346,9 +353,9 @@ abstract class RouterBase[IP <: IPAddr]()
                         case simRes => simRes
                     }
                 case _ =>
-                    context.log.warn(
-                        "Routing table lookup for {} returned invalid nextHop of {}",
-                        dstIP, rt.nextHop)
+                    context.log.warn("Routing table lookup for {} returned " +
+                                     "invalid next hop {}: dropping",
+                                     dstIP, rt.nextHop)
                     ShortDrop
             }
 
@@ -376,8 +383,11 @@ abstract class RouterBase[IP <: IPAddr]()
 
         implicit val packetContext = context
 
+        context.log.debug("Post routing phase")
+
         if (context.wcmatch.getNetworkDstIP == outPort.portAddress) {
-            context.log.warn("Got a packet addressed to a port without a LOCAL route")
+            context.log.warn("Received a packet addressed to a port without " +
+                             "a LOCAL route: dropping")
             return Drop
         }
 
@@ -414,21 +424,21 @@ abstract class RouterBase[IP <: IPAddr]()
                                 context)
         mac match {
             case null if rt.nextHopGateway == 0 || rt.nextHopGateway == -1 =>
-                context.log.debug("icmp host unreachable, host mac unknown")
+                context.log.debug("Host unreachable, host MAC unknown")
                 sendAnswer(context.inPortId,
                     icmpErrors.unreachableHostIcmp(
                         tryGet(classOf[RouterPort], context.inPortId), context,
                         context.preRoutingMatch))
                 ErrorDrop
             case null =>
-                context.log.debug("icmp net unreachable, gw mac unknown")
+                context.log.debug("Network unreachable, gateway MAC unknown")
                 sendAnswer(context.inPortId,
                     icmpErrors.unreachableNetIcmp(
                         tryGet(classOf[RouterPort], context.inPortId), context,
                         context.preRoutingMatch))
                 ErrorDrop
             case nextHopMac =>
-                context.log.debug("routing packet to {}", nextHopMac)
+                context.log.debug("Forwarding packet to MAC {}", nextHopMac)
                 context.wcmatch.setEthSrc(outPort.portMac)
                 context.wcmatch.setEthDst(nextHopMac)
                 outPort.action
