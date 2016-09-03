@@ -109,7 +109,7 @@ class TopologyWithLoop extends MidolmanSpec {
 
             val (simRes, pktCtx) = sendPacket (exteriorEdgeRouterPort, pkt)
             simRes should be (ErrorDrop)
-            pktCtx.devicesTraversed should be (Simulator.MAX_DEVICES_TRAVERSED)
+            pktCtx.devicesTraversed should be (Simulator.MaxDevicesTraversed)
         }
     }
 }

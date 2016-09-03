@@ -39,31 +39,31 @@ object Port {
 
     def apply(proto: Topology.Port,
               state: PortState,
-              infilters: JList[UUID],
-              outfilters: JList[UUID],
+              inFilters: JList[UUID],
+              outFilters: JList[UUID],
               servicePorts: JList[UUID] = emptyList(),
               peeringTable: StateTable[MAC, IPv4Addr] = StateTable.empty): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
-            servicePort(proto, state, infilters)
+            servicePort(proto, state, inFilters)
         else if (proto.hasVtepId)
-            vxLanPort(proto, state, infilters, outfilters)
+            vxLanPort(proto, state, inFilters, outFilters)
         else if (proto.hasNetworkId)
-            bridgePort(proto, state, infilters, outfilters, servicePorts)
+            bridgePort(proto, state, inFilters, outFilters, servicePorts)
         else if (proto.hasRouterId)
-            routerPort(proto, state, infilters, outfilters, peeringTable)
+            routerPort(proto, state, inFilters, outFilters, peeringTable)
         else
             throw new ConvertException("Unknown port type")
     }
 
     private def bridgePort(p: Topology.Port,
                            state: PortState,
-                           infilters: JList[UUID],
-                           outfilters: JList[UUID],
+                           inFilters: JList[UUID],
+                           outFilters: JList[UUID],
                            servicePorts: JList[UUID]) =
         new BridgePort(
             id = p.getId,
-            inboundFilters = infilters,
-            outboundFilters = outfilters,
+            inboundFilters = inFilters,
+            outboundFilters = outFilters,
             tunnelKey = state.tunnelKey.getOrElse(p.getTunnelKey),
             peerId = if (p.hasPeerId) p.getPeerId else null,
             hostId = if (p.hasHostId) p.getHostId else null,
@@ -82,13 +82,13 @@ object Port {
 
     private def routerPort(p: Topology.Port,
                            state: PortState,
-                           infilters: JList[UUID],
-                           outfilters: JList[UUID],
+                           inFilters: JList[UUID],
+                           outFilters: JList[UUID],
                            peeringTable: StateTable[MAC, IPv4Addr]) =
         new RouterPort(
             id = p.getId,
-            inboundFilters = infilters,
-            outboundFilters = outfilters,
+            inboundFilters = inFilters,
+            outboundFilters = outFilters,
             tunnelKey = state.tunnelKey.getOrElse(p.getTunnelKey),
             peerId = if (p.hasPeerId) p.getPeerId else null,
             hostId = if (p.hasHostId) p.getHostId else null,
@@ -112,12 +112,12 @@ object Port {
 
     private def vxLanPort(p: Topology.Port,
                           state: PortState,
-                          infilters: JList[UUID],
-                          outfilters: JList[UUID]) =
+                          inFilters: JList[UUID],
+                          outFilters: JList[UUID]) =
         VxLanPort(
             id = p.getId,
-            inboundFilters = infilters,
-            outboundFilters = outfilters,
+            inboundFilters = inFilters,
+            outboundFilters = outFilters,
             tunnelKey = state.tunnelKey.getOrElse(p.getTunnelKey),
             peerId = if (p.hasPeerId) p.getPeerId else null,
             adminStateUp = p.getAdminStateUp,
@@ -131,10 +131,10 @@ object Port {
 
     private def servicePort(p: Topology.Port,
                             state: PortState,
-                            infilters: JList[UUID]) =
+                            inFilters: JList[UUID]) =
         new ServicePort(
             id = p.getId,
-            inboundFilters = infilters,
+            inboundFilters = inFilters,
             tunnelKey = state.tunnelKey.getOrElse(p.getTunnelKey),
             peerId = if (p.hasPeerId) p.getPeerId else null,
             hostId = if (p.hasHostId) p.getHostId else null,
@@ -152,8 +152,6 @@ object Port {
 
 trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with Cloneable {
     def id: UUID
-    def inboundFilters: JList[UUID]
-    def outboundFilters: JList[UUID]
     def tunnelKey: Long
     def peerId: UUID
     def hostId: UUID
@@ -166,9 +164,6 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
     def servicePorts: JList[UUID]
-
-    override def infilters = inboundFilters
-    override def outfilters = outboundFilters
 
     val action = ToPortAction(id)
 
@@ -203,10 +198,11 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         })
 
     def ingress(context: PacketContext): SimulationResult = {
-        context.log.debug(s"Ingressing port $id at device $deviceId")
-        if (context.devicesTraversed >= Simulator.MAX_DEVICES_TRAVERSED) {
-            context.log.debug(s"Dropping packet that traversed too many devices "+
-                s"(${context.devicesTraversed}}), possible topology loop.")
+        context.log.debug(s"Packet ingressing $this")
+        if (context.devicesTraversed >= Simulator.MaxDevicesTraversed) {
+            context.log.debug("Dropping packet that traversed too many devices "+
+                              s"(${context.devicesTraversed}}): possible " +
+                              s"topology loop")
             ErrorDrop
         } else {
             context.devicesTraversed += 1
@@ -221,7 +217,6 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
 
     protected def egressCommon(context: PacketContext,
                                next: SimStep): SimulationResult = {
-        context.log.debug(s"Egressing port $id")
         context.addFlowTag(deviceTag)
         context.addFlowTag(txTag)
         context.outPortId = id
@@ -240,17 +235,19 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
 
     private def mirrorFilterAndContinueOut: SimStep =
         mirroringPreOutFilter(_, filterAndContinueOut)
-    private val filterAndContinueOut = ContinueWith(filterOut(_, continueOut))
+
+
+    private val continueIn = ContinueWith(ingressDevice(_))
     private val continueOut: SimStep = c => mirroringPostOutFilter(c, emit)
+
+    private val mirrorAndContinueIn: SimStep =
+        mirroringPostInFilter(_, continueIn)
+    private val filterAndContinueOut = ContinueWith(filterOut(_, continueOut))
+    private val portIngress = ContinueWith(filterIn(_, mirrorAndContinueIn))
 
     val egressNoFilter: SimStep = context => {
         egressCommon(context, continueOut)
     }
-
-    private val portIngress = ContinueWith(filterIn(_, mirrorAndContinueIn))
-    private val mirrorAndContinueIn: SimStep =
-        mirroringPostInFilter(_, continueIn)
-    private val continueIn = ContinueWith(ingressDevice(_))
 
     override protected val preIn: SimHook = c => {
         if (isExterior && (portGroups ne null))
@@ -303,6 +300,7 @@ class BridgePort(override val id: UUID,
 
     override def egressCommon(context: PacketContext,
                               next: SimStep): SimulationResult = {
+        context.log.debug(s"Packet egressing $this")
         if (id == context.inPortId) {
             Drop
         } else {
@@ -336,12 +334,13 @@ class ServicePort(override val id: UUID,
                            postInFilterMirrors, preOutFilterMirrors) {
 
     override def toString =
-        s"ServicePort [${super.toString} networkId=$networkId" +
-            s" realAdminState=$realAdminStateUp]"
+        s"ServicePort [${super.toString} networkId=$networkId " +
+        s"realAdminState=$realAdminStateUp]"
 
     override def ingress(context: PacketContext): SimulationResult = {
         if (!realAdminStateUp) {
-            context.log.debug("Service port has adminStateUp=false, Dropping")
+            context.log.debug(s"Packet ingressing $this")
+            context.log.debug("Administratively down service port: dropping")
             Drop
         } else {
             super.ingress(context)
@@ -350,6 +349,8 @@ class ServicePort(override val id: UUID,
 
     override def egressCommon(context: PacketContext,
                               next: SimStep): SimulationResult = {
+        context.log.debug(s"Packet egressing $this")
+
         if (context.isRedirectedOut) {
             val result = if (!realAdminStateUp || !isActive) {
                 /* If a service port is down, what happens to the packet depends
@@ -366,9 +367,9 @@ class ServicePort(override val id: UUID,
                     context.clearRedirect()
                     super.ingress(context)
                 } else {
-                    context.log.debug(
-                        s"Service port is down (adminStateUp:$realAdminStateUp,"
-                            + s" active:$isActive), Dropping")
+                    context.log.debug("Service port is down " +
+                                      s"(adminStateUp:$realAdminStateUp " +
+                                      s"active:$isActive): dropping")
                     Drop
                 }
             } else {
@@ -377,7 +378,8 @@ class ServicePort(override val id: UUID,
             context.clearRedirect()
             result
         } else {
-            context.log.debug("Non-redirected packet entered service port. Dropping")
+            context.log.debug("Non-redirected packet egressing service port: " +
+                              "dropping")
             Drop
         }
     }
@@ -440,6 +442,7 @@ case class RouterPort(override val id: UUID,
 
     override def egressCommon(context: PacketContext,
                               next: SimStep): SimulationResult = {
+        context.log.debug(s"Packet egressing $this")
         if (context.wcmatch.getEthSrc == context.wcmatch.getEthDst) {
             ingress(context)
         } else {
@@ -450,7 +453,7 @@ case class RouterPort(override val id: UUID,
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
         s"portSubnet=$portSubnet portAddress=$portAddress portMac=$portMac " +
-        (if (isL2) s"vni=$vni tunnelIp=$tunnelIp" else "") + s"routeIds=$routeIds]"
+        s"${if (isL2) s"vni=$vni tunnelIp=$tunnelIp" else ""} routeIds=$routeIds]"
 }
 
 case class VxLanPort(override val id: UUID,
@@ -484,4 +487,5 @@ case class VxLanPort(override val id: UUID,
 
     override def toString =
         s"VxLanPort [${super.toString} networkId=$networkId vtepId=$vtepId]"
+
 }

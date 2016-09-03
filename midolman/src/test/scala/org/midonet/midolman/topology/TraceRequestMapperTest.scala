@@ -214,13 +214,13 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             bridgeSubscriber.getOnNextEvents.size shouldBe 1
             var bridge = bridgeSubscriber.getOnNextEvents.get(0)
-            bridge.infilters.get(0) shouldBe chain
+            bridge.inboundFilters.get(0) shouldBe chain
 
             vt.store.update(tr.toBuilder.setEnabled(true).build)
             bridgeSubscriber.getOnNextEvents.size shouldBe 2
             bridge = bridgeSubscriber.getOnNextEvents.get(1)
-            bridge.infilters.get(0) should not be chain
-            var chainObj = chainMap.get(bridge.infilters.get(0))
+            bridge.inboundFilters.get(0) should not be chain
+            var chainObj = chainMap.get(bridge.inboundFilters.get(0))
                 .get.toBlocking.first
             chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
@@ -229,9 +229,9 @@ class TraceRequestMapperTest extends MidolmanSpec {
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
             }
-            bridge.infilters.get(1) shouldBe chain
+            bridge.inboundFilters.get(1) shouldBe chain
 
-            val traceChainId = bridge.infilters.get(0)
+            val traceChainId = bridge.inboundFilters.get(0)
             // update to inbound filter is updated in trace chain
             val topBridge = Await.result(vt.store.get(classOf[Network], bridgeId),
                                        5 seconds)
@@ -239,8 +239,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             bridgeSubscriber.getOnNextEvents.size shouldBe 4
             bridge = bridgeSubscriber.getOnNextEvents.get(3)
-            bridge.infilters.get(0) shouldBe traceChainId
-            chainObj = chainMap.get(bridge.infilters.get(0))
+            bridge.inboundFilters.get(0) shouldBe traceChainId
+            chainObj = chainMap.get(bridge.inboundFilters.get(0))
                 .get.toBlocking.first
             chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
@@ -249,12 +249,12 @@ class TraceRequestMapperTest extends MidolmanSpec {
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
             }
-            bridge.infilters.get(1) shouldBe chain2
+            bridge.inboundFilters.get(1) shouldBe chain2
 
             vt.store.update(tr.toBuilder.setEnabled(false).build())
             bridgeSubscriber.getOnNextEvents.size shouldBe 5
             bridge = bridgeSubscriber.getOnNextEvents.get(4)
-            bridge.infilters.get(0) shouldBe chain2
+            bridge.inboundFilters.get(0) shouldBe chain2
         }
 
         scenario("with router") {
