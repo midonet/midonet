@@ -22,6 +22,30 @@
       "revId": "57da9d44e3d7c6ba05c2c28fde8ba939e5c6e80a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5fa2ae4c",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/logging/RollingOutputStreamTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-05T10:49:19Z",
+      "side": 1,
+      "message": "Oh...so that\u0027s why I can\u0027t run tests by right-clicking on the file in IntelliJ.",
+      "parentUuid": "baa041b7_bf109aac",
+      "range": {
+        "startLine": 30,
+        "startChar": 6,
+        "endLine": 30,
+        "endChar": 29
+      },
+      "revId": "57da9d44e3d7c6ba05c2c28fde8ba939e5c6e80a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
