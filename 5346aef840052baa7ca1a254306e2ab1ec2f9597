@@ -104,6 +104,23 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5fcd0eb6",
+        "filename": "docs/qos.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-05T06:42:57Z",
+      "side": 1,
+      "message": "If the user sets the qos_policy_id on a port, I believe we need to check that the port is a nova:compute type.  However, Takashi suggested we use the \"isVifPort\" field to check for kuryr, etc.  This might be better to do in the plugin, so we can reject it before we even set the neutron object, rather than in the translations.",
+      "revId": "5346aef840052baa7ca1a254306e2ab1ec2f9597",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_785b50f7",
         "filename": "docs/qos.md",
         "patchSetId": 2
