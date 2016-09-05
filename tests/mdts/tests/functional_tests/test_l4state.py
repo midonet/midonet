@@ -197,17 +197,26 @@ def expect_return_dropped(dst_port_no):
         should_NOT_receive(return_filter(dst_port_no), within_sec(10)),
         'Return flow gets dropped.')
 
-
-def stop_midolman_agents():
-    agents = service.get_all_containers('midolman')
-    for agent in agents:
-        agent.stop(wait=True)
-
+# Start/stop/wait for active ports only on the relevant agents to not introduce
+# unnecessary delays. Agents already take their time to restart so if we wait
+# too much we risk expiring keys on cassandra.
 
 def start_midolman_agents():
-    agents = service.get_all_containers('midolman')
+    agents = [service.get_container_by_hostname('midolman1'),
+              service.get_container_by_hostname('midolman2')]
     for agent in agents:
-        agent.start(wait=True)
+        agent.start()
+    for agent in agents:
+        agent.wait_for_status("up")
+
+
+def stop_midolman_agents():
+    agents = [service.get_container_by_hostname('midolman1'),
+              service.get_container_by_hostname('midolman2')]
+    for agent in agents:
+        agent.stop()
+    for agent in agents:
+        agent.wait_for_status("down")
 
 
 def restart_midolman_agents():
@@ -228,7 +237,6 @@ def reboot_agents(sleep_secs):
 
 def await_ports(active):
     await_port_active(left_uplink_port()._mn_resource.get_id(), active=active)
-    await_port_active(right_uplink_port()._mn_resource.get_id(), active=active)
     await_port_active(downlink_port()._mn_resource.get_id(), active=active)
 
 
@@ -299,7 +307,7 @@ def test_distributed_l4_port_binding():
     check_forward_flow(port_num)
     check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
 
-    reboot_agents(5)
+    reboot_agents(0)
 
     check_return_flow(left_uplink_port(), left_uplink_iface(), port_num, retries=10)
 
