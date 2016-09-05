@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1f22e601",
+        "filename": "docs/rule-logging.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-05T09:58:44Z",
+      "side": 1,
+      "message": "Add reference:\n\nhttps://blueprints.launchpad.net/neutron/+spec/security-group-logging",
+      "revId": "2ffe6231dbd324619b47a98bdc3da5c57b024439",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dfed9eb8",
+        "filename": "docs/rule-logging.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-05T09:58:44Z",
+      "side": 1,
+      "message": "trailing white space.  More info about mm-logxl would be useful.  Maybe just how you execute it?",
+      "revId": "2ffe6231dbd324619b47a98bdc3da5c57b024439",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_df447eb8",
+        "filename": "docs/rule-logging.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-05T09:58:44Z",
+      "side": 1,
+      "message": "Perhaps the default values for file location and time would be helpful here.  Also, how are the rotated files named?",
+      "revId": "2ffe6231dbd324619b47a98bdc3da5c57b024439",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
