@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.StateKey
 import org.midonet.cluster.models.Topology.{Host => TopologyHost}
 import org.midonet.cluster.services.MidonetBackend.AliveKey
@@ -153,18 +152,19 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         assertThread()
 
         // Compute the tunnel zones to IP mapping for this host.
-        val tzIps = for ((tunnelZoneId, tunnelZoneState) <- tunnelZones;
-                         addr <- tunnelZoneState.device.hosts.get(hostId))
-            yield tunnelZoneId -> addr
+        val tunnelZonesEntries =
+            for ((tunnelZoneId, tunnelZoneState) <- tunnelZones;
+                 addr <- tunnelZoneState.device.hosts.get(hostId))
+                yield tunnelZoneId -> addr
 
         // Compute the port bindings for this host.
-        def portBdgs = for ((id, state) <- ports)
+        def portBindings = for ((id, state) <- ports)
             yield id -> (state.device.interfaceName, state.device.previousHostId)
 
-        val host = ZoomConvert.fromProto(currentHost, classOf[SimulationHost])
-        host.alive = alive.get
-        host.tunnelZones = tzIps.toMap
-        host.portBindings = portBdgs.toMap
+        val host = new SimulationHost(currentHost.getId.asJava,
+                                      alive.get,
+                                      tunnelZonesEntries.toMap,
+                                      portBindings.toMap)
 
         log.debug("Build host: {}", host)
 
