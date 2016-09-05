@@ -40,7 +40,7 @@ sudo apt-get install --no-install-recommends -y libssl-dev libffi-dev
 
 # install python dependencies (may have changed since image build)
 virtualenv venv
-source venv/bin/activate
+. venv/bin/activate
 pip install -r tests/mdts.dependencies
 
 # We assume all gates/nightlies put the necessary packages in $WORKSPACE
