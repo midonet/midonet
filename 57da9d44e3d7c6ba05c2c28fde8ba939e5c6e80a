@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_bf109aac",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/logging/RollingOutputStreamTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-05T10:01:00Z",
+      "side": 1,
+      "message": "add @RunWith(classOf[JUnitRunner])",
+      "range": {
+        "startLine": 30,
+        "startChar": 6,
+        "endLine": 30,
+        "endChar": 29
+      },
+      "revId": "57da9d44e3d7c6ba05c2c28fde8ba939e5c6e80a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
