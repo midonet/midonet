@@ -24,10 +24,11 @@ import org.midonet.packets.IPAddr
 case class Host(id: UUID,
                 alive: Boolean,
                 tunnelZones: Map[UUID, IPAddr],
-                portBindings: Map[UUID, (String, UUID)]) extends Device {
+                portBindings: Map[UUID, (String, UUID)],
+                vppBindings: Map[UUID, VppBinding]) extends Device {
 
     override def toString =
         s"Host [id=$id alive=$alive portBindings=$portBindings " +
-        s"tunnelZones=$tunnelZones]"
+        s"vppBindings=$vppBindings tunnelZones=$tunnelZones]"
 
 }
