@@ -52,19 +52,19 @@ cp midonet-cluster*.deb tests/$OVERRIDE/packages
 cp python-midonetclient*.deb tests/$OVERRIDE/packages
 
 # Necessary software in the host, midonet-cli installed from sources
-pushd python-midonetclient
+cd python-midonetclient
 python setup.py install
-popd
+cd -
 
 # Install sandbox, directly from repo (ignoring submodule)
 rm -rf midonet-sandbox
 git clone --depth=1 https://github.com/midonet/midonet-sandbox.git
-pushd midonet-sandbox
+cd midonet-sandbox
 python setup.py install
-popd
+cd -
 
 # Start sandbox
-pushd tests/
+cd tests/
 echo "docker_registry=artifactory.bcn.midokura.com" >> sandbox.conf
 echo "docker_insecure_registry=True" >> sandbox.conf
 sandbox-manage -c sandbox.conf pull-all $SANDBOX_FLAVOUR
@@ -73,4 +73,4 @@ sandbox-manage -c sandbox.conf \
                     --name=$SANDBOX_NAME \
                     --override=$OVERRIDE \
                     --provision=$PROVISIONING
-popd
+cd -
