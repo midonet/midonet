@@ -20,7 +20,9 @@ from midonetclient import host_interface
 from midonetclient import host_interface_port
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
+from midonetclient import vpp_binding
 from vendor_media_type import APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON
+from vendor_media_type import APPLICATION_HOST_VPP_BINDING_COLLECTION_JSON
 
 
 class Host(resource_base.ResourceBase):
@@ -63,9 +65,19 @@ class Host(resource_base.ResourceBase):
         return self.get_children(self.dto['ports'], query, headers,
                                  host_interface_port.HostInterfacePort)
 
+    def get_vpp_bindings(self):
+        headers = {'Accept': APPLICATION_HOST_VPP_BINDING_COLLECTION_JSON}
+
+        query = {}
+        return self.get_children(self.dto['vppBindings'], query, headers,
+                                 vpp_binding.VppBinding)
+
     def add_host_interface_port(self):
         return host_interface_port.HostInterfacePort(self.dto['ports'], {},
                                                      self.auth)
+
+    def add_vpp_binding(self):
+        return vpp_binding.VppBinding(self.dto['vppBindings'], {}, self.auth)
 
     def get_flooding_proxy_weight(self):
         return self.dto['floodingProxyWeight']

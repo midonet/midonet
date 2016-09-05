@@ -122,6 +122,11 @@ APPLICATION_HOST_INTERFACE_PORT_JSON = \
     "application/vnd.org.midonet.HostInterfacePort-v1+json"
 APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.HostInterfacePort-v1+json"
+APPLICATION_HOST_VPP_BINDING_JSON = \
+    "application/vnd.org.midonet.HostVppBinding-v1+json"
+APPLICATION_HOST_VPP_BINDING_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.HostVppBinding-v1+json"
+
 APPLICATION_CONDITION_JSON = "application/vnd.org.midonet.Condition-v1+json"
 APPLICATION_CONDITION_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Condition-v1+json"
