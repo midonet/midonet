@@ -2429,6 +2429,30 @@ class PortBinding(ObjectType):
                                  setter = 'port_id',
                                  optional = False))
 
+
+class VppBinding(ObjectType):
+    def type_name(self):
+        return "vpp"
+
+    def __init__(self, obj):
+        super(VppBinding, self).__init__(obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'host',
+                                 value_type = ObjectRef('host'),
+                                 getter = 'get_host_id',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'interface',
+                                 value_type = StringType(),
+                                 getter = 'get_interface_name',
+                                 setter = 'interface_name',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'port',
+                                 value_type = PortRef(),
+                                 getter = 'get_port_id',
+                                 setter = 'port_id',
+                                 optional = False))
+
+
 class Host(ObjectType):
     def type_name(self):
         return "host"
@@ -2448,6 +2472,10 @@ class Host(ObjectType):
                                  element_type = PortBinding,
                                  list_method = 'get_ports',
                                  factory_method = 'add_host_interface_port'))
+        self.put_attr(Collection(name = 'vpp',
+                                 element_type = VppBinding,
+                                 list_method = 'get_vpp_bindings',
+                                 factory_method = 'add_vpp_binding'))
         self.put_attr(SingleAttr(name = 'flooding-proxy-weight',
                                  value_type = FloodingProxyWeight(),
                                  getter = 'get_flooding_proxy_weight',
