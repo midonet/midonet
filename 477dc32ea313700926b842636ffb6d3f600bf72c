@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1f92e69f",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-05T06:39:52Z",
+      "side": 1,
+      "message": "no, that\u0027s an artifact from my markdown editor.  I will remove.",
+      "parentUuid": "baa041b7_35f5d1ca",
+      "range": {
+        "startLine": 53,
+        "startChar": 16,
+        "endLine": 53,
+        "endChar": 17
+      },
+      "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b53a0197",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_dfe23e2f",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-05T06:39:52Z",
+      "side": 1,
+      "message": "Actually looking at the code, I\u0027m not so sure neutron does do this check for us.",
+      "parentUuid": "baa041b7_b53a0197",
+      "range": {
+        "startLine": 176,
+        "startChar": 33,
+        "endLine": 178,
+        "endChar": 9
+      },
+      "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_950dbdea",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-09-02T08:09:26Z",
       "side": 1,
       "message": "you should use isVifPort which handles other cases.  eg. kuryr",
+      "range": {
+        "startLine": 221,
+        "startChar": 3,
+        "endLine": 221,
+        "endChar": 17
+      },
+      "revId": "477dc32ea313700926b842636ffb6d3f600bf72c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bfce5ab5",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-05T06:39:52Z",
+      "side": 1,
+      "message": "kk",
+      "parentUuid": "baa041b7_950dbdea",
       "range": {
         "startLine": 221,
         "startChar": 3,
