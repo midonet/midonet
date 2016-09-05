@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.StateKey
 import org.midonet.cluster.models.Topology.{Host => TopologyHost}
 import org.midonet.cluster.services.MidonetBackend.AliveKey
@@ -161,10 +160,10 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         def portBdgs = for ((id, state) <- ports)
             yield id -> (state.device.interfaceName, state.device.previousHostId)
 
-        val host = ZoomConvert.fromProto(currentHost, classOf[SimulationHost])
-        host.alive = alive.get
-        host.tunnelZones = tzIps.toMap
-        host.portBindings = portBdgs.toMap
+        val host = new SimulationHost(currentHost.getId.asJava,
+                                      alive.get,
+                                      tzIps.toMap,
+                                      portBdgs.toMap)
 
         log.debug("Build host: {}", host)
 
