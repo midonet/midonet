@@ -24,7 +24,7 @@ if [ -z "$BUILD" ]; then
     BUILD="unknown"
 fi
 
-source venv/bin/activate
+. venv/bin/activate
 
 # disable debug logging
 export MIDOLMAN1=$(docker ps -q -a -f=name=midolman1)
