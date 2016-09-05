@@ -360,7 +360,6 @@ class HostMapperTest extends MidolmanSpec
             Then("We receive a single host notification without the port")
             hostObs.awaitOnNext(2, timeout) shouldBe true
             hostObs.getOnNextEvents.get(1).portBindings shouldBe empty
-            hostObs.getOnNextEvents.get(1).portIds shouldBe empty
 
             When("Updating the host by binding a port")
             val Seq(port3) = createRouterWithPorts(1)
@@ -369,9 +368,7 @@ class HostMapperTest extends MidolmanSpec
             Then("We receive a single host notification without the first port")
             hostObs.awaitOnNext(3, timeout) shouldBe true
             hostObs.getOnNextEvents.get(2).portBindings should have size 1
-            hostObs.getOnNextEvents.get(2).portIds should have size 1
             hostObs.getOnNextEvents.get(2).portBindings should not contain key(port1.getId.asJava)
-            hostObs.getOnNextEvents.get(2).portIds should not contain port1.getId.asJava
         }
     }
 
@@ -444,7 +441,7 @@ class HostMapperTest extends MidolmanSpec
 
     feature("The host mapper discards updates that do not modify the host") {
         scenario("A host update with no modifications") {
-            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val (protoHost, _) = createHostAndTunnelZone()
             val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
@@ -531,8 +528,6 @@ class HostMapperTest extends MidolmanSpec
         protoHost.getId.asJava shouldBe simHost.id
         fromProtoListToScala(protoHost.getPortIdsList) should
             contain theSameElementsAs simHost.portBindings.keys
-        fromProtoListToScala(protoHost.getTunnelZoneIdsList) should
-            contain theSameElementsAs simHost.tunnelZoneIds
         var membershipSize = 0
         for (tz <- tunnelZones) {
             tz.getHostsList.foreach(hostToIp => {
