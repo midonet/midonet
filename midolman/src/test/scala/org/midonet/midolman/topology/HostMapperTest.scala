@@ -28,7 +28,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 
 import org.midonet.cluster.data.storage.{CreateOp, StateStorage, Storage}
-import org.midonet.cluster.models.Commons.{IPVersion, IPAddress}
+import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
@@ -44,8 +44,7 @@ import org.midonet.util.concurrent._
 import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
-class HostMapperTest extends MidolmanSpec
-                     with TopologyBuilder {
+class HostMapperTest extends MidolmanSpec with TopologyBuilder {
 
     private var vt: VirtualTopology = _
     private var store: Storage = _
@@ -372,6 +371,135 @@ class HostMapperTest extends MidolmanSpec
         }
     }
 
+    feature("Test VPP bindings") {
+        scenario("Initial VPP binding") {
+            Given("A host with one VPP binding")
+            val bridge = createBridge()
+            val binding = createVppBinding("eth0")
+            val port = createBridgePort(bridgeId = Some(bridge.getId),
+                                        vppBinding = Some(binding))
+            val host = createHost(portIds = Set(port.getId.asJava))
+            store.multi(Seq(CreateOp(bridge), CreateOp(port), CreateOp(host)))
+
+            And("A host observable")
+            val hostMapper = new HostMapper(host.getId.asJava, vt)
+            val observable = Observable.create(hostMapper)
+
+            When("Subscribing to the host")
+            val observer = new DeviceObserver[SimHost](vt)
+            observable.subscribe(observer)
+
+            Then("The observer receives a simulation host with a VPP binding")
+            observer.awaitOnNext(1, timeout) shouldBe true
+            val device = observer.getOnNextEvents.get(0)
+            device.vppBindings should have size 1
+            device.vppBindings.get(port.getId.asJava).get.interfaceName shouldBe "eth0"
+
+            And("The host mapper is observing the port.")
+            hostMapper.isObservingPort(port.getId) shouldBe true
+        }
+
+        scenario("Create a VPP binding") {
+            Given("A host with one VPP binding")
+            val bridge = createBridge()
+            val port1 = createBridgePort(bridgeId = Some(bridge.getId))
+            val host = createHost(portIds = Set(port1.getId.asJava))
+            store.multi(Seq(CreateOp(bridge), CreateOp(port1), CreateOp(host)))
+
+            And("A host observable")
+            val hostMapper = new HostMapper(host.getId.asJava, vt)
+            val observable = Observable.create(hostMapper)
+
+            When("Subscribing to the host")
+            val observer = new DeviceObserver[SimHost](vt)
+            observable.subscribe(observer)
+
+            Then("The observer receives a simulation host without any binding")
+            observer.awaitOnNext(1, timeout) shouldBe true
+            val device1 = observer.getOnNextEvents.get(0)
+            device1.vppBindings shouldBe empty
+
+            And("The host mapper is observing the port.")
+            hostMapper.isObservingPort(port1.getId) shouldBe true
+
+            When("Adding a VPP binding to the port")
+            val port2 = port1.toBuilder
+                             .setHostId(host.getId.asJava)
+                             .setVppBinding(createVppBinding("eth0"))
+                             .build()
+            store.update(port2)
+
+            Then("The observer receives a simulation host with a VPP binding")
+            observer.awaitOnNext(2, timeout) shouldBe true
+            val device2 = observer.getOnNextEvents.get(1)
+            device2.vppBindings should have size 1
+            device2.vppBindings.get(port1.getId.asJava).get.interfaceName shouldBe "eth0"
+        }
+
+        scenario("Delete a VPP binding by removing the port") {
+            Given("A host with one VPP binding")
+            val bridge = createBridge()
+            val binding = createVppBinding("eth0")
+            val port = createBridgePort(bridgeId = Some(bridge.getId),
+                                        vppBinding = Some(binding))
+            val host1 = createHost(portIds = Set(port.getId.asJava))
+            store.multi(Seq(CreateOp(bridge), CreateOp(port), CreateOp(host1)))
+
+            And("A host observable")
+            val hostMapper = new HostMapper(host1.getId.asJava, vt)
+            val observable = Observable.create(hostMapper)
+
+            When("Subscribing to the host")
+            val observer = new DeviceObserver[SimHost](vt)
+            observable.subscribe(observer)
+
+            Then("The observer receives a simulation host with a VPP binding")
+            observer.awaitOnNext(1, timeout) shouldBe true
+
+            When("Deleting a VPP binding")
+            val host2 = host1.toBuilder.clearPortIds().build()
+            store.update(host2)
+
+            Then("The observer receives a simulation host without a VPP binding")
+            observer.awaitOnNext(2, timeout) shouldBe true
+            val device = observer.getOnNextEvents.get(1)
+            device.vppBindings shouldBe empty
+        }
+
+        scenario("Delete a VPP binding by removing the binding") {
+            Given("A host with one VPP binding")
+            val bridge = createBridge()
+            val binding = createVppBinding("eth0")
+            val port1 = createBridgePort(bridgeId = Some(bridge.getId),
+                                         vppBinding = Some(binding))
+            val host = createHost(portIds = Set(port1.getId.asJava))
+            store.multi(Seq(CreateOp(bridge), CreateOp(port1), CreateOp(host)))
+
+            And("A host observable")
+            val hostMapper = new HostMapper(host.getId.asJava, vt)
+            val observable = Observable.create(hostMapper)
+
+            When("Subscribing to the host")
+            val observer = new DeviceObserver[SimHost](vt)
+            observable.subscribe(observer)
+
+            Then("The observer receives a simulation host with a VPP binding")
+            observer.awaitOnNext(1, timeout) shouldBe true
+
+            When("Deleting a VPP binding")
+            val port2 = port1.toBuilder
+                             .setHostId(host.getId.asJava)
+                             .clearVppBinding()
+                             .build()
+            store.update(port2)
+
+            Then("The observer receives a simulation host without a VPP binding")
+            observer.awaitOnNext(2, timeout) shouldBe true
+            val device = observer.getOnNextEvents.get(1)
+            device.vppBindings shouldBe empty
+        }
+    }
+
     feature("The host mapper handles deletion of hosts appropriately") {
         scenario("Deleting the host") {
             Given("A host member of one tunnel zone with one bound port")
@@ -573,20 +701,6 @@ class HostMapperTest extends MidolmanSpec
         updatedHost
     }
 
-    private def newPort(bridgeId: Option[UUID] = None,
-                        routerId: Option[UUID] = None,
-                        hostId: Option[UUID] = None,
-                        ifName: Option[String] = None): Port = {
-        assert(bridgeId.isDefined != routerId.isDefined)
-        if (bridgeId.isDefined) {
-            createBridgePort(bridgeId = bridgeId,
-                             hostId = hostId, interfaceName = ifName)
-        } else {
-            createRouterPort(routerId = routerId,
-                             hostId = hostId, interfaceName = ifName)
-        }
-    }
-
     private def newTunnelZone(hostId: UUID): TunnelZone = {
         createTunnelZone(tzType = TunnelZone.Type.GRE, name = Some("foo"),
                          hosts = Map(hostId -> IPAddr.fromString("192.168.0.1")))
@@ -618,13 +732,6 @@ class HostMapperTest extends MidolmanSpec
     private def bindPort(port: Port, host: Host, ifName: String): Port = {
         val updatedPort = port.toBuilder.setHostId(host.getId)
                                         .setInterfaceName(ifName).build()
-        store.update(updatedPort)
-        updatedPort
-    }
-
-    private def unbindPort(port: Port, host: Host): Port = {
-        assert(port.getHostId == host.getId)
-        val updatedPort = port.toBuilder.clearHostId().build()
         store.update(updatedPort)
         updatedPort
     }

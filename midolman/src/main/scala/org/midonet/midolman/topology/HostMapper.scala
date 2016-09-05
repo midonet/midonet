@@ -132,7 +132,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
             case tunnelZone: TunnelZone if tunnelZones.contains(tunnelZone.id) =>
                 log.debug("Host tunnel zone updated: {}", tunnelZone.id)
             case port: Port if ports.contains(port.id) =>
-                log.debug("Host bound port updated: {}", port)
+                log.debug("Host port updated: {}", port)
             case null => // Ignore null updates
             case _ => log.warn("Unexpected update: ignoring")
         }
@@ -158,13 +158,20 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                 yield tunnelZoneId -> addr
 
         // Compute the port bindings for this host.
-        def portBindings = for ((id, state) <- ports)
-            yield id -> (state.device.interfaceName, state.device.previousHostId)
+        def portBindings =
+            for ((id, state) <- ports if state.device.interfaceName ne null)
+                yield id -> (state.device.interfaceName, state.device.previousHostId)
+
+        // Compute the VPP bindings.
+        def vppBindings =
+            for ((id, state) <- ports if state.device.vppBinding ne null)
+                yield id -> state.device.vppBinding
 
         val host = new SimulationHost(currentHost.getId.asJava,
                                       alive.get,
                                       tunnelZonesEntries.toMap,
-                                      portBindings.toMap)
+                                      portBindings.toMap,
+                                      vppBindings.toMap)
 
         log.debug("Build host: {}", host)
 

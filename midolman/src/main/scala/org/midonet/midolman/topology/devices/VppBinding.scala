@@ -26,4 +26,15 @@ final class VppBinding @Zoom()(
 
     override def toString = s"VppBinding [interfaceName=$interfaceName]"
 
+    override def equals(obj: Any): Boolean = {
+        obj match {
+            case binding: VppBinding => binding.interfaceName == interfaceName
+            case _ => false
+        }
+    }
+
+    override def hashCode: Int = {
+        interfaceName.hashCode
+    }
+
 }
