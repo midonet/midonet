@@ -200,14 +200,14 @@ class TraceRequestTest extends MidolmanSpec {
         val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
                                      newCondition(tpSrc = Some(5000)),
                                      enabled=true)
-        fetchDevice[SimBridge](bridge).infilters.size shouldBe 1
-        val chain = fetchDevice[SimBridge](bridge).infilters.get(0)
+        fetchDevice[SimBridge](bridge).inboundFilters.size shouldBe 1
+        val chain = fetchDevice[SimBridge](bridge).inboundFilters.get(0)
 
         val rules = fetchDevice[SimChain](chain).rules
         rules.size() shouldBe 1
 
         deleteTraceRequest(trace1)
-        fetchDevice[SimBridge](bridge).infilters.size shouldBe 0
+        fetchDevice[SimBridge](bridge).inboundFilters.size shouldBe 0
     }
 
     scenario("Disable on device delete") {
@@ -216,8 +216,8 @@ class TraceRequestTest extends MidolmanSpec {
         val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
                                      newCondition(tpSrc = Some(5000)),
                                      enabled=true)
-        fetchDevice[SimBridge](bridge).infilters.size shouldBe 1
-        val chain = fetchDevice[SimBridge](bridge).infilters.get(0)
+        fetchDevice[SimBridge](bridge).inboundFilters.size shouldBe 1
+        val chain = fetchDevice[SimBridge](bridge).inboundFilters.get(0)
 
         val rules = fetchDevice[SimChain](chain).rules
         rules.size() should be (1)

@@ -28,7 +28,7 @@ import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
 import scala.annotation.tailrec
 
 object Simulator {
-    val MAX_DEVICES_TRAVERSED = 12
+    final val MaxDevicesTraversed = 12
 
     sealed trait ForwardAction extends Result
     case class ToPortAction(outPort: UUID) extends ForwardAction with VirtualFlowAction
@@ -43,10 +43,10 @@ object Simulator {
 
     type SimHook = PacketContext => Unit
 
-    val NOOP_HOOK: SimHook = _ => { }
+    final val NoOpHook: SimHook = _ => { }
 
     def simulate(context: PacketContext): Result = {
-        context.log.debug("Simulating a packet")
+        context.log.debug("Simulating packet")
         SimulationStashes.reUpStashes()
         if (context.ingressed)
             tryGet(classOf[Port], context.inputPort).ingress(context)
@@ -158,14 +158,14 @@ trait InAndOutFilters extends SimDevice {
 
     type DropHook = (PacketContext, RuleResult.Action) => Result
 
-    def infilters: JList[UUID]
-    def outfilters: JList[UUID]
+    def inboundFilters: JList[UUID]
+    def outboundFilters: JList[UUID]
     protected def reject(context: PacketContext): Unit = {}
 
-    protected def preIn: SimHook = NOOP_HOOK
-    protected def postIn: SimHook = NOOP_HOOK
-    protected def preOut: SimHook = NOOP_HOOK
-    protected def postOut: SimHook = NOOP_HOOK
+    protected def preIn: SimHook = NoOpHook
+    protected def postIn: SimHook = NoOpHook
+    protected def preOut: SimHook = NoOpHook
+    protected def postOut: SimHook = NoOpHook
     protected def dropIn: DropHook = (p, action) => Drop
     protected def dropOut: DropHook = (p, action) => Drop
 
@@ -175,9 +175,10 @@ trait InAndOutFilters extends SimDevice {
                 reject(context)
                 Drop
             }
-        } else if (infilters.size > 0) {
+        } else if (inboundFilters.size > 0) {
             (context, continue) => {
-                doFilters(context, infilters, preIn, postIn, continue, dropIn)
+                context.log.debug(s"Applying inbound filters $inboundFilters")
+                doFilters(context, inboundFilters, preIn, postIn, continue, dropIn)
             }
         } else {
             (context, continue) => {
@@ -193,10 +194,10 @@ trait InAndOutFilters extends SimDevice {
                 reject(context)
                 Drop
             }
-        } else if (outfilters.size > 0) {
+        } else if (outboundFilters.size > 0) {
             (context, continue) =>
-                context.log.debug(s"Applying outbound chain $outfilters")
-                doFilters(context, outfilters, preOut, postOut, continue, dropOut)
+                context.log.debug(s"Applying outbound filters $outboundFilters")
+                doFilters(context, outboundFilters, preOut, postOut, continue, dropOut)
         } else {
             (context, continue) => {
                 preOut(context)
@@ -231,7 +232,7 @@ trait InAndOutFilters extends SimDevice {
                 redirect(context, ruleResult)
             case a =>
                 context.log.error("Filters {} returned {} which was " +
-                                      "not ACCEPT, DROP, REJECT or REDIRECT.",
+                                  "not ACCEPT, DROP, REJECT or REDIRECT.",
                                   filters, a)
                 ErrorDrop
         }
