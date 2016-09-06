@@ -76,6 +76,7 @@ object SessionInventory {
             case h: PoolMember => Update.newBuilder().setPoolMember(h).build()
             case h: Port => Update.newBuilder().setPort(h).build()
             case h: PortGroup => Update.newBuilder().setPortGroup(h).build()
+            case h: QOSPolicy => Update.newBuilder().setQosPolicy(h).build()
             case h: ServiceContainer => Update.newBuilder().setServiceContainer(h).build()
             case h: ServiceContainerGroup => Update.newBuilder().setServiceContainerGroup(h).build()
             case h: Route => Update.newBuilder().setRoute(h).build()
