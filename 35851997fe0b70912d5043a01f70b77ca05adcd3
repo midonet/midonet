@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_9bd7274f",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/TranslatorTestBase.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-06T07:20:49Z",
+      "side": 1,
+      "message": "Creating bindings for every permutation isn\u0027t necessary. You should be able to use a matcher that will match the Seq in any order. Try something like this:\n\n    // Preferably not as a nested function\n    def seqInAnyOrder[T](thisSeq: Seq[T]) \u003d new ArgumentMatcher[Seq[T]] {\n        override def matches(thatSeq: scala.Any): Boolean \u003d\n            thisSeq.toSet \u003d\u003d thatSeq.asInstanceOf[Seq[T]].toSet\n    }\n\n    // Then replace the loop over the permutations with this.\n    when(storage.getAll(mockito.Matchers.eq(classOfM),\n                        mockito.Matchers.argThat(seqInAnyOrder(ids))))\n                    .thenReturn(Promise.successful(msgs).future)\n\nI feel like there should already be a standard library matcher that does this, but I wasn\u0027t able to find one.",
+      "revId": "35851997fe0b70912d5043a01f70b77ca05adcd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
