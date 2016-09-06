@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_fec861aa",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/logging/RollingOutputStream.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-06T10:41:33Z",
+      "side": 1,
+      "message": "We should explicitly require the logrotate package (for ubuntu and centos). It gets pulled in as a dependency of quagga now I think.",
+      "range": {
+        "startLine": 275,
+        "startChar": 19,
+        "endLine": 275,
+        "endChar": 28
+      },
+      "revId": "76612cc545578648954874ef197e478ad3928121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
