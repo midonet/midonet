@@ -18,15 +18,14 @@ package org.midonet.cluster
 
 import java.net.URI
 
-import scala.collection.JavaConversions._
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.Response.Status.{CREATED, NO_CONTENT}
 
+import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 
-import com.sun.jersey.api.client.ClientResponse
-import com.sun.jersey.test.framework.JerseyTest
+import com.sun.jersey.api.client.{ClientResponse, WebResource}
 
 import org.scalatest.ShouldMatchers
 
@@ -36,7 +35,9 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 /** Utility assertions for JerseyTests to be used in REST API tests.
   */
-trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
+trait HttpRequestChecks extends ShouldMatchers {
+
+    def resource: WebResource
 
     private def mediaTypes = Map[Class[_], (String, String)](
         classOf[Chain] -> (
@@ -45,6 +46,15 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
             APPLICATION_HOST_JSON_V3, APPLICATION_HOST_COLLECTION_JSON_V3),
         classOf[Port] -> (
             APPLICATION_PORT_V3_JSON, APPLICATION_PORT_V3_COLLECTION_JSON),
+        classOf[QOSPolicy] -> (
+            APPLICATION_QOS_POLICY_JSON,
+            APPLICATION_QOS_POLICY_COLLECTION_JSON),
+        classOf[QOSRuleBWLimit] -> (
+            APPLICATION_QOS_RULE_BW_LIMIT_JSON,
+            APPLICATION_QOS_RULE_BW_LIMIT_COLLECTION_JSON),
+        classOf[QOSRuleDSCP] -> (
+            APPLICATION_QOS_RULE_DSCP_JSON,
+            APPLICATION_QOS_RULE_DSCP_COLLECTION_JSON),
         classOf[Router] -> (
             APPLICATION_ROUTER_JSON_V3, APPLICATION_ROUTER_COLLECTION_JSON_V3),
         classOf[RouterPort] -> (
@@ -59,15 +69,21 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
 
     def postAndAssertStatus(dto: UriResource, typeUri: URI,
                             status: Response.Status): ClientResponse = {
-        val postResp = resource().uri(typeUri)
+        postAndAssertStatus(dto, typeUri, status.getStatusCode)
+    }
+
+    def postAndAssertStatus(dto: UriResource, typeUri: URI,
+                            status: Int): ClientResponse = {
+        val postResp = resource.uri(typeUri)
             .`type`(mediaTypes(dto.getClass)._1)
             .post(classOf[ClientResponse], dto)
-        postResp.getStatus shouldBe status.getStatusCode
+        postResp.getStatus shouldBe status
         postResp
     }
 
+
     def putAndAssertStatus(dto: UriResource, status: Status): ClientResponse = {
-        val postResp = resource().uri(dto.getUri)
+        val postResp = resource.uri(dto.getUri)
             .`type`(mediaTypes(dto.getClass)._1)
             .put(classOf[ClientResponse], dto)
         postResp.getStatus shouldBe status.getStatusCode
@@ -77,7 +93,7 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
     def getAndAssertStatus[T <: UriResource](uri: URI, status: Status)
                                             (implicit ct: ClassTag[T])
     : ClientResponse = {
-        val r = resource().uri(uri)
+        val r = resource.uri(uri)
             .accept(mediaTypes(ct.runtimeClass)._1)
             .get(classOf[ClientResponse])
         r.getStatus shouldBe status.getStatusCode
@@ -114,14 +130,14 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
     def getAndAssertOk[T <: UriResource](uri: URI)
                                         (implicit ct: ClassTag[T]): T = {
         val e = get[T](uri)
-        e.setBaseUri(resource().getURI)
+        e.setBaseUri(resource.getURI)
         e.getUri shouldBe uri
         e
     }
 
     def listAndAssertOk[T <: UriResource](uri: URI)
                                          (implicit ct: ClassTag[T]): List[T] = {
-        val r = resource().uri(uri)
+        val r = resource.uri(uri)
             .accept(mediaTypes(ct.runtimeClass)._2)
             .get(classOf[ClientResponse])
         r.getStatus shouldBe Status.OK.getStatusCode
@@ -160,7 +176,7 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
       * relevant headers are set correctly.
       */
     def deleteAndAssertStatus(uri: URI, status: Status): Unit = {
-        val delResp = resource().uri(uri).delete(classOf[ClientResponse])
+        val delResp = resource.uri(uri).delete(classOf[ClientResponse])
         delResp.getStatus shouldBe status.getStatusCode
     }
 
