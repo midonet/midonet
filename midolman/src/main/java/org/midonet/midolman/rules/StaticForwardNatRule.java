@@ -29,7 +29,6 @@ import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPAddr$;
 
 public class StaticForwardNatRule extends NatRule {
     @ZoomField(name = "nat_targets")
@@ -51,7 +50,7 @@ public class StaticForwardNatRule extends NatRule {
 
         setNatTargets(targets);
 
-        log.debug("Created a FloatingIp forward static nat rule");
+        log.debug("Created a floating-IP forward static NAT rule");
     }
 
     public void afterFromProto(Message message) {
@@ -59,7 +58,7 @@ public class StaticForwardNatRule extends NatRule {
 
         setNatTargets(targetsSet);
 
-        log.debug("Created a FloatingIp forward static nat rule");
+        log.debug("Created a floating-IP forward static NAT rule");
     }
 
     @Override
@@ -69,39 +68,48 @@ public class StaticForwardNatRule extends NatRule {
              : applySnat(pktCtx);
     }
 
-    protected boolean applyDnat(PacketContext pktCtx) {
-        if (condition.nwDstIp != null) {
-            pktCtx.jlog().debug("DNAT mapping packet dst ip {} to target ip {}",
-                                pktCtx.wcmatch().getNetworkDstIP(), targetIpAddr);
-            pktCtx.wcmatch().setNetworkDst(targetIpAddr);
+    private boolean applyDnat(PacketContext pktCtx) {
+
+        if (!(pktCtx.wcmatch().getNetworkDstIP() instanceof IPv4Addr)) {
+            pktCtx.jlog().debug("Only IPv4 addresses are supported for DNAT: "
+                                + "dropping");
+            return false;
         }
+
+        pktCtx.jlog().debug("DNAT mapping packet destination IP {} to target IP {}",
+                            pktCtx.wcmatch().getNetworkDstIP(), targetIpAddr);
+        IPv4Addr destinationIp = (IPv4Addr) pktCtx.wcmatch().getNetworkDstIP();
+        pktCtx.wcmatch().setNetworkDst(targetIpAddr);
 
         if (pktCtx.isIcmp()) {
             if (condition.icmpDataDstIp != null) {
-                pktCtx.jlog().debug("Mapping icmp data dst ip {} to target ip {}",
+                pktCtx.jlog().debug("Mapping ICMP data destination IP {} to target IP {}",
                                     condition.icmpDataDstIp.getAddress(), targetIpAddr);
                 pktCtx.dnatOnICMPData((IPv4Addr)condition.icmpDataDstIp.getAddress(),
                                       (IPv4Addr)targetIpAddr);
-            } else if (condition.nwDstIp != null) {
-                pktCtx.jlog().debug("Mapping icmp data src ip {} to target ip {}",
-                                    condition.nwDstIp.getAddress(), targetIpAddr);
-                pktCtx.snatOnICMPData((IPv4Addr)condition.nwDstIp.getAddress(),
-                                      (IPv4Addr)targetIpAddr);
+            } else {
+                pktCtx.jlog().debug("Mapping ICMP data source IP {} to target IP {}",
+                                    pktCtx.wcmatch().getNetworkDstIP(), targetIpAddr);
+                pktCtx.snatOnICMPData(destinationIp, (IPv4Addr)targetIpAddr);
             }
         }
         return true;
     }
 
-    protected boolean applySnat(PacketContext pktCtx) {
-        pktCtx.jlog().debug("SNAT mapping packet src ip {} to target ip {}",
+    private boolean applySnat(PacketContext pktCtx) {
+        if (!(pktCtx.wcmatch().getNetworkSrcIP() instanceof IPv4Addr)) {
+            pktCtx.jlog().debug("Only IPv4 addresses are supported for DNAT: "
+                                + "dropping");
+            return false;
+        }
+
+        pktCtx.jlog().debug("SNAT mapping packet source IP {} to target IP {}",
                             pktCtx.wcmatch().getNetworkSrcIP(), targetIpAddr);
+        IPv4Addr sourceIp = (IPv4Addr) pktCtx.wcmatch().getNetworkSrcIP();
         pktCtx.wcmatch().setNetworkSrc(targetIpAddr);
 
         if (pktCtx.isIcmp()) {
-            if (condition.nwSrcIp != null) {
-                pktCtx.dnatOnICMPData((IPv4Addr)condition.nwSrcIp.getAddress(),
-                                      (IPv4Addr)targetIpAddr);
-            }
+            pktCtx.dnatOnICMPData(sourceIp, (IPv4Addr)targetIpAddr);
         }
 
         return true;
@@ -117,7 +125,7 @@ public class StaticForwardNatRule extends NatRule {
     public void setNatTargets(Set<NatTarget> targets) {
         if (targets == null || targets.isEmpty() || targets.size() != 1)
             throw new IllegalArgumentException(
-                    "A forward static nat rule must have a single target.");
+                    "A forward static NAT rule must have a single target.");
         targetsSet = targets;
 
         NatTarget tg = targetsSet.iterator().next();
