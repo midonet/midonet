@@ -36,7 +36,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
 
     public Bridge(WebResource resource, URI uriForCreation, DtoBridge b) {
         super(resource, uriForCreation, b,
-              MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4());
+              MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V5());
     }
 
     @Override

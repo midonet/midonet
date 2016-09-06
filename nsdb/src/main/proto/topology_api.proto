@@ -205,6 +205,9 @@ message Response {
             HostGroup host_group = 24;
             ServiceContainer service_container = 25;
             ServiceContainerGroup service_container_group = 26;
+            QOSPolicy qos_policy = 27;
+            QOSRuleBWLimit qos_rule_bw_limit = 28;
+            QOSRuleDSCP qos_rule_dscp = 29;
         }
     }
     message Snapshot {

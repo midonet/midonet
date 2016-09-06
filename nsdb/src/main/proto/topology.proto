@@ -48,6 +48,9 @@ enum Type {
     L2INSERTION = 31;
     SERVICE_CONTAINER = 32;
     SERVICE_CONTAINER_GROUP = 33;
+    QOS_POLICY = 34;
+    QOS_RULE_BWLIMIT = 35;
+    QOS_RULE_DSCP = 36;
 }
 
 message BgpNetwork {
@@ -271,12 +274,16 @@ message Network {
     repeated UUID inbound_mirror_ids = 9;
     repeated UUID outbound_mirror_ids = 10;
 
+    // QoS Policy
+    optional UUID qos_policy_id = 11;
+
     // Backreferences
     repeated UUID port_ids = 101;
     repeated UUID vxlan_port_ids = 102;
     repeated UUID dhcp_ids = 103;
     repeated UUID dhcpv6_ids = 104;
     repeated UUID trace_request_ids = 105;
+
 }
 
 message Pool {
@@ -368,6 +375,9 @@ message Port {
     optional bool off_ramp_vxlan = 41;
     optional IPAddress tunnel_ip = 42;
 
+    // QoS Policy
+    optional UUID qos_policy_id = 43;
+
     // Backreferences
 
     // For Router gateway port only. Back-references to VIPs that are associated
@@ -400,6 +410,27 @@ message PortGroup {
     // Backreferences
     repeated UUID port_ids = 101;
     repeated UUID service_group_ids = 102;
+}
+
+message QOSRuleBWLimit {
+    optional UUID id = 1;
+    optional int32 max_kbps = 2;
+    optional int32 max_burst_kbps = 3;
+}
+
+message QOSRuleDSCP {
+    optional UUID id = 1;
+    optional int32 dscp_mark = 2;
+}
+
+message QOSPolicy {
+    optional UUID id = 1;
+    repeated QOSRuleBWLimit bandwidth_limit_rules = 2;
+    repeated QOSRuleDSCP dscp_marking_rules = 3;
+
+    // Backreferences
+    repeated UUID port_ids = 101;
+    repeated UUID network_ids = 102;
 }
 
 message Route {

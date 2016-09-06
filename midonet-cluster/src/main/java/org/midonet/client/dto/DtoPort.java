@@ -52,6 +52,7 @@ public abstract class DtoPort {
     private URI peer;
     private URI link;
     private URI peeringTable;
+    private UUID qosPolicyId;
 
     public UUID getId() {
         return id;
@@ -235,6 +236,14 @@ public abstract class DtoPort {
 
     public Short getVlanId() {
         return null;
+    }
+
+    public UUID getQosPolicyId() {
+        return qosPolicyId;
+    }
+
+    public void setQosPolicyId(UUID policyId) {
+        this.qosPolicyId = policyId;
     }
 
     public abstract String getType();
