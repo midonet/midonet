@@ -103,9 +103,10 @@ public class CassandraClient {
     public Future<Session> connect() {
         if (serversStr == null || serversStr.isEmpty()) {
             sessionPromise.tryFailure(
-                    new Exception("Cassandra is not configured. MidoNet will "+
-                            "function fine without it, except that flow state "+
-                            "will be lost across agent reboots and port migrations."));
+                new Exception("Cassandra is not configured. MidoNet will " +
+                              "not store flow state on Cassandra and will " +
+                              "rely on local storage (if enabled) to handle " +
+                              "agent reboots and port migrations."));
         } else {
             theReactor.submit(new Runnable() {
                 @Override
