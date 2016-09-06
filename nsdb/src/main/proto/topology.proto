@@ -48,6 +48,9 @@ enum Type {
     L2INSERTION = 31;
     SERVICE_CONTAINER = 32;
     SERVICE_CONTAINER_GROUP = 33;
+    QOS_POLICY = 34;
+    QOS_RULE_BWLIMIT = 35;
+    QOS_RULE_DSCP = 36;
 }
 
 message BgpNetwork {
@@ -277,6 +280,8 @@ message Network {
     repeated UUID dhcp_ids = 103;
     repeated UUID dhcpv6_ids = 104;
     repeated UUID trace_request_ids = 105;
+
+    optional UUID qos_policy_id = 106;
 }
 
 message Pool {
@@ -389,6 +394,8 @@ message Port {
     // RemoteMacEntries in this port's peering table. Only applicable to VTEP
     // router ports.
     repeated UUID remote_mac_entry_ids = 120;
+
+    optional UUID qos_policy_id = 121;
 }
 
 message PortGroup {
@@ -400,6 +407,25 @@ message PortGroup {
     // Backreferences
     repeated UUID port_ids = 101;
     repeated UUID service_group_ids = 102;
+}
+
+message QOSRuleBWLimit {
+    optional UUID id = 1;
+    optional int32 max_kbps = 2;
+    optional int32 max_burst_kbps = 3;
+}
+
+message QOSRuleDSCP {
+    optional UUID id = 1;
+    optional int32 dscp_mark = 2;
+}
+
+message QOSPolicy {
+    optional UUID id = 1;
+    repeated QOSRuleBWLimit bandwidth_limit_rules = 2;
+    optional QOSRuleDSCP dscp_marking_rules = 3;
+    repeated UUID port_ids = 4;
+    repeated UUID network_ids = 5;
 }
 
 message Route {
