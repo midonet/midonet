@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_dbb5afed",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-06T10:00:05Z",
+      "side": 1,
+      "message": "Does this belong here? We have, or should have, an agent-side design spec, and this isn\u0027t really relevant to translation.",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 69
+      },
+      "revId": "c32deda83c1947ed6310d57a7494e9c47d19a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9b4e07c1",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 608,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-06T10:00:05Z",
+      "side": 1,
+      "message": "QOSPOLICY?",
+      "range": {
+        "startLine": 608,
+        "startChar": 3,
+        "endLine": 608,
+        "endChar": 6
+      },
+      "revId": "c32deda83c1947ed6310d57a7494e9c47d19a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_5b7bdfbe",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 668,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-06T10:00:05Z",
+      "side": 1,
+      "message": "Again, I question whether information about agent-side implementation belongs here at all, but insofar as it does, I don\u0027t think it\u0027s necessary to repeat what is essentially the same information in three different sections.",
+      "range": {
+        "startLine": 661,
+        "startChar": 0,
+        "endLine": 668,
+        "endChar": 47
+      },
+      "revId": "c32deda83c1947ed6310d57a7494e9c47d19a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
