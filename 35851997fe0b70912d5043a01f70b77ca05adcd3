@@ -52,6 +52,24 @@
       "revId": "35851997fe0b70912d5043a01f70b77ca05adcd3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_214c6c9c",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/TranslatorTestBase.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-09-06T17:23:29Z",
+      "side": 1,
+      "message": "Ok. I made it work, and I submitted a new patch, but I think that it would not work properly if several calls are done, once the future is consumed, as the output depend on actual order of the list in the calling argument. I am implementing a new way, avoiding the thenReturn and just using a thenAnswer with the implementation.",
+      "parentUuid": "baa041b7_fb42b367",
+      "revId": "35851997fe0b70912d5043a01f70b77ca05adcd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
