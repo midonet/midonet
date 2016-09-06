@@ -111,6 +111,9 @@ object MidonetBackend {
              classOf[Port],
              classOf[PortBinding],
              classOf[PortGroup],
+             classOf[QOSPolicy],
+             classOf[QOSRuleBWLimit],
+             classOf[QOSRuleDSCP],
              classOf[RemoteMacEntry],
              classOf[Route],
              classOf[Router],
@@ -283,6 +286,12 @@ object MidonetBackend {
 
         store.declareBinding(classOf[RemoteMacEntry], "port_ids", CLEAR,
                              classOf[Port], "remote_mac_entry_ids", CLEAR)
+
+        store.declareBinding(classOf[Port], "qos_policy_id", CLEAR,
+                             classOf[QOSPolicy], "port_ids", CLEAR)
+
+        store.declareBinding(classOf[Network], "qos_policy_id", CLEAR,
+                             classOf[QOSPolicy], "network_ids", CLEAR)
 
         setup()
         store.build()
