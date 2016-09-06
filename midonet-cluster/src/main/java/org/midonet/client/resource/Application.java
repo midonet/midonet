@@ -36,8 +36,8 @@ import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoSystemState;
 import org.midonet.client.dto.DtoTunnelZone;
 
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_COLLECTION_JSON_V4;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_COLLECTION_JSON_V5;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V5;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_COLLECTION_JSON_V3;
@@ -45,7 +45,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V4_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_COLLECTION_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTE_JSON;
@@ -97,7 +97,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getBridges(),
                                  queryParams,
-                                 APPLICATION_BRIDGE_COLLECTION_JSON_V4(),
+                                 APPLICATION_BRIDGE_COLLECTION_JSON_V5(),
                                  Bridge.class, DtoBridge.class);
     }
 
@@ -172,7 +172,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getBridgeTemplate(), ID_TOKEN, id);
         DtoBridge bridge = resource.get(uri, null, DtoBridge.class,
-                APPLICATION_BRIDGE_JSON_V4());
+                APPLICATION_BRIDGE_JSON_V5());
         return new Bridge(resource, null, bridge);
     }
 
@@ -188,7 +188,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getPortTemplate(), ID_TOKEN, id);
         DtoPort port = resource.get(uri, null, DtoPort.class,
-                APPLICATION_PORT_V3_JSON());
+                APPLICATION_PORT_V4_JSON());
         if (port instanceof DtoBridgePort) {
             return new BridgePort(resource, null, (DtoBridgePort) port);
         } else if (port instanceof  DtoRouterPort) {
