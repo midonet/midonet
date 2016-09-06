@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from nose.plugins.attrib import attr
 from mdts.lib.vtm_neutron import NeutronTopologyManager
 from mdts.lib.bindings import BindingManager
@@ -122,6 +124,9 @@ class VT_Networks_with_SG(NeutronTopologyManager):
 VTM = VT_Networks_with_SG()
 BM = BindingManager(None, VTM)
 
+PARAMETER_MINUTES=int(os.getenv('PERF_FLOWSTATE_MINUTES', 30))
+PARAMETER_FPS=int(os.getenv('PERF_FLOWSTATE_FPS', 100))
+
 binding_multihost = {
     'description': 'spanning across 2 midolman',
     'bindings': [
@@ -198,17 +203,18 @@ def perf_flowstate():
     for each packet. The topology is set up in such a way that both conntrack
     and NAT flow state is generated.
     """
+    global PARAMETER_FPS, PARAMETER_MINUTES
     sender = BM.get_interface_on_vport('port_1')
     receiver = BM.get_interface_on_vport('port_2')
 
-    messages_per_second = 100
+    messages_per_second = PARAMETER_FPS
     delay = 1000000/messages_per_second
     try:
         sender.execute("hping3 -q -2 -i u%d --destport ++0 %s"
                        % (delay, VTM.get_fip_ip()))
         rcv_filter = 'udp and ip dst %s' % (receiver.get_ip())
         # check that we are still receiving traffic every minute for 30 minutes
-        for i in range(0, 30):
+        for i in range(0, PARAMETER_MINUTES):
             assert_that(receiver,
                         receives(rcv_filter, within_sec(60)))
             time.sleep(60)
