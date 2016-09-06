@@ -46,6 +46,8 @@ object MidonetMediaTypes {
     final val NEUTRON_FIREWALL_LOGS_JSON_V1 = "application/vnd.org.midonet.neutron.FirewallLogs-v1+json"
     final val NEUTRON_LOGGING_RESOURCE_JSON_V1 = "application/vnd.org.midonet.neutron.LoggingResource-v1+json"
     final val NEUTRON_LOGGING_RESOURCES_JSON_V1 = "application/vnd.org.midonet.neutron.LoggingResources-v1+json"
+    final val NEUTRON_QOS_POLICY_JSON_V1 = "application/vnd.org.midonet.neutron.QOSPolicy-v1+json"
+    final val NEUTRON_QOS_POLICIES_JSON_V1 = "application/vnd.org.midonet.neutron.QOSPolicies-v1+json"
 
     // MIDONET MODELS
     final val APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"
@@ -94,6 +96,7 @@ object MidonetMediaTypes {
     final val APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON = "application/vnd.org.midonet.collection.ServiceContainer-v1+json"
     final val APPLICATION_SERVICE_CONTAINER_GROUP_JSON = "application/vnd.org.midonet.ServiceContainerGroup-v1+json"
     final val APPLICATION_SERVICE_CONTAINER_GROUP_COLLECTION_JSON = "application/vnd.org.midonet.collection.ServiceContainerGroup-v1+json"
+    final val APPLICATION_QOS_POLICY_JSON = "application/vnd.org.midonet.QOSPolicy-v1+json"
 
     /* DHCP configuration types. */
     final val APPLICATION_DHCP_SUBNET_JSON_V2 = "application/vnd.org.midonet.DhcpSubnet-v2+json"

@@ -31,6 +31,8 @@ message NeutronNetwork {
     optional bool external = 8;
     optional NetworkType network_type = 9;
 
+    optional UUID qos_policy_id = 10;
+
     enum NetworkType {
         LOCAL = 0;
         FLAT = 1;
@@ -118,6 +120,8 @@ message NeutronPort {
 
     repeated ExtraDhcpOpts extra_dhcp_opts = 16;
 
+    optional UUID qos_policy_id = 17;
+
     // Backreference to FloatingIps that're attached to this Port
     repeated UUID floating_ip_ids = 101;
 }
@@ -174,6 +178,23 @@ message SecurityGroupRule {
     optional int32 port_range_max = 8;
     optional UUID remote_group_id = 9;
     optional string remote_ip_prefix = 10;
+}
+
+message NeutronQOSRuleBWLimit {
+    optional UUID id = 1;
+    optional int32 max_kbps = 2;
+    optional int32 max_burst_kbps = 3;
+}
+
+message NeutronQOSRuleDSCP {
+    optional UUID id = 1;
+    optional int32 dscp_mark = 2;
+}
+
+message NeutronQOSPolicy {
+    optional UUID id = 1;
+    repeated NeutronQOSRuleBWLimit bandwidth_limit_rules = 2;
+    optional NeutronQOSRuleDSCP dscp_marking_rules = 3;
 }
 
 message NeutronLoadBalancerPool {

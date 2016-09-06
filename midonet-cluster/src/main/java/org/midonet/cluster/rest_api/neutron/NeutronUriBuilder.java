@@ -54,6 +54,7 @@ public class NeutronUriBuilder {
     public static final String TAP_FLOWS = "/tap_flows";
     public static final String FIREWALL_LOGS = "/firewall_logs";
     public static final String LOGGING_RESOURCES = "/logging_resources";
+    public static final String QOS_POLICIES = "/qos_policies";
 
 
     public static URI getRoot(URI baseUri) {
@@ -421,5 +422,20 @@ public class NeutronUriBuilder {
 
     public static String getTapFlowTemplate(URI baseUri) {
         return buildIdTemplateUri(getTapFlows(baseUri));
+    }
+
+    // Neutron QoS
+    public static URI getQOSPolicies(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+                .path(QOS_POLICIES).build();
+    }
+
+    public static URI getQOSPolicy(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getQOSPolicies(baseUri)).path(
+                id.toString()).build();
+    }
+
+    public static String getQOSPolicyTemplate(URI baseUri) {
+        return buildIdTemplateUri(getQOSPolicies(baseUri));
     }
 }

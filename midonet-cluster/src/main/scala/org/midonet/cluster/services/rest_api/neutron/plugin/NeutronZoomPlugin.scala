@@ -70,7 +70,8 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
             with VpnServiceApi
             with BgpApi
             with TapAsAServiceApi
-            with FirewallLoggingApi {
+            with FirewallLoggingApi
+            with QOSApi {
 
     private val log = LoggerFactory.getLogger(RestApiNeutronLog)
 
@@ -593,4 +594,19 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     : Unit = update(loggingResource)
     override def deleteLoggingResource(id: UUID)
     : Unit = delete(id, classOf[LoggingResource])
+
+    override def getQOSPolicy(id: UUID): QOSPolicy =
+        get[QOSPolicy](id)
+
+    override def getQOSPolicies: util.List[QOSPolicy] =
+        listAll(classOf[QOSPolicy])
+
+    override def createQOSPolicy(qosPolicy: QOSPolicy): Unit =
+        create(qosPolicy)
+
+    override def updateQOSPolicy(qosPolicy: QOSPolicy): Unit =
+        update(qosPolicy)
+
+    override def deleteQOSPolicy(id: UUID): Unit =
+        delete(id, classOf[QOSPolicy])
 }

@@ -89,6 +89,9 @@ public class Bridge extends UriResource {
     @ZoomField(name = "outbound_mirror_ids")
     public List<UUID> outboundMirrorIds;
 
+    @ZoomField(name = "qos_policy_id")
+    public UUID qosPolicyId;
+
     public Bridge() {
         adminStateUp = true;
     }
@@ -161,6 +164,7 @@ public class Bridge extends UriResource {
         vxLanPortIds = from.vxLanPortIds;
         dhcpIds = from.dhcpIds;
         traceRequestIds = from.traceRequestIds;
+        qosPolicyId = from.qosPolicyId;
     }
 
     @Override
@@ -177,6 +181,7 @@ public class Bridge extends UriResource {
             .add("dhcpIds", dhcpIds)
             .add("dhcpv6Ids", dhcpv6Ids)
             .add("traceRequestIds", traceRequestIds)
+            .add("qosPolicyId", qosPolicyId)
             .toString();
     }
 }

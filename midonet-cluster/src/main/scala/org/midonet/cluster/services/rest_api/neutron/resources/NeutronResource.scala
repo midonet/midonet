@@ -111,6 +111,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def loggingResourceResource: LoggingResourceResource=
         new LoggingResourceResource(uriInfo, api)
 
+    @Path("logging_resources")
+    def qosPolicyResource: QOSPolicyResource=
+        new QOSPolicyResource(uriInfo, api)
+
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
         val neutron: Neutron = new Neutron

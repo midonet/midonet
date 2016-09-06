@@ -144,6 +144,12 @@ public class Neutron {
     @JsonProperty("logging_resource_template")
     public String loggingResourceTemplate;
 
+    @JsonProperty("qos_policies")
+    public URI qosPolicies;
+
+    @JsonProperty("qos_policy_template")
+    public String qosPolicyTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -194,8 +200,8 @@ public class Neutron {
                && Objects.equal(remoteMacEntryTemplate, other.remoteMacEntryTemplate)
                && Objects.equal(bgpSpeakers, other.bgpSpeakers)
                && Objects.equal(bgpSpeakerTemplate, other.bgpSpeakerTemplate)
-               && Objects.equal(bgpPeers, other.bgpPeers)
-               && Objects.equal(bgpPeerTemplate, other.bgpPeerTemplate)
+               && Objects.equal(qosPolicies, other.qosPolicies)
+               && Objects.equal(qosPolicyTemplate, other.qosPolicyTemplate)
                && Objects.equal(tapFlows, other.tapFlows)
                && Objects.equal(tapFlowTemplate, other.tapFlowTemplate)
                && Objects.equal(tapServices, other.tapServices)
@@ -203,7 +209,9 @@ public class Neutron {
                && Objects.equal(firewallLogs, other.firewallLogs)
                && Objects.equal(firewallLogTemplate, other.firewallLogTemplate)
                && Objects.equal(loggingResources, other.loggingResources)
-               && Objects.equal(loggingResourceTemplate, other.loggingResourceTemplate);
+               && Objects.equal(loggingResourceTemplate, other.loggingResourceTemplate)
+               && Objects.equal(bgpPeers, other.bgpPeers)
+               && Objects.equal(bgpPeerTemplate, other.bgpPeerTemplate);
     }
 
     @Override
@@ -227,7 +235,8 @@ public class Neutron {
                                 tapFlows, tapFlowTemplate,
                                 tapServices, tapServiceTemplate,
                                 firewallLogs, firewallLogTemplate,
-                                loggingResources, loggingResourceTemplate);
+                                loggingResources, loggingResourceTemplate,
+                                qosPolicies, qosPolicyTemplate);
     }
 
     @Override
@@ -274,6 +283,8 @@ public class Neutron {
             .add("firewallLogTemplate", firewallLogTemplate)
             .add("loggingResources", loggingResources)
             .add("loggingResourceTemplate", loggingResourceTemplate)
+            .add("qosPolicies", qosPolicies)
+            .add("qosPolicyTemplate", qosPolicyTemplate)
             .toString();
     }
 }

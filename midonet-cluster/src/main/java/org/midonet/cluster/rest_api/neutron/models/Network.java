@@ -31,13 +31,15 @@ public class Network extends ZoomObject {
 
     public Network() {}
 
-    public Network(UUID id, String tenantId, String name, boolean external) {
+    public Network(UUID id, String tenantId, String name, boolean external,
+                   UUID qosId) {
         this.id = id;
         this.name = name;
         this.tenantId = tenantId;
         this.shared = false;
         this.adminStateUp = true;
         this.external = external;
+        this.qosPolicyId = qosId;
     }
 
     @ZoomField(name = "id")
@@ -64,6 +66,10 @@ public class Network extends ZoomObject {
     @ZoomField(name = "external")
     public boolean external;
 
+    @JsonProperty("qos_policy_id")
+    @ZoomField(name = "qos_policy_id")
+    public UUID qosPolicyId;
+
     @JsonProperty("provider:network_type")
     @ZoomField(name = "network_type")
     public NetworkType networkType;
@@ -81,13 +87,14 @@ public class Network extends ZoomObject {
                 && Objects.equal(tenantId, other.tenantId)
                 && Objects.equal(adminStateUp, other.adminStateUp)
                 && Objects.equal(external, other.external)
+                && Objects.equal(qosPolicyId, other.qosPolicyId)
                 && Objects.equal(networkType, other.networkType);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(id, name, status, shared, tenantId,
-                adminStateUp, external, networkType);
+                adminStateUp, external, qosPolicyId, networkType);
     }
 
     @Override
@@ -101,6 +108,7 @@ public class Network extends ZoomObject {
                 .add("tenantId", tenantId)
                 .add("adminStateUp", adminStateUp)
                 .add("external", external)
+                .add("qosPolicyId", qosPolicyId)
                 .add("networkType", networkType).toString();
     }
 }

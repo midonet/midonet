@@ -44,7 +44,7 @@ public class Port extends ZoomObject {
     public Port(UUID id, UUID netId, String tenantId, String name,
                 String macAddress, List<IPAllocation> fixedIps,
                 DeviceOwner deviceOwner, String deviceId,
-                List<UUID> sgIds) {
+                List<UUID> sgIds, UUID qosId) {
         this.id = id;
         this.networkId = netId;
         this.tenantId = tenantId;
@@ -55,14 +55,16 @@ public class Port extends ZoomObject {
         this.deviceOwner = deviceOwner;
         this.deviceId = deviceId;
         this.securityGroups = sgIds;
+        this.qosPolicyId = qosId;
     }
 
     public Port(UUID id, UUID netId, String tenantId, String name,
                 String macAddress, List<IPAllocation> fixedIps,
                 DeviceOwner deviceOwner, String deviceId,
-                List<UUID> sgIds, List<ExtraDhcpOpt> extraDhcpOpts) {
+                List<UUID> sgIds, List<ExtraDhcpOpt> extraDhcpOpts,
+                UUID qosId) {
         this(id, netId, tenantId, name, macAddress, fixedIps, deviceOwner,
-                deviceId, sgIds);
+                deviceId, sgIds, qosId);
         this.extraDhcpOpts = extraDhcpOpts;
     }
 
@@ -127,6 +129,10 @@ public class Port extends ZoomObject {
     @ZoomField(name = "extra_dhcp_opts")
     public List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
 
+    @JsonProperty("qos_policy_id")
+    @ZoomField(name = "qos_policy_id")
+    public UUID qosPolicyId;
+
     @Override
     public final boolean equals(Object obj) {
         if (obj == this) return true;
@@ -148,7 +154,8 @@ public class Port extends ZoomObject {
                 && Objects.equal(bindingProfile, other.bindingProfile)
                 && securityEnabled == other.securityEnabled
                 && isEqualList(allowedAddrPairs, other.allowedAddrPairs)
-                && isEqualList(extraDhcpOpts, other.extraDhcpOpts);
+                && isEqualList(extraDhcpOpts, other.extraDhcpOpts)
+                && qosPolicyId == other.qosPolicyId;
     }
 
     @Override
@@ -158,7 +165,8 @@ public class Port extends ZoomObject {
             deviceOwner, tenantId, status, hashCodeForList(fixedIps),
             hashCodeForList(securityGroups), hashCodeForList(extraDhcpOpts),
             hostId, bindingProfile, securityEnabled,
-            hashCodeForList(allowedAddrPairs), hashCodeForList(extraDhcpOpts));
+            hashCodeForList(allowedAddrPairs), hashCodeForList(extraDhcpOpts),
+            qosPolicyId);
     }
 
     @Override
@@ -180,6 +188,7 @@ public class Port extends ZoomObject {
                 .add("fixedIps", ListUtil.toString(fixedIps))
                 .add("securityGroups", ListUtil.toString(securityGroups))
                 .add("dhcpExtraOpts", ListUtil.toString(extraDhcpOpts))
+                .add("qosPolicyId", qosPolicyId)
                 .add("allowedAddrPairs", ListUtil.toString(allowedAddrPairs))
                 .toString();
     }
