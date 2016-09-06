@@ -53,19 +53,19 @@ import org.midonet.util.logging.Logger$;
 
 public class TestRules {
 
-    FlowMatch pktMatch;
-    FlowMatch pktResponseMatch;
-    Random rand;
-    UUID inPort;
-    UUID ownerId;
-    UUID jumpChainId;
-    String jumpChainName;
-    Condition cond;
-    Set<NatTarget> nats;
-    PacketContext pktCtx;
-    FlowStateTransaction<ConnTrackKeyStore, Boolean> conntrackTx;
-    FlowStateTransaction<NatKeyStore, NatBinding> natTx;
-    FlowStateTransaction<TraceKeyStore, TraceState.TraceContext> traceTx;
+    private FlowMatch pktMatch;
+    private FlowMatch pktResponseMatch;
+    private Random rand;
+    private UUID inPort;
+    private UUID ownerId;
+    private UUID jumpChainId;
+    private String jumpChainName;
+    private Condition cond;
+    private Set<NatTarget> nats;
+    private PacketContext pktCtx;
+    private FlowStateTransaction<ConnTrackKeyStore, Boolean> conntrackTx;
+    private FlowStateTransaction<NatKeyStore, NatBinding> natTx;
+    private FlowStateTransaction<TraceKeyStore, TraceState.TraceContext> traceTx;
 
     @Before
     public void setup() {
@@ -570,6 +570,43 @@ public class TestRules {
     }
 
     /**
+     * Test static dnat, as used for floating IPs
+     */
+    @Test
+    public void testStaticDnatAnyCondition() {
+        IPv4Addr fixedIp = IPv4Addr.fromString("10.10.10.10");
+        IPv4Addr floatingIp = IPv4Addr.fromString("1.1.1.1");
+        IPv4Addr externalIp = IPv4Addr.fromString("2.2.2.2");
+
+        Set<NatTarget> targets = new HashSet<>();
+        targets.add(new NatTarget(fixedIp.toInt(),
+                                  fixedIp.toInt(), 0, 0));
+
+        cond = new Condition();
+        cond.nwSrcIp = IPv4Subnet.fromCidr("0.0.0.0/0");
+
+        pktCtx.wcmatch().setNetworkSrc(externalIp);
+        pktCtx.wcmatch().setNetworkDst(floatingIp);
+
+        Rule rule = new StaticForwardNatRule(cond, Action.CONTINUE,
+                                             null, true, targets);
+        RuleResult res = rule.process(pktCtx);
+
+        Assert.assertEquals(Action.CONTINUE, res.action);
+        checkMatched(true, pktCtx);
+        checkApplied(true, pktCtx);
+
+        Assert.assertEquals(externalIp,
+                            pktCtx.wcmatch().getNetworkSrcIP());
+        Assert.assertEquals(fixedIp,
+                            pktCtx.wcmatch().getNetworkDstIP());
+        Assert.assertEquals(pktCtx.diffBaseMatch().getDstPort(),
+                            pktCtx.wcmatch().getDstPort());
+        Assert.assertEquals(pktCtx.diffBaseMatch().getSrcPort(),
+                            pktCtx.wcmatch().getSrcPort());
+    }
+
+    /**
      * Test that snat rules will also apply dnat to icmp data to undo the
      * dnat applied by corresponding dnat rules.
      */
@@ -748,6 +785,39 @@ public class TestRules {
                             pktCtx.wcmatch().getDstPort());
         Assert.assertEquals(pktCtx.diffBaseMatch().getSrcPort(),
                             pktCtx.wcmatch().getSrcPort());
-
     }
+
+    @Test
+    public void testStaticSnatAnyCondition() throws Exception {
+        IPv4Addr fixedIp = IPv4Addr.fromString("10.10.10.10");
+        IPv4Addr floatingIp = IPv4Addr.fromString("1.1.1.1");
+        IPv4Addr externalIp = IPv4Addr.fromString("2.2.2.2");
+
+        Set<NatTarget> targets = new HashSet<>();
+        targets.add(new NatTarget(floatingIp.toInt(),
+                                  floatingIp.toInt(), 0, 0));
+        cond = new Condition();
+        cond.nwDstIp = IPv4Subnet.fromCidr("0.0.0.0/0");
+
+        pktCtx.wcmatch().setNetworkSrc(fixedIp);
+        pktCtx.wcmatch().setNetworkDst(externalIp);
+
+        Rule rule = new StaticForwardNatRule(cond, Action.CONTINUE,
+                                             null, false, targets);
+        RuleResult res = rule.process(pktCtx);
+
+        Assert.assertEquals(Action.CONTINUE, res.action);
+        checkMatched(true, pktCtx);
+        checkApplied(true, pktCtx);
+
+        Assert.assertEquals(floatingIp,
+                            pktCtx.wcmatch().getNetworkSrcIP());
+        Assert.assertEquals(externalIp,
+                            pktCtx.wcmatch().getNetworkDstIP());
+        Assert.assertEquals(pktCtx.diffBaseMatch().getDstPort(),
+                            pktCtx.wcmatch().getDstPort());
+        Assert.assertEquals(pktCtx.diffBaseMatch().getSrcPort(),
+                            pktCtx.wcmatch().getSrcPort());
+    }
+
 }
