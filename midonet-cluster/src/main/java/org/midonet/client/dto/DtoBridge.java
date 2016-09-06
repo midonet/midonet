@@ -48,6 +48,7 @@ public class DtoBridge {
     private String vlanMacTableTemplate;
     private String macPortTemplate;
     private String vlanMacPortTemplate;
+    private UUID qosPolicyId;
 
     public UUID getId() {
         return id;
@@ -225,6 +226,14 @@ public class DtoBridge {
         this.vlanMacPortTemplate = vlanMacPortTemplate;
     }
 
+    public UUID getQosPolicyId() {
+        return qosPolicyId;
+    }
+
+    public void setQosPolicyId(UUID policyId) {
+        this.qosPolicyId = policyId;
+    }
+
     @Override
     public boolean equals(Object other) {
 
@@ -255,6 +264,7 @@ public class DtoBridge {
                Objects.equal(dhcpSubnets, that.getDhcpSubnets()) &&
                Objects.equal(inboundMirrorIds, that.getInboundMirrorIds()) &&
                Objects.equal(outboundMirrorIds, that.getOutboundMirrorIds()) &&
+               Objects.equal(qosPolicyId, that.getQosPolicyId()) &&
                adminStateUp == that.adminStateUp;
     }
 }
