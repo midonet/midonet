@@ -45,8 +45,9 @@ import org.midonet.cluster.data.storage.KeyType.KeyType
  *  be overwritten by a different client.
  */
 object KeyType extends Enumeration {
-    class KeyType(val isSingle: Boolean, val firstWins: Boolean,
-                  val failFast: Boolean = false) extends Val
+    class KeyTypeVal(val isSingle: Boolean, val firstWins: Boolean,
+                     val failFast: Boolean = false) extends Val
+    type KeyType = KeyTypeVal
     final val SingleFirstWriteWins = new KeyType(true, true)
     final val SingleLastWriteWins = new KeyType(true, false)
     final val FailFast = new KeyType(true, false, true)
