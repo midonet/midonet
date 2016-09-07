@@ -441,16 +441,21 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
     val subnet2Id = mutable.Map[IPv4Subnet,UUID]()
     override def addDhcpSubnet(bridge: UUID,
                                subnet: IPv4Subnet,
+                               enabled: Boolean,
                                gw: IPv4Addr,
                                dns: List[IPv4Addr],
                                mtu: Short,
                                opt121routes: List[VirtualConfigurationBuilders.DhcpOpt121Route]): IPv4Subnet = {
         val id = UUID.randomUUID
-        val dhcp = createDhcp(bridge, id,
-                              gw, gw, subnetAddr=subnet,
-                              dns=dns,
-                              mtu=mtu,
-                              opt121routes=opt121routes.map(
+        val dhcp = createDhcp(networkId = bridge,
+                              id = id,
+                              defaultGw = gw,
+                              serverAddr = gw,
+                              subnetAddr = subnet,
+                              dns = dns,
+                              mtu = mtu,
+                              enabled = enabled,
+                              opt121routes = opt121routes.map(
                                   o => {
                                       Dhcp.Opt121Route.newBuilder()
                                           .setDstSubnet(o.subnet.asProto)
