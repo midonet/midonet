@@ -148,7 +148,9 @@ class HostService (config: MidolmanConfig,
                     log.debug("Interface updating is completed.")
                 }
                 override def onError(t: Throwable): Unit = {
-                    log.error("Got the error: {}", t)
+                    if (!t.isInstanceOf[InterruptedException]) {
+                        log.error("Unhandled interface scanner error", t)
+                    }
                 }
                 override def onNext(data: Set[InterfaceDescription]): Unit = {
                     oldInterfaces = currentInterfaces
