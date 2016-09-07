@@ -80,7 +80,9 @@ class MidonetAgentHost(Service):
 
     def get_service_logs(self):
         return ['/var/log/midolman/midolman.log',
-                '/var/log/midolman/minions.log']
+                '/var/log/midolman/minions.log',
+                '/var/log/midolman/upstart-stderr.log',
+                '/var/log/midolman/minions-stderr.log']
 
     def get_debug_logs(self):
         # Dump jstack
@@ -90,19 +92,17 @@ class MidonetAgentHost(Service):
             debug_logs += "JSTACK pid=%s\n" % jpid
             debug_logs += self.exec_command('jstack -F %s' % jpid)
             debug_logs += '\n'
-
-        # Dump the whole upstart
         debug_logs += "-----------------------------------\n"
-        debug_logs += "upstart-stderr.log\n"
-        debug_logs += "-----------------------------------\n"
-        debug_logs += self.exec_command(
-            'cat /var/log/midolman/upstart-stderr.log')
-        debug_logs += "\n"
-        debug_logs += "-----------------------------------\n"
-        debug_logs += "gc logs\n"
+        debug_logs += "Midolman gc logs\n"
         debug_logs += "-----------------------------------\n"
         debug_logs += self.exec_command(
             'tail -n +1 /var/log/midolman/gc-*.log*')
+        debug_logs += "\n"
+        debug_logs += "-----------------------------------\n"
+        debug_logs += "Minions gc logs\n"
+        debug_logs += "-----------------------------------\n"
+        debug_logs += self.exec_command(
+            'tail -n +1 /var/log/midolman/minions/gc-*.log*')
         return debug_logs
 
     def is_haproxy_running(self, pool_id):
