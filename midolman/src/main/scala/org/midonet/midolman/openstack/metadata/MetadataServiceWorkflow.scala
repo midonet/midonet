@@ -58,13 +58,13 @@ trait MetadataServiceWorkflow {
         val remoteAddr =
             AddressManager dpPortToRemoteAddress fmatch.getInputPortNumber
 
-        context.log debug s"MetadataIngress: remote address $remoteAddr"
+        context.log debug s"Metadata ingress from remote address $remoteAddr"
         // Do not wildcard src address
         fmatch.fieldSeen(FlowMatch.Field.NetworkSrc)
         fmatch.fieldSeen(FlowMatch.Field.SrcPort)
         fmatch.setEthDst(mdInfo.mac)
         fmatch.setNetworkSrc(IPv4Addr(remoteAddr))
-        fmatch.setDstPort(Proxy.port)
+        fmatch.setDstPort(Proxy.Port)
         context.calculateActionsFromMatchDiff()
         context.addVirtualAction(output(mdInfo.dpPortNo))
         AddVirtualWildcardFlow
@@ -75,10 +75,8 @@ trait MetadataServiceWorkflow {
         val remoteAddr = MetadataApi.Address
         val mac = MAC fromString "94:e7:ac:7a:c5:13"  // random
 
-        context.log debug "MetadataIngress: " +
-                          s"Replying ARP: $remoteAddr/$mac"
-        context.addGeneratedPacket(context.inputPort,
-                                   makeArpReply(context, mac))
+        context.log debug s"Metadata ingress ARP from $remoteAddr $mac"
+        context.addGeneratedPacket(context.inputPort, makeArpReply(context, mac))
         NoOp
     }
 
@@ -108,7 +106,7 @@ trait MetadataServiceWorkflow {
         } else if (matchEgressTcp(fmatch)) {
             handleMetadataEgressTcp(context)
         } else {
-            context.log debug "MetadataEgress: no match"
+            context.log debug "Metadata egress: no match"
             Drop
         }
     }
@@ -123,9 +121,8 @@ trait MetadataServiceWorkflow {
                 val vmDpPortNo =
                     AddressManager remoteAddressToDpPort remoteAddr
 
-                context.log debug "MetadataEgress: " +
-                                  s"remote address $remoteAddr info $vmInfo" +
-                                  s"vm-port $vmDpPortNo"
+                context.log debug s"Metadata egress to remote address " +
+                                  s"$remoteAddr info $vmInfo vm-port $vmDpPortNo"
                 // Do not wildcard dst address
                 fmatch.fieldSeen(FlowMatch.Field.NetworkDst)
                 fmatch.fieldSeen(FlowMatch.Field.DstPort)
@@ -140,8 +137,8 @@ trait MetadataServiceWorkflow {
                  * MetadataServiceManagerActor might have not updated
                  * InstanceInfoMap yet.  Very unlikely but possible.
                  */
-                context.log warn "MetadataEgress: " +
-                                 s"Unknown remote address $remoteAddr"
+                context.log warn "Metadata egress unknown remote " +
+                                 s"address $remoteAddr"
                 ShortDrop
         }
     }
@@ -158,15 +155,14 @@ trait MetadataServiceWorkflow {
                  * because it's always wildcarded and overwritten by
                  * our flows anyway.
                  */
-                context.log debug "MetadataEgress: " +
-                                  s"Replying ARP: $remoteAddr/${vmInfo.mac}"
+                context.log debug "Metadata egress replying ARP to " +
+                                  s"$remoteAddr ${vmInfo.mac}"
                 val mac = MAC fromString vmInfo.mac
                 context.addGeneratedPhysicalPacket(mdInfo.dpPortNo,
                                                    makeArpReply(context, mac))
                 NoOp
             case None =>
-                context.log warn "MetadataEgress: " +
-                                 s"Unknown ARP: $remoteAddr"
+                context.log warn s"Metadata egress: unknown ARP: $remoteAddr"
                 ShortDrop
         }
     }
@@ -175,7 +171,7 @@ trait MetadataServiceWorkflow {
         fmatch.getEtherType == IPv4.ETHERTYPE &&
         fmatch.getNetworkSrcIP == IPv4Addr(MetadataApi.Address) &&
         fmatch.getNetworkProto == TCP.PROTOCOL_NUMBER &&
-        fmatch.getSrcPort == Proxy.port
+        fmatch.getSrcPort == Proxy.Port
     }
 
     private def matchEgressArp(fmatch: FlowMatch) = {

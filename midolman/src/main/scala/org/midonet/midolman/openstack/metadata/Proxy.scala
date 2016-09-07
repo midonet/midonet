@@ -24,18 +24,17 @@ import org.eclipse.jetty.server.Server
 
 import org.midonet.midolman.config.MidolmanConfig
 
-/*
- * Metadata proxy server; a http proxy running on the hypervisor.
- * Listens on 169.254.169.254:9697 and forwards requests to Nova Metadata Api.
- */
-
+/**
+  * Metadata proxy server; a http proxy running on the hypervisor.
+  * Listens on 169.254.169.254:9697 and forwards requests to Nova Metadata Api.
+  */
 object Proxy {
-    private val ip = InetAddress getByName MetadataApi.Address
-    val port = 9697  // REVISIT(yamamoto): should be a config?
+    final val Address = InetAddress getByName MetadataApi.Address
+    final val Port = 9697  // REVISIT(yamamoto): should be a config?
     private var server: Server = _
 
     def start(config: MidolmanConfig): Unit = {
-        val sa = new InetSocketAddress(ip, port)
+        val sa = new InetSocketAddress(Address, Port)
         Log info s"Starting metadata proxy on $sa"
         val s = new Server(sa)
         s.setHandler(new ProxyHandler(config))
