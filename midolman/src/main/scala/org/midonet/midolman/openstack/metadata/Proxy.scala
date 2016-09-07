@@ -30,12 +30,12 @@ import org.midonet.midolman.config.MidolmanConfig
  */
 
 object Proxy {
-    private val ip = InetAddress getByName MetadataApi.Address
-    val port = 9697  // REVISIT(yamamoto): should be a config?
+    final val Ip = InetAddress getByName MetadataApi.Address
+    final val Port = 9697  // REVISIT(yamamoto): should be a config?
     private var server: Server = _
 
     def start(config: MidolmanConfig): Unit = {
-        val sa = new InetSocketAddress(ip, port)
+        val sa = new InetSocketAddress(Ip, port)
         Log info s"Starting metadata proxy on $sa"
         val s = new Server(sa)
         s.setHandler(new ProxyHandler(config))

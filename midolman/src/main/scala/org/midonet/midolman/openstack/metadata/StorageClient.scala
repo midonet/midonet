@@ -29,7 +29,7 @@ class StorageClient(val store: ReadOnlyStorage) {
             store.get(classOf[NeutronPort], portId).await()
         } catch {
             case e: NotFoundException =>
-                Log debug s"Non-neutron port? $e"
+                Log debug s"Non-neutron port: $e"
                 return None
         }
         if (port.getDeviceOwner != NeutronPort.DeviceOwner.COMPUTE) {
