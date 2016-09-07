@@ -39,7 +39,7 @@ import org.midonet.packets.{ICMP, IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-class RouterTranslatorIT extends C3POMinionTestBase {
+class RouterTranslatorIT extends C3POMinionTestBase with ChainManager {
     /* Set up legacy Data Client for testing Replicated Map. */
     override protected val useLegacyDataClient = true
 
@@ -58,10 +58,19 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         val r1Chains = getChains(r1.getInboundFilterId, r1.getOutboundFilterId)
         r1Chains.inChain.getRuleIdsCount shouldBe 0
-        r1Chains.outChain.getRuleIdsCount shouldBe 0
+        r1Chains.outChain.getRuleIdsCount shouldBe 3  // three jumps
         val r1FwdChain = storage.get(classOf[Chain],
                                      r1.getForwardChainId).await()
         r1FwdChain.getRuleIdsCount shouldBe 0
+        val r1SnatExactChain = storage.get(classOf[Chain],
+                                           floatSnatExactChainId(r1Id)).await()
+        r1SnatExactChain.getRuleIdsCount shouldBe 0
+        val r1SnatChain = storage.get(classOf[Chain],
+                                      floatSnatChainId(r1Id)).await()
+        r1SnatChain.getRuleIdsCount shouldBe 0
+        val r1SkipSnatChain = storage.get(classOf[Chain],
+                                          skipSnatChainId(r1Id)).await()
+        r1SkipSnatChain.getRuleIdsCount shouldBe 0
 
         val pgId = PortManager.portGroupId(r1.getId)
         val pg = eventually(storage.get(classOf[PortGroup], pgId).await())
@@ -500,12 +509,13 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val List(inChain, outChain) =
             storage.getAll(classOf[Chain], chainIds).await()
         inChain.getRuleIdsCount shouldBe 2
-        outChain.getRuleIdsCount shouldBe 2
+        outChain.getRuleIdsCount shouldBe 6
 
         val ruleIds = inChain.getRuleIdsList.asScala.toList ++
                       outChain.getRuleIdsList.asScala
-        val List(inRevSnatRule, inDropWrongPortTrafficRule,
-                 outSnatRule, outDropFragmentsRule) =
+        val List(inRevSnatRule, sameSubnetRev,
+                 jump1, jump2, jump3, outSnatRule, dstRewrittenSnatRule,
+                 sameSubnet) =
             storage.getAll(classOf[Rule], ruleIds).await()
 
         val gwSubnet = IPSubnetUtil.fromAddr(gatewayIp)
@@ -516,25 +526,13 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         outSnatRule.getCondition.getNwSrcInv shouldBe true
         validateNatRule(outSnatRule, dnat = false, gatewayIp)
 
-        val odfr = outDropFragmentsRule
-        odfr.getChainId shouldBe outChain.getId
-        odfr.getCondition.getOutPortIdsList should contain only trGwPortId
-        odfr.getCondition.getNwSrcIp.getAddress shouldBe gatewayIp
-        odfr.getCondition.getNwSrcInv shouldBe true
-        odfr.getType shouldBe Rule.Type.LITERAL_RULE
-        odfr.getCondition.getFragmentPolicy shouldBe FragmentPolicy.ANY
-        odfr.getAction shouldBe Action.DROP
+        dstRewrittenSnatRule.getChainId shouldBe outChain.getId
+        dstRewrittenSnatRule.getCondition.getMatchNwDstRewritten shouldBe true
+        validateNatRule(dstRewrittenSnatRule, dnat = false, gatewayIp)
 
         inRevSnatRule.getChainId shouldBe inChain.getId
         inRevSnatRule.getCondition.getNwDstIp shouldBe gwSubnet
         validateNatRule(inRevSnatRule, dnat = false, addr = null)
-
-        val idwptr = inDropWrongPortTrafficRule
-        idwptr.getChainId shouldBe inChain.getId
-        idwptr.getCondition.getNwDstIp shouldBe gwSubnet
-        idwptr.getType shouldBe Rule.Type.LITERAL_RULE
-        idwptr.getCondition.getNwProto shouldBe ICMP.PROTOCOL_NUMBER
-        idwptr.getAction shouldBe Action.DROP
     }
 
     // addr == null for reverse NAT rule
@@ -562,9 +560,9 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             classOf[Chain],
             Seq(r.getInboundFilterId, r.getOutboundFilterId)).await()
         inChain.getRuleIdsCount shouldBe 0
-        outChain.getRuleIdsCount shouldBe 0
-        Seq(outSnatRuleId(rtrId), outDropUnmatchedFragmentsRuleId(rtrId),
-            inReverseSnatRuleId(rtrId), inDropWrongPortTrafficRuleId(rtrId))
+        outChain.getRuleIdsCount shouldBe 3  // three jumps
+        Seq(outSnatRuleId(rtrId), dstRewrittenSnatRuleId(rtrId),
+            skipSnatGwPortRuleId(rtrId), inReverseSnatRuleId(rtrId))
             .map(storage.exists(classOf[Rule], _).await()) shouldBe
             Seq(false, false, false, false)
     }

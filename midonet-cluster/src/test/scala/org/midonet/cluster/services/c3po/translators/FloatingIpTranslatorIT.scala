@@ -340,23 +340,41 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         // External network's ARP table should contain an ARP entry
         arpTable.getLocal(fipAddr) shouldBe MAC.fromString(rgwMac)
 
+        val snatExactRuleId = RouteManager.fipSnatExactRuleId(fipId)
         val snatRuleId = RouteManager.fipSnatRuleId(fipId)
         val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
         val iChainId = inChainId(rtrId)
-        val oChainId = outChainId(rtrId)
+        val fSnatExactChainId = floatSnatExactChainId(rtrId)
+        val fSnatChainId = floatSnatChainId(rtrId)
 
         // Tests that SNAT / DNAT rules for the floating IP have been set.
-        val List(inChain, outChain) =
-            storage.getAll(classOf[Chain], List(iChainId, oChainId)).await()
+        val List(inChain, fSnatExactChain, fSnatChain) =
+            storage.getAll(classOf[Chain],
+            List(iChainId, fSnatExactChainId, fSnatChainId)).await()
         inChain.getRuleIdsList.asScala should contain(dnatRuleId)
-        outChain.getRuleIdsList.asScala should contain(snatRuleId)
+        fSnatExactChain.getRuleIdsList.asScala should contain(snatExactRuleId)
+        fSnatChain.getRuleIdsList.asScala should contain(snatRuleId)
+
+        // SNAT EXACT
+        val snatExact = storage.get(classOf[Rule], snatExactRuleId).await()
+        snatExact.getChainId shouldBe fSnatExactChainId
+        snatExact.getAction shouldBe Rule.Action.ACCEPT
+        snatExact.getCondition.getOutPortIdsCount shouldBe 1
+        snatExact.getCondition.getOutPortIds(0) shouldBe rtrPortId
+        snatExact.getCondition.getNwSrcIp.getAddress shouldBe fixedIp
+        val snatExactRule = snatExact.getNatRuleData
+        snatExactRule.getDnat shouldBe false
+        snatExactRule.getNatTargetsCount shouldBe 1
+        val snatExactTarget = snatExactRule.getNatTargets(0)
+        snatExactTarget.getNwStart.getAddress shouldBe fipAddr
+        snatExactTarget.getNwEnd.getAddress shouldBe fipAddr
+        snatExactTarget.getTpStart shouldBe 0
+        snatExactTarget.getTpEnd shouldBe 0
 
         // SNAT
         val snat = storage.get(classOf[Rule], snatRuleId).await()
-        snat.getChainId shouldBe oChainId
+        snat.getChainId shouldBe fSnatChainId
         snat.getAction shouldBe Rule.Action.ACCEPT
-        snat.getCondition.getOutPortIdsCount shouldBe 1
-        snat.getCondition.getOutPortIds(0) shouldBe rtrPortId
         snat.getCondition.getNwSrcIp.getAddress shouldBe fixedIp
         val snatRule = snat.getNatRuleData
         snatRule.getDnat shouldBe false
@@ -371,8 +389,6 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val dnat = storage.get(classOf[Rule], dnatRuleId).await()
         dnat.getChainId shouldBe iChainId
         dnat.getAction shouldBe Rule.Action.ACCEPT
-        dnat.getCondition.getInPortIdsCount shouldBe 1
-        dnat.getCondition.getInPortIds(0) shouldBe rtrPortId
         dnat.getCondition.getNwDstIp.getAddress shouldBe fipAddr
         val dnatRule = dnat.getNatRuleData
         dnatRule.getDnat shouldBe true
