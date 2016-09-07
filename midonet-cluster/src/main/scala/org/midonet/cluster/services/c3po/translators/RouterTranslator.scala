@@ -49,6 +49,12 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                                 postRouteChainName(nr.getId))
         val fwdChain = newChain(r.getForwardChainId,
                                 forwardChainName(nr.getId))
+        val floatSnatExactChain = newChain(floatSnatExactChainId(nr.getId),
+                                           floatSnatExactChainName(nr.getId))
+        val floatSnatChain = newChain(floatSnatChainId(nr.getId),
+                                      floatSnatChainName(nr.getId))
+        val skipSnatChain = newChain(skipSnatChainId(nr.getId),
+                                     skipSnatChainName(nr.getId))
 
         // This is actually only needed for edge routers, but edge routers are
         // only defined by having an interface to an uplink network, so it's
@@ -67,9 +73,15 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         val gwPortOps = gatewayPortCreateOps(nr, r)
 
         val ops = new OperationListBuffer
+        ops += Create(floatSnatExactChain)
+        ops += Create(floatSnatChain)
+        ops += Create(skipSnatChain)
         ops += Create(inChain)
         ops += Create(outChain)
         ops += Create(fwdChain)
+        ops += Create(jumpRule(outChain.getId, floatSnatExactChain.getId))
+        ops += Create(jumpRule(outChain.getId, floatSnatChain.getId))
+        ops += Create(jumpRule(outChain.getId, skipSnatChain.getId))
         ops += Create(r)
         ops += Create(portGroup)
         ops += Create(routerInterfacePortGroup)
@@ -82,6 +94,9 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         List(Delete(classOf[Chain], inChainId(nr.getId)),
              Delete(classOf[Chain], outChainId(nr.getId)),
              Delete(classOf[Chain], fwdChainId(nr.getId)),
+             Delete(classOf[Chain], floatSnatExactChainId(nr.getId)),
+             Delete(classOf[Chain], floatSnatChainId(nr.getId)),
+             Delete(classOf[Chain], skipSnatChainId(nr.getId)),
              Delete(classOf[PortGroup], PortManager.portGroupId(nr.getId)),
              Delete(classOf[PortGroup],
                 PortManager.routerInterfacePortGroupId(nr.getId)),
@@ -341,6 +356,12 @@ object RouterTranslator {
     def postRouteChainName(id: UUID) = "OS_POST_ROUTING_" + id.asJava
 
     def forwardChainName(id: UUID) = "OS_FORWARD_" + id.asJava
+
+    def floatSnatExactChainName(id: UUID) = "OS_FLOAT_SNAT_EXACT_" + id.asJava
+
+    def floatSnatChainName(id: UUID) = "OS_FLOAT_SNAT_" + id.asJava
+
+    def skipSnatChainName(id: UUID) = "OS_SKIP_SNAT_" + id.asJava
 
     def portGroupName(id: UUID) = "OS_PORT_GROUP_" + id.asJava
 
