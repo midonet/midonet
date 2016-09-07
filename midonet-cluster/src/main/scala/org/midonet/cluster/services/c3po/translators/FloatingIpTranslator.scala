@@ -34,6 +34,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
                            protected val stateTableStorage: StateTableStorage)
         extends Translator[FloatingIp] with ChainManager
                 with RouteManager
+                with RouterManager
                 with RuleManager {
 
     implicit val storage: ReadOnlyStorage = readOnlyStorage
@@ -80,7 +81,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             }
 
             removeNatRules(tx, oldFip)
-            addNatRules(tx, fip, newPortPair.rtrPortId)
+            addNatRules(tx, fip, newPortPair.rtrPortId, newPortPair.isGwPort)
         }
         List()
     }
@@ -102,64 +103,80 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
 
     /* Generate Create Ops for SNAT and DNAT for the floating IP address. */
     private def addNatRules(tx: Transaction, fip: FloatingIp,
-                            rtrPortId: UUID): Unit = {
-        val iChainId = inChainId(fip.getRouterId)
-        val oChainId = outChainId(fip.getRouterId)
+                            rtrPortId: UUID, isGwPort: Boolean): Unit = {
+        val rId = fip.getRouterId
+        val iChainId = inChainId(rId)
+        val oChainId = outChainId(rId)
         val snatRule = Rule.newBuilder
             .setId(fipSnatRuleId(fip.getId))
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .setFipPortId(fip.getPortId)
             .setCondition(anyFragCondition
-                              .addOutPortIds(rtrPortId)
                               .setNwSrcIp(IPSubnetUtil.fromAddr(
                                               fip.getFixedIpAddress)))
             .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = false,
                                         dynamic = false))
             .build()
+        val snatExactRule = snatRule.toBuilder
+            .setId(fipSnatExactRuleId(fip.getId))
+            .setCondition(anyFragCondition
+                              .addOutPortIds(rtrPortId)
+                              .setNwSrcIp(IPSubnetUtil.fromAddr(
+                                              fip.getFixedIpAddress)))
+            .build()
+
         val dnatRule = Rule.newBuilder
             .setId(fipDnatRuleId(fip.getId))
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .setFipPortId(fip.getPortId)
             .setCondition(anyFragCondition
-                              .addInPortIds(rtrPortId)
                               .setNwDstIp(IPSubnetUtil.fromAddr(
                                               fip.getFloatingIpAddress)))
             .setNatRuleData(natRuleData(fip.getFixedIpAddress, dnat = true,
                                         dynamic = false))
             .build()
 
-        val reverseIcmpDnatRule = Rule.newBuilder
-            .setId(fipReverseDnatRuleId(fip.getId))
-            .setType(Rule.Type.NAT_RULE)
-            .setAction(Rule.Action.CONTINUE)
-            .setFipPortId(fip.getPortId)
-            .setCondition(anyFragCondition
-                              .addOutPortIds(rtrPortId)
-                              .setIcmpDataDstIp(IPSubnetUtil.fromAddr(
-                                                    fip.getFixedIpAddress)))
-            .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = true,
-                                        dynamic = false))
-            .build()
-
         val inChain = tx.get(classOf[Chain], iChainId)
         val outChain = tx.get(classOf[Chain], oChainId)
+        val floatSnatExactChain = tx.get(classOf[Chain],
+                                         floatSnatExactChainId(rId))
+        val floatSnatChain = tx.get(classOf[Chain], floatSnatChainId(rId))
 
         tx.create(snatRule)
+        tx.create(snatExactRule)
         tx.create(dnatRule)
-        tx.create(reverseIcmpDnatRule)
 
         tx.update(prependRules(inChain, dnatRule.getId))
-        tx.update(prependRules(outChain, reverseIcmpDnatRule.getId,
-                               snatRule.getId))
+        tx.update(prependRules(floatSnatExactChain, snatExactRule.getId))
+        if (isGwPort) {
+            tx.update(prependRules(floatSnatChain, snatRule.getId))
+        } else {
+            tx.update(appendRule(floatSnatChain, snatRule.getId))
+
+            // Note: this rule can be per FIP-processing router ports,
+            // not per FIP.  however, currently there's no scalable way to
+            // find FIPs handled by the same router port.
+            val skipSnatRule = Rule.newBuilder
+                .setId(fipSkipSnatRuleId(fip.getId))
+                .setChainId(skipSnatChainId(rId))
+                .setType(Rule.Type.LITERAL_RULE)
+                .setAction(Rule.Action.ACCEPT)
+                .setFipPortId(fip.getPortId)
+                .setCondition(anyFragCondition.addInPortIds(rtrPortId))
+                .build()
+
+            tx.create(skipSnatRule)
+        }
     }
 
     /** Return both port IDs (network and router) of the gateway or interface
       * between the router routerId and the network whose subnet contains the
       * floating IP fipAddrStr.
       */
-    private case class PortPair(nwPortId: UUID, rtrPortId: UUID)
+    private case class PortPair(nwPortId: UUID, rtrPortId: UUID,
+                                isGwPort: Boolean)
     private def getFipRtrPortId(tx: Transaction, routerId: UUID,
                                 fipAddrStr: String)
     : PortPair = {
@@ -174,7 +191,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             val rGwPort = tx.get(classOf[Port], rGwPortId)
             val subnet = IPSubnetUtil.fromProto(rGwPort.getPortSubnet)
             if (subnet.containsAddress(fipAddr))
-                return PortPair(nwGwPortId, tenantGwPortId(nwGwPortId))
+                return PortPair(nwGwPortId, tenantGwPortId(nwGwPortId), true)
             Some(rGwPortId)
         } else None
 
@@ -193,7 +210,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
 
                 // Make sure the corresponding NeutronPort exists.
                 if (tx.exists(classOf[NeutronPort], nwPortId))
-                    return PortPair(nwPortId, rPort.getId)
+                    return PortPair(nwPortId, rPort.getId, false)
 
                 // Midonet-only port's CIDR conflicts with a Neutron port's.
                 val rPortJUuid = UUIDUtil.fromProto(rPort.getId)
@@ -211,10 +228,12 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
     }
 
     private def associateFipOps(tx: Transaction, fip: FloatingIp): Unit = {
-        val pp = getFipRtrPortId(tx, fip.getRouterId,
+        val routerId = fip.getRouterId
+        checkOldRouterTranslation(tx, routerId)
+        val pp = getFipRtrPortId(tx, routerId,
                                  fip.getFloatingIpAddress.getAddress)
         addArpEntry(tx, fip, pp.nwPortId)
-        addNatRules(tx, fip, pp.rtrPortId)
+        addNatRules(tx, fip, pp.rtrPortId, pp.isGwPort)
     }
 
     private def disassociateFipOps(tx: Transaction, fip: FloatingIp): Unit = {
@@ -233,8 +252,12 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
     /* Since Delete is idempotent, it is fine if those rules don't exist. */
     private def removeNatRules(tx: Transaction, fip: FloatingIp): Unit = {
         tx.delete(classOf[Rule], fipSnatRuleId(fip.getId), ignoresNeo = true)
+        tx.delete(classOf[Rule], fipSnatExactRuleId(fip.getId),
+                  ignoresNeo = true)
         tx.delete(classOf[Rule], fipDnatRuleId(fip.getId), ignoresNeo = true)
         tx.delete(classOf[Rule], fipReverseDnatRuleId(fip.getId),
+                  ignoresNeo = true)
+        tx.delete(classOf[Rule], fipSkipSnatRuleId(fip.getId),
                   ignoresNeo = true)
     }
 }
