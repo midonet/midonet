@@ -45,6 +45,16 @@ trait ChainManager {
     protected def fwdChainId(deviceId: UUID) =
         deviceId.xorWith(0xd90b1ceebd1bf51eL, 0xb5e5dab5476adb8aL)
 
+    /** Deterministically generate chain IDs used for routers */
+    protected def floatSnatExactChainId(deviceId: UUID) =
+        deviceId.xorWith(0xbf4ba34a4efdbf71L, 0x590e41534b131c9bL)
+
+    protected def floatSnatChainId(deviceId: UUID) =
+        deviceId.xorWith(0xba661b9dbba322afL, 0x5eff18f9c1de2512L)
+
+    protected def skipSnatChainId(deviceId: UUID) =
+        deviceId.xorWith(0x77e52b9ea61aae18L, 0xcf5e9a5f30deb1fbL)
+
     /** Deterministically generate anti spoof chain ID from device ID. */
     def antiSpoofChainId(deviceId: UUID) =
         deviceId.xorWith(0xa7b611cfe7334feL, 0xbbac78cfe412ad35L)
