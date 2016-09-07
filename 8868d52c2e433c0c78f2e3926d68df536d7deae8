@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_12c9b4ac",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-07T09:33:37Z",
+      "side": 1,
+      "message": "This function is already pretty big. Could you break this part out into a separate function?",
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f2cbf0a2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-07T09:33:37Z",
+      "side": 1,
+      "message": "Do we really care if the lists are different, or only if the first element is different?",
+      "range": {
+        "startLine": 344,
+        "startChar": 13,
+        "endLine": 344,
+        "endChar": 62
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_d24a2c27",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-07T09:33:37Z",
+      "side": 1,
+      "message": "I think you can get the router\u0027s outbound filter ID with outChainId(toProto(nPort.getDeviceId)), so you don\u0027t need to go to storage for it.",
+      "range": {
+        "startLine": 370,
+        "startChar": 0,
+        "endLine": 371,
+        "endChar": 76
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_126d34cc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-07T09:33:37Z",
+      "side": 1,
+      "message": "I think what you\u0027re trying to do here could be more concisely accomplished by something like:\n\n    val snatRuleBldr \u003d snatRule.toBuilder\n    snatRuleBldr.getNatRuleDataBuilder.getNatTargetsBuilder(0)\n        .setNwStart(portAddress).setNwEnd(portAddress)\n\n    // ...other stuff...\n    midoOps +\u003d Update(snatRuleBldr.build())\n\nWhen you call build() on the builder for a class that has nested messages, it will recursively build any open builders you have for those nested messages.",
+      "range": {
+        "startLine": 375,
+        "startChar": 0,
+        "endLine": 380,
+        "endChar": 79
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_326038a4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-07T09:33:37Z",
+      "side": 1,
+      "message": "Note that you\u0027re serially waiting for two futures that don\u0027t depend on each other. You can reduce latency like this:\n\n  val snatRuleFtr \u003d storage.get(classOf[Rule], /* snatRuleId */)\n  val revSnatRule \u003d storage.get(classOf[Rule], /* revSnatRuleId */).await()\n  val snatRule \u003d snatRuleFtr.await()\n\nThat way you can wait for both futures to complete in parallel.\n\nOr, since they\u0027re both the same type, you can make it even simpler:\n\n  val ruleIds \u003d Seq(/* snatRuleId */, /* revSnatRuleId */)\n  val Seq(snatRule, revSnatRule) \u003d storage.getAll(classOf[Rule], ruleIds).await()",
+      "range": {
+        "startLine": 382,
+        "startChar": 0,
+        "endLine": 384,
+        "endChar": 28
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_926144d6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-07T09:33:37Z",
+      "side": 1,
+      "message": "Here you just want to update the destination IP on the condition, right?\n\n    val revSnatRuleBldr \u003d revSnatRule.toBuilder()\n    revSnatRuleBldr.getConditionBuilder.setNwDstIp(portAddress)\n    // ...other stuff...\n    midoOps +\u003d Update(revSnatRuleBldr.build())",
+      "range": {
+        "startLine": 382,
+        "startChar": 0,
+        "endLine": 389,
+        "endChar": 78
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
