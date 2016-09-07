@@ -329,9 +329,9 @@ class MidolmanModule(injector: Injector,
                                              actorSystem: ActorSystem)
             : PacketWorkersService =
         new PacketWorkersServiceImpl(config, hostIdProvider, dpChannel, dpState,
-                                        flowProcessor, natBlockAllocator, peerResolver,
-                                        backChannel, vt, clock, flowRecorder,
-                                        metricsRegistry, counter, actorSystem)
+                                     flowProcessor, natBlockAllocator, peerResolver,
+                                     backChannel, vt, clock, flowRecorder,
+                                     metricsRegistry, counter, actorSystem)
 
     protected def connectionPool(): DatapathConnectionPool =
         new OneToOneConnectionPool(

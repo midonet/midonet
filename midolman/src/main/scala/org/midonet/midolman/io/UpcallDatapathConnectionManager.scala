@@ -76,7 +76,7 @@ abstract class UpcallDatapathConnectionManagerBase(
 
     protected def setUpcallHandler(conn: OvsDatapathConnection)
 
-    protected def makeBufferPool() = new BufferPool(1, 8, 8*1024)
+    protected def makeBufferPool() = new BufferPool(1, 8, 8 * 1024)
 
     def getDispatcher()(implicit as: ActorSystem) =
         NetlinkCallbackDispatcher.makeBatchCollector()
@@ -86,7 +86,7 @@ abstract class UpcallDatapathConnectionManagerBase(
     : Future[(DpPort, Int)] = {
 
         val connName = "port-upcall-" + port.getName
-        log.info("creating datapath connection for {}", port.getName)
+        log.info("Creating datapath connection for {}", port.getName)
 
         var conn: ManagedDatapathConnection = null
         try {
@@ -106,8 +106,8 @@ abstract class UpcallDatapathConnectionManagerBase(
             case Success((createdPort, _)) =>
                 portToChannel.put((datapath, createdPort.getPortNo.intValue), conn)
             case Failure(e) =>
-                log.error("failed to create or retrieve datapath port "
-                              + port.getName, e)
+                log.error("Failed to create or retrieve datapath port " +
+                          port.getName, e)
                 stopConnection(conn)
                 tbPolicy.unlink(port)
         }
@@ -116,7 +116,7 @@ abstract class UpcallDatapathConnectionManagerBase(
     def ensurePortPid(port: DpPort, dp: Datapath, con: OvsDatapathConnection)(
                       implicit ec: ExecutionContext) = {
         val dpConnOps = new OvsConnectionOps(con)
-        log.info("creating datapath port {}", port)
+        log.info("Creating datapath port {}", port)
         dpConnOps.createPort(port, dp) recoverWith {
             // Error code changed in OVS in May-2013 from EBUSY to EEXIST
             // http://openvswitch.org/pipermail/dev/2013-May/027947.html
@@ -154,15 +154,16 @@ abstract class UpcallDatapathConnectionManagerBase(
     protected def makeUpcallHandler(workers: IndexedSeq[PacketWorker]) =
         new BatchCollector[Packet] {
 
-            val NUM_WORKERS = workers.length
-            val log = LoggerFactory.getLogger("PacketInHook")
+            private val numWorkers = workers.length
+            private val log =
+                LoggerFactory.getLogger("org.midonet.midolman.io.packet-hook")
 
             override def endBatch() {
                 // noop
             }
 
             override def submit(data: Packet): Boolean = {
-                log.trace("accumulating packet: {}", data.getMatch)
+                log.trace("Accumulating packet: {}", data.getMatch)
 
                 data.startTimeNanos = NanoClock.DEFAULT.tick
 
@@ -186,7 +187,10 @@ abstract class UpcallDatapathConnectionManagerBase(
                     }
                     submitted
                 } else {
-                    val worker = Math.abs(data.getMatch.connectionHash) % NUM_WORKERS
+                    val hash = data.getMatch.connectionHash()
+                    val worker = Math.abs(hash) % numWorkers
+                    log.debug("Processing packet: {} {}/{}", hash, worker,
+                              numWorkers)
                     workers(worker).submit(data)
                 }
             }
@@ -197,13 +201,14 @@ abstract class UpcallDatapathConnectionManagerBase(
  * UpcallDatapathConnectionManager with a one-to-one threading model: each
  * channel gets its own thread and select loop.
  */
-class OneToOneDpConnManager(c: MidolmanConfig,
+class OneToOneDpConnManager(config: MidolmanConfig,
                             workers: IndexedSeq[PacketWorker],
                             tbPolicy: TokenBucketPolicy,
                             metrics: MetricRegistry)
-        extends UpcallDatapathConnectionManagerBase(c, tbPolicy) {
+        extends UpcallDatapathConnectionManagerBase(config, tbPolicy) {
 
-    protected override val log = LoggerFactory.getLogger(this.getClass)
+    protected override val log =
+        LoggerFactory.getLogger("org.midonet.midolman.io.o2o-datapath-manager")
 
     override def makeConnection(name: String, bucket: Bucket,
                                 channelType: ChannelType) =
@@ -223,11 +228,11 @@ class OneToOneDpConnManager(c: MidolmanConfig,
  * UpcallDatapathConnectionManager with a one-to-many threading model: a single
  * thread and a single select loop is used for all the input channels.
  */
-class OneToManyDpConnManager(c: MidolmanConfig,
+class OneToManyDpConnManager(config: MidolmanConfig,
                              workers: IndexedSeq[PacketWorker],
                              tbPolicy: TokenBucketPolicy,
                              metrics: MetricRegistry)
-        extends UpcallDatapathConnectionManagerBase(c, tbPolicy) {
+        extends UpcallDatapathConnectionManagerBase(config, tbPolicy) {
 
     val threadPair = new SelectorThreadPair("upcall", config, false, metrics)
 
@@ -235,7 +240,8 @@ class OneToManyDpConnManager(c: MidolmanConfig,
 
     val sendPool = makeBufferPool()
 
-    protected override val log = LoggerFactory.getLogger(this.getClass)
+    protected override val log =
+        LoggerFactory.getLogger("org.midonet.midolman.io.o2m-datapath-manager")
 
     private var upcallHandler: BatchCollector[Packet] = null
 

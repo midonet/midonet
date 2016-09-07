@@ -53,19 +53,19 @@ abstract class PacketWorkersService extends AbstractService {
 }
 
 class PacketWorkersServiceImpl(config: MidolmanConfig,
-                                  hostIdProvider: HostIdProvider,
-                                  dpChannel: DatapathChannel,
-                                  dpState: DatapathState,
-                                  flowProcessor: FlowProcessor,
-                                  natBlockAllocator: NatBlockAllocator,
-                                  peerResolver: PeerResolver,
-                                  backChannel: ShardedSimulationBackChannel,
-                                  vt: VirtualTopology,
-                                  clock: NanoClock,
-                                  flowRecorder: FlowRecorder,
-                                  metricsRegistry: MetricRegistry,
-                                  counter: StatisticalCounter,
-                                  actorSystem: ActorSystem)
+                               hostIdProvider: HostIdProvider,
+                               dpChannel: DatapathChannel,
+                               dpState: DatapathState,
+                               flowProcessor: FlowProcessor,
+                               natBlockAllocator: NatBlockAllocator,
+                               peerResolver: PeerResolver,
+                               backChannel: ShardedSimulationBackChannel,
+                               vt: VirtualTopology,
+                               clock: NanoClock,
+                               flowRecorder: FlowRecorder,
+                               metricsRegistry: MetricRegistry,
+                               counter: StatisticalCounter,
+                               actorSystem: ActorSystem)
         extends PacketWorkersService with Runnable with MidolmanLogging {
 
     override def logSource = "org.midonet.packet-worker.packet-worker-supervisor"
