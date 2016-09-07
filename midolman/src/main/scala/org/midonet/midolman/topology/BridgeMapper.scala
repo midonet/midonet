@@ -272,7 +272,7 @@ object BridgeMapper {
 /**
  * A class that implements the [[DeviceMapper]] for a [[SimulationBridge]].
  */
-final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopology,
+final class BridgeMapper(bridgeId: UUID, override val vt: VirtualTopology,
                          val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
         extends VirtualDeviceMapper(classOf[SimulationBridge], bridgeId, vt)
         with TraceRequestChainMapper[SimulationBridge] {
