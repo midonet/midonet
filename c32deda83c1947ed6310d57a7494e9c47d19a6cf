@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_67e1642a",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-07T02:31:50Z",
+      "side": 1,
+      "message": "Actually, Joe asked for this to be included here, hence the addition.",
+      "parentUuid": "baa041b7_dbb5afed",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 69
+      },
+      "revId": "c32deda83c1947ed6310d57a7494e9c47d19a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_9b4e07c1",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2016-09-06T10:00:05Z",
       "side": 1,
       "message": "QOSPOLICY?",
+      "range": {
+        "startLine": 608,
+        "startChar": 3,
+        "endLine": 608,
+        "endChar": 6
+      },
+      "revId": "c32deda83c1947ed6310d57a7494e9c47d19a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_47cf80b3",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 608,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-07T02:31:50Z",
+      "side": 1,
+      "message": "I was thinking that this is all related to QOS, but if the title names are based around top-level model objects, it should indeed be QOSPOLICY.",
+      "parentUuid": "baa041b7_9b4e07c1",
       "range": {
         "startLine": 608,
         "startChar": 3,
