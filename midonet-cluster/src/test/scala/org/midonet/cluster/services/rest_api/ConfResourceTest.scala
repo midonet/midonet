@@ -33,6 +33,7 @@ import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.test.util.ZookeeperTestSuite
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.cluster.util.PortProvider
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 
 @RunWith(classOf[JUnitRunner])
@@ -46,7 +47,7 @@ class ConfResourceTest extends FeatureSpec
 
     private var backend: MidonetBackendService = _
     private var api: RestApi = _
-    private val httpPort: Int = 10000 + (Math.random() * 50000).toInt
+    private val httpPort: Int = PortProvider.getPort
     private val confStr =
         s"""
            |cluster.rest_api.enabled : true
