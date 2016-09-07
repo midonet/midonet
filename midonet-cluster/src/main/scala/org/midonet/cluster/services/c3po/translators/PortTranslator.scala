@@ -919,11 +919,17 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         if (tx.exists(classOf[Rule], outSnatRuleId(rtrId))) {
             tx.delete(classOf[Rule], outSnatRuleId(rtrId),
                       ignoresNeo = true)
-            tx.delete(classOf[Rule], outDropUnmatchedFragmentsRuleId(rtrId),
-                      ignoresNeo = true)
             tx.delete(classOf[Rule], inReverseSnatRuleId(rtrId),
                       ignoresNeo = true)
+            tx.delete(classOf[Rule], skipSnatGwPortRuleId(rtrId),
+                      ignoresNeo = true)
+            tx.delete(classOf[Rule], dstRewrittenSnatRuleId(rtrId),
+                      ignoresNeo = true)
+
+            // old translation
             tx.delete(classOf[Rule], inDropWrongPortTrafficRuleId(rtrId),
+                      ignoresNeo = true)
+            tx.delete(classOf[Rule], outDropUnmatchedFragmentsRuleId(rtrId),
                       ignoresNeo = true)
         }
     }
