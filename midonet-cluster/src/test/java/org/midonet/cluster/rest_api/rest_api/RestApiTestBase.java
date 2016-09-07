@@ -38,6 +38,7 @@ import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPort;
+import org.midonet.cluster.util.PortProvider;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -70,23 +71,7 @@ public abstract class RestApiTestBase extends JerseyTest {
 
     @Override
     protected int getPort(int defaultPort) {
-        // Binding a socket to port 0 makes the OS returns us a free ephemeral
-        // port. Return this port so jetty binds to it.
-        while (true) {
-            ServerSocket ss = null;
-            try {
-                ss = new ServerSocket(0);
-                ss.setReuseAddress(true);
-                return ss.getLocalPort();
-            } catch (IOException e) {
-            } finally {
-                if (ss != null) {
-                    try {
-                        ss.close();
-                    } catch (IOException ioe) {}
-                }
-            }
-        }
+        return PortProvider.getPort();
     }
 
     /**
