@@ -522,32 +522,31 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         // These fields are decided based on the port configuration.
         // DHCP is handled differently for bridge and router ports.
 
-        log.debug("Got a DHCP request")
+        log.debug("Received a DHCP request")
         // Get the RCU port object and start simulation.
         port match {
             case p: BridgePort if p.isExterior =>
-                log.debug("Handle DHCP request arriving on bridge port.")
+                log.debug("Handle DHCP request arriving on bridge port")
                 dhcpFromBridgePort(p)
             case _ =>
                 // We don't handle this, but don't throw an error.
-                log.info(s"Got a DHCP request on port ${port.id} which is not " +
-                          " a bridge exterior port")
+                log.info(s"Received a DHCP request on port ${port.id} which " +
+                         "is not a bridge exterior port")
                 None
         }
     }
 
     private type HostAndSubnetOptPair = (Option[Host], Option[Subnet])
 
-    private
-    def getHostAndAssignedSubnet(port: BridgePort): HostAndSubnetOptPair = {
+    private def getHostAndAssignedSubnet(port: BridgePort): HostAndSubnetOptPair = {
         // TODO(pino): use an async API
         val subnets = dhcpConfig.bridgeDhcpSubnets(port.deviceId)
 
         // Look for the DHCP's source MAC in the list of hosts in each subnet
         var host: Option[Host] = None
         val assignment = subnets.find { subnet =>
-            log.debug("Looking up assignment for MAC {} on subnet {} ",
-                      sourceMac, subnet.getId)
+            log.debug(s"Looking up assignment for MAC $sourceMac on subnet " +
+                      s"${subnet.getId}")
             if (subnet.getServerAddr == null) {
                 subnet.setServerAddr(IPv4Addr.fromString("0.0.0.0"))
             }
@@ -560,27 +559,30 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
 
     private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
         getHostAndAssignedSubnet(port) match {
-            case (Some(host: Host), Some(sub: Subnet)) =>
-                log.debug(s"Found DHCP static assignment for MAC $sourceMac => " +
-                          s"${host.getName} @ ${host.getIp}")
+            case (_, Some(subnet)) if !subnet.isEnabled =>
+                log.debug(s"DHCP disabled for subnet ${subnet.getId}")
+                None
+            case (Some(host), Some(subnet)) =>
+                log.debug(s"Found DHCP static assignment for MAC $sourceMac for " +
+                          s"${host.getName} address ${host.getIp}")
 
                 // TODO(pino): the server MAC should be in configuration.
                 serverMac = MAC.fromString("02:a8:9c:de:39:27")
-                serverAddr = sub.getServerAddr
-                routerAddr = sub.getDefaultGateway
+                serverAddr = subnet.getServerAddr
+                routerAddr = subnet.getDefaultGateway
                 yiaddr = host.getIp
-                yiAddrMaskLen = sub.getSubnetAddr.getPrefixLen
+                yiAddrMaskLen = subnet.getSubnetAddr.getPrefixLen
 
                 dnsServerAddrsBytes =
-                    Option(sub.getDnsServerAddrs).map{ _.toList}.getOrElse(Nil)
+                    Option(subnet.getDnsServerAddrs).map{ _.toList}.getOrElse(Nil)
                         .map { _.toBytes }
-                opt121Routes = sub.getOpt121Routes
+                opt121Routes = subnet.getOpt121Routes
 
                 // NOTES on MTU:
                 // - We should never send a DHCP offer MTU option higher than the underlayMtu.
                 // - Subnet mtu takes precedence over global configuration
 
-                (sub.getInterfaceMTU match {
+                (subnet.getInterfaceMTU match {
                     case 0 =>
                         Some(Math.min(configMtu, underlayMtu).toShort)
                     case subnetMtu: Short =>
@@ -588,7 +590,8 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                 }) match {
                     case Some(minMtu) =>
                         interfaceMTU = minMtu
-                        log.debug(s"Building DHCP reply for MAC $sourceMac with MTU $interfaceMTU")
+                        log.debug(s"Building DHCP reply for MAC $sourceMac " +
+                                  s"with MTU $interfaceMTU")
                         makeDhcpReply(port, host)
                     case _ =>
                         interfaceMTU = 0
@@ -623,16 +626,17 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                               host: Host): Option[Ethernet] = {
         val chaddr = request.getClientHardwareAddress
         if (null == chaddr) {
-            log.warn("Dropping DHCP request with null hw addr")
+            log.warn("Dropping DHCP request with missing hardware address")
             return None
         }
         if (chaddr.length != 6) {
-            log.warn(s"Dropping DHCP request with hw addr length ${chaddr.length} greater than 6.")
+            log.warn("Dropping DHCP request with hardware address length " +
+                     s"${chaddr.length} greater than 6.")
             return None
         }
-        log.debug(s"Got DHCP request on port ${port.id} with "+
-                  s"hw addr ${MAC.bytesToString(chaddr)} and "+
-                  s"ip addr ${request.getClientIPAddress}")
+        log.debug(s"Received DHCP request on port ${port.id} with "+
+                  s"hardware address ${MAC.bytesToString(chaddr)} and "+
+                  s"IP address ${request.getClientIPAddress}")
 
         // Extract all the options and put them in a map
         val reqOptions = mutable.HashMap[Byte, DHCPOption]()
@@ -640,27 +644,28 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         request.getOptions foreach { opt =>
             val code = opt.getCode
             reqOptions.put(code, opt)
-            log.debug(s"found option $code:${DHCPOption.CODE_TO_NAME.get(code)}")
+            log.debug(s"Found DHCP option $code:" +
+                      s"${DHCPOption.CODE_TO_NAME.get(code)}")
             code match {
                 case v if v == DHCPOption.Code.DHCP_TYPE.value =>
                     if (opt.getLength != 1) {
-                        log.warn("Dropping DHCP request, "
-                            + "dhcp msg type option has bad length or data.")
+                        log.warn("Dropping DHCP request: message type option " +
+                                 "has bad length or data.")
                         throw MalformedDhcpRequestException
                     }
                     val msgType = opt.getData()(0)
-                    log.debug("dhcp msg type "+
-                        s"$msgType:${DHCPOption.msgTypeToName.get(msgType)}")
+                    log.debug(s"DHCP message type $msgType:" +
+                              s"${DHCPOption.msgTypeToName.get(msgType)}")
                 case v if v == DHCPOption.Code.PRM_REQ_LIST.value =>
                     if (opt.getLength <= 0) {
-                        log.warn("Dropping DHCP request, "
-                            + "param request list has bad length")
+                        log.warn("Dropping DHCP request: param request list " +
+                                 "has bad length")
                         throw MalformedDhcpRequestException
                     }
                     opt.getData foreach { c =>
                         requestedCodes.add(c)
-                        log.debug(s"DHCP client requested option "+
-                                  s"$c:${DHCPOption.CODE_TO_NAME.get(c)}")
+                        log.debug(s"DHCP client requested option $c:" +
+                                  s"${DHCPOption.CODE_TO_NAME.get(c)}")
                     }
                 case _ => // Do nothing
             }
@@ -670,8 +675,8 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         // DHCP extra option handlings and the Neutron ones.
         val optionMap = mutable.HashMap[Byte, DHCPOption]()
         val typeOpt = reqOptions.get(DHCPOption.Code.DHCP_TYPE.value)
-        if (typeOpt == None) {
-            log.warn("Dropping DHCP request, no dhcp msg type found")
+        if (typeOpt.isEmpty) {
+            log.warn("Dropping DHCP request: no DHCP message type found")
             throw MalformedDhcpRequestException
         }
 
@@ -700,20 +705,22 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                 // and try re-enabling this code.
                 reqOptions.get(DHCPOption.Code.SERVER_ID.value) match {
                     case None =>
-                        log.debug("No DHCP server id option found.")
+                        log.debug("No DHCP server id option found")
                         // TODO(pino): return Future.successful(false)?
                     case Some(opt) =>
                         // The server id should correspond to this port's address.
                         val theirServId = IPv4Addr.bytesToInt(opt.getData)
                         if (serverAddr.addr != theirServId) {
-                            log.warn("Dropping DHCP request, client chose server "+
-                                s"${IPv4Addr.intToString(theirServId)} not us $serverAddr")
+                            log.warn("Dropping DHCP request: client selected " +
+                                     "different server " +
+                                     s"${IPv4Addr.intToString(theirServId)} " +
+                                     s"not this $serverAddr")
                         }
                 }
                 // The request must contain a requested IP address option.
                 reqOptions.get(DHCPOption.Code.REQUESTED_IP.value) match {
                     case None =>
-                        log.debug("No requested DHCP ip option found.")
+                        log.debug("No requested DHCP IP option found")
                         //return Promise.failed(new Exception(
                         //    "DHCP message with no requested-IP option."))
                     case Some(opt) =>
@@ -722,8 +729,9 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                         // TODO(pino): must keep state and remember the offered ip based
                         // on the chaddr or the client id option.
                         if (yiaddr.addr != reqIp) {
-                            log.debug("Sending DHCP NACK: the requested ip "+
-                                s"$reqIp does not match what we offered ($yiaddr)")
+                            log.debug("Sending DHCP NACK: the requested IP "+
+                                      s"$reqIp does not match current " +
+                                      s"offer $yiaddr")
                             // Overwrite the default ACK with a dhcp NACK
                             optionMap.put(
                                 DHCPOption.Code.DHCP_TYPE.value,
@@ -734,7 +742,7 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                         }
                 }
             case msgType =>
-                log.warn("Dropping DHCP request, unsupported msg type "+
+                log.warn("Dropping DHCP request: unsupported message type "+
                          s"$msgType:${DHCPOption.msgTypeToName.get(msgType)}")
                 throw UnsupportedDhcpRequestException
         }
@@ -759,7 +767,8 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         // last 32-nwAddrLength bits.
         val mask = ~0 >>> yiAddrMaskLen
         val bcast = mask | yiaddr.addr
-        log.debug("Setting DHCP bcast addr option to {}", IPv4Addr.intToString(bcast))
+        log.debug("Setting DHCP broadcast address option to " +
+                  s"${IPv4Addr.intToString(bcast)}")
         optionMap.put(DHCPOption.Code.BCAST_ADDR.value,
             new DHCPOption(DHCPOption.Code.BCAST_ADDR.value,
                 DHCPOption.Code.BCAST_ADDR.length,
@@ -795,7 +804,7 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                     len.toByte, buffer.array))
         }
         // If there are classless static routes, add the option.
-        if (null != opt121Routes && opt121Routes.length > 0) {
+        if (null != opt121Routes && opt121Routes.nonEmpty) {
             val bytes = mutable.ListBuffer[Byte]()
             if (routerAddr != null) {
                 // According to RFC 3442, if classless routes (option 121) are
@@ -808,12 +817,12 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                 opt121DefaultRoute.setGateway(routerAddr)
                 opt121DefaultRoute.setRtDstSubnet(univSubnet)
 
-                log.debug("Found router address. Adding default route to "
-                          + opt121DefaultRoute)
+                log.debug("Found router address: adding default route " +
+                          s"to $opt121DefaultRoute")
                 opt121Routes += opt121DefaultRoute
             }
             opt121Routes foreach { rt =>
-                log.debug("Found classless route {}", rt)
+                log.debug(s"Found classless route $rt")
                 bytes.appendAll(opt121ToByteArray(rt))
             }
             log.debug("Adding Option 121 (classless static routes) with " +
@@ -872,14 +881,13 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                     code, value.length.toByte, value)
             if (dhcpOptOption.isDefined) {
                 log.debug(s"Add extra DHCP Option ${opt.optName} " +
-                    s"with value ${opt.optValue}")
+                          s"with value ${opt.optValue}")
                 val dhcpOption = dhcpOptOption.get
                 optMap.put(dhcpOption.getCode, dhcpOption)
             } else {
                 log.info(s"Invalid DHCP Option: ${opt.optName} " +
-                    s"with value ${opt.optValue}")
-                log.info("This invalid option will be treated as " +
-                    "UNKNOWN")
+                         s"with value ${opt.optValue}: will be handled as " +
+                         "unknown")
             }
         }
 }
