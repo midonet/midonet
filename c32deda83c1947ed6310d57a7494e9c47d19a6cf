@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "baa041b7_c276db3e",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-08T07:01:12Z",
+      "side": 1,
+      "message": "which kinds of ports does this default apply?\nany ports?  only neutron ports?  only vif ports?",
+      "range": {
+        "startLine": 53,
+        "startChar": 20,
+        "endLine": 53,
+        "endChar": 38
+      },
+      "revId": "c32deda83c1947ed6310d57a7494e9c47d19a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_dbb5afed",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 7
