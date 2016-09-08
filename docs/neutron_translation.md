@@ -458,9 +458,9 @@ data, add the NAT translation rules between 'fixed_ip_address' and
 'floating_ip_address' if the floating IP has an association with a fixed IP
 ('port_id' is set):
 
- * Static DNAT rule on the outbound chain
- * Static SNAT rule on the inbound chain
- * Static reverse ICMP Data DNAT rule on the inbound chain
+ * Static DNAT rule on the inbound chain
+ * Static SNAT rule on the outbound chain
+ * Static reverse ICMP Data DNAT rule on the outbound chain
 
 These rules should be with fragment_policy = ANY.
 
