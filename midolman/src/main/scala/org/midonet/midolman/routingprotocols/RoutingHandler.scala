@@ -18,7 +18,7 @@ package org.midonet.midolman.routingprotocols
 import java.io.File
 import java.util.UUID
 
-import scala.collection.generic.CanBuildFrom
+import scala.collection.breakOut
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
@@ -103,8 +103,6 @@ class LazyZkConnectionMonitor(down: () => Unit,
 }
 
 object RoutingHandler {
-
-    type CbfRouteSeq = CanBuildFrom[Seq[Future[Route]], Route, Seq[Route]]
 
     final val BgpTcpPort: Short = 179
 
@@ -503,7 +501,7 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
      *   * Commit the new paths to storage, delete the forgotten paths from
      *     storage.
      */
-    private def publishLearnedRoutes(destination: IPv4Subnet, paths: Set[ZebraPath])(implicit cbf: CbfRouteSeq): Unit = {
+    private def publishLearnedRoutes(destination: IPv4Subnet, paths: Set[ZebraPath]): Unit = {
         val newRoutes = paths map (makeRoute(destination, _))
 
         val lostRoutes = mutable.Buffer[Route]()
@@ -536,7 +534,7 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
             for (lost <- lostRoutes) {
                 futures += forgetLearnedRoute(lost)
             }
-            Future.sequence(futures.toSeq)(cbf, singleThreadExecutionContext)
+            Future.sequence(futures)(breakOut, singleThreadExecutionContext)
         }
 
 
@@ -554,7 +552,7 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
         }(singleThreadExecutionContext)
     }
 
-    private def syncPeerRoutes()(implicit cbf: CbfRouteSeq): Unit = {
+    private def syncPeerRoutes(): Unit = {
         handleLearnedRouteError {
             routingStorage.learnedRoutes(routerPort.deviceId, routerPort.id, routerPort.hostId)
                           .flatMap {
@@ -569,7 +567,7 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
                      if routeValue eq null) {
                     futures += publishLearnedRoute(routeKey)
                 }
-                Future.sequence(futures.toSeq)(cbf, singleThreadExecutionContext)
+                Future.sequence(futures)(breakOut, singleThreadExecutionContext)
             }(singleThreadExecutionContext)
         }
     }
@@ -679,11 +677,11 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
 
         log.debug("Updating local CIDRs from {} to {}", currentPortBgps, newPortBgps)
         for (pbi <- currentPortBgps diff newPortBgps) {
-            bgpd.remArpEntry(routerPort.interfaceName, pbi.bgpPeerIp, pbi.cidr)
-            bgpd.remAddr(routerPort.interfaceName, pbi.cidr)
+            bgpd.removeArpEntry(routerPort.interfaceName, pbi.bgpPeerIp, pbi.cidr)
+            bgpd.removeAddress(routerPort.interfaceName, pbi.cidr)
         }
         for (pbi <- newPortBgps diff currentPortBgps) {
-            bgpd.assignAddr(routerPort.interfaceName, pbi.cidr, pbi.mac)
+            bgpd.addAddress(routerPort.interfaceName, pbi.cidr, pbi.mac)
             bgpd.addArpEntry(routerPort.interfaceName, pbi.bgpPeerIp,
                              routerPort.portMac.toString, pbi.cidr)
         }
@@ -773,7 +771,7 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
         }(singleThreadExecutionContext)
     }
 
-    private def stopBgpd()(implicit cbf: CbfRouteSeq): Future[_] = {
+    private def stopBgpd(): Future[_] = {
         log.debug("Disabling BGP")
         clearRoutingWorkflow()
         stopZebra()
@@ -786,14 +784,14 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
             for (route <- peerRoutes.values) {
                 futures += forgetLearnedRoute(route)
             }
-            Future.sequence(futures.toSeq)(cbf, singleThreadExecutionContext)
+            Future.sequence(futures)(breakOut, singleThreadExecutionContext)
         }
         peerRoutes.clear()
         removeDpPort()
     }
 
     protected def restartBgpd(): Future[_] = {
-        stopBgpd().flatMap{ case _ => startBgpd() }(singleThreadExecutionContext)
+        stopBgpd().flatMap { _ => startBgpd() } (singleThreadExecutionContext)
     }
 
     private def checkBgpdHealth(): Future[_] = {
