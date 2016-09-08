@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_e24aff26",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-08T08:59:55Z",
+      "side": 1,
+      "message": "workflow is one word",
+      "range": {
+        "startLine": 28,
+        "startChar": 17,
+        "endLine": 28,
+        "endChar": 26
+      },
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a280778c",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-08T08:59:55Z",
+      "side": 1,
+      "message": "\"will open\" meaning that this is a new channel that will be created for this feature, or does it already exist?",
+      "range": {
+        "startLine": 120,
+        "startChar": 36,
+        "endLine": 120,
+        "endChar": 58
+      },
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
