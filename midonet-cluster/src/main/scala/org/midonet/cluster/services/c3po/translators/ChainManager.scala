@@ -89,6 +89,9 @@ trait ChainManager {
     protected def prependRule(chain: Chain, ruleId: UUID): Chain =
         chain.toBuilder.addRuleIds(0, ruleId).build()
 
+    protected def appendRule(chain: Chain, ruleId: UUID): Chain =
+        chain.toBuilder.addRuleIds(ruleId).build()
+
     /** Returns operations to delete all rules for the specified chain. */
     protected def deleteRulesOps(chain: Chain): Seq[Delete[Rule]] = {
         chain.getRuleIdsList.asScala.map(Delete(classOf[Rule], _))

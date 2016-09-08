@@ -199,6 +199,8 @@ object RouteManager {
      * address. */
     def fipSnatRuleId(fipId: UUID): UUID =
         fipId.xorWith(0xf515a8fd119a4b82L, 0x81e9b793d68a3b9eL)
+    def fipSnatExactRuleId(fipId: UUID): UUID =
+        fipId.xorWith(0xfaba87a8b7a850acL, 0x52c748d4a902f277L)
 
     /**
      * Deterministically derives an ID for the DNAT rule for a Floating IP
