@@ -15,157 +15,157 @@
 # limitations under the License.
 
 bgpd_start() {
-    router_id=$1
-    bgpd=/usr/sbin/bgpd
-    pidfile="/var/run/quagga/bgpd.${vtyport}.pid"
-    if [ ! -x $bgpd ] ; then
-        bgpd=/usr/lib/quagga/bgpd
-        if [ ! -x $bgpd ] ; then
+    ROUTER_ID=$1
+    BGPD=/usr/sbin/bgpd
+    PID_FILE="/var/run/quagga/bgpd.$VTY_PORT.pid"
+    if [ ! -x $BGPD ] ; then
+        BGPD=/usr/lib/quagga/bgpd
+        if [ ! -x $BGPD ] ; then
             echo "Could not find bgpd, looked in /usr/lib/quagga and /usr/sbin"
             exit 3
         fi
     fi
 
-    quagga_log="$log_dir/quagga.$vtyport"
-    if [ -n "$router_id" ]; then
-        quagga_log=$quagga_log.$router_id
+    QUAGGA_LOG="$LOG_DIR/quagga.$VTY_PORT"
+    if [ -n "$ROUTER_ID" ]; then
+        QUAGGA_LOG=$QUAGGA_LOG.$ROUTER_ID
     fi
-    mkdir -p $quagga_log
-    chown quagga.quagga $quagga_log
-    pushd $quagga_log
+    mkdir -p $QUAGGA_LOG
+    chown quagga.quagga $QUAGGA_LOG
+    pushd $QUAGGA_LOG
 
     # Q: bgpd has an option to run as a daemon, so why are we running as a
     # background process?
     # A: Because we want to control multiple processes (zebra, bgpd) and exit
     # the script only when all processes have exited.
-    exec ip netns exec $namespace $bgpd --vty_port $vtyport \
-                                        --config_file $bgp_config_file \
-                                        --pid_file $pidfile \
-                                        --socket $api_socket &
+    exec ip netns exec $NAMESPACE $BGPD --vty_port $VTY_PORT \
+                                        --config_file $BGP_CONFIG_FILE \
+                                        --pid_file $PID_FILE \
+                                        --socket $API_SOCKET &
 }
 
 zebra_start() {
-    zebra=/usr/sbin/zebra
-    pidfile="/var/run/quagga/zebra.${vtyport}.pid"
-    if [ ! -x $zebra ] ; then
-        zebra=/usr/lib/quagga/zebra
-        if [ ! -x $zebra ] ; then
+    ZEBRA=/usr/sbin/zebra
+    PID_FILE="/var/run/quagga/zebra.$VTY_PORT.pid"
+    if [ ! -x $ZEBRA ] ; then
+        ZEBRA=/usr/lib/quagga/zebra
+        if [ ! -x $ZEBRA ] ; then
             echo "Could not find zebra, looked in /usr/lib/quagga and /usr/sbin"
             exit 3
         fi
     fi
 
-    exec ip netns exec $namespace $zebra --fpm-port $fpm_port \
-                                         --fpm-address $fpm_address\
-                                         --config_file $zebra_config_file \
-                                         --pid_file $pidfile \
-                                         --socket $api_socket &
+    exec ip netns exec $NAMESPACE $ZEBRA --fpm-port $FPM_PORT \
+                                         --fpm-address $FPM_ADDRESS \
+                                         --config_file $ZEBRA_CONFIG_FILE \
+                                         --pid_file $PID_FILE \
+                                         --socket $API_SOCKET &
 }
 
 wait_for_all() {
-    for job in `jobs -p`
+    for JOB in `jobs -p`
     do
-        wait $job
+        wait $JOB
     done
 }
 
-assign_addr() {
-    IFACE=n$iface
-    SUBIFACE=`echo $router_ip | cut -d'/' -f1`
-    ip netns exec $namespace ip link add link $IFACE dev $SUBIFACE type macvlan
-    ip netns exec $namespace ip address add $router_ip dev $SUBIFACE
-    ip netns exec $namespace ip link set dev $SUBIFACE address $mac
-    ip netns exec $namespace ip link set dev $SUBIFACE up
-    ip netns exec $namespace ip link set $IFACE promisc on
-}
-
-remove_addr() {
-    SUBIFACE=`echo $router_ip | cut -d'/' -f1`
-    ip netns exec $namespace ip link del $SUBIFACE
-}
-
-add_arp_entry() {
-    SUBIFACE=`echo $peer_ip | cut -d'/' -f1`
-    ip netns exec $namespace ip n a $router_ip l $mac_addr dev $SUBIFACE
-}
-
-rem_arp_entry() {
-    SUBIFACE=`echo $peer_ip | cut -d'/' -f1`
-    ip netns exec $namespace ip n del $router_ip dev $SUBIFACE
-}
-
 reset_namespace_name() {
-    local router_id=$1
-    if [ -n "$router_id" ]; then
-        namespace=bgp-$router_id
+    local ROUTER_ID=$1
+    if [ -n "$ROUTER_ID" ]; then
+        NAMESPACE=bgp-$ROUTER_ID
     fi
 }
 
 bgpd_prepare() {
-    mkdir -p $socketdir
+    mkdir -p $SOCKET_DIR
 
     set -e
 
-    echo "Creating namespace: $namespace"
-    ip netns add $namespace
+    echo "Creating namespace: $NAMESPACE"
+    ip netns add $NAMESPACE
 
-    echo "Preparing bgpd veth pair"
-    if [ -n "$iface_name" ]; then
+    echo "Preparing BGP container interfaces"
+    if [ -n "$IFACE_NAME" ]; then
         # If the interface name has been specified in the arguments, use that
-        netdev_port_name=$iface_name
-        netdev_port_mirror_name=n$iface_name
+        NETDEV_PORT_NAME=$IFACE_NAME
+        NETDEV_PORT_MIRROR_NAME=n$IFACE_NAME
     fi
-    ip link add name $netdev_port_name type veth peer name $netdev_port_mirror_name
-    ip link set $netdev_port_mirror_name netns $namespace
-    ip netns exec $namespace ip link set dev $netdev_port_mirror_name up address $router_mac
-    ip netns exec $namespace ip address add $router_ip dev $netdev_port_mirror_name
-    ip netns exec $namespace ip link set dev lo up
-    ip link set dev $netdev_port_name up
+    ip link add name $NETDEV_PORT_NAME type veth peer name $NETDEV_PORT_MIRROR_NAME
+    ip link set $NETDEV_PORT_MIRROR_NAME netns $NAMESPACE
+    ip netns exec $NAMESPACE ip link set dev $NETDEV_PORT_MIRROR_NAME up address $ROUTER_MAC
+    ip netns exec $NAMESPACE ip address add $ROUTER_IP dev $NETDEV_PORT_MIRROR_NAME
+    ip netns exec $NAMESPACE ip link set dev lo up
+    ip link set dev $NETDEV_PORT_NAME up
 
-    echo "Preparing vty veth pair"
-    ip link add name $vty_port_name type veth peer name $vty_port_mirror_name
-    ip link set $vty_port_mirror_name netns $namespace
-    ip netns exec $namespace ip link set dev $vty_port_mirror_name up
-    ip netns exec $namespace ip address add $remote_vty_ip dev $vty_port_mirror_name
-    ip link set dev $vty_port_name up
+    echo "Preparing VTY interfaces"
+    ip link add name $VTY_PORT_NAME type veth peer name $VTY_PORT_MIRROR_NAME
+    ip link set $VTY_PORT_MIRROR_NAME netns $NAMESPACE
+    ip netns exec $NAMESPACE ip link set dev $VTY_PORT_MIRROR_NAME up
+    ip netns exec $NAMESPACE ip address add $REMOTE_VTY_IP dev $VTY_PORT_MIRROR_NAME
+    ip link set dev $VTY_PORT_NAME up
 
-    echo "Preparing vty bridge"
-    ip link add "$vty_bridge_name" type bridge
-    ip link set "$vty_port_name" master "$vty_bridge_name"
-    ip address add $local_vty_ip dev $vty_bridge_name
-    ip link set dev $vty_bridge_name up
+    echo "Preparing VTY bridge"
+    ip link add $VTY_BRIDGE_NAME type bridge
+    ip link set $VTY_PORT_NAME master $VTY_BRIDGE_NAME
+    ip address add $LOCAL_VTY_IP dev $VTY_BRIDGE_NAME
+    ip link set dev $VTY_BRIDGE_NAME up
 
     echo "Adding default route"
-    ip netns exec $namespace ip route add default via `echo $local_vty_ip | cut -d'/' -f 1`
+    ip netns exec $NAMESPACE ip route add default via `echo $LOCAL_VTY_IP | cut -d'/' -f 1`
 }
 
 kill_namespace_pids() {
-    ip netns pids $namespace | while read pid ; do
-        echo "Killing process in namespace, with pid $pid and command line \"`ps -o cmd= $pid`\""
-        kill -9 $pid
+    ip netns pids $NAMESPACE | while read PID ; do
+        echo "Killing process in namespace, with pid $PID and command line \"`ps -o cmd= $PID`\""
+        kill -9 $PID
     done
 }
 
 bgpd_down() {
-    if [ -e "/var/run/netns/$namespace" ] ; then
-        echo "Found namespace, cleaning up: $namespace"
+    if [ -e "/var/run/netns/$NAMESPACE" ] ; then
+        echo "Found namespace, cleaning up: $NAMESPACE"
         kill_namespace_pids
         # Deleting the namespace will also delete all interfaces in the
         # namespace
-        ip netns delete $namespace
+        ip netns delete $NAMESPACE
     fi
 
-    ip link show $vty_bridge_name >/dev/null 2>&1
+    ip link show $VTY_BRIDGE_NAME >/dev/null 2>&1
     if [ $? -eq 0 ] ; then
-        echo "Found bridge, cleaning up: $vty_bridge_name"
-        ip link show $vty_port_name >/dev/null 2>&1 && \
-            ip link set "$vty_port_name" nomaster
-        ip link set $vty_bridge_name down
-        ip link del "$vty_bridge_name"
+        echo "Found bridge, cleaning up: $VTY_BRIDGE_NAME"
+        ip link show $VTY_PORT_NAME >/dev/null 2>&1 && \
+            ip link set VTY_PORT_NAME nomaster
+        ip link set $VTY_BRIDGE_NAME down
+        ip link del $VTY_BRIDGE_NAME
     fi
-    ip link show $vty_port_name >/dev/null 2>&1 && \
-        ip link delete $vty_port_name
+    ip link show $VTY_PORT_NAME >/dev/null 2>&1 && \
+        ip link delete $VTY_PORT_NAME
     true
+}
+
+add_address() {
+    IFACE=n$IFACE
+    SUBIFACE=`echo $ROUTER_IP | cut -d'/' -f1`
+    ip netns exec $NAMESPACE ip link add link $IFACE dev $SUBIFACE type macvlan
+    ip netns exec $NAMESPACE ip address add $ROUTER_IP dev $SUBIFACE
+    ip netns exec $NAMESPACE ip link set dev $SUBIFACE address $MAC_ADDR
+    ip netns exec $NAMESPACE ip link set dev $SUBIFACE up
+    ip netns exec $NAMESPACE ip link set $IFACE promisc on
+}
+
+remove_address() {
+    SUBIFACE=`echo $ROUTER_IP | cut -d'/' -f1`
+    ip netns exec $NAMESPACE ip link del $SUBIFACE
+}
+
+add_arp_entry() {
+    SUBIFACE=`echo $PEER_IP | cut -d'/' -f1`
+    ip netns exec $NAMESPACE ip n a $ROUTER_IP l $MAC_ADDR dev $SUBIFACE
+}
+
+rem_arp_entry() {
+    SUBIFACE=`echo $PEER_IP | cut -d'/' -f1`
+    ip netns exec $NAMESPACE ip n del $ROUTER_IP dev $SUBIFACE
 }
 
 usage() {
@@ -198,72 +198,34 @@ quagga_up() {
 
 exec 2>&1
 
-index=$2
+INDEX=$2
 
-if [ -z "$index" ] ; then
+if [ -z "$INDEX" ] ; then
     usage
 fi
 
-netdev_port_name="mbgp$index"
-netdev_port_mirror_name="mbgp${index}_m"
-vty_port_name="mbgp${index}_vty"
-vty_port_mirror_name="mbgp${index}_vtym"
-vty_bridge_name="mbgp${index}_br"
-namespace="mbgp${index}_ns"
-socketdir="/var/run/quagga"
-api_socket="$socketdir/zserv${index}.api"
+NETDEV_PORT_NAME="mbgp$INDEX"
+NETDEV_PORT_MIRROR_NAME="mbgp${INDEX}_m"
+VTY_PORT_NAME="mbgp${INDEX}_vty"
+VTY_PORT_MIRROR_NAME="mbgp${INDEX}_vtym"
+VTY_BRIDGE_NAME="mbgp${INDEX}_br"
+NAMESPACE="mbgp${INDEX}_ns"
+SOCKET_DIR="/var/run/quagga"
+API_SOCKET="$SOCKET_DIR/zserv${INDEX}.api"
 
 case "$1" in
-    add_arp)
-        iface=$3
-        router_ip=$4
-        mac_addr=$5
-        reset_namespace_name $6
-        peer_ip=$7
-        add_arp_entry
-        ;;
-
-    rem_arp)
-        iface=$3
-        router_ip=$4
-        reset_namespace_name $5
-        peer_ip=$6
-        rem_arp_entry
-        ;;
-
-    rem_addr)
-        iface=$3
-        router_ip=$4
-        reset_namespace_name $5
-        if [ -z "$iface" ] || [ -z "$router_ip" ] ; then
-            usage
-        fi
-        remove_addr
-        ;;
-
-    add_addr)
-        iface=$3
-        router_ip=$4
-        mac=$5
-        reset_namespace_name $6
-        if [ -z "$iface" ] || [ -z "$router_ip" ] ; then
-            usage
-        fi
-        assign_addr
-        ;;
-
     prepare)
-        local_vty_ip=$3
-        remote_vty_ip=$4
-        router_ip=$5
-        router_mac=$6
-        iface_name=$7
+        LOCAL_VTY_IP=$3
+        REMOTE_VTY_IP=$4
+        ROUTER_IP=$5
+        ROUTER_MAC=$6
+        IFACE_NAME=$7
         reset_namespace_name $8
 
-        if [ -z "$remote_vty_ip" ] || [ -z "$local_vty_ip" ] ; then
+        if [ -z "$REMOTE_VTY_IP" ] || [ -z "$LOCAL_VTY_IP" ] ; then
             usage
         fi
-        if [ -z "$router_ip" ] || [ -z "$router_mac" ] ; then
+        if [ -z "$ROUTER_IP" ] || [ -z "$ROUTER_MAC" ] ; then
             usage
         fi
 
@@ -272,27 +234,27 @@ case "$1" in
         ;;
 
     up)
-        vtyport=$3
-        bgp_config_file=$4
-        log_dir=$5
-        router_uuid=$6
-        reset_namespace_name $router_uuid
-        if [ -z "$bgp_config_file" ] || [ -z "$vtyport" ] || [ -z "$log_dir" ] ; then
+        VTY_PORT=$3
+        BGP_CONFIG_FILE=$4
+        LOG_DIR=$5
+        ROUTER_ID=$6
+        reset_namespace_name $ROUTER_ID
+        if [ -z "$BGP_CONFIG_FILE" ] || [ -z "$VTY_PORT" ] || [ -z "$LOG_DIR" ] ; then
             usage
         fi
-        bgpd_up $router_uuid
+        bgpd_up $ROUTER_ID
         ;;
 
     quagga_up)
-        vtyport=$3
-        local_vty_ip=$4
-        bgp_config_file=$5
-        zebra_config_file=$6
-        log_dir=$7
+        VTY_PORT=$3
+        LOCAL_VTY_IP=$4
+        BGP_CONFIG_FILE=$5
+        ZEBRA_CONFIG_FILE=$6
+        LOG_DIR=$7
         reset_namespace_name $8
-        let fpm_port="index+2620"
-        fpm_address=`echo $local_vty_ip | cut -d'/' -f 1`
-        if [ -z "$bgp_config_file" ] || [ -z "$zebra_config_file" ] || [ -z "$vtyport" ] || [ -z "$log_dir" ] ; then
+        let FPM_PORT="INDEX+2620"
+        FPM_ADDRESS=`echo $LOCAL_VTY_IP | cut -d'/' -f 1`
+        if [ -z "$BGP_CONFIG_FILE" ] || [ -z "$ZEBRA_CONFIG_FILE" ] || [ -z "$VTY_PORT" ] || [ -z "$LOG_DIR" ] ; then
             usage
         fi
         quagga_up
@@ -302,6 +264,44 @@ case "$1" in
         reset_namespace_name $3
         bgpd_down
         exit 0
+        ;;
+
+    add_arp)
+        IFACE=$3
+        ROUTER_IP=$4
+        MAC_ADDR=$5
+        reset_namespace_name $6
+        PEER_IP=$7
+        add_arp_entry
+        ;;
+
+    rem_arp)
+        IFACE=$3
+        ROUTER_IP=$4
+        reset_namespace_name $5
+        PEER_IP=$6
+        rem_arp_entry
+        ;;
+
+    add_addr)
+        IFACE=$3
+        ROUTER_IP=$4
+        MAC_ADDR=$5
+        reset_namespace_name $6
+        if [ -z "$IFACE" ] || [ -z "$ROUTER_IP" ] ; then
+            usage
+        fi
+        add_address
+        ;;
+
+    rem_addr)
+        IFACE=$3
+        ROUTER_IP=$4
+        reset_namespace_name $5
+        if [ -z "$IFACE" ] || [ -z "$ROUTER_IP" ] ; then
+            usage
+        fi
+        remove_address
         ;;
 
     *)
