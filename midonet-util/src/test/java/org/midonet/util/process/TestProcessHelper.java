@@ -15,8 +15,11 @@
  */
 package org.midonet.util.process;
 
+import java.util.LinkedList;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -79,5 +82,136 @@ public class TestProcessHelper {
                            StdOutput, StdError)
                 .runAndWait(),
             equalTo(code));
+    }
+
+    public class TestableMonitoredDaemonProcess extends MonitoredDaemonProcess {
+        public volatile long currentTime = 0L;
+        public volatile boolean exited = false;
+
+        public TestableMonitoredDaemonProcess(String cmd, Logger log, String prefix,
+                                              int retries, long period, int exitErrorCode) {
+            super(cmd, log, prefix, retries, period, exitErrorCode);
+        }
+
+        @Override
+        protected long now () {
+            return currentTime;
+        }
+
+        protected void exit() {
+            exited = true;
+        }
+
+        public void killProcess() throws Exception {
+            waitFor(() -> process.isAlive());
+            process.destroy();
+        }
+
+        public void waitForStartEvents(int numEvents,
+                                       LinkedList<Long> events) throws Exception {
+            waitFor(() -> events.subList(0, numEvents).equals(startEvents));
+        }
+
+        public void waitForExitProcess() throws Exception {
+            waitFor(() -> exited);
+        }
+
+        private void waitFor(Callable<Boolean> condition) throws Exception {
+            int attempts = 10;
+            while (attempts > 0 && !condition.call()) {
+                Thread.sleep(1000);
+                attempts--;
+            }
+            if (!condition.call())
+                throw new AssertionError("Condition not met");
+        }
+    }
+
+    @Test
+    public void testMonitoredProcess() throws Exception {
+        int numAttempts = 3;
+        int period = 100;
+        LinkedList<Long> events = new LinkedList<>();
+        events.add(0L);
+        events.add(0L);
+        events.add(0L);
+
+        TestableMonitoredDaemonProcess process =
+            new TestableMonitoredDaemonProcess(
+                "echo command", log, "", numAttempts, period, -1);
+
+        process.start();
+        process.waitForStartEvents(numAttempts, events);
+        assertThat("The command has been executed three times",
+                   process.startEvents.size() == 3);
+        assertThat("The daemon exited",
+                   process.exited);
+    }
+
+    @Test
+    public void testMonitoredLongerProcess() throws Exception {
+        int numAttempts = 3;
+        int period = 100;
+
+        TestableMonitoredDaemonProcess process =
+            new TestableMonitoredDaemonProcess(
+                "sleep 10", log, "", numAttempts, period, -1);
+
+        process.start();
+        LinkedList<Long> events1 = new LinkedList<>();
+        events1.add(0L);
+        LinkedList<Long> events2 = new LinkedList<>();
+        events2.add(200L);
+        events2.add(200L);
+        LinkedList<Long> events3 = new LinkedList<>();
+        events3.add(400L);
+        events3.add(400L);
+        events3.add(400L);
+
+        process.waitForStartEvents(1, events1);
+        process.currentTime += period * 2;
+        process.killProcess();
+        process.waitForStartEvents(1, events2);
+        process.killProcess();
+        process.waitForStartEvents(2, events2);
+
+        assertThat("After " + numAttempts + " attempts, the process does not exit",
+                   !process.exited);
+
+        process.currentTime += period * 2;
+        process.killProcess();
+        process.waitForStartEvents(1, events3);
+        process.killProcess();
+        process.waitForStartEvents(2, events3);
+        process.killProcess();
+        process.waitForStartEvents(3, events3);
+        process.killProcess();
+        process.waitForExitProcess();
+    }
+
+    @Test
+    public void testMonitoredProcessDoesNotRestartWhenShuttingDown() throws Exception {
+        int numAttempts = 3;
+        int period = 100;
+        final AtomicInteger started = new AtomicInteger(0);
+
+        TestableMonitoredDaemonProcess process =
+            new TestableMonitoredDaemonProcess(
+                "sleep 10", log, "", numAttempts, period, -1) {
+                protected Runnable startHandler() {
+                    return new Runnable() {
+                        @Override
+                        public void run() {
+                            started.incrementAndGet();
+                        }
+                    };
+                }
+            };
+
+        process.start();
+        process.shutdown();
+        assertThat("The process is started once", started.get() == 1);
+        process.exitHandler().run();
+        assertThat("And only once", started.get() == 1);
     }
 }
