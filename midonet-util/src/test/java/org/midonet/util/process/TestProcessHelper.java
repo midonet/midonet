@@ -15,8 +15,11 @@
  */
 package org.midonet.util.process;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.management.monitor.Monitor;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -68,6 +71,32 @@ public class TestProcessHelper {
             }
         }).run();
         latch.await();
+    }
+
+    @Test
+    public void testMonitoredProcess() throws Exception {
+        final Long currentTime = new Long(0);
+
+        MonitoredDaemonProcess process = new TestableMonitoredDaemonProcess(
+            "echo command", log, "", 3, 100, -1);
+
+        process.start();
+        process.exitHandler().run();
+
+    }
+
+    public class TestableMonitoredDaemonProcess extends MonitoredDaemonProcess {
+        public long currentTime = 0L;
+
+        public TestableMonitoredDaemonProcess(String cmd, Logger log, String prefix,
+                                              int retries, long period, int exitErrorCode) {
+            super(cmd, log, prefix, retries, period, exitErrorCode);
+        }
+
+        @Override
+        protected long now () {
+            return currentTime;
+        }
     }
 
     private void assertCommandCode(String command, int code) {
