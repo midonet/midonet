@@ -20,9 +20,10 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{TimeUnit, _}
 
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import com.typesafe.scalalogging.Logger
@@ -69,7 +70,9 @@ class Recycler @Inject()(context: Context, backend: MidonetBackend,
 
     private val store: ZookeeperObjectMapper = getStore
     private val curator = backend.curator
-    private val clock = UnixClock()
+
+    @VisibleForTesting
+    protected val clock = UnixClock()
 
     private val currentContext = new AtomicReference[RecyclingContext]()
 
