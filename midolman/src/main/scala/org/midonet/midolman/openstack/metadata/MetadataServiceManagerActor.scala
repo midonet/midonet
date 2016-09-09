@@ -32,7 +32,7 @@ object MetadataServiceManagerActor extends Referenceable {
     override val Name = "MetadataServiceManager"
 }
 
-// XXX Should update InstanceInfoMap on fixed_ips update.
+// TODO: Should update InstanceInfoMap on fixed_ips update.
 
 class MetadataServiceManagerActor @Inject() (
             private val backend: MidonetBackend,
@@ -42,8 +42,10 @@ class MetadataServiceManagerActor @Inject() (
         ) extends ReactiveActor[LocalPortActive] with ActorLogWithoutPath {
     import context.system
 
-    var store: StorageClient = null
-    var mdInfo: ProxyInfo = null
+    override def logSource: String = "org.midonet.midolman.openstack.metadata"
+
+    private[metadata] var store: StorageClient = null
+    private var mdInfo: ProxyInfo = null
     private var subscription: Subscription = null
 
     override def preStart(): Unit = {
@@ -66,7 +68,7 @@ class MetadataServiceManagerActor @Inject() (
 
     override def receive = {
         case LocalPortActive(portId, true) =>
-            log debug s"Metadata: port $portId became active"
+            log debug s"Port $portId became active"
             /*
              * XXX Theoretically, this can race with metadata requests
              * from the corresponding VM.  If we lose the race,
@@ -79,11 +81,11 @@ class MetadataServiceManagerActor @Inject() (
                     val remoteAddr = plumber.plumb(info, mdInfo)
                     InstanceInfoMap.put(remoteAddr, portId, info)
                 case _ =>
-                    log debug s"Non-compute port? $portId"
+                    log debug s"Non-compute port: $portId"
             }
 
         case LocalPortActive(portId, false) =>
-            log debug s"Metadata: port $portId became inactive"
+            log debug s"Port $portId became inactive"
             InstanceInfoMap getByPortId portId match {
                 case Some(remoteAddr) =>
                     val Some(info) = InstanceInfoMap getByAddr remoteAddr
@@ -91,9 +93,9 @@ class MetadataServiceManagerActor @Inject() (
                     plumber.unplumb(remoteAddr, info, mdInfo)
                     InstanceInfoMap removeByPortId portId
                 case _ =>
-                    log debug s"Non-compute port? $portId"
+                    log debug s"Non-compute port: $portId"
             }
 
-        case _ => log error "Unknown message."
+        case _ => log error "Unknown message"
     }
 }

@@ -194,7 +194,7 @@ class MetadataServiceWorkflowTest extends FeatureSpecLike
         when(fmatch.getNetworkSrcIP).thenReturn(IPv4Addr(MetadataApi.Address))
         when(fmatch.getNetworkDstIP).thenReturn(IPv4Addr(vmMappedIpAddress))
         when(fmatch.getNetworkProto).thenReturn(TCP.PROTOCOL_NUMBER)
-        when(fmatch.getSrcPort).thenReturn(Proxy.port)
+        when(fmatch.getSrcPort).thenReturn(Proxy.Port)
         context
     }
 
