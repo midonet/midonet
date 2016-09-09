@@ -35,8 +35,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
-import org.midonet.midolman.topology.devices.{Host => DevicesHost}
-import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
+import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.topology.{VirtualTopology, VirtualToPhysicalMapper => VTPM}
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.NatState.NatBinding
@@ -87,9 +86,9 @@ class HostRequestProxy(hostId: UUID,
                        storageFuture: Future[FlowStateStorage[ConnTrackKey, NatKey]],
                        subscriber: ActorRef,
                        underlayResolver: UnderlayResolver,
-                       flowStateConfig: FlowStateConfig) extends ReactiveActor[DevicesHost]
-                                                         with ActorLogWithoutPath
-                                                         with SingleThreadExecutionContextProvider {
+                       flowStateConfig: FlowStateConfig)
+    extends ReactiveActor[Host] with ActorLogWithoutPath
+    with SingleThreadExecutionContextProvider {
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
@@ -196,7 +195,8 @@ class HostRequestProxy(hostId: UUID,
      * effectively creating an in-band retry loop that will use the most
      * up to date version of the Host object.
      */
-    private def resolvePorts(host: DevicesHost): ResolvedHost = {
+    /*
+    private def resolvePorts(host: DevicesHost): Host = {
         val futures = mutable.ArrayBuffer[Future[Any]]()
         val bindings = host.portBindings.map {
             case (id, binding) =>
@@ -222,7 +222,7 @@ class HostRequestProxy(hostId: UUID,
         }
 
         ResolvedHost(host.id, host.alive, bindings.toMap, host.tunnelZones)
-    }
+    }*/
 
     def updateOwnedPorts(portIds: Set[UUID]): Unit = {
         flowStateBuffer.clear()
@@ -247,17 +247,15 @@ class HostRequestProxy(hostId: UUID,
             }
             subscription = VTPM.hosts(hostId).subscribe(this)
 
-        case h: DevicesHost =>
-            log.debug("Received host update with bindings {}", h.portBindings)
-            val resolved = resolvePorts(h)
-            log.debug(s"Resolved host bindings to ${resolved.ports}")
-            subscriber ! resolved
-            updateOwnedPorts(h.portBindings.keySet)
+        case host: Host =>
+            log.debug("Received host update {}", host)
+            subscriber ! host
+            updateOwnedPorts(host.portBindings.keySet)
             belt.handle(() => {
-                val ports = for ((id, binding) <- h.portBindings if !lastPorts.contains(id))
+                val ports = for ((id, binding) <- host.portBindings if !lastPorts.contains(id))
                     yield id -> binding.previousHostId
 
-                lastPorts = h.portBindings.keySet
+                lastPorts = host.portBindings.keySet
                 Future.sequence(Seq(
                     stateForPorts(ports, requestLegacyStateForPort,
                                   "legacy storage (Cassandra)."),
