@@ -23,6 +23,12 @@ LOCAL_REPO_FILE=/etc/apt/sources.list.d/midonet-local.list
 echo "deb file:/packages /" > $LOCAL_REPO_FILE
 apt-get update -o Dir::Etc::sourcelist=$LOCAL_REPO_FILE
 
+# We need to create the vpp init script because the vpp package
+# will fail otherwise if the upstart process is not running.
+# This is a test specific configuration as the package would
+# install under normal circumstances (upstart running).
+touch /etc/init.d/vpp
+
 # Failfast if we cannot update the packages locally
 apt-get install -qy --force-yes midolman/local \
                                 midonet-tools/local || exit 1
