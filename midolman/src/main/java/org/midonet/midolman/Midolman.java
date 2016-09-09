@@ -60,6 +60,7 @@ import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
 import org.midonet.util.cLibrary;
+import org.midonet.util.process.MonitoredDaemonProcess;
 import org.midonet.util.process.ProcessHelper;
 
 public class Midolman {
@@ -74,15 +75,14 @@ public class Midolman {
 
     private static final long MIDOLMAN_EXIT_TIMEOUT_MILLIS = 30000;
     private static final int MINION_PROCESS_MAXIMUM_STARTS = 3;
+    private static final int MINION_PROCESS_FAILING_PERIOD = 180000;
 
     private Injector injector;
 
     private WatchedProcess watchedProcess = new WatchedProcess();
 
     private volatile boolean shuttingDown = false;
-    private volatile Process minionProcess = null;
-    private AtomicInteger minionProcessStartCounter =
-        new AtomicInteger(MINION_PROCESS_MAXIMUM_STARTS);
+    private volatile MonitoredDaemonProcess minionProcess = null;
 
     private Midolman() {
     }
@@ -192,7 +192,11 @@ public class Midolman {
             throw t;
         }
 
-        startMinionProcess();
+        minionProcess = new MonitoredDaemonProcess(
+            "/usr/share/midolman/minions-start", log, "org.midonet.services",
+            MINION_PROCESS_MAXIMUM_STARTS, MINION_PROCESS_FAILING_PERIOD,
+            MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED);
+        minionProcess.start();
 
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
@@ -271,55 +275,12 @@ public class Midolman {
 
         injector.getInstance(MidolmanService.class).awaitTerminated();
     }
-    private void startMinionProcess() {
-        final Runnable exitHandler = new Runnable() {
-            @Override
-            public void run() {
-                Process process = minionProcess;
-                if (process != null) {
-                    log.warn("Agent minion process exited with error code {}",
-                             process.exitValue());
-                } else {
-                    log.warn("Agent minion process exited");
-                }
-                if (!shuttingDown) {
-                    startMinionProcess();
-                }
-            }
-        };
-
-        Runnable startHandler = new Runnable() {
-            @Override
-            public void run() {
-                Process process = ProcessHelper
-                    .newDaemonProcess("/usr/share/midolman/minions-start", log,
-                                      "org.midonet.services")
-                    .addExitHandler(exitHandler)
-                    .run();
-                log.info("Starting Agent minions in process " +
-                         ProcessHelper.getProcessPid(process));
-                minionProcess = process;
-            }
-        };
-
-        if (minionProcessStartCounter.getAndDecrement() > 0) {
-            startHandler.run();
-        } else {
-            log.error("MidoNet Agent minion process failed after {} times: "
-                      + "shutting down", MINION_PROCESS_MAXIMUM_STARTS);
-            System.exit(MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED);
-        }
-    }
 
     private void doServicesCleanup() {
         log.info("MidoNet Agent shutting down...");
 
         shuttingDown = true;
-        Process process = minionProcess;
-        if (process != null) {
-            process.destroy();
-            log.info("Agent minion process stopped");
-        }
+        minionProcess.shutdown();
 
         if (injector == null)
             return;
