@@ -18,7 +18,7 @@ package org.midonet.midolman
 import java.lang.{Integer => JInteger}
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{Set => JSet, UUID}
+import java.util.{UUID, Set => JSet}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -47,8 +47,7 @@ import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneMemberOp, TunnelZoneUpdate}
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.devices.TunnelZoneType
-import org.midonet.midolman.topology.rcu.ResolvedHost
+import org.midonet.midolman.topology.devices.{Host, TunnelZoneType}
 import org.midonet.netlink._
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
@@ -199,7 +198,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         context become {
             case TunnelPortsCreated_ =>
                 subscribeToHost(hostIdProvider.hostId)
-            case host: ResolvedHost =>
+            case host: Host =>
                 log.info("Initialization complete")
                 context become receive
                 self ! host
@@ -278,13 +277,13 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     }
 
     override def receive: Receive = super.receive orElse {
-        case host: ResolvedHost =>
+        case host: Host =>
             val oldZones = zones
-            val newZones = host.zones
+            val newZones = host.tunnelZones
 
             zones = newZones
 
-            updateVportInterfaceBindings(host.ports)
+            updateVportInterfaceBindings(host.portBindings)
             doDatapathZonesUpdate(oldZones, newZones)
 
             if (cachedInterfaces ne null) {
