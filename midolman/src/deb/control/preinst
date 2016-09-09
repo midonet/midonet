@@ -1,4 +1,4 @@
 #!/bin/sh
 
-# Midokura
-
+# Configure VPP as manual so it's only managed by the MidoNet Agent.
+echo manual | tee /etc/init/vpp.override
