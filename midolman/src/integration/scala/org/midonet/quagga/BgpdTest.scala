@@ -37,17 +37,16 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
 
     var bgpd: BgpdProcess = _
 
-    implicit def str2subnet(str: String) = IPv4Subnet.fromCidr(str)
-    implicit def str2ipv4(str: String) = IPv4Addr.fromString(str)
+    implicit def str2subnet(str: String): IPv4Subnet = IPv4Subnet.fromCidr(str)
+    implicit def str2ipv4(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
     before {
-        bgpd = new DefaultBgpdProcess(
-            UUID.randomUUID(), idx,
+        bgpd = DefaultBgpdProcess(
+            UUID.randomUUID(), UUID.randomUUID(), "bgp-01234567", idx,
             BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
             routerAddress, routerMac, BGP_VTY_PORT,
             "./src/lib/midolman/bgpd-helper",
-            System.getProperty("user.dir") + "/src/deb/quagga/bgpd.conf",
-            Some("router"))
+            System.getProperty("user.dir") + "/src/deb/quagga/bgpd.conf")
     }
 
     after {

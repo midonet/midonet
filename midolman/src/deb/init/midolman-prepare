@@ -35,31 +35,36 @@ fi
 
 cleanup_bgp_space() {
     set +e
-    prefix=$1
-    ns="${prefix}_ns"
-    br="${prefix}_br"
-    echo "cleaning up br: $br"
-    ip link set "${prefix}_vty" nomaster
-    ip link set $br down
-    ip link del "$br"
 
-    echo "cleaning up ns: $ns"
-    ip netns exec $ns ip link delete "${prefix}_m"
-    ip netns exec $ns ip link delete "${prefix}_vtym"
-    ip netns delete $ns
+    NAMESPACE=$1
+    ip netns pids $NAMESPACE | while read PID ; do
+        echo "Killing process in namespace $NAMESPACE with pid $PID"
+        kill -9 $PID
+    done
+
+    VTY_PORT_NAME="${NAMESPACE}_v"
+    BRIDGE_NAME="${NAMESPACE}_br"
+    echo "Cleaning up BGP bridge: $BRIDGE_NAME"
+    ip link set $VTY_PORT_NAME nomaster
+    ip link set $BRIDGE_NAME down
+    ip link del $BRIDGE_NAME
+
+    echo "Cleaning up BGP namespace: $NAMESPACE"
+    ip netns exec $NAMESPACE ip link delete $NAMESPACE
+    ip netns exec $NAMESPACE ip link delete $VTY_PORT_NAME
+    ip netns delete $NAMESPACE
     set -e
 }
 
 cleanup_bgps() {
     ps aux | grep -- '--socket /var/run/quagga/zserv' | grep -v grep | \
     while read i ; do
-        pid=`echo $i | awk '{print $2}'`
-        kill -9 $pid
+        PID=`echo $i | awk '{print $2}'`
+        kill -9 $PID
     done
 
-    for i in `ip netns list | grep ^mbgp` ; do
-        prefix=`echo $i | sed -e 's/_ns//'`
-        cleanup_bgp_space $prefix
+    for NAMESPACE in `ip netns list | grep ^bgp` ; do
+        cleanup_bgp_space $NAMESPACE
     done
 }
 
