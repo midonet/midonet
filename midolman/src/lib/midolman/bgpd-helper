@@ -26,10 +26,7 @@ bgpd_start() {
         fi
     fi
 
-    QUAGGA_LOG="$LOG_DIR/quagga.$VTY_PORT"
-    if [ -n "$ROUTER_ID" ]; then
-        QUAGGA_LOG=$QUAGGA_LOG.$ROUTER_ID
-    fi
+    QUAGGA_LOG="$LOG_DIR/quagga.$VTY_PORT.$NAMESPACE.$ROUTER_ID"
     mkdir -p $QUAGGA_LOG
     chown quagga.quagga $QUAGGA_LOG
     pushd $QUAGGA_LOG
@@ -69,13 +66,6 @@ wait_for_all() {
     done
 }
 
-reset_namespace_name() {
-    local ROUTER_ID=$1
-    if [ -n "$ROUTER_ID" ]; then
-        NAMESPACE=bgp-$ROUTER_ID
-    fi
-}
-
 bgpd_prepare() {
     mkdir -p $SOCKET_DIR
 
@@ -85,11 +75,6 @@ bgpd_prepare() {
     ip netns add $NAMESPACE
 
     echo "Preparing BGP container interfaces"
-    if [ -n "$IFACE_NAME" ]; then
-        # If the interface name has been specified in the arguments, use that
-        NETDEV_PORT_NAME=$IFACE_NAME
-        NETDEV_PORT_MIRROR_NAME=n$IFACE_NAME
-    fi
     ip link add name $NETDEV_PORT_NAME type veth peer name $NETDEV_PORT_MIRROR_NAME
     ip link set $NETDEV_PORT_MIRROR_NAME netns $NAMESPACE
     ip netns exec $NAMESPACE ip link set dev $NETDEV_PORT_MIRROR_NAME up address $ROUTER_MAC
@@ -169,15 +154,15 @@ rem_arp_entry() {
 }
 
 usage() {
-    echo "Usage: $0 prepare INDEX LOCAL_VTY_IP REMOTE_VTY_IP ROUTER_IP ROUTER_MAC [ROUTER_ID]"
-    echo "       $0 up INDEX VTY_PORT_NUMBER BGPD_CONFIG_FILE LOG_DIR [ROUTER_ID]"
-    echo "       $0 down INDEX [ROUTER_ID]"
-    echo "       $0 add_addr INDEX INTERFACE_NAME ROUTER_IP MAC [ROUTER_ID]"
-    echo "       $0 rem_addr INDEX INTERFACE_NAME ROUTER_IP [ROUTER_ID]"
-    echo "       $0 add_arp INDEX INTERFACE_NAME ROUTER_IP MAC [ROUTER_ID] PEER_IP"
-    echo "       $0 rem_arp INDEX INTERFACE_NAME ROUTER_IP [ROUTER_ID] PEER_IP"
+    echo "Usage: $0 prepare NAME INDEX LOCAL_VTY_IP REMOTE_VTY_IP ROUTER_IP ROUTER_MAC"
+    echo "       $0 up NAME INDEX VTY_PORT_NUMBER BGPD_CONFIG_FILE LOG_DIR ROUTER_ID"
+    echo "       $0 down NAME INDEX"
+    echo "       $0 add_addr NAME INDEX INTERFACE_NAME ROUTER_IP MAC"
+    echo "       $0 rem_addr NAME INDEX INTERFACE_NAME ROUTER_IP"
+    echo "       $0 add_arp NAME INDEX INTERFACE_NAME ROUTER_IP MAC PEER_IP"
+    echo "       $0 rem_arp NAME INDEX INTERFACE_NAME ROUTER_IP PEER_IP"
     echo "experimental:"
-    echo "       $0 quagga_up INDEX LOCAL_VTY_IP VTY_PORT_NUMBER BGPD_CONFIG_FILE ZEBRA_CONFIG_FILE LOG_DIR"
+    echo "       $0 quagga_up NAME INDEX LOCAL_VTY_IP VTY_PORT_NUMBER BGPD_CONFIG_FILE ZEBRA_CONFIG_FILE LOG_DIR"
     exit 1
 }
 
@@ -198,29 +183,28 @@ quagga_up() {
 
 exec 2>&1
 
-INDEX=$2
+NAME=$2
+INDEX=$3
 
 if [ -z "$INDEX" ] ; then
     usage
 fi
 
-NETDEV_PORT_NAME="mbgp$INDEX"
-NETDEV_PORT_MIRROR_NAME="mbgp${INDEX}_m"
-VTY_PORT_NAME="mbgp${INDEX}_vty"
-VTY_PORT_MIRROR_NAME="mbgp${INDEX}_vtym"
-VTY_BRIDGE_NAME="mbgp${INDEX}_br"
-NAMESPACE="mbgp${INDEX}_ns"
+NETDEV_PORT_NAME=$NAME
+NETDEV_PORT_MIRROR_NAME="${NAME}_m"
+VTY_PORT_NAME="${NAME}_v"
+VTY_PORT_MIRROR_NAME="${NAME}_vm"
+VTY_BRIDGE_NAME="${NAME}_br"
+NAMESPACE=$NAME
 SOCKET_DIR="/var/run/quagga"
-API_SOCKET="$SOCKET_DIR/zserv${INDEX}.api"
+API_SOCKET="$SOCKET_DIR/zserv${NAME}.api"
 
 case "$1" in
     prepare)
-        LOCAL_VTY_IP=$3
-        REMOTE_VTY_IP=$4
-        ROUTER_IP=$5
-        ROUTER_MAC=$6
-        IFACE_NAME=$7
-        reset_namespace_name $8
+        LOCAL_VTY_IP=$4
+        REMOTE_VTY_IP=$5
+        ROUTER_IP=$6
+        ROUTER_MAC=$7
 
         if [ -z "$REMOTE_VTY_IP" ] || [ -z "$LOCAL_VTY_IP" ] ; then
             usage
@@ -234,11 +218,10 @@ case "$1" in
         ;;
 
     up)
-        VTY_PORT=$3
-        BGP_CONFIG_FILE=$4
-        LOG_DIR=$5
-        ROUTER_ID=$6
-        reset_namespace_name $ROUTER_ID
+        VTY_PORT=$4
+        BGP_CONFIG_FILE=$5
+        LOG_DIR=$6
+        ROUTER_ID=$7
         if [ -z "$BGP_CONFIG_FILE" ] || [ -z "$VTY_PORT" ] || [ -z "$LOG_DIR" ] ; then
             usage
         fi
@@ -246,12 +229,11 @@ case "$1" in
         ;;
 
     quagga_up)
-        VTY_PORT=$3
-        LOCAL_VTY_IP=$4
-        BGP_CONFIG_FILE=$5
-        ZEBRA_CONFIG_FILE=$6
-        LOG_DIR=$7
-        reset_namespace_name $8
+        VTY_PORT=$4
+        LOCAL_VTY_IP=$5
+        BGP_CONFIG_FILE=$6
+        ZEBRA_CONFIG_FILE=$7
+        LOG_DIR=$8
         let FPM_PORT="INDEX+2620"
         FPM_ADDRESS=`echo $LOCAL_VTY_IP | cut -d'/' -f 1`
         if [ -z "$BGP_CONFIG_FILE" ] || [ -z "$ZEBRA_CONFIG_FILE" ] || [ -z "$VTY_PORT" ] || [ -z "$LOG_DIR" ] ; then
@@ -261,33 +243,29 @@ case "$1" in
         ;;
 
     down)
-        reset_namespace_name $3
         bgpd_down
         exit 0
         ;;
 
     add_arp)
-        IFACE=$3
-        ROUTER_IP=$4
-        MAC_ADDR=$5
-        reset_namespace_name $6
+        IFACE=$4
+        ROUTER_IP=$5
+        MAC_ADDR=$6
         PEER_IP=$7
         add_arp_entry
         ;;
 
     rem_arp)
-        IFACE=$3
-        ROUTER_IP=$4
-        reset_namespace_name $5
+        IFACE=$4
+        ROUTER_IP=$5
         PEER_IP=$6
         rem_arp_entry
         ;;
 
     add_addr)
-        IFACE=$3
-        ROUTER_IP=$4
-        MAC_ADDR=$5
-        reset_namespace_name $6
+        IFACE=$4
+        ROUTER_IP=$5
+        MAC_ADDR=$6
         if [ -z "$IFACE" ] || [ -z "$ROUTER_IP" ] ; then
             usage
         fi
@@ -295,9 +273,8 @@ case "$1" in
         ;;
 
     rem_addr)
-        IFACE=$3
-        ROUTER_IP=$4
-        reset_namespace_name $5
+        IFACE=$4
+        ROUTER_IP=$5
         if [ -z "$IFACE" ] || [ -z "$ROUTER_IP" ] ; then
             usage
         fi
