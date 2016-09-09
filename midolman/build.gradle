@@ -200,6 +200,9 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/deb/init/minions-start") {
         into "usr/share/midolman"
     }
+    from("src/deb/init/vpp-start") {
+        into "usr/share/midolman"
+    }
     from("src/deb/init/prepare-java") {
         into "usr/share/midolman"
     }
@@ -230,7 +233,7 @@ packaging {
     vendor = project.vendor
     url = project.url
     description = 'Midolman is a virtual network controller'
-    dependencies = ['haproxy', 'midonet-tools']
+    dependencies = ['haproxy', 'midonet-tools', 'vpp']
     confFiles = ['/etc/midolman/midolman-env.sh',
                  '/etc/midolman/midolman-env.sh.compute.large',
                  '/etc/midolman/midolman-env.sh.gateway.large',
