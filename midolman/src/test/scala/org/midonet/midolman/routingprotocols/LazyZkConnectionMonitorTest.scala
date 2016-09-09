@@ -16,17 +16,16 @@
 
 package org.midonet.midolman.routingprotocols
 
-import java.util.{PriorityQueue, Comparator}
+import java.util.{Comparator, PriorityQueue}
 
-import scala.collection.immutable.Queue
 import scala.concurrent.duration._
 
-import org.apache.zookeeper.{WatchedEvent, KeeperException}
+import org.apache.zookeeper.{KeeperException, WatchedEvent}
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, StateAccessException, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnection, ZkConnectionAwareWatcher}
 import org.midonet.util.UnixClock
 
 @RunWith(classOf[JUnitRunner])
@@ -113,7 +112,7 @@ class LazyZkConnectionMonitorTest extends FeatureSpecLike
 }
 
 class Scheduler() {
-    val clock = UnixClock.MOCK
+    val clock = UnixClock.mock()
     private val comparator = new Comparator[(Long, Runnable)] {
         override def compare(a: (Long, Runnable), b: (Long, Runnable)) = java.lang.Long.compare(a._1, b._1)
     }
