@@ -21,10 +21,18 @@ import java.util.UUID
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.packets.IPAddr
 
+case class PortBinding(portId: UUID, previousHostId: UUID,
+                       tunnelKey: Long, interfaceName: String) {
+
+    override def toString =
+        s"PortBinding [id=$portId previousHostId=$previousHostId " +
+        s"tunnelKey=$tunnelKey interfaceName=$interfaceName]"
+}
+
 case class Host(id: UUID,
                 alive: Boolean,
                 tunnelZones: Map[UUID, IPAddr],
-                portBindings: Map[UUID, (String, UUID)]) extends Device {
+                portBindings: Map[UUID, PortBinding]) extends Device {
 
     override def toString =
         s"Host [id=$id alive=$alive portBindings=$portBindings " +
