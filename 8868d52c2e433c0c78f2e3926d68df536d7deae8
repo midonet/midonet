@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c9d5deb7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1009145
+      },
+      "writtenOn": "2016-09-09T10:38:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_12c9b4ac",
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_f2cbf0a2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2016-09-07T09:33:37Z",
       "side": 1,
       "message": "Do we really care if the lists are different, or only if the first element is different?",
+      "range": {
+        "startLine": 344,
+        "startChar": 13,
+        "endLine": 344,
+        "endChar": 62
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c9839ea8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 1009145
+      },
+      "writtenOn": "2016-09-09T10:38:12Z",
+      "side": 1,
+      "message": "Of course, we need only the first element but I tried to follow to the common code style therefore I\u0027ve done it like this \nhttps://github.com/midonet/midonet/blob/master/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala#L284",
+      "parentUuid": "baa041b7_f2cbf0a2",
       "range": {
         "startLine": 344,
         "startChar": 13,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_69edb28d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 1009145
+      },
+      "writtenOn": "2016-09-09T10:38:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_d24a2c27",
+      "range": {
+        "startLine": 370,
+        "startChar": 0,
+        "endLine": 371,
+        "endChar": 76
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_126d34cc",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 5
@@ -76,6 +142,30 @@
       "writtenOn": "2016-09-07T09:33:37Z",
       "side": 1,
       "message": "I think what you\u0027re trying to do here could be more concisely accomplished by something like:\n\n    val snatRuleBldr \u003d snatRule.toBuilder\n    snatRuleBldr.getNatRuleDataBuilder.getNatTargetsBuilder(0)\n        .setNwStart(portAddress).setNwEnd(portAddress)\n\n    // ...other stuff...\n    midoOps +\u003d Update(snatRuleBldr.build())\n\nWhen you call build() on the builder for a class that has nested messages, it will recursively build any open builders you have for those nested messages.",
+      "range": {
+        "startLine": 375,
+        "startChar": 0,
+        "endLine": 380,
+        "endChar": 79
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_49f0ae66",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1009145
+      },
+      "writtenOn": "2016-09-09T10:38:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_126d34cc",
       "range": {
         "startLine": 375,
         "startChar": 0,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_29e7aaad",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1009145
+      },
+      "writtenOn": "2016-09-09T10:38:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_326038a4",
+      "range": {
+        "startLine": 382,
+        "startChar": 0,
+        "endLine": 384,
+        "endChar": 28
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_926144d6",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 5
@@ -122,6 +236,30 @@
       "writtenOn": "2016-09-07T09:33:37Z",
       "side": 1,
       "message": "Here you just want to update the destination IP on the condition, right?\n\n    val revSnatRuleBldr \u003d revSnatRule.toBuilder()\n    revSnatRuleBldr.getConditionBuilder.setNwDstIp(portAddress)\n    // ...other stuff...\n    midoOps +\u003d Update(revSnatRuleBldr.build())",
+      "range": {
+        "startLine": 382,
+        "startChar": 0,
+        "endLine": 389,
+        "endChar": 78
+      },
+      "revId": "8868d52c2e433c0c78f2e3926d68df536d7deae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_09eaa674",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1009145
+      },
+      "writtenOn": "2016-09-09T10:38:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_926144d6",
       "range": {
         "startLine": 382,
         "startChar": 0,
