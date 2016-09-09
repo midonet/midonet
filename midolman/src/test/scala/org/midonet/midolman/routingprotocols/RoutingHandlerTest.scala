@@ -129,7 +129,6 @@ class RoutingHandlerTest extends FeatureSpecLike
             containerRoutingHandler ! containerRport
             containerRoutingHandler ! BgpPort(containerRport, baseConfig,
                                               Set(peer1Id))
-            bgpd.ifaceOpt.get shouldBe ifaceName
         }
 
         scenario("Ignores routers with no AS numbers") {
@@ -150,7 +149,6 @@ class RoutingHandlerTest extends FeatureSpecLike
             containerRoutingHandler ! containerRport
             containerRoutingHandler ! BgpPort(containerRport, bgpRouter,
                                               Set(peer1Id))
-            bgpd.ifaceOpt shouldBe None
         }
 
         scenario("Applies and removes static ARP entries") {
@@ -228,7 +226,6 @@ class RoutingHandlerTest extends FeatureSpecLike
             bgpd.state should be (bgpd.NOT_STARTED)
 
             routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
-            bgpd.ifaceOpt should be (None)
             bgpd.state should be (bgpd.RUNNING)
         }
 
@@ -514,7 +511,6 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
     override val vty = mock[BgpConnection]
 
     var state = NOT_STARTED
-    var ifaceOpt: Option[String] = None
 
     var starts = 0
     private var died = false
@@ -523,11 +519,10 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
         died = true
     }
 
-    override def prepare(iface: Option[String] = None): Unit = {
+    override def prepare(): Unit = {
         if (state != NOT_STARTED)
             throw new Exception(s"Illegal state: $state")
         state = PREPARED
-        ifaceOpt = iface
     }
 
     override def stop(): Boolean = {
