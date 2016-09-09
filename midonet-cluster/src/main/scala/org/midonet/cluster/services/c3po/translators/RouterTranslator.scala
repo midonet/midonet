@@ -291,7 +291,12 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
             .setChainId(r.getInboundFilterId)
         def inRuleConditionBuilder = Condition.newBuilder
             .setNwDstIp(portSubnet)
-
+        def skipSnatGwPortRuleBuilder() = Rule.newBuilder
+            .setId(skipSnatGwPortRuleId(r.getId))
+            .setType(Rule.Type.LITERAL_RULE)
+            .setAction(Action.ACCEPT)
+            .setChainId(skipSnatChainId(r.getId))
+            .setCondition(anyFragCondition.addInPortIds(tenantGwPortId))
 
         List(outRuleBuilder(outSnatRuleId(nr.getId))
                  .setType(Rule.Type.NAT_RULE)
@@ -314,7 +319,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                  .setAction(Action.DROP)
                  .setCondition(inRuleConditionBuilder
                                    .setNwProto(ICMP.PROTOCOL_NUMBER)
-                                   .setNwProtoInv(true))
+                                   .setNwProtoInv(true)),
+             skipSnatGwPortRuleBuilder()
         ).map(bldr => Create(bldr.build()))
     }
 
@@ -326,7 +332,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         List(Delete(classOf[Rule], inDropWrongPortTrafficRuleId(routerId)),
              Delete(classOf[Rule], inReverseSnatRuleId(routerId)),
              Delete(classOf[Rule], outDropUnmatchedFragmentsRuleId(routerId)),
-             Delete(classOf[Rule], outSnatRuleId(routerId)))
+             Delete(classOf[Rule], outSnatRuleId(routerId)),
+             Delete(classOf[Rule], skipSnatGwPortRuleId(routerId)))
     }
 
     private def snatEnabled(nr: NeutronRouter): Boolean = {
@@ -379,4 +386,7 @@ object RouterTranslator {
         routerId.xorWith(0x928eb605e3e04119L, 0x8c40e4ca90769cf4L)
     def inDropWrongPortTrafficRuleId(routerId: UUID): UUID =
         routerId.xorWith(0xb807509d2fa04b9eL, 0x96b1f45a04e6d128L)
+
+    def skipSnatGwPortRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0x6f90386f458e12ffL, 0x6ec14164bde7cee6L)
 }
