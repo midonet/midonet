@@ -23,7 +23,7 @@ import scala.util.Random
 import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.DatapathStateDriver.DpTriad
 import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.topology.rcu.PortBinding
+import org.midonet.midolman.topology.devices.PortBinding
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
 import org.midonet.util.concurrent._
@@ -146,11 +146,10 @@ trait DatapathPortEntangler {
     def updateVportInterfaceBindings(bindings: Map[UUID, PortBinding]): Unit = {
         log.debug(s"Updating port to interface bindings: $bindings")
 
-        for ((vportId, PortBinding(_, _, tunnelKey, ifname)) <- bindings) {
-            if (!vportToTriad.containsKey(vportId)) {
-                conveyor handle (ifname, () =>
-                    newInterfaceVportBinding(vportId, bindings(vportId).tunnelKey, ifname))
-            }
+        for ((vportId, PortBinding(_, _, tunnelKey, interfaceName)) <- bindings
+             if (interfaceName ne null) && !vportToTriad.containsKey(vportId)) {
+            conveyor handle (interfaceName, () =>
+                newInterfaceVportBinding(vportId, tunnelKey, interfaceName))
         }
 
         val it = vportToTriad.entrySet().iterator()

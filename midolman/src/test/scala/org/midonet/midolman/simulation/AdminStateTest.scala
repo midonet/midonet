@@ -18,8 +18,7 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort}
-
+import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.Await
@@ -29,6 +28,7 @@ import akka.actor.Actor.emptyBehavior
 import akka.actor._
 import akka.testkit.TestActorRef
 import akka.util.Timeout
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -37,6 +37,7 @@ import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.topology._
+import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
@@ -394,7 +395,7 @@ class AdminStateTest extends MidolmanSpec {
         override protected val workerId: Int = 0
 
         protected val dpState: DatapathState = new DatapathState {
-            val host = rcu.ResolvedHost(hostId, true, Map.empty, Map.empty)
+            val host = Host(hostId, true, Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
             def overlayTunnellingOutputAction: FlowActionOutput = null
             def dpPortForTunnelKey(key: Long) = null

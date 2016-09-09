@@ -34,7 +34,7 @@ import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
 import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.state.{FlowStateStorageFactory, MockStateStorage}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUpdate
-import org.midonet.midolman.topology.rcu.ResolvedHost
+import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.util.mock.{MessageAccumulator, MockInterfaceScanner}
 import org.midonet.midolman.util.{MidolmanSpec, MockNetlinkChannelFactory}
 import org.midonet.odp.ports._
@@ -119,9 +119,9 @@ class DatapathControllerTest extends MidolmanSpec {
             interface1.setInetAddress("1.0.0.1")
 
             When("The datapath controller receives the host")
-            val host = ResolvedHost(UUID.randomUUID(), alive = true, Map(),
-                                    Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1"),
-                                        UUID.randomUUID() -> IPv4Addr("1.0.0.2")))
+            val host = Host(UUID.randomUUID(), alive = true,
+                            Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1"),
+                                UUID.randomUUID() -> IPv4Addr("1.0.0.2")), Map())
             DatapathController ! host
 
             When("The datapath controller receives the first interface")
@@ -155,8 +155,8 @@ class DatapathControllerTest extends MidolmanSpec {
             interface.setInetAddress("1.0.0.1")
 
             When("The datapath controller receives the host")
-            val host = ResolvedHost(UUID.randomUUID(), alive = true, Map(),
-                                    Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1")))
+            val host = Host(UUID.randomUUID(), alive = true,
+                            Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1")), Map())
             DatapathController ! host
 
             When("The datapath controller receives the interface")
@@ -173,8 +173,8 @@ class DatapathControllerTest extends MidolmanSpec {
             interface.setInetAddress("1.0.0.1")
 
             When("The datapath controller receives the host")
-            val host = ResolvedHost(UUID.randomUUID(), alive = true, Map(),
-                                    Map(UUID.randomUUID() -> IPv4Addr("1.0.0.2")))
+            val host = Host(UUID.randomUUID(), alive = true,
+                            Map(UUID.randomUUID() -> IPv4Addr("1.0.0.2")), Map())
             DatapathController ! host
 
             When("The datapath controller receives the interface")
@@ -190,8 +190,8 @@ class DatapathControllerTest extends MidolmanSpec {
             interface.setMtu(0xffff)
 
             When("The datapath controller receives the host")
-            val host = ResolvedHost(UUID.randomUUID(), alive = true, Map(),
-                                    Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1")))
+            val host = Host(UUID.randomUUID(), alive = true,
+                            Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1")), Map())
             DatapathController ! host
 
             When("The datapath controller receives the interface")
@@ -208,8 +208,8 @@ class DatapathControllerTest extends MidolmanSpec {
             interface.setInetAddress("1.0.0.1")
 
             When("The datapath controller receives the host")
-            val host = ResolvedHost(UUID.randomUUID(), alive = true, Map(),
-                                    Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1")))
+            val host = Host(UUID.randomUUID(), alive = true,
+                            Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1")), Map())
             DatapathController ! host
 
             When("The datapath controller receives the interface")
@@ -226,8 +226,8 @@ class DatapathControllerTest extends MidolmanSpec {
             interface.setInetAddress("1.0.0.1")
 
             When("The datapath controller receives the host")
-            val host = ResolvedHost(UUID.randomUUID(), alive = true, Map(),
-                                    Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1")))
+            val host = Host(UUID.randomUUID(), alive = true,
+                            Map(UUID.randomUUID() -> IPv4Addr("1.0.0.1")), Map())
             DatapathController ! host
 
             When("The datapath controller receives the interface")
@@ -272,7 +272,7 @@ class DatapathControllerTest extends MidolmanSpec {
         addTunnelZoneMember(tunnelZone, host2, dstIp1)
 
         DatapathController.messages
-            .collect { case p: ResolvedHost => p } should have size 1
+            .collect { case p: Host => p } should have size 1
         DatapathController.messages
             .collect { case p: TunnelZoneUpdate => p } should have size 2
         DatapathController.getAndClear() should have size 3
