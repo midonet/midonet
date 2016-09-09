@@ -144,28 +144,32 @@ object RoutingHandler {
               connWatcher: ZkConnectionAwareWatcher,
               selectLoop: SelectLoop,
               vt: VirtualTopology,
-              isQuagga: Boolean) =
+              isContainer: Boolean) =
         new RoutingHandler(routerPort, bgpIdx, flowInvalidator.tell,
-            routingStorage, config, connWatcher, isQuagga) {
+                           routingStorage, config, connWatcher, isContainer) {
 
             import context.system
 
-            private var zebra: ActorRef = null
+            private var zebra: ActorRef = _
 
             private final val bgpVtyLocalIp =
                 new IPv4Subnet(IPv4Addr.fromInt(BgpIpIntPrefix + 1 + 4 * bgpIdx), 30)
             private final val bgpVtyPeerIp =
                 new IPv4Subnet(IPv4Addr.fromInt(BgpIpIntPrefix + 2 + 4 * bgpIdx), 30)
 
-            val routerUUID = if (isQuagga) Some(routerPort.deviceId.toString) else None
+            protected override val bgpd = DefaultBgpdProcess(
+                portId = routerPort.id,
+                routerId = routerPort.routerId,
+                name = name,
+                index = bgpIdx,
+                localVtyIp = bgpVtyLocalIp,
+                remoteVtyIp = bgpVtyPeerIp,
+                routerIp = new IPv4Subnet(routerPort.portAddress,
+                                          routerPort.portSubnet.getPrefixLen),
+                routerMac = routerPort.portMac,
+                vtyPortNumber = bgpVtyPort)
 
-            override protected val bgpd = new DefaultBgpdProcess(
-                routerPort.id, bgpIdx, bgpVtyLocalIp,
-                bgpVtyPeerIp, new IPv4Subnet(routerPort.portAddress,
-                                             routerPort.portSubnet.getPrefixLen),
-                routerPort.portMac, bgpVtyPort, routerId = routerUUID)
-
-            val lazyConnWatcher = new LazyZkConnectionMonitor(
+            private val lazyConnWatcher = new LazyZkConnectionMonitor(
                 () => self ! ZookeeperConnected(false),
                 () => self ! ZookeeperConnected(true),
                 connWatcher,
@@ -195,7 +199,7 @@ object RoutingHandler {
                                                              routerPort.id)
                                                  .subscribe(this)
 
-                if (isQuagga) {
+                if (isContainer) {
                     val portBgpObs = new RouterBgpMapper(routerPort.routerId, vt)
                         .portBgpInfoObservable
                     portBgpSub = portBgpObs.subscribe(new PortBgpObserver)
@@ -264,12 +268,13 @@ object RoutingHandler {
         }
 }
 
-abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
+abstract class RoutingHandler(var routerPort: RouterPort,
+                              val bgpIdx: Int,
                               val flowInvalidator: FlowTag => Unit,
                               val routingStorage: RoutingStorage,
                               val config: MidolmanConfig,
                               val connWatcher: ZkConnectionAwareWatcher,
-                              val isQuagga: Boolean)
+                              val isContainer: Boolean)
     extends ReactiveActor[BgpPort] with ActorLogWithoutPath
             with SingleThreadExecutionContextProvider {
 
@@ -278,8 +283,12 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
     override def logSource = "org.midonet.routing.bgp"
     override def logMark = s"bgp:${routerPort.id}:$bgpIdx"
 
-    protected final val bgpNetdevPortName = s"mbgp$bgpIdx"
-    protected final val bgpNetdevPortMirrorName = s"mbgp${bgpIdx}_m"
+    protected final val name =
+        if (isContainer) routerPort.interfaceName
+        else s"bgp-${routerPort.id.toString.substring(0, 7)}"
+
+    protected final val bgpNetdevPortName = name
+    protected final val bgpNetdevPortMirrorName = s"${name}_m"
     protected final val bgpVtyPort = 2605 + bgpIdx
 
     private val peerRoutes = mutable.Map[Route, Route]()
@@ -311,13 +320,13 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
     private var zookeeperConnected = true
     private var portActive = true
 
-    protected[this] var bgpSubscription: Subscription = null
+    protected[this] var bgpSubscription: Subscription = _
 
     private def bgpdShouldRun = {
         zookeeperConnected &&
         portActive &&
         bgpConfig.as > 0 &&
-        (isQuagga || bgpConfig.neighbors.nonEmpty)
+        (isContainer || bgpConfig.neighbors.nonEmpty)
     }
 
     protected def createDpPort(port: String): Future[(DpPort, Int)]
@@ -624,11 +633,10 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
                 Future.successful(true)
             case false => // ignored
                 Future.successful(true)
-        }).flatMap {
-            case _ =>
-                bgpConfig = newConfig
-                bgpPeerIds = newPeers
-                startOrStopBgpd()
+        }).flatMap { _ =>
+            bgpConfig = newConfig
+            bgpPeerIds = newPeers
+            startOrStopBgpd()
         }(singleThreadExecutionContext)
     }
 
@@ -645,7 +653,7 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
         for (peer <- gained) {
             bgpd.vty.addPeer(bgpConfig.as, peer)
             routingInfo.peers.add(peer.address)
-            if (isQuagga) {
+            if (isContainer) {
                 bgpd.vty.addPeerBgpIpOpts(bgpConfig.as, peer.address)
             } else {
                 bgpd.vty.addPeerExteriorBgpOpts(bgpConfig.as, peer.address)
@@ -653,7 +661,7 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
             log.debug(s"Set up BGP session with AS ${peer.as} at ${peer.address}")
         }
 
-        if (!isQuagga && newPeers.isEmpty)
+        if (!isContainer && newPeers.isEmpty)
             stopBgpd()
         else
             bgpd.vty.setMaximumPaths(bgpConfig.as, newPeers.size)
@@ -666,7 +674,7 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
         log.debug(s"Configuring BGP daemon")
 
         bgpd.vty.setAs(bgpConfig.as)
-        if (isQuagga) {
+        if (isContainer) {
             bgpd.vty.setRouterId(bgpConfig.as, routerBgpId)
         } else {
             bgpd.vty.setRouterId(bgpConfig.as, bgpConfig.id)
@@ -690,9 +698,9 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
         for (neigh <- bgpConfig.neighbors.values) {
             bgpd.vty.addPeer(bgpConfig.as, neigh)
             routingInfo.peers.add(neigh.address)
-            if (isQuagga && newPortBgps.nonEmpty) {
+            if (isContainer && newPortBgps.nonEmpty) {
                 bgpd.vty.addPeerBgpIpOpts(bgpConfig.as, neigh.address)
-            } else if (!isQuagga) {
+            } else if (!isContainer) {
                 bgpd.vty.addPeerExteriorBgpOpts(bgpConfig.as, neigh.address)
             }
             log.debug(s"Set up BGP session with AS ${neigh.as} at ${neigh.address}")
@@ -728,8 +736,8 @@ abstract class RoutingHandler(var routerPort: RouterPort, val bgpIdx: Int,
 
         try {
             startZebra()
-            if (isQuagga) {
-                bgpd.prepare(Some(routerPort.interfaceName))
+            if (isContainer) {
+                bgpd.prepare()
                 Future.successful((null, -1))
             } else {
                 bgpd.prepare()
