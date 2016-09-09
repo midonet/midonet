@@ -431,11 +431,17 @@ object DatapathCtl extends Subcommand("datapath") with DpCommand {
     val dump = opt[String](
         "dump",
         descr = "show all the flows installed for a given datapath")
+    val noSort = opt[Boolean](
+        "no-sort",
+        default = Some(false),
+        short = 'n',
+        descr = "don't sort flows from dump output")
     val list = opt[Boolean](
         default = Some(false),
         descr = "list all the installed datapaths")
 
     requireOne(add, del, show, dump, list)
+    dependsOnAny(noSort, List(dump))
 
     def run(ctx: DpCtx): Unit = {
         if (add.get.isDefined) {
@@ -478,7 +484,7 @@ object DatapathCtl extends Subcommand("datapath") with DpCommand {
 
         if (dump.get.isDefined) {
             val dp = ctx.getDatapath(dump.get.get)
-            val flows = ctx.dumpDatapath(dp)
+            val flows = if (noSort.get.get) ctx.dumpDatapath(dp) else ctx.dumpDatapath(dp)
                 .sortWith(_.getLastUsedMillis < _.getLastUsedMillis)
             println(s"${flows.size} flow${if (flows.size == 1) "" else "s"}")
             flows foreach { flow =>
