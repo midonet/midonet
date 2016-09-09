@@ -28,7 +28,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 
 import org.midonet.cluster.data.storage.{CreateOp, StateStorage, Storage}
-import org.midonet.cluster.models.Commons.{IPVersion, IPAddress}
+import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
@@ -37,7 +37,7 @@ import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
-import org.midonet.midolman.topology.devices.{Host => SimHost}
+import org.midonet.midolman.topology.devices.{PortBinding, Host => SimHost}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPAddr
 import org.midonet.util.concurrent._
@@ -223,7 +223,8 @@ class HostMapperTest extends MidolmanSpec
 
             Then("We obtain a simulation host with the port bound.")
             hostObs.getOnNextEvents.last.portBindings should
-                contain only port.getId.asJava -> ("eth0", null)
+                contain only port.getId.asJava -> PortBinding(port.getId.asJava,
+                                                              null, 10, "eth0")
 
             And("The host mapper is observing the port.")
             hostMapper.isObservingPort(port.getId) shouldBe true
@@ -255,8 +256,10 @@ class HostMapperTest extends MidolmanSpec
             hostObs.getOnNextEvents should have size 2
 
             hostObs.getOnNextEvents.last.portBindings should contain
-                only(port1.getId.asJava -> ("eth0", null),
-                     port2.getId.asJava -> ("eth1", null))
+                only(port1.getId.asJava -> PortBinding(port1.getId.asJava,
+                                                       null, 10, "eth0"),
+                     port2.getId.asJava -> PortBinding(port2.getId.asJava,
+                                                       null, 10, "eth1"))
 
             And("The host mapper is watching both ports")
             hostMapper.isObservingPort(port1.getId) shouldBe true
@@ -309,8 +312,10 @@ class HostMapperTest extends MidolmanSpec
             hostObs.awaitOnNext(1, timeout) shouldBe true
             hostObs.getOnNextEvents should have size 1
             hostObs.getOnNextEvents.last.portBindings should contain only
-                (port1.getId.asJava -> ("eth0", null),
-                 port2.getId.asJava -> ("eth1", null))
+                (port1.getId.asJava -> PortBinding(port1.getId.asJava, null, 10,
+                                                   "eth0"),
+                 port2.getId.asJava -> PortBinding(port2.getId.asJava, null, 10,
+                                                   "eth1"))
 
             And("The host mapper is watching both ports")
             hostMapper.isObservingPort(port1.getId) shouldBe true
@@ -324,7 +329,8 @@ class HostMapperTest extends MidolmanSpec
             hostObs.getOnNextEvents should have size 2
 
             hostObs.getOnNextEvents.last.portBindings should
-                contain only port2.getId.asJava -> ("eth1", null)
+                contain only port2.getId.asJava -> PortBinding(port2.getId.asJava,
+                                                               null, 10, "eth1")
 
             And("The host mapper is not watching the deleted port")
             hostMapper.isObservingPort(port1.getId) shouldBe false
@@ -534,7 +540,7 @@ class HostMapperTest extends MidolmanSpec
                 val hostId = hostToIp.getHostId
                 if (hostId.asJava.equals(simHost.id)) {
                     val ip = IPAddressUtil.toIPAddr(hostToIp.getIp)
-                    simHost.tunnelZones.get(tz.getId.asJava).get shouldBe ip
+                    simHost.tunnelZones(tz.getId.asJava) shouldBe ip
                     membershipSize += 1
                 }
             })
@@ -609,7 +615,8 @@ class HostMapperTest extends MidolmanSpec
     private def createRouterWithPorts(numPorts: Int): Seq[Port] = {
         val r = createRouter()
         val ps = for(_ <- 1 to numPorts)
-            yield createRouterPort(routerId = Some(r.getId))
+            yield createRouterPort(routerId = Some(r.getId),
+                                   tunnelKey = 10)
         store.create(r)
         for (p <- ps) store.create(p)
         ps
