@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0ef50cec",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSPolicy.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-09T01:44:34Z",
+      "side": 1,
+      "message": "Unfortunately, a issue with marking them that way, if I understand it correctly, is that if they are serialized using the JSON API, this data will get lost from the originating object.  It\u0027s part of the major bug we found in the migration regarding NAT rules, in that those rules weren\u0027t serialized into the Midonet object, and were just lost forever, making the port object broken.  So, I\u0027m a bit leery of using that tag for any information that MUST be copied over.\n\nAs for these two fields, they are integral to the object itself, as they store the actual rules that this QoS policy represents, which seems like they should be a part of the JSON object, I think?",
+      "parentUuid": "baa041b7_42140b9e",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 38
+      },
+      "revId": "015fca257de640dd1f32c51942f4f4382b2c4f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a21f57b6",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSRuleBWLimit.java",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-09-08T08:07:14Z",
       "side": 1,
       "message": "\"from\" is the old one, right? That\u0027s all the fields, so it looks like we just don\u0027t update anything. Why not just disallow updates in the API?\n\nAlso, I\u0027m confused. On creation, we force these fields to 0. And on update, we force them to remain at whatever value they were at before. Doesn\u0027t that mean they\u0027re always 0?",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 41
+      },
+      "revId": "015fca257de640dd1f32c51942f4f4382b2c4f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_eedc2876",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSRuleBWLimit.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-09T01:44:34Z",
+      "side": 1,
+      "message": "Ah, I guess the create method should not be a default constructor, but rather have the fields specified as parameters (and then set)? I apologize, this is my first try at this, so I just mimicked the BGP model.  I\u0027ll add the params to the create method.",
+      "parentUuid": "baa041b7_a21f57b6",
       "range": {
         "startLine": 57,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_ced7244e",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSRuleDSCP.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-09T01:44:34Z",
+      "side": 1,
+      "message": "I\u0027ll update this create method (and QOSRuleBWLimit as well)",
+      "parentUuid": "baa041b7_821a13c5",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 5
+      },
+      "revId": "015fca257de640dd1f32c51942f4f4382b2c4f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_62782ff9",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2016-09-08T08:07:14Z",
       "side": 1,
       "message": "This should go up with the regular fields, rather than down here with the backreferences, shouldn\u0027t it?",
+      "range": {
+        "startLine": 284,
+        "startChar": 4,
+        "endLine": 284,
+        "endChar": 38
+      },
+      "revId": "015fca257de640dd1f32c51942f4f4382b2c4f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_aee62042",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-09T01:44:34Z",
+      "side": 1,
+      "message": "kk",
+      "parentUuid": "baa041b7_62782ff9",
       "range": {
         "startLine": 284,
         "startChar": 4,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8ee11c2d",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-09T01:44:34Z",
+      "side": 1,
+      "message": "kk",
+      "parentUuid": "baa041b7_427bebf4",
+      "range": {
+        "startLine": 398,
+        "startChar": 4,
+        "endLine": 398,
+        "endChar": 37
+      },
+      "revId": "015fca257de640dd1f32c51942f4f4382b2c4f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e26c3f38",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2016-09-08T08:07:14Z",
       "side": 1,
       "message": "Should this be int8?",
+      "range": {
+        "startLine": 420,
+        "startChar": 13,
+        "endLine": 420,
+        "endChar": 18
+      },
+      "revId": "015fca257de640dd1f32c51942f4f4382b2c4f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6ecff8b3",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-09T01:44:34Z",
+      "side": 1,
+      "message": "I guess it can be.  Is it a problem to be int32 (like some ops might have wrong output?)?",
+      "parentUuid": "baa041b7_e26c3f38",
       "range": {
         "startLine": 420,
         "startChar": 13,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_4ed2f45c",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-09T01:44:34Z",
+      "side": 1,
+      "message": "repeated.  I will fix. :)",
+      "parentUuid": "baa041b7_a2763704",
+      "range": {
+        "startLine": 426,
+        "startChar": 4,
+        "endLine": 426,
+        "endChar": 12
+      },
+      "revId": "015fca257de640dd1f32c51942f4f4382b2c4f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_228227c9",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 2
@@ -174,6 +342,30 @@
       "writtenOn": "2016-09-08T08:07:14Z",
       "side": 1,
       "message": "By convention, we separate out the backreferences and start numbering them at 101.",
+      "range": {
+        "startLine": 427,
+        "startChar": 0,
+        "endLine": 428,
+        "endChar": 34
+      },
+      "revId": "015fca257de640dd1f32c51942f4f4382b2c4f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2ec9f0ac",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-09T01:44:34Z",
+      "side": 1,
+      "message": "kk, will do.",
+      "parentUuid": "baa041b7_228227c9",
       "range": {
         "startLine": 427,
         "startChar": 0,
