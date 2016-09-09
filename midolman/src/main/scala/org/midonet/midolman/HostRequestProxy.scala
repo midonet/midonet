@@ -20,7 +20,6 @@ import java.nio.ByteBuffer
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.{UUID, HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet}
 
-import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -32,12 +31,10 @@ import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
 import org.midonet.midolman.config.FlowStateConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
-import org.midonet.midolman.topology.devices.{Host => DevicesHost}
-import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
-import org.midonet.midolman.topology.{VirtualTopology, VirtualToPhysicalMapper => VTPM}
+import org.midonet.midolman.topology.devices.Host
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM}
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.NatState.NatBinding
 import org.midonet.services.flowstate.transfer.client.FlowStateInternalClient
@@ -87,9 +84,9 @@ class HostRequestProxy(hostId: UUID,
                        storageFuture: Future[FlowStateStorage[ConnTrackKey, NatKey]],
                        subscriber: ActorRef,
                        underlayResolver: UnderlayResolver,
-                       flowStateConfig: FlowStateConfig) extends ReactiveActor[DevicesHost]
-                                                         with ActorLogWithoutPath
-                                                         with SingleThreadExecutionContextProvider {
+                       flowStateConfig: FlowStateConfig)
+    extends ReactiveActor[Host] with ActorLogWithoutPath
+    with SingleThreadExecutionContextProvider {
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
@@ -189,41 +186,6 @@ class HostRequestProxy(hostId: UUID,
         underlayResolver.peerTunnelInfo(id)
                         .map(route => IPv4Addr.intToString(route.dstIp))
 
-    /* Resolve all ports into UUIDs, creating a ResolvedHost object.
-     *
-     * Ports that failed to be fetched are filtered out. If any of them
-     * is left out, we schedule a resync with the virtual to physical mapper,
-     * effectively creating an in-band retry loop that will use the most
-     * up to date version of the Host object.
-     */
-    private def resolvePorts(host: DevicesHost): ResolvedHost = {
-        val futures = mutable.ArrayBuffer[Future[Any]]()
-        val bindings = host.portBindings.map {
-            case (id, binding) =>
-                try {
-                    val port = VirtualTopology.tryGet(classOf[Port], id)
-                    if (binding.interfaceName ne null)
-                        Some(PortBinding(id, binding.previousHostId,
-                                         port.tunnelKey, binding.interfaceName))
-                    else
-                        None
-                } catch {
-                    case NotYetException(f, _) =>
-                        futures += f
-                        None
-                }
-            }.collect { case Some(binding) => (binding.portId, binding) }
-
-        if (futures.nonEmpty) {
-            Future.sequence(futures).onComplete { _ =>
-                log.debug("Ports resolved, re-syncing")
-                self ! ReSync
-            }
-        }
-
-        ResolvedHost(host.id, host.alive, bindings.toMap, host.tunnelZones)
-    }
-
     def updateOwnedPorts(portIds: Set[UUID]): Unit = {
         flowStateBuffer.clear()
         val size = Math.min(MaxPortIds, portIds.size)
@@ -247,17 +209,15 @@ class HostRequestProxy(hostId: UUID,
             }
             subscription = VTPM.hosts(hostId).subscribe(this)
 
-        case h: DevicesHost =>
-            log.debug("Received host update with bindings {}", h.portBindings)
-            val resolved = resolvePorts(h)
-            log.debug(s"Resolved host bindings to ${resolved.ports}")
-            subscriber ! resolved
-            updateOwnedPorts(h.portBindings.keySet)
+        case host: Host =>
+            log.debug("Received host update {}", host)
+            subscriber ! host
+            updateOwnedPorts(host.portBindings.keySet)
             belt.handle(() => {
-                val ports = for ((id, binding) <- h.portBindings if !lastPorts.contains(id))
+                val ports = for ((id, binding) <- host.portBindings if !lastPorts.contains(id))
                     yield id -> binding.previousHostId
 
-                lastPorts = h.portBindings.keySet
+                lastPorts = host.portBindings.keySet
                 Future.sequence(Seq(
                     stateForPorts(ports, requestLegacyStateForPort,
                                   "legacy storage (Cassandra)."),
