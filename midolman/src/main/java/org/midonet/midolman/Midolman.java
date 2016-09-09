@@ -61,7 +61,6 @@ import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
 import org.midonet.util.cLibrary;
 import org.midonet.util.process.MonitoredDaemonProcess;
-import org.midonet.util.process.ProcessHelper;
 
 public class Midolman {
 
@@ -72,10 +71,13 @@ public class Midolman {
     public static final int MIDOLMAN_ERROR_CODE_UNHANDLED_EXCEPTION = 6001;
     public static final int MIDOLMAN_ERROR_CODE_PACKET_WORKER_DIED = 6002;
     public static final int MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED = 6003;
+    public static final int MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED = 6004;
 
     private static final long MIDOLMAN_EXIT_TIMEOUT_MILLIS = 30000;
     private static final int MINION_PROCESS_MAXIMUM_STARTS = 3;
     private static final int MINION_PROCESS_FAILING_PERIOD = 180000;
+    private static final int VPP_PROCESS_MAXIMUM_STARTS = 3;
+    private static final int VPP_PROCESS_MAXIMUM_PERIOD = 30000;
 
     private Injector injector;
 
@@ -83,6 +85,7 @@ public class Midolman {
 
     private volatile boolean shuttingDown = false;
     private volatile MonitoredDaemonProcess minionProcess = null;
+    private volatile MonitoredDaemonProcess vppProcess = null;
 
     private Midolman() {
     }
@@ -197,6 +200,11 @@ public class Midolman {
             MINION_PROCESS_MAXIMUM_STARTS, MINION_PROCESS_FAILING_PERIOD,
             MIDOLMAN_ERROR_CODE_MINION_PROCESS_DIED);
         minionProcess.start();
+        vppProcess = new MonitoredDaemonProcess(
+            "/usr/share/midolman/vpp-start", log, "org.midonet.vpp",
+            VPP_PROCESS_MAXIMUM_STARTS, VPP_PROCESS_MAXIMUM_PERIOD,
+            MIDOLMAN_ERROR_CODE_VPP_PROCESS_DIED);
+        vppProcess.start();
 
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
@@ -281,6 +289,7 @@ public class Midolman {
 
         shuttingDown = true;
         minionProcess.shutdown();
+        vppProcess.shutdown();
 
         if (injector == null)
             return;
