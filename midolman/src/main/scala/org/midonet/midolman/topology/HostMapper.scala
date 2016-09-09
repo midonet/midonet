@@ -32,7 +32,7 @@ import org.midonet.cluster.services.MidonetBackend.AliveKey
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
-import org.midonet.midolman.topology.devices.{TunnelZone, Host => SimulationHost}
+import org.midonet.midolman.topology.devices.{PortBinding, TunnelZone, Host => SimulationHost}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /**
@@ -159,12 +159,15 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
 
         // Compute the port bindings for this host.
         def portBindings = for ((id, state) <- ports)
-            yield id -> (state.device.interfaceName, state.device.previousHostId)
+            yield id -> PortBinding(id,
+                                    state.device.previousHostId,
+                                    state.device.tunnelKey,
+                                    state.device.interfaceName)
 
-        val host = new SimulationHost(currentHost.getId.asJava,
-                                      alive.get,
-                                      tunnelZonesEntries.toMap,
-                                      portBindings.toMap)
+        val host = SimulationHost(currentHost.getId.asJava,
+                                  alive.get,
+                                  tunnelZonesEntries.toMap,
+                                  portBindings.toMap)
 
         log.debug("Build host: {}", host)
 
