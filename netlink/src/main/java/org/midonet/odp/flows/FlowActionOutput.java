@@ -27,7 +27,7 @@ public class FlowActionOutput implements FlowAction {
     // This is used for deserialization purposes only.
     FlowActionOutput() { }
 
-    FlowActionOutput(int portNumber) {
+    public FlowActionOutput(int portNumber) {
         this.portNumber = portNumber;
     }
 
