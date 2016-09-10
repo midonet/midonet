@@ -377,7 +377,7 @@ object DhcpValueParser {
                 encodeDomain(domain, domainMap.toMap)
             domainMap += (domain -> encodedBytes.length.toShort)
             if (pos >= 0) {
-                for (i: Int <- 0 until unmatched.length) {
+                for (i: Int <- unmatched.indices) {
                     val unmatchedSubset =
                         unmatched.slice(i, unmatched.length).mkString(".")
                     domainMap += ((unmatchedSubset + "." + partialMatched) ->
@@ -394,7 +394,7 @@ object DhcpValueParser {
                 encodedBytes += pos.toByte
             } else {
                 val domainPieces: Array[String] = unmatched
-                for (i: Int <- 0 until domainPieces.length) {
+                for (i: Int <- domainPieces.indices) {
                     val domainSubset = domain.split("\\.", i + 1)
                     val partial = domainSubset.last
                     val piece = domainPieces(i)
@@ -481,9 +481,10 @@ object DhcpValueParser {
 
 object DhcpImpl {
     def apply(dhcpCfg: DhcpConfig, inPort: Port, request: DHCP,
-              sourceMac: MAC, underlayMtu: Short, configMtu: Short,
+              sourceMac: MAC, underlayMtu: Int, configMtu: Int,
               log: Logger) = {
-        new DhcpImpl(dhcpCfg, request, sourceMac, underlayMtu, configMtu, log).handleDHCP(inPort)
+        new DhcpImpl(dhcpCfg, request, sourceMac, underlayMtu, configMtu, log)
+            .handleDHCP(inPort)
     }
 }
 
@@ -504,19 +505,18 @@ trait DhcpConfig {
 
 class DhcpImpl(val dhcpConfig: DhcpConfig,
                val request: DHCP, val sourceMac: MAC,
-               val underlayMtu: Short, val configMtu: Short,
+               val underlayMtu: Int, val configMtu: Int,
                val log: Logger) {
     import DhcpValueParser._
 
-    private var serverAddr: IPv4Addr = null
-    private var serverMac: MAC = null
-    private var routerAddr: IPv4Addr = null
-    private var yiaddr: IPv4Addr = null
+    private var serverAddr: IPv4Addr = _
+    private var serverMac: MAC = _
+    private var routerAddr: IPv4Addr = _
+    private var yiaddr: IPv4Addr = _
     private var yiAddrMaskLen: Int = 0
-    private var opt121Routes: mutable.Buffer[Opt121] = null
+    private var opt121Routes: mutable.Buffer[Opt121] = _
     private var dnsServerAddrsBytes: List[Array[Byte]] = Nil
-
-    private var interfaceMTU : Short = 0
+    private var interfaceMtu: Int = 0
 
     def handleDHCP(port: Port) : Option[Ethernet] = {
         // These fields are decided based on the port configuration.
@@ -587,11 +587,12 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
                         Some(Math.min(subnetMtu, underlayMtu).toShort)
                 }) match {
                     case Some(minMtu) =>
-                        interfaceMTU = minMtu
-                        log.debug(s"Building DHCP reply for MAC $sourceMac with MTU $interfaceMTU")
+                        interfaceMtu = minMtu
+                        log.debug(s"Building DHCP reply for MAC $sourceMac " +
+                                  s"with MTU $interfaceMtu")
                         makeDhcpReply(port, host)
                     case _ =>
-                        interfaceMTU = 0
+                        interfaceMtu = 0
                         log.warn("Failed to calculate interface MTU, cannot " +
                                  "build DHCP reply")
                         None
@@ -771,8 +772,8 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         optionMap.put(DHCPOption.Code.INTERFACE_MTU.value,
             new DHCPOption(DHCPOption.Code.INTERFACE_MTU.value,
                 DHCPOption.Code.INTERFACE_MTU.length,
-                Array[Byte]((interfaceMTU/256).toByte,
-                    (interfaceMTU%256).toByte)))
+                Array[Byte](((interfaceMtu >> 8) & 0xff).toByte,
+                            (interfaceMtu & 0xff).toByte)))
         if (routerAddr != null) {
             optionMap.put(DHCPOption.Code.ROUTER.value,
                 new DHCPOption(DHCPOption.Code.ROUTER.value,
