@@ -175,7 +175,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             testableDpc.driver.getDpPortNumberForVport(port) should not equal null
 
             And("the min MTU should be the tunnel default one")
-            DatapathController.minMtu should be (1000 - VxLanTunnelPort.TunnelOverhead)
+            DatapathController.minMtu should be (1000 - VxLanTunnelPort.TUNNEL_OVERHEAD)
             obs.getOnNextEvents.get(0) shouldBe LocalPortActive(port, active = true)
 
             When("the network interface disappears")
@@ -192,7 +192,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             addInterface("if2", 2000, ip)
 
             Then("the min MTU should be updated")
-            DatapathController.minMtu should be (2000 - VxLanTunnelPort.TunnelOverhead)
+            DatapathController.minMtu should be (2000 - VxLanTunnelPort.TUNNEL_OVERHEAD)
         }
 
         scenario("Ports are created and removed based on bindings") {
