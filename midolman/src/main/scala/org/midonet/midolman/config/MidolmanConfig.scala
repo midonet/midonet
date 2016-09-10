@@ -26,7 +26,6 @@ import org.midonet.cluster.storage.{CassandraConfig,MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 
 object MidolmanConfig {
-    val DEFAULT_MTU: Short = 1500
 
     def forTests = new MidolmanConfig(MidoTestConfigurator.forAgents())
 
