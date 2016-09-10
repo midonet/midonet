@@ -36,7 +36,7 @@ public class VxLanTunnelPort extends DpPort {
      *  +  8B vxlan header length
      *  = 50B
      */
-    public static final int TunnelOverhead = 50;
+    public static final int TUNNEL_OVERHEAD = 50;
 
     private short dstPort;
 
