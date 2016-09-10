@@ -32,7 +32,6 @@ import org.midonet.services.flowstate.FlowStateService
 import org.midonet.services.rest_api.RestApiService
 
 object MidolmanConfig {
-    val DEFAULT_MTU: Short = 1500
 
     def forTests = new MidolmanConfig(MidoTestConfigurator.forAgents())
 
