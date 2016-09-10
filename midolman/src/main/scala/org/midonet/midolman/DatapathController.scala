@@ -109,23 +109,23 @@ object DatapathController extends Referenceable {
     // Default MTU supported by the underlay accounting for the tunnel overhead.
     // This value is just a reference in case there are no tunnel interfaces
     // configured.
-    private[midolman] var defaultMtu: Short = _
+    private[midolman] var defaultMtu: Int = _
 
     /**
      * This message is sent when the separate thread has successfully
      * retrieved all information about the interfaces.
      */
-    case class InterfacesUpdate_(interfaces: Set[InterfaceDescription])
+    case class InterfacesUpdate(interfaces: Set[InterfaceDescription])
 
     // Signals that the tunnel ports have been created
-    case object TunnelPortsCreated_
+    case object TunnelPortsCreated
 
     /**
       * Minimum MTU supported by the underlay considering all configured tunnel
       * interfaces and accounting for the tunnel overhead. VM interfaces should
       * not have an MTU higher than this minMtu to avoid fragmentation.
       */
-    @volatile var minMtu: Short = _
+    @volatile var minMtu: Int = _
 }
 
 
@@ -169,11 +169,9 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     override def logSource = "org.midonet.datapath-control"
 
-    var zones = Map[UUID, IPAddr]()
-
-    var cachedInterfaces: Set[InterfaceDescription] = _
-
-    var portWatcher: Subscription = null
+    private var tunnelZones = Map[UUID, IPAddr]()
+    private var cachedInterfaces: Set[InterfaceDescription] = _
+    private var portWatcher: Subscription = _
     private val tzSubscriptions = new mutable.HashMap[UUID, Subscription]
 
     override def preStart(): Unit = {
@@ -197,7 +195,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     private def initialize(): Unit = {
         context become {
-            case TunnelPortsCreated_ =>
+            case TunnelPortsCreated =>
                 subscribeToHost(hostIdProvider.hostId)
             case host: ResolvedHost =>
                 log.info("Initialization complete")
@@ -212,7 +210,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                             log.error(s"Interface scanner got an error: $t")
 
                         def onNext(data: Set[InterfaceDescription]): Unit =
-                            self ! InterfacesUpdate_(data)
+                            self ! InterfacesUpdate(data)
                     })
             case m =>
                 log.info(s"Not handling $m (still initializing)")
@@ -245,16 +243,16 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             }
         } map { recircPort =>
             driver.hostRecircPort = recircPort
-            TunnelPortsCreated_
+            TunnelPortsCreated
         } pipeTo self
     }
 
     private def makePort[P <: DpPort](t: ChannelType)(portFact: () => P)
-                                           (implicit tag: ClassTag[P]): Future[P] =
+                                     (implicit tag: ClassTag[P]): Future[P] =
         upcallConnManager.createAndHookDpPort(driver.datapath, portFact(), t) map {
             case (p, _) => p.asInstanceOf[P]
         } recoverWith { case ex: Throwable =>
-            log.warn(tag + " creation failed: => retrying", ex)
+            log.warn(tag + " creation failed: retrying", ex)
             after(1 second, system.scheduler)(makePort(t)(portFact))
         }
 
@@ -279,10 +277,10 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     override def receive: Receive = super.receive orElse {
         case host: ResolvedHost =>
-            val oldZones = zones
+            val oldZones = tunnelZones
             val newZones = host.zones
 
-            zones = newZones
+            tunnelZones = newZones
 
             updateVportInterfaceBindings(host.ports)
             doDatapathZonesUpdate(oldZones, newZones)
@@ -293,14 +291,14 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
         case m@TunnelZoneUpdate(zone, zoneType, hostId, address, op) =>
             log.debug("Tunnel zone changed: {}", m)
-            if (zones contains zone)
+            if (tunnelZones contains zone)
                 handleZoneChange(zone, zoneType, hostId, address, op)
 
         case OnCompleted => // A tunnel-zone was deleted
 
         case OnError(e) => // A tunnel-zone emitted an error
 
-        case InterfacesUpdate_(interfaces) =>
+        case InterfacesUpdate(interfaces) =>
             cachedInterfaces = interfaces
             updateInterfaces(interfaces)
             setTunnelMtu(interfaces)
@@ -326,7 +324,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             processTags(driver.removePeer(peerUUID, zone))
 
         def processAddPeer() =
-            (zones.get(zone), address) match {
+            (tunnelZones.get(zone), address) match {
                 case (Some(srcIp: IPv4Addr), ipv4Address: IPv4Addr) =>
                     val dstIp = ipv4Address.toInt
                     val tags = driver.addPeer(peerUUID, zone, srcIp.toInt, dstIp,
@@ -374,29 +372,33 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     }
 
     private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
-        var minTunnelMtu = Short.MaxValue
-        val overhead = VxLanTunnelPort.TunnelOverhead
+        var minTunnelMtu = Int.MaxValue
+        val overhead = VxLanTunnelPort.TUNNEL_OVERHEAD
 
         // Check the interfaces associated to a tunnel zone (tunnel interface).
-        for { intf <- interfaces.asScala
-              inetAddress <- intf.getInetAddresses.asScala
-              zone <- zones
-              if InetAddress.getByAddress(zone._2.toBytes) == inetAddress
+        for { interface <- interfaces.asScala if interface.getInetAddresses ne null
+              inetAddress <- interface.getInetAddresses.asScala
+              zone <- tunnelZones
+              if InetAddress.getByAddress(zone._2.toBytes) == inetAddress &&
+                 interface.getMtu > 0
         } {
             // Keep the minimum of those accounting for the tunnel overhead
-            val tunnelMtu = (intf.getMtu - overhead).toShort
+            val tunnelMtu = interface.getMtu - overhead
             minTunnelMtu = minTunnelMtu.min(tunnelMtu)
         }
 
-        if (minTunnelMtu == Short.MaxValue) {
+        if (minTunnelMtu == Int.MaxValue) {
             if (minMtu != defaultMtu) {
                 log.info(
-                    s"There is no interface in any tunnel zone. Updating " +
-                    s"underlay MTU to default value $defaultMtu.")
+                    s"There is no interface in any tunnel zone: updating " +
+                    s"underlay MTU to default value $defaultMtu")
                 minMtu = defaultMtu
             }
         } else if (minMtu != minTunnelMtu) {
-            log.info(s"Updating underlay MTU from $minMtu to $minTunnelMtu.")
+            if (minTunnelMtu > 0xffff) {
+                minTunnelMtu = 0xffff
+            }
+            log.info(s"Updating underlay MTU from $minMtu to $minTunnelMtu")
             minMtu = minTunnelMtu
         } // else => no change on the minimum mtu
     }
@@ -453,10 +455,11 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
      *  this map stores all the possible underlay routes from this host
      *  to remote midolman host, with the tunnelling output action.
      */
-    var _peersRoutes = Map[UUID,Map[UUID,Route]]()
+    private var peersRoutes = Map[UUID, Map[UUID, Route]]()
 
-    override def peerTunnelInfo(peer: UUID) =
-        _peersRoutes get peer flatMap { _.values.headOption }
+    override def peerTunnelInfo(peer: UUID): Option[Route] = {
+        peersRoutes get peer flatMap {_.values.headOption}
+    }
 
     /** add route info about peer for given zone and retrieve ip for this host
      *  and for this zone from dpState.
@@ -476,13 +479,13 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
         }
 
         val newRoute = Route(srcIp, dstIp, outputAction)
-        log.info(s"new tunnel route $newRoute to peer $peer")
+        log.info(s"New tunnel route $newRoute to peer $peer")
 
-        val routes = _peersRoutes getOrElse (peer, Map[UUID,Route]())
+        val routes = peersRoutes getOrElse(peer, Map[UUID,Route]())
         // invalidate the old route if overwrite
         val oldRoute = routes get zone
 
-        _peersRoutes += ( peer -> ( routes + (zone -> newRoute) ) )
+        peersRoutes += (peer -> (routes + (zone -> newRoute)))
         val tags = FlowTagger.tagForTunnelRoute(srcIp, dstIp) :: Nil
 
         oldRoute.fold(tags) { case Route(src, dst, _) =>
@@ -495,21 +498,22 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
      *  @param  zone  zone UUID the underlay route to remove is associated to.
      *  @return possible tag to send to the FlowController for invalidation
      */
-    def removePeer(peer: UUID, zone: UUID): Option[FlowTag] =
-        (_peersRoutes get peer) flatMap { _ get zone } map {
-            case r@Route(srcIp,dstIp,_) =>
-                log.info(s"removing tunnel route $r to peer $peer")
-                    // TODO(hugo): remove nested map if becomes empty (mem leak)
-                    _peersRoutes += (peer -> (_peersRoutes(peer) - zone))
-                    FlowTagger.tagForTunnelRoute(srcIp,dstIp)
-                }
+    def removePeer(peer: UUID, zone: UUID): Option[FlowTag] = {
+        peersRoutes get peer flatMap { _ get zone } map {
+            case r@Route(srcIp, dstIp, _) =>
+                log.info(s"Removing tunnel route $r to peer $peer")
+                // TODO(hugo): remove nested map if becomes empty (mem leak)
+                peersRoutes += (peer -> (peersRoutes(peer) - zone))
+                FlowTagger.tagForTunnelRoute(srcIp, dstIp)
+        }
+    }
 
     /** delete all tunnel routes associated with a given zone
      *  @param  zone zone uuid
      *  @return sequence of tags to send to the FlowController for invalidation
      */
     def removePeersForZone(zone: UUID): Seq[FlowTag] =
-        _peersRoutes.keys.toSeq.flatMap{ removePeer(_, zone) }
+        peersRoutes.keys.toSeq.flatMap{ removePeer(_, zone) }
 
     override def getDpPortNumberForVport(vportId: UUID): JInteger = {
         val triad = vportToTriad.get(vportId)
