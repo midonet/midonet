@@ -26,13 +26,13 @@ import org.midonet.util.process.ProcessHelper.ProcessResult
 trait BgpdProcess {
     def vty: BgpConnection
     def prepare(iface: Option[String] = None): Unit
+    def start(): Unit
     def stop(): Boolean
     def isAlive: Boolean
-    def start(): Unit
-    def assignAddr(iface: String, ip: String, mac: String): Unit
-    def remAddr(iface: String, ip: String): Unit
+    def addAddress(iface: String, ip: String, mac: String): Unit
+    def removeAddress(iface: String, ip: String): Unit
     def addArpEntry(iface: String, ip: String, mac: String, peerIp: String): Unit
-    def remArpEntry(iface: String, ip: String, peerIp: String): Unit
+    def removeArpEntry(iface: String, ip: String, peerIp: String): Unit
 }
 
 case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
@@ -46,24 +46,24 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
     override def logSource = "org.midonet.routing.bgp.bgp-daemon"
     override def logMark = s"bgp:$portId:$bgpIndex"
 
-    val vty = new BgpVtyConnection(portId, bgpIndex,
-                                   remoteVtyIp.getAddress.toString,
-                                   vtyPortNumber)
+    override val vty = new BgpVtyConnection(portId, bgpIndex,
+                                            remoteVtyIp.getAddress.toString,
+                                            vtyPortNumber)
 
     val router = routerId.getOrElse("")
 
     private var bgpdProcess: Process = null
 
-    private val LOGDIR: String = {
-        var logdir = "/var/log/midolman"
+    private val logDirectory: String = {
+        var logDirectory = "/var/log/midolman"
         try {
             val prop = System.getProperty("midolman.log.dir")
             if (prop ne null)
-                logdir = prop
+                logDirectory = prop
         } catch {
             case _: Throwable => // ignored
         }
-        logdir
+        logDirectory
     }
 
     private def logProcOutput(res: ProcessResult, f: (String) => Unit): Unit = {
@@ -72,65 +72,7 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
             f(it.next())
     }
 
-    def assignAddr(iface: String, ip: String, mac: String): Unit = {
-        val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip $mac " +
-                  s"$router"
-        log.debug(s"BGP daemon command line: $cmd")
-        val result = ProcessHelper.executeCommandLine(cmd, true)
-        result.returnValue match {
-            case 0 =>
-                logProcOutput(result, s => log.debug(s))
-                log.debug(s"Successfully added address $ip to $iface")
-            case err =>
-                logProcOutput(result, s => log.info(s))
-                log.info(s"Failed to added address $ip to $iface")
-        }
-    }
-
-    def remAddr(iface: String, ip: String): Unit = {
-        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router"
-        log.debug(s"BGP daemon command line: $cmd")
-        val result = ProcessHelper.executeCommandLine(cmd, true)
-        result.returnValue match {
-            case 0 =>
-                logProcOutput(result, s => log.debug(s))
-                log.debug(s"Successfully removed address $ip from $iface")
-            case err =>
-                logProcOutput(result, s => log.info(s))
-                log.info(s"Failed to remove address $ip from $iface")
-        }
-    }
-
-    def addArpEntry(iface: String, ip: String, mac: String, peerIp: String): Unit = {
-        val cmd = s"$bgpdHelperScript add_arp $bgpIndex $iface $ip $mac " +
-                  s"$router $peerIp"
-        log.debug(s"bgpd command line: $cmd")
-        val result = ProcessHelper.executeCommandLine(cmd, true)
-        result.returnValue match {
-            case 0 =>
-                logProcOutput(result, s => log.debug(s))
-                log.debug(s"Successfully added ARP entry $ip -> $mac to $iface")
-            case err =>
-                logProcOutput(result, s => log.info(s))
-                log.info(s"Failed to add ARP entry $ip -> $mac to $iface")
-        }
-    }
-
-    def remArpEntry(iface: String, ip: String, peerIp: String): Unit = {
-        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router $peerIp"
-        log.debug(s"bgpd command line: $cmd")
-        val result = ProcessHelper.executeCommandLine(cmd, true)
-        result.returnValue match {
-            case 0 =>
-                logProcOutput(result, s => log.debug(s))
-                log.debug(s"Successfully removed ARP entry $ip from $iface")
-            case err =>
-                logProcOutput(result, s => log.info(s))
-                log.info(s"Failed to remove ARP entry $ip from $iface")
-        }
-    }
-
-    def prepare(iface: Option[String] = None): Unit = {
+    override def prepare(iface: Option[String] = None): Unit = {
         val ifaceOpt = iface.getOrElse("")
         val cmd = s"$bgpdHelperScript prepare $bgpIndex $localVtyIp " +
                   s"$remoteVtyIp $routerIp $routerMac $ifaceOpt $router"
@@ -147,50 +89,9 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
         }
     }
 
-    def stop(): Boolean = {
-        vty.close()
-
-        val cmd = s"$bgpdHelperScript down $bgpIndex $router"
-        log.debug(s"BGP daemon command line: $cmd")
-        val result = ProcessHelper.executeCommandLine(cmd, true)
-        result.returnValue match {
-            case 0 =>
-                logProcOutput(result, s => log.debug(s))
-                log.debug(s"BGP daemon stopped successfully")
-                true
-            case err =>
-                logProcOutput(result, s => log.info(s))
-                log.warn(s"BGP daemon failed to stop, exit status $err")
-                false
-        }
-    }
-
-    def isAlive: Boolean = {
-        if (bgpdProcess ne null) {
-            try {
-                bgpdProcess.exitValue()
-                false
-            } catch {
-                case e: IllegalThreadStateException => true
-            }
-        } else {
-            false
-        }
-    }
-
-    private def connectVty(retries: Int = 10): Unit = {
-        try {
-            vty.open()
-        } catch {
-            case e: Exception if retries > 0 =>
-                Thread.sleep(500)
-                connectVty(retries - 1)
-        }
-    }
-
-    def start(): Unit = {
+    override def start(): Unit = {
         val cmd = s"$bgpdHelperScript up $bgpIndex $vtyPortNumber $confFile " +
-                  s"$LOGDIR $router"
+                  s"$logDirectory $router"
 
         log.debug(s"Starting BGP daemon process VTY: $vtyPortNumber")
         log.debug(s"BGP daemon command line: $cmd")
@@ -219,4 +120,105 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
             throw new Exception("BGP daemon subprocess failed to start")
         }
     }
+
+    override def stop(): Boolean = {
+        vty.close()
+
+        val cmd = s"$bgpdHelperScript down $bgpIndex $router"
+        log.debug(s"BGP daemon command line: $cmd")
+        val result = ProcessHelper.executeCommandLine(cmd, true)
+        result.returnValue match {
+            case 0 =>
+                logProcOutput(result, s => log.debug(s))
+                log.debug(s"BGP daemon stopped successfully")
+                true
+            case err =>
+                logProcOutput(result, s => log.info(s))
+                log.warn(s"BGP daemon failed to stop, exit status $err")
+                false
+        }
+    }
+
+    override def addAddress(iface: String, ip: String, mac: String): Unit = {
+        val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip $mac " +
+                  s"$router"
+        log.debug(s"BGP daemon command line: $cmd")
+        val result = ProcessHelper.executeCommandLine(cmd, true)
+        result.returnValue match {
+            case 0 =>
+                logProcOutput(result, s => log.debug(s))
+                log.debug(s"Successfully added address $ip to $iface")
+            case err =>
+                logProcOutput(result, s => log.info(s))
+                log.info(s"Failed to added address $ip to $iface")
+        }
+    }
+
+    override def removeAddress(iface: String, ip: String): Unit = {
+        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router"
+        log.debug(s"BGP daemon command line: $cmd")
+        val result = ProcessHelper.executeCommandLine(cmd, true)
+        result.returnValue match {
+            case 0 =>
+                logProcOutput(result, s => log.debug(s))
+                log.debug(s"Successfully removed address $ip from $iface")
+            case err =>
+                logProcOutput(result, s => log.info(s))
+                log.info(s"Failed to remove address $ip from $iface")
+        }
+    }
+
+    override def addArpEntry(iface: String, ip: String, mac: String,
+                             peerIp: String): Unit = {
+        val cmd = s"$bgpdHelperScript add_arp $bgpIndex $iface $ip $mac " +
+                  s"$router $peerIp"
+        log.debug(s"bgpd command line: $cmd")
+        val result = ProcessHelper.executeCommandLine(cmd, true)
+        result.returnValue match {
+            case 0 =>
+                logProcOutput(result, s => log.debug(s))
+                log.debug(s"Successfully added ARP entry $ip -> $mac to $iface")
+            case err =>
+                logProcOutput(result, s => log.info(s))
+                log.info(s"Failed to add ARP entry $ip -> $mac to $iface")
+        }
+    }
+
+    override def removeArpEntry(iface: String, ip: String, peerIp: String): Unit = {
+        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router $peerIp"
+        log.debug(s"bgpd command line: $cmd")
+        val result = ProcessHelper.executeCommandLine(cmd, true)
+        result.returnValue match {
+            case 0 =>
+                logProcOutput(result, s => log.debug(s))
+                log.debug(s"Successfully removed ARP entry $ip from $iface")
+            case err =>
+                logProcOutput(result, s => log.info(s))
+                log.info(s"Failed to remove ARP entry $ip from $iface")
+        }
+    }
+
+    override def isAlive: Boolean = {
+        if (bgpdProcess ne null) {
+            try {
+                bgpdProcess.exitValue()
+                false
+            } catch {
+                case e: IllegalThreadStateException => true
+            }
+        } else {
+            false
+        }
+    }
+
+    private def connectVty(retries: Int = 10): Unit = {
+        try {
+            vty.open()
+        } catch {
+            case e: Exception if retries > 0 =>
+                Thread.sleep(500)
+                connectVty(retries - 1)
+        }
+    }
+
 }
