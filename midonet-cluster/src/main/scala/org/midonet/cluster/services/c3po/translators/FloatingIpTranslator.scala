@@ -159,6 +159,22 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         ops += Create(dnatRule)
         ops += Create(reverseIcmpDnatRule)
 
+        if (!isGwPort) {
+            // Note: this rule can be per FIP-processing router ports,
+            // not per FIP.  however, currently there's no scalable way to
+            // find FIPs handled by the same router port.
+            val skipSnatRule = Rule.newBuilder
+                .setId(fipSkipSnatRuleId(fip.getId))
+                .setChainId(skipSnatChainId(rId))
+                .setType(Rule.Type.LITERAL_RULE)
+                .setAction(Rule.Action.ACCEPT)
+                .setFipPortId(fip.getPortId)
+                .setCondition(anyFragCondition.addInPortIds(rtrPortId))
+                .build()
+
+            ops += Create(skipSnatRule)
+        }
+
         // When an update changes the FIP's association from one port to another
         // behind the same router, the DNAT and SNAT rules' IDs will already be
         // in the chains' rule ID lists, because the changes that disassociated
@@ -203,7 +219,6 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         ops += Update(prependOrAppend(removeIfExist(floatSnatChain,
                                                     snatRule.getId),
                                       snatRule.getId, isGwPort))
-
         ops.toList
     }
 
@@ -284,6 +299,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         List(Delete(classOf[Rule], fipSnatRuleId(fip.getId)),
              Delete(classOf[Rule], fipSnatExactRuleId(fip.getId)),
              Delete(classOf[Rule], fipDnatRuleId(fip.getId)),
-             Delete(classOf[Rule], fipReverseDnatRuleId(fip.getId)))
+             Delete(classOf[Rule], fipReverseDnatRuleId(fip.getId)),
+             Delete(classOf[Rule], fipSkipSnatRuleId(fip.getId)))
     }
 }
