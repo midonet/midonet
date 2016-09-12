@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_19be6dae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-12T15:59:40Z",
+      "side": 1,
+      "message": "Maybe protect also for a lower bound now that you check for the upper bound.\n\nMath.min(Math.max(config, 0), 0xffff)",
+      "range": {
+        "startLine": 79,
+        "startChar": 18,
+        "endLine": 79,
+        "endChar": 72
+      },
+      "revId": "d8d6f7631a338a43411edb6d33b87749bd19f4de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
