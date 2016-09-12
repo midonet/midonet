@@ -584,9 +584,9 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
 
                 (subnet.getInterfaceMTU match {
                     case 0 =>
-                        Some(Math.min(configMtu, underlayMtu).toShort)
-                    case subnetMtu: Short =>
-                        Some(Math.min(subnetMtu, underlayMtu).toShort)
+                        Some(Math.min(configMtu, underlayMtu))
+                    case subnetMtu =>
+                        Some(Math.min(subnetMtu.toInt & 0xffff, underlayMtu))
                 }) match {
                     case Some(minMtu) =>
                         interfaceMtu = minMtu
