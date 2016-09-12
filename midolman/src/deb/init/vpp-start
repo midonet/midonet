@@ -17,14 +17,6 @@
 # This is a script that will create the configuration file for the VPP
 # subprocess and execute it.
 
-if [ -z "$MIDO_CFG" ]; then
-    MIDO_CFG=/etc/midolman
-fi
-
-if [ -z "$MIDO_LOG_DIR" ]; then
-    MIDO_LOG_DIR=/var/log/midolman
-fi
-
 if [ -z "$VPP_CLI_PORT" ]; then
     VPP_CLI_PORT=5002
 fi
