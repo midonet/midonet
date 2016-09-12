@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_d36c64d2",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-12T07:46:13Z",
+      "side": 1,
+      "message": "I think Xavi had a reason to start the agent services process as soon as possible after initialization. I am adding him to review. Otherwise it looks fine to me.",
+      "range": {
+        "startLine": 184,
+        "startChar": 8,
+        "endLine": 184,
+        "endChar": 29
+      },
+      "revId": "8ba590187bdb8e5c91ed6fb2a55f1b09c60ca162",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
