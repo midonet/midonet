@@ -63,6 +63,10 @@ object MidonetBackend {
     final val NsdbErrorCodeGraceTimeExpired = 7453
     final val NsdbErrorCodeSessionExpired = 7454
 
+    // Useful for allowing Midolman to double up as the cluster, which can be
+    // used in testing
+    def pretendToBeCluster() = { isCluster = true }
+
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet core. It also executes a provided setup function
       * and, if a Reflections object is provided, this method searches the
