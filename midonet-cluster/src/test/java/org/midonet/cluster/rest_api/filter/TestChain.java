@@ -171,6 +171,113 @@ public class TestChain extends RestApiTestBase {
         // TODO: 5) Set a chain as a filter on the other tenant's port.
     }
 
+    @Test
+    public void testDeleteJumpChainDeletesJumpRule() {
+        DtoApplication app = topology.getApplication();
+
+        ClientResponse response;
+
+        // Create a chain.
+        DtoRuleChain chain = new DtoRuleChain();
+        chain.setName("main-chain");
+        chain.setTenantId("tenant1");
+        response = resource().uri(app.getChains())
+            .type(APPLICATION_CHAIN_JSON())
+            .post(ClientResponse.class, chain);
+        assertEquals("The chain was created.", 201, response.getStatus());
+        chain = resource().uri(response.getLocation())
+            .accept(APPLICATION_CHAIN_JSON()).get(DtoRuleChain.class);
+
+        // Create a jump chain.
+        DtoRuleChain jumpChain = new DtoRuleChain();
+        jumpChain.setName("jump-chain");
+        jumpChain.setTenantId("tenant1");
+        response = resource().uri(app.getChains())
+            .type(APPLICATION_CHAIN_JSON())
+            .post(ClientResponse.class, jumpChain);
+        assertEquals("The chain was created.", 201, response.getStatus());
+        jumpChain = resource().uri(response.getLocation())
+            .accept(APPLICATION_CHAIN_JSON()).get(DtoRuleChain.class);
+
+        // Add a jump rule to the first chain.
+        DtoRule jumpRule = new DtoRule();
+        jumpRule.setPosition(1);
+        jumpRule.setJumpChainName("Chain2");
+        jumpRule.setJumpChainId(jumpChain.getId());
+        jumpRule.setType(DtoRule.Jump);
+        response = resource().uri(chain.getRules())
+            .type(APPLICATION_RULE_JSON_V2())
+            .post(ClientResponse.class, jumpRule);
+        assertEquals("The jump rule was created.", 201, response.getStatus());
+        jumpRule = resource().uri(response.getLocation())
+            .accept(APPLICATION_RULE_JSON_V2()).get(DtoRule.class);
+
+        // Delete the jump chain.
+        response = resource().uri(jumpChain.getUri()).delete(ClientResponse.class);
+        assertEquals(204, response.getStatus());
+
+        // The jump rule should be deleted.
+        response = resource().uri(jumpRule.getUri())
+            .accept(APPLICATION_RULE_JSON_V2()).get(ClientResponse.class);
+        assertEquals(404, response.getStatus());
+
+        // The main chain should have no rules.
+        DtoRule[] rules = resource().uri(chain.getRules())
+            .accept(APPLICATION_RULE_COLLECTION_JSON_V2())
+            .get(DtoRule[].class);
+        assertEquals(0, rules.length);
+    }
+
+    @Test
+    public void testDeleteJumpRuleRemovesReferenceFromJumpChain() {
+        DtoApplication app = topology.getApplication();
+
+        ClientResponse response;
+
+        // Create a chain.
+        DtoRuleChain chain = new DtoRuleChain();
+        chain.setName("main-chain");
+        chain.setTenantId("tenant1");
+        response = resource().uri(app.getChains())
+            .type(APPLICATION_CHAIN_JSON())
+            .post(ClientResponse.class, chain);
+        assertEquals("The chain was created.", 201, response.getStatus());
+        chain = resource().uri(response.getLocation())
+            .accept(APPLICATION_CHAIN_JSON()).get(DtoRuleChain.class);
+
+        // Create a jump chain.
+        DtoRuleChain jumpChain = new DtoRuleChain();
+        jumpChain.setName("jump-chain");
+        jumpChain.setTenantId("tenant1");
+        response = resource().uri(app.getChains())
+            .type(APPLICATION_CHAIN_JSON())
+            .post(ClientResponse.class, jumpChain);
+        assertEquals("The chain was created.", 201, response.getStatus());
+        jumpChain = resource().uri(response.getLocation())
+            .accept(APPLICATION_CHAIN_JSON()).get(DtoRuleChain.class);
+
+        // Add a jump rule to the first chain.
+        DtoRule jumpRule = new DtoRule();
+        jumpRule.setPosition(1);
+        jumpRule.setJumpChainName("main-chain");
+        jumpRule.setJumpChainId(jumpChain.getId());
+        jumpRule.setType(DtoRule.Jump);
+        response = resource().uri(chain.getRules())
+            .type(APPLICATION_RULE_JSON_V2())
+            .post(ClientResponse.class, jumpRule);
+        assertEquals("The jump rule was created.", 201, response.getStatus());
+        jumpRule = resource().uri(response.getLocation())
+            .accept(APPLICATION_RULE_JSON_V2()).get(DtoRule.class);
+
+        // Delete the jump rule.
+        response = resource().uri(jumpRule.getUri()).delete(ClientResponse.class);
+        assertEquals(204, response.getStatus());
+
+        // Delete the jump chain.
+        response = resource().uri(jumpChain.getUri()).delete(ClientResponse.class);
+        assertEquals(204, response.getStatus());
+    }
+
     private DtoBridge getStockBridge(String name, UUID inbound, UUID outbound) {
         DtoBridge bridge = new DtoBridge();
         UUID bId = UUID.randomUUID();
