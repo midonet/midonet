@@ -23,7 +23,7 @@ class GitPropertiesPlugin implements Plugin<Project> {
         project.task('gitProps', group: 'Build') << {
             this.propsFile = new File(project.ext.gitPropertiesPath)
             project.exec {
-                commandLine 'git describe'.split()
+                commandLine 'git describe --always'.split()
                 standardOutput = new ByteArrayOutputStream()
                 this.describe = { standardOutput.toString().trim() }
                 workingDir project.projectDir
