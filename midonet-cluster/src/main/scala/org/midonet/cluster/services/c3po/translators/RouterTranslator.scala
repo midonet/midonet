@@ -297,12 +297,17 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
             .setAction(Action.ACCEPT)
             .setChainId(skipSnatChainId(r.getId))
             .setCondition(anyFragCondition.addInPortIds(tenantGwPortId))
+        def dstRewrittenSnatRuleBuilder() =
+            outRuleBuilder(dstRewrittenSnatRuleId(r.getId))
+            .setCondition(anyFragCondition.setMatchNwDstRewritten(true))
+        def applySnat(bldr: Rule.Builder) =
+            bldr.setType(Rule.Type.NAT_RULE)
+                .setAction(Action.ACCEPT)
+                .setNatRuleData(natRuleData(gwIpAddr, dnat = false))
 
-        List(outRuleBuilder(outSnatRuleId(nr.getId))
-                 .setType(Rule.Type.NAT_RULE)
-                 .setAction(Action.ACCEPT)
-                 .setNatRuleData(natRuleData(gwIpAddr, dnat = false))
-                 .setCondition(outRuleConditionBuilder),
+        List(applySnat(outRuleBuilder(outSnatRuleId(nr.getId))
+                 .setCondition(outRuleConditionBuilder)),
+             applySnat(dstRewrittenSnatRuleBuilder()),
              outRuleBuilder(outDropUnmatchedFragmentsRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)
                  .setAction(Action.DROP)
@@ -386,6 +391,8 @@ object RouterTranslator {
         routerId.xorWith(0x928eb605e3e04119L, 0x8c40e4ca90769cf4L)
     def inDropWrongPortTrafficRuleId(routerId: UUID): UUID =
         routerId.xorWith(0xb807509d2fa04b9eL, 0x96b1f45a04e6d128L)
+    def dstRewrittenSnatRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0xf5d39101f0431a3eL, 0xdd7a9236bf83a3e7L)
 
     def skipSnatGwPortRuleId(routerId: UUID): UUID =
         routerId.xorWith(0x6f90386f458e12ffL, 0x6ec14164bde7cee6L)
