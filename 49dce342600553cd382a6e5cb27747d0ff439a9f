@@ -70,6 +70,30 @@
       "revId": "49dce342600553cd382a6e5cb27747d0ff439a9f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3371500d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-12T09:37:38Z",
+      "side": 1,
+      "message": "ah cool, I didn\u0027t see the time of the initial comments.",
+      "parentUuid": "baa041b7_7320f8f8",
+      "range": {
+        "startLine": 139,
+        "startChar": 16,
+        "endLine": 139,
+        "endChar": 46
+      },
+      "revId": "49dce342600553cd382a6e5cb27747d0ff439a9f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
