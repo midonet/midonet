@@ -16,19 +16,6 @@
 
 set -e
 
-# Default values for backwards compatibility
-if [ -z "$MIDO_HOME" ]; then
-    MIDO_HOME=/usr/share/midolman
-fi
-
-if [ -z "$MIDO_CFG" ]; then
-    MIDO_CFG=/etc/midolman
-fi
-
-if [ -z "$MIDO_LOG_DIR" ]; then
-    MIDO_LOG_DIR=/var/log/midolman/
-fi
-
 if [ -z "$MIDO_DB_DIR" ]; then
     MIDO_DB_DIR=/var/db/midolman/
 fi

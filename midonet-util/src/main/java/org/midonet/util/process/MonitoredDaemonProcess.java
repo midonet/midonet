@@ -82,7 +82,9 @@ public class MonitoredDaemonProcess {
             @Override
             public void run() {
                 startEvents.offer(now());
-                process = ProcessHelper.newDaemonProcess(cmd, log, prefix)
+                process = ProcessHelper
+                    .newDaemonProcess(cmd, log, prefix)
+                    .setEnvVariables(System.getenv())
                     .addExitHandler(exitHandler())
                     .run();
                 log.info("Starting {} in process {} at time {}",
