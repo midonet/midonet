@@ -76,7 +76,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     def bgpHoldTime = getDuration(s"$PREFIX.midolman.bgp_holdtime", TimeUnit.SECONDS).toInt
     def bgpConnectRetry = getDuration(s"$PREFIX.midolman.bgp_connect_retry", TimeUnit.SECONDS).toInt
 
-    def dhcpMtu: Short = getInt(s"$PREFIX.midolman.dhcp_mtu").toShort
+    def dhcpMtu = Math.min(getInt(s"$PREFIX.midolman.dhcp_mtu"), 0xffff)
     def simulationThreads = getInt(s"$PREFIX.midolman.simulation_threads")
     def maxPooledContexts = getInt(s"$PREFIX.midolman.max_pooled_contexts")
     def outputChannels = getInt(s"$PREFIX.midolman.output_channels")
