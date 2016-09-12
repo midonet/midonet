@@ -123,12 +123,31 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
 
     private def linkType(link: Link): InterfaceDescription.Type =
         link.ifi.`type` match {
-            case Link.Type.ARPHRD_LOOPBACK =>
+            case Link.Type.ARPHRD_ETHER |
+                 Link.Type.ARPHRD_EETHER |
+                 Link.Type.ARPHRD_IEEE802 |
+                 Link.Type.ARPHRD_DLCI |
+                 Link.Type.ARPHRD_ATM |
+                 Link.Type.ARPHRD_IEEE1394 |
+                 Link.Type.ARPHRD_X25 |
+                 Link.Type.ARPHRD_FDDI |
+                 Link.Type.ARPHRD_FCPP |
+                 Link.Type.ARPHRD_FCAL |
+                 Link.Type.ARPHRD_FCPL |
+                 Link.Type.ARPHRD_FCFABRIC |
+                 Link.Type.ARPHRD_IEEE80211 =>
+                InterfaceDescription.Type.PHYS
+            case Link.Type.ARPHRD_NETROM |
+                 Link.Type.ARPHRD_LOOPBACK =>
                 InterfaceDescription.Type.VIRT
-            case Link.Type.ARPHRD_NONE | Link.Type.ARPHRD_VOID =>
-                InterfaceDescription.Type.UNKNOWN
+            case Link.Type.ARPHRD_TUNNEL |
+                 Link.Type.ARPHRD_TUNNEL6 |
+                 Link.Type.ARPHRD_IPDDP |
+                 Link.Type.ARPHRD_IPGRE |
+                 Link.Type.ARPHRD_IP6GRE =>
+                InterfaceDescription.Type.TUNN
             case _ =>
-                InterfaceDescription.Type.VIRT
+                InterfaceDescription.Type.UNKNOWN
         }
 
     private def linkEndpoint(link: Link): InterfaceDescription.Endpoint = {
