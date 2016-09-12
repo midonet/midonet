@@ -46,6 +46,30 @@
       "revId": "e948aaf10b4081a78149425bb9414d9e86ee7773",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b342000e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-12T08:14:02Z",
+      "side": 1,
+      "message": "But I think that you can already do that.",
+      "parentUuid": "baa041b7_33b3904f",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 20
+      },
+      "revId": "e948aaf10b4081a78149425bb9414d9e86ee7773",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
