@@ -22,6 +22,30 @@
       "revId": "49dce342600553cd382a6e5cb27747d0ff439a9f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_933edc27",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-12T09:22:15Z",
+      "side": 1,
+      "message": "From what I understand, it was falling under the default case for some physical one, where it was set as virtual, check lines 130-131 in the original file",
+      "parentUuid": "baa041b7_53da9418",
+      "range": {
+        "startLine": 139,
+        "startChar": 16,
+        "endLine": 139,
+        "endChar": 46
+      },
+      "revId": "49dce342600553cd382a6e5cb27747d0ff439a9f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
