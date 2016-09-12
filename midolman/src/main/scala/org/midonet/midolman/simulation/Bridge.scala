@@ -160,10 +160,7 @@ class Bridge(val id: UUID,
             else
                 handleL2Unicast() // including ARP replies
 
-        if (areChainsApplicable())
-            doPostBridging(context, action)
-        else
-            action
+        doPostBridging(context, action)
     }
 
     val normalProcess = ContinueWith(context => {
@@ -484,7 +481,10 @@ class Bridge(val id: UUID,
             case _ =>
         }
 
-        val result = filterOut(context, act.simStep)
+        val result =
+            if (areChainsApplicable()) filterOut(context, act.simStep)
+            else act
+
         if (result eq act)
             mirroringPostOutFilter(context, result)
         else
