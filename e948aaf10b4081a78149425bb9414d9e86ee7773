@@ -22,6 +22,30 @@
       "revId": "e948aaf10b4081a78149425bb9414d9e86ee7773",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_33b3904f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-12T07:57:28Z",
+      "side": 1,
+      "message": "I dont want to actually start the cluster service and midolman in the same process, but just allow the midolman process to store stuff (ports, routers, chains) in the cluster topology. If anyone did this, they would also have to run an embedded ZK in the process as well.\n\nIt would be something similar to this:\n\nhttps://review.gerrithub.io/#/c/254386/1/midolman/src/main/scala/org/midonet/TestMidolman.scala",
+      "parentUuid": "baa041b7_536174d2",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 20
+      },
+      "revId": "e948aaf10b4081a78149425bb9414d9e86ee7773",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
