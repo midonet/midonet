@@ -160,10 +160,7 @@ class Bridge(val id: UUID,
             else
                 handleL2Unicast() // including ARP replies
 
-        if (areChainsApplicable())
-            doPostBridging(context, action)
-        else
-            action
+        doPostBridging(context, action)
     }
 
     val normalProcess = ContinueWith(context => {
@@ -191,8 +188,9 @@ class Bridge(val id: UUID,
      * Tells if chains should be executed for the current frames. So far, all
      * will be, except those with a VLAN tag.
      */
-    private def areChainsApplicable()(implicit context: PacketContext) =
+    private def areChainsApplicable()(implicit context: PacketContext) = {
         !context.wcmatch.isVlanTagged
+    }
 
     /**
       * Used by normalProcess to deal with L2 Unicast frames, this just decides
@@ -484,7 +482,10 @@ class Bridge(val id: UUID,
             case _ =>
         }
 
-        val result = filterOut(context, act.simStep)
+        val result =
+            if (areChainsApplicable()) filterOut(context, act.simStep)
+            else act
+
         if (result eq act)
             mirroringPostOutFilter(context, result)
         else
