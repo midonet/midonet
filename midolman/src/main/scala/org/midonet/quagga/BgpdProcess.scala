@@ -25,7 +25,7 @@ import org.midonet.util.process.ProcessHelper.ProcessResult
 
 trait BgpdProcess {
     def vty: BgpConnection
-    def prepare(iface: Option[String] = None): Unit
+    def prepare(): Unit
     def start(): Unit
     def stop(): Boolean
     def isAlive: Boolean
@@ -35,24 +35,27 @@ trait BgpdProcess {
     def removeArpEntry(iface: String, ip: String, peerIp: String): Unit
 }
 
-case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
-                              localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
-                              routerIp: IPv4Subnet, routerMac: MAC, vtyPortNumber: Int,
+case class DefaultBgpdProcess(portId: UUID,
+                              routerId: UUID,
+                              name: String,
+                              index: Int,
+                              localVtyIp: IPv4Subnet,
+                              remoteVtyIp: IPv4Subnet,
+                              routerIp: IPv4Subnet,
+                              routerMac: MAC,
+                              vtyPortNumber: Int,
                               bgpdHelperScript: String = "/usr/lib/midolman/bgpd-helper",
-                              confFile: String = "/etc/midolman/quagga/bgpd.conf",
-                              routerId: Option[String])
+                              confFile: String = "/etc/midolman/quagga/bgpd.conf")
     extends BgpdProcess with MidolmanLogging {
 
     override def logSource = "org.midonet.routing.bgp.bgp-daemon"
-    override def logMark = s"bgp:$portId:$bgpIndex"
+    override def logMark = s"bgp:$portId:$index"
 
-    override val vty = new BgpVtyConnection(portId, bgpIndex,
+    override val vty = new BgpVtyConnection(portId, index,
                                             remoteVtyIp.getAddress.toString,
                                             vtyPortNumber)
 
-    val router = routerId.getOrElse("")
-
-    private var bgpdProcess: Process = null
+    private var bgpdProcess: Process = _
 
     private val logDirectory: String = {
         var logDirectory = "/var/log/midolman"
@@ -72,10 +75,9 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
             f(it.next())
     }
 
-    override def prepare(iface: Option[String] = None): Unit = {
-        val ifaceOpt = iface.getOrElse("")
-        val cmd = s"$bgpdHelperScript prepare $bgpIndex $localVtyIp " +
-                  s"$remoteVtyIp $routerIp $routerMac $ifaceOpt $router"
+    override def prepare(): Unit = {
+        val cmd = s"$bgpdHelperScript prepare $name $index $localVtyIp " +
+                  s"$remoteVtyIp $routerIp $routerMac"
         log.debug(s"BGP daemon command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -90,17 +92,13 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
     }
 
     override def start(): Unit = {
-        val cmd = s"$bgpdHelperScript up $bgpIndex $vtyPortNumber $confFile " +
-                  s"$logDirectory $router"
+        val cmd = s"$bgpdHelperScript up $name $index $vtyPortNumber $confFile " +
+                  s"$logDirectory ${routerId.toString.substring(0, 7)}"
 
         log.debug(s"Starting BGP daemon process VTY: $vtyPortNumber")
         log.debug(s"BGP daemon command line: $cmd")
-        val logPrefix = router.length match {
-            case 0 => "bgpd-" + vtyPortNumber
-            case _ => router.substring(0, 7)
-        }
-        val daemonRunConfig =
-            ProcessHelper.newDaemonProcess(cmd, log.underlying, logPrefix)
+        val daemonRunConfig = ProcessHelper.newDaemonProcess(cmd, log.underlying,
+                                                             name)
         bgpdProcess = daemonRunConfig.run()
 
         if (isAlive) {
@@ -124,7 +122,7 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
     override def stop(): Boolean = {
         vty.close()
 
-        val cmd = s"$bgpdHelperScript down $bgpIndex $router"
+        val cmd = s"$bgpdHelperScript down $name $index"
         log.debug(s"BGP daemon command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -140,8 +138,7 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
     }
 
     override def addAddress(iface: String, ip: String, mac: String): Unit = {
-        val cmd = s"$bgpdHelperScript add_addr $bgpIndex $iface $ip $mac " +
-                  s"$router"
+        val cmd = s"$bgpdHelperScript add_addr $name $index $iface $ip $mac"
         log.debug(s"BGP daemon command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -155,7 +152,7 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
     }
 
     override def removeAddress(iface: String, ip: String): Unit = {
-        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router"
+        val cmd = s"$bgpdHelperScript rem_addr $name $index $iface $ip"
         log.debug(s"BGP daemon command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -170,8 +167,8 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
 
     override def addArpEntry(iface: String, ip: String, mac: String,
                              peerIp: String): Unit = {
-        val cmd = s"$bgpdHelperScript add_arp $bgpIndex $iface $ip $mac " +
-                  s"$router $peerIp"
+        val cmd = s"$bgpdHelperScript add_arp $name $index $iface $ip $mac " +
+                  s"$peerIp"
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
@@ -185,7 +182,7 @@ case class DefaultBgpdProcess(portId: UUID, bgpIndex: Int,
     }
 
     override def removeArpEntry(iface: String, ip: String, peerIp: String): Unit = {
-        val cmd = s"$bgpdHelperScript rem_addr $bgpIndex $iface $ip $router $peerIp"
+        val cmd = s"$bgpdHelperScript rem_addr $name $index $iface $ip $peerIp"
         log.debug(s"bgpd command line: $cmd")
         val result = ProcessHelper.executeCommandLine(cmd, true)
         result.returnValue match {
