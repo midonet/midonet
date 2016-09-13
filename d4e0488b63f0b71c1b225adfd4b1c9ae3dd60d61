@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_5f905596",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-13T07:26:24Z",
+      "side": 1,
+      "message": "If subnetMtu has an illegal value isn\u0027t it better to just discard it and use the underlay MTU? (For example: 0x10001 \u0026 0xffff \u003d 1) Not sure if this is a possibility, but just curious",
+      "range": {
+        "startLine": 589,
+        "startChar": 38,
+        "endLine": 589,
+        "endChar": 62
+      },
+      "revId": "d4e0488b63f0b71c1b225adfd4b1c9ae3dd60d61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
