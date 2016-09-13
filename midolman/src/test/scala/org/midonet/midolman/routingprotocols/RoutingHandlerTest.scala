@@ -545,11 +545,11 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
         starts += 1
     }
 
-    override def assignAddr(iface: String, ip: String, mac: String): Unit = {
+    override def addAddress(iface: String, ip: String, mac: String): Unit = {
         currentIps += ip
     }
 
-    override def remAddr(iface: String, ip: String): Unit = {
+    override def removeAddress(iface: String, ip: String): Unit = {
         currentIps -= ip
     }
 
@@ -557,7 +557,7 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
         currentArpEntries += ip
     }
 
-    def remArpEntry(iface: String, ip: String, peerIp: String): Unit = {
+    def removeArpEntry(iface: String, ip: String, peerIp: String): Unit = {
         currentArpEntries -= ip
     }
 }

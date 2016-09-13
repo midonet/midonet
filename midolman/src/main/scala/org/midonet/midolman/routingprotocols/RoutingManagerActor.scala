@@ -192,7 +192,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                 bgpPortIdx += 1
                 val portIndexForHandler = bgpPortIdx
 
-                log.debug(s"Creating routing handler for port {}", port.id)
+                log.debug(s"Starting BGP routing for port {}", port.id)
 
                 val portHandler = context.actorOf(
                     Props(RoutingHandler(port, portIndexForHandler,
@@ -244,7 +244,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     private def stopHandler(portId: UUID): Unit = {
         portHandlers remove portId match {
             case Some(routingHandler) =>
-                log.debug("Stopping port handler for port {}", portId)
+                log.debug("Stopping BGP routing for port {}", portId)
                 context stop routingHandler
             case None => // ignore
         }
