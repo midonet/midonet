@@ -45,6 +45,7 @@ class QuaggaContainer @Inject()(@Named("id") id: UUID,
     extends ContainerHandler with ContainerCommons {
 
     override def logSource = "org.midonet.containers.bgp"
+    override def logMark = s"bgp:$id"
 
     private val statusSubject = PublishSubject.create[ContainerStatus]
 

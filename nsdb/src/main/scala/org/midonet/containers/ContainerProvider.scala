@@ -20,9 +20,10 @@ import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 import com.google.inject.Injector
-import com.typesafe.scalalogging.Logger
 
 import org.reflections.Reflections
+
+import org.midonet.util.logging.Logger
 
 /**
   * A container provider scans all classes of type T on the current classpath

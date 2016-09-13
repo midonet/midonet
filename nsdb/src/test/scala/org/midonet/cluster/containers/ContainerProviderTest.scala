@@ -19,7 +19,6 @@ package org.midonet.cluster.containers
 import scala.reflect.classTag
 
 import com.google.inject.Guice
-import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.reflections.Reflections
@@ -29,6 +28,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.containers.ContainerProviderTest.{ContainerA2, ContainerB}
 import org.midonet.containers.{Container, ContainerProvider}
+import org.midonet.util.logging.Logger
 
 object ContainerProviderTest {
 

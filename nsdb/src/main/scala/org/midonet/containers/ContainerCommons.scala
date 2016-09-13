@@ -20,17 +20,14 @@ import java.io._
 
 import scala.util.control.NonFatal
 
-import com.typesafe.scalalogging.Logger
-
-import org.slf4j.LoggerFactory
+import org.midonet.util.logging.Logging
 
 /**
   * Provides common functions for service containers.
   */
-trait ContainerCommons {
+trait ContainerCommons extends Logging {
 
-    def logSource = getClass.getName
-    val log = Logger(LoggerFactory.getLogger(logSource))
+    override def logSource = getClass.getName
 
     /**
       * Writes the specified string in a text file at the given path.
