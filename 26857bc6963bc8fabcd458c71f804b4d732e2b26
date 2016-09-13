@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_27fea705",
+        "filename": "midolman/src/deb/control/preinst",
+        "patchSetId": 8
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-13T15:26:07Z",
+      "side": 1,
+      "message": "only works for debian. There\u0027s also no need for it here. another running vpp shouldn\u0027t conflict.",
+      "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a712b756",
+        "filename": "midolman/src/deb/init/vpp-start",
+        "patchSetId": 8
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-13T15:26:07Z",
+      "side": 1,
+      "message": "2016",
+      "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_870d7337",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-13T15:26:07Z",
+      "side": 1,
+      "message": "commented out code.",
+      "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
