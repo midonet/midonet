@@ -46,6 +46,30 @@
       "revId": "d4e0488b63f0b71c1b225adfd4b1c9ae3dd60d61",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bf240160",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-13T07:54:11Z",
+      "side": 1,
+      "message": "Ok great! dismiss the comment then",
+      "parentUuid": "baa041b7_1ffd2db1",
+      "range": {
+        "startLine": 589,
+        "startChar": 38,
+        "endLine": 589,
+        "endChar": 62
+      },
+      "revId": "d4e0488b63f0b71c1b225adfd4b1c9ae3dd60d61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
