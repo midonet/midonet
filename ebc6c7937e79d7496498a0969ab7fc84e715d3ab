@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_9f9a5d61",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "All can be final, done.",
+      "parentUuid": "baa041b7_0481644d",
+      "range": {
+        "startLine": 33,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 30
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_24b3484f",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2016-09-12T21:56:23Z",
       "side": 1,
       "message": "So this start method could be called from multiple threads, the original caller thread or the exit handler.",
+      "range": {
+        "startLine": 56,
+        "startChar": 16,
+        "endLine": 56,
+        "endChar": 23
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7fc9d959",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "done, added synchronization.",
+      "parentUuid": "baa041b7_24b3484f",
       "range": {
         "startLine": 56,
         "startChar": 16,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_3ff0f1c8",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a4a6380d",
+      "range": {
+        "startLine": 65,
+        "startChar": 23,
+        "endLine": 65,
+        "endChar": 25
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_64a950dd",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2016-09-12T21:56:23Z",
       "side": 1,
       "message": "The same comment.",
+      "range": {
+        "startLine": 75,
+        "startChar": 21,
+        "endLine": 75,
+        "endChar": 41
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1febeddd",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_64a950dd",
       "range": {
         "startLine": 75,
         "startChar": 21,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d16fb9c2",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "I\u0027m mocking it in the test. Is there any issue with leaving it as a method?",
+      "parentUuid": "baa041b7_049a84c5",
+      "range": {
+        "startLine": 80,
+        "startChar": 4,
+        "endLine": 80,
+        "endChar": 39
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e4832054",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 4
@@ -128,6 +248,30 @@
       "writtenOn": "2016-09-12T21:56:23Z",
       "side": 1,
       "message": "same as above",
+      "range": {
+        "startLine": 88,
+        "startChar": 35,
+        "endLine": 88,
+        "endChar": 37
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_9fb5bdee",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e4832054",
       "range": {
         "startLine": 88,
         "startChar": 35,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_b16795e9",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e49c40c1",
+      "range": {
+        "startLine": 95,
+        "startChar": 3,
+        "endLine": 95,
+        "endChar": 38
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c47a5c77",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 4
@@ -174,6 +342,30 @@
       "writtenOn": "2016-09-12T21:56:23Z",
       "side": 1,
       "message": "same as aboce",
+      "range": {
+        "startLine": 100,
+        "startChar": 30,
+        "endLine": 100,
+        "endChar": 32
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3fc7d165",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c47a5c77",
       "range": {
         "startLine": 100,
         "startChar": 30,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_1fc2cd53",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a47d186f",
+      "range": {
+        "startLine": 103,
+        "startChar": 30,
+        "endLine": 103,
+        "endChar": 32
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_245c6818",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 4
@@ -220,6 +436,30 @@
       "writtenOn": "2016-09-12T21:56:23Z",
       "side": 1,
       "message": "Maybe this should be an event handler, allowing the caller to decide what to do.",
+      "range": {
+        "startLine": 112,
+        "startChar": 4,
+        "endLine": 115,
+        "endChar": 5
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ff860915",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "This method is not meant to be called by the caller (only overriden by the test class to avoid shutting down the jvm). The caller should call shutdown. Is that ok?",
+      "parentUuid": "baa041b7_245c6818",
       "range": {
         "startLine": 112,
         "startChar": 4,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_51b3a94d",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c4a37cff",
+      "range": {
+        "startLine": 117,
+        "startChar": 4,
+        "endLine": 119,
+        "endChar": 5
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_64903097",
         "filename": "midonet-util/src/test/java/org/midonet/util/process/TestProcessHelper.java",
         "patchSetId": 4
@@ -266,6 +530,30 @@
       "writtenOn": "2016-09-12T21:56:23Z",
       "side": 1,
       "message": "These could be added to a new unit test for the new class",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 80
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f13f5d85",
+        "filename": "midonet-util/src/test/java/org/midonet/util/process/TestProcessHelper.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-13T14:10:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_64903097",
       "range": {
         "startLine": 86,
         "startChar": 0,
