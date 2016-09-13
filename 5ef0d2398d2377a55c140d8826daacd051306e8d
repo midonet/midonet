@@ -16,6 +16,24 @@
       "revId": "5ef0d2398d2377a55c140d8826daacd051306e8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_bfc881a9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T07:38:38Z",
+      "side": 1,
+      "message": "no, it clears a warning that I was too lazy to submit separately: removed",
+      "parentUuid": "baa041b7_df4ea56d",
+      "revId": "5ef0d2398d2377a55c140d8826daacd051306e8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
