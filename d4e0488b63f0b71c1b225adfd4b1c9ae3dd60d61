@@ -22,6 +22,30 @@
       "revId": "d4e0488b63f0b71c1b225adfd4b1c9ae3dd60d61",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1ffd2db1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T07:52:59Z",
+      "side": 1,
+      "message": "It can\u0027t have an illegal value because it\u0027s a short. This just converts the signed short to an \"unsigned\" int by clearing the higher bits if the short is negative.",
+      "parentUuid": "baa041b7_5f905596",
+      "range": {
+        "startLine": 589,
+        "startChar": 38,
+        "endLine": 589,
+        "endChar": 62
+      },
+      "revId": "d4e0488b63f0b71c1b225adfd4b1c9ae3dd60d61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
