@@ -20,7 +20,13 @@ import java.nio.ByteBuffer
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.{UUID, HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet}
 
+import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
+
 import akka.actor.ActorRef
+
+import rx.Subscription
 
 import org.midonet.cluster.storage.FlowStateStorage
 import org.midonet.midolman.SimulationBackChannel.{BackChannelMessage, Broadcast}
@@ -38,10 +44,6 @@ import org.midonet.services.flowstate.transfer.client.FlowStateInternalClient
 import org.midonet.services.flowstate.{FlowStateInternalMessageHeaderSize, FlowStateInternalMessageType, MaxMessageSize, MaxPortIds}
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent._
-import rx.Subscription
-import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 object HostRequestProxy {
 
@@ -91,8 +93,9 @@ class HostRequestProxy(hostId: UUID,
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
-    import context.{dispatcher, system}
     import org.midonet.midolman.HostRequestProxy._
+
+    import context.{dispatcher, system}
 
     case object ReSync
 
@@ -196,11 +199,12 @@ class HostRequestProxy(hostId: UUID,
     private def resolvePorts(host: DevicesHost): ResolvedHost = {
         val futures = mutable.ArrayBuffer[Future[Any]]()
         val bindings = host.portBindings.map {
-            case (id, (iface, previousHost)) =>
+            case (id, binding) =>
                 try {
                     val port = VirtualTopology.tryGet(classOf[Port], id)
-                    if (iface ne null)
-                        Some(PortBinding(id, previousHost, port.tunnelKey, iface))
+                    if (binding.interfaceName ne null)
+                        Some(PortBinding(id, binding.previousHostId,
+                                         port.tunnelKey, binding.interfaceName))
                     else
                         None
                 } catch {
@@ -211,7 +215,7 @@ class HostRequestProxy(hostId: UUID,
             }.collect { case Some(binding) => (binding.portId, binding) }
 
         if (futures.nonEmpty) {
-            Future.sequence(futures).onComplete { case _ =>
+            Future.sequence(futures).onComplete { _ =>
                 log.debug("Ports resolved, re-syncing")
                 self ! ReSync
             }
@@ -250,8 +254,8 @@ class HostRequestProxy(hostId: UUID,
             subscriber ! resolved
             updateOwnedPorts(h.portBindings.keySet)
             belt.handle(() => {
-                val ports = for ((id, (_, previousHost)) <- h.portBindings if !lastPorts.contains(id))
-                    yield id -> previousHost
+                val ports = for ((id, binding) <- h.portBindings if !lastPorts.contains(id))
+                    yield id -> binding.previousHostId
 
                 lastPorts = h.portBindings.keySet
                 Future.sequence(Seq(
