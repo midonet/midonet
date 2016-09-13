@@ -19,8 +19,6 @@ package org.midonet
 import java.util.concurrent.ExecutorService
 import java.util.{Comparator, NoSuchElementException, TreeMap}
 
-import com.typesafe.scalalogging.Logger
-
 import rx.Scheduler
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
@@ -28,6 +26,7 @@ import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
+import org.midonet.util.logging.Logger
 
 package object containers {
 

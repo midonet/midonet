@@ -19,7 +19,6 @@ package org.midonet.cluster.services.containers
 import java.util.UUID
 
 import com.google.inject.Inject
-import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito
@@ -34,6 +33,7 @@ import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.containers.ContainerDelegateProviderTest.TestContainer
 import org.midonet.containers.{Container, ContainerDelegate}
+import org.midonet.util.logging.Logger
 
 object ContainerDelegateProviderTest {
 

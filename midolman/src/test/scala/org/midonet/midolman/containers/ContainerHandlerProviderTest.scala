@@ -23,7 +23,6 @@ import scala.concurrent.Future
 
 import com.google.inject.{ConfigurationException, Inject}
 import com.google.inject.name.Named
-import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito
@@ -38,6 +37,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.containers.{Container, ContainerHandler, ContainerPort, ContainerStatus}
 import org.midonet.midolman.containers.ContainerHandlerProviderTest.TestContainer
 import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.util.logging.Logger
 
 object ContainerHandlerProviderTest {
 
