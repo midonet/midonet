@@ -22,6 +22,30 @@
       "revId": "72539fa77f7be8644beeba82dcfef115e05ae532",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_47b3eb4d",
+        "filename": "netlink/src/main/scala/org/midonet/mmdpctl/MmDpctl.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-13T15:50:19Z",
+      "side": 1,
+      "message": "Right now, yes, because those options cause an IPv4 match key to be generated, instead of IPv6.\n\nI could add support for the IPv6 case, but as we currently needed to only match by ethertype, I left it as it is.",
+      "parentUuid": "baa041b7_9458ff58",
+      "range": {
+        "startLine": 293,
+        "startChar": 30,
+        "endLine": 293,
+        "endChar": 50
+      },
+      "revId": "72539fa77f7be8644beeba82dcfef115e05ae532",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
