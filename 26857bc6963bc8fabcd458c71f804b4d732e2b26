@@ -50,6 +50,144 @@
       "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_272a27e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T16:40:38Z",
+      "side": 1,
+      "message": "object?",
+      "range": {
+        "startLine": 30,
+        "startChar": 9,
+        "endLine": 30,
+        "endChar": 14
+      },
+      "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_072de3fc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T16:40:38Z",
+      "side": 1,
+      "message": "use camel case",
+      "range": {
+        "startLine": 33,
+        "startChar": 8,
+        "endLine": 33,
+        "endChar": 34
+      },
+      "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_67f14f95",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T16:40:38Z",
+      "side": 1,
+      "message": "override logSource",
+      "range": {
+        "startLine": 40,
+        "startChar": 23,
+        "endLine": 40,
+        "endChar": 42
+      },
+      "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_47ec0bbb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T16:40:38Z",
+      "side": 1,
+      "message": "private?",
+      "range": {
+        "startLine": 44,
+        "startChar": 8,
+        "endLine": 44,
+        "endChar": 18
+      },
+      "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e70aff78",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T16:40:38Z",
+      "side": 1,
+      "message": "Do you need this? Can it be on the actor\u0027s start method?",
+      "range": {
+        "startLine": 47,
+        "startChar": 8,
+        "endLine": 52,
+        "endChar": 53
+      },
+      "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_67482fcd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/VppController.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T16:40:38Z",
+      "side": 1,
+      "message": "Remove space, and make a warning",
+      "range": {
+        "startLine": 54,
+        "startChar": 22,
+        "endLine": 54,
+        "endChar": 23
+      },
+      "revId": "26857bc6963bc8fabcd458c71f804b4d732e2b26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
