@@ -46,6 +46,30 @@
       "revId": "72539fa77f7be8644beeba82dcfef115e05ae532",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a7dcf774",
+        "filename": "netlink/src/main/scala/org/midonet/mmdpctl/MmDpctl.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-13T15:51:46Z",
+      "side": 1,
+      "message": "ah, ok. lgtm in that case (though maybe add a comment to that effect). I guess the problem is in our FlowMask code, rather than elsewhere.",
+      "parentUuid": "baa041b7_47b3eb4d",
+      "range": {
+        "startLine": 293,
+        "startChar": 30,
+        "endLine": 293,
+        "endChar": 50
+      },
+      "revId": "72539fa77f7be8644beeba82dcfef115e05ae532",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
