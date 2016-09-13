@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_d4a0c744",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T15:02:34Z",
+      "side": 1,
+      "message": "right, but you could have assigned this variable to a constant variable and separately keep the method which you could override if needed, that is not no to allocate the same runnable every time.",
+      "parentUuid": "baa041b7_d16fb9c2",
+      "range": {
+        "startLine": 80,
+        "startChar": 4,
+        "endLine": 80,
+        "endChar": 39
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e4832054",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 4
@@ -460,6 +484,30 @@
       "side": 1,
       "message": "This method is not meant to be called by the caller (only overriden by the test class to avoid shutting down the jvm). The caller should call shutdown. Is that ok?",
       "parentUuid": "baa041b7_245c6818",
+      "range": {
+        "startLine": 112,
+        "startChar": 4,
+        "endLine": 115,
+        "endChar": 5
+      },
+      "revId": "ebc6c7937e79d7496498a0969ab7fc84e715d3ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_94835fa9",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-13T15:02:34Z",
+      "side": 1,
+      "message": "my suggestion was that this class shouldn\u0027t decide for every caller what the termination action should be (i.e. System.exit), in case we wanted to make it usable somewhere else, instead let the caller decide",
+      "parentUuid": "baa041b7_ff860915",
       "range": {
         "startLine": 112,
         "startChar": 4,
