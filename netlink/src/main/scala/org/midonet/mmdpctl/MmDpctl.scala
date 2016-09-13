@@ -17,8 +17,8 @@
 package org.midonet.mmdpctl
 
 import java.nio.ByteBuffer
-import java.util.{ArrayList, Arrays}
 import java.util.concurrent.{TimeUnit, TimeoutException}
+import java.util.{ArrayList, Arrays}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
@@ -26,18 +26,19 @@ import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
 
-import org.midonet.ErrorCode
-import org.midonet.util.reactivex.AwaitableObserver
 import org.rogach.scallop._
+
 import rx.Observer
 
+import org.midonet.ErrorCode
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.odp.ports.NetDevPort
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv6Addr, MAC}
 import org.midonet.util.concurrent.NanoClock
+import org.midonet.util.reactivex.AwaitableObserver
 
 class DpCtx(channel: NetlinkChannel, bufSize: Int, timeout: Duration) {
 
@@ -278,6 +279,10 @@ object FlowsCtl extends Subcommand("flows") with DpCommand {
         default = Some(false),
         short = 'D',
         descr = "delete the flow")
+    val etherType = opt[String](
+        "ether-type",
+        short = 'e',
+        descr = "EtherType")
 
     dependsOnAll(arpReply, List(arp))
     dependsOnAll(tpSrc, List(proto))
@@ -285,6 +290,7 @@ object FlowsCtl extends Subcommand("flows") with DpCommand {
     dependsOnAny(srcIp, List(arp, proto))
     dependsOnAny(dstIp, List(arp, proto))
     conflicts(arp, List(tpSrc, tpDst, proto))
+    conflicts(etherType, List(tpSrc, tpDst, proto, arp, arpReply))
 
     implicit class FlowMatchOpt[_](val opt: ScallopOption[_]) extends AnyVal {
         def seeIfDefined(fmatch: FlowMatch) = opt.get foreach { _ => opt match {
@@ -296,6 +302,7 @@ object FlowsCtl extends Subcommand("flows") with DpCommand {
             case `proto` => fmatch.getNetworkProto
             case `tpSrc` => fmatch.getSrcPort
             case `tpDst` => fmatch.getDstPort
+            case `etherType` => fmatch.getEtherType
             case _ =>
         }}
     }
@@ -336,14 +343,26 @@ object FlowsCtl extends Subcommand("flows") with DpCommand {
             dstMac.get.getOrElse(NO_MAC).getAddress))
         srcMac.seeIfDefined(fmatch)
         dstMac.seeIfDefined(fmatch)
-
-        if (arp.get.get) {
+        if (etherType.get.isDefined) {
+            val shortEtherType = Integer.parseInt(etherType.get.get, 16).toShort
+            fmatch.addKey(FlowKeys.etherType(shortEtherType))
+            etherType.seeIfDefined(fmatch)
+            if (shortEtherType == org.midonet.packets.IPv6.ETHERTYPE) {
+                prepareEmptyL3ipv6(fmatch)
+            }
+        } else if (arp.get.get) {
             prepareArp(fmatch)
             fmatch.addKey(FlowKeys.etherType(FlowKeyEtherType.Type.ETH_P_ARP))
         } else if (proto.get.isDefined) {
             prepareL3(fmatch)
             fmatch.addKey(FlowKeys.etherType(FlowKeyEtherType.Type.ETH_P_IP))
         }
+    }
+
+    private def prepareEmptyL3ipv6(fmatch: FlowMatch): Unit = {
+        val nullAddr = IPv6Addr.fromString("::")
+        val proto: Byte = 0
+        fmatch.addKey(FlowKeys.ipv6(nullAddr, nullAddr, proto))
     }
 
     private def prepareL3(fmatch: FlowMatch): Unit = {
