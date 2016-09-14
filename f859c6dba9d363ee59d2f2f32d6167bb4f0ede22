@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_a7f877c5",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-14T06:49:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_74fb3b48",
+      "revId": "f859c6dba9d363ee59d2f2f32d6167bb4f0ede22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_14974fec",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2016-09-13T14:56:18Z",
       "side": 1,
       "message": "What is this trying to achieve? Couldn\u0027t it be done with a Thread.sleep in the exit handler?",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 13
+      },
+      "revId": "f859c6dba9d363ee59d2f2f32d6167bb4f0ede22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e7555ffa",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-14T06:49:16Z",
+      "side": 1,
+      "message": "I miss something about the Thread.sleep you propose. \n\nstartEvents keep track of the previous start timestamp. This loop clears from the list those timestamps outside the allowed window to know how many restarts there were in that period. If the number of restarts in that window is \u003c than the max allowed restarts, then restart. If not fail.\n\nThe problem with the previous approach is that if a process fails once a day, there was a hard limit on three restarts so at the third day it would kill the agent for good.\n\ne.g. allow 3 restarts in 60 units of time.\nRestart at 0 -\u003e [0]\nRestart at 10 -\u003e [0, 10]\nRestart at 50 -\u003e [0, 10, 50]\nRestart at 80 -\u003e remove those events before the restart window (80 - 60) [50, 80] so two more failures before the current window expires are allowed.\nRestart at 90 -\u003e [50, 80, 90]\nRestart at 100 -\u003e kill.",
+      "parentUuid": "baa041b7_14974fec",
       "range": {
         "startLine": 62,
         "startChar": 0,
@@ -89,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c7dedb3d",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-14T06:49:16Z",
+      "side": 1,
+      "message": "Is it needed? This handler is only called within a synchronized block. Moved to a method without handler to avoid confusion and looks cleaner.",
+      "parentUuid": "baa041b7_34bb7377",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 48
+      },
+      "revId": "f859c6dba9d363ee59d2f2f32d6167bb4f0ede22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_94d59fb8",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 5
@@ -100,6 +166,24 @@
       "writtenOn": "2016-09-13T14:56:18Z",
       "side": 1,
       "message": "don\u0027t use System.exit. use Midolman.exitAsync instead",
+      "revId": "f859c6dba9d363ee59d2f2f32d6167bb4f0ede22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a76757e9",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-14T06:49:16Z",
+      "side": 1,
+      "message": "This is a midonet-util module so cannot use Midolman.exitAsync. I pass now the exit action on the constructor.",
+      "parentUuid": "baa041b7_94d59fb8",
       "revId": "f859c6dba9d363ee59d2f2f32d6167bb4f0ede22",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
