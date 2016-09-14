@@ -34,9 +34,13 @@ ip address
 sudo modprobe openvswitch
 sudo modprobe 8021q
 
+sudo apt-get update -y
 # python SSH library (paramiko) dependencies on SSL
 # TODO: remove once Jenkins slave image has been regenerated including it
 sudo apt-get install --no-install-recommends -y libssl-dev libffi-dev
+
+# update docker to latest version that supports v1 registry
+sudo apt-get install -qy -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --only-upgrade docker-engine=1.10.3-0~trusty
 
 # install python dependencies (may have changed since image build)
 virtualenv venv
