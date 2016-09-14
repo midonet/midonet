@@ -224,7 +224,7 @@ object C3POMinion {
              classOf[NeutronNetwork] ->
                 new NetworkTranslator(storage, pathBldr),
              classOf[NeutronRouter] ->
-                new RouterTranslator(storage, stateTableStorage, pathBldr),
+                new RouterTranslator(storage, stateTableStorage, pathBldr, config),
              classOf[NeutronRouterInterface] ->
                 new RouterInterfaceTranslator(storage, seqDispenser, config),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),

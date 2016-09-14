@@ -18,6 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
+import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPVersion, UUID}
@@ -34,7 +35,8 @@ import org.midonet.util.concurrent.toFutureOps
 
 class RouterTranslator(protected val storage: ReadOnlyStorage,
                        protected val stateTableStorage: StateTableStorage,
-                       protected val pathBldr: PathBuilder)
+                       protected val pathBldr: PathBuilder,
+                       config: ClusterConfig)
     extends Translator[NeutronRouter]
             with ChainManager with PortManager with RouteManager with RuleManager
             with StateTableManager {
@@ -281,7 +283,10 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         List(outRuleBuilder(outSnatRuleId(nr.getId))
                  .setType(Rule.Type.NAT_RULE)
                  .setAction(Action.ACCEPT)
-                 .setNatRuleData(natRuleData(gwIpAddr, dnat = false))
+                 .setNatRuleData(natRuleData(gwIpAddr, dnat = false,
+                                             dynamic = true,
+                                             config.translators.dynamicNatPortStart,
+                                             config.translators.dynamicNatPortEnd))
                  .setCondition(outRuleConditionBuilder),
              outRuleBuilder(outDropUnmatchedFragmentsRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)

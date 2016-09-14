@@ -84,12 +84,12 @@ trait RuleManager {
         Condition.newBuilder.setFragmentPolicy(FragmentPolicy.ANY)
 
     protected def natRuleData(addr: IPAddress, dnat: Boolean,
-                              dynamic: Boolean = true,
-                              port_start: Int = ClusterConfig.MIN_DYNAMIC_NAT_PORT,
-                              port_end: Int = ClusterConfig.MAX_DYNAMIC_NAT_PORT)
+                              dynamic: Boolean,
+                              portStart: Int = ClusterConfig.MIN_DYNAMIC_NAT_PORT,
+                              portEnd: Int = ClusterConfig.MAX_DYNAMIC_NAT_PORT)
     : NatRuleData = {
         if (dynamic)
-            natRuleData(addr, dnat, port_start, port_end)
+            natRuleData(addr, dnat, portStart, portEnd)
         else
             natRuleData(addr, dnat, 0, 0)
     }
