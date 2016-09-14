@@ -548,7 +548,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         if (addr != null) {
             data.getNatTargetsCount shouldBe 1
-            data.getNatTargets(0).getTpStart shouldBe 1
+            data.getNatTargets(0).getTpStart shouldBe 1024
             data.getNatTargets(0).getTpEnd shouldBe 0xffff
             data.getNatTargets(0).getNwStart.getAddress shouldBe addr
             data.getNatTargets(0).getNwEnd.getAddress shouldBe addr
