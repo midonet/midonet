@@ -55,7 +55,18 @@ class RuleResource @Inject()(resContext: ResourceContext)
         } else {
             throw new NotFoundHttpException("Rule chain not found")
         }
+        updateJumpChain(rule, tx)
         tx.delete(classOf[Rule], ruleId)
+    }
+
+    private def updateJumpChain(rule: Rule, tx: ResourceTransaction): Unit = {
+        rule match {
+            case jumpRule: JumpRule if jumpRule.jumpChainId ne null =>
+                val chain = tx.get(classOf[Chain], jumpRule.jumpChainId)
+                chain.jumpRuleIds.remove(rule.id)
+                tx.update(chain)
+            case _ => // Idempotent deletion.
+        }
     }
 
 }
@@ -95,7 +106,7 @@ class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
 
     private def updateJumpChain(rule: Rule, tx: ResourceTransaction): Unit = {
         rule match {
-            case jumpRule: JumpRule if jumpRule.jumpChainId ne null=>
+            case jumpRule: JumpRule if jumpRule.jumpChainId ne null =>
                 val chain = tx.get(classOf[Chain], jumpRule.jumpChainId)
                 chain.jumpRuleIds.add(rule.id)
                 tx.update(chain)
