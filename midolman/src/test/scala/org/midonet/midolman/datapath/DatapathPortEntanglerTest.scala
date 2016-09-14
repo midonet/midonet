@@ -29,7 +29,7 @@ import org.slf4j.helpers.NOPLogger
 import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.DatapathStateDriver.DpTriad
 import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.topology.rcu.PortBinding
+import org.midonet.midolman.topology.devices.PortBinding
 import org.midonet.odp.ports.{InternalPort, NetDevPort}
 import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.util.concurrent._
@@ -242,7 +242,9 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         }
     }
 
-    case class VportBindingAdded(port: String, uuid: UUID, internal: Boolean = false) extends DatapathOperation {
+    case class VportBindingAdded(port: String, uuid: UUID,
+                                 internal: Boolean = false)
+        extends DatapathOperation {
 
         override def act(): Unit = {
             entangler.updateVportInterfaceBindings(Map(uuid -> PortBinding(uuid, null, 1L, port)))
