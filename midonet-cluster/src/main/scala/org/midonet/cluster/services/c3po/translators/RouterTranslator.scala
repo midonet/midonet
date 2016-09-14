@@ -18,13 +18,14 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
+import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronSubnet, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.midonet.{Update, Create, Delete}
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
@@ -32,12 +33,13 @@ import org.midonet.packets.ICMP
 import org.midonet.util.concurrent.toFutureOps
 
 class RouterTranslator(protected val storage: ReadOnlyStorage,
-                       protected val pathBldr: PathBuilder)
+                       protected val pathBldr: PathBuilder,
+                       config: ClusterConfig)
     extends NeutronTranslator[NeutronRouter]
     with ChainManager with PortManager with RouteManager with RuleManager
     with BridgeStateTableManager {
     import RouterTranslator._
-    import org.midonet.cluster.services.c3po.translators.RouteManager._
+    import RouteManager._
 
     override protected def translateCreate(nr: NeutronRouter): MidoOpList = {
         val r = translate(nr)
@@ -264,7 +266,10 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         List(outRuleBuilder(outSnatRuleId(nr.getId))
                  .setType(Rule.Type.NAT_RULE)
                  .setAction(Action.ACCEPT)
-                 .setNatRuleData(natRuleData(gwIpAddr, dnat = false))
+                 .setNatRuleData(natRuleData(gwIpAddr, dnat = false,
+                                             dynamic = true,
+                                             config.translators.dynamicNatPortStart,
+                                             config.translators.dynamicNatPortEnd))
                  .setCondition(outRuleConditionBuilder),
              outRuleBuilder(outDropUnmatchedFragmentsRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)
