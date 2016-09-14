@@ -195,16 +195,23 @@ object C3POMinion {
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronFirewall] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->
-             new HealthMonitorTranslator(storage),
+                new HealthMonitorTranslator(storage),
              classOf[NeutronLoadBalancerPool] ->
-             new LoadBalancerPoolTranslator(storage),
+                new LoadBalancerPoolTranslator(storage),
              classOf[NeutronLoadBalancerPoolMember] ->
-             new LoadBalancerPoolMemberTranslator(storage),
+                new LoadBalancerPoolMemberTranslator(storage),
              classOf[NeutronNetwork] ->
-             new NetworkTranslator(storage, pathBldr),
-             classOf[NeutronRouter] -> new RouterTranslator(storage, pathBldr),
+//<<<<<<< HEAD
+                new NetworkTranslator(storage, pathBldr),
+             classOf[NeutronRouter] ->
+                new RouterTranslator(storage, pathBldr, config),
+/*=======
+                new NetworkTranslator(storage, pathBldr),
+             classOf[NeutronRouter] ->
+                new RouterTranslator(storage, stateTableStorage, pathBldr, config),
+>>>>>>> e0685e5... Translated dynamic NAT rules use configured port range*/
              classOf[NeutronRouterInterface] ->
-             new RouterInterfaceTranslator(storage, seqDispenser, config),
+                new RouterInterfaceTranslator(storage, seqDispenser, config),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
              classOf[NeutronPort] -> new PortTranslator(storage, pathBldr,
                                                         seqDispenser),
