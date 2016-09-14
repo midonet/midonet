@@ -26,21 +26,19 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons.{Condition, UUID => PUUID}
-import org.midonet.cluster.models.Topology.{Network => TopoBridge, Host}
-import org.midonet.cluster.models.Topology.{Port => TopoPort, L2Insertion, Rule}
 import org.midonet.cluster.models.Topology.Rule.Action
+import org.midonet.cluster.models.Topology.{L2Insertion, Rule, Network => TopoBridge, Port => TopoPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.{Chain, Bridge}
-import org.midonet.midolman.simulation.{Port,ServicePort}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.midonet.midolman.simulation.{Bridge, Chain, Port, ServicePort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
@@ -49,6 +47,7 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
     private var store: Storage = _
     val mac1 = "02:00:00:00:ee:00"
     val mac2 = "02:00:00:00:ee:11"
+    val mac3 = "02:00:00:00:ee:22"
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
@@ -222,6 +221,9 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             var vm2In = createChain(name = Some("vm2In"))
             var vm2Out = createChain(name = Some("vm2Out"))
 
+            var vm3In = createChain(name = Some("vm3In"))
+            var vm3Out = createChain(name = Some("vm3Out"))
+
             var svc1In = createChain(name = Some("svc1In"))
             var svc1Out = createChain(name = Some("svc1Out"))
 
@@ -232,6 +234,8 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                                    Some(vm1In.getId), Some(vm1Out.getId))
             val vm2Port = makePort(new UUID(0,2), "if_vm2", vmBridge,
                                    Some(vm2In.getId), Some(vm2Out.getId))
+            val vm3Port = makePort(new UUID(0,3), "if_vm3", svcBridge,
+                                   Some(vm3In.getId), Some(vm3Out.getId))
             var svc1Port = makePort(new UUID(1,1),
                                     "if_svc1", svcBridge,
                                     Some(svc1In.getId),
@@ -244,15 +248,16 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             val ins2 = addServiceToPort(svc2Port.getId)
 
             List(vmBridge, svcBridge,
-                 vm1In, vm1Out, vm2In, vm2Out,
+                 vm1In, vm1Out, vm2In, vm2Out, vm3In, vm3Out,
                  svc1In, svc1Out, svc2In, svc2Out,
-                 vm1Port, vm2Port, svc1Port, svc2Port,
+                 vm1Port, vm2Port, vm3Port, svc1Port, svc2Port,
                  ins1, ins2
             ).foreach {
                 store.create(_)
             }
             materializePort(vm1Port.getId, hostId, "if_vm1")
             materializePort(vm2Port.getId, hostId, "if_vm2")
+            materializePort(vm3Port.getId, hostId, "if_vm3")
             materializePort(svc1Port.getId, hostId, "if_svc1")
             materializePort(svc2Port.getId, hostId, "if_svc2")
 
@@ -330,7 +335,7 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             }
 
             // Load the cache to avoid NotYetException at simulation time
-            fetchPorts(vm1Port.getId, vm2Port.getId,
+            fetchPorts(vm1Port.getId, vm2Port.getId, vm3Port.getId,
                        svc1Port.getId, svc2Port.getId)
             fetchDevice[Bridge](vmBridge.getId)
             fetchDevice[Bridge](svcBridge.getId)
@@ -340,6 +345,8 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             // allows 'checkPacket' to always check for a single output port.
             simulate(packetContextFor(packet(mac1, mac2), vm1Port.getId))
             simulate(packetContextFor(packet(mac2, mac1), vm2Port.getId))
+            simulate(packetContextFor(packet(mac1, mac3), vm1Port.getId))
+            simulate(packetContextFor(packet(mac3, mac1), vm3Port.getId))
 
             checkPacket("A packet ingresses vm1Port",
                         "It's redirected out svc1Port with vlan 10",
@@ -396,6 +403,12 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                         expectedTags = List(
                             FlowTagger.tagForPort(svc2Port.getId),
                             FlowTagger.tagForPort(vm1Port.getId)))
+
+            When("A non-redirected packet to svc2Port")
+            val pc = packetContextFor(packet(mac3, mac1), vm3Port.getId)
+            val r = simulate(pc)
+            Then("It's not dropped")
+            r._1 should not be (Drop)
 
             var p = fetchDevice[Port](svc1Port.getId)
             p.adminStateUp shouldBe true
