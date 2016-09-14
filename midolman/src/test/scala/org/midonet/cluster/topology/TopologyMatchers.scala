@@ -109,8 +109,8 @@ object TopologyMatchers {
     class HostMatcher(host: Host) extends DeviceMatcher[TopologyHost] {
         override def shouldBeDeviceOf(h: TopologyHost): Unit = {
             host.id shouldBe h.getId.asJava
-            host.portIds should contain theSameElementsAs h.getPortIdsList.asScala.map(_.asJava)
-            host.tunnelZoneIds should contain theSameElementsAs h.getTunnelZoneIdsList.asScala.map(_.asJava)
+            host.portBindings.keys should contain theSameElementsAs h.getPortIdsList.asScala.map(_.asJava)
+            host.tunnelZones.keys should contain theSameElementsAs h.getTunnelZoneIdsList.asScala.map(_.asJava)
         }
     }
 
