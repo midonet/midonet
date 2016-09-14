@@ -26,21 +26,19 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons.{Condition, UUID => PUUID}
-import org.midonet.cluster.models.Topology.{Network => TopoBridge, Host}
-import org.midonet.cluster.models.Topology.{Port => TopoPort, L2Insertion, Rule}
 import org.midonet.cluster.models.Topology.Rule.Action
+import org.midonet.cluster.models.Topology.{L2Insertion, Rule, Network => TopoBridge, Port => TopoPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.{Chain, Bridge}
-import org.midonet.midolman.simulation.{Port,ServicePort}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.midonet.midolman.simulation.{Bridge, Chain, Port, ServicePort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
@@ -491,7 +489,10 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
 
             Then("No port should receive the packet more than once")
             val portCounts = portIds.groupBy(identity).mapValues(_.size)
-            portCounts.count({ case (key,count) => count > 1 }) shouldBe 0
+            // Now that we let the packet go through a service port, we install
+            // an extra flow action when flooding (1 for the redirected packet
+            // from a protected port, another for the flooded packet).
+            portCounts.count({ case (key,count) => count != 2 }) shouldBe 0
 
             Then("Should only have hit service ports (and the srcPort) ")
             // the protected ports all have a uuid with MSB as 0
@@ -553,6 +554,38 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             Then("The service ports should be set on the context")
             val expectedPorts = srvPorts :+ dstPort.getId.asJava
             packetContext.servicePorts should contain theSameElementsAs expectedPorts
+        }
+
+        scenario("Non-redirected traffic to service port is forwarded") {
+            Given("One vm port and one service port")
+            val bridge = createBridge(name = Some("bridge"),
+                                      adminStateUp = true)
+            var vmIn = createChain(name = Some("vmIn"))
+            var vmOut = createChain(name = Some("vmOut"))
+            var svcIn = createChain(name = Some("svcIn"))
+            var svcOut = createChain(name = Some("svcOut"))
+
+            val vmPort = makePort(new UUID(1, 1), "if_vm", bridge,
+                                  Some(vmIn.getId), Some(vmOut.getId))
+            val svcPort = makePort(new UUID(0, 1), "if_svc", bridge,
+                                   Some(svcIn.getId), Some(svcOut.getId))
+            val ins = addServiceToPort(svcPort.getId)
+
+            List(bridge, svcIn, svcOut, svcPort, vmIn, vmOut, vmPort, ins)
+                .foreach {
+                    store.create(_)
+                }
+            materializePort(svcPort.getId, hostId, "if_svc")
+            materializePort(vmPort.getId, hostId, "if_vm")
+            fetchPorts(svcPort.getId, vmPort.getId)
+            fetchDevice[Bridge](bridge.getId)
+
+            When("A flooded packet (non-redirected) egressing svcPort")
+            val pc = packetContextFor(packet(mac2, mac1), vmPort.getId)
+            val r = simulate(pc)
+
+            Then("It's not dropped")
+            r._1 should not be Drop
         }
     }
 

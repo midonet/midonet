@@ -379,8 +379,8 @@ class ServicePort(override val id: UUID,
             result
         } else {
             context.log.debug("Non-redirected packet egressing service port: " +
-                              "dropping")
-            Drop
+                              "forwarding")
+            super.egressCommon(context, next)
         }
     }
 }
