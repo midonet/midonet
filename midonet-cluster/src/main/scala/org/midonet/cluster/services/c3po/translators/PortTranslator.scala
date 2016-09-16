@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage, UpdateValidator}
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
@@ -34,6 +34,7 @@ import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
+import org.midonet.cluster.util.IPSubnetUtil.{univSubnet4, fromAddr}
 import org.midonet.cluster.util._
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.PathBuilder
@@ -339,6 +340,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         // TODO if a DHCP port, assert that the fixed IPs haven't changed.
 
+        // Adds support of fixed_ips update operation for
+        // device_owner network:router_interface
+        if (isRouterInterfacePort(nPort) &&
+                (nPort.getFixedIpsList != oldNPort.getFixedIpsList))
+            midoOps ++= routerInterfacePortFixedIpsUpdateOps(nPort)
+
         midoOps.toList
     }
 
@@ -368,6 +375,59 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             midoOps ++= portContext.outRules
             midoOps ++= portContext.antiSpoofRules
             midoOps ++= portContext.updatedIpAddrGrps
+    }
+
+    /**
+     * Builds an an update operation list for port, routers and SNAT rules
+     * when fixed Ip address is changed for router interface port.
+     */
+    private def routerInterfacePortFixedIpsUpdateOps(nPort: NeutronPort)
+    : OperationList = {
+        val ops = new OperationListBuffer
+
+        // Update port
+        val portAddress = nPort.getFixedIps(0).getIpAddress
+        val rtrPortId = PortManager.routerInterfacePortPeerId(nPort.getId)
+
+        val rtrPort = storage.get(classOf[Port], rtrPortId).await()
+        val rtrPortBldr = rtrPort.toBuilder.setPortAddress(portAddress)
+
+        ops += Update(rtrPortBldr.build())
+
+        // Update routes
+        val ns = storage.get(classOf[NeutronSubnet],
+            nPort.getFixedIps(0).getSubnetId).await()
+        val rtrInterfaceRouteId = RouteManager.routerInterfaceRouteId(
+            rtrPortId)
+        val localRoute = newLocalRoute(rtrPortId, portAddress)
+        val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPortId,
+            id = rtrInterfaceRouteId,
+            srcSubnet = univSubnet4,
+            dstSubnet = ns.getCidr)
+        ops += Update(rifRoute)
+        ops += Update(localRoute)
+
+        // Update rules
+        if (!isOnUplinkNetwork(nPort)) {
+            val snatRuleId = sameSubnetSnatRuleId(
+                outChainId(toProto(nPort.getDeviceId)), rtrPortId)
+            val revSnatRuleId = sameSubnetSnatRuleId(
+                inChainId(toProto(nPort.getDeviceId)), rtrPortId)
+            val Seq(snatRule, revSnatRule) = storage.getAll(
+                classOf[Rule], Seq(snatRuleId, revSnatRuleId)).await()
+
+            val snatRuleBldr = snatRule.toBuilder
+            snatRuleBldr.getNatRuleDataBuilder.getNatTargetsBuilder(0)
+                .setNwStart(portAddress).setNwEnd(portAddress)
+
+            val revSnatRuleBldr = revSnatRule.toBuilder
+            revSnatRuleBldr.getConditionBuilder.setNwDstIp(
+                fromAddr(portAddress))
+
+            ops += Update(snatRuleBldr.build())
+            ops += Update(revSnatRuleBldr.build())
+        }
+        ops.toList
     }
 
     // There's no binding unless both hostId and interfaceName are set.

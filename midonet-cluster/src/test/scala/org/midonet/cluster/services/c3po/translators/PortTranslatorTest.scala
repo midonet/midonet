@@ -29,7 +29,7 @@ import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.{MatchResult, Matcher}
 
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Commons.{Condition, UUID}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronBgpSpeaker, NeutronPort}
 import org.midonet.cluster.models.Topology._
@@ -37,6 +37,7 @@ import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Create =
 import org.midonet.cluster.services.c3po.OpType
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.l2gwNetworkPortId
+import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator.sameSubnetSnatRuleId
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.SequenceDispenser.{OverlayTunnelKey, SequenceType}
@@ -1484,6 +1485,61 @@ class RouterInterfacePortTranslationTest extends PortTranslatorTest {
         peer_id { $portWithPeerId }
         router_id: { $routerId }
         """)
+    protected val snatRuleId = sameSubnetSnatRuleId(outChainId(routerId),
+                                                    peerPortId)
+    protected val snatRule = mRuleFromTxt(s"""
+        id: { $snatRuleId }
+        type: NAT_RULE
+        chain_id: { $postRouteChainId }
+        action: ACCEPT
+        condition {
+            match_forward_flow: true
+            in_port_ids: { $portWithPeerId }
+            out_port_ids: { $portWithPeerId }
+            nw_dst_ip {
+                version: V4
+                address: "169.254.169.254"
+                prefix_length: 32
+            }
+            nw_dst_inv: true
+        }
+        nat_rule_data {
+            nat_targets {
+              nw_start {
+                  version: V4
+                  address: "$routerIfPortIpStr"
+              }
+              nw_end {
+                  version: V4
+                  address: "$routerIfPortIpStr"
+              }
+              tp_start: 1024
+              tp_end: 65535
+            }
+            dnat: false
+        }
+    """)
+    protected val revSnatRuleId = sameSubnetSnatRuleId(inChainId(routerId),
+                                                       peerPortId)
+    protected val revSnatRule = mRuleFromTxt(s"""
+        id : { $revSnatRuleId }
+        type: NAT_RULE
+        chain_id: { $preRouteChainId }
+        action: ACCEPT
+        condition {
+            match_return_flow: true
+            in_port_ids: { $portWithPeerId }
+            nw_dst_ip {
+                version: V4
+                address: "$routerIfPortIpStr"
+                prefix_length: 32
+            }
+        }
+        nat_rule_data {
+            dnat: false
+            reverse: true
+        }
+    """)
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -1531,12 +1587,90 @@ class RouterInterfacePortUpdateDeleteTranslationTest
         bind(networkId, midoNetwork)
         bind(peerPortId, mRouterPortWithPeer)
         bind(routerId, mTenantRouter)
+        bindAll(Seq(snatRuleId, revSnatRuleId),
+                Seq(snatRule, revSnatRule))
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
 
-    "Router interface port UPDATE" should "NOT update Port" in {
-        val midoOps = translator.translate(UpdateOp(routerIfPort))
-        midoOps shouldBe empty
+    "Router interface port UPDATE" should "update Network Port, Local" +
+    ", Next Hop Routes and SNAT rules" in {
+        bind(portId, routerIfPort)
+        bind(nIpv4Subnet1Id, nIpv4Subnet1)
+
+        // Generate a new port with updated Fixed IP address.
+        // This port is used for the update operation.
+        val newIp = "127.0.0.200"
+        val newIfPortIp = IPAddressUtil.toProto(newIp)
+        val routerIfPortUpdated = nPortFromTxt(routerIfPortBase + s"""
+            fixed_ips {
+                ip_address { $newIfPortIp }
+                subnet_id { $nIpv4Subnet1Id }
+            }
+            mac_address: "$routerIfPortMac"
+            device_owner: ROUTER_INTERFACE
+            device_id: "$deviceId"
+        """)
+
+        // Update port
+        val midoOps = translator.translate(UpdateOp(routerIfPortUpdated))
+
+        val mPort = mPortFromTxt(s"""
+            id: { $peerPortId }
+            router_id: { $routerId }
+            peer_id: { $portWithPeerId }
+            admin_state_up: true
+            port_address: { $newIfPortIp }
+            """)
+        midoOps should contain (UpdateOp(mPort))
+
+        val rifRouteId = RouteManager.routerInterfaceRouteId(
+            peerPortId)
+        val rifRoute = mRouteFromTxt(s"""
+            id: { $rifRouteId }
+            src_subnet {
+              version: V4
+              address: "0.0.0.0"
+              prefix_length: 0
+            }
+            dst_subnet {
+              version: V4
+              address: "$ipv4Subnet1Addr"
+              prefix_length: 8
+            }
+            next_hop: PORT
+            next_hop_port_id: { $peerPortId }
+            weight: 100
+            """)
+        midoOps should contain (UpdateOp(rifRoute))
+
+        val localRouteId = RouteManager.localRouteId(peerPortId)
+        val localRoute = mRouteFromTxt(s"""
+            id: { $localRouteId }
+            src_subnet {
+              version: V4
+              address: "0.0.0.0"
+              prefix_length: 0
+            }
+            dst_subnet {
+              version: V4
+              address: "$newIp"
+              prefix_length: 32
+            }
+            next_hop: LOCAL
+            next_hop_port_id: { $peerPortId }
+            weight: 100
+            """)
+        midoOps should contain (UpdateOp(localRoute))
+
+        val snatRuleBldr = snatRule.toBuilder
+        snatRuleBldr.getNatRuleDataBuilder.getNatTargetsBuilder(0)
+            .setNwStart(newIfPortIp).setNwEnd(newIfPortIp)
+        midoOps should contain (UpdateOp(snatRuleBldr.build))
+
+        val revSnatRuleBldr = revSnatRule.toBuilder
+        revSnatRuleBldr.getConditionBuilder
+            .setNwDstIp(IPSubnetUtil.fromAddr(newIfPortIp))
+        midoOps should contain (UpdateOp(revSnatRuleBldr.build))
      }
 
     "Router interface port DELETE" should "delete both MidoNet Router " +
