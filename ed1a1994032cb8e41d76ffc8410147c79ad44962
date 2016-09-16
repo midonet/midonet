@@ -71,6 +71,23 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_7e9e9164",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:20:55Z",
+      "side": 1,
+      "message": "I prefer to avoid using future tense in a design spec.",
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a280778c",
         "filename": "docs/qos.md",
         "patchSetId": 3
