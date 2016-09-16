@@ -25,6 +25,52 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_c39da4bc",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-16T03:13:32Z",
+      "side": 1,
+      "message": "and GET",
+      "range": {
+        "startLine": 99,
+        "startChar": 28,
+        "endLine": 99,
+        "endChar": 49
+      },
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a3a4e007",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-16T03:13:32Z",
+      "side": 1,
+      "message": "I think the translators will actually be skipped completely and the PMC and neutron plugin will directly access the midonet objects via the REST API.",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 74
+      },
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a280778c",
         "filename": "docs/qos.md",
         "patchSetId": 3
