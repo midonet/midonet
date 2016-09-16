@@ -1,0 +1,174 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_43aab4d3",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSPolicy.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "nit 2016",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_23b9f02e",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSRuleBWLimit.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "nit: 2016",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_03b4ac32",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/QOSRuleDSCP.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "nit: 2016",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e381c84e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "V4_COLLECTION?",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c384845e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "V4?",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a37bc07a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSPolicyResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "nit: 2016",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_837e7c68",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleBWLimitResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "nit: 2016",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6396d895",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleDSCPResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "nit: 2016",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_43919499",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "nit: 2016",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2390d094",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2016-09-16T03:35:29Z",
+      "side": 1,
+      "message": "nit: unrelated change",
+      "revId": "14ce4d3151078ce2bb95e8091280af0cea47547c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
