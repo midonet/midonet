@@ -32,7 +32,8 @@ import rx.Observable
 import rx.functions.Func1
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.{TransactionManager, NotFoundException, StateResult}
+import org.midonet.cluster.data.getIdString
+import org.midonet.cluster.data.storage.{NotFoundException, StateResult}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
 
@@ -271,8 +272,7 @@ class VirtualToPhysicalMapper @Inject() (val backend: MidonetBackend,
             .observable[D](clazz, deviceId)
             .onErrorResumeNext(makeFunc1 { e: Throwable => e match {
                 case nfe: NotFoundException
-                    if TransactionManager.getIdString(nfe.id.getClass, nfe.id) ==
-                       deviceId.toString =>
+                    if getIdString(nfe.id) == deviceId.toString =>
                     log.info("Device {}/{} not found", clazz, deviceId, e)
                     Observable.error(e)
                 case _ =>

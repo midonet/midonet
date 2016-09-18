@@ -37,7 +37,7 @@ import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, serialize}
-import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.data.{getIdString, Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
 import org.midonet.util.concurrent._
 import org.midonet.util.functors._
@@ -63,7 +63,7 @@ class InMemoryStorage extends Storage with StateStorage {
         @throws[ObjectExistsException]
         def create(id: ObjId, obj: Obj): Unit = {
             val node = new InstanceNode(clazz, id, obj.asInstanceOf[T])
-            instances.putIfAbsent(getIdString(clazz, id), node) match {
+            instances.putIfAbsent(getIdString(id), node) match {
                 case Some(n) => throw new ObjectExistsException(clazz, id)
                 case None => streamUpdates += node
             }
@@ -80,7 +80,7 @@ class InMemoryStorage extends Storage with StateStorage {
         @throws[BadVersionException]
         def update(id: ObjId, obj: Obj, version: Int)
         : Unit = {
-            instances.get(getIdString(clazz, id)) match {
+            instances.get(getIdString(id)) match {
                 case Some(node) =>
                     instanceUpdates += node
                     node.update(obj.asInstanceOf[T], version)
@@ -92,7 +92,7 @@ class InMemoryStorage extends Storage with StateStorage {
         @throws[BadVersionException]
         def validateUpdate(id: ObjId, version: Int)
         : Unit = {
-            instances.get(getIdString(clazz, id)) match {
+            instances.get(getIdString(id)) match {
                 case Some(node) => node.validateUpdate(version)
                 case None => throw new NotFoundException(clazz, id)
             }
@@ -101,7 +101,7 @@ class InMemoryStorage extends Storage with StateStorage {
         @throws[NotFoundException]
         @throws[BadVersionException]
         def delete(id: ObjId, version: Int): T = {
-            instances.remove(getIdString(clazz, id)) match {
+            instances.remove(getIdString(id)) match {
                 case Some(node) =>
                     instanceUpdates += node
                     node.delete(version)
@@ -113,17 +113,17 @@ class InMemoryStorage extends Storage with StateStorage {
         @throws[BadVersionException]
         def validateDelete(id: ObjId, version: Int)
         : Unit = {
-            instances.get(getIdString(clazz, id)) match {
+            instances.get(getIdString(id)) match {
                 case Some(node) => node.validateDelete(version)
                 case None => throw new NotFoundException(clazz, id)
             }
         }
 
         def apply(id: ObjId): Option[T] =
-            instances.get(getIdString(clazz, id)).map(_.value)
+            instances.get(getIdString(id)).map(_.value)
 
         def get(id: ObjId): Future[T] = {
-            instances.get(getIdString(clazz, id)) match {
+            instances.get(getIdString(id)) match {
                 case Some(node) => node.get
                 case None => Future.failed(new NotFoundException(clazz, id))
             }
@@ -145,16 +145,16 @@ class InMemoryStorage extends Storage with StateStorage {
             }
 
         def getSnapshot(id: ObjId): ObjSnapshot = {
-            instances.getOrElse(getIdString(clazz, id),
+            instances.getOrElse(getIdString(id),
                                 throw new NotFoundException(clazz, id))
                      .getSnapshot
         }
 
         def exists(id: ObjId): Future[Boolean] = Future.successful(
-            instances.containsKey(getIdString(clazz, id)))
+            instances.containsKey(getIdString(id)))
 
         def observable(id: ObjId): Observable[T] = {
-            instances.get(getIdString(clazz, id)) match {
+            instances.get(getIdString(id)) match {
                 case Some(node) => node.observable
                 case None => Observable.error(new NotFoundException(clazz, id))
             }
@@ -183,7 +183,7 @@ class InMemoryStorage extends Storage with StateStorage {
 
         def addValue(namespace: String, id: ObjId, key: String, value: String,
                      keyType: KeyType): Observable[StateResult] = {
-            val idStr = getIdString(clazz, id)
+            val idStr = getIdString(id)
             instances.get(idStr) match {
                 case Some(instance) =>
                     instance.addValue(namespace, key, value, keyType)
@@ -197,7 +197,7 @@ class InMemoryStorage extends Storage with StateStorage {
 
         def removeValue(namespace: String, id: ObjId, key: String, value: String,
                         keyType: KeyType): Observable[StateResult] = {
-            val idStr = getIdString(clazz, id)
+            val idStr = getIdString(id)
             instances.get(idStr) match {
                 case Some(instance) =>
                     instance.removeValue(namespace, key, value, keyType)
@@ -212,7 +212,7 @@ class InMemoryStorage extends Storage with StateStorage {
             if (namespace eq null) {
                 return emptyValueKey(key, keyType)
             }
-            val idStr = getIdString(clazz, id)
+            val idStr = getIdString(id)
             instances.get(idStr) match {
                 case Some(instance) => instance.getKey(namespace, key, keyType)
                 case None if keyType.isSingle =>
@@ -227,7 +227,7 @@ class InMemoryStorage extends Storage with StateStorage {
             if (namespace eq null) {
                 return emptyValueKey(key, keyType)
             }
-            val idStr = getIdString(clazz, id)
+            val idStr = getIdString(id)
             instances.get(idStr) match {
                 case Some(instance) => instance.keyObservable(namespace, key, keyType)
                 case None if keyType.isSingle =>
@@ -328,7 +328,7 @@ class InMemoryStorage extends Storage with StateStorage {
         private def getOrCreateStateNode(namespace: String): StateNode = {
             state.getOrElse(namespace, {
                 val node = new StateNode(namespace, clazz.getSimpleName,
-                                         getIdString(clazz, id))
+                                         getIdString(id))
                 state.putIfAbsent(namespace, node).getOrElse(node)
             })
         }

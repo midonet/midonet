@@ -271,7 +271,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                         SingleValueKey(key, None, NoOwnerId))
                 } else {
                     Notification.createOnError[StateKey](makeThrowable(
-                        clazz.getSimpleName, getIdString(clazz, id),
+                        clazz.getSimpleName, getIdString(id),
                         key, null, event.getResultCode))
                 }
             }).dematerialize[StateKey]
@@ -289,7 +289,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                         MultiValueKey(key, Set()))
                 } else {
                     Notification.createOnError[StateKey](makeThrowable(
-                        clazz.getSimpleName, getIdString(clazz, id),
+                        clazz.getSimpleName, getIdString(id),
                         key, null, event.getResultCode))
                 }
             }).dematerialize[StateKey]
@@ -364,7 +364,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
     private[storage] def stateObjectPath(namespace: String, clazz: Class[_],
                                          id: ObjId, version: Long)
     : String = {
-        stateClassPath(namespace, clazz, version) + "/" + getIdString(clazz, id)
+        stateClassPath(namespace, clazz, version) + "/" + getIdString(id)
     }
 
     @inline
@@ -392,7 +392,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             Notification.createOnNext(StateResult(ownerId))
         } else {
             Notification.createOnError(makeThrowable(
-                clazz.getSimpleName, getIdString(clazz, id), key, value,
+                clazz.getSimpleName, getIdString(id), key, value,
                 event.getResultCode))
         }
     })
@@ -419,7 +419,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                 } else {
                     // The value has a different owner.
                     Observable.error[StateResult](new NotStateOwnerException(
-                        clazz.getSimpleName, getIdString(clazz, id), key, value,
+                        clazz.getSimpleName, getIdString(id), key, value,
                         event.getStat.getEphemeralOwner))
                 }
             } else {
@@ -465,7 +465,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                         } else {
                             // Deletion failed.
                             Observable.error[StateResult](makeThrowable(
-                                clazz.getSimpleName, getIdString(clazz, id),
+                                clazz.getSimpleName, getIdString(id),
                                 key, value, event.getResultCode))
                         }
                     }
@@ -506,7 +506,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                         } else {
                             // Deletion failed.
                             Observable.error[StateResult](makeThrowable(
-                                clazz.getSimpleName, getIdString(clazz, id),
+                                clazz.getSimpleName, getIdString(id),
                                 key, value, event.getResultCode))
                         }
                     }
@@ -532,7 +532,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             }.dematerialize[StateResult]
         } else {
             Observable.error[StateResult](makeThrowable(
-                clazz.getSimpleName, getIdString(clazz, id), key, value,
+                clazz.getSimpleName, getIdString(id), key, value,
                 event.getResultCode))
         }
     }
@@ -561,7 +561,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
                 } else {
                     // The value has a different owner.
                     Observable.error[StateResult](new NotStateOwnerException(
-                        clazz.getSimpleName, getIdString(clazz, id), key, value,
+                        clazz.getSimpleName, getIdString(id), key, value,
                         event.getStat.getEphemeralOwner))
                 }
             } else if (event.getResultCode == Code.NONODE.intValue()) {
@@ -570,7 +570,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             } else {
                 // A different error occurred.
                 Observable.error[StateResult](makeThrowable(
-                    clazz.getSimpleName, getIdString(clazz, id), key, null,
+                    clazz.getSimpleName, getIdString(id), key, null,
                     event.getResultCode))
             }
         }
@@ -607,8 +607,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             return Observable.just(SingleValueKey(index.key, None, NoOwnerId))
         }
 
-        val path = keyPath(namespace, clazz,
-                           getIdString(clazz, id), key, version)
+        val path = keyPath(namespace, clazz, getIdString(id), key, version)
 
         singleObservables.getOrElse(index, {
             val ref = singleObservableRef.getAndIncrement()
@@ -662,7 +661,7 @@ trait ZookeeperObjectState extends StateStorage with Storage with StorageInterna
             return Observable.just(MultiValueKey(index.key, Set()))
         }
 
-        val path = keyPath(namespace, clazz, getIdString(clazz, id), key,
+        val path = keyPath(namespace, clazz, getIdString(id), key,
                            version)
 
         multiObservables.getOrElse(index, {

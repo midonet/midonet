@@ -22,7 +22,6 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 import com.google.common.collect.Multimap
-import com.google.protobuf.Message
 
 import rx.Observable
 
@@ -56,17 +55,8 @@ object TransactionManager {
     private final val NewObjectVersion = -1
 
     @inline
-    def getIdString(clazz: Class[_], id: ObjId): String = {
-        if (classOf[Message].isAssignableFrom(clazz)) {
-            ProtoFieldBinding.getIdString(id)
-        } else {
-            id.toString
-        }
-    }
-
-    @inline
     private[storage] def getKey(clazz: Class[_], id: ObjId): Key = {
-        Key(clazz, getIdString(clazz, id))
+        Key(clazz, getIdString(id))
     }
 }
 
@@ -441,7 +431,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
         list ++= otherOps
         list ++= delOps.reverse
 
-        list.toSeq
+        list
     }
 
     /** Creates a new data node as part of the current transaction. */
@@ -453,7 +443,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
                 nodeOps(path) = cn
                 ensureNode(parentPath(path))
             case Some(TxDeleteNode) =>
-                nodeOps(path) = new TxUpdateNode(value)
+                nodeOps(path) = TxUpdateNode(value)
                 ensureNode(parentPath(path))
             case Some(TxCreateNode(_) | TxUpdateNode(_) | TxNodeExists) =>
                 throw new StorageNodeExistsException(path)

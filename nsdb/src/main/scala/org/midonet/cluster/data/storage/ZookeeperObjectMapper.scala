@@ -50,7 +50,7 @@ import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZoomSerializer.{deserialize, deserializerOf, serialize}
 import org.midonet.cluster.data.storage.metrics.StorageMetrics
-import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.data.{getIdString, Obj, ObjId}
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException, PathCacheClosedException}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.makeFunc1
@@ -214,8 +214,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 if (event.getResultCode == Code.OK.intValue()) {
                     if (event.getStat.getMzxid > zxid) {
                         createOnError(new ConcurrentModificationException(
-                            s"${clazz.getSimpleName} ${getIdString(clazz, id)} " +
-                            "was modified during the transaction."))
+                            s"${clazz.getSimpleName} with ID " +
+                            s"${getIdString(id)} was modified during " +
+                            s"the transaction."))
                     } else {
                         createOnNext(
                             ObjSnapshot(deserialize(event.getData, clazz).asInstanceOf[Obj],
@@ -662,7 +663,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                                                  version: Long,
                                                  onClose: => Unit)
     : Observable[T] = {
-        val key = Key(clazz, getIdString(clazz, id))
+        val key = Key(clazz, getIdString(id))
         val path = objectPath(clazz, id, version)
 
         objectObservables.getOrElse(key, {
@@ -746,7 +747,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     protected[storage] override def objectPath(clazz: Class[_], id: ObjId,
                                                version: Long = version.longValue())
     : String = {
-        classPath(clazz) + "/" + getIdString(clazz, id)
+        classPath(clazz) + "/" + getIdString(id)
     }
 
 }
@@ -793,7 +794,6 @@ object ZookeeperObjectMapper {
 
     protected val Log = LoggerFactory.getLogger("org.midonet.nsdb")
     private val OnCloseDefault = { }
-
 
     private[storage] def makeInfo(clazz: Class[_])
     : ClassInfo = {
