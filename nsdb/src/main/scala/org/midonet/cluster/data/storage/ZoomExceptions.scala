@@ -15,8 +15,7 @@
  */
 package org.midonet.cluster.data.storage
 
-import org.midonet.cluster.data.ObjId
-import org.midonet.cluster.data.storage.TransactionManager.getIdString
+import org.midonet.cluster.data.{getIdString, ObjId}
 
 /**
  * Catch-all wrapper for any non-runtime exception occurring in the
@@ -40,12 +39,12 @@ class ServiceUnavailableException
 class NotFoundException (val clazz: Class[_], val id: ObjId)
     extends StorageException(
         if (id != None) s"There is no ${clazz.getSimpleName} with ID " +
-                        s"${getIdString(clazz, id)}."
+                        s"${getIdString(id)}."
         else s"There is no ${clazz.getSimpleName} with the specified ID.")
 
 class ObjectExistsException (val clazz: Class[_], val id: ObjId)
     extends StorageException(
-        s"A(n) ${clazz.getSimpleName} with ID ${getIdString(clazz, id)} " +
+        s"A(n) ${clazz.getSimpleName} with ID ${getIdString(id)} " +
         s"already exists.")
 
 /**
@@ -80,9 +79,9 @@ class ObjectReferencedException private[storage] (
         val referencingClass: Class[_],
         val referencingId: ObjId) extends StorageException(
     s"Cannot delete the ${referencedClass.getSimpleName} with ID " +
-    s"${getIdString(referencingClass, referencingId)} because it is still " +
+    s"${getIdString(referencingId)} because it is still " +
     s"referenced by the ${referencingClass.getSimpleName} with ID " +
-    s"${getIdString(referencingClass, referencingId)}.")
+    s"${getIdString(referencingId)}.")
 
 /**
  * Thrown by the ZookeeperObjectMapper in response to a create or update
