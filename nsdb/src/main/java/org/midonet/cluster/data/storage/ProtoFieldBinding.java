@@ -26,7 +26,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 
-import org.midonet.cluster.models.Commons.UUID;
+import org.midonet.cluster.data.package$;
 
 import static org.midonet.Util.uncheckedCast;
 
@@ -65,9 +65,9 @@ import static org.midonet.Util.uncheckedCast;
  *     - thatField: 'bridge_ids'
  */
 class ProtoFieldBinding extends FieldBinding {
-    public final FieldDescriptor thisField;
-    public final Message thatMessage;
-    public final FieldDescriptor thatField;
+    private final FieldDescriptor thisField;
+    private final Message thatMessage;
+    private final FieldDescriptor thatField;
 
     private ProtoFieldBinding(FieldDescriptor thisField,
                               Message thatMessage,
@@ -191,21 +191,6 @@ class ProtoFieldBinding extends FieldBinding {
         return field;
     }
 
-    /**
-     * Converts an Protocol Buffer message ID value into a human readable string
-     * representation.
-     */
-    public static String getIdString(Object id) {
-        String idStr;
-        if (id instanceof UUID) {
-            UUID uuid = (UUID) id;
-            idStr = new java.util.UUID(uuid.getMsb(), uuid.getLsb()).toString();
-        } else {
-            idStr = id.toString();
-        }
-        return idStr;
-    }
-
     /* Tests if two scalar / repeated fields contain the compatible types. */
     private static boolean areCompatible(FieldDescriptor field0,
                                          FieldDescriptor field1) {
@@ -253,10 +238,11 @@ class ProtoFieldBinding extends FieldBinding {
                 // to clear if we allow both references.
                 throw new ReferenceConflictException(
                         referencedMsg.getClass().getSimpleName(),
-                        getIdString(referencedId),
+                        package$.MODULE$.getIdString(referencedId),
                         this.thatField.getName(),
                         this.thisField.getContainingType().getName(),
-                        getIdString(referencedMsg.getField(this.thatField)));
+                        package$.MODULE$.getIdString(
+                            referencedMsg.getField(this.thatField)));
             }
             updateBuilder.setField(this.thatField, referrerId);
         }

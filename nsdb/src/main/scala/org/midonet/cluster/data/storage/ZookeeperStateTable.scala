@@ -27,8 +27,6 @@ import scala.concurrent.{Future, Promise}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-import com.codahale.metrics.MetricRegistry
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent}
 import org.apache.curator.framework.state.ConnectionState
@@ -80,7 +78,7 @@ trait StateTablePaths extends StateTableStorage with LegacyStateTableStorage {
     @inline
     private[cluster] def tablesObjectPath(clazz: Class[_], id: ObjId,
                                           version: Long = version.longValue()): String = {
-        tablesClassPath(clazz, version) + "/" + getIdString(clazz, id)
+        tablesClassPath(clazz, version) + "/" + getIdString(id)
     }
 
     @inline
