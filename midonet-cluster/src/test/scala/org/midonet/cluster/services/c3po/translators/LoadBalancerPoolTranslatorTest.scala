@@ -21,10 +21,9 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => MappingStatus}
-import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
-import org.midonet.cluster.services.c3po.C3POStorageManager._
+import org.midonet.cluster.models.Topology.LoadBalancer
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil
 
 class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase

@@ -22,18 +22,15 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for FloatingIp. */
 class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
-                           protected val stateTableStorage: StateTableStorage,
-                           protected val pathBldr: PathBuilder)
+                           protected val stateTableStorage: StateTableStorage)
         extends Translator[FloatingIp] with ChainManager
                 with RouteManager
                 with RuleManager

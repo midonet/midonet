@@ -23,8 +23,7 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronVIP
 import org.midonet.cluster.models.Topology.{Pool, Vip}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -131,7 +130,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
                               with LoadBalancerManager {
     before {
         initMockStorage()
-        translator = new VipTranslator(storage, stateTableStorage, pathBldr)
+        translator = new VipTranslator(storage, stateTableStorage)
     }
 
     private def bindVipNetwork(external: Boolean = false) {
@@ -219,7 +218,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
 class VipTranslatorUpdateTest extends VipTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new VipTranslator(storage, stateTableStorage, pathBldr)
+        translator = new VipTranslator(storage, stateTableStorage)
         bind(pool2Id, midoPool(pool2Id, lb2Id))
         bind(vipId, neutronVip(poolId = poolId))
         bind(vipId, midoVip(sourceIpSessionPersistence = true,
@@ -281,7 +280,7 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
 class VipTranslatorDeleteTest extends VipTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new VipTranslator(storage, stateTableStorage, pathBldr)
+        translator = new VipTranslator(storage, stateTableStorage)
     }
 
     "Neutron VIP Delete" should "delete a Midonet VIP." in {

@@ -33,9 +33,8 @@ import org.midonet.cluster.models.Commons.{Condition, UUID}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronBgpSpeaker, NeutronPort}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Create => CreateOp, Delete => DeleteOp, Update => UpdateOp}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{CreateNode, DeleteNode, Operation, Create => CreateOp, Delete => DeleteOp, Update => UpdateOp}
 import org.midonet.cluster.services.c3po.OpType
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.l2gwNetworkPortId
 import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator.sameSubnetSnatRuleId
 import org.midonet.cluster.storage.MidonetBackendConfig
@@ -241,7 +240,7 @@ class PortTranslationTest extends PortTranslatorTest {
         initMockStorage()
 
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
         bind(portIdThatDoesNotExist, null, classOf[NeutronPort])
     }
 
@@ -459,7 +458,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
 
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(nIpv4Subnet1Id, nIpv4Subnet1)
@@ -868,7 +867,7 @@ class VifPortBindingTranslationTest extends VifPortTranslationTest {
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
 
         bind(inboundChainId, inboundChain)
         bind(outboundChainId, outboundChain)
@@ -896,7 +895,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(nIpv4Subnet1Id, nIpv4Subnet1)
@@ -1243,7 +1242,7 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(networkId, mNetworkWithDhcpPort)
@@ -1320,7 +1319,7 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(portId, midoPortBaseUp)
@@ -1374,7 +1373,7 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(portId, null, classOf[Port])
@@ -1408,7 +1407,7 @@ class VipPortTranslationTest extends VifPortTranslationTest {
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(networkId, midoNetwork)
@@ -1548,7 +1547,7 @@ class RouterInterfacePortCreateTranslationTest
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
         bind(nIpv4Subnet1Id, mIpv4Dhcp)
         bindAll(Seq(), Seq(), classOf[IPAddrGroup])
     }
@@ -1578,7 +1577,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(nIpv4Subnet1Id, mIpv4Dhcp)
@@ -1701,7 +1700,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest{
     before {
         initMockStorage()
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(portId, midoPortBaseUp)
@@ -1904,7 +1903,7 @@ class RemotePortTranslationTest extends PortTranslatorTest {
         bind(networkId, nNetworkBase)
         bind(portId, remotePort)
         translator = new PortTranslator(storage, stateTableStorage,
-                                        pathBldr, seqDispenser)
+                                        seqDispenser)
     }
 
     "Remote port CREATE" should "only add ARP and MAC seedings" in {

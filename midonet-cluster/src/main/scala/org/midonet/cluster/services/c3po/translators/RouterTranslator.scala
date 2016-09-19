@@ -25,17 +25,15 @@ import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPVersion, UUID
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.translators.BgpPeerTranslator._
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ICMP
 import org.midonet.util.concurrent.toFutureOps
 
 class RouterTranslator(protected val storage: ReadOnlyStorage,
                        protected val stateTableStorage: StateTableStorage,
-                       protected val pathBldr: PathBuilder,
                        config: ClusterConfig)
     extends Translator[NeutronRouter]
             with ChainManager with PortManager with RouteManager with RuleManager
