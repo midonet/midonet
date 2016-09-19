@@ -21,7 +21,7 @@ import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Commons.LBStatus.ACTIVE
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Topology.PoolMember
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPoolMember. */

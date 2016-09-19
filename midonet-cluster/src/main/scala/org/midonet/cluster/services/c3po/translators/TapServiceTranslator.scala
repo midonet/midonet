@@ -21,7 +21,7 @@ import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.Condition
 import org.midonet.cluster.models.Neutron.TapService
 import org.midonet.cluster.models.Topology.Mirror
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete}
 
 
 class TapServiceTranslator(protected val storage: ReadOnlyStorage)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package org.midonet.cluster.services.c3po
 
-import scala.collection.mutable.ListBuffer
+import org.junit.runner.RunWith
+import org.scalatest.FlatSpec
+import org.scalatest.junit.JUnitRunner
 
-import com.google.protobuf.Message
+@RunWith(classOf[JUnitRunner])
+class NeutronTranslatorManagerTest extends FlatSpec {
 
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
+    "Manager" should "" in {
 
-package object translators {
-
-    type OperationList = List[Operation[_ <: Message]]
-    type OperationListBuffer = ListBuffer[Operation[_ <: Message]]
+    }
 
 }
