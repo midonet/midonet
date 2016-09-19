@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_91847f5d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-19T08:51:24Z",
+      "side": 1,
+      "message": "nit: forwarding :)",
+      "range": {
+        "startLine": 382,
+        "startChar": 31,
+        "endLine": 382,
+        "endChar": 45
+      },
+      "revId": "33a8cf4f375d66ed2354b2b430a6dc05b144ec72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
