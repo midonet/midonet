@@ -22,6 +22,30 @@
       "revId": "bbec088888459d7ddd6d63edbf9e2ae80db33dd0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_54e945b6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-19T14:08:51Z",
+      "side": 1,
+      "message": "Just saw that this is a cherry-pick. Please ignore the previous comment then.",
+      "parentUuid": "baa041b7_14c5fd3b",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 25
+      },
+      "revId": "bbec088888459d7ddd6d63edbf9e2ae80db33dd0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
