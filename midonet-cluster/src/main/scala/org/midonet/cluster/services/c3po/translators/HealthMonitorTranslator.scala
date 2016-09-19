@@ -22,7 +22,7 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus.PENDING_CREATE
 import org.midonet.cluster.models.Topology.{HealthMonitor, Pool}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 

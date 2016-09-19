@@ -36,19 +36,19 @@ import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.ZoomConvert.fromProto
-import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, PersistenceOp, _}
+import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, _}
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.data.{ZoomClass, ZoomConvert, ZoomObject}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.neutron.models._
-import org.midonet.cluster.services.c3po.C3POStorageManager
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.translators.TranslationException
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin.MaxStorageAttempts
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.cluster.{ZookeeperLockFactory, RestApiNeutronLog}
+import org.midonet.cluster.{RestApiNeutronLog, ZookeeperLockFactory}
 import org.midonet.util.concurrent.toFutureOps
 
 object NeutronZoomPlugin {
@@ -58,7 +58,7 @@ object NeutronZoomPlugin {
 // All the dependants should be reimplemented as TranslatedResource
 @Deprecated
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
-                                  c3po: C3POStorageManager,
+                                  translatorManager: NeutronTranslatorManager,
                                   lockFactory: ZookeeperLockFactory)
     extends L3Api
             with GatewayDeviceApi
@@ -107,6 +107,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                 return f
             } catch {
                 case e: StorageException => throw toHttpException(e)
+                case e: TranslationException => throw toHttpException(e)
                 case e: ConcurrentModificationException =>
                     log warn s"Write $attempt of $MaxStorageAttempts failed " +
                              s"due to a concurrent modification (${e.getMessage})"
@@ -117,20 +118,17 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         throw last
     }
 
-    private def toPersistenceOps(nop: Operation[_ <: Message])
-    : Seq[PersistenceOp] = {
-        try c3po.toPersistenceOps(nop) catch {
-            case te: TranslationException =>
-                te.cause match {
-                    case ex: StorageException => throw toHttpException(ex)
-                    case ex: IllegalArgumentException =>
-                        throw new BadRequestHttpException(ex, ex.getMessage)
-                    case ex: IllegalStateException =>
-                        throw new ConflictHttpException(ex, ex.getMessage)
-                    case ex =>
-                        throw new InternalServerErrorHttpException(
-                            ex, ex.getMessage)
-                }
+    private def toHttpException(ex: TranslationException)
+    : WebApplicationException = {
+        ex.cause match {
+            case e: StorageException => throw toHttpException(e)
+            case e: IllegalArgumentException =>
+                throw new BadRequestHttpException(ex, ex.getMessage)
+            case e: IllegalStateException =>
+                throw new ConflictHttpException(ex, ex.getMessage)
+            case _ =>
+                throw new InternalServerErrorHttpException(
+                    ex, ex.getMessage)
         }
     }
 
@@ -156,7 +154,9 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val neutronOp = Create(toProto(dto, protoClass))
         val id = idOf(neutronOp.model)
         tryWrite {
-            store.multi(toPersistenceOps(neutronOp))
+            val tx = store.transaction()
+            translatorManager.translate(tx, neutronOp)
+            tx.commit()
         }
         log.debug(s"Create ${dto.getClass.getSimpleName} $id succeeded.")
         dto
@@ -174,8 +174,11 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val protoClass = protoClassOf(dtoClass)
         val creates = dtos.map { d => Create(toProto(d, protoClass)) }
         tryWrite {
-            val ops: Seq[PersistenceOp] = creates.flatMap(toPersistenceOps)
-            store.multi(ops)
+            val tx = store.transaction()
+            for (create <- creates) {
+                translatorManager.translate(tx, create)
+            }
+            tx.commit()
         }
         val ids = list[T](creates.map(c => idOf(c.model)))
         log.debug(s"Bulk create ${dtoClass.getSimpleName} succeeded: $ids")
@@ -199,7 +202,9 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val neutronOp = Update(toProto(dto, protoClass))
         val id = idOf(neutronOp.model)
         tryWrite {
-            store.multi(toPersistenceOps(neutronOp))
+            val tx = store.transaction()
+            translatorManager.translate(tx, neutronOp)
+            tx.commit()
         }
         log.debug(s"Update ${dto.getClass.getSimpleName} $id succeeded")
         dto
@@ -210,7 +215,9 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val protoClass = protoClassOf(dtoClass)
         val neutronOp = Delete(protoClass, UUIDUtil.toProto(id))
         tryWrite {
-            store.multi(toPersistenceOps(neutronOp))
+            val tx = store.transaction()
+            translatorManager.translate(tx, neutronOp)
+            tx.commit()
         }
         log.debug(s"Delete ${dtoClass.getSimpleName} $id succeeded")
     }

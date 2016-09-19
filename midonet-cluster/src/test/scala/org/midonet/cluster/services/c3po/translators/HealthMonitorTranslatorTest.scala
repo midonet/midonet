@@ -22,7 +22,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Topology.HealthMonitor
-import org.midonet.cluster.services.c3po.C3POStorageManager._
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil
 
 class HealthMonitorTranslatorTestBase extends TranslatorTestBase {

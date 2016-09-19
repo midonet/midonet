@@ -16,7 +16,6 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.mutable.ListBuffer
 import org.midonet.cluster.models.Commons.{Condition, Int32Range, Protocol, RuleDirection, UUID}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Neutron.SecurityGroupRule

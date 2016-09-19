@@ -24,16 +24,13 @@ import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLA
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection, RemoteMacEntry}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.rest_api.validation.MessageProperty.{ONLY_ONE_GW_DEV_SUPPORTED, UNSUPPORTED_GATEWAY_DEVICE}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, CreateNode, Delete, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
-                                    protected val stateTableStorage: StateTableStorage,
-                                    protected val pathBldr: PathBuilder)
+                                    protected val stateTableStorage: StateTableStorage)
     extends Translator[L2GatewayConnection] with StateTableManager {
     import L2GatewayConnectionTranslator._
 

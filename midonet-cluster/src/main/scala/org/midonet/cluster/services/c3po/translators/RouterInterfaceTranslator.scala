@@ -24,7 +24,7 @@ import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.SequenceDispenser

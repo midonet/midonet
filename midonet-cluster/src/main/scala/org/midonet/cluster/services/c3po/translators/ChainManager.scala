@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.{Chain, RouterOrBuilder, Rule}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.UUIDUtil.toProto
 

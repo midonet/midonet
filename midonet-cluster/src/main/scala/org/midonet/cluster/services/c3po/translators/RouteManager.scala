@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rest_api.neutron.models.MetaDataService
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Update}
 import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
@@ -36,7 +36,7 @@ import org.midonet.util.concurrent.toFutureOps
 trait RouteManager {
     import RouteManager._
 
-    protected val storage: ReadOnlyStorage
+    protected def storage: ReadOnlyStorage
     /**
      * Tests if the route is to Meta Data Server.
      * @param nextHopGw A next hop gateway to Meta Data Server.

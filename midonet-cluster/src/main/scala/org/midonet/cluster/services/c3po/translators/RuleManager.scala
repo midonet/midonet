@@ -22,7 +22,7 @@ import org.midonet.cluster.models.Commons.{Condition, IPAddress, UUID}
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action._
 import org.midonet.cluster.models.Topology.Rule.{JumpRuleData, NatRuleData, NatTarget}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
 
 /**

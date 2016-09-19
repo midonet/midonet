@@ -22,7 +22,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Topology.PoolMember
-import org.midonet.cluster.services.c3po.C3POStorageManager._
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 
 @RunWith(classOf[JUnitRunner])

@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import java.util.{ArrayList => JAList, List => JList}
+import java.util.{List => JList}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -28,7 +28,7 @@ import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Create, Delete, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Operation, Create, Delete, Update}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid

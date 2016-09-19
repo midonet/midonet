@@ -20,7 +20,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoggingResource
 import org.midonet.cluster.models.Topology.LoggingResource
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 class LoggingResourceTranslator(protected val storage: ReadOnlyStorage)

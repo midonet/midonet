@@ -35,7 +35,7 @@ import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronR
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
-import org.midonet.cluster.services.c3po.C3POMinion
+import org.midonet.cluster.services.c3po.{C3POMinion, NeutronTranslatorManager}
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
@@ -85,12 +85,10 @@ class NeutronZoomPluginTest extends FeatureSpec
                                              seqDispenser = null)
         val lockFactory = new ZookeeperLockFactory(curator, paths)
         val sequenceDispenser = new SequenceDispenser(curator, backendConfig)
-        val c3po = C3POMinion.initDataManager(backend.store,
-                                              backend.stateTableStore,
-                                              sequenceDispenser,
-                                              clusterConfig,
-                                              paths)
-        plugin = new NeutronZoomPlugin(resContext, c3po, lockFactory)
+        val manager = new NeutronTranslatorManager(clusterConfig,
+                                                   backend,
+                                                   sequenceDispenser)
+        plugin = new NeutronZoomPlugin(resContext, manager, lockFactory)
     }
 
     override def teardown(): Unit = {

@@ -18,12 +18,10 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import org.midonet.cluster.data.storage.{StateTable, StateTableStorage}
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPv4Addr, MAC}
 
 /** Contains operations related to state tables and legacy replicated maps. */
 trait StateTableManager {
-    protected def pathBldr: PathBuilder
     protected def stateTableStorage: StateTableStorage
 
     protected def getBridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC] =

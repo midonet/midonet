@@ -48,7 +48,7 @@ import org.midonet.cluster.auth.{AuthModule, AuthService}
 import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter, LoginFilter}
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
-import org.midonet.cluster.services.c3po.{C3POMinion, C3POStorageManager}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
@@ -100,12 +100,9 @@ object RestApi {
                 .toInstance(MidoNodeConfigurator(
                 curator.usingNamespace(config.backend.rootKey.stripPrefix("/")),
                 None))
-            bind(classOf[C3POStorageManager])
-                .toInstance(C3POMinion.initDataManager(backend.store,
-                                                       backend.stateTableStore,
-                                                       sequenceDispenser,
-                                                       config,
-                                                       paths))
+            bind(classOf[NeutronTranslatorManager])
+                .toInstance(new NeutronTranslatorManager(config, backend,
+                                                         sequenceDispenser))
             bind(classOf[ResourceProvider]).toInstance(resProvider)
             bind(classOf[ApplicationResource])
             bind(classOf[Validator])

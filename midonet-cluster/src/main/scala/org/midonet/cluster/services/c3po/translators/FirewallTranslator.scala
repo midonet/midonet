@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Neutron.NeutronFirewallRule.FirewallRuleAction
 import org.midonet.cluster.models.Neutron.{NeutronFirewall, NeutronFirewallRule}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update, Operation}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update, Operation}
 import org.midonet.cluster.util.RangeUtil
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.util.concurrent.toFutureOps

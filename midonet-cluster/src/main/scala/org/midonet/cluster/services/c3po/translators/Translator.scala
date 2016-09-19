@@ -24,10 +24,10 @@ import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.c3poNeutronTranslatorLog
+import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.services.c3po.C3POStorageManager._
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Defines a class that is able to translate from an operation from a high
@@ -39,7 +39,7 @@ abstract class Translator[HighLevelModel <: Message](
     protected val log =
         LoggerFactory.getLogger(c3poNeutronTranslatorLog(getClass))
 
-    protected val storage: ReadOnlyStorage
+    protected def storage: ReadOnlyStorage
 
     /**
      * Translate the operation on a high level model to a list of
@@ -81,9 +81,9 @@ abstract class Translator[HighLevelModel <: Message](
     protected def translateDelete(id: UUID): OperationList = {
         val nm = try storage.get(ct.runtimeClass, id).await() catch {
             case ex: NotFoundException =>
-                val juuid = UUIDUtil.fromProto(id)
                 log.warn("Received request to delete " +
-                         s"${ct.runtimeClass.getSimpleName} $juuid, which " +
+                         s"${ct.runtimeClass.getSimpleName} " +
+                         s"${getIdString(id)}, which " +
                          s"does not exist. Ignoring.")
                 return List()
         }

@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronR
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
 import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 import org.midonet.util.concurrent.toFutureOps
 

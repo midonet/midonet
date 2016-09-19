@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.services.c3po.C3POStorageManager.Update
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Update
 import org.midonet.util.concurrent.toFutureOps
 
 /**

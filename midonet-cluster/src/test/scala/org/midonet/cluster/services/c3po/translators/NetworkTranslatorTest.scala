@@ -20,7 +20,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.util.UUIDUtil
 
 /**
@@ -35,7 +35,7 @@ class NetworkTranslatorTest extends TranslatorTestBase {
     def genId() = UUIDUtil.randomUuidProto
 
     initMockStorage()
-    val translator: NetworkTranslator = new NetworkTranslator(storage, pathBldr)
+    val translator: NetworkTranslator = new NetworkTranslator(storage)
 
     val sampleNeutronNetwork = NeutronNetwork.newBuilder()
                                        .setId(genId())

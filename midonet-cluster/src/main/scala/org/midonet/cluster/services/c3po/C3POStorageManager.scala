@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,21 @@
 package org.midonet.cluster.services.c3po
 
 import java.util.concurrent.TimeUnit
-import java.util.{HashMap => JHashMap, Map => JMap}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
+
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.C3poStorageManagerLog
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Commons
-import org.midonet.cluster.services.c3po.translators.{TranslationException, Translator}
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
+import org.midonet.cluster.services.c3po.translators.TranslationException
+import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.{C3poStorageManagerLog, ClusterConfig}
 
 object C3POStorageManager {
 
@@ -37,34 +39,6 @@ object C3POStorageManager {
      * future returned from Storage. 10 seconds for now, which we think is
      * sufficient. */
     private val TIMEOUT = Duration.create(10, TimeUnit.SECONDS)
-
-    /** A generic operation on a model */
-    trait Operation[T <: Message] {
-        def opType: OpType.OpType
-        def toPersistenceOp: PersistenceOp
-    }
-
-    case class Create[T <: Message](model: T) extends Operation[T] {
-        override val opType = OpType.Create
-        override def toPersistenceOp = CreateOp(model)
-    }
-
-    case class Update[T <: Message](model: T,
-                                    validator: UpdateValidator[T] = null)
-        extends Operation[T] {
-        override val opType = OpType.Update
-        override def toPersistenceOp = UpdateOp(model, validator)
-    }
-
-    case class Delete[T <: Message](clazz: Class[T], id: Commons.UUID) extends Operation[T] {
-        override val opType = OpType.Delete
-        /* C3PODataManager's deletion semantics is delete-if-exists by default
-         * and no-op if the object doesn't exist. Revisit if we need to make
-         * this configurable.
-         */
-        override def toPersistenceOp = DeleteOp(clazz, id,
-                                                ignoreIfNotExists = true)
-    }
 
     sealed case class Transaction(txnId: String,
                                   tasks: List[Task[_ <: Message]]) {
@@ -100,26 +74,20 @@ object OpType extends Enumeration {
 /** C3PO that translates an operation on an external model into corresponding
   * storage operations on internal Mido models.
   */
-class C3POStorageManager(storage: Storage) {
+class C3POStorageManager(config: ClusterConfig,
+                         backend: MidonetBackend,
+                         sequenceDispenser: SequenceDispenser)
+    extends NeutronTranslatorManager(config, backend, sequenceDispenser) {
     import org.midonet.cluster.services.c3po.C3POStorageManager._
 
     private val log = LoggerFactory.getLogger(C3poStorageManagerLog)
 
-    private val apiTranslators = new JHashMap[Class[_], Translator[_]]()
     private var initialized = false
-
-    def registerTranslator[T <: Message](clazz: Class[T],
-                                         translator: Translator[T])
-    : Unit = apiTranslators.put(clazz, translator)
-
-    def registerTranslators(translators: JMap[Class[_], Translator[_]])
-    : Unit = apiTranslators.putAll(translators)
-
-    def clearTranslators(): Unit = apiTranslators.clear()
 
     private def initStorageManagerState(): Unit = {
         try {
-            storage.create(C3POState.noTasksProcessed())
+            val s = backend.store
+            backend.store.create(C3POState.noTasksProcessed())
             log.info("Initialized last processed task ID")
         } catch {
             case _: ObjectExistsException => // ok
@@ -146,7 +114,7 @@ class C3POStorageManager(storage: Storage) {
     @throws[ProcessingException]
     def lastProcessedTaskId: Int = {
         assert(initialized)
-        Await.result(storage.get(classOf[C3POState], C3POState.ID), TIMEOUT)
+        Await.result(backend.store.get(classOf[C3POState], C3POState.ID), TIMEOUT)
              .lastProcessedTaskId
     }
 
@@ -202,9 +170,10 @@ class C3POStorageManager(storage: Storage) {
         // Storage interface and implementing classes.
         for (task <- txn.tasks) try {
             val newState = C3POState.at(task.taskId)
-            val midoOps = toPersistenceOps(task) :+ UpdateOp(newState)
-            log.info(s"$midoOps")
-            storage.multi(midoOps)
+            val tx = backend.store.transaction()
+            translate(tx, task.op)
+            tx.update(newState)
+            tx.commit()
             log.info(s"Executed a C3PO task with ID: ${task.taskId}.")
         } catch {
             case te: TranslationException => throw new ProcessingException(
@@ -217,28 +186,5 @@ class C3POStorageManager(storage: Storage) {
                 s"Failed to execute task ${task.taskId} " +
                 s"in transaction ${txn.txnId}.", e)
         }
-    }
-
-    @throws[ProcessingException]
-    private def toPersistenceOps[T <: Message](task: Task[T])
-    : Seq[PersistenceOp] = {
-        toPersistenceOps(task.op)
-    }
-
-    def toPersistenceOps[T <: Message](highLevelOp: Operation[T])
-    : Seq[PersistenceOp] = {
-        val modelClass = highLevelOp match {
-            case c: Create[T] => c.model.getClass
-            case u: Update[T] => u.model.getClass
-            case d: Delete[T] => d.clazz
-        }
-        if (!apiTranslators.containsKey(modelClass)) {
-            throw new ProcessingException(s"No translator for $modelClass.")
-        }
-
-        apiTranslators.get(modelClass)
-            .asInstanceOf[Translator[T]]
-            .translateOp(highLevelOp)
-            .map { midoOp => midoOp.toPersistenceOp }
     }
 }
