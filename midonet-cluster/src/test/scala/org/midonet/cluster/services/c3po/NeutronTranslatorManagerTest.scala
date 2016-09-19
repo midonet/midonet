@@ -104,10 +104,11 @@ class NeutronTranslatorManagerTest extends FlatSpec
         Given("A translator")
         val message = Commons.UUID.newBuilder().setMsb(0L).setLsb(0L).build()
         val translator = Mockito.mock(classOf[Translator[Message]])
-        Mockito.when(translator.translateOp(MockitoMatchers.any()))
+        Mockito.when(translator.translateOp(MockitoMatchers.any(),
+                                            MockitoMatchers.any()))
                .thenAnswer(new Answer[OperationList] {
                    override def answer(invocation: InvocationOnMock): OperationList = {
-                       List(invocation.getArguments.apply(0)).asInstanceOf[OperationList]
+                       List(invocation.getArguments.apply(1)).asInstanceOf[OperationList]
                    }
                })
 
@@ -124,7 +125,7 @@ class NeutronTranslatorManagerTest extends FlatSpec
         manager.translate(transaction, Create(message))
 
         Then("The manager should call the translator")
-        Mockito.verify(translator).translateOp(Create(message))
+        Mockito.verify(translator).translateOp(transaction, Create(message))
 
         And("The returned operations are added to the transaction")
         Mockito.verify(transaction).create(message)
@@ -133,7 +134,7 @@ class NeutronTranslatorManagerTest extends FlatSpec
         manager.translate(transaction, Update(message))
 
         Then("The manager should call the translator")
-        Mockito.verify(translator).translateOp(Update(message))
+        Mockito.verify(translator).translateOp(transaction, Update(message))
 
         And("The returned operations are added to the transaction")
         Mockito.verify(transaction).update(message, validator = null)
@@ -142,7 +143,8 @@ class NeutronTranslatorManagerTest extends FlatSpec
         manager.translate(transaction, Delete(classOf[Message], message))
 
         Then("The manager should call the translator")
-        Mockito.verify(translator).translateOp(Delete(classOf[Message], message))
+        Mockito.verify(translator).translateOp(transaction,
+                                               Delete(classOf[Message], message))
 
         And("The returned operations are added to the transaction")
         Mockito.verify(transaction).delete(classOf[Message], message,
@@ -153,7 +155,8 @@ class NeutronTranslatorManagerTest extends FlatSpec
         Given("A translator")
         val message = Commons.UUID.newBuilder().setMsb(0L).setLsb(0L).build()
         val translator = Mockito.mock(classOf[Translator[Message]])
-        Mockito.when(translator.translateOp(MockitoMatchers.any()))
+        Mockito.when(translator.translateOp(MockitoMatchers.any(),
+                                            MockitoMatchers.any()))
             .thenAnswer(new Answer[OperationList] {
                 override def answer(invocation: InvocationOnMock): OperationList = {
                     List(CreateNode("path0", "value0"),
@@ -175,7 +178,7 @@ class NeutronTranslatorManagerTest extends FlatSpec
         manager.translate(transaction, Create(message))
 
         Then("The manager should call the translator")
-        Mockito.verify(translator).translateOp(Create(message))
+        Mockito.verify(translator).translateOp(transaction, Create(message))
 
         And("The returned operations are added to the transaction")
         Mockito.verify(transaction).createNode("path0", "value0")

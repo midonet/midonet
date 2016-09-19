@@ -52,7 +52,8 @@ class NetworkTranslatorTest extends TranslatorTestBase {
 
     "Network CREATE" should "produce Mido Network CREATE" in {
         val id = UUIDUtil.fromProto(sampleNetwork.getId)
-        val midoOps = translator.translate(Create(sampleNeutronNetwork))
+        val midoOps = translator.translate(transaction,
+                                           Create(sampleNeutronNetwork))
         val midoNetwork = Network.newBuilder().setId(sampleNetwork.getId)
                                               .setTenantId(tenantId)
                                               .setName(networkName)
@@ -75,12 +76,11 @@ class NetworkTranslatorTest extends TranslatorTestBase {
         val newTenantId = "neutron tenant2"
         val newAdminStateUp = !adminStateUp
         bind(sampleNetwork.getId, sampleNetwork)
-        val midoOps = translator.translate(
-            Update(sampleNeutronNetwork.toBuilder
-                               .setName(newName)
-                               .setAdminStateUp(newAdminStateUp)
-                               .setTenantId(newTenantId).build)
-        )
+        val midoOps = translator.translate(transaction,
+                                           Update(sampleNeutronNetwork.toBuilder
+                                                      .setName(newName)
+                                                      .setAdminStateUp(newAdminStateUp)
+                                                      .setTenantId(newTenantId).build))
 
         // Test that name is updated but not tenant ID
         midoOps should contain only Update(Network.newBuilder()
@@ -97,7 +97,8 @@ class NetworkTranslatorTest extends TranslatorTestBase {
         val id = genId()
         bind(id, NeutronNetwork.newBuilder.setId(id).build())
         val midoOps =
-            translator.translate(Delete(classOf[NeutronNetwork], id))
+            translator.translate(transaction,
+                                 Delete(classOf[NeutronNetwork], id))
 
         val juuid = UUIDUtil.fromProto(id)
         midoOps should contain only Delete(classOf[Network], id)

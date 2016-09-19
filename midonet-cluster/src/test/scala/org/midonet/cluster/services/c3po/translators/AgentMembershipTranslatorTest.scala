@@ -77,7 +77,7 @@ class AgentMembershipTranslatorTest extends TranslatorTestBase {
     "TunnelZoneHost Create" should "Update the corresponding TunnelZone " +
     "with a corresponding host-IP address mapping." in {
         bind(tunnelZoneId, mTunnelZone)
-        val midoOps = translator.translate(Create(nAgentMembership))
+        val midoOps = translator.translate(transaction, Create(nAgentMembership))
 
         midoOps should contain (Update(mTunnelZoneWithHost))
     }
@@ -119,8 +119,8 @@ class AgentMembershipTranslatorTest extends TranslatorTestBase {
         bind(hostId, nAgentMembershipToDelete)
         bind(tunnelZoneId, mTunnelZoneWith2Hosts)
 
-        val midoOps = translator.translate(
-                Delete(classOf[AgentMembership], hostId))
+        val midoOps = translator.translate(transaction,
+                                           Delete(classOf[AgentMembership], hostId))
 
         midoOps should contain (Update(mTunnelZoneAfterDelete))
     }
@@ -128,7 +128,7 @@ class AgentMembershipTranslatorTest extends TranslatorTestBase {
     "TunnelZoneHost Update" should "throw TranslationException as Update " +
     "is not supported." in {
         intercept[TranslationException] {
-            translator.translate(Update(nAgentMembership))
+            translator.translate(transaction, Update(nAgentMembership))
         }
     }
 }
