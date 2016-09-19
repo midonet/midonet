@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.ClusterConfig
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSubnet}
@@ -41,7 +41,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     import RouterTranslator._
     import RouteManager._
 
-    override protected def translateCreate(nr: NeutronRouter): OperationList = {
+    override protected def translateCreate(tx: Transaction,
+                                           nr: NeutronRouter): OperationList = {
         val r = translate(nr)
         val inChain = newChain(r.getInboundFilterId,
                                preRouteChainName(nr.getId))
@@ -74,7 +75,9 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
-    override protected def translateDelete(nr: NeutronRouter): OperationList = {
+    override protected def translateDelete(tx: Transaction,
+                                           nr: NeutronRouter): OperationList = {
+        // ServiceContainerGroup may not exist, but delete is idempotent.
         List(Delete(classOf[Chain], inChainId(nr.getId)),
              Delete(classOf[Chain], outChainId(nr.getId)),
              Delete(classOf[Chain], fwdChainId(nr.getId)),
@@ -82,7 +85,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
              Delete(classOf[Router], nr.getId))
     }
 
-    override protected def translateUpdate(nr: NeutronRouter): OperationList = {
+    override protected def translateUpdate(tx: Transaction,
+                                           nr: NeutronRouter): OperationList = {
         val r = storage.get(classOf[Router], nr.getId).await().toBuilder
         r.setAdminStateUp(nr.getAdminStateUp)
         r.setName(nr.getName)

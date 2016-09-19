@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction, UpdateValidator}
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus.PENDING_CREATE
 import org.midonet.cluster.models.Topology.{HealthMonitor, Pool}
@@ -48,7 +48,8 @@ class HealthMonitorTranslator(protected val storage: ReadOnlyStorage)
         bldr.build()
     }
 
-    override protected def translateCreate(nhm: NeutronHealthMonitor)
+    override protected def translateCreate(tx: Transaction,
+                                           nhm: NeutronHealthMonitor)
     : OperationList = {
         val hm = translate(nhm)
 
@@ -62,12 +63,14 @@ class HealthMonitorTranslator(protected val storage: ReadOnlyStorage)
         List(Create(hm)) ++ pools.map(Update(_))
     }
 
-    override protected def translateDelete(nhm: NeutronHealthMonitor)
+    override protected def translateDelete(tx: Transaction,
+                                           nhm: NeutronHealthMonitor)
     : OperationList = {
         List(Delete(classOf[HealthMonitor], nhm.getId))
     }
 
-    override protected def translateUpdate(nhm: NeutronHealthMonitor)
+    override protected def translateUpdate(tx: Transaction,
+                                           nhm: NeutronHealthMonitor)
     : OperationList = {
         List(Update(translate(nhm, setPoolId = true),
                     HealthMonitorUpdateValidator))

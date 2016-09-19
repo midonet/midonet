@@ -242,13 +242,13 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
     }
 
     "Unassociated floating IP" should "not create anything" in {
-        val midoOps = translator.translate(Create(unboundFip))
+        val midoOps = translator.translate(transaction, Create(unboundFip))
 
         midoOps shouldBe empty
     }
 
     "Associated floating IP" should "create ARP entry and NAT rules" in {
-        val midoOps = translator.translate(Create(boundFip))
+        val midoOps = translator.translate(transaction, Create(boundFip))
 
         midoOps should contain inOrderOnly (CreateNode(fipArpEntryPath),
                                             Create(snat),
@@ -263,7 +263,7 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
         bind(tntRouterId, nTntRouterNoGwPort)
         bind(tntRouterId, mTntRouterNoGwPort)
         val te = intercept[TranslationException] {
-            translator.translate(Create(boundFip))
+            translator.translate(transaction, Create(boundFip))
         }
         te.getCause should not be null
         te.getCause match {
@@ -368,7 +368,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 
     "FIP UPDATE that keeps the floating IP unbound" should "do nothing" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(Update(unboundFip))
+        val midoOps = translator.translate(transaction, Update(unboundFip))
 
         midoOps shouldBe empty
     }
@@ -376,7 +376,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "Associating a floating IP to a port" should "add an ARP entry and NAT " +
     "rules" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(Update(boundFip))
+        val midoOps = translator.translate(transaction, Update(boundFip))
 
         midoOps should contain inOrderOnly (
             CreateNode(fipArpEntryPath),
@@ -393,7 +393,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bind(tntRouterId, nTntRouterNoGwPort)
         bind(tntRouterId, mTntRouterNoGwPort)
         val te = intercept[TranslationException] {
-                translator.translate(Update(boundFip))
+                translator.translate(transaction, Update(boundFip))
         }
 
         te.getCause should not be null
@@ -409,7 +409,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "SNAT/DNAT rules, and remove the IDs fo those rules from the inbound / " +
     "outbound chains of the tenant router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(Update(unboundFip))
+        val midoOps = translator.translate(transaction, Update(unboundFip))
 
         midoOps should contain inOrderOnly (
             DeleteNode(fipArpEntryPath),
@@ -421,7 +421,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "UPDATE that keeps the floating IP on the same port/router " should
     "do nothing" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(Update(boundFip))
+        val midoOps = translator.translate(transaction, Update(boundFip))
 
         midoOps shouldBe empty
     }
@@ -430,7 +430,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "delete the old ARP entry and NAT rules and create new ones on the new " +
     "router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(Update(fipMovedRtr2))
+        val midoOps = translator.translate(transaction, Update(fipMovedRtr2))
 
         midoOps should contain inOrderOnly (
             DeleteNode(fipArpEntryPath),
@@ -449,7 +449,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "router" should "delete the old NAT rules and create new ones on the " +
     "same router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(Update(fipMovedPort2))
+        val midoOps = translator.translate(transaction, Update(fipMovedPort2))
 
         midoOps should contain inOrderOnly (
             Delete(classOf[Rule], snatRuleId),
@@ -466,7 +466,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "router" should "delete the old ARP entry and NAT rules and create new " +
     "ones on the destination router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(Update(fipMovedRtr2Port2))
+        val midoOps = translator.translate(transaction, Update(fipMovedRtr2Port2))
 
         midoOps should contain inOrderOnly (
             DeleteNode(fipArpEntryPath),
@@ -493,7 +493,8 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
 
     "Deleting an unassociated floating IP" should "not create anything" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(Delete(classOf[FloatingIp],
+        val midoOps = translator.translate(transaction,
+                                           Delete(classOf[FloatingIp],
                                                           fipId))
         midoOps shouldBe empty
     }
@@ -507,7 +508,8 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
         bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
         bind(tntRouterInChainId, inChainWithDnat)
         bind(tntRouterOutChainId, outChainWithSnatAndReverseIcmpDnat)
-        val midoOps = translator.translate(Delete(classOf[FloatingIp],
+        val midoOps = translator.translate(transaction,
+                                           Delete(classOf[FloatingIp],
                                                   fipId))
 
         midoOps should contain inOrderOnly (
@@ -518,7 +520,7 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
     }
 
     "Deleting a non-existent FIP" should "not raise an error" in {
-        val midoOps = translator.translate(
+        val midoOps = translator.translate(transaction,
             Delete(classOf[FloatingIp], fipIdThatDoesNotExist))
         midoOps shouldBe empty
     }

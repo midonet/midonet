@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage, UpdateValidator}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron._
@@ -63,7 +63,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* Neutron does not maintain the back reference to the Floating IP, so we
      * need to do that by ourselves. */
-    override protected def retainHighLevelModel(op: Operation[NeutronPort])
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[NeutronPort])
     : List[Operation[NeutronPort]] = {
         op match {
             case Create(nm) => List(Create(nm))
@@ -72,7 +73,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateCreate(nPort: NeutronPort): OperationList = {
+    override protected def translateCreate(tx: Transaction,
+                                           nPort: NeutronPort): OperationList = {
         // Floating IPs and ports on uplink networks have no
         // corresponding Midonet port.
         if (isFloatingIpPort(nPort) || isOnUplinkNetwork(nPort)) return List()
@@ -112,8 +114,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         midoOps.toList
     }
 
-    override protected def translateDelete(nPort: NeutronPort): OperationList = {
-        // Nothing to do for floating IPs, since we didn't create anything.
+    override protected def translateDelete(tx: Transaction,
+                                           nPort: NeutronPort)
+    : OperationList = {
+        // Nothing to do for floating IPs, since we didn't create
+        // anything.
         if (isFloatingIpPort(nPort)) return List()
 
         val midoOps = new OperationListBuffer
@@ -196,7 +201,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateUpdate(nPort: NeutronPort): OperationList = {
+    override protected def translateUpdate(tx: Transaction,
+                                           nPort: NeutronPort): OperationList = {
         // If the equivalent Midonet port doesn't exist, then it's either a
         // floating IP or port on an uplink network. In either case, we
         // don't create anything in the Midonet topology for this Neutron port,
