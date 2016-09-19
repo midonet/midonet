@@ -32,7 +32,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Update}
 import org.midonet.cluster.services.c3po.OpType
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPv4Addr, MAC}

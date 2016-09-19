@@ -23,7 +23,7 @@ import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLA
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.rest_api.validation.MessageProperty.UNSUPPORTED_GATEWAY_DEVICE
-import org.midonet.cluster.services.c3po.C3POStorageManager.Update
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Update
 import org.midonet.util.concurrent.toFutureOps
 
 class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
