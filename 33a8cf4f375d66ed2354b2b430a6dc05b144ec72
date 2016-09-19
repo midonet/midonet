@@ -22,6 +22,30 @@
       "revId": "33a8cf4f375d66ed2354b2b430a6dc05b144ec72",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_f1bd0b03",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-19T08:57:13Z",
+      "side": 1,
+      "message": "done, gates do not run so easy change.",
+      "parentUuid": "baa041b7_91847f5d",
+      "range": {
+        "startLine": 382,
+        "startChar": 31,
+        "endLine": 382,
+        "endChar": 45
+      },
+      "revId": "33a8cf4f375d66ed2354b2b430a6dc05b144ec72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
