@@ -100,14 +100,14 @@ class LoadBalancerPoolTranslatorCreateTest
 
     "Creation of a Pool" should "create an LB if it does not exists." in {
         bind(lbId, null, classOf[LoadBalancer])
-        val midoOps = translator.translate(Create(poolNoHm))
+        val midoOps = translator.translate(transaction, Create(poolNoHm))
 
         midoOps should contain inOrderOnly (Create(lb), Create(mPoolNoHm))
     }
 
     it should "create just a Pool if an LB already exists." in {
         bind(lbId, lb)
-        val midoOps = translator.translate(Create(poolNoHm))
+        val midoOps = translator.translate(transaction, Create(poolNoHm))
 
         midoOps should contain only Create(mPoolNoHm)
     }
@@ -115,7 +115,7 @@ class LoadBalancerPoolTranslatorCreateTest
     "Creation of a Pool with a Health Monitor ID" should "fail" in {
         bind(lbId, lb)
         val ex = the [TranslationException] thrownBy
-                 translator.translate(Create(poolWithHm))
+                 translator.translate(transaction, Create(poolWithHm))
         ex.getMessage should include ("A health monitor may be associated")
     }
 
@@ -123,7 +123,7 @@ class LoadBalancerPoolTranslatorCreateTest
     "IllegalArgumentException." in {
         bind(lbId, null, classOf[LoadBalancer])
         val te = intercept[TranslationException] {
-            translator.translate(Create(poolNoRouterId))
+            translator.translate(transaction, Create(poolNoRouterId))
         }
 
         te.getCause match {
@@ -149,7 +149,7 @@ class LoadBalancerPoolTranslatorUpdateTest
     "UPDATE of a Pool with no Health Monitor ID" should "not add a Health " +
     "Monitor ID to the MidoNet Pool." in {
         bind(poolId, mPoolNoHm)
-        val midoOps = translator.translate(Update(poolNoHm))
+        val midoOps = translator.translate(transaction, Update(poolNoHm))
 
         midoOps should contain only Update(mPoolNoHm)
     }
@@ -162,7 +162,7 @@ class LoadBalancerPoolTranslatorUpdateTest
     "Pool UPDATE, setting admin state down" should "produce a corresponding " +
     "UPDATE" in {
         bind(poolId, mPoolWithHm)
-        val midoOps = translator.translate(Update(poolDown))
+        val midoOps = translator.translate(transaction, Update(poolDown))
 
         midoOps should contain only Update(mPoolDown)
     }

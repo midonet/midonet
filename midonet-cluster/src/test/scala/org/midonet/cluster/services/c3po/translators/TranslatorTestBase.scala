@@ -29,7 +29,7 @@ import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Update}
@@ -46,6 +46,9 @@ abstract class TranslatorTestBase  extends FlatSpec
     /* Each implementing unit test class initializes the (mock) storage by
      * calling initMockStorage() below. */
     protected var storage: ReadOnlyStorage = _
+    protected var transaction: Transaction = _
+    initMockStorage()
+
 
     // For testing CRUD on the old ZK data structure (e.g. ARP table)
     private val zkRoot = "/test"
@@ -53,6 +56,7 @@ abstract class TranslatorTestBase  extends FlatSpec
 
     protected def initMockStorage() {
         storage = mock(classOf[ReadOnlyStorage])
+        transaction = mock(classOf[Transaction])
     }
 
     /* Mock exists and get on an instance of M with an ID, "id". */
@@ -61,13 +65,18 @@ abstract class TranslatorTestBase  extends FlatSpec
         val classOfM = if (clazz != null) clazz
                        else msg.getClass.asInstanceOf[Class[M]]
         when(storage.exists(classOfM, id))
-            .thenReturn(Promise.successful(exists).future)
-        if (exists)
+            .thenReturn(Future.successful(exists))
+        if (exists) {
             when(storage.get(classOfM, id))
-                .thenReturn(Promise.successful(msg).future)
-        else
+                .thenReturn(Future.successful(msg))
+            when(transaction.get(classOfM, id)).thenReturn(msg)
+        }
+        else {
             when(storage.get(classOfM, id))
                 .thenThrow(new NotFoundException(classOfM, id))
+            when(transaction.get(classOfM, id))
+                .thenThrow(new NotFoundException(classOfM, id))
+        }
     }
 
     /* Mock exists and getAll on instances of M with its ID in "ids".

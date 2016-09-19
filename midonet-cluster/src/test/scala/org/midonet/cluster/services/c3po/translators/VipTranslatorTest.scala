@@ -147,7 +147,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
     "Neutron VIP CREATE" should "create a Midonet VIP." in {
         bindLb()
         bindVipNetwork(external = false)
-        val midoOps = translator.translate(Create(neutronVip()))
+        val midoOps = translator.translate(transaction, Create(neutronVip()))
 
         midoOps should contain only Create(midoVip())
     }
@@ -156,7 +156,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
         bindLb()
         bindVipNetwork(external = false)
         val midoOps = translator.translate(
-                Create(neutronVip(sourceIpSessionPersistence = true)))
+            transaction, Create(neutronVip(sourceIpSessionPersistence = true)))
 
         midoOps should contain only
                 Create(midoVip(sourceIpSessionPersistence = true))
@@ -166,7 +166,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
         bindLb()
         bindVipNetwork(external = false)
         val midoOps = translator.translate(
-                Create(neutronVip(poolId = poolId)))
+            transaction, Create(neutronVip(poolId = poolId)))
 
         midoOps should contain only
                 Create(midoVip(poolId = poolId, lbId = lbId))
@@ -176,8 +176,8 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
     "an external network" in {
         bindLb()
         bindVipNetwork(external = true)
-        val midoOps = translator.translate(
-                Create(neutronVip(poolId = poolId)))
+        val midoOps = translator.translate(transaction,
+                                           Create(neutronVip(poolId = poolId)))
 
         midoOps should contain (Create(
                 midoVip(poolId = poolId, lbId = lbId, gwPortId = gwPortId)))
@@ -189,8 +189,8 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
     "NOT on an external network" in {
         bindLb()
         bindVipNetwork(external = false)
-        val midoOps = translator.translate(
-                Create(neutronVip(poolId = poolId)))
+        val midoOps = translator.translate(transaction,
+                                           Create(neutronVip(poolId = poolId)))
 
         midoOps should contain only
                 Create(midoVip(poolId = poolId, lbId = lbId))
@@ -200,8 +200,8 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
     "gateway Port." in {
         bindLb(gwPortId = null)
         bindVipNetwork(external = true)
-        val midoOps = translator.translate(
-                Create(neutronVip(poolId = poolId)))
+        val midoOps = translator.translate(transaction,
+                                           Create(neutronVip(poolId = poolId)))
 
         midoOps should contain only
                 Create(midoVip(poolId = poolId, lbId = lbId))
@@ -246,7 +246,8 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
         """)
 
     "Neutron VIP Update" should "update a Midonet VIP." in {
-        val midoOps = translator.translate(Update(updatedNeutronVip))
+        val midoOps = translator.translate(transaction,
+                                           Update(updatedNeutronVip))
 
         midoOps should contain only Update(updatedMidoVip,
                                                    VipUpdateValidator)
@@ -259,7 +260,7 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
 
     it should "throws an exception when the VIP's IP address is changed" in {
         val te = intercept[TranslationException] {
-            translator.translate(Update(vipWithDifferentIp))
+            translator.translate(transaction, Update(vipWithDifferentIp))
         }
         te.getCause should not be null
         te.getCause match {
@@ -284,8 +285,8 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
         bind(vipId, midoVip())
         bind(vipId, neutronVip())
 
-        val midoOps = translator.translate(
-                Delete(classOf[NeutronVIP], vipId))
+        val midoOps = translator.translate(transaction,
+                                           Delete(classOf[NeutronVIP], vipId))
 
         midoOps should contain only
                 Delete(classOf[Vip], vipId)
@@ -297,8 +298,8 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
         bind(vipId, neutronVip())
         bind(gwPortId, neutronRouterGwPort)
 
-        val midoOps = translator.translate(
-                Delete(classOf[NeutronVIP], vipId))
+        val midoOps = translator.translate(transaction,
+                                           Delete(classOf[NeutronVIP], vipId))
 
         midoOps should contain (DeleteNode(
                 arpEntryPath(networkId, vipIpAddr, gwPortMac)))

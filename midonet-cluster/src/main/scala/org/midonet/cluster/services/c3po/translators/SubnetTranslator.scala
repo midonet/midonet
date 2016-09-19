@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.{breakOut, mutable}
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
@@ -33,7 +33,8 @@ import org.midonet.util.concurrent.toFutureOps
 class SubnetTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[NeutronSubnet] with RouteManager {
 
-    override protected def translateCreate(ns: NeutronSubnet): OperationList = {
+    override protected def translateCreate(tx: Transaction,
+                                           ns: NeutronSubnet): OperationList = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
         if (isOnUplinkNetwork(ns)) return List()
 
@@ -61,11 +62,13 @@ class SubnetTranslator(protected val storage: ReadOnlyStorage)
         List(Create(dhcp.build))
     }
 
-    override protected def translateDelete(ns: NeutronSubnet): OperationList = {
+    override protected def translateDelete(tx: Transaction,
+                                           ns: NeutronSubnet): OperationList = {
         List(Delete(classOf[Dhcp], ns.getId))
     }
 
-    override protected def translateUpdate(ns: NeutronSubnet): OperationList = {
+    override protected def translateUpdate(tx: Transaction,
+                                           ns: NeutronSubnet): OperationList = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
         if (isOnUplinkNetwork(ns)) return List()
 

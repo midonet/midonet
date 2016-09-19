@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
@@ -31,7 +31,8 @@ class NetworkTranslator(protected val storage: ReadOnlyStorage,
     extends Translator[NeutronNetwork] {
     import NetworkTranslator._
 
-    override protected def translateCreate(nn: NeutronNetwork): OperationList = {
+    override protected def translateCreate(tx: Transaction,
+                                           nn: NeutronNetwork): OperationList = {
         // Uplink networks don't exist in Midonet.
         if (isUplinkNetwork(nn)) return List()
 
@@ -41,7 +42,8 @@ class NetworkTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
-    override protected def translateUpdate(nn: NeutronNetwork): OperationList = {
+    override protected def translateUpdate(tx: Transaction,
+                                           nn: NeutronNetwork): OperationList = {
         // Uplink networks don't exist in Midonet, and regular networks can't
         // be turned into uplink networks via update.
         if (isUplinkNetwork(nn)) return List()
@@ -54,7 +56,9 @@ class NetworkTranslator(protected val storage: ReadOnlyStorage,
         List(Update(bldr.build()))
     }
 
-    override protected def translateDelete(nn: NeutronNetwork): OperationList = {
+    override protected def translateDelete(tx: Transaction,
+                                           nn: NeutronNetwork)
+    : OperationList = {
         // Uplink networks don't exist in Midonet.
         if (isUplinkNetwork(nn)) return List()
 
