@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_515a77f3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RedirectRuleSimulationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 1006717
+      },
+      "writtenOn": "2016-09-19T09:01:54Z",
+      "side": 1,
+      "message": "Shouldn\u0027t it be \"to port 3 from port 1\"?",
+      "range": {
+        "startLine": 407,
+        "startChar": 45,
+        "endLine": 407,
+        "endChar": 53
+      },
+      "revId": "e3dfcf7d76f9a0a6e0579cabf95f5df56531496f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
