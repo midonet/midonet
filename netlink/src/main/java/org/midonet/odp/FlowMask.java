@@ -254,7 +254,6 @@ public class FlowMask implements NetlinkSerializable, AttributeHandler {
             }
             exactMatchInKey(ARP);
         } else if (ethertype == org.midonet.packets.IPv6.ETHERTYPE) {
-            maskIPv6(fmatch, highestLayer);
             exactMatchInKey(IPv6);
         }
     }
