@@ -16,8 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.neutron
 
-import java.util.UUID
-import java.util.concurrent
+import java.util.{UUID, concurrent}
 import java.util.concurrent.locks.ReentrantLock
 
 import scala.async.Async.async
@@ -30,18 +29,19 @@ import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
 import org.mockito.Matchers.{any => Any}
 import org.mockito.Mockito
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
-import rx.Observable
 
-import org.midonet.cluster.{RestApiConfig, ZookeeperLockFactory}
-import org.midonet.cluster.data.storage.{PersistenceOp, Storage, Transaction}
+import org.midonet.cluster.data.storage.{Storage, Transaction}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.C3POStorageManager
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.{RestApiConfig, ZookeeperLockFactory}
 import org.midonet.midolman.state.PathBuilder
 
 @RunWith(classOf[JUnitRunner])
@@ -55,13 +55,13 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
     val apiConfig = new RestApiConfig(ConfigFactory.parseString(s"""
             |cluster.rest_api.nsdb_lock_timeout : 30s
         """.stripMargin))
-    val resContext: ResourceContext = new ResourceContext(apiConfig,
-                                                          backend,
-                                                          executionContext = null,
-                                                          lockFactory = null,
-                                                          uriInfo = null,
-                                                          validator = null,
-                                                          seqDispenser = null)
+    val resContext: ResourceContext = ResourceContext(apiConfig,
+                                                      backend,
+                                                      executionContext = null,
+                                                      lockFactory = null,
+                                                      uriInfo = null,
+                                                      validator = null,
+                                                      seqDispenser = null)
     val paths: PathBuilder = mock[PathBuilder]
     val c3po: C3POStorageManager = mock[C3POStorageManager]
     val lockFactory: ZookeeperLockFactory = mock[ZookeeperLockFactory]
@@ -82,29 +82,19 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
     // A thread unsafe counter that will be updated when a multi is called,
     // if the plugin doesn't serialize calls, we'll get bad results.
     var threadUnsafeCounter = 0
-    val store: Storage = new Storage {
-        override def multi(ops: Seq[PersistenceOp]): Unit = {
-            threadUnsafeCounter = threadUnsafeCounter + 1
-        }
-        override def transaction(): Transaction = ???
-        override def isRegistered(clazz: Class[_]): Boolean = ???
-        override def observable[T](clazz: Class[T], id: Any)
-        : Observable[T] = ???
-        override def observable[T](clazz: Class[T])
-        : Observable[Observable[T]] = ???
-        override def registerClass(clazz: Class[_]): Unit = ???
-        override def get[T](clazz: Class[T], id: Any): Future[T] = ???
-        override def exists(clazz: Class[_], id: Any): Future[Boolean] = ???
-        override def getAll[T](clazz: Class[T], ids: Seq[_ <: Any])
-        : Future[Seq[T]] = ???
-        override def getAll[T](clazz: Class[T]): Future[Seq[T]] = ???
-    }
+    val store = Mockito.mock(classOf[Storage])
+    val transaction = Mockito.mock(classOf[Transaction])
 
     Mockito.when(lockFactory.createShared(Any())).thenReturn(mutex)
     Mockito.when(backend.store).thenReturn(store)
+    Mockito.when(store.transaction()).thenReturn(transaction)
+    Mockito.when(transaction.commit()).thenAnswer(new Answer[Unit] {
+        override def answer(invocation: InvocationOnMock): Unit = {
+            threadUnsafeCounter = threadUnsafeCounter + 1
+        }
+    })
 
-    val plugin: NeutronZoomPlugin =
-        new NeutronZoomPlugin(resContext, c3po, lockFactory)
+    val plugin = new NeutronZoomPlugin(resContext, c3po, lockFactory)
 
     def makePort: Port = {
         val p = new Port

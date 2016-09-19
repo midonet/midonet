@@ -23,7 +23,7 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.{Host, Port}
-import org.midonet.cluster.services.c3po.C3POStorageManager._
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil.{randomUuidProto, toProtoFromProtoStr}
 
 /**

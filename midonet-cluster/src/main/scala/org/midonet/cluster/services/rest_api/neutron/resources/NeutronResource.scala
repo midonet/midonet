@@ -36,10 +36,9 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 @ApiResource(version = 1, name = "neutron")
 @Path("neutron")
 @RequestScoped
-class NeutronResource @Inject() (uriInfo: UriInfo,
-                                 resContext: ResourceContext,
-                                 c3po: C3POStorageManager,
-                                 api: NeutronZoomPlugin) {
+class NeutronResource @Inject()(uriInfo: UriInfo,
+                                resContext: ResourceContext,
+                                api: NeutronZoomPlugin) {
 
     @Path("networks")
     def networkResource: NetworkResource = new NetworkResource(uriInfo, api)

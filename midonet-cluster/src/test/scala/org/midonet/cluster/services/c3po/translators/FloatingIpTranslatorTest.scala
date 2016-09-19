@@ -23,8 +23,7 @@ import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.FloatingIp
 import org.midonet.cluster.models.Topology.{Port, Router, Rule}
-import org.midonet.cluster.services.c3po.C3POStorageManager._
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import RouterTranslator.tenantGwPortId
@@ -232,8 +231,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
 class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new FloatingIpTranslator(storage, stateTableStorage,
-                                              pathBldr)
+        translator = new FloatingIpTranslator(storage, stateTableStorage)
 
         bind(tntRouterId, nTntRouter)
         bind(tntRouterId, mTntRouter)
@@ -367,8 +365,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bindAll(Seq(tntRouterId, tntRouterId), Seq(nTntRouter, nTntRouter))
         bindAll(Seq(tntRouterInternalPortId), Seq(mTntRouterInternalPort))
 
-        translator = new FloatingIpTranslator(storage, stateTableStorage,
-                                              pathBldr)
+        translator = new FloatingIpTranslator(storage, stateTableStorage)
     }
 
     "FIP UPDATE that keeps the floating IP unbound" should "do nothing" in {
@@ -491,8 +488,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
     before {
         initMockStorage()
-        translator = new FloatingIpTranslator(storage, stateTableStorage,
-                                              pathBldr)
+        translator = new FloatingIpTranslator(storage, stateTableStorage)
 
         bind(fipIdThatDoesNotExist, null, classOf[FloatingIp])
     }

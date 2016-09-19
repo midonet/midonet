@@ -20,7 +20,7 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{NeutronBgpPeer, NeutronBgpSpeaker}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Delete, Operation}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Delete, Operation}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.toFutureOps
 
