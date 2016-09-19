@@ -94,6 +94,30 @@
       "revId": "e3dfcf7d76f9a0a6e0579cabf95f5df56531496f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cf626216",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RedirectRuleSimulationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-19T18:10:25Z",
+      "side": 1,
+      "message": "Ah, no, the addServiceToPort is a little confusing. The only parameter you should look at there is the service port. The service ports here are svc1Port and svc2Port. I would recommend creating a new test for this, which just creates a single service port, and tries to send traffic to it. It should fail without your change and pass with it.",
+      "parentUuid": "baa041b7_94c90d28",
+      "range": {
+        "startLine": 407,
+        "startChar": 45,
+        "endLine": 407,
+        "endChar": 53
+      },
+      "revId": "e3dfcf7d76f9a0a6e0579cabf95f5df56531496f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
