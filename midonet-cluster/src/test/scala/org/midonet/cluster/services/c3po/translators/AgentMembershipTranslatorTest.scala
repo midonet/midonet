@@ -24,7 +24,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{AgentMembership, NeutronConfig}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.util.IPAddressUtil.toProto
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 

@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Neutron.FloatingIp
 import org.midonet.cluster.models.Topology.{Port, Router, Rule}
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.services.c3po.C3POStorageManager._
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 

@@ -20,9 +20,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.midonet
-import org.midonet.cluster.services.c3po.midonet.CreateNode
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update, CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil
 
 /**
@@ -108,9 +106,9 @@ class NetworkTranslatorTest extends TranslatorTestBase {
         val juuid = UUIDUtil.fromProto(id)
         midoOps should contain only(
             Delete(classOf[Network], id),
-            midonet.DeleteNode(pathBldr.getBridgeIP4MacMapPath(juuid)),
-            midonet.DeleteNode(pathBldr.getBridgeMacPortsPath(juuid)),
-            midonet.DeleteNode(pathBldr.getBridgeVlansPath(juuid)))
+            DeleteNode(pathBldr.getBridgeIP4MacMapPath(juuid)),
+            DeleteNode(pathBldr.getBridgeMacPortsPath(juuid)),
+            DeleteNode(pathBldr.getBridgeVlansPath(juuid)))
 
         // TODO Verify external network is also deleted.
     }

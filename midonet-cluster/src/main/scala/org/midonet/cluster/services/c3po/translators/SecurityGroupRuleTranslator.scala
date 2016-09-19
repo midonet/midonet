@@ -18,11 +18,10 @@ package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.SecurityGroup
-import org.midonet.cluster.models.Neutron.SecurityGroupRule
+import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
 import org.midonet.cluster.models.Topology.Rule
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.util.concurrent.toFutureOps
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 
 class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[SecurityGroupRule] with ChainManager {

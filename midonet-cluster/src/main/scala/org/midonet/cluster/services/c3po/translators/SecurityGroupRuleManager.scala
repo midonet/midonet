@@ -16,7 +16,8 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.models.Commons.{Protocol, Condition, Int32Range, RuleDirection, UUID}
+
+import org.midonet.cluster.models.Commons.{Condition, Int32Range, Protocol, RuleDirection, UUID}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Topology.Rule

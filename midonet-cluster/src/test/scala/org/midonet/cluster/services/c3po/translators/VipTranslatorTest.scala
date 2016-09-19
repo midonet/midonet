@@ -23,8 +23,7 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronVIP
 import org.midonet.cluster.models.Topology.{Pool, Vip}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 

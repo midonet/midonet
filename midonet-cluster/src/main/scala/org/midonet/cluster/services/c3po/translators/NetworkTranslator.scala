@@ -20,11 +20,10 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update, CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
+import org.midonet.midolman.state.PathBuilder
 
 /** Provides a Neutron model translator for Network. */
 class NetworkTranslator(protected val storage: ReadOnlyStorage,

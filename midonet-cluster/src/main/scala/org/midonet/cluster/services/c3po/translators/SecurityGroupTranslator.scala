@@ -25,7 +25,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps

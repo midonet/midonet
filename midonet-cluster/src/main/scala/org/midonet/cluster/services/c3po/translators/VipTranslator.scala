@@ -20,15 +20,15 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology.Vip
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.midolman.state.PathBuilder
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
+import org.midonet.midolman.state.PathBuilder
 
 /** Provides a Neutron model translator for VIP. */
 class VipTranslator(protected val storage: ReadOnlyStorage,
-                    protected val pathBldr: PathBuilder)
+                    override val pathBldr: PathBuilder)
         extends Translator[NeutronVIP]
                 with BridgeStateTableManager {
 

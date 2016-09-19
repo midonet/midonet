@@ -27,7 +27,8 @@ import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Topology.{Dhcp, Host, Port, PortOrBuilder, _}
 import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Update, Delete, Operation}
+import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Operation, Create, Delete, Update}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid

@@ -23,6 +23,7 @@ import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Route, Dhcp}
 import org.midonet.cluster.services.c3po.C3POStorageManager._
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.IPSubnetUtil.richProtoIPSubnet
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}

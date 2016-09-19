@@ -329,7 +329,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
         val nodeCtx = new Context(UUID.randomUUID())
         c3po = new C3POMinion(nodeCtx, clusterCfg, dataSrc, backend, curator,
-                              backendCfg)
+                              backendCfg, pathBldr)
         c3po.startAsync()
         c3po.awaitRunning(5, TimeUnit.SECONDS)
     }

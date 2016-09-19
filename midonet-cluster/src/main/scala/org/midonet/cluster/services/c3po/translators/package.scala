@@ -20,7 +20,7 @@ import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
 
-import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Operation
 
 package object translators {
 

@@ -23,7 +23,7 @@ import org.midonet.cluster.models.Commons.{Protocol, UUID}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Delete, Create}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Delete, Create}
 import org.midonet.cluster.services.c3po.OpType
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto

@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.AgentMembership
-import org.midonet.cluster.services.c3po.C3POStorageManager.Update
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Update
 import org.midonet.cluster.util.UUIDUtil.fromProto
 
 /**

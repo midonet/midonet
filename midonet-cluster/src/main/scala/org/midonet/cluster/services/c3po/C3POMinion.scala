@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2016 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,16 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.ClusterNode
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
-import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.{ScheduledMinion, ClusterService}
 import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
-import org.midonet.cluster.services.c3po.translators._
-import org.midonet.cluster.services.{ClusterService, MidonetBackend, ScheduledMinion}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
-import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode, C3poLog}
+import org.midonet.cluster.{C3POConfig, C3poLog, ClusterConfig}
 import org.midonet.midolman.state.PathBuilder
 
 /** The service that translates and imports neutron models into the MidoNet
@@ -55,7 +55,8 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                            dataSrc: DataSource,
                            backend: MidonetBackend,
                            curator: CuratorFramework,
-                           backendCfg: MidonetBackendConfig)
+                           backendCfg: MidonetBackendConfig,
+                           paths: PathBuilder)
     extends ScheduledMinion(nodeContext, config.c3po) {
 
     protected override val log = LoggerFactory.getLogger(C3poLog)
@@ -63,12 +64,11 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
     private val neutronImporter = new SqlNeutronImporter(dataSrc)
     private val dataStateUpdater = new DataStateUpdater(dataSrc)
 
-    private val pathManager = new PathBuilder(backendCfg.rootKey)
     private val seqDispenser = new SequenceDispenser(curator, backendCfg)
-    private val dataMgr = C3POMinion.initDataManager(backend.store,
+    private val dataMgr = C3POMinion.initDataManager(config,
+                                                     backend,
                                                      seqDispenser,
-                                                     config,
-                                                     pathManager)
+                                                     paths)
 
     private val LEADER_LATCH_PATH = backendCfg.rootKey + "/leader-latch"
     private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
@@ -186,40 +186,14 @@ object C3POMinion {
                 InvalidCnxnStrErrMsg.format(cnxnStr))
     }
 
-    def initDataManager(storage: Storage,
-                        seqDispenser: SequenceDispenser,
-                        config: ClusterConfig,
-                        pathBldr: PathBuilder): C3POStorageManager = {
-        val dataMgr = new C3POStorageManager(storage)
-        List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
-             classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
-             classOf[NeutronConfig] -> new ConfigTranslator(storage),
-             classOf[NeutronFirewall] -> new FirewallTranslator(storage),
-             classOf[NeutronHealthMonitor] ->
-                new HealthMonitorTranslator(storage),
-             classOf[NeutronLoadBalancerPool] ->
-                new LoadBalancerPoolTranslator(storage),
-             classOf[NeutronLoadBalancerPoolMember] ->
-                new LoadBalancerPoolMemberTranslator(storage),
-             classOf[NeutronNetwork] ->
-                new NetworkTranslator(storage, pathBldr),
-             classOf[NeutronRouter] ->
-                new RouterTranslator(storage, pathBldr, config),
-             classOf[NeutronRouterInterface] ->
-                new RouterInterfaceTranslator(storage, seqDispenser, config),
-             classOf[NeutronSubnet] -> new SubnetTranslator(storage),
-             classOf[NeutronPort] -> new PortTranslator(storage, pathBldr,
-                                                        seqDispenser),
-             classOf[NeutronVIP] -> new VipTranslator(storage, pathBldr),
-             classOf[PortBinding] -> new PortBindingTranslator(storage),
-             classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
-             classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage)
-        ).asInstanceOf[List[(Class[Message], Translator[Message])]]
-         .foreach { pair =>
-            dataMgr.registerTranslator(pair._1, pair._2)
-        }
-        dataMgr.init()
-        dataMgr
+    def initDataManager(config: ClusterConfig,
+                        backend: MidonetBackend,
+                        sequenceDispenser: SequenceDispenser,
+                        paths: PathBuilder): C3POStorageManager = {
+        val manager = new C3POStorageManager(config, backend,
+                                             sequenceDispenser, paths)
+        manager.init()
+        manager
     }
 }
 
