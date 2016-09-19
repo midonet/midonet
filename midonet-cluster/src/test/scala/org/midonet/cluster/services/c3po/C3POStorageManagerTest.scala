@@ -16,26 +16,27 @@
 
 package org.midonet.cluster.services.c3po
 
-import java.util
-import java.util.{Map => JMap}
-
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Future
 
 import com.google.protobuf.Message
+
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
-import org.mockito.Matchers.{any, anyObject, argThat}
-import org.mockito.Mockito.{doThrow, mock, never, verify, when}
+import org.mockito.Matchers.{anyObject, argThat}
+import org.mockito.Mockito._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 
-import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, PersistenceOp, Storage, StorageException, UpdateOp}
+import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.data.storage.{PersistenceOp, Storage, StorageException, Transaction => ZoomTransaction}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute}
 import org.midonet.cluster.models.Topology.{Network, Port}
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.translators.{NetworkTranslator, TranslationException, Translator}
+import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
-import org.midonet.midolman.state.PathBuilder
 
 object C3POStorageManagerTest {
     /* Matches with a list starting with specified PersistenceOps. */
@@ -52,7 +53,6 @@ object C3POStorageManagerTest {
 @RunWith(classOf[JUnitRunner])
 class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     import org.midonet.cluster.services.c3po.C3POStorageManager._
-    import org.midonet.cluster.services.c3po.C3POStorageManagerTest._
     val networkId = randomUuidProto
     val portId = randomUuidProto
     val tenantId = "neutron tenant"
@@ -80,34 +80,42 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
                                     .setNetworkId(networkId)
                                     .setAdminStateUp(adminStateUp)
                                     .build
-    val pathBldr = new PathBuilder(zkRoot)
 
     var storage: Storage = _
     var storageManager: C3POStorageManager = _
+    var transaction: ZoomTransaction = _
     var mockNetworkTranslator: Translator[NeutronNetwork] = _
     var mockPortTranslator: Translator[NeutronPort] = _
     var mockExtraTranslator: Translator[NeutronRoute] = _
 
     override def beforeEach() = {
         storage = mock(classOf[Storage])
-        storageManager = new C3POStorageManager(storage)
-        val statePromise = Promise.successful(C3POState.at(2))
+        transaction = mock(classOf[ZoomTransaction])
+        when(storage.transaction()).thenReturn(transaction)
         when(storage.get(classOf[C3POState], C3POState.ID))
-            .thenReturn(statePromise.future)
-        storageManager.init()
+            .thenReturn(Future.successful(C3POState.at(2)))
 
         mockNetworkTranslator = mock(classOf[Translator[NeutronNetwork]])
         mockPortTranslator = mock(classOf[Translator[NeutronPort]])
         mockExtraTranslator = mock(classOf[Translator[NeutronRoute]])
     }
 
-    type TranslatorMap = JMap[Class[_], Translator[_]]
+    type TranslatorMap = Map[Class[_], Translator[_]]
 
-    def setUpNetworkTranslator() = {
-        val translators: TranslatorMap = new util.HashMap()
-        translators.put(classOf[NeutronNetwork],
-                        new NetworkTranslator(storage, pathBldr))
-        storageManager.registerTranslators(translators)
+    def buildManager(translatorMap: TranslatorMap = Map.empty): Unit = {
+        val config = mock(classOf[ClusterConfig])
+        val sequenceDispenser = mock(classOf[SequenceDispenser])
+        val backend = mock(classOf[MidonetBackend])
+        when(backend.store).thenReturn(storage)
+
+        storageManager = new C3POStorageManager(config, backend,
+                                                sequenceDispenser) {
+            override def translatorOf(clazz: Class[_]): Option[Translator[_]] = {
+                translatorMap.get(clazz)
+            }
+        }
+        storageManager.init()
+
     }
 
     private def c3poCreate(taskId: Int, model: Message) =
@@ -125,29 +133,26 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     "C3POStorageManager" should "make sure C3POStageManager data exists in " +
     "Storage in initialization." in {
-        val storage = mock(classOf[Storage])
-        val manager = new C3POStorageManager(storage)
-        when(storage.exists(classOf[C3POState], C3POState.ID))
-            .thenReturn(Promise.successful(false).future)
-        manager.init()
+        buildManager()
 
         verify(storage).create(C3POState.at(0))
     }
 
     "NeutronNetwork CREATE" should "call ZOOM.multi with CreateOp on " +
     "Mido Network" in {
-        setUpNetworkTranslator()
+        buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator(storage)))
 
         storageManager.interpretAndExecTxn(
-                txn("txn1", c3poCreate(2, neutronNetwork)))
+            txn("txn1", c3poCreate(2, neutronNetwork)))
 
-        verify(storage).multi(startsWith(
-                CreateOp(neutronNetwork),
-                CreateOp(midoNetwork)))
+        verify(transaction).create(neutronNetwork)
+        verify(transaction).create(midoNetwork)
     }
 
     "Translate()" should "throw an exception when no corresponding " +
                          "translator has been registered" in {
+        buildManager()
+
         intercept[ProcessingException] {
             storageManager.interpretAndExecTxn(
                     txn("txn1", c3poCreate(2, neutronNetwork)))
@@ -156,7 +161,8 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     "NeutronNetwork Update" should "call ZOOM.multi with UpdateOp on " +
     "Mido Network" in {
-        setUpNetworkTranslator()
+        buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator(storage)))
+
         val newNetworkName = "neutron update test"
         val updatedNetwork = neutronNetwork.toBuilder
                                            .setAdminStateUp(!adminStateUp)
@@ -167,25 +173,24 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         storageManager.interpretAndExecTxn(
                 txn("txn1", c3poUpdate(2, updatedNetwork)))
 
-        verify(storage).multi(startsWith(
-                UpdateOp(updatedNetwork),
-                UpdateOp(midoNetwork.toBuilder().setName(newNetworkName)
-                                                .setAdminStateUp(!adminStateUp)
-                                                .build)))
+        verify(transaction).update(updatedNetwork)
+        verify(transaction).update(midoNetwork.toBuilder.setName(newNetworkName)
+                                       .setAdminStateUp(!adminStateUp)
+                                       .build)
     }
 
     "NeutronNetwork Delete" should "call ZOOM.multi with DeleteOp on " +
     "Mido Network" in {
-        setUpNetworkTranslator()
+        buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator(storage)))
+
         when(storage.get(classOf[NeutronNetwork], networkId))
             .thenReturn(Future.successful(NeutronNetwork.getDefaultInstance))
 
         storageManager.interpretAndExecTxn(
                 txn("txn1", c3poDelete(2, classOf[NeutronNetwork], networkId)))
 
-        verify(storage).multi(startsWith(
-                DeleteOp(classOf[NeutronNetwork], networkId,
-                         ignoreIfNotExists = true)))
+        verify(transaction).delete(classOf[NeutronNetwork], networkId,
+                                   ignoresNeo = true)
     }
 
     /* TODO: not implemented yet
@@ -213,36 +218,33 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
                 .thenReturn(List(Create(neutronNetworkPort),
                                  Create(midoPort)))
 
-        val translators: TranslatorMap = new util.HashMap()
-        translators.put(classOf[NeutronNetwork], mockNetworkTranslator)
-        translators.put(classOf[NeutronPort], mockPortTranslator)
-        translators.put(classOf[NeutronRoute], mockExtraTranslator)
-        storageManager.registerTranslators(translators)
+        buildManager(Map(classOf[NeutronNetwork] -> mockNetworkTranslator,
+                         classOf[NeutronPort] -> mockPortTranslator,
+                         classOf[NeutronRoute] -> mockExtraTranslator))
+
 
         storageManager.interpretAndExecTxn(
                 txn("txn1", c3poCreate(2, neutronNetwork),
                             c3poCreate(3, neutronNetworkPort)))
 
-        verify(storage).multi(List(
-                CreateOp(neutronNetwork),
-                CreateOp(midoNetwork),
-                UpdateOp(C3POState.at(2))))
-        verify(storage).multi(List(
-                CreateOp(neutronNetworkPort),
-                CreateOp(midoPort),
-                UpdateOp(C3POState.at(3))))
+        verify(transaction).create(neutronNetwork)
+        verify(transaction).create(midoNetwork)
+        verify(transaction).update(C3POState.at(2), null)
+
+        verify(transaction).create(neutronNetworkPort)
+        verify(transaction).create(midoPort)
+        verify(transaction).update(C3POState.at(3), null)
+
         verify(mockExtraTranslator, never()).translate(anyObject())
     }
 
     "Model translation failure" should "throw C3PODataManagerException" in {
-        doThrow(new TranslationException(new Create(neutronNetwork),
+        doThrow(new TranslationException(Create(neutronNetwork),
                                          null, "Translation failure test"))
             .when(mockNetworkTranslator)
             .translateOp(Create(neutronNetwork))
 
-        val translators: TranslatorMap = new util.HashMap()
-        translators.put(classOf[NeutronNetwork], mockNetworkTranslator)
-        storageManager.registerTranslators(translators)
+        buildManager(Map(classOf[NeutronNetwork] -> mockNetworkTranslator))
 
         intercept[ProcessingException] {
             storageManager.interpretAndExecTxn(
@@ -255,11 +257,9 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
                 .translateOp(Create(neutronNetwork)))
                 .thenReturn(List(Create(neutronNetwork), Create(midoNetwork)))
         doThrow(new StorageException("Storage failure test"))
-                .when(storage).multi(any(classOf[Seq[PersistenceOp]]))
+                .when(transaction).create(anyObject())
 
-        val translators: TranslatorMap = new util.HashMap()
-        translators.put(classOf[NeutronNetwork], mockNetworkTranslator)
-        storageManager.registerTranslators(translators)
+        buildManager(Map(classOf[NeutronNetwork] -> mockNetworkTranslator))
 
         intercept[ProcessingException] {
             storageManager.interpretAndExecTxn(

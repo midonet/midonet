@@ -16,19 +16,18 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import java.util.{ArrayList => JAList, List => JList}
+import java.util.{List => JList}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, StateTableStorage, UpdateValidator}
-import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpts}
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
-import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.l2gwNetworkPortId
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
@@ -37,7 +36,6 @@ import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.cluster.util.IPSubnetUtil.{univSubnet4, fromAddr}
 import org.midonet.cluster.util._
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{ARP, IPv4Addr, MAC}
 import org.midonet.util.Range
 import org.midonet.util.concurrent.toFutureOps
@@ -58,7 +56,6 @@ object PortTranslator {
 
 class PortTranslator(protected val storage: ReadOnlyStorage,
                      protected val stateTableStorage: StateTableStorage,
-                     protected val pathBldr: PathBuilder,
                      sequenceDispenser: SequenceDispenser)
         extends Translator[NeutronPort]
                 with ChainManager with PortManager with RouteManager with RuleManager

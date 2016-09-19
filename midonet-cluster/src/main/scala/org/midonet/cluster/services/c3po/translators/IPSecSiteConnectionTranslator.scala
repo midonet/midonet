@@ -25,7 +25,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.Topology.{Port, Route, ServiceContainer}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.translators.IPSecSiteConnectionTranslator._
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
