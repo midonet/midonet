@@ -70,6 +70,30 @@
       "revId": "e3dfcf7d76f9a0a6e0579cabf95f5df56531496f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_94c90d28",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RedirectRuleSimulationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-19T14:35:19Z",
+      "side": 1,
+      "message": "Actually, mac1 is added as the mac address in the l2insertion object (line 76) and there are two l2insertion objects being created (one for each svc1Port and svc2Port). Looking at the output actions after simulating the packet, I see there are two ToPortAction, one for each service port so the packet is being forwarded to both ports. I assumed that\u0027s how it was supposed to work.",
+      "parentUuid": "baa041b7_d48af563",
+      "range": {
+        "startLine": 407,
+        "startChar": 45,
+        "endLine": 407,
+        "endChar": 53
+      },
+      "revId": "e3dfcf7d76f9a0a6e0579cabf95f5df56531496f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
