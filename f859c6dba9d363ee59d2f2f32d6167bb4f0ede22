@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_34dda170",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-19T12:58:16Z",
+      "side": 1,
+      "message": "Ah got it. In that case, i\u0027d move this logic out into another method.\n\nint startEventsInPreviousWindow() {\n    long startWindow \u003d clock.time() - period;\n    while (startEvents.size() \u003e 0 \u0026\u0026 startEvents.peek() \u003c startWindow) {\n        startEvents.poll();\n    }\n    return startEvents.size();\n}\n\nAnd rename retries to retriesPerWindow. Maybe some comments also.",
+      "parentUuid": "baa041b7_e7555ffa",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 13
+      },
+      "revId": "f859c6dba9d363ee59d2f2f32d6167bb4f0ede22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_b453036c",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 5
@@ -155,6 +179,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_54f5c5ea",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-19T12:58:16Z",
+      "side": 1,
+      "message": "even if strictly not needed, as it looks now, it looks like unsafe synchronization, which is confusing for someone coming to the code later.",
+      "parentUuid": "baa041b7_c7dedb3d",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 48
+      },
+      "revId": "f859c6dba9d363ee59d2f2f32d6167bb4f0ede22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_94d59fb8",
         "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
         "patchSetId": 5
@@ -184,6 +232,24 @@
       "side": 1,
       "message": "This is a midonet-util module so cannot use Midolman.exitAsync. I pass now the exit action on the constructor.",
       "parentUuid": "baa041b7_94d59fb8",
+      "revId": "f859c6dba9d363ee59d2f2f32d6167bb4f0ede22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_74f20908",
+        "filename": "midonet-util/src/main/java/org/midonet/util/process/MonitoredDaemonProcess.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-19T12:58:16Z",
+      "side": 1,
+      "message": "sounds good to me.",
+      "parentUuid": "baa041b7_a76757e9",
       "revId": "f859c6dba9d363ee59d2f2f32d6167bb4f0ede22",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
