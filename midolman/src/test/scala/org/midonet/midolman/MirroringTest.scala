@@ -149,6 +149,15 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
                 { tcp ports 12345 ---> dstPort }
     }
 
+    def frameLeftToRightL2Vlan(dstPort: Short): Ethernet = {
+        import org.midonet.packets.util.PacketBuilder._
+
+        { eth ether_type IPv4.ETHERTYPE mac leftMac -> rightMac vlan 1 }  <<
+            { ip4 addr leftAddr --> rightAddr } <<
+                { tcp ports 12345 ---> dstPort }
+    }
+
+
     def frameLeftToRightL3(dstPort: Short): Ethernet = {
         import org.midonet.packets.util.PacketBuilder._
 
@@ -218,6 +227,26 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
             addMirrorToBridge(bridge, mirrorA, inbound = false)
 
             val (result, context) = simulate(packetContextFor(frameLeftToRightL2(22), leftBridgePort))
+            result should be (AddVirtualWildcardFlow)
+            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (toPorts (rightBridgePort, dstPortA))
+        }
+    }
+
+    feature("Basic mirroring on bridge for VLAN-tagged frames") {
+        scenario("Ingress mirror") {
+            addMirrorToBridge(bridge, mirrorA, inbound = true)
+
+            val (result, context) = simulate(packetContextFor(frameLeftToRightL2Vlan(22), leftBridgePort))
+            result should be (AddVirtualWildcardFlow)
+            context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
+            context should be (toPorts (rightBridgePort, dstPortA))
+        }
+
+        scenario("Egress mirror") {
+            addMirrorToBridge(bridge, mirrorA, inbound = false)
+
+            val (result, context) = simulate(packetContextFor(frameLeftToRightL2Vlan(22), leftBridgePort))
             result should be (AddVirtualWildcardFlow)
             context should be (taggedWith (FlowTagger.tagForMirror(mirrorA)))
             context should be (toPorts (rightBridgePort, dstPortA))
