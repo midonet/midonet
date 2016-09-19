@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_2a909c4d",
+        "filename": "tests/sandbox/provisioning/bgp-provisioning.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1005043
+      },
+      "writtenOn": "2016-09-19T20:39:30Z",
+      "side": 1,
+      "message": "ipv6 recommended subnets are /64 for end costumers and /48 for aggregations. I recommend to use /64 here if there aren\u0027t any issues",
+      "range": {
+        "startLine": 30,
+        "startChar": 103,
+        "endLine": 30,
+        "endChar": 105
+      },
+      "revId": "1506136d40bfb9ac9045744218831c9dc5a70464",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
