@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.mutable
 
 import org.midonet.cluster.ClusterConfig
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron._
@@ -56,10 +56,12 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
 
     /* NeutronRouterInterface is a binding information and has no unique ID.
      * We don't persist it in Storage. */
-    override protected def retainHighLevelModel(
-            op: Operation[NeutronRouterInterface]) = List()
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[NeutronRouterInterface])
+    : List[Operation[NeutronRouterInterface]] = List()
 
-    override protected def translateCreate(ri : NeutronRouterInterface)
+    override protected def translateCreate(tx: Transaction,
+                                           ri: NeutronRouterInterface)
     : OperationList = {
         // At this point, we will already have translated the task to create
         // the NeutronPort with id ri.getPortId.
@@ -264,7 +266,8 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateDelete(ri: NeutronRouterInterface)
+    override protected def translateDelete(tx: Transaction,
+                                           ri: NeutronRouterInterface)
     : OperationList = {
         // The id field of a router interface is the router ID. Since a router
         // can have multiple interfaces, this doesn't uniquely identify it.
@@ -273,7 +276,8 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
         List()
     }
 
-    override protected def translateUpdate(nm: NeutronRouterInterface)
+    override protected def translateUpdate(tx: Transaction,
+                                           nm: NeutronRouterInterface)
     : OperationList = {
         throw new IllegalArgumentException(
             "NeutronRouterInterface update not supported.")

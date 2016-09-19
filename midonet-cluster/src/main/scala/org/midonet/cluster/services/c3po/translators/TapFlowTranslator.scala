@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Neutron.TapFlow
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Update
@@ -26,7 +26,8 @@ import org.midonet.util.concurrent.toFutureOps
 class TapFlowTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[TapFlow] {
 
-    override protected def translateCreate(tf: TapFlow): OperationList = {
+    override protected def translateCreate(tx: Transaction,
+                                           tf: TapFlow): OperationList = {
         val port = storage.get(classOf[Port],
                                tf.getSourcePort).await().toBuilder
         val mirrorId = tf.getTapServiceId
@@ -41,7 +42,8 @@ class TapFlowTranslator(protected val storage: ReadOnlyStorage)
         List(Update(port.build))
     }
 
-    override protected def translateDelete(tf: TapFlow): OperationList = {
+    override protected def translateDelete(tx: Transaction,
+                                           tf: TapFlow): OperationList = {
         val port = storage.get(classOf[Port],
                                tf.getSourcePort).await().toBuilder
         val mirrorId = tf.getTapServiceId
@@ -58,7 +60,8 @@ class TapFlowTranslator(protected val storage: ReadOnlyStorage)
         List(Update(port.build))
     }
 
-    override protected def translateUpdate(tf: TapFlow): OperationList =
+    override protected def translateUpdate(tx: Transaction,
+                                           tf: TapFlow): OperationList =
         List()
 
     private def tapIn(tf: TapFlow): Boolean =

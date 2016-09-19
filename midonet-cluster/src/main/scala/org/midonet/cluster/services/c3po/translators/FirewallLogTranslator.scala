@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FirewallLog, NeutronLoggingResource}
 import org.midonet.cluster.models.Topology.LoggingResource.Type
@@ -33,7 +33,8 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
     import FirewallLogTranslator._
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
-    override protected def translateCreate(fl: FirewallLog): OperationList = {
+    override protected def translateCreate(tx: Transaction,
+                                           fl: FirewallLog): OperationList = {
         val ops = new OperationListBuffer
         ops ++= ensureLoggerResource(fl.getLoggingResource)
         ops ++= createRuleLogger(fl)
@@ -81,13 +82,15 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
         }
     }
 
-    override protected def translateUpdate(fl: FirewallLog): OperationList = {
+    override protected def translateUpdate(tx: Transaction,
+                                           fl: FirewallLog): OperationList = {
         val oldLogger = storage.get(classOf[RuleLogger], fl.getId).await()
         val newLogger = oldLogger.toBuilder.setEvent(fl.getFwEvent).build()
         List(Update(newLogger))
     }
 
-    override protected def translateDelete(flId: UUID): OperationList = {
+    override protected def translateDelete(tx: Transaction,
+                                           flId: UUID): OperationList = {
         val ops = new OperationListBuffer
         val rl = storage.get(classOf[RuleLogger], flId).await()
         ops += Delete(classOf[RuleLogger], flId)
@@ -98,11 +101,12 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
         ops.toList
     }
 
-    override protected def retainHighLevelModel(op: Operation[FirewallLog])
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[FirewallLog])
     : List[Operation[FirewallLog]] = {
         op match {
             case Update(_, _) | Create(_) | Delete(_, _) => List()
-            case _ => super.retainHighLevelModel(op)
+            case _ => super.retainHighLevelModel(tx, op)
         }
     }
 }

@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConversions._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLAN, ROUTER_VTEP}
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection, RemoteMacEntry}
@@ -85,7 +85,8 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         List(Create(nwPort), Create(vlanPort))
     }
 
-    override protected def translateCreate(cnxn: L2GatewayConnection)
+    override protected def translateCreate(tx: Transaction,
+                                           cnxn: L2GatewayConnection)
     : OperationList = {
         if (cnxn.getL2Gateway.getDevicesCount != 1) {
             throw new IllegalArgumentException(ONLY_ONE_GW_DEV_SUPPORTED)
@@ -103,7 +104,8 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateDelete(cnxn: L2GatewayConnection)
+    override protected def translateDelete(tx: Transaction,
+                                           cnxn: L2GatewayConnection)
     : OperationList = {
         val gwPortId = l2gwGatewayPortId(cnxn.getNetworkId)
         val gwPort = storage.get(classOf[Port], gwPortId).await()
@@ -124,7 +126,8 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         rmOps.toList
     }
 
-    override protected def translateUpdate(cnxn: L2GatewayConnection)
+    override protected def translateUpdate(tx: Transaction,
+                                           cnxn: L2GatewayConnection)
     : OperationList = {
         // TODO: Implement.
         List()

@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConversions._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
 import org.midonet.cluster.models.Neutron.{GatewayDevice, RemoteMacEntry}
 import org.midonet.cluster.models.Topology.{Port, Router}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{CreateNode, DeleteNode, Update}
@@ -31,7 +31,8 @@ class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
     extends Translator[RemoteMacEntry] with StateTableManager {
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
-    override protected def translateCreate(rm: RemoteMacEntry)
+    override protected def translateCreate(tx: Transaction,
+                                           rm: RemoteMacEntry)
     : OperationList = {
         // Get the ports on the gateway device's router.
         val gwDev = storage.get(classOf[GatewayDevice], rm.getDeviceId).await()
@@ -58,7 +59,8 @@ class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateDelete(rm: RemoteMacEntry)
+    override protected def translateDelete(tx: Transaction,
+                                           rm: RemoteMacEntry)
     : OperationList = {
         val ports = storage.getAll(classOf[Port], rm.getPortIdsList).await()
         for (p <- ports.toList) yield {
@@ -68,7 +70,8 @@ class RemoteMacEntryTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateUpdate(rm: RemoteMacEntry)
+    override protected def translateUpdate(tx: Transaction,
+                                           rm: RemoteMacEntry)
     : OperationList = {
         throw new NotImplementedError("RemoteMacEntry update not supported.")
     }

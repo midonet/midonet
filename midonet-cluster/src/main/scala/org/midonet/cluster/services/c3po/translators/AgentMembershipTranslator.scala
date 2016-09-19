@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Neutron.AgentMembership
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.Update
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -34,7 +34,8 @@ class AgentMembershipTranslator(protected val storage: ReadOnlyStorage)
      * Membership is translated into a mapping, HostToIp, under the default
      * TunnelZone in MidoNet.
      */
-    override protected def translateCreate(membership: AgentMembership)
+    override protected def translateCreate(tx: Transaction,
+                                           membership: AgentMembership)
     : OperationList = {
         val tz = getNeutronDefaultTunnelZone(storage)
         val tzWithHost = tz.toBuilder
@@ -51,7 +52,8 @@ class AgentMembershipTranslator(protected val storage: ReadOnlyStorage)
     /**
      * Update is not supported for AgentMembership.
      */
-    override protected def translateUpdate(tzHost: AgentMembership) =
+    override protected def translateUpdate(tx: Transaction,
+                                           tzHost: AgentMembership) =
         throw new UnsupportedOperationException(
                 "Agent Membership Update is not supported.")
 
@@ -60,7 +62,8 @@ class AgentMembershipTranslator(protected val storage: ReadOnlyStorage)
      * Neutron AgentMembership and the default Tunnel Zone. Looks for a
      * corresponding HostToIp mapping with the Host ID and deletes it,
      */
-    override protected def translateDelete(membership: AgentMembership)
+    override protected def translateDelete(tx: Transaction,
+                                           membership: AgentMembership)
     : OperationList = {
         val midoOps = new OperationListBuffer()
         val tz = getNeutronDefaultTunnelZone(storage)

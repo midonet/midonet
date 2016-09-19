@@ -183,8 +183,8 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     "Mido Network" in {
         buildManager(Map(classOf[NeutronNetwork] -> new NetworkTranslator(storage)))
 
-        when(storage.get(classOf[NeutronNetwork], networkId))
-            .thenReturn(Future.successful(NeutronNetwork.getDefaultInstance))
+        when(transaction.get(classOf[NeutronNetwork], networkId))
+            .thenReturn(NeutronNetwork.getDefaultInstance)
 
         storageManager.interpretAndExecTxn(
                 txn("txn1", c3poDelete(2, classOf[NeutronNetwork], networkId)))
@@ -210,11 +210,11 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     "Neutron transaction" should " execute each task as a separate " +
                                  " multi call." in {
         when(mockNetworkTranslator
-                .translateOp(Create(neutronNetwork)))
+                .translateOp(transaction, Create(neutronNetwork)))
                 .thenReturn(List(Create(neutronNetwork),
                                  Create(midoNetwork)))
         when(mockPortTranslator
-                .translateOp(Create(neutronNetworkPort)))
+                .translateOp(transaction, Create(neutronNetworkPort)))
                 .thenReturn(List(Create(neutronNetworkPort),
                                  Create(midoPort)))
 
@@ -235,14 +235,14 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         verify(transaction).create(midoPort)
         verify(transaction).update(C3POState.at(3), null)
 
-        verify(mockExtraTranslator, never()).translate(anyObject())
+        verify(mockExtraTranslator, never()).translate(anyObject(), anyObject())
     }
 
     "Model translation failure" should "throw C3PODataManagerException" in {
         doThrow(new TranslationException(Create(neutronNetwork),
                                          null, "Translation failure test"))
             .when(mockNetworkTranslator)
-            .translateOp(Create(neutronNetwork))
+            .translateOp(transaction, Create(neutronNetwork))
 
         buildManager(Map(classOf[NeutronNetwork] -> mockNetworkTranslator))
 
@@ -254,7 +254,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     "Storage failure" should "throw C3PODataManagerException" in {
         when(mockNetworkTranslator
-                .translateOp(Create(neutronNetwork)))
+                .translateOp(transaction, Create(neutronNetwork)))
                 .thenReturn(List(Create(neutronNetwork), Create(midoNetwork)))
         doThrow(new StorageException("Storage failure test"))
                 .when(transaction).create(anyObject())

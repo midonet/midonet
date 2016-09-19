@@ -21,7 +21,7 @@ import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
@@ -92,7 +92,8 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
         xlated
     }
 
-    protected override def translateCreate(sg: SecurityGroup)
+    protected override def translateCreate(tx: Transaction,
+                                           sg: SecurityGroup)
     : OperationList = {
 
         val translatedSg = translate(sg)
@@ -109,7 +110,8 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
         ops.toList
     }
 
-    protected override def translateUpdate(newSg: SecurityGroup)
+    protected override def translateUpdate(tx: Transaction,
+                                           newSg: SecurityGroup)
     : OperationList = {
         // Neutron doesn't modify rules via SecurityGroup update, but instead
         // always passes in an empty list of rules. The only property modifiable
@@ -123,7 +125,8 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
 
     /* Keep the original model as is by default. Override if the model does not
      * need to be maintained, or need some special handling. */
-    override protected def retainHighLevelModel(op: Operation[SecurityGroup])
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[SecurityGroup])
     : List[Operation[SecurityGroup]] = op match {
         case Update(newSg, _) =>
             // Neutron doesn't specify rules in update. Name and description
@@ -134,10 +137,11 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
                             .setName(newSg.getName)
                             .setDescription(newSg.getDescription)
                             .build()))
-        case _ => super.retainHighLevelModel(op)
+        case _ => super.retainHighLevelModel(tx, op)
     }
 
-    protected override def translateDelete(sg: SecurityGroup)
+    protected override def translateDelete(tx: Transaction,
+                                           sg: SecurityGroup)
     : List[Operation[_ <: Message]] = {
         val ops = new OperationListBuffer
 

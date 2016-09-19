@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{NeutronBgpPeer, NeutronBgpSpeaker}
 import org.midonet.cluster.models.Topology._
@@ -30,13 +30,15 @@ class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
                                           with RuleManager {
     import BgpPeerTranslator._
 
-    override protected def translateCreate(bgpSpeaker: NeutronBgpSpeaker)
+    override protected def translateCreate(tx: Transaction,
+                                           bgpSpeaker: NeutronBgpSpeaker)
     : OperationList = {
         throw new UnsupportedOperationException(
             "Create NeutronBgpSpeaker not supported.")
     }
 
-    override protected def translateUpdate(bgpSpeaker: NeutronBgpSpeaker)
+    override protected def translateUpdate(tx: Transaction,
+                                           bgpSpeaker: NeutronBgpSpeaker)
     : OperationList = {
         if (bgpSpeaker.getDelBgpPeerIdsCount == 0)
             return List()
@@ -55,13 +57,15 @@ class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
-    override protected def translateDelete(bgpSpeakerId: UUID): OperationList = {
+    override protected def translateDelete(tx: Transaction,
+                                           bgpSpeakerId: UUID): OperationList = {
         throw new UnsupportedOperationException(
             "Delete NeutronBgpSpeaker not supported.")
     }
 
     // We don't store the BGPSpeaker in Zookeeper.
-    override protected def retainHighLevelModel(op: Operation[NeutronBgpSpeaker])
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[NeutronBgpSpeaker])
     : List[Operation[NeutronBgpSpeaker]] = List()
 }
 

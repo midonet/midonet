@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Commons.LBStatus.ACTIVE
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
@@ -43,13 +43,16 @@ class LoadBalancerPoolMemberTranslator(protected val storage: ReadOnlyStorage)
         mMember.build
     }
 
-    override protected def translateCreate(nm: NeutronLoadBalancerPoolMember)
+    override protected def translateCreate(tx: Transaction,
+                                           nm: NeutronLoadBalancerPoolMember)
     : OperationList = List(Create(translate(nm)))
 
-    override protected def translateDelete(npm: NeutronLoadBalancerPoolMember)
+    override protected def translateDelete(tx: Transaction,
+                                           npm: NeutronLoadBalancerPoolMember)
     : OperationList = List(Delete(classOf[PoolMember], npm.getId))
 
-    override protected def translateUpdate(nm: NeutronLoadBalancerPoolMember)
+    override protected def translateUpdate(tx: Transaction,
+                                           nm: NeutronLoadBalancerPoolMember)
     : OperationList = {
         // Load Balancer Pool status is set to ACTIVE upon creation by default,
         // and it is to be updated only by Health Monitor. Therefore when we

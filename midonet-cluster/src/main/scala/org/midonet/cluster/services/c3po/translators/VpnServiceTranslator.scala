@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.{UUID => JUUID}
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, VpnService}
 import org.midonet.cluster.models.Topology._
@@ -39,7 +39,8 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         with RuleManager {
     import VpnServiceTranslator._
 
-    override protected def translateCreate(vpn: VpnService): OperationList = {
+    override protected def translateCreate(tx: Transaction,
+                                           vpn: VpnService): OperationList = {
         val routerId = vpn.getRouterId
         val router = storage.get(classOf[Router], routerId).await()
 
@@ -133,7 +134,8 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             List(Update(modifiedVpnService))
     }
 
-    override protected def translateDelete(vpn: VpnService): OperationList = {
+    override protected def translateDelete(tx: Transaction,
+                                           vpn: VpnService): OperationList = {
         val router = storage.get(classOf[Router], vpn.getRouterId).await()
 
         val otherServices = storage.getAll(classOf[VpnService],
@@ -173,13 +175,15 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateUpdate(vpn: VpnService): OperationList = {
+    override protected def translateUpdate(tx: Transaction,
+                                           vpn: VpnService): OperationList = {
         // No Midonet-specific changes, but changes to the VPNService are
         // handled in retainHighLevelModel().
         List()
     }
 
-    override protected def retainHighLevelModel(op: Operation[VpnService])
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[VpnService])
     : List[Operation[VpnService]] = op match {
         case Update(vpn, _) =>
             // Need to override update to make sure only certain fields are
@@ -192,7 +196,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
                 .setExternalIp(oldVpn.getExternalIp)
                 .build()
             List(Update(newVpn))
-        case _ => super.retainHighLevelModel(op)
+        case _ => super.retainHighLevelModel(tx, op)
     }
 
     @throws[NoSuchElementException]

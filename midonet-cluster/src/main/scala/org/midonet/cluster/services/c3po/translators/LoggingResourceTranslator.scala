@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoggingResource
 import org.midonet.cluster.models.Topology.LoggingResource
@@ -27,13 +27,15 @@ class LoggingResourceTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[NeutronLoggingResource] {
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
-    override protected def translateCreate(nlr: NeutronLoggingResource)
+    override protected def translateCreate(tx: Transaction,
+                                           nlr: NeutronLoggingResource)
     : OperationList = {
         throw new UnsupportedOperationException(
             "Update LoggingResource not supported.")
     }
 
-    override protected def translateUpdate(nlr: NeutronLoggingResource)
+    override protected def translateUpdate(tx: Transaction,
+                                           nlr: NeutronLoggingResource)
     : OperationList = {
         if (storage.exists(classOf[LoggingResource], nlr.getId).await()) {
             val oldLogRes = storage.get(classOf[LoggingResource], nlr.getId).await()
@@ -45,15 +47,17 @@ class LoggingResourceTranslator(protected val storage: ReadOnlyStorage)
         }
     }
 
-    override protected def translateDelete(lrId: UUID)
+    override protected def translateDelete(tx: Transaction,
+                                           lrId: UUID)
     : OperationList = {
         List(Delete(classOf[LoggingResource], lrId))
     }
-    override protected def retainHighLevelModel(op: Operation[NeutronLoggingResource])
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[NeutronLoggingResource])
     : List[Operation[NeutronLoggingResource]] = {
         op match {
             case Create(_) | Update(_, _) | Delete(_, _) => List()
-            case _ => super.retainHighLevelModel(op)
+            case _ => super.retainHighLevelModel(tx, op)
         }
     }
 }

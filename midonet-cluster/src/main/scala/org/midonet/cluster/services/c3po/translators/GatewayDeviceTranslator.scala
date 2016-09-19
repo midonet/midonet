@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.{NETWORK_VLAN, ROUTER_VTEP}
 import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection}
 import org.midonet.cluster.models.Topology.Port
@@ -31,7 +31,8 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
     extends Translator[GatewayDevice] {
     import L2GatewayConnectionTranslator._
 
-    override protected def translateCreate(gwDev: GatewayDevice)
+    override protected def translateCreate(tx: Transaction,
+                                           gwDev: GatewayDevice)
     : OperationList = {
         // Only router VTEP and network VLAN are supported.
         if (gwDev.getType != ROUTER_VTEP && gwDev.getType != NETWORK_VLAN)
@@ -41,13 +42,15 @@ class GatewayDeviceTranslator(protected val storage: ReadOnlyStorage,
         List()
     }
 
-    override protected def translateDelete(gwDev: GatewayDevice)
+    override protected def translateDelete(tx: Transaction,
+                                           gwDev: GatewayDevice)
     : OperationList = {
         // Nothing to do but delete the Neutron data.
         List()
     }
 
-    override protected def translateUpdate(gwDev: GatewayDevice)
+    override protected def translateUpdate(tx: Transaction,
+                                           gwDev: GatewayDevice)
     : OperationList = {
 
         def hasThisGW(conn: L2GatewayConnection) = {

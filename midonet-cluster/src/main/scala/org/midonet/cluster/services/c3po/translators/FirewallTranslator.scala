@@ -19,13 +19,13 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.{Condition, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronFirewallRule.FirewallRuleAction
 import org.midonet.cluster.models.Neutron.{NeutronFirewall, NeutronFirewallRule}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update, Operation}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.RangeUtil
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.util.concurrent.toFutureOps
@@ -156,7 +156,8 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         }
     }
 
-    override protected def translateCreate(fw: NeutronFirewall) =
+    override protected def translateCreate(tx: Transaction,
+                                           fw: NeutronFirewall) =
         firewallChains(fw.getId).map(Create(_)) ++
         fwdRules(fw).map(Create(_)) ++
         translateRouterAssocs(fw)
@@ -169,11 +170,13 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
                 List(Delete(classOf[Rule], fwdChainFwJumpRuleId(rId)))).toList
     }
 
-    override protected def translateDelete(nfw: NeutronFirewall) =
+    override protected def translateDelete(tx: Transaction,
+                                           nfw: NeutronFirewall) =
         translateFwJumpRuleDel(nfw) ++
         firewallChains(nfw.getId).map(c => Delete(classOf[Chain], c.getId))
 
-    override protected def translateUpdate(fw: NeutronFirewall) = {
+    override protected def translateUpdate(tx: Transaction,
+                                           fw: NeutronFirewall) = {
         // Note: We need to update the high level model by ourselves
         // because it might not be an Update.
         if (fw.hasLastRouter && fw.getLastRouter) {
@@ -182,7 +185,8 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
             val fwId = fw.getId
             log.debug(s"Deleting firewall ${fromProto(fwId)} because " +
                       "no routers are associated")
-            List(Delete(classOf[NeutronFirewall], fwId)) ++ translateDelete(fwId)
+            List(Delete(classOf[NeutronFirewall], fwId)) ++
+                translateDelete(tx, fwId)
         } else {
             val chainId = fwdChainId(fw.getId)
             val chain = try {
@@ -200,16 +204,17 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
                 // the Create RPC because of the empty router list.
                 log.debug(s"Creating firewall ${fromProto(fw.getId)} " +
                           "for Update request")
-                List(Create(fw)) ++ translateCreate(fw)
+                List(Create(fw)) ++ translateCreate(tx, fw)
             }
         }
     }
 
-    override protected def retainHighLevelModel(op: Operation[NeutronFirewall])
+    override protected def retainHighLevelModel(tx: Transaction,
+                                                op: Operation[NeutronFirewall])
     : List[Operation[NeutronFirewall]] = {
         op match {
             case Update(nm, _) => List()  // See translateUpdate
-            case _ => super.retainHighLevelModel(op)
+            case _ => super.retainHighLevelModel(tx, op)
         }
     }
 }
