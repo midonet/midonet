@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7111fb5c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-19T11:18:09Z",
+      "side": 1,
+      "message": "unrelated change?",
+      "range": {
+        "startLine": 434,
+        "startChar": 8,
+        "endLine": 434,
+        "endChar": 12
+      },
+      "revId": "360d62e0d7cda441faba220d1529e01ca79137ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_310c9341",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-19T11:18:09Z",
+      "side": 1,
+      "message": "ditto.",
+      "range": {
+        "startLine": 446,
+        "startChar": 16,
+        "endLine": 446,
+        "endChar": 51
+      },
+      "revId": "360d62e0d7cda441faba220d1529e01ca79137ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
