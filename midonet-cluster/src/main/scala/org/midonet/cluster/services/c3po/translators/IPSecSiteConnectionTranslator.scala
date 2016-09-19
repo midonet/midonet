@@ -21,7 +21,7 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeSet
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.Topology.{Port, Route, ServiceContainer}
@@ -37,21 +37,24 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
         with RouteManager {
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
-    override protected def translateCreate(cnxn: IPSecSiteConnection)
+    override protected def translateCreate(tx: Transaction,
+                                           cnxn: IPSecSiteConnection)
     : OperationList = {
         val vpn = storage.get(classOf[VpnService], cnxn.getVpnserviceId).await()
 
         createRemoteRoutes(cnxn, vpn).map(Create(_))
     }
 
-    override protected def translateDelete(cnxn: IPSecSiteConnection)
+    override protected def translateDelete(tx: Transaction,
+                                           cnxn: IPSecSiteConnection)
     : OperationList = {
         // retainHighLevelModel() should delete the IPSecSiteConnection, and
         // this should cascade to the routes due to Zoom bindings.
         List()
     }
 
-    override protected def translateUpdate(cnxn: IPSecSiteConnection)
+    override protected def translateUpdate(tx: Transaction,
+                                           cnxn: IPSecSiteConnection)
     : OperationList = {
         val vpn = storage.get(classOf[VpnService], cnxn.getVpnserviceId).await()
         val (delRoutes, addRoutes, currentRoutes) = updateRemoteRoutes(cnxn, vpn)

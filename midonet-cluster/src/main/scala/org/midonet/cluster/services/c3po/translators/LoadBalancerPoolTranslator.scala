@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Update}
@@ -27,7 +27,8 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
         extends Translator[NeutronLoadBalancerPool]
                 with LoadBalancerManager {
 
-    override protected def translateCreate(nPool: NeutronLoadBalancerPool)
+    override protected def translateCreate(tx: Transaction,
+                                           nPool: NeutronLoadBalancerPool)
     : OperationList = {
         if (!nPool.hasRouterId)
             throw new IllegalArgumentException("No router ID is specified.")
@@ -53,7 +54,8 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
         midoOps.toList
     }
 
-    override protected def translateDelete(npool: NeutronLoadBalancerPool)
+    override protected def translateDelete(tx: Transaction,
+                                           npool: NeutronLoadBalancerPool)
     : OperationList = {
         val pool = storage.get(classOf[Pool], npool.getId).await()
         val lbId = pool.getLoadBalancerId // if !hasLoadBalancerId it's a bug
@@ -66,7 +68,8 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
         }
     }
 
-    override protected def translateUpdate(nPool: NeutronLoadBalancerPool)
+    override protected def translateUpdate(tx: Transaction,
+                                           nPool: NeutronLoadBalancerPool)
     : OperationList = {
         val oldPool = storage.get(classOf[Pool], nPool.getId).await()
         val updatedPool = oldPool.toBuilder

@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Port, Router, Rule}
@@ -41,16 +41,19 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
 
     implicit val storage: ReadOnlyStorage = readOnlyStorage
 
-    override protected def translateCreate(fip: FloatingIp): OperationList = {
+    override protected def translateCreate(tx: Transaction,
+                                           fip: FloatingIp): OperationList = {
         // If a port is not assigned, there's nothing to do.
         if (!fip.hasPortId) List() else associateFipOps(fip)
     }
 
-    override protected def translateDelete(fip: FloatingIp): OperationList = {
+    override protected def translateDelete(tx: Transaction,
+                                           fip: FloatingIp): OperationList = {
         if (!fip.hasPortId) List() else disassociateFipOps(fip)
     }
 
-    override protected def translateUpdate(fip: FloatingIp): OperationList = {
+    override protected def translateUpdate(tx: Transaction,
+                                           fip: FloatingIp): OperationList = {
         val oldFip = storage.get(classOf[FloatingIp], fip.getId).await()
         if ((!oldFip.hasPortId && !fip.hasPortId) ||
             (oldFip.hasPortId && fip.hasPortId &&

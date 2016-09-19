@@ -89,16 +89,16 @@ class HealthMonitorTranslatorCreateTest
 
     "CREATE for Neutron Health Monitor with no pool associated" should
     "create a HealthMonitor" in {
-        val midoOps = translator.translate(
-            Create(neutronHealthMonitor))
+        val midoOps = translator.translate(transaction,
+                                           Create(neutronHealthMonitor))
         midoOps should contain only Create(midoHealthMonitorNoPool)
     }
 
     "CREATE for Neutron Health Monitor with a pool associated" should
     "create a HealthMonitor" in {
         bind(poolId1, poolWithHmId1)
-        val midoOps = translator.translate(
-            Create(neutronHealthMonitorWithPool))
+        val midoOps = translator.translate(transaction,
+                                           Create(neutronHealthMonitorWithPool))
         midoOps should contain inOrderOnly(
             Create(midoHealthMonitorNoPool),
             Update(poolWithHmId1))
@@ -108,8 +108,8 @@ class HealthMonitorTranslatorCreateTest
     "create a HealthMonitor" in {
         bind(poolId1, poolWithHmId1)
         bind(poolId2, poolWithHmId2)
-        val midoOps = translator.translate(
-            Create(neutronHealthMonitorWithPools))
+        val midoOps = translator.translate(transaction,
+                                           Create(neutronHealthMonitorWithPools))
         midoOps should contain inOrderOnly(
             Create(midoHealthMonitorNoPool),
             Update(poolWithHmId1),
@@ -146,7 +146,7 @@ class HealthMonitorTranslatorUpdateTest
 
     "Neutron Health Monitor UPDATE" should "update a Midonet Health Monitor " +
     "except for its status and pool IDs" in {
-        val midoOps = translator.translate(Update(nHealthMonitor))
+        val midoOps = translator.translate(transaction, Update(nHealthMonitor))
 
         midoOps should contain only Update(
                 mHealthMonitor, HealthMonitorUpdateValidator)
@@ -163,8 +163,9 @@ class HealthMonitorTranslatorDeleteTest
     "Neutron Health Monitor DELETE" should "delete the corresponding Midonet " +
     "Health Monitor." in {
         bind(hmId, neutronHealthMonitor)
-        val midoOps = translator.translate(
-                Delete(classOf[NeutronHealthMonitor], hmId))
+        val midoOps = translator.translate(transaction,
+                                           Delete(classOf[NeutronHealthMonitor],
+                                                  hmId))
 
         midoOps should contain only
                 Delete(classOf[HealthMonitor], hmId)
