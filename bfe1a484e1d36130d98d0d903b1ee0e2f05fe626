@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_8960d3a5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RedirectRuleSimulationTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 588,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T15:26:40Z",
+      "side": 1,
+      "message": "Just checking for dropped is a little weak.\n\nAlso check that context.virtualFlowActions contains an ToPortAction(port) where port is the UUID of the service port. See FlowTranslator#translateActions for details.\n\nLooks good otherwise.",
+      "range": {
+        "startLine": 588,
+        "startChar": 22,
+        "endLine": 588,
+        "endChar": 28
+      },
+      "revId": "bfe1a484e1d36130d98d0d903b1ee0e2f05fe626",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
