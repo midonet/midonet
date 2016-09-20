@@ -22,6 +22,47 @@
       "revId": "aaf4f93b193e71c4da3d3211771d0b43c843cf69",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c9bedbad",
+        "filename": "tests/sandbox/components/midolman/master-vpp/midolman-master-vpp.dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T16:12:52Z",
+      "side": 1,
+      "message": "lgtm",
+      "parentUuid": "baa041b7_091ba31d",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 18
+      },
+      "revId": "aaf4f93b193e71c4da3d3211771d0b43c843cf69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_29d1c7fb",
+        "filename": "tests/sandbox/components/midolman/master-vpp/midolman-master-vpp.dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T16:12:52Z",
+      "side": 1,
+      "message": "we need the other stuff like nodaemon. Why not put the whole file from MI-1318 in a file and use the docker ADD directive?",
+      "revId": "aaf4f93b193e71c4da3d3211771d0b43c843cf69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
