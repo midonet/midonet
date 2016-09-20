@@ -48,6 +48,12 @@ trait Transaction {
     @throws[ConcurrentModificationException]
     def getAll[T](clazz: Class[T], ids: Seq[ObjId]): Seq[T]
 
+    /**
+      * Returns whether the specified object exists.
+      */
+    @throws[ConcurrentModificationException]
+    def exists(clazz: Class[_], id: ObjId): Boolean
+
     /** Creates an object in the current transaction. After an object is created
       * it becomes available within the context of the transaction even before
       * the transaction is committed, and it can be retrieved, modified or
