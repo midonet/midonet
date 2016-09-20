@@ -528,6 +528,83 @@ object InterfaceCtl extends Subcommand("interface") with DpCommand {
     }
 }
 
+object RebindCtl extends Subcommand("rebind") with DpCommand {
+    descr("flow rebinding operations")
+
+    val input = opt[Int](
+        "input",
+        short = 'i',
+        descr = "input port")
+    val output = opt[Int](
+        "output",
+        short = 'o',
+        descr = "original output port",
+        required = true)
+    val target = opt[Int](
+        "target",
+        short = 't',
+        descr = "target port",
+        required = true)
+
+    val datapath = trailArg[String](
+        descr = "the datapath where to rebind a flow",
+        required = true)
+
+    private def validate[T](wanted: T, found: T, desc: String): Boolean = {
+        val result = wanted == found
+        if (!result) {
+            println(s"Error: Flow $desc mismatch. " +
+                    s"Wanted: $wanted, found: $found")
+        }
+        result
+    }
+
+    def run(ctx: DpCtx): Unit = {
+        val dp = ctx.getDatapath(datapath.get.get)
+        val flows = ctx.dumpDatapath(dp)
+            .sortWith(_.getLastUsedMillis < _.getLastUsedMillis)
+        println(s"Original ${flows.size} flow${if (flows.size == 1) "" else "s"}")
+
+        def printFlow(flag: Char, flow: Flow): Unit = {
+            println(s"$flag Flow")
+            flow.toPrettyStrings foreach { f => println(s"$flag   $f") }
+        }
+
+        def flowMatches(flow: Flow): Boolean = {
+
+            lazy val optOut = flow.getActions.collectFirst {
+                case o: FlowActionOutput => o.getPortNumber
+            }
+
+            flow.getMatch.getInputPortNumber == input.get.get &&
+            optOut.isDefined &&
+            optOut.get == output.get.get
+        }
+
+        def swapOutput(act: FlowAction, port: Int): FlowAction = {
+            act match {
+                case out: FlowActionOutput =>
+                    new FlowActionOutput(port)
+                case _ => act
+            }
+        }
+
+        flows foreach { flow =>
+            if (flowMatches(flow)) {
+                printFlow('>', flow)
+                ctx.deleteFlow(dp, flow.getMatch)
+                ctx.createFlow(dp,
+                               flow.getMatch,
+                               flow.getActions.map(
+                                   swapOutput(_,target.get.get)),
+                               flow.getMask())
+            } else {
+                printFlow(' ', flow)
+            }
+        }
+    }
+}
+
 object MmDpctl extends App {
     val SUCCESS = 0
     val FAILURE = 1
@@ -537,13 +614,14 @@ object MmDpctl extends App {
         DatapathCtl
         InterfaceCtl
         FlowsCtl
+        RebindCtl
         val timeout = opt[Long](
             "timeout",
             default = Some(3),
             noshort = true,
             descr = "timeout in seconds to wait for an operation to complete")
         printedName = "mm-dpctl"
-        footer("Copyright (c) 2015 Midokura SARL, All Rights Reserved.")
+        footer("Copyright (c) 2016 Midokura SARL, All Rights Reserved.")
     }
 
     val ret = try {
