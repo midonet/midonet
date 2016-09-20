@@ -113,7 +113,7 @@ class LazyZkConnectionMonitorTest extends FeatureSpecLike
 }
 
 class Scheduler() {
-    val clock = UnixClock.MOCK
+    val clock = UnixClock.mock
     private val comparator = new Comparator[(Long, Runnable)] {
         override def compare(a: (Long, Runnable), b: (Long, Runnable)) = java.lang.Long.compare(a._1, b._1)
     }

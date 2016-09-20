@@ -22,13 +22,13 @@ object UnixClock {
         override def time: Long = Platform.currentTime
     }
 
-    val MOCK = new MockUnixClock()
+    def mock = new MockUnixClock()
 
     def apply(): UnixClock = {
         val p = System.getProperties
         val useMock: String = p.getProperty(USE_MOCK_CLOCK_PROPERTY)
         if ((useMock ne null) && useMock == "yes")
-            MOCK
+            mock
         else
             DEFAULT
     }
