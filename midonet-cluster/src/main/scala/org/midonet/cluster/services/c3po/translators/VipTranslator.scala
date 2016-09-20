@@ -53,7 +53,6 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         // VIP is not associated with LB. Don't add an ARP entry yet.
         if (!nVip.hasPoolId) return List(Create(mVip.build()))
 
-        val midoOps = new OperationListBuffer
         val subnet = storage.get(classOf[NeutronSubnet], nVip.getSubnetId)
                             .await()
         val networkId = subnet.getNetworkId
@@ -73,7 +72,7 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
                 networkId,
                 IPv4Addr(nVip.getAddress.getAddress),
                 MAC.fromString(gwPort.getMacAddress))
-            midoOps += CreateNode(arpPath, null)
+            tx.createNode(arpPath, null)
             // Set a back reference from gateway port to VIP.
             mVip.setGatewayPortId(router.getGwPortId)
         } else {
@@ -84,14 +83,13 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
                      "when the router is set a gateway port.")
         }
 
-        midoOps += Create(mVip.build())
-        midoOps.toList
+        tx.create(mVip.build())
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            nv: NeutronVIP) : OperationList = {
-        val midoOps = new OperationListBuffer
-        midoOps += Delete(classOf[Vip], nv.getId)
+        tx.delete(classOf[Vip], nv.getId)
 
         val vip = storage.get(classOf[Vip], nv.getId).await()
         if (vip.hasGatewayPortId) {
@@ -101,10 +99,10 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
                 gwPort.getNetworkId,
                 IPv4Addr(vip.getAddress.getAddress),
                 MAC.fromString(gwPort.getMacAddress))
-            midoOps += DeleteNode(arpPath)
+            tx.deleteNode(arpPath)
         }
 
-        midoOps.toList
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
@@ -126,7 +124,9 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         // to another.
         // Can a VIP be moved to a Pool on a different LB? I doubt that.
         // So we only need to worry about a Pool in the same LB.
-        List(Update(translate(nVip).build(), VipUpdateValidator))
+        tx.update(translate(nVip).build(),
+                  VipUpdateValidator.asInstanceOf[UpdateValidator[Object]])
+        List()
     }
 }
 
