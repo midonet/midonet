@@ -74,10 +74,16 @@ trait ChainManager {
     }
 
     /**
-     * Returns a new Chain with the specified rule prepended to the rule ID
-     * list. */
-    protected def prependRule(chain: Chain, ruleId: UUID): Chain =
-        chain.toBuilder.addRuleIds(0, ruleId).build()
+      * Returns a new Chain with the specified rule prepended to the rule ID
+      * list.
+      */
+    protected def prependRules(chain: Chain, ruleIds: UUID*): Chain = {
+        val builder = chain.toBuilder
+        for (index <- ruleIds.indices) {
+            builder.addRuleIds(index, ruleIds(index))
+        }
+        builder.build()
+    }
 
     /** Returns operations to delete all rules for the specified chain. */
     protected def deleteRulesOps(chain: Chain): Seq[Delete[Rule]] = {

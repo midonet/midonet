@@ -15,16 +15,13 @@
  */
 package org.midonet.cluster.services.c3po.translators
 
-import java.util
-
-import scala.concurrent.{Future, Promise}
 import java.util.{UUID => JUUID}
 
-import scala.util.Try
+import scala.concurrent.Future
 
-import org.mockito.Mockito.{mock, when}
 import org.mockito.ArgumentMatcher
 import org.mockito.Matchers.any
+import org.mockito.Mockito.{mock, never, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
@@ -114,6 +111,7 @@ abstract class TranslatorTestBase  extends FlatSpec
                        else msg.getClass.asInstanceOf[Class[M]]
         when(storage.exists(classOfM, id))
             .thenReturn(Future.successful(exists))
+        when(transaction.exists(classOfM, id)).thenReturn(exists)
         if (exists) {
             when(storage.get(classOfM, id))
                 .thenReturn(Future.successful(msg))
@@ -138,16 +136,24 @@ abstract class TranslatorTestBase  extends FlatSpec
         for ((id, msg) <- ids.zipAll(msgs, null, null)) {
             val exists = msg != null
             when(storage.exists(classOfM, id))
-                .thenReturn(Promise.successful(exists).future)
-            if (exists)
+                .thenReturn(Future.successful(exists))
+            when(transaction.exists(classOfM, id))
+                .thenReturn(exists)
+            if (exists) {
                 when(storage.get(classOfM, id))
-                    .thenReturn(Promise.successful(msg.asInstanceOf[M]).future)
-            else
+                    .thenReturn(Future.successful(msg.asInstanceOf[M]))
+                when(transaction.get(classOfM, id))
+                    .thenReturn(msg.asInstanceOf[M])
+            } else {
                 when(storage.get(classOfM, id))
                     .thenThrow(new NotFoundException(classOfM, id))
+                when(transaction.get(classOfM, id))
+                    .thenThrow(new NotFoundException(classOfM, id))
+            }
         }
         when(storage.getAll(classOfM, ids))
-                    .thenReturn(Promise.successful(msgs).future)
+            .thenReturn(Future.successful(msgs))
+        when(transaction.getAll(classOfM, ids)).thenReturn(msgs)
     }
 
     /* Return a matcher that match if a sequence (thatSeq) have all the elements
@@ -168,16 +174,28 @@ abstract class TranslatorTestBase  extends FlatSpec
         assert(ids.size == msgs.size)
         when(storage.getAll(org.mockito.Matchers.eq(clazz),
                             org.mockito.Matchers.argThat(seqInAnyOrder(ids))))
-        .thenAnswer(
-            new Answer[Future[Seq[M]]] {
-                val boundIds = (ids zip msgs).toMap
-                override def answer(invocation: InvocationOnMock) = {
-                    val args = invocation.getArguments()
-                    val answerIds = args(1).asInstanceOf[Seq[UUID]]
-                    Promise.successful(answerIds map boundIds).future
+            .thenAnswer(
+                new Answer[Future[Seq[M]]] {
+                    val boundIds = (ids zip msgs).toMap
+                    override def answer(invocation: InvocationOnMock) = {
+                        val args = invocation.getArguments
+                        val answerIds = args(1).asInstanceOf[Seq[UUID]]
+                        Future.successful(answerIds map boundIds)
+                    }
                 }
-            }
-        )
+            )
+        when(transaction.getAll(org.mockito.Matchers.eq(clazz),
+                                org.mockito.Matchers.argThat(seqInAnyOrder(ids))))
+            .thenAnswer(
+                new Answer[Seq[M]] {
+                    val boundIds = (ids zip msgs).toMap
+                    override def answer(invocation: InvocationOnMock) = {
+                        val args = invocation.getArguments
+                        val answerIds = args(1).asInstanceOf[Seq[UUID]]
+                        answerIds map boundIds
+                    }
+                }
+            )
     }
 
     /* Finds an operation on Chain with the specified chain ID, and returns a
@@ -192,5 +210,14 @@ abstract class TranslatorTestBase  extends FlatSpec
             case Update(c: Chain, _)
                 if c.getId == chainId && op == OpType.Update => c
         }.orNull
+    }
+
+    protected def verifyNoOp(transaction: Transaction): Unit = {
+        verify(transaction, never()).create(any())
+        verify(transaction, never()).update(any(), any())
+        verify(transaction, never()).delete(any(), any(), any())
+        verify(transaction, never()).createNode(any(), any())
+        verify(transaction, never()).updateNode(any(), any())
+        verify(transaction, never()).deleteNode(any())
     }
 }
