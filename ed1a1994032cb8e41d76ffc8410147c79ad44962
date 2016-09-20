@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_e5178543",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-20T02:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_e24aff26",
+      "range": {
+        "startLine": 28,
+        "startChar": 17,
+        "endLine": 28,
+        "endChar": 26
+      },
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_c39da4bc",
         "filename": "docs/qos.md",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-09-16T03:13:32Z",
       "side": 1,
       "message": "and GET",
+      "range": {
+        "startLine": 99,
+        "startChar": 28,
+        "endLine": 99,
+        "endChar": 49
+      },
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c525a1ae",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-20T02:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_c39da4bc",
       "range": {
         "startLine": 99,
         "startChar": 28,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_652255a5",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-20T02:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_a3a4e007",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 74
+      },
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_7e9e9164",
         "filename": "docs/qos.md",
         "patchSetId": 3
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_453ab1ce",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-20T02:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_7e9e9164",
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a280778c",
         "filename": "docs/qos.md",
         "patchSetId": 3
@@ -99,6 +189,30 @@
       "writtenOn": "2016-09-08T08:59:55Z",
       "side": 1,
       "message": "\"will open\" meaning that this is a new channel that will be created for this feature, or does it already exist?",
+      "range": {
+        "startLine": 120,
+        "startChar": 36,
+        "endLine": 120,
+        "endChar": 58
+      },
+      "revId": "ed1a1994032cb8e41d76ffc8410147c79ad44962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0534a9db",
+        "filename": "docs/qos.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-20T02:00:40Z",
+      "side": 1,
+      "message": "It will be a new channel. Updated the doc.",
+      "parentUuid": "baa041b7_a280778c",
       "range": {
         "startLine": 120,
         "startChar": 36,
