@@ -1,0 +1,399 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6caa3d87",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "why not return output on success?",
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4cdf793a",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "remove unnecessary whitespace",
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0ce29101",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "same",
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_acb965ee",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "tab, get rid of it",
+      "range": {
+        "startLine": 273,
+        "startChar": 0,
+        "endLine": 273,
+        "endChar": 1
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8ca341b1",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "no tabs. also, string concat sucks in python.\n\nhttps://waymoot.org/home/python_string/\n\nUse method 4 (append to list, then join list).",
+      "range": {
+        "startLine": 277,
+        "startChar": 0,
+        "endLine": 277,
+        "endChar": 2
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4cad399a",
+        "filename": "tests/mdts/tests/functional_tests/test-attr.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "this is going to fail first time it runs, since we don\u0027t have vpp in mdts yet. Should be disabled to start.",
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0c90514d",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "year",
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ec9e4d62",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 51
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cc99497b",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "unused.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 50
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8c8a2119",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "junk, unused. remove",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 0
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_cc702943",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "comment is inaccurate",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 66
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6c347d49",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "all the parameters are unused. \n\nit would be better to have ping6_from_inet(container, ipv6, count\u003d4), and actually use them.",
+      "range": {
+        "startLine": 91,
+        "startChar": 19,
+        "endLine": 91,
+        "endChar": 59
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ac8e0525",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "shouldn\u0027t set the ip here.",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 64
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_ec752d32",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "separate the part of the code cleaning up, and the part setting up.",
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4c37794d",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "mm2?",
+      "range": {
+        "startLine": 106,
+        "startChar": 4,
+        "endLine": 106,
+        "endChar": 7
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6c811dfb",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "don\u0027t submit commented out code.",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 51
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4c84190a",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "leave space between methods.",
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2c7c351f",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "title all wrong.",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 54
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_0c77313c",
+        "filename": "tests/mdts/tests/functional_tests/test_ipv6.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-20T19:50:38Z",
+      "side": 1,
+      "message": "don\u0027t submit commented out code.",
+      "range": {
+        "startLine": 139,
+        "startChar": 5,
+        "endLine": 139,
+        "endChar": 12
+      },
+      "revId": "5c8f1400417ce78aa384ed16a790355cecb4e130",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
