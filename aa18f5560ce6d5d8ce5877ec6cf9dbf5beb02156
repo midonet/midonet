@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_6940ef07",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-20T15:21:58Z",
+      "side": 1,
+      "message": "I should make a utility method for this.",
+      "range": {
+        "startLine": 250,
+        "startChar": 8,
+        "endLine": 252,
+        "endChar": 64
+      },
+      "revId": "aa18f5560ce6d5d8ce5877ec6cf9dbf5beb02156",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
