@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_091ba31d",
+        "filename": "tests/sandbox/components/midolman/master-vpp/midolman-master-vpp.dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-20T15:40:39Z",
+      "side": 1,
+      "message": "Added this otherwise the apt-get install vpp after it won\u0027t work.\nThis could also be a patch by itself. What do you think?",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 18
+      },
+      "revId": "aaf4f93b193e71c4da3d3211771d0b43c843cf69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
