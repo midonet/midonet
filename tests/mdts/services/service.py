@@ -186,6 +186,30 @@ class Service(object):
         iface_kwargs['compute_host'] = self
         return Interface(**iface_kwargs)
 
+    def try_command_blocking(self, cmd):
+        ret, output = self.exec_command_blocking(cmd)
+        if ret != 0:
+            raise Exception("Cmd(%s) exited with code %d, \n cmd output: %s" % (cmd, ret, output))
+
+    def exec_command_blocking(self, cmd):
+        """
+        Blocking version of exec command
+        :param cmd: The command to run
+        :return: the exit code of the return
+        """
+        LOG.debug('[%s] executing command: %s', self.get_name(), cmd)
+        exec_id = cli.exec_create(self.get_name(),
+                                  cmd,
+                                  stdout=True,
+                                  stderr=False,
+                                  tty=False)
+        outputstream = cli.exec_start(exec_id, detach=False, stream=True)
+            
+        # Result is a data blocking stream, exec_id for future checks
+        LOG.debug('[%s] executing command: %s -> stream',
+                  self.get_name(), cmd)
+        return self.check_exit_status(exec_id, outputstream)
+    
     def exec_command(self, cmd, stdout=True, stderr=False, tty=False,
                      detach=False, stream=False):
         """
@@ -246,10 +270,11 @@ class Service(object):
             cmdline += " " + arg
 
         LOG.debug("Checking exit status of %s..." % cmdline)
+	all_output=""
         if output_stream:
             for output in output_stream:
                 LOG.debug("Output: %s" % output)
-
+		all_output += output
         # Wait for command to finish after a certain amount of time
         while cli.exec_inspect(exec_id)['Running']:
             if timeout == 0:
@@ -266,7 +291,7 @@ class Service(object):
             cmdline,
             'succeeded' if exec_info['ExitCode'] == 0 else 'failed'
         ))
-        return exec_info['ExitCode']
+        return exec_info['ExitCode'], all_output
 
     def wait_for_status(self, status, timeout=conf.service_status_timeout(),
                         wait_time=5, raise_error=True):

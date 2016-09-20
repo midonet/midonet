@@ -30,6 +30,7 @@ import test_conn_tracking
 import test_delete_port
 import test_fip_icmp
 import test_ipfrag
+import test_ipv6
 import test_l2gw
 import test_l2insertion
 import test_l4state
@@ -62,6 +63,7 @@ test_ipfrag.test_icmp_bridge.gate=1
 test_ipfrag.test_icmp_router.gate=1
 test_ipfrag.test_udp_bridge.gate=1
 test_ipfrag.test_udp_router.gate=1
+test_ipv6.test_uplink_ipv6.gate=1
 test_l2gw.test_failback_on_generic_failure_with_icmp_from_mn.slow=1
 test_l2gw.test_failback_on_generic_failure_with_icmp_to_mn.slow=1
 test_l2gw.test_failback_on_ifdown_with_icmp_from_mn.slow=1
