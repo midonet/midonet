@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_201b1b1e",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-20T11:11:29Z",
+      "side": 1,
+      "message": "Apostrophe. Or just \"sub\u0027s destination address\"; same on next two blocks.",
+      "range": {
+        "startLine": 69,
+        "startChar": 55,
+        "endLine": 69,
+        "endChar": 67
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_40e73f12",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-20T11:11:29Z",
+      "side": 1,
+      "message": "Make this a single-item bullet list.",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 52
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_60ea4376",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-20T11:11:29Z",
+      "side": 1,
+      "message": "I tightened this up a bit. You\u0027ll need to import scala.collection.breakOut\n\n        def makeMap[T](clazz: Class[T], ids: Seq[UUID]): Map[UUID, T] \u003d\n            ids.zip(storage.getAll(clazz, ids).await())(breakOut)\n\n        val ports \u003d storage.getAll(classOf[Port],\n                                   mRouter.getPortIdsList.asScala).await()\n        var rPortIds \u003d ports.filter(_.hasPeerId).map(_.getPeerId)\n        if (nRouter.hasGwPortId)\n            rPortIds \u003d nRouter.getGwPortId +: rPortIds\n\n        val nPortMap \u003d makeMap(classOf[NeutronPort], rPortIds)\n        val nNetMap \u003d makeMap(classOf[NeutronNetwork],\n                              nPortMap.values.map(_.getNetworkId)(breakOut))\n        val subIds \u003d nNetMap.values.flatMap(_.getSubnetsList.asScala)(breakOut)\n        val nSubMap \u003d makeMap(classOf[NeutronSubnet], subIds)\n\n        def hasSubWithAddr(portId: UUID, addr: IPAddr): Boolean \u003d {\n            val port \u003d nPortMap(portId)\n            val net \u003d nNetMap(port.getNetworkId)\n            val subs \u003d net.getSubnetsList.asScala.map(nSubMap)\n            subs.exists { sub \u003d\u003e\n                IPSubnetUtil.fromProto(sub.getCidr).containsAddress(addr)\n            }\n        }",
+      "range": {
+        "startLine": 190,
+        "startChar": 0,
+        "endLine": 233,
+        "endChar": 9
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_40029f3f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-20T11:11:29Z",
+      "side": 1,
+      "message": "If it\u0027s usually the gateway port, should we check that before fetching all the router\u0027s other ports and all their associated peer networks and subnets?",
+      "range": {
+        "startLine": 235,
+        "startChar": 0,
+        "endLine": 242,
+        "endChar": 19
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_20ab1b20",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-20T11:11:29Z",
+      "side": 1,
+      "message": "Parallelize:\n\n  val snPorts \u003d getSubnetPorts(ns)\n  val snRouteIds \u003d subnetPorts.map(RouteManager.subnetRouteId(_.getId, ns.getId))\n  val snRoutesExistFtrs \u003d snRouteIds.map(storage.exists(classOf[Route], _))\n  val snRoutesExist \u003d snRoutesExistFtrs.map(_.await())\n  for ((rId, exists) \u003c- snRouteIds.zip(snRoutesExist) if exists)\n      ops +\u003d Delete(classOf[Route], rId)\n\nOr something like that. I\u0027m not sure how many of those underscores will resolve correctly.",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 9
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
