@@ -17,6 +17,8 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.junit.runner.RunWith
+import org.mockito.Matchers._
+import org.mockito.Mockito._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
@@ -24,9 +26,9 @@ import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.FloatingIp
 import org.midonet.cluster.models.Topology.{Port, Router, Rule}
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
+import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import RouterTranslator.tenantGwPortId
 import org.midonet.packets.{IPv4Addr, MAC}
 
 class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
@@ -119,9 +121,11 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val reverseIcmpDnatRuleId = RouteManager.fipReverseDnatRuleId(fipId)
 
     protected def snatRule(gatewayPortId: UUID, sourcePortId: UUID,
+                           chainId: UUID,
                            fixedIpSubnet: IPSubnet = fipFixedIpSubnet) =
         mRuleFromTxt(s"""
             id { $snatRuleId }
+            chain_id { $chainId }
             type: NAT_RULE
             action: ACCEPT
             condition {
@@ -140,12 +144,15 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 dnat: false
             }
         """)
-    protected val snat = snatRule(nTntRouterGatewayPortId, fipPortId)
+    protected val snat = snatRule(nTntRouterGatewayPortId, fipPortId,
+                                  tntRouterOutChainId)
 
     protected def dnatRule(gatewayPortId: UUID, destPortId: UUID,
+                           chainId: UUID,
                            fixedIpAddr: IPAddress = fipFixedIpAddr) =
         mRuleFromTxt(s"""
             id { $dnatRuleId }
+            chain_id { $chainId }
             type: NAT_RULE
             action: ACCEPT
             condition {
@@ -164,12 +171,15 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 dnat: true
             }
         """)
-    protected val dnat = dnatRule(nTntRouterGatewayPortId, fipPortId)
+    protected val dnat = dnatRule(nTntRouterGatewayPortId, fipPortId,
+                                  tntRouterInChainId)
 
     protected def icmpReverseDnatRule(gatewayPortId: UUID, destPortId: UUID,
+                                      chainId: UUID,
                                       fixedIpSubnet: IPSubnet = fipFixedIpSubnet) =
         mRuleFromTxt(s"""
             id { $reverseIcmpDnatRuleId }
+            chain_id { $chainId }
             type: NAT_RULE
             action: CONTINUE
             condition {
@@ -189,7 +199,8 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             }
         """)
     protected val icmpReverseDnat = icmpReverseDnatRule(nTntRouterGatewayPortId,
-                                                        fipPortId)
+                                                        fipPortId,
+                                                        tntRouterOutChainId)
 
     protected val inChainDummyRuleIds = """
         rule_ids { msb: 1 lsb: 2 }
@@ -243,20 +254,20 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
     }
 
     "Unassociated floating IP" should "not create anything" in {
-        val midoOps = translator.translate(transaction, Create(unboundFip))
+        translator.translate(transaction, Create(unboundFip))
 
-        midoOps shouldBe empty
+        verify(transaction, never()).create(any())
+        verify(transaction, never()).update(any(), any())
+        verify(transaction, never()).delete(any(), any(), any())
     }
 
     "Associated floating IP" should "create ARP entry and NAT rules" in {
-        val midoOps = translator.translate(transaction, Create(boundFip))
+        translator.translate(transaction, Create(boundFip))
 
-        midoOps should contain inOrderOnly (CreateNode(fipArpEntryPath),
-                                            Create(snat),
-                                            Create(dnat),
-                                            Create(icmpReverseDnat),
-                                            Update(inChainWithDnat),
-                                            Update(outChainWithSnatAndReverseIcmpDnat))
+        verify(transaction).createNode(fipArpEntryPath, null)
+        verify(transaction).create(snat)
+        verify(transaction).create(dnat)
+        verify(transaction).create(icmpReverseDnat)
     }
 
     "Tenant router for floating IP" should "throw an exception if it doesn't " +
@@ -282,7 +293,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     protected val nTntRouter2GwPortId = randomUuidProto
     protected val mTntRouter2GwPortId = tenantGwPortId(nTntRouter2GwPortId)
     protected val tntRouter2InChainId = inChainId(tntRouter2Id)
-    protected val tntRouter2OutChainId =outChainId(tntRouter2Id)
+    protected val tntRouter2OutChainId = outChainId(tntRouter2Id)
     protected val fipPort2Id = randomUuidProto
     protected val fixedIp2 = IPAddressUtil.toProto("192.168.1.10")
     protected val fixedIpSubnet2 = IPSubnetUtil.fromAddr(fixedIp2)
@@ -290,22 +301,33 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     protected val fipMovedPort2 = fip(portId = fipPort2Id, fixedIp = fixedIp2)
     protected val fipMovedRtr2Port2 =
         fip(routerId = tntRouter2Id, portId = fipPort2Id, fixedIp = fixedIp2)
-    protected val snatRtr2 = snatRule(nTntRouter2GwPortId, fipPortId)
-    protected val icmpReverseDNatRtr2 = icmpReverseDnatRule(nTntRouter2GwPortId, fipPortId)
-    protected val dnatRtr2 = dnatRule(nTntRouter2GwPortId, fipPortId)
+
+    protected val snatRtr2 =
+        snatRule(nTntRouter2GwPortId, fipPortId, tntRouter2OutChainId)
+    protected val icmpReverseDNatRtr2 =
+        icmpReverseDnatRule(nTntRouter2GwPortId, fipPortId,
+                            tntRouter2OutChainId)
+    protected val dnatRtr2 =
+        dnatRule(nTntRouter2GwPortId, fipPortId, tntRouter2InChainId)
+
     protected val snatPort2 =
-        snatRule(nTntRouterGatewayPortId, fipPort2Id, fixedIpSubnet2)
+        snatRule(nTntRouterGatewayPortId, fipPort2Id, tntRouterOutChainId,
+                 fixedIpSubnet2)
     protected val dnatPort2 =
-        dnatRule(nTntRouterGatewayPortId, fipPort2Id, fixedIp2)
-    protected val icmpReverseDNatPort2 = icmpReverseDnatRule(
-        nTntRouterGatewayPortId, fipPort2Id, fixedIpSubnet2)
+        dnatRule(nTntRouterGatewayPortId, fipPort2Id, tntRouterInChainId,
+                 fixedIp2)
+    protected val icmpReverseDNatPort2 =
+        icmpReverseDnatRule(nTntRouterGatewayPortId, fipPort2Id,
+                            tntRouterOutChainId, fixedIpSubnet2)
 
     protected val snatRtr2Port2 =
-        snatRule(nTntRouter2GwPortId, fipPort2Id, fixedIpSubnet2)
+        snatRule(nTntRouter2GwPortId, fipPort2Id, tntRouter2OutChainId,
+                 fixedIpSubnet2)
     protected val dnatRtr2Port2 =
-        dnatRule(nTntRouter2GwPortId, fipPort2Id, fixedIp2)
-    protected val icmpReverseDNatRtr2Port2 = icmpReverseDnatRule(
-        nTntRouter2GwPortId, fipPort2Id, fixedIpSubnet2)
+        dnatRule(nTntRouter2GwPortId, fipPort2Id, tntRouter2InChainId, fixedIp2)
+    protected val icmpReverseDNatRtr2Port2 =
+        icmpReverseDnatRule(nTntRouter2GwPortId, fipPort2Id,
+                            tntRouter2OutChainId, fixedIpSubnet2)
 
     protected val nTntRouter2 = nRouterFromTxt(s"""
         id { $tntRouter2Id }
@@ -334,19 +356,6 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         $outChainDummyRuleIds
         """)
 
-    protected val tntRouter2InChainWithDnat = mChainFromTxt(s"""
-        id { $tntRouter2InChainId }
-        rule_ids { $dnatRuleId }
-        $inChainDummyRuleIds
-        """)
-
-    protected val tntRouter2OutChainWithSnatAndReverseIcmpDnat = mChainFromTxt(s"""
-        id { $tntRouter2OutChainId }
-        rule_ids { $reverseIcmpDnatRuleId }
-        rule_ids { $snatRuleId }
-        $outChainDummyRuleIds
-        """)
-
     protected val fipArpEntryPath2 = stateTableStorage.bridgeArpEntryPath(
             externalNetworkId, IPv4Addr(fipIpAddr.getAddress),
             MAC.fromString(tntRouter2GwPortMac))
@@ -370,23 +379,22 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 
     "FIP UPDATE that keeps the floating IP unbound" should "do nothing" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(transaction, Update(unboundFip))
+        translator.translate(transaction, Update(unboundFip))
 
-        midoOps shouldBe empty
+        verify(transaction, never()).create(any())
+        verify(transaction, never()).update(any(), any())
+        verify(transaction, never()).delete(any(), any(), any())
     }
 
     "Associating a floating IP to a port" should "add an ARP entry and NAT " +
     "rules" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(transaction, Update(boundFip))
+        translator.translate(transaction, Update(boundFip))
 
-        midoOps should contain inOrderOnly (
-            CreateNode(fipArpEntryPath),
-            Create(snat),
-            Create(dnat),
-            Create(icmpReverseDnat),
-            Update(inChainWithDnat),
-            Update(outChainWithSnatAndReverseIcmpDnat))
+        verify(transaction).createNode(fipArpEntryPath, null)
+        verify(transaction).create(snat)
+        verify(transaction).create(dnat)
+        verify(transaction).create(icmpReverseDnat)
     }
 
     "Associating a floating IP to a port" should "throw an exception if the " +
@@ -395,7 +403,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bind(tntRouterId, nTntRouterNoGwPort)
         bind(tntRouterId, mTntRouterNoGwPort)
         val te = intercept[TranslationException] {
-                translator.translate(transaction, Update(boundFip))
+            translator.translate(transaction, Update(boundFip))
         }
 
         te.getCause should not be null
@@ -411,76 +419,72 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "SNAT/DNAT rules, and remove the IDs fo those rules from the inbound / " +
     "outbound chains of the tenant router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(transaction, Update(unboundFip))
+        translator.translate(transaction, Update(unboundFip))
 
-        midoOps should contain inOrderOnly (
-            DeleteNode(fipArpEntryPath),
-            Delete(classOf[Rule], snatRuleId),
-            Delete(classOf[Rule], dnatRuleId),
-            Delete(classOf[Rule], reverseIcmpDnatRuleId))
+        verify(transaction).deleteNode(fipArpEntryPath)
+        verify(transaction).delete(classOf[Rule], snatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], dnatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], reverseIcmpDnatRuleId,
+                                   ignoresNeo = true)
     }
 
     "UPDATE that keeps the floating IP on the same port/router " should
     "do nothing" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(transaction, Update(boundFip))
+        translator.translate(transaction, Update(boundFip))
 
-        midoOps shouldBe empty
+        verify(transaction, never()).create(any())
+        verify(transaction, never()).update(any(), any())
+        verify(transaction, never()).delete(any(), any(), any())
     }
 
     "UpdateOp that moves the floating IP to a different router" should
     "delete the old ARP entry and NAT rules and create new ones on the new " +
     "router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(transaction, Update(fipMovedRtr2))
+        translator.translate(transaction, Update(fipMovedRtr2))
 
-        midoOps should contain inOrderOnly (
-            DeleteNode(fipArpEntryPath),
-            CreateNode(fipArpEntryPath2),
-            Delete(classOf[Rule], snatRuleId),
-            Delete(classOf[Rule], dnatRuleId),
-            Delete(classOf[Rule], reverseIcmpDnatRuleId),
-            Create(snatRtr2),
-            Create(dnatRtr2),
-            Create(icmpReverseDNatRtr2),
-            Update(tntRouter2InChainWithDnat),
-            Update(tntRouter2OutChainWithSnatAndReverseIcmpDnat))
+        verify(transaction).deleteNode(fipArpEntryPath)
+        verify(transaction).createNode(fipArpEntryPath2, null)
+        verify(transaction).delete(classOf[Rule], snatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], dnatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], reverseIcmpDnatRuleId,
+                                   ignoresNeo = true)
+        verify(transaction).create(snatRtr2)
+        verify(transaction).create(dnatRtr2)
+        verify(transaction).create(icmpReverseDNatRtr2)
     }
 
     "UpdateOp that moves the floating IP to a different port on the same " +
     "router" should "delete the old NAT rules and create new ones on the " +
     "same router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(transaction, Update(fipMovedPort2))
+        translator.translate(transaction, Update(fipMovedPort2))
 
-        midoOps should contain inOrderOnly (
-            Delete(classOf[Rule], snatRuleId),
-            Delete(classOf[Rule], dnatRuleId),
-            Delete(classOf[Rule], reverseIcmpDnatRuleId),
-            Create(snatPort2),
-            Create(dnatPort2),
-            Create(icmpReverseDNatPort2),
-            Update(inChainWithDnat),
-            Update(outChainWithSnatAndReverseIcmpDnat))
+        verify(transaction).delete(classOf[Rule], snatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], dnatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], reverseIcmpDnatRuleId,
+                                   ignoresNeo = true)
+        verify(transaction).create(snatPort2)
+        verify(transaction).create(dnatPort2)
+        verify(transaction).create(icmpReverseDNatPort2)
     }
 
     "UpdateOp that moves the floating IP to a different port on a different " +
     "router" should "delete the old ARP entry and NAT rules and create new " +
     "ones on the destination router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(transaction, Update(fipMovedRtr2Port2))
+        translator.translate(transaction, Update(fipMovedRtr2Port2))
 
-        midoOps should contain inOrderOnly (
-            DeleteNode(fipArpEntryPath),
-            CreateNode(fipArpEntryPath2),
-            Delete(classOf[Rule], snatRuleId),
-            Delete(classOf[Rule], dnatRuleId),
-            Delete(classOf[Rule], reverseIcmpDnatRuleId),
-            Create(snatRtr2Port2),
-            Create(dnatRtr2Port2),
-            Create(icmpReverseDNatRtr2Port2),
-            Update(tntRouter2InChainWithDnat),
-            Update(tntRouter2OutChainWithSnatAndReverseIcmpDnat))
+        verify(transaction).deleteNode(fipArpEntryPath)
+        verify(transaction).createNode(fipArpEntryPath2, null)
+        verify(transaction).delete(classOf[Rule], snatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], dnatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], reverseIcmpDnatRuleId,
+                                   ignoresNeo = true)
+        verify(transaction).create(snatRtr2Port2)
+        verify(transaction).create(dnatRtr2Port2)
+        verify(transaction).create(icmpReverseDNatRtr2Port2)
     }
 }
 
@@ -495,10 +499,11 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
 
     "Deleting an unassociated floating IP" should "not create anything" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[FloatingIp], fipId))
+        translator.translate(transaction, Delete(classOf[FloatingIp], fipId))
 
-        midoOps shouldBe empty
+        verify(transaction, never()).create(any())
+        verify(transaction, never()).update(any(), any())
+        verify(transaction, never()).delete(any(), any(), any())
     }
 
     "Deleting an associated floating IP" should "delete the arp entry and " +
@@ -510,20 +515,20 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
         bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
         bind(tntRouterInChainId, inChainWithDnat)
         bind(tntRouterOutChainId, outChainWithSnatAndReverseIcmpDnat)
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[FloatingIp], fipId))
+        translator.translate(transaction, Delete(classOf[FloatingIp], fipId))
 
-        midoOps should contain inOrderOnly (
-            DeleteNode(fipArpEntryPath),
-            Delete(classOf[Rule], snatRuleId),
-            Delete(classOf[Rule], dnatRuleId),
-            Delete(classOf[Rule], reverseIcmpDnatRuleId))
+        verify(transaction).deleteNode(fipArpEntryPath)
+        verify(transaction).delete(classOf[Rule], snatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], dnatRuleId, ignoresNeo = true)
+        verify(transaction).delete(classOf[Rule], reverseIcmpDnatRuleId,
+                                   ignoresNeo = true)
     }
 
     "Deleting a non-existent FIP" should "not raise an error" in {
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[FloatingIp],
-                                                  fipIdThatDoesNotExist))
-        midoOps shouldBe empty
+        translator.translate(transaction, Delete(classOf[FloatingIp],
+                                                 fipIdThatDoesNotExist))
+        verify(transaction, never()).create(any())
+        verify(transaction, never()).update(any(), any())
+        verify(transaction, never()).delete(any(), any(), any())
     }
 }
