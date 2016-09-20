@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, UpdateValidator}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction, UpdateValidator}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology.Vip
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
@@ -46,7 +46,8 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         mVipBldr
     }
 
-    override protected def translateCreate(nVip: NeutronVIP) : OperationList = {
+    override protected def translateCreate(tx: Transaction,
+                                           nVip: NeutronVIP) : OperationList = {
         val mVip = translate(nVip)
 
         // VIP is not associated with LB. Don't add an ARP entry yet.
@@ -87,7 +88,8 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         midoOps.toList
     }
 
-    override protected def translateDelete(nv: NeutronVIP) : OperationList = {
+    override protected def translateDelete(tx: Transaction,
+                                           nv: NeutronVIP) : OperationList = {
         val midoOps = new OperationListBuffer
         midoOps += Delete(classOf[Vip], nv.getId)
 
@@ -105,7 +107,8 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         midoOps.toList
     }
 
-    override protected def translateUpdate(nVip: NeutronVIP) : OperationList = {
+    override protected def translateUpdate(tx: Transaction,
+                                           nVip: NeutronVIP) : OperationList = {
         // The specs don't allow the IP address of the VIP to change, and that
         // the MAC address of a port also does not change on the port update.
         // If the gateway port of the Router may be somehow changed, the ARP

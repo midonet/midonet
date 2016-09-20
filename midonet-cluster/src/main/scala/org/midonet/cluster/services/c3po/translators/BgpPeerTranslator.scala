@@ -18,7 +18,8 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
+
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
@@ -39,7 +40,8 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
 
     import BgpPeerTranslator._
 
-    override protected def translateCreate(bgpPeer: NeutronBgpPeer)
+    override protected def translateCreate(tx: Transaction,
+                                           bgpPeer: NeutronBgpPeer)
     : OperationList = {
         val speaker = bgpPeer.getBgpSpeaker
         val router = storage.get(classOf[Router], speaker.getLogicalRouter).await()
@@ -61,7 +63,8 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
-    override protected def translateUpdate(newPeer: NeutronBgpPeer)
+    override protected def translateUpdate(tx: Transaction,
+                                           newPeer: NeutronBgpPeer)
     : OperationList = {
         val oldPeer = storage.get(classOf[BgpPeer], newPeer.getId).await()
 
@@ -72,7 +75,8 @@ class BgpPeerTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateDelete(bgpPeer: NeutronBgpPeer)
+    override protected def translateDelete(tx: Transaction,
+                                           bgpPeer: NeutronBgpPeer)
     : OperationList = {
          val router = storage.get(classOf[Router],
                                   bgpPeer.getBgpSpeaker.getLogicalRouter).await()

@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
 import org.midonet.cluster.models.Topology.Rule
@@ -30,7 +30,8 @@ class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
      * Need to create the rule, but also need to add it to the security
      * group chain that it is assigned to.
      */
-    protected override def translateCreate(sgr: SecurityGroupRule)
+    protected override def translateCreate(tx: Transaction,
+                                           sgr: SecurityGroupRule)
     : OperationList = {
         val sgId = sgr.getSecurityGroupId
         val sg = storage.get(classOf[SecurityGroup], sgId).await()
@@ -39,7 +40,8 @@ class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
             Update(updatedSg)
     }
 
-    protected override def translateUpdate(newSgr: SecurityGroupRule)
+    protected override def translateUpdate(tx: Transaction,
+                                           newSgr: SecurityGroupRule)
     : OperationList = {
         throw new IllegalArgumentException(
             "SecurityGroupRule update not supported.")
@@ -53,7 +55,8 @@ class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
     // that sometimes we'll get a request to delete a SecurityGroupRule that
     // doesn't exist as a top-level SGR in ZK, but we still need to delete the
     // corresponding Midonet rules.
-    protected override def translateDelete(sgrId: UUID): OperationList = {
+    protected override def translateDelete(tx: Transaction,
+                                           sgrId: UUID): OperationList = {
         val ops = new OperationListBuffer
         if (storage.exists(classOf[SecurityGroupRule], sgrId).await()) {
             val sgr = storage.get(classOf[SecurityGroupRule], sgrId).await()
