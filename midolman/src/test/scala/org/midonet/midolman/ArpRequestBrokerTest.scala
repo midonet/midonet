@@ -104,7 +104,7 @@ class ArpRequestBrokerTest extends Suite
     val invalidations = new ArrayDeque[FlowTag]()
     var arpBroker: ArpRequestBroker = _
 
-    val clock = UnixClock.MOCK
+    val clock = UnixClock.mock()
 
     val confValues = s"""
           |agent {

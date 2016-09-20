@@ -90,7 +90,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         : ScheduledFuture[_] = ???
     }
 
-    private val clock = UnixClock.MOCK
+    private val clock = UnixClock.mock()
     private var store: ZookeeperObjectMapper = _
     private var backend: MidonetBackend = _
     private var config: ClusterConfig = _
