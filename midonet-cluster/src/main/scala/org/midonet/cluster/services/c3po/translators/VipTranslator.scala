@@ -19,10 +19,8 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage, Transaction, UpdateValidator}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology.Vip
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for VIP. */
 class VipTranslator(protected val storage: ReadOnlyStorage,
@@ -51,29 +49,29 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         val mVip = translate(nVip)
 
         // VIP is not associated with LB. Don't add an ARP entry yet.
-        if (!nVip.hasPoolId) return List(Create(mVip.build()))
+        if (!nVip.hasPoolId) {
+            tx.create(mVip.build())
+            return List()
+        }
 
-        val midoOps = new OperationListBuffer
-        val subnet = storage.get(classOf[NeutronSubnet], nVip.getSubnetId)
-                            .await()
+        val subnet = tx.get(classOf[NeutronSubnet], nVip.getSubnetId)
         val networkId = subnet.getNetworkId
-        val network = storage.get(classOf[NeutronNetwork],
-                                  networkId).await()
+        val network = tx.get(classOf[NeutronNetwork], networkId)
         // If the VIP's DHCP is not on external, no need to add an ARP entry.
-        if (!network.getExternal) return List(Create(mVip.build()))
+        if (!network.getExternal) {
+            tx.create(mVip.build())
+            return List()
+        }
 
-        val pool = storage.get(classOf[NeutronLoadBalancerPool],
-                               mVip.getPoolId).await()
-        val router = storage.get(classOf[NeutronRouter],
-                                 pool.getRouterId).await()
+        val pool = tx.get(classOf[NeutronLoadBalancerPool], mVip.getPoolId)
+        val router = tx.get(classOf[NeutronRouter], pool.getRouterId)
         if (router.hasGwPortId) {
-            val gwPort = storage.get(classOf[NeutronPort],
-                                     router.getGwPortId).await()
+            val gwPort = tx.get(classOf[NeutronPort], router.getGwPortId)
             val arpPath = stateTableStorage.bridgeArpEntryPath(
                 networkId,
                 IPv4Addr(nVip.getAddress.getAddress),
                 MAC.fromString(gwPort.getMacAddress))
-            midoOps += CreateNode(arpPath, null)
+            tx.createNode(arpPath, null)
             // Set a back reference from gateway port to VIP.
             mVip.setGatewayPortId(router.getGwPortId)
         } else {
@@ -84,27 +82,25 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
                      "when the router is set a gateway port.")
         }
 
-        midoOps += Create(mVip.build())
-        midoOps.toList
+        tx.create(mVip.build())
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            nv: NeutronVIP) : OperationList = {
-        val midoOps = new OperationListBuffer
-        midoOps += Delete(classOf[Vip], nv.getId)
+        val vip = tx.get(classOf[Vip], nv.getId)
+        tx.delete(classOf[Vip], nv.getId, ignoresNeo = true)
 
-        val vip = storage.get(classOf[Vip], nv.getId).await()
         if (vip.hasGatewayPortId) {
-            val gwPort = storage.get(classOf[NeutronPort],
-                                     vip.getGatewayPortId).await()
+            val gwPort = tx.get(classOf[NeutronPort], vip.getGatewayPortId)
             val arpPath = stateTableStorage.bridgeArpEntryPath(
                 gwPort.getNetworkId,
                 IPv4Addr(vip.getAddress.getAddress),
                 MAC.fromString(gwPort.getMacAddress))
-            midoOps += DeleteNode(arpPath)
+            tx.deleteNode(arpPath)
         }
 
-        midoOps.toList
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
@@ -115,7 +111,7 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         // entry for the VIP should be updated at that timing. Therefore, here
         // we don't need to update the ARP entry here and just check if the VIP
         // IP address is indeed not changed.
-        val oldVip = storage.get(classOf[NeutronVIP], nVip.getId).await()
+        val oldVip = tx.get(classOf[NeutronVIP], nVip.getId)
         if (oldVip.getAddress != nVip.getAddress) {
             throw new IllegalArgumentException(
                     s"VIP IP changed from ${oldVip.getAddress.getAddress} " +
@@ -126,7 +122,9 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         // to another.
         // Can a VIP be moved to a Pool on a different LB? I doubt that.
         // So we only need to worry about a Pool in the same LB.
-        List(Update(translate(nVip).build(), VipUpdateValidator))
+        tx.update(translate(nVip).build(),
+                  VipUpdateValidator.asInstanceOf[UpdateValidator[Object]])
+        List()
     }
 }
 
