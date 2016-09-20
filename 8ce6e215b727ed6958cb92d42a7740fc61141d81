@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_4025ffbf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleBWLimitResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-20T11:15:04Z",
+      "side": 1,
+      "message": "Is this necessary? Shouldn\u0027t Zoom bindings handle it?",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 9
+      },
+      "revId": "8ce6e215b727ed6958cb92d42a7740fc61141d81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_2020bbaf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleBWLimitResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-20T11:15:04Z",
+      "side": 1,
+      "message": "This too.",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 25
+      },
+      "revId": "8ce6e215b727ed6958cb92d42a7740fc61141d81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e599c57a",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-20T11:15:04Z",
+      "side": 1,
+      "message": "It\u0027s not strictly necessary if you\u0027re really in a hurry, but ideally this should take advantage of the boilerplate provided by NeutronApiTest. I guess you\u0027d have to add a postUnder method, that takes both an object and the parent URI, or maybe just give post() and postAndVerifySuccess an optional parentUri argument.",
+      "range": {
+        "startLine": 32,
+        "startChar": 22,
+        "endLine": 32,
+        "endChar": 41
+      },
+      "revId": "8ce6e215b727ed6958cb92d42a7740fc61141d81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_45d191fa",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-20T11:15:04Z",
+      "side": 1,
+      "message": "This doesn\u0027t actually update and delete from the QOS policy, which I don\u0027t think is supported. It updates and deletes using the top-level URIs for these objects.",
+      "range": {
+        "startLine": 190,
+        "startChar": 28,
+        "endLine": 190,
+        "endChar": 42
+      },
+      "revId": "8ce6e215b727ed6958cb92d42a7740fc61141d81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
