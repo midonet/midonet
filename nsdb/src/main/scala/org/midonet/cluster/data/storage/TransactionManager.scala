@@ -204,7 +204,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
       * fail with a [[ConcurrentModificationException]]. */
     @throws[InternalObjectMapperException]
     @throws[ConcurrentModificationException]
-    def getAll[T](clazz: Class[T]): Seq[T] = {
+    override def getAll[T](clazz: Class[T]): Seq[T] = {
         getAll(clazz, getIds(clazz).toBlocking.first())
     }
 
@@ -215,8 +215,19 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
     @throws[NotFoundException]
     @throws[InternalObjectMapperException]
     @throws[ConcurrentModificationException]
-    def getAll[T](clazz: Class[T], ids: Seq[ObjId]): Seq[T] = {
+    override def getAll[T](clazz: Class[T], ids: Seq[ObjId]): Seq[T] = {
         for (id <- ids) yield get(clazz, id)
+    }
+
+    /**
+      * @see [[Transaction.exists()]]
+      */
+    @throws[ConcurrentModificationException]
+    override def exists(clazz: Class[_], id: ObjId): Boolean = {
+        objCache.getOrElseUpdate(getKey(clazz, id), {
+            try Some(getSnapshot(clazz, id).toBlocking.first())
+            catch { case e: NotFoundException => None }
+        }).isDefined
     }
 
     @throws[NotFoundException]
