@@ -30,6 +30,7 @@ import test_conn_tracking
 import test_delete_port
 import test_fip_icmp
 import test_ipfrag
+import test_ipv6
 import test_l2gw
 import test_l2insertion
 import test_l4state
@@ -51,7 +52,8 @@ test_bgp.test_multisession_icmp_with_redundancy.gate=1
 test_bgp.test_snat.gate=1
 test_bgp.test_snat.slow=1
 test_chains.test_dst_mac_masking.gate=1
-test_chains.test_filter_ipv6.gate=1
+test_chains.test_filter_ipv6.gate=0
+test_chains.test_filter_ipv6.slow=0
 test_chains.test_src_mac_masking.gate=1
 test_conn_tracking.test_connection_tracking_by_network_addres.gate=1
 test_conn_tracking.test_connection_tracking_with_drop_by_dl.gate=1
@@ -62,6 +64,7 @@ test_ipfrag.test_icmp_bridge.gate=1
 test_ipfrag.test_icmp_router.gate=1
 test_ipfrag.test_udp_bridge.gate=1
 test_ipfrag.test_udp_router.gate=1
+test_ipv6.test_uplink_ipv6.gate=0
 test_l2gw.test_failback_on_generic_failure_with_icmp_from_mn.slow=1
 test_l2gw.test_failback_on_generic_failure_with_icmp_to_mn.slow=1
 test_l2gw.test_failback_on_ifdown_with_icmp_from_mn.slow=1
