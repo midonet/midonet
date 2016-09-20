@@ -63,6 +63,24 @@
       "revId": "aaf4f93b193e71c4da3d3211771d0b43c843cf69",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c9ec9bbd",
+        "filename": "tests/sandbox/components/midolman/master-vpp/midolman-master-vpp.dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2016-09-20T16:25:08Z",
+      "side": 1,
+      "message": "FYI, the patch in https://review.gerrithub.io/#/c/290787/ already adds a dependency on vpp in midolman (so it\u0027s installed from our repos when installing midolman) and the script that starts the vpp process also writes the configuration file as in MI-1318.\n\nOnce that patch is merged, this specific vpp dockerfile would not be necessary.",
+      "parentUuid": "baa041b7_29d1c7fb",
+      "revId": "aaf4f93b193e71c4da3d3211771d0b43c843cf69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
