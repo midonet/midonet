@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8fbc53dc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleBWLimitResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-21T04:08:13Z",
+      "side": 1,
+      "message": "They don\u0027t seem to.  And the example code I looked at (Chains and Rules) also did this exact thing. although it apparently had to order its list, so maybe it had to do that manually.  \n\nIn any case, without this code, the rule lists don\u0027t get updated on the policy, even though the bindings are defined in MidonetBackend.  The QOS policy -\u003e network/port bindings DO seem to work however, so I don\u0027t know why this didn\u0027t get updated without this explicit code.",
+      "parentUuid": "baa041b7_4025ffbf",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 9
+      },
+      "revId": "8ce6e215b727ed6958cb92d42a7740fc61141d81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2020bbaf",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleBWLimitResource.scala",
         "patchSetId": 9
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6fb34f0b",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-21T04:08:13Z",
+      "side": 1,
+      "message": "I tried using the NeutronApiTest framework, but I ended up having to re-define almost every function, because they all assume a \"neutron\" path, hence I thought it better to just stick to this model.",
+      "parentUuid": "baa041b7_e599c57a",
+      "range": {
+        "startLine": 32,
+        "startChar": 22,
+        "endLine": 32,
+        "endChar": 41
+      },
+      "revId": "8ce6e215b727ed6958cb92d42a7740fc61141d81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_45d191fa",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
         "patchSetId": 9
@@ -82,6 +130,30 @@
       "writtenOn": "2016-09-20T11:15:04Z",
       "side": 1,
       "message": "This doesn\u0027t actually update and delete from the QOS policy, which I don\u0027t think is supported. It updates and deletes using the top-level URIs for these objects.",
+      "range": {
+        "startLine": 190,
+        "startChar": 28,
+        "endLine": 190,
+        "endChar": 42
+      },
+      "revId": "8ce6e215b727ed6958cb92d42a7740fc61141d81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4fb64bfa",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-21T04:08:13Z",
+      "side": 1,
+      "message": "Oh, yeah.  I guess I was thinking more of a user-level activity, which would end up deleting the rule from the QOS policy, although the low-level action is to actually delete the top level object and then cascade down to clear the rule list in the policy itself.",
+      "parentUuid": "baa041b7_45d191fa",
       "range": {
         "startLine": 190,
         "startChar": 28,
