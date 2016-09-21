@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_95a0e0a6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-21T12:55:44Z",
+      "side": 1,
+      "message": "no need to allocate anything, you can do something like:\n\nfor (pool \u003c- nhm.getPoolsList.asScala) {\n    val pb \u003d tx.get(classOf[Pool], pool.getPoolId).toBuilder\n        .setMappingStatus(PENDING_CREATE)\n        .setHealthMonitorId(hm.getId)\n        \n    tx.update(pb.build())\n}",
+      "range": {
+        "startLine": 57,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 35
+      },
+      "revId": "7aeadb36bb362ca6e6605df29dcbdc0c32aedff2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
