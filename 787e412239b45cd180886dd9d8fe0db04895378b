@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_ef9e3f62",
+        "filename": "docs/qos.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2016-09-21T04:58:35Z",
+      "side": 1,
+      "message": "It might be worth mentioning explicitly that there are no translators, since this is not something we\u0027ve done before.",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 15
+      },
+      "revId": "787e412239b45cd180886dd9d8fe0db04895378b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
