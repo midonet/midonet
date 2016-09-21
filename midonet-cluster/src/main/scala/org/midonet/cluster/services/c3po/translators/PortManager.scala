@@ -108,6 +108,7 @@ trait PortManager extends ChainManager with RouteManager {
      * and interface. Port and host must exist in Midonet topology, and neither
      * the port nor the interface may already be bound on the specified host.
      */
+    @Deprecated
     protected def bindPortOps(port: Port, hostId: UUID, ifName: String)
     : OperationList = {
         if (port.hasHostId) throw new IllegalStateException(
@@ -117,6 +118,22 @@ trait PortManager extends ChainManager with RouteManager {
             .setHostId(hostId)
             .setInterfaceName(ifName)
         List(Update(updatedPort.build()))
+    }
+
+    /**
+      * Returns operations to bind the specified port to the specified host
+      * and interface. Port and host must exist in Midonet topology, and neither
+      * the port nor the interface may already be bound on the specified host.
+      */
+    protected def bindPortOps(tx: Transaction, port: Port, hostId: UUID,
+                              ifName: String): Unit = {
+        if (port.hasHostId) throw new IllegalStateException(
+            s"Port ${port.getId} is already bound.")
+
+        val updatedPort = port.toBuilder
+            .setHostId(hostId)
+            .setInterfaceName(ifName)
+        tx.update(updatedPort.build())
     }
 
     @Deprecated
@@ -219,11 +236,22 @@ trait PortManager extends ChainManager with RouteManager {
     /**
       * Operations to delete a port's security chains (in, out, antispoof).
       */
+    @Deprecated
     protected def deleteSecurityChainsOps(portId: UUID)
     : Seq[Operation[Chain]] = {
         Seq(Delete(classOf[Chain], inChainId(portId)),
             Delete(classOf[Chain], outChainId(portId)),
             Delete(classOf[Chain], antiSpoofChainId(portId)))
+    }
+
+    /**
+      * Operations to delete a port's security chains (in, out, antispoof).
+      */
+    protected def deleteSecurityChainsOps(tx: Transaction, portId: UUID)
+    : Unit = {
+        tx.delete(classOf[Chain], inChainId(portId), ignoresNeo = true)
+        tx.delete(classOf[Chain], outChainId(portId), ignoresNeo = true)
+        tx.delete(classOf[Chain], antiSpoofChainId(portId), ignoresNeo = true)
     }
 
     /** Operations to remove a port's IP addresses from its IPAddrGroups */
@@ -278,6 +306,7 @@ trait PortManager extends ChainManager with RouteManager {
         portGroup
     }
 
+    @Deprecated
     def ensureRouterInterfacePortGroup(routerId: UUID):
     (OperationList, UUID) = {
         val pgId = PortManager.routerInterfacePortGroupId(routerId)
@@ -295,6 +324,22 @@ trait PortManager extends ChainManager with RouteManager {
                 getRouterInterfacePorts(router).foreach(pg.addPortIds)
                 (List(Create(pg.build())), pgId)
         }
+    }
+
+    def ensureRouterInterfacePortGroup(tx: Transaction,
+                                       routerId: UUID): UUID = {
+        val pgId = PortManager.routerInterfacePortGroupId(routerId)
+
+        if (!tx.exists(classOf[PortGroup], pgId)) {
+            // NOTE(yamamoto): A router created by an old version
+            // of translation doesn't have the port group.
+            val router = tx.get(classOf[Router], routerId)
+            val pg = newRouterInterfacePortGroup(routerId, router.getTenantId)
+            getRouterInterfacePorts(router).foreach(pg.addPortIds)
+            tx.create(pg.build())
+        }
+
+        pgId
     }
 
     private def getRouterInterfacePorts(router: Router): Seq[UUID] = {
