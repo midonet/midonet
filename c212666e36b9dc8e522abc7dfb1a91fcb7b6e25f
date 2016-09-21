@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bb451544",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-21T16:15:01Z",
+      "side": 1,
+      "message": "Right, we discussed this f2f",
+      "parentUuid": "baa041b7_60811cfb",
+      "range": {
+        "startLine": 137,
+        "startChar": 20,
+        "endLine": 137,
+        "endChar": 27
+      },
+      "revId": "c212666e36b9dc8e522abc7dfb1a91fcb7b6e25f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_e09e4c62",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_bb5cf519",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-21T16:15:01Z",
+      "side": 1,
+      "message": "Apparently it does (just tested): I copied it from below, old line 726.",
+      "parentUuid": "baa041b7_e09e4c62",
+      "range": {
+        "startLine": 742,
+        "startChar": 55,
+        "endLine": 742,
+        "endChar": 61
+      },
+      "revId": "c212666e36b9dc8e522abc7dfb1a91fcb7b6e25f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_75655c1b",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/TranslatorTestBase.scala",
         "patchSetId": 1
@@ -83,6 +131,30 @@
       "writtenOn": "2016-09-21T14:07:45Z",
       "side": 1,
       "message": "this will always be overwritten by initMockStorage",
+      "range": {
+        "startLine": 51,
+        "startChar": 43,
+        "endLine": 51,
+        "endChar": 53
+      },
+      "revId": "c212666e36b9dc8e522abc7dfb1a91fcb7b6e25f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3ba7c50c",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/TranslatorTestBase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-21T16:15:01Z",
+      "side": 1,
+      "message": "removed: I initially added it here, then I realized it wasn\u0027t enough",
+      "parentUuid": "baa041b7_75655c1b",
       "range": {
         "startLine": 51,
         "startChar": 43,
