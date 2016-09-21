@@ -25,6 +25,53 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_60811cfb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-21T15:10:31Z",
+      "side": 1,
+      "message": "it is (see next method), but you can\u0027t change this one until everything is changed.",
+      "parentUuid": "baa041b7_15f8507b",
+      "range": {
+        "startLine": 137,
+        "startChar": 20,
+        "endLine": 137,
+        "endChar": 27
+      },
+      "revId": "c212666e36b9dc8e522abc7dfb1a91fcb7b6e25f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_e09e4c62",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-21T15:10:31Z",
+      "side": 1,
+      "message": "does this work? surely it will just return from the closure and gateway will be Unit?",
+      "range": {
+        "startLine": 742,
+        "startChar": 55,
+        "endLine": 742,
+        "endChar": 61
+      },
+      "revId": "c212666e36b9dc8e522abc7dfb1a91fcb7b6e25f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_75655c1b",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/TranslatorTestBase.scala",
         "patchSetId": 1
