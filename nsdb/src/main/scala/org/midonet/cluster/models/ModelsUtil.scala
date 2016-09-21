@@ -17,7 +17,7 @@
 package org.midonet.cluster.models
 
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, HealthMonitor, Host, IPAddrGroup, LoadBalancer, Network, Pool, PoolMember, Port, PortGroup, Route, Router, Rule, TunnelZone, Vip, Vtep}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.ProtobufUtil.protoFromTxt
 
 /**
@@ -92,6 +92,9 @@ object ModelsUtil {
         protoFromTxt(protoTxt, VpnService.newBuilder)
         .asInstanceOf[VpnService]
 
+     def nTapServiceFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, TapService.newBuilder).asInstanceOf[TapService]
+
      def mNetworkFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Network.newBuilder).asInstanceOf[Network]
 
@@ -144,4 +147,7 @@ object ModelsUtil {
 
      def mHostFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Host.newBuilder).asInstanceOf[Host]
+
+     def mMirrorFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, Mirror.newBuilder).asInstanceOf[Mirror]
 }
