@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_80a300b1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/TapServiceTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-21T15:04:39Z",
+      "side": 1,
+      "message": "need to add: ignoreNeo \u003d true which is default for all neutron ops",
+      "range": {
+        "startLine": 44,
+        "startChar": 8,
+        "endLine": 44,
+        "endChar": 44
+      },
+      "revId": "5d7fe77767fdc32e079c89106a6cfca7473ef306",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
