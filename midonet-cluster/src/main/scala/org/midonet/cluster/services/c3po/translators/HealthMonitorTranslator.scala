@@ -55,26 +55,30 @@ class HealthMonitorTranslator(protected val storage: ReadOnlyStorage)
         val hm = translate(nhm)
 
         val pools = for (pool <- nhm.getPoolsList.asScala) yield {
-            val pb = storage.get(classOf[Pool], pool.getPoolId).await().toBuilder
+            val pb = tx.get(classOf[Pool], pool.getPoolId).toBuilder
             pb.setMappingStatus(PENDING_CREATE)
                 .setHealthMonitorId(hm.getId)
                 .build()
         }
 
-        List(Create(hm)) ++ pools.map(Update(_))
+        tx.create(hm)
+        pools.foreach(tx.update(_))
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            nhm: NeutronHealthMonitor)
     : OperationList = {
-        List(Delete(classOf[HealthMonitor], nhm.getId))
+        tx.delete(classOf[HealthMonitor], nhm.getId)
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
                                            nhm: NeutronHealthMonitor)
     : OperationList = {
-        List(Update(translate(nhm, setPoolId = true),
-                    HealthMonitorUpdateValidator))
+        tx.update(translate(nhm, setPoolId = true),
+            HealthMonitorUpdateValidator.asInstanceOf[UpdateValidator[Object]])
+        List()
     }
 }
 
