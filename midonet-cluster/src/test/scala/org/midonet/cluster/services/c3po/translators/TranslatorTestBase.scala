@@ -19,6 +19,8 @@ import java.util.{UUID => JUUID}
 
 import scala.concurrent.Future
 
+import com.google.protobuf.Message
+
 import org.mockito.ArgumentMatcher
 import org.mockito.Matchers.{any, anyBoolean}
 import org.mockito.Mockito.{mock, never, verify, when}
@@ -26,10 +28,10 @@ import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Transaction}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
 import org.midonet.cluster.services.c3po.OpType
 import org.midonet.midolman.state.PathBuilder
 
@@ -44,6 +46,7 @@ abstract class TranslatorTestBase  extends FlatSpec
      * calling initMockStorage() below. */
     protected var storage: ReadOnlyStorage = _
     protected var transaction: Transaction = _
+    protected var midoOps: OperationList = _
     initMockStorage()
 
 
@@ -52,8 +55,55 @@ abstract class TranslatorTestBase  extends FlatSpec
     protected val pathBldr: PathBuilder = new PathBuilder(zkRoot)
 
     protected def initMockStorage() {
+        midoOps = List.empty
         storage = mock(classOf[ReadOnlyStorage])
         transaction = mock(classOf[Transaction])
+        when(transaction.create(any())).thenAnswer(
+            new Answer[Unit] {
+                override def answer(invocation: InvocationOnMock): Unit = {
+                    midoOps = midoOps :+ Create(invocation.getArguments.apply(0)
+                                                    .asInstanceOf[Message])
+                }
+            }
+        )
+        when(transaction.update(any(), any())).thenAnswer(
+            new Answer[Unit] {
+                override def answer(invocation: InvocationOnMock): Unit = {
+                    midoOps = midoOps :+ Update(invocation.getArguments.apply(0)
+                                                    .asInstanceOf[Message],
+                                                invocation.getArguments.apply(1)
+                                                    .asInstanceOf[UpdateValidator[Message]])
+                }
+            }
+        )
+        when(transaction.delete(any(), any(), any())).thenAnswer(
+            new Answer[Unit] {
+                override def answer(invocation: InvocationOnMock): Unit = {
+                    midoOps = midoOps :+ Delete(invocation.getArguments.apply(0)
+                                                    .asInstanceOf[Class[_ <: Message]],
+                                                invocation.getArguments.apply(1)
+                                                    .asInstanceOf[UUID])
+                }
+            }
+        )
+        when(transaction.createNode(any(), any())).thenAnswer(
+            new Answer[Unit] {
+                override def answer(invocation: InvocationOnMock): Unit = {
+                    midoOps = midoOps :+ CreateNode(invocation.getArguments.apply(0)
+                                                        .asInstanceOf[String],
+                                                    invocation.getArguments.apply(1)
+                                                        .asInstanceOf[String])
+                }
+            }
+        )
+        when(transaction.deleteNode(any(), anyBoolean())).thenAnswer(
+            new Answer[Unit] {
+                override def answer(invocation: InvocationOnMock): Unit = {
+                    midoOps = midoOps :+ DeleteNode(invocation.getArguments.apply(0)
+                                                        .asInstanceOf[String])
+                }
+            }
+        )
     }
 
     /* Mock exists and get on an instance of M with an ID, "id". */
