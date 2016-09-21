@@ -43,7 +43,7 @@ public class TestMonitoredDaemonProcess {
 
 
     public class TestableMonitoredDaemonProcess extends MonitoredDaemonProcess {
-        final protected MockUnixClock clock = (MockUnixClock) UnixClock$.MODULE$.apply();
+        final protected MockUnixClock mockedClock = (MockUnixClock) super.clock;
 
         public TestableMonitoredDaemonProcess(String cmd, Logger log,
                                               String prefix, int retries,
@@ -126,7 +126,7 @@ public class TestMonitoredDaemonProcess {
         events3.add(400L);
 
         process.waitForStartEvents(1, events1);
-        process.clock.time_$eq(process.clock.time() + period * 2);
+        process.mockedClock.time_$eq(process.clock.time() + period * 2);
         process.killProcess();
         process.waitForStartEvents(1, events2);
         process.killProcess();
@@ -135,7 +135,7 @@ public class TestMonitoredDaemonProcess {
         assertThat("After " + numAttempts + " attempts, the process does not exit",
                    !action.exited);
 
-        process.clock.time_$eq(process.clock.time() + period * 2);
+        process.mockedClock.time_$eq(process.clock.time() + period * 2);
         process.killProcess();
         process.waitForStartEvents(1, events3);
         process.killProcess();

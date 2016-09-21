@@ -22,8 +22,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scala.reflect.ClassTag
 
-import akka.actor.{ActorSystem, Props}
-import akka.testkit.TestActorRef
+import akka.actor.ActorSystem
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
 
@@ -34,14 +33,14 @@ import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman._
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.{FlowRecorder, NullFlowRecorder}
-import org.midonet.midolman.simulation.{DhcpConfigFromNsdb, PacketContext, Bridge => SimBridge, Chain => SimChain, Port => SimPort, Router => SimRouter, _}
+import org.midonet.midolman.simulation.{PacketContext, Bridge => SimBridge, Chain => SimChain, Port => SimPort, Router => SimRouter, _}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state._
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.Host
-import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.{InternalPort, NetDevPort, VxLanTunnelPort}
@@ -121,7 +120,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     }
 
     def throwAwayArpBroker(): ArpRequestBroker =
-        new ArpRequestBroker(config, simBackChannel, UnixClock.MOCK)
+        new ArpRequestBroker(config, simBackChannel, UnixClock.mock())
 
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard())
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard())

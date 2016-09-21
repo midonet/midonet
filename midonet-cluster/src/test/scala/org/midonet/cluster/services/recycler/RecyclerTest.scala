@@ -41,9 +41,10 @@ import org.midonet.cluster.models.Topology.{Host, Network, Port, Router}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.state.client.StateTableClient
 import org.midonet.cluster.util.MidonetBackendTest
+import org.midonet.minion.Context
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.eventloop.Reactor
-import org.midonet.util.{MidonetEventually, UnixClock}
+import org.midonet.util.{MidonetEventually, MockUnixClock, UnixClock}
 
 @RunWith(classOf[JUnitRunner])
 class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
@@ -90,7 +91,14 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         : ScheduledFuture[_] = ???
     }
 
-    private val clock = UnixClock.MOCK
+    private class TestableRecycler(context: Context, backend: MidonetBackend,
+                                   executor: ScheduledExecutorService,
+                                   config: ClusterConfig)
+        extends Recycler(context, backend, executor, config) {
+
+        val mockedClock = clock.asInstanceOf[MockUnixClock]
+    }
+
     private var store: ZookeeperObjectMapper = _
     private var backend: MidonetBackend = _
     private var config: ClusterConfig = _
@@ -125,8 +133,8 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
     }
 
     private def newRecycler(executor: ScheduledExecutorService =
-                                new AutoScheduledExecutorService): Recycler = {
-        new Recycler(context = null, backend, executor, config)
+                                new AutoScheduledExecutorService): TestableRecycler = {
+        new TestableRecycler(context = null, backend, executor, config)
     }
 
     /* This method blocks until the creation time of the given path is not
@@ -169,7 +177,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
-            clock.time = stat.getMtime + config.recycler.interval.toMillis
+            recycler.mockedClock.time = stat.getMtime + config.recycler.interval.toMillis
 
             Then("The recycler should run the recycling task")
             val result = recycler.tasks.toBlocking.first()
@@ -192,7 +200,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
-            clock.time = stat.getMtime + config.recycler.interval.toMillis
+            recycler.mockedClock.time = stat.getMtime + config.recycler.interval.toMillis
 
             Then("The recycler should run the recycling task")
             val result = recycler.tasks.toBlocking.first()
@@ -212,7 +220,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             And("The NSDB timestamp")
             val stat = new Stat
             curator.getData.storingStatIn(stat).forPath(store.basePath)
-            clock.time = stat.getMtime + config.recycler.interval.toMillis + 1
+            recycler.mockedClock.time = stat.getMtime + config.recycler.interval.toMillis + 1
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
@@ -240,7 +248,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             And("The NSDB timestamp")
             val stat = new Stat
             curator.getData.storingStatIn(stat).forPath(store.basePath)
-            clock.time = stat.getMtime + config.recycler.interval.toMillis + 1
+            recycler.mockedClock.time = stat.getMtime + config.recycler.interval.toMillis + 1
 
             And("A task observer")
             val observer = new TestObserver[Try[RecyclingContext]]()
@@ -295,7 +303,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
             And("The NSDB timestamp")
             val stat = new Stat
             curator.getData.storingStatIn(stat).forPath(store.basePath)
-            clock.time = stat.getMtime + config.recycler.interval.toMillis + 1
+            recycler.mockedClock.time = stat.getMtime + config.recycler.interval.toMillis + 1
 
             When("Deleting the NSDB path")
             curator.delete().deletingChildrenIfNeeded().forPath(store.basePath)
@@ -317,7 +325,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Namespaces for non-existing hosts") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for a namespace")
@@ -347,7 +355,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Namespaces for existing hosts") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for a namespace with host")
@@ -376,7 +384,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Namespaces with children") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for a namespace with host")
@@ -406,7 +414,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("The cluster namespace") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             When("The recycler starts")
@@ -434,7 +442,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Single-value state for non-existing objects") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for an object state")
@@ -469,7 +477,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Multi-value state for non-existing objects") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for an object state")
@@ -505,7 +513,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Single-value state for existing objects") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for an object state")
@@ -542,7 +550,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Table for non-existing objects") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for an object table")
@@ -555,7 +563,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             Then("The recycler should run the recycling task")
@@ -576,7 +584,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Table for existing objects") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for an object table")
@@ -588,7 +596,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             Then("The recycler should run the recycling task")
@@ -611,7 +619,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Table for non-existing bridge") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for an object table")
@@ -623,7 +631,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             Then("The recycler should run the recycling task")
@@ -644,7 +652,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Table for existing bridge") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for an object table")
@@ -655,7 +663,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             Then("The recycler should run the recycling task")
@@ -676,7 +684,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Table for non-existing router") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for an object table")
@@ -688,7 +696,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             Then("The recycler should run the recycling task")
@@ -709,7 +717,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
         scenario("Table for existing router") {
             Given("A recycling service")
             val recycler = newRecycler()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             And("A node for an object table")
@@ -720,7 +728,7 @@ class RecyclerTest extends FeatureSpec with MidonetBackendTest with Matchers
 
             When("The recycler starts")
             recycler.startAsync().awaitRunning()
-            clock.time = System.currentTimeMillis() +
+            recycler.mockedClock.time = System.currentTimeMillis() +
                          config.recycler.interval.toMillis
 
             Then("The recycler should run the recycling task")
