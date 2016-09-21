@@ -58,7 +58,7 @@ class RouterInterfaceTranslator(protected val storage: ReadOnlyStorage,
      * We don't persist it in Storage. */
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[NeutronRouterInterface])
-    : List[Operation[NeutronRouterInterface]] = List()
+    : Unit = { }
 
     override protected def translateCreate(tx: Transaction,
                                            ri: NeutronRouterInterface)

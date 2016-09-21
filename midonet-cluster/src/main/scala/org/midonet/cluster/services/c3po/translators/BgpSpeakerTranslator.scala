@@ -66,6 +66,6 @@ class BgpSpeakerTranslator(protected val storage: ReadOnlyStorage,
     // We don't store the BGPSpeaker in Zookeeper.
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[NeutronBgpSpeaker])
-    : List[Operation[NeutronBgpSpeaker]] = List()
+    : Unit = { }
 }
 

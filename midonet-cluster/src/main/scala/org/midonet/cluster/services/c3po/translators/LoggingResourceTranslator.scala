@@ -54,9 +54,9 @@ class LoggingResourceTranslator(protected val storage: ReadOnlyStorage)
     }
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[NeutronLoggingResource])
-    : List[Operation[NeutronLoggingResource]] = {
+    : Unit = {
         op match {
-            case Create(_) | Update(_, _) | Delete(_, _) => List()
+            case Create(_) | Update(_, _) | Delete(_, _) => // Do nothing
             case _ => super.retainHighLevelModel(tx, op)
         }
     }

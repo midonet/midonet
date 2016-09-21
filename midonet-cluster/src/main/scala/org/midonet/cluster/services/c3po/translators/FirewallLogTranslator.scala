@@ -103,9 +103,9 @@ class FirewallLogTranslator(protected val storage: ReadOnlyStorage)
 
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[FirewallLog])
-    : List[Operation[FirewallLog]] = {
+    : Unit = {
         op match {
-            case Update(_, _) | Create(_) | Delete(_, _) => List()
+            case Update(_, _) | Create(_) | Delete(_, _) => // Do nothing
             case _ => super.retainHighLevelModel(tx, op)
         }
     }

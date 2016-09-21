@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.c3po
 
+import scala.reflect.ClassTag
+
 import com.google.protobuf.Message
 import com.typesafe.config.ConfigFactory
 
@@ -40,6 +42,20 @@ class NeutronTranslatorManagerTest extends FlatSpec
                                            with BeforeAndAfter
                                            with Matchers
                                            with GivenWhenThen {
+
+    class MockTranslator[T <: Message](create: => OperationList = List(),
+                                       update: => OperationList = List(),
+                                       delete: => OperationList = List())
+                                      (implicit ct: ClassTag[T])
+        extends Translator[T]()(ct) {
+        override def storage = null
+        override def translateCreate(tx: Transaction, nm: T): OperationList =
+            create
+        override def translateUpdate(tx: Transaction, nm: T): OperationList =
+            update
+        override def translateDelete(tx: Transaction, nm: T): OperationList =
+            delete
+    }
 
     private var config: ClusterConfig = _
     private var backend: MidonetBackend = _
@@ -103,14 +119,7 @@ class NeutronTranslatorManagerTest extends FlatSpec
     "Manager" should "pass Neutron operations to the translator" in {
         Given("A translator")
         val message = Commons.UUID.newBuilder().setMsb(0L).setLsb(0L).build()
-        val translator = Mockito.mock(classOf[Translator[Message]])
-        Mockito.when(translator.translateOp(MockitoMatchers.any(),
-                                            MockitoMatchers.any()))
-               .thenAnswer(new Answer[OperationList] {
-                   override def answer(invocation: InvocationOnMock): OperationList = {
-                       List(invocation.getArguments.apply(1)).asInstanceOf[OperationList]
-                   }
-               })
+        val translator = new MockTranslator()
 
         And("A translator manager")
         val manager = new NeutronTranslatorManager(config, backend,
@@ -124,46 +133,26 @@ class NeutronTranslatorManagerTest extends FlatSpec
         When("Translating a create")
         manager.translate(transaction, Create(message))
 
-        Then("The manager should call the translator")
-        Mockito.verify(translator).translateOp(transaction, Create(message))
-
-        And("The returned operations are added to the transaction")
+        Then("The manager should add the operation to the transaction")
         Mockito.verify(transaction).create(message)
 
         When("Translating an update")
         manager.translate(transaction, Update(message))
 
-        Then("The manager should call the translator")
-        Mockito.verify(translator).translateOp(transaction, Update(message))
-
-        And("The returned operations are added to the transaction")
-        Mockito.verify(transaction).update(message, validator = null)
+        Then("The manager should add the operation to the transaction")
+        Mockito.verify(transaction).update(message, null)
 
         When("Translating a delete")
         manager.translate(transaction, Delete(classOf[Message], message))
 
-        Then("The manager should call the translator")
-        Mockito.verify(translator).translateOp(transaction,
-                                               Delete(classOf[Message], message))
-
-        And("The returned operations are added to the transaction")
-        Mockito.verify(transaction).delete(classOf[Message], message,
-                                           ignoresNeo = true)
+        Then("The manager should add the operation to the transaction")
+        Mockito.verify(transaction).delete(classOf[Message], message, ignoresNeo = true)
     }
 
     "Manager" should "also handle node operations" in {
         Given("A translator")
         val message = Commons.UUID.newBuilder().setMsb(0L).setLsb(0L).build()
-        val translator = Mockito.mock(classOf[Translator[Message]])
-        Mockito.when(translator.translateOp(MockitoMatchers.any(),
-                                            MockitoMatchers.any()))
-            .thenAnswer(new Answer[OperationList] {
-                override def answer(invocation: InvocationOnMock): OperationList = {
-                    List(CreateNode("path0", "value0"),
-                         UpdateNode("path1", "value1"),
-                         DeleteNode("path2"))
-                }
-            })
+        val translator = new MockTranslator()
 
         And("A translator manager")
         val manager = new NeutronTranslatorManager(config, backend,
@@ -177,13 +166,8 @@ class NeutronTranslatorManagerTest extends FlatSpec
         When("Translating a create")
         manager.translate(transaction, Create(message))
 
-        Then("The manager should call the translator")
-        Mockito.verify(translator).translateOp(transaction, Create(message))
-
-        And("The returned operations are added to the transaction")
-        Mockito.verify(transaction).createNode("path0", "value0")
-        Mockito.verify(transaction).updateNode("path1", "value1")
-        Mockito.verify(transaction).deleteNode("path2")
+        Then("The manager should add the operation to the transaction")
+        Mockito.verify(transaction).create(message)
     }
 
     "Manager" should "throw an exception if class unknown" in {

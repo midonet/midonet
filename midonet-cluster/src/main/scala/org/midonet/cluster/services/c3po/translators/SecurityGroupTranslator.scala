@@ -127,16 +127,16 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
      * need to be maintained, or need some special handling. */
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[SecurityGroup])
-    : List[Operation[SecurityGroup]] = op match {
+    : Unit = op match {
         case Update(newSg, _) =>
             // Neutron doesn't specify rules in update. Name and description
             // are the only properties that can actually be updated, so we can
             // just update the old SecurityGroup with them.
-            val oldSg = storage.get(classOf[SecurityGroup], newSg.getId).await()
-            List(Update(oldSg.toBuilder
-                            .setName(newSg.getName)
-                            .setDescription(newSg.getDescription)
-                            .build()))
+            val oldSg = tx.get(classOf[SecurityGroup], newSg.getId)
+            tx.update(oldSg.toBuilder
+                          .setName(newSg.getName)
+                          .setDescription(newSg.getDescription)
+                          .build())
         case _ => super.retainHighLevelModel(tx, op)
     }
 

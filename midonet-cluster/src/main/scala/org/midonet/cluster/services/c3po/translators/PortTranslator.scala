@@ -69,11 +69,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
       */
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[NeutronPort])
-    : List[Operation[NeutronPort]] = {
+    : Unit = {
         op match {
-            case Create(nm) => List(Create(nm))
-            case Update(nm, _) => List(Update(nm, NeutronPortUpdateValidator))
-            case Delete(clazz, id) => List(Delete(clazz, id))
+            case Update(nm, _) =>
+                tx.update(nm, NeutronPortUpdateValidator
+                    .asInstanceOf[UpdateValidator[Object]])
+            case _ => super.retainHighLevelModel(tx, op)
         }
     }
 

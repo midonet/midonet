@@ -184,7 +184,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
 
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[VpnService])
-    : List[Operation[VpnService]] = op match {
+    : Unit = op match {
         case Update(vpn, _) =>
             // Need to override update to make sure only certain fields are
             // updated, to avoid overwriting ipsec_site_conn_ids, which Neutron
@@ -195,7 +195,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
                 .setContainerId(oldVpn.getContainerId)
                 .setExternalIp(oldVpn.getExternalIp)
                 .build()
-            List(Update(newVpn))
+            tx.update(newVpn)
         case _ => super.retainHighLevelModel(tx, op)
     }
 

@@ -153,7 +153,6 @@ class NeutronTranslatorManager(config: ClusterConfig,
         })
             .asInstanceOf[Translator[T]]
             .translateOp(tx, op)
-            .foreach(_.apply(tx))
     }
 
     /**

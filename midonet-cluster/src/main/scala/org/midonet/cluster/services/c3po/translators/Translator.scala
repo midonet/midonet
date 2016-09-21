@@ -49,9 +49,9 @@ abstract class Translator[HighLevelModel <: Message](
       *   various derived models.
       */
     @throws[TranslationException]
-    def translateOp(tx: Transaction,
-                    op: Operation[HighLevelModel]): OperationList = {
-        retainHighLevelModel(tx, op) ++ translate(tx, op)
+    final def translateOp(tx: Transaction, op: Operation[HighLevelModel]): Unit = {
+        retainHighLevelModel(tx, op)
+        translate(tx, op)
     }
 
     /**
@@ -60,14 +60,19 @@ abstract class Translator[HighLevelModel <: Message](
       * original model.
       */
     @throws[TranslationException]
-    def translate(tx: Transaction,
-                  op: Operation[HighLevelModel]): OperationList = {
+    final def translate(tx: Transaction, op: Operation[HighLevelModel])
+    : OperationList = {
         try {
-            op match {
+            val midoOps = op match {
                 case Create(nm) => translateCreate(tx, nm)
                 case Update(nm, _) => translateUpdate(tx, nm)
                 case Delete(_, id) => translateDelete(tx, id)
             }
+            for (midoOp <- midoOps) {
+                midoOp.apply(tx)
+            }
+            // TODO: Return the operations list for legacy unit tests.
+            midoOps
         } catch {
             case NonFatal(ex) =>
                 throw new TranslationException(op, ex, ex.getMessage)
@@ -79,13 +84,8 @@ abstract class Translator[HighLevelModel <: Message](
       * need to be maintained, or need some special handling.
       */
     protected def retainHighLevelModel(tx: Transaction,
-                                       op: Operation[HighLevelModel])
-    : List[Operation[HighLevelModel]] = {
-        op match {
-            case Create(nm) => List(Create(nm))
-            case Update(nm, _) => List(Update(nm))
-            case Delete(clazz, id) => List(Delete(clazz, id))
-        }
+                                       op: Operation[HighLevelModel]): Unit = {
+        op.apply(tx)
     }
 
     /**

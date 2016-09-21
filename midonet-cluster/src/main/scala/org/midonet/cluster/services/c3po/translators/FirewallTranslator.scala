@@ -211,9 +211,9 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
 
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[NeutronFirewall])
-    : List[Operation[NeutronFirewall]] = {
+    : Unit = {
         op match {
-            case Update(nm, _) => List()  // See translateUpdate
+            case Update(nm, _) => // See translateUpdate
             case _ => super.retainHighLevelModel(tx, op)
         }
     }
