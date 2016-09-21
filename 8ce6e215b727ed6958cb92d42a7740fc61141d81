@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_5a084728",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleBWLimitResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-21T07:50:59Z",
+      "side": 1,
+      "message": "Okay, I see what\u0027s happening (after some help from Brandon).  I will change to just update policy ID and then the bindings seem to fall into place.",
+      "parentUuid": "baa041b7_8fbc53dc",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 9
+      },
+      "revId": "8ce6e215b727ed6958cb92d42a7740fc61141d81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_2020bbaf",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/QOSRuleBWLimitResource.scala",
         "patchSetId": 9
@@ -154,6 +178,30 @@
       "side": 1,
       "message": "Oh, yeah.  I guess I was thinking more of a user-level activity, which would end up deleting the rule from the QOS policy, although the low-level action is to actually delete the top level object and then cascade down to clear the rule list in the policy itself.",
       "parentUuid": "baa041b7_45d191fa",
+      "range": {
+        "startLine": 190,
+        "startChar": 28,
+        "endLine": 190,
+        "endChar": 42
+      },
+      "revId": "8ce6e215b727ed6958cb92d42a7740fc61141d81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3a0b4326",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/TestQOSPolicies.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-21T07:50:59Z",
+      "side": 1,
+      "message": "I changed the title to be more general.",
+      "parentUuid": "baa041b7_4fb64bfa",
       "range": {
         "startLine": 190,
         "startChar": 28,
