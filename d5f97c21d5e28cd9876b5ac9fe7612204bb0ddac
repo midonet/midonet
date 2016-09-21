@@ -16,6 +16,24 @@
       "revId": "d5f97c21d5e28cd9876b5ac9fe7612204bb0ddac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_3ab223e6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-21T09:30:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_7a842b5c",
+      "revId": "d5f97c21d5e28cd9876b5ac9fe7612204bb0ddac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
