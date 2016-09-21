@@ -22,6 +22,29 @@
       "revId": "c212666e36b9dc8e522abc7dfb1a91fcb7b6e25f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_75655c1b",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/TranslatorTestBase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-21T14:07:45Z",
+      "side": 1,
+      "message": "this will always be overwritten by initMockStorage",
+      "range": {
+        "startLine": 51,
+        "startChar": 43,
+        "endLine": 51,
+        "endChar": 53
+      },
+      "revId": "c212666e36b9dc8e522abc7dfb1a91fcb7b6e25f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
