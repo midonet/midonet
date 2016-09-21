@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_8f2d73ff",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-21T05:31:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_201b1b1e",
+      "range": {
+        "startLine": 69,
+        "startChar": 55,
+        "endLine": 69,
+        "endChar": 67
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_40e73f12",
         "filename": "docs/neutron_translation.md",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2016-09-20T11:11:29Z",
       "side": 1,
       "message": "Make this a single-item bullet list.",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 52
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_6f346f49",
+        "filename": "docs/neutron_translation.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-21T05:31:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_40e73f12",
       "range": {
         "startLine": 90,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_efc75f62",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-21T05:31:50Z",
+      "side": 1,
+      "message": "Big improvement. Done.",
+      "parentUuid": "baa041b7_60ea4376",
+      "range": {
+        "startLine": 190,
+        "startChar": 0,
+        "endLine": 233,
+        "endChar": 9
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_40029f3f",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 7
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_cfc25b53",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-21T05:31:50Z",
+      "side": 1,
+      "message": "I don\u0027t know which is the more common case.",
+      "parentUuid": "baa041b7_40029f3f",
+      "range": {
+        "startLine": 235,
+        "startChar": 0,
+        "endLine": 242,
+        "endChar": 19
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_20ab1b20",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 7
@@ -105,6 +201,30 @@
       "writtenOn": "2016-09-20T11:11:29Z",
       "side": 1,
       "message": "Parallelize:\n\n  val snPorts \u003d getSubnetPorts(ns)\n  val snRouteIds \u003d subnetPorts.map(RouteManager.subnetRouteId(_.getId, ns.getId))\n  val snRoutesExistFtrs \u003d snRouteIds.map(storage.exists(classOf[Route], _))\n  val snRoutesExist \u003d snRoutesExistFtrs.map(_.await())\n  for ((rId, exists) \u003c- snRouteIds.zip(snRoutesExist) if exists)\n      ops +\u003d Delete(classOf[Route], rId)\n\nOr something like that. I\u0027m not sure how many of those underscores will resolve correctly.",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 9
+      },
+      "revId": "c348cf005d11d705d11c72f38d73c7ab6ee660d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_afa037a6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2016-09-21T05:31:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_20ab1b20",
       "range": {
         "startLine": 79,
         "startChar": 0,
