@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_5a5727ca",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-21T08:43:22Z",
+      "side": 1,
+      "message": "remove storage from the class. All reads should go through the transaction.\n\nWe should probably do something else about stateTableStorage. Here it\u0027s only being used to build path. Maybe path building should be broken out to another interface.",
+      "range": {
+        "startLine": 28,
+        "startChar": 34,
+        "endLine": 28,
+        "endChar": 41
+      },
+      "revId": "eb45d4fe37f77f10c9ad21a681f6c2a7c3094d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
