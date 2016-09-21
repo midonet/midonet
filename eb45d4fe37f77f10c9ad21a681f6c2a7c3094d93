@@ -46,6 +46,30 @@
       "revId": "eb45d4fe37f77f10c9ad21a681f6c2a7c3094d93",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7a91cb45",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-21T09:24:00Z",
+      "side": 1,
+      "message": "If we change this, I suggest to do it in a separate patch. Alternatively, we could leave it as is, and remove them at the end.",
+      "parentUuid": "baa041b7_5a5727ca",
+      "range": {
+        "startLine": 28,
+        "startChar": 34,
+        "endLine": 28,
+        "endChar": 41
+      },
+      "revId": "eb45d4fe37f77f10c9ad21a681f6c2a7c3094d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
