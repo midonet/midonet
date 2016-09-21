@@ -28,17 +28,19 @@ import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, ExtraDhcpOpt
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.NeutronTranslatorManager._
+import org.midonet.cluster.services.c3po.translators.BgpPeerTranslator._
 import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.l2gwNetworkPortId
 import org.midonet.cluster.services.c3po.translators.PortManager._
+import org.midonet.cluster.services.c3po.translators.PortTranslator._
+import org.midonet.cluster.services.c3po.translators.RouterInterfaceTranslator._
 import org.midonet.cluster.services.c3po.translators.VpnServiceTranslator._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
-import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.cluster.util.IPSubnetUtil.{fromAddr, univSubnet4}
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.cluster.util._
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.packets.{ARP, IPv4Addr, MAC}
 import org.midonet.util.Range
-import org.midonet.util.concurrent.toFutureOps
 
 object PortTranslator {
     private def egressChainName(portId: UUID) =
@@ -60,12 +62,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         extends Translator[NeutronPort]
                 with ChainManager with PortManager with RouteManager with RuleManager
                 with StateTableManager {
-    import BgpPeerTranslator._
-    import RouterInterfaceTranslator._
-    import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
-    /* Neutron does not maintain the back reference to the Floating IP, so we
-     * need to do that by ourselves. */
+    /**
+      *  Neutron does not maintain the back reference to the Floating IP, so we
+      * need to do that by ourselves.
+      */
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[NeutronPort])
     : List[Operation[NeutronPort]] = {
@@ -76,22 +77,28 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateCreate(tx: Transaction,
-                                           nPort: NeutronPort): OperationList = {
+    /**
+      * @see [[Translator.translateCreate()]]
+      */
+    override protected def translateCreate(tx: Transaction, nPort: NeutronPort)
+    : OperationList = {
         // Floating IPs and ports on uplink networks have no
         // corresponding Midonet port.
-        if (isFloatingIpPort(nPort) || isOnUplinkNetwork(nPort)) return List()
+        if (isFloatingIpPort(nPort) || isOnUplinkNetwork(tx, nPort)) {
+            return List()
+        }
 
-        val midoOps = new OperationListBuffer
-        if (hasMacAndArpTableEntries(nPort))
-            midoOps ++= macAndArpTableEntryPaths(nPort).map(CreateNode(_, null))
+        if (hasMacAndArpTableEntries(nPort)) {
+            macAndArpTableEntryPaths(nPort).foreach(tx.createNode(_, null))
+        }
 
         // Remote site ports have the MAC/ARP entries, but no Midonet port.
-        if (isRemoteSitePort(nPort))
-            return midoOps.toList
+        if (isRemoteSitePort(nPort)) {
+            return List()
+        }
 
         // All other ports have a corresponding Midonet network (bridge) port.
-        val midoPortBldr = translateNeutronPort(nPort)
+        val midoPortBldr = translateNeutronPort(tx, nPort)
 
         assignTunnelKey(midoPortBldr, sequenceDispenser)
 
@@ -102,80 +109,83 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             midoPortBldr.setInboundFilterId(inChainId(portId))
             midoPortBldr.setOutboundFilterId(outChainId(portId))
         }
-        updateSecurityBindings(nPort, None, midoPortBldr, portContext)
+        updateSecurityBindings(tx, nPort, None, midoPortBldr, portContext)
         if (isVifPort(nPort)) {
             // Add new DHCP host entries
-            updateDhcpEntries(nPort,
-                              portContext.midoDhcps,
-                              addDhcpHost)
+            updateDhcpEntries(tx, nPort, portContext.midoDhcps, addDhcpHost,
+                              ignoreNonExistingDhcp = false)
         } else if (isDhcpPort(nPort)) {
-            updateDhcpEntries(nPort,
-                              portContext.midoDhcps,
-                              addDhcpServer)
-            midoOps ++= configureMetaDataService(nPort)
+            updateDhcpEntries(tx, nPort, portContext.midoDhcps, addDhcpServer,
+                              ignoreNonExistingDhcp = false)
+            configureMetaDataService(tx, nPort)
         }
 
-        addMidoOps(portContext, midoOps)
-        midoOps += Create(midoPortBldr.build)
-        midoOps.toList
+        addContextOps(tx, portContext)
+        tx.create(midoPortBldr.build)
+        List()
     }
 
-    override protected def translateDelete(tx: Transaction,
-                                           nPort: NeutronPort)
+    /**
+      * @see [[Translator.translateDelete()]]
+      */
+    override protected def translateDelete(tx: Transaction, nPort: NeutronPort)
     : OperationList = {
         // Nothing to do for floating IPs, since we didn't create
         // anything.
-        if (isFloatingIpPort(nPort)) return List()
-
-        val midoOps = new OperationListBuffer
+        if (isFloatingIpPort(nPort)) {
+            return List()
+        }
 
         // No corresponding Midonet port for ports on uplink networks.
-        if (isOnUplinkNetwork(nPort)) {
+        if (isOnUplinkNetwork(tx, nPort)) {
             // We don't create a corresponding Midonet network port for Neutron
             // ports on uplink networks, but for router interface ports, we do
             // need to delete the corresponding router port.
             if (isRouterInterfacePort(nPort)) {
-                return List(Delete(classOf[Port],
-                                   routerInterfacePortPeerId(nPort.getId)))
+                tx.delete(classOf[Port], routerInterfacePortPeerId(nPort.getId),
+                          ignoresNeo = true)
+                return List()
             } else {
                 return List()
             }
         }
 
-        if (hasMacAndArpTableEntries(nPort))
-            midoOps ++= macAndArpTableEntryPaths(nPort).map(DeleteNode)
+        if (hasMacAndArpTableEntries(nPort)) {
+            macAndArpTableEntryPaths(nPort).foreach(tx.deleteNode(_, true))
+        }
 
         // No corresponding Midonet port for the remote site port.
-        if (isRemoteSitePort(nPort))
-            return midoOps.toList
+        if (isRemoteSitePort(nPort)) {
+            return List()
+        }
 
-        midoOps += Delete(classOf[Port], nPort.getId)
+        tx.delete(classOf[Port], nPort.getId, ignoresNeo = true)
 
         if (isRouterGatewayPort(nPort)) {
-            // Delete the router port.
             val rPortId = RouterTranslator.tenantGwPortId(nPort.getId)
-            midoOps += Delete(classOf[Port], rPortId)
 
             // Delete the SNAT rules if they exist.
-            midoOps ++= deleteRouterSnatRulesOps(rPortId)
+            deleteRouterSnatRulesOps(tx, rPortId)
+
+            // Delete the router port.
+            tx.delete(classOf[Port], rPortId, ignoresNeo = true)
         } else if (isRouterInterfacePort(nPort)) {
             // Delete the SNAT rules on the tenant router referencing the port
-            val rtr = storage.get(classOf[Router],
-                                  toProto(nPort.getDeviceId)).await()
+            val rtr = tx.get(classOf[Router], toProto(nPort.getDeviceId))
             val peerPortId = routerInterfacePortPeerId(nPort.getId)
-            midoOps += Delete(classOf[Rule],
-                              sameSubnetSnatRuleId(rtr.getInboundFilterId,
-                                                   peerPortId))
-            midoOps += Delete(classOf[Rule],
-                              sameSubnetSnatRuleId(rtr.getOutboundFilterId,
-                                                   peerPortId))
+            tx.delete(classOf[Rule],
+                      sameSubnetSnatRuleId(rtr.getInboundFilterId, peerPortId),
+                      ignoresNeo = true)
+            tx.delete(classOf[Rule],
+                      sameSubnetSnatRuleId(rtr.getOutboundFilterId, peerPortId),
+                      ignoresNeo = true)
 
             // Delete the peer router port.
-            midoOps += Delete(classOf[Port], peerPortId)
+            tx.delete(classOf[Port], peerPortId, ignoresNeo = true)
 
             val bgpNetId = bgpNetworkId(nPort.getId)
             if (rtr.getBgpNetworkIdsList.contains(bgpNetId)) {
-                midoOps += Delete(classOf[BgpNetwork], bgpNetId)
+                tx.delete(classOf[BgpNetwork], bgpNetId, ignoresNeo = true)
             }
         }
 
@@ -183,26 +193,23 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         if (!isTrustedPort(nPort)) {
             portContext.chains ++= deleteSecurityChainsOps(nPort.getId)
             portContext.updatedIpAddrGrps ++=
-                removeIpsFromIpAddrGroupsOps(nPort)
+                removeIpsFromIpAddrGroupsOps(tx, nPort)
         }
         if (isVifPort(nPort)) { // It's a VIF port.
             // Delete old DHCP host entries
-            updateDhcpEntries(nPort,
-                              portContext.midoDhcps,
-                              delDhcpHost)
+            updateDhcpEntries(tx, nPort, portContext.midoDhcps, delDhcpHost,
+                              ignoreNonExistingDhcp = false)
             // Delete the ARP entries for associated Floating IP.
-            midoOps ++= deleteFloatingIpArpEntries(nPort)
+            deleteFloatingIpArpEntries(tx, nPort)
         } else if (isDhcpPort(nPort)) {
-            updateDhcpEntries(nPort,
-                              portContext.midoDhcps,
-                              delDhcpServer,
+            updateDhcpEntries(tx, nPort, portContext.midoDhcps, delDhcpServer,
                               // DHCP may have already been deleted.
                               ignoreNonExistingDhcp = true)
-            midoOps ++= deleteMetaDataServiceRoute(nPort)
+            deleteMetaDataServiceRoute(tx, nPort)
         }
-        addMidoOps(portContext, midoOps)
+        addContextOps(tx, portContext)
 
-        midoOps.toList
+        List()
     }
 
     private def macAndArpTableEntryPaths(nPort: NeutronPort)
@@ -219,19 +226,21 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    override protected def translateUpdate(tx: Transaction,
-                                           nPort: NeutronPort): OperationList = {
+    /**
+      * @see [[Translator.translateUpdate()]]
+      */
+    override protected def translateUpdate(tx: Transaction, nPort: NeutronPort)
+    : OperationList = {
         // If the equivalent Midonet port doesn't exist, then it's either a
         // floating IP or port on an uplink network. In either case, we
         // don't create anything in the Midonet topology for this Neutron port,
         // so there's nothing to update.
-        if(!storage.exists(classOf[Port], nPort.getId).await()) return List()
+        if(!tx.exists(classOf[Port], nPort.getId)) return List()
 
-        val midoOps = new OperationListBuffer
-        val mPortOps = new OperationListBuffer
+        var mPortOp: Option[Operation[Port]] = None
 
         val portId = nPort.getId
-        val oldNPort = storage.get(classOf[NeutronPort], nPort.getId).await()
+        val oldNPort = tx.get(classOf[NeutronPort], nPort.getId)
 
         val newOwner = nPort.getDeviceOwner
         val oldOwner = oldNPort.getDeviceOwner
@@ -243,7 +252,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                 + "isn't supported")
         }
 
-        val oldMPort = storage.get(classOf[Port], portId).await()
+        val oldMPort = tx.get(classOf[Port], portId)
 
         // It is assumed that the fixed IPs assigned to a Neutron Port will not
         // be changed.
@@ -267,15 +276,16 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             }
             if (isRouterInterfacePort(nPort)) {
                 if (hasBinding(nPort)) {
-                    bldr.setHostId(getHostIdByName(nPort.getHostId))
+                    bldr.setHostId(getHostIdByName(tx, nPort.getHostId))
                     bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
                 } else {
                     bldr.clearHostId().clearInterfaceName()
                 }
             }
 
-            mPortOps += Update(bldr.build())
-            bldr
+            val port = bldr.build()
+            mPortOp = Some(Update(port))
+            port
         } else {
             oldMPort
         }
@@ -284,70 +294,74 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // only update the rules if that ip changed
         if (isRouterGatewayPort(nPort) &&
             (nPort.getFixedIpsList ne oldNPort.getFixedIpsList)) {
-            val router = storage.get(classOf[Router], toProto(nPort.getDeviceId)).await()
+            val router = tx.get(classOf[Router], toProto(nPort.getDeviceId))
             if (router.getVpnServiceIdsCount > 0) {
                 // Update the vpn services associated to the router with the
                 // new external ip.
-                val vpnServices = storage.getAll(
-                    classOf[VpnService], router.getVpnServiceIdsList.asScala)
-                    .await()
+                val vpnServices = tx.getAll(classOf[VpnService],
+                                            router.getVpnServiceIdsList.asScala)
 
                 // No need to consider the case where there are no fixed ips.
                 // Neutron does not allow this case.
                 val oldExternalIp = oldNPort.getFixedIps(0).getIpAddress
                 val newExternalIp = nPort.getFixedIps(0).getIpAddress
-                midoOps ++= vpnServices.map(vpn => Update(
-                    vpn.toBuilder.setExternalIp(newExternalIp).build))
+                for (vpnService <- vpnServices) {
+                    tx.update(vpnService.toBuilder.setExternalIp(newExternalIp)
+                                      .build())
+                }
 
                 // Update the local redirect rules
                 val chainId = router.getLocalRedirectChainId
-                val chain = storage.get(classOf[Chain], chainId).await()
-                val rules = storage.getAll(classOf[Rule], chain.getRuleIdsList.asScala).await()
+                val chain = tx.get(classOf[Chain], chainId)
+                val rules = tx.getAll(classOf[Rule], chain.getRuleIdsList.asScala)
                 var rulesToUpdate = filterVpnRedirectRules(oldExternalIp, rules)
                 rulesToUpdate = updateVpnRedirectRules(newExternalIp, rulesToUpdate)
-                midoOps ++= rulesToUpdate.map(Update(_))
+                for (rule <- rulesToUpdate) {
+                    tx.update(rule)
+                }
             }
         }
 
         val portContext = initPortContext
-        updateSecurityBindings(nPort, Some(oldNPort), mPort, portContext)
+        updateSecurityBindings(tx, nPort, Some(oldNPort), mPort, portContext)
 
         if (isVifPort(nPort)) { // It's a VIF port.
             // Delete old DHCP host entries
-            updateDhcpEntries(oldNPort,
-                              portContext.midoDhcps,
-                              delDhcpHost)
+            updateDhcpEntries(tx, oldNPort, portContext.midoDhcps, delDhcpHost,
+                              ignoreNonExistingDhcp = false)
             // Add new DHCP host entries
-            updateDhcpEntries(nPort,
-                              portContext.midoDhcps,
-                              addDhcpHost)
+            updateDhcpEntries(tx, nPort, portContext.midoDhcps, addDhcpHost,
+                              ignoreNonExistingDhcp = false)
         } else if (isVifPort(oldNPort)) {
             // Delete old DHCP host entries
-            updateDhcpEntries(oldNPort,
-                              portContext.midoDhcps,
-                              delDhcpHost)
+            updateDhcpEntries(tx, oldNPort, portContext.midoDhcps, delDhcpHost,
+                              ignoreNonExistingDhcp = false)
             // Delete the ARP entries for associated Floating IP.
-            midoOps ++= deleteFloatingIpArpEntries(oldNPort)
+            deleteFloatingIpArpEntries(tx, oldNPort)
         }
         if (hasMacAndArpTableEntries(nPort) ||
             hasMacAndArpTableEntries(oldNPort)) {
-            midoOps ++= macTableUpdateOps(oldNPort, nPort)
-            midoOps ++= arpTableUpdateOps(oldNPort, nPort)
+            updateMacTable(tx, oldNPort, nPort)
+            updateArpTable(tx, oldNPort, nPort)
         }
-        addMidoOps(portContext, midoOps)
-        midoOps ++= mPortOps
+        addContextOps(tx, portContext)
 
-        midoOps ++= fipArpTableUpdateOps(oldMPort, oldNPort, nPort)
+        if (mPortOp.isDefined) {
+            mPortOp.get.apply(tx)
+        }
+
+        fipArpTableUpdateOps(tx, oldMPort, oldNPort, nPort)
 
         // TODO if a DHCP port, assert that the fixed IPs haven't changed.
 
         // Adds support of fixed_ips update operation for
         // device_owner network:router_interface
         if (isRouterInterfacePort(nPort) &&
-                (nPort.getFixedIpsList != oldNPort.getFixedIpsList))
-            midoOps ++= routerInterfacePortFixedIpsUpdateOps(nPort)
+                (nPort.getFixedIpsList != oldNPort.getFixedIpsList)) {
+            routerInterfacePortFixedIpsUpdateOps(tx, nPort)
+        }
 
-        midoOps.toList
+        List()
     }
 
     /* A container class holding context associated with a Neutron Port CRUD. */
@@ -368,36 +382,33 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                     ListBuffer[Operation[IPAddrGroup]]())
 
 
-    private def addMidoOps(portContext: PortContext,
-                           midoOps: OperationListBuffer) {
-            midoOps ++= portContext.midoDhcps.values.map(d => Update(d.build))
-            midoOps ++= portContext.chains
-            midoOps ++= portContext.inRules
-            midoOps ++= portContext.outRules
-            midoOps ++= portContext.antiSpoofRules
-            midoOps ++= portContext.updatedIpAddrGrps
+    private def addContextOps(tx: Transaction, portContext: PortContext): Unit = {
+        portContext.midoDhcps.values.foreach(d => tx.update(d.build))
+        portContext.chains.foreach(_.apply(tx))
+        portContext.inRules.foreach(_.apply(tx))
+        portContext.outRules.foreach(_.apply(tx))
+        portContext.antiSpoofRules.foreach(_.apply(tx))
+        portContext.updatedIpAddrGrps.foreach(_.apply(tx))
     }
 
     /**
-     * Builds an an update operation list for port, routers and SNAT rules
-     * when fixed Ip address is changed for router interface port.
-     */
-    private def routerInterfacePortFixedIpsUpdateOps(nPort: NeutronPort)
-    : OperationList = {
-        val ops = new OperationListBuffer
-
+      * Builds an an update operation list for port, routers and SNAT rules
+      * when fixed IP address is changed for router interface port.
+      */
+    private def routerInterfacePortFixedIpsUpdateOps(tx: Transaction,
+                                                     nPort: NeutronPort)
+    : Unit = {
         // Update port
         val portAddress = nPort.getFixedIps(0).getIpAddress
         val rtrPortId = PortManager.routerInterfacePortPeerId(nPort.getId)
 
-        val rtrPort = storage.get(classOf[Port], rtrPortId).await()
+        val rtrPort = tx.get(classOf[Port], rtrPortId)
         val rtrPortBldr = rtrPort.toBuilder.setPortAddress(portAddress)
 
-        ops += Update(rtrPortBldr.build())
+        tx.update(rtrPortBldr.build())
 
         // Update routes
-        val ns = storage.get(classOf[NeutronSubnet],
-            nPort.getFixedIps(0).getSubnetId).await()
+        val ns = tx.get(classOf[NeutronSubnet], nPort.getFixedIps(0).getSubnetId)
         val rtrInterfaceRouteId = RouteManager.routerInterfaceRouteId(
             rtrPortId)
         val localRoute = newLocalRoute(rtrPortId, portAddress)
@@ -405,17 +416,17 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             id = rtrInterfaceRouteId,
             srcSubnet = univSubnet4,
             dstSubnet = ns.getCidr)
-        ops += Update(rifRoute)
-        ops += Update(localRoute)
+        tx.update(rifRoute)
+        tx.update(localRoute)
 
         // Update rules
-        if (!isOnUplinkNetwork(nPort)) {
+        if (!isOnUplinkNetwork(tx, nPort)) {
             val snatRuleId = sameSubnetSnatRuleId(
                 outChainId(toProto(nPort.getDeviceId)), rtrPortId)
             val revSnatRuleId = sameSubnetSnatRuleId(
                 inChainId(toProto(nPort.getDeviceId)), rtrPortId)
-            val Seq(snatRule, revSnatRule) = storage.getAll(
-                classOf[Rule], Seq(snatRuleId, revSnatRuleId)).await()
+            val Seq(snatRule, revSnatRule) =
+                tx.getAll(classOf[Rule], Seq(snatRuleId, revSnatRuleId))
 
             val snatRuleBldr = snatRule.toBuilder
             snatRuleBldr.getNatRuleDataBuilder.getNatTargetsBuilder(0)
@@ -425,20 +436,21 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             revSnatRuleBldr.getConditionBuilder.setNwDstIp(
                 fromAddr(portAddress))
 
-            ops += Update(snatRuleBldr.build())
-            ops += Update(revSnatRuleBldr.build())
+            tx.update(snatRuleBldr.build())
+            tx.update(revSnatRuleBldr.build())
         }
-        ops.toList
     }
 
-    // There's no binding unless both hostId and interfaceName are set.
+    /**
+      * There's no binding unless both hostId and interfaceName are set.
+      */
     private def hasBinding(np: NeutronPort): Boolean =
         np.hasHostId && np.hasProfile && np.getProfile.hasInterfaceName
 
     /**
-     * Returns true if a port has changed in a way relevant to a port update,
-     * i.e. whether the admin state or host binding has changed.
-     */
+      * Returns true if a port has changed in a way relevant to a port update,
+      * i.e. whether the admin state or host binding has changed.
+      */
     private def portChanged(newPort: NeutronPort,
                             curPort: NeutronPort): Boolean = {
         if (newPort.getAdminStateUp != curPort.getAdminStateUp ||
@@ -451,10 +463,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
              curPort.getProfile.getInterfaceName)
     }
 
-    /* Adds a host entry with the given mac / IP address pair to DHCP. */
-    private def addDhcpHost(
-            dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress,
-            extraDhcpOpts: JList[ExtraDhcpOpts]) {
+    /**
+      * Adds a host entry with the given mac / IP address pair to DHCP.
+      */
+    private def addDhcpHost(dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress,
+                            extraDhcpOpts: JList[ExtraDhcpOpts])
+    : Unit = {
         val dhcpHost = dhcp.addHostsBuilder()
               .setMac(mac)
               .setIpAddress(ipAddr)
@@ -465,8 +479,10 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    /* Configures the DHCP server and an OPT 121 route to it with the given IP
-     * address (the mac is actually not being used here). */
+    /**
+      * Configures the DHCP server and an OPT 121 route to it with the given IP
+      * address (the mac is actually not being used here).
+      */
     private def addDhcpServer(dhcp: Dhcp.Builder, mac: String,
                               ipAddr: IPAddress,
                               opts: JList[ExtraDhcpOpts])
@@ -477,8 +493,10 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
               .setGateway(ipAddr)
     }
 
-    /* Removes the DHCP server and OPT 121 route configurations with the given
-     * IP address from DHCP (the mac is actually not being used here). */
+    /**
+      * Removes the DHCP server and OPT 121 route configurations with the given
+      * IP address from DHCP (the mac is actually not being used here).
+      */
     private def delDhcpServer(dhcp: Dhcp.Builder, mac: String,
                               nextHopGw: IPAddress,
                               opts: JList[ExtraDhcpOpts])
@@ -493,12 +511,13 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         if (route >= 0) dhcp.removeOpt121Routes(route)
     }
 
-    /* Builds the list of rules that implement "anti-spoofing". The rules
-     * allowed are:
-     *     - DHCP
-     *     - All MAC/IPs associated with the port's fixed IPs.
-     *     - All MAC/IPs listed in the port's Allowed Address pair list.
-     */
+    /**
+      * Builds the list of rules that implement "anti-spoofing". The rules
+      * allowed are:
+      *     - DHCP
+      *     - All MAC/IPs associated with the port's fixed IPs.
+      *     - All MAC/IPs listed in the port's Allowed Address pair list.
+      */
     private def buildAntiSpoofRules(portCtx: PortContext,
                                     nPort: NeutronPort,
                                     portId: UUID,
@@ -572,7 +591,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    private def updatePortSgAssociations(nPort: NeutronPort,
+    private def updatePortSgAssociations(tx: Transaction,
+                                         nPort: NeutronPort,
                                          nPortOld: Option[NeutronPort],
                                          portCtx: PortContext): Unit = {
         def getFixedIps(nPort: NeutronPort) = {
@@ -606,7 +626,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         def updateSgIpAddrs(sgIds: Seq[UUID], ipsToAdd: Seq[IPAddress],
                             ipsToRemove: Seq[IPAddress]): Unit = {
-            for (iag <- storage.getAll(classOf[IPAddrGroup], sgIds).await()) {
+            for (iag <- tx.getAll(classOf[IPAddrGroup], sgIds)) {
                 val iagBldr = iag.toBuilder
                 for (ip <- ipsToAdd)
                     addPortIpToIpAddrGrp(iagBldr, ip, nPort.getId)
@@ -627,14 +647,15 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         updateSgIpAddrs(keptSgs, addedIps, removedIps)
     }
 
-    private def buildSecurityGroupJumpRules(nPort: NeutronPort,
+    private def buildSecurityGroupJumpRules(tx: Transaction,
+                                            nPort: NeutronPort,
                                             portCtx: PortContext,
                                             inChainId: UUID,
                                             outChainId: UUID): Unit = {
         // Add jump rules to corresponding inbound / outbound chains of IP
         // Address Groups (Neutron's Security Groups) that the port belongs to.
         for (sgId <- nPort.getSecurityGroupsList.asScala) {
-            val ipAddrGrp = storage.get(classOf[IPAddrGroup], sgId).await()
+            val ipAddrGrp = tx.get(classOf[IPAddrGroup], sgId)
             // Jump rules to inbound / outbound chains of IP Address Groups
             portCtx.inRules += Create(jumpRule(inChainId,
                                                ipAddrGrp.getInboundChainId))
@@ -655,8 +676,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                                    .build)
     }
 
-    /* Create chains, rules and IP Address Groups associated with nPort. */
-    private def updateSecurityBindings(nPort: NeutronPort,
+    /**
+      * Create chains, rules and IP Address Groups associated with nPort.
+      */
+    private def updateSecurityBindings(tx: Transaction,
+                                       nPort: NeutronPort,
                                        nPortOld: Option[NeutronPort],
                                        mPort: PortOrBuilder,
                                        portCtx: PortContext) {
@@ -673,11 +697,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                 portCtx.chains ++= deleteSecurityChainsOps(portId)
             } else {
                 portCtx.inRules ++= deleteRulesOps(
-                    storage.get(classOf[Chain], inChainId).await())
+                    tx.get(classOf[Chain], inChainId))
                 portCtx.outRules ++= deleteRulesOps(
-                    storage.get(classOf[Chain], outChainId).await())
+                    tx.get(classOf[Chain], outChainId))
                 portCtx.antiSpoofRules ++= deleteRulesOps(
-                    storage.get(classOf[Chain], antiSpfChainId).await())
+                    tx.get(classOf[Chain], antiSpfChainId))
             }
         } else if (!isTrustedPort(nPort)) {
             // Create in/outbound chains.
@@ -691,7 +715,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                 Create(inChain), Create(outChain), Create(antiSpoofChain))
         }
 
-        updatePortSgAssociations(nPort, nPortOld, portCtx)
+        updatePortSgAssociations(tx, nPort, nPortOld, portCtx)
 
         // Add new rules if appropriate.
         if (!isTrustedPort(nPort) && nPort.getPortSecurityEnabled) {
@@ -704,46 +728,59 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             // Create return flow rules matching for inbound chain.
             portCtx.inRules += Create(returnFlowRule(inChainId))
 
-            buildSecurityGroupJumpRules(nPort, portCtx, inChainId, outChainId)
+            buildSecurityGroupJumpRules(tx, nPort, portCtx, inChainId,
+                                        outChainId)
         }
     }
 
-    /* If the first fixed IP address is configured with a gateway IP address,
-     * create a route to Meta Data Service.*/
-    private def configureMetaDataService(nPort: NeutronPort): OperationList =
-        findGateway(nPort).toList.map { gateway =>
-            val route = newMetaDataServiceRoute(
-                srcSubnet = gateway.nextHopDhcp.getSubnetAddress,
-                nextHopPortId = gateway.peerRouterPortId,
-                nextHopGw = gateway.nextHop)
-            Create(route)
-        }
+    /**
+      * If the first fixed IP address is configured with a gateway IP address,
+      * create a route to Meta Data Service.
+      */
+    private def configureMetaDataService(tx: Transaction,
+                                         nPort: NeutronPort): Unit = {
+        val gateway = findGateway(tx, nPort).getOrElse(return)
+        val route = newMetaDataServiceRoute(
+            srcSubnet = gateway.nextHopDhcp.getSubnetAddress,
+            nextHopPortId = gateway.peerRouterPortId,
+            nextHopGw = gateway.nextHop)
+        tx.create(route)
+    }
 
-    /* Deletes the meta data service route for the deleted Neutron Port if the
-     * first fixed IP address is configured with a gateway IP address.*/
-    private def deleteMetaDataServiceRoute(nPort: NeutronPort): OperationList = {
-        val gateway = findGateway(nPort, ignoreDeletedDhcp = true)
-                      .getOrElse(return List())
-        val port = storage.get(classOf[Port], gateway.peerRouterPortId).await()
+    /**
+      * Deletes the meta data service route for the deleted Neutron Port if the
+      * first fixed IP address is configured with a gateway IP address.
+      */
+    private def deleteMetaDataServiceRoute(tx: Transaction,
+                                           nPort: NeutronPort): Unit = {
+        val gateway =
+            findGateway(tx, nPort, ignoreDeletedDhcp = true).getOrElse(return)
+        val port = tx.get(classOf[Port], gateway.peerRouterPortId)
         val routeIds = port.getRouteIdsList.asScala
-        val routes = storage.getAll(classOf[Route], routeIds).await()
+        val routes = tx.getAll(classOf[Route], routeIds)
         val route = routes.find(isMetaDataSvrRoute(_, gateway.nextHop))
-        route.toList.map(r => Delete(classOf[Route], r.getId))
+        if (route.isDefined) {
+            tx.delete(classOf[Route], route.get.getId, ignoresNeo = true)
+        }
     }
 
-    /* The next hop gateway context for Neutron Port. */
+    /**
+      * The next hop gateway context for Neutron Port.
+      */
     private case class Gateway(nextHop: IPAddress, nextHopDhcp: Dhcp,
                                peerRouterPortId: UUID)
 
-    /* Find gateway router & router port configured with the port's fixed IP. */
-    private def findGateway(
-            nPort: NeutronPort, ignoreDeletedDhcp: Boolean = false)
+    /**
+      * Find gateway router & router port configured with the port's fixed IP.
+      */
+    private def findGateway(tx: Transaction, nPort: NeutronPort,
+                            ignoreDeletedDhcp: Boolean = false)
     : Option[Gateway] = if (nPort.getFixedIpsCount == 0) None else {
         val nextHopGateway = nPort.getFixedIps(0).getIpAddress
         val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
 
         val someDhcp: Option[Dhcp] = try {
-            Option(storage.get(classOf[Dhcp], nextHopGatewaySubnetId).await())
+            Option(tx.get(classOf[Dhcp], nextHopGatewaySubnetId))
         } catch {
             case nfe: NotFoundException if ignoreDeletedDhcp => None
         }
@@ -752,47 +789,46 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    private def translateNeutronPort(nPort: NeutronPort): Port.Builder = {
+    private def translateNeutronPort(tx: Transaction,
+                                     nPort: NeutronPort): Port.Builder = {
         val bldr = Port.newBuilder.setId(nPort.getId)
             .setNetworkId(nPort.getNetworkId)
             .setAdminStateUp(nPort.getAdminStateUp)
 
         if (hasBinding(nPort)) {
-            bldr.setHostId(getHostIdByName(nPort.getHostId))
+            bldr.setHostId(getHostIdByName(tx, nPort.getHostId))
             bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
         }
 
         bldr
     }
 
-    private def macTableUpdateOps(oldPort: NeutronPort,
-                                  newPort: NeutronPort): OperationList = {
-        val ops = new OperationListBuffer
+    private def updateMacTable(tx: Transaction,
+                               oldPort: NeutronPort,
+                               newPort: NeutronPort): Unit = {
         if (hasMacAndArpTableEntries(newPort) !=
             hasMacAndArpTableEntries(oldPort) ||
             newPort.getMacAddress != oldPort.getMacAddress) {
             if (hasMacAndArpTableEntries(oldPort) && oldPort.hasMacAddress)
-                ops += DeleteNode(macEntryPath(oldPort))
+                tx.deleteNode(macEntryPath(oldPort))
             if (hasMacAndArpTableEntries(newPort) && newPort.hasMacAddress)
-                ops += CreateNode(macEntryPath(newPort))
+                tx.createNode(macEntryPath(newPort), null)
         }
-        ops.toList
     }
 
-    private def arpTableUpdateOps(oldPort: NeutronPort,
-                                  newPort: NeutronPort): OperationList = {
+    private def updateArpTable(tx: Transaction,
+                               oldPort: NeutronPort,
+                               newPort: NeutronPort): Unit = {
         // TODO: Support multiple fixed IPs.
         val oldIp = if (oldPort.getFixedIpsCount == 0) null
                     else oldPort.getFixedIps(0).getIpAddress.getAddress
         val newIp = if (newPort.getFixedIpsCount == 0) null
                     else newPort.getFixedIps(0).getIpAddress.getAddress
 
-        val ops = new OperationListBuffer
         if (oldIp != newIp) {
-            if (oldIp != null) ops += DeleteNode(arpEntryPath(oldPort))
-            if (newIp != null) ops += CreateNode(arpEntryPath(newPort))
+            if (oldIp != null) tx.deleteNode(arpEntryPath(oldPort))
+            if (newIp != null) tx.createNode(arpEntryPath(newPort), null)
         }
-        ops.toList
     }
 
     private def macEntryPath(nPort: NeutronPort): String = {
@@ -801,16 +837,18 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             MAC.fromString(nPort.getMacAddress), nPort.getId)
     }
 
-    /*
-     * Return a list of operations to update the entries in ARP tables that are
-     * related of FIPs, and that are impacted by a change of MAC in the FIP's
-     * gateway port that invalidates them.
-     */
-    private def fipArpTableUpdateOps(mPort: PortOrBuilder, oldPort: NeutronPort,
-                                     newPort: NeutronPort): OperationList = {
+    /**
+      * Return a list of operations to update the entries in ARP tables that are
+      * related of FIPs, and that are impacted by a change of MAC in the FIP's
+      * gateway port that invalidates them.
+      */
+    private def fipArpTableUpdateOps(tx: Transaction, mPort: PortOrBuilder,
+                                     oldPort: NeutronPort,
+                                     newPort: NeutronPort): Unit = {
         if (mPort.getFipNatRuleIdsCount == 0 ||
-            newPort.getMacAddress == oldPort.getMacAddress)
-            return List()
+            newPort.getMacAddress == oldPort.getMacAddress) {
+            return
+        }
 
         /*
          * In order to get all the impacted entries the list of NAT rules of the
@@ -822,7 +860,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
          * them is present, so duplicates in FIP ID list must be ignored
          */
         val natRuleIds = mPort.getFipNatRuleIdsList.asScala
-        val natRules = storage.getAll(classOf[Rule], natRuleIds).await()
+        val natRules = tx.getAll(classOf[Rule], natRuleIds)
         val fipIds = for (natRule <- natRules) yield {
             val natRuleData = natRule.getNatRuleData
             if (natRuleData.getDnat) {
@@ -832,10 +870,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             }
         }
 
-        val fips = storage.getAll(classOf[FloatingIp], fipIds.distinct).await()
-        fips.toList.flatMap { fip =>
-            List(DeleteNode(fipArpEntryPath(oldPort, fip)),
-                 CreateNode(fipArpEntryPath(newPort, fip)))
+        for (fip <- tx.getAll(classOf[FloatingIp], fipIds.distinct)) {
+            tx.deleteNode(fipArpEntryPath(oldPort, fip))
+            tx.createNode(fipArpEntryPath(newPort, fip), null)
         }
     }
 
@@ -853,36 +890,42 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             MAC.fromString(nPort.getMacAddress))
     }
 
-    /* Returns a Buffer of DeleteNode ops */
-    private def deleteFloatingIpArpEntries(nPort: NeutronPort) = {
-        for (fipId <- nPort.getFloatingIpIdsList.asScala) yield {
+    /**
+      * Returns a Buffer of DeleteNode ops
+      */
+    private def deleteFloatingIpArpEntries(tx: Transaction,
+                                           nPort: NeutronPort): Unit = {
+        for (fipId <- nPort.getFloatingIpIdsList.asScala) {
             // The following could be improved by possibly caching
             // Neutron Router and Port. But ZOOM internally caches objects,
             // therefore in practice it's OK?
-            val fip = storage.get(classOf[FloatingIp], fipId).await()
-            val router = storage.get(classOf[NeutronRouter],
-                                     fip.getRouterId).await()
-            val gwPort = storage.get(classOf[NeutronPort],
-                                     router.getGwPortId).await()
+            val fip = tx.get(classOf[FloatingIp], fipId)
+            val router = tx.get(classOf[NeutronRouter], fip.getRouterId)
+            val gwPort = tx.get(classOf[NeutronPort], router.getGwPortId)
             val arpPath = stateTableStorage.bridgeArpEntryPath(
                 gwPort.getNetworkId,
                 IPv4Addr(fip.getFloatingIpAddress.getAddress),
                 MAC.fromString(gwPort.getMacAddress))
-            DeleteNode(arpPath)
+            tx.deleteNode(arpPath)
         }
     }
 
-    private def deleteRouterSnatRulesOps(rPortId: UUID): OperationList = {
+    private def deleteRouterSnatRulesOps(tx: Transaction, rPortId: UUID): Unit = {
         import RouterTranslator._
-        val rPort = storage.get(classOf[Port], rPortId).await()
+        val rPort = tx.get(classOf[Port], rPortId)
         val rtrId = rPort.getRouterId
 
         // The rules should all exist, or none.
-        if (!storage.exists(classOf[Rule], outSnatRuleId(rtrId)).await()) List()
-        else List(Delete(classOf[Rule], outSnatRuleId(rtrId)),
-                  Delete(classOf[Rule], outDropUnmatchedFragmentsRuleId(rtrId)),
-                  Delete(classOf[Rule], inReverseSnatRuleId(rtrId)),
-                  Delete(classOf[Rule], inDropWrongPortTrafficRuleId(rtrId)))
+        if (tx.exists(classOf[Rule], outSnatRuleId(rtrId))) {
+            tx.delete(classOf[Rule], outSnatRuleId(rtrId),
+                      ignoresNeo = true)
+            tx.delete(classOf[Rule], outDropUnmatchedFragmentsRuleId(rtrId),
+                      ignoresNeo = true)
+            tx.delete(classOf[Rule], inReverseSnatRuleId(rtrId),
+                      ignoresNeo = true)
+            tx.delete(classOf[Rule], inDropWrongPortTrafficRuleId(rtrId),
+                      ignoresNeo = true)
+        }
     }
 }
 
