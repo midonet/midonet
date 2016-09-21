@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_15f8507b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-21T13:16:31Z",
+      "side": 1,
+      "message": "Doesn\u0027t this need to be changed too? In this part and all the other usages in the PortManager class",
+      "range": {
+        "startLine": 137,
+        "startChar": 20,
+        "endLine": 137,
+        "endChar": 27
+      },
+      "revId": "c212666e36b9dc8e522abc7dfb1a91fcb7b6e25f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
