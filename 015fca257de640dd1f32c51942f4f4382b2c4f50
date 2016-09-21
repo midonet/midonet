@@ -332,6 +332,30 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_2fce6783",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2016-09-21T04:08:13Z",
+      "side": 1,
+      "message": "Ah, I just didn\u0027t see that we used int8 anywhere, so I didn\u0027t know about the properties of that type (like the corresponding java type, etc.), and I don\u0027t think we use it anywhere else.",
+      "parentUuid": "baa041b7_25cc4d60",
+      "range": {
+        "startLine": 420,
+        "startChar": 13,
+        "endLine": 420,
+        "endChar": 18
+      },
+      "revId": "015fca257de640dd1f32c51942f4f4382b2c4f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_a2763704",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 2
