@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_7a842b5c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2016-09-21T08:15:41Z",
+      "side": 1,
+      "message": "this would append these rules at the end of chains.\nyou should prepend them at the top of the chains instead because there are other rules in these chains (eg. ones for default snat) and the order is important for the correct operation.",
+      "revId": "d5f97c21d5e28cd9876b5ac9fe7612204bb0ddac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
