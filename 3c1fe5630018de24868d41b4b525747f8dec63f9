@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1bb0818a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-21T20:34:46Z",
+      "side": 1,
+      "message": "Same comment here about delete",
+      "range": {
+        "startLine": 91,
+        "startChar": 8,
+        "endLine": 91,
+        "endChar": 41
+      },
+      "revId": "3c1fe5630018de24868d41b4b525747f8dec63f9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
