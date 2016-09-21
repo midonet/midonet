@@ -46,6 +46,30 @@
       "revId": "33a3a8946bec5d9341a925c848c0eb79f08a34fc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_a003a475",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-21T15:20:17Z",
+      "side": 1,
+      "message": "it makes the delete idempotent",
+      "parentUuid": "baa041b7_20a314a0",
+      "range": {
+        "startLine": 69,
+        "startChar": 42,
+        "endLine": 69,
+        "endChar": 52
+      },
+      "revId": "33a3a8946bec5d9341a925c848c0eb79f08a34fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
