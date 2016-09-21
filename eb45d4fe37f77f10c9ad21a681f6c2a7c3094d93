@@ -22,6 +22,30 @@
       "revId": "eb45d4fe37f77f10c9ad21a681f6c2a7c3094d93",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_da757732",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-21T09:23:14Z",
+      "side": 1,
+      "message": "I completely missed the gets using the storage, thanks. I didn\u0027t remove it from there because it is defined in the base class and would have to change all translators at once. Will update the usage though",
+      "parentUuid": "baa041b7_5a5727ca",
+      "range": {
+        "startLine": 28,
+        "startChar": 34,
+        "endLine": 28,
+        "endChar": 41
+      },
+      "revId": "eb45d4fe37f77f10c9ad21a681f6c2a7c3094d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
