@@ -17,8 +17,10 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.junit.runner.RunWith
+import org.mockito.Mockito
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.storage.UpdateValidator
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Topology.HealthMonitor
@@ -89,31 +91,28 @@ class HealthMonitorTranslatorCreateTest
 
     "CREATE for Neutron Health Monitor with no pool associated" should
     "create a HealthMonitor" in {
-        val midoOps = translator.translate(transaction,
-                                           Create(neutronHealthMonitor))
-        midoOps should contain only Create(midoHealthMonitorNoPool)
+        translator.translate(transaction, Create(neutronHealthMonitor))
+        Mockito.verify(transaction).create(midoHealthMonitorNoPool)
     }
 
     "CREATE for Neutron Health Monitor with a pool associated" should
     "create a HealthMonitor" in {
         bind(poolId1, poolWithHmId1)
-        val midoOps = translator.translate(transaction,
-                                           Create(neutronHealthMonitorWithPool))
-        midoOps should contain inOrderOnly(
-            Create(midoHealthMonitorNoPool),
-            Update(poolWithHmId1))
+        translator.translate(transaction, Create(neutronHealthMonitorWithPool))
+        val inOrder = Mockito.inOrder(transaction)
+        inOrder.verify(transaction).create(midoHealthMonitorNoPool)
+        inOrder.verify(transaction).update(poolWithHmId1)
     }
 
     "CREATE for Neutron Health Monitor with two pools associated" should
     "create a HealthMonitor" in {
         bind(poolId1, poolWithHmId1)
         bind(poolId2, poolWithHmId2)
-        val midoOps = translator.translate(transaction,
-                                           Create(neutronHealthMonitorWithPools))
-        midoOps should contain inOrderOnly(
-            Create(midoHealthMonitorNoPool),
-            Update(poolWithHmId1),
-            Update(poolWithHmId2))
+        translator.translate(transaction, Create(neutronHealthMonitorWithPools))
+        val inOrder = Mockito.inOrder(transaction)
+        inOrder.verify(transaction).create(midoHealthMonitorNoPool)
+        inOrder.verify(transaction).update(poolWithHmId1)
+        inOrder.verify(transaction).update(poolWithHmId2)
     }
 }
 
@@ -146,10 +145,10 @@ class HealthMonitorTranslatorUpdateTest
 
     "Neutron Health Monitor UPDATE" should "update a Midonet Health Monitor " +
     "except for its status and pool IDs" in {
-        val midoOps = translator.translate(transaction, Update(nHealthMonitor))
-
-        midoOps should contain only Update(
-                mHealthMonitor, HealthMonitorUpdateValidator)
+        translator.translate(transaction, Update(nHealthMonitor))
+        val validator = HealthMonitorUpdateValidator
+            .asInstanceOf[UpdateValidator[Object]]
+        Mockito.verify(transaction).update(mHealthMonitor, validator)
     }
 }
 
@@ -163,11 +162,8 @@ class HealthMonitorTranslatorDeleteTest
     "Neutron Health Monitor DELETE" should "delete the corresponding Midonet " +
     "Health Monitor." in {
         bind(hmId, neutronHealthMonitor)
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[NeutronHealthMonitor],
+        translator.translate(transaction, Delete(classOf[NeutronHealthMonitor],
                                                   hmId))
-
-        midoOps should contain only
-                Delete(classOf[HealthMonitor], hmId)
+        Mockito.verify(transaction).delete(classOf[HealthMonitor], hmId, true)
     }
 }
