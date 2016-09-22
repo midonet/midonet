@@ -144,6 +144,7 @@ bindings_spread3 = {
 
 @attr(version="v1.2.0")
 @failures(NoFailure())
+@nottest
 @bindings(bindings_split, bindings_spread)
 def test_basic_l2insertion():
     """
@@ -221,6 +222,7 @@ def test_basic_l2insertion():
 
 @attr(version="v1.2.0")
 @failures(NoFailure())
+@nottest
 @bindings(bindings_split, bindings_spread)
 def test_multi_l2insertion():
     """
@@ -347,6 +349,7 @@ def test_multi_l2insertion():
 
 @attr(version="v1.2.0")
 @failures(NoFailure())
+@nottest
 @bindings(bindings_split, bindings_spread3)
 def test_l2insertion_with_flowstate():
     """
@@ -453,6 +456,7 @@ def test_l2insertion_with_flowstate():
 
 @attr(version="v1.2.0")
 @failures(NoFailure())
+@nottest
 @bindings(bindings_split, bindings_spread)
 def test_l2insertion_both_ends_protected():
     """
@@ -559,6 +563,7 @@ def test_l2insertion_both_ends_protected():
 
 @attr(version="v1.2.0")
 @failures(NoFailure())
+@nottest
 @bindings(bindings_split, bindings_spread)
 def test_l2insertion_fail_open():
     """
