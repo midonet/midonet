@@ -46,6 +46,30 @@
       "revId": "341563f9678f4f3732b8dc10d7a04d32879c3b6b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_b052cf33",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-22T10:51:16Z",
+      "side": 1,
+      "message": "So this is specific to this translator: I moved the creation of the neutron object from the retainHighLevelModel to here. The reason for this is that this code executes before adding the ops from retainHighLevel model to the transaction so an update here would fail because the object does not exist.\n\nAlternatively retainHighLevelModel could add the op to the transaction, but this was breaking many other translators, so I went for the cheaper option.\n\nThis is the same reason as the update above (line 53) changed for created, and the rational for retainHighLevelModel is now a no op for create.",
+      "parentUuid": "baa041b7_30d35fd7",
+      "range": {
+        "startLine": 133,
+        "startChar": 8,
+        "endLine": 133,
+        "endChar": 37
+      },
+      "revId": "341563f9678f4f3732b8dc10d7a04d32879c3b6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
