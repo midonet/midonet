@@ -22,13 +22,11 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, Transaction}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, VpnService}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, SequenceDispenser}
 import org.midonet.containers
 import org.midonet.packets.MAC
-import org.midonet.util.concurrent.toFutureOps
-
 
 class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
                            sequenceDispenser: SequenceDispenser)
@@ -42,28 +40,28 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateCreate(tx: Transaction,
                                            vpn: VpnService): OperationList = {
         val routerId = vpn.getRouterId
-        val router = storage.get(classOf[Router], routerId).await()
+        val router = tx.get(classOf[Router], routerId)
 
         // Nothing to do if the router already has a VPNService.
         // We only support one container per router now
-        val existing = storage.getAll(classOf[VpnService],
-                                      router.getVpnServiceIdsList).await()
+        val existing = tx.getAll(classOf[VpnService], router.getVpnServiceIdsList)
         existing.headOption match {
             case Some(existingVpnService) =>
-                return List(Update(vpn.toBuilder
-                                       .setContainerId(existingVpnService.getContainerId)
-                                       .setExternalIp(existingVpnService.getExternalIp)
-                                       .build()))
+                tx.create(vpn.toBuilder
+                              .setContainerId(existingVpnService.getContainerId)
+                              .setExternalIp(existingVpnService.getExternalIp)
+                              .build())
+                return List()
             case None =>
         }
 
-        val neutronRouter = storage.get(classOf[NeutronRouter], routerId).await()
+        val neutronRouter = tx.get(classOf[NeutronRouter], routerId)
         if (!neutronRouter.hasGwPortId) {
             throw new IllegalArgumentException(
                 "Cannot discover gateway port of router")
         }
-        val neutronGatewayPort = storage.get(classOf[NeutronPort],
-                                             neutronRouter.getGwPortId).await()
+        val neutronGatewayPort = tx.get(classOf[NeutronPort],
+                                             neutronRouter.getGwPortId)
         val externalIp = if (neutronGatewayPort.getFixedIpsCount > 0) {
             neutronGatewayPort.getFixedIps(0).getIpAddress
         } else {
@@ -77,7 +75,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         }
 
         val containerId = JUUID.randomUUID
-        val routerPort = createRouterPort(router)
+        val routerPort = createRouterPort(tx, router)
 
         val vpnRoute = newNextHopPortRoute(id = vpnContainerRouteId(containerId),
                                            nextHopPortId = routerPort.getId,
@@ -85,21 +83,19 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         val localRoute = newLocalRoute(routerPort.getId,
                                        routerPort.getPortAddress)
 
-        val (chainId, chainOps) = if (router.hasLocalRedirectChainId) {
-            (router.getLocalRedirectChainId, List())
+        val chainId = if (router.hasLocalRedirectChainId) {
+            router.getLocalRedirectChainId
         } else {
             val id = JUUID.randomUUID
             val chain = newChain(id, "LOCAL_REDIRECT_" + routerId.asJava)
+            tx.create(chain)
 
-            // need to add the backreference again, because this write will
-            // overwrite the zoom write which adds the automatic backreference.
-            // This will not be a problem once we are using transactions here
             val routerWithChain = router.toBuilder
                 .setLocalRedirectChainId(id)
-                .addVpnServiceIds(vpn.getId)
                 .build()
+            tx.update(routerWithChain)
 
-            (id.asProto, List(Create(chain), Update(routerWithChain)))
+            id.asProto
         }
 
         val redirectRules = makeRedirectRules(
@@ -125,54 +121,56 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
             .setExternalIp(externalIp)
             .build()
 
-        chainOps ++ redirectRules.map(Create(_)) ++
-            List(Create(routerPort),
-                 Create(vpnRoute),
-                 Create(localRoute),
-                 Create(scg),
-                 Create(sc)) ++
-            List(Update(modifiedVpnService))
+        for (redirectRule <- redirectRules) {
+            tx.create(redirectRule)
+        }
+
+        tx.create(routerPort)
+        tx.create(vpnRoute)
+        tx.create(localRoute)
+        tx.create(scg)
+        tx.create(sc)
+        tx.create(modifiedVpnService)
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            vpn: VpnService): OperationList = {
-        val router = storage.get(classOf[Router], vpn.getRouterId).await()
+        val router = tx.get(classOf[Router], vpn.getRouterId)
 
-        val otherServices = storage.getAll(classOf[VpnService],
-                                           router.getVpnServiceIdsList).await()
+        val otherServices = tx.getAll(classOf[VpnService],
+                                      router.getVpnServiceIdsList)
             .count((other: VpnService) => {
                        vpn.getContainerId == other.getContainerId &&
                        vpn.getId != other.getId
                    })
-        if (otherServices > 0) {
-            List() // do nothing
-        } else {
-            val chainOps = if (router.hasLocalRedirectChainId) {
+        if (otherServices == 0) {
+            if (router.hasLocalRedirectChainId) {
                 val chainId = router.getLocalRedirectChainId
-                val chain = storage.get(classOf[Chain], chainId).await()
-                val rules = storage.getAll(classOf[Rule], chain.getRuleIdsList()).await()
+                val chain = tx.get(classOf[Chain], chainId)
+                val rules = tx.getAll(classOf[Rule], chain.getRuleIdsList())
                 val rulesToDelete = filterVpnRedirectRules(vpn.getExternalIp, rules)
                     .map(_.getId)
                 if (rulesToDelete.size == chain.getRuleIdsCount) {
-                    List(Update(router.toBuilder
-                                    .clearLocalRedirectChainId()
-                                    .clearVpnServiceIds()
-                                    .build()),
-                         Delete(classOf[Chain], chainId))
+                    tx.update(router.toBuilder
+                                  .clearLocalRedirectChainId()
+                                  .clearVpnServiceIds()
+                                  .build())
+                    tx.delete(classOf[Chain], chainId, ignoresNeo = true)
                 } else { // just delete the rules
-                    rulesToDelete.map(Delete(classOf[Rule], _))
+                    for (ruleId <- rulesToDelete) {
+                        tx.delete(classOf[Rule], ruleId, ignoresNeo = true)
+                    }
                 }
-            } else {
-                List() // no chain ops
             }
 
-            val container = storage.get(classOf[ServiceContainer],
-                                        vpn.getContainerId).await()
-            chainOps ++ List(
-                Delete(classOf[Port], container.getPortId),
-                Delete(classOf[ServiceContainerGroup],
-                       container.getServiceGroupId))
+            val container = tx.get(classOf[ServiceContainer], vpn.getContainerId)
+
+            tx.delete(classOf[Port], container.getPortId, ignoresNeo = true)
+            tx.delete(classOf[ServiceContainerGroup], container.getServiceGroupId,
+                      ignoresNeo = true)
         }
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
@@ -185,11 +183,14 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
     override protected def retainHighLevelModel(tx: Transaction,
                                                 op: Operation[VpnService])
     : List[Operation[VpnService]] = op match {
+        case Create(_) =>
+            // Do nothing, the translator creates the VPN object.
+            List()
         case Update(vpn, _) =>
             // Need to override update to make sure only certain fields are
             // updated, to avoid overwriting ipsec_site_conn_ids, which Neutron
             // doesn't know about.
-            val oldVpn = storage.get(classOf[VpnService], vpn.getId).await()
+            val oldVpn = tx.get(classOf[VpnService], vpn.getId)
             val newVpn = vpn.toBuilder
                 .addAllIpsecSiteConnectionIds(oldVpn.getIpsecSiteConnectionIdsList)
                 .setContainerId(oldVpn.getContainerId)
@@ -200,9 +201,8 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
     }
 
     @throws[NoSuchElementException]
-    private def createRouterPort(router: Router): Port = {
-        val currentPorts = storage
-            .getAll(classOf[Port], router.getPortIdsList).await()
+    private def createRouterPort(tx: Transaction, router: Router): Port = {
+        val currentPorts = tx.getAll(classOf[Port], router.getPortIdsList)
 
         val subnet = containers.findLocalSubnet(currentPorts)
         val routerAddr = containers.routerPortAddress(subnet)
