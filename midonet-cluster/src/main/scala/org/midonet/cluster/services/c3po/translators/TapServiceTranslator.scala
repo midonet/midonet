@@ -21,8 +21,6 @@ import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.Condition
 import org.midonet.cluster.models.Neutron.TapService
 import org.midonet.cluster.models.Topology.Mirror
-import org.midonet.cluster.services.c3po.NeutronTranslatorManager.{Create, Delete}
-
 
 class TapServiceTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[TapService] {
@@ -37,12 +35,14 @@ class TapServiceTranslator(protected val storage: ReadOnlyStorage)
             .addConditions(condition)
             .build
 
-        List(Create(mirror))
+        tx.create(mirror)
+        List()
     }
 
     override protected def translateDelete(tx: Transaction,
                                            ts: TapService): OperationList = {
-        List(Delete(classOf[Mirror], ts.getId))
+        tx.delete(classOf[Mirror], ts.getId, ignoresNeo = true)
+        List()
     }
 
     override protected def translateUpdate(tx: Transaction,
