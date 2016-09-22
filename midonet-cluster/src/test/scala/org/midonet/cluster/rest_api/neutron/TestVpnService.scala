@@ -93,7 +93,7 @@ class TestVpnService extends FeatureSpec
         extPort.networkId = extNetwork.id
         extPort.macAddress = "ac:ca:ba:33:cb:a2"
         extPort.fixedIps = new ArrayList[IPAllocation]() {
-            add(new IPAllocation("1.0.0.1", extSubnet.id));
+            add(new IPAllocation("1.0.0.1", extSubnet.id))
         }
         extPort.deviceOwner = DeviceOwner.ROUTER_GW
 
