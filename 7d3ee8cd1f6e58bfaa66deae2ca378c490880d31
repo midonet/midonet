@@ -22,6 +22,30 @@
       "revId": "7d3ee8cd1f6e58bfaa66deae2ca378c490880d31",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_41561707",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1008620
+      },
+      "writtenOn": "2016-09-22T18:57:45Z",
+      "side": 1,
+      "message": "We favoured this implementation so we don\u0027t need to type-match for the version at various points during the simulation. As I understand, currently a port without IPv4 address shouldn\u0027t even get into simulation.\n\nIvan suggested to schedule a future improvement were we have an arbitrary number of address/subnet pairs of different type associated to a port, so decided to keep it simple for our current IPv6-support stage.",
+      "parentUuid": "baa041b7_a6a4d94a",
+      "range": {
+        "startLine": 424,
+        "startChar": 22,
+        "endLine": 427,
+        "endChar": 53
+      },
+      "revId": "7d3ee8cd1f6e58bfaa66deae2ca378c490880d31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
