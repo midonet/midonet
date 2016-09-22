@@ -22,6 +22,30 @@
       "revId": "3c1fe5630018de24868d41b4b525747f8dec63f9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4d59b08d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1008328
+      },
+      "writtenOn": "2016-09-22T07:16:37Z",
+      "side": 1,
+      "message": "Thanks Alex, already changed but still not fixed a unit test :(",
+      "parentUuid": "baa041b7_1bb0818a",
+      "range": {
+        "startLine": 91,
+        "startChar": 8,
+        "endLine": 91,
+        "endChar": 41
+      },
+      "revId": "3c1fe5630018de24868d41b4b525747f8dec63f9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
