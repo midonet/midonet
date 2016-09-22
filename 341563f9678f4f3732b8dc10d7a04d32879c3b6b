@@ -22,6 +22,30 @@
       "revId": "341563f9678f4f3732b8dc10d7a04d32879c3b6b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_30d35fd7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2016-09-22T10:22:16Z",
+      "side": 1,
+      "message": "shouldn\u0027t be. As I understand it, all operations will be in the translate method, whereas there were some done outside before.",
+      "parentUuid": "baa041b7_10729b7c",
+      "range": {
+        "startLine": 133,
+        "startChar": 8,
+        "endLine": 133,
+        "endChar": 37
+      },
+      "revId": "341563f9678f4f3732b8dc10d7a04d32879c3b6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
