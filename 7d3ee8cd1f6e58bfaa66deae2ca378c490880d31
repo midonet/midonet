@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a6a4d94a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2016-09-22T17:35:36Z",
+      "side": 1,
+      "message": "Can\u0027t these be version agnostic, e.g. IPSubnet and IPAddr, and where the port is used we check the IP version?",
+      "range": {
+        "startLine": 424,
+        "startChar": 22,
+        "endLine": 427,
+        "endChar": 53
+      },
+      "revId": "7d3ee8cd1f6e58bfaa66deae2ca378c490880d31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
