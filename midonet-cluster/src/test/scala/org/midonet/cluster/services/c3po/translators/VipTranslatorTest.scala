@@ -17,8 +17,10 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.junit.runner.RunWith
+import org.mockito.Mockito._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.storage.UpdateValidator
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronVIP
@@ -148,66 +150,64 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
     "Neutron VIP CREATE" should "create a Midonet VIP." in {
         bindLb()
         bindVipNetwork(external = false)
-        val midoOps = translator.translate(transaction, Create(neutronVip()))
-
-        midoOps should contain only Create(midoVip())
+        translator.translate(transaction, Create(neutronVip()))
+        verify(transaction, times(1)).create(midoVip())
     }
 
     it should "set MidoNet VIP source IP session persistence as specified." in {
         bindLb()
         bindVipNetwork(external = false)
-        val midoOps = translator.translate(
-            transaction, Create(neutronVip(sourceIpSessionPersistence = true)))
+        translator.translate(transaction,
+            Create(neutronVip(sourceIpSessionPersistence = true)))
 
-        midoOps should contain only
-                Create(midoVip(sourceIpSessionPersistence = true))
+        verify(transaction, times(1))
+            .create(midoVip(sourceIpSessionPersistence = true))
     }
 
     it should "associate Mido VIP with the LB Pool as specified." in {
         bindLb()
         bindVipNetwork(external = false)
-        val midoOps = translator.translate(
-            transaction, Create(neutronVip(poolId = poolId)))
+        translator.translate(transaction, Create(neutronVip(poolId = poolId)))
 
-        midoOps should contain only
-                Create(midoVip(poolId = poolId, lbId = lbId))
+        verify(transaction, times(1))
+            .create(midoVip(poolId = poolId, lbId = lbId))
     }
 
     it should "add an ARP entry when it is associated with a Pool and is on " +
     "an external network" in {
         bindLb()
         bindVipNetwork(external = true)
-        val midoOps = translator.translate(transaction,
-                                           Create(neutronVip(poolId = poolId)))
+        translator.translate(transaction, Create(neutronVip(poolId = poolId)))
 
-        midoOps should contain (Create(
-                midoVip(poolId = poolId, lbId = lbId, gwPortId = gwPortId)))
-        midoOps should contain (CreateNode(
-                stateTableStorage.bridgeArpEntryPath(
-                    networkId, IPv4Addr(vipIpAddr), MAC.fromString(gwPortMac)),
-                null))
+        verify(transaction, times(1))
+            .create(midoVip(poolId = poolId, lbId = lbId, gwPortId = gwPortId))
+
+        verify(transaction, times(1))
+            .createNode(stateTableStorage.bridgeArpEntryPath(
+                networkId, IPv4Addr(vipIpAddr), MAC.fromString(gwPortMac)),
+                        null)
     }
 
     it should "not add an ARP entry when it is associated with a Pool but is " +
     "NOT on an external network" in {
         bindLb()
         bindVipNetwork(external = false)
-        val midoOps = translator.translate(transaction,
-                                           Create(neutronVip(poolId = poolId)))
+        translator.translate(transaction,
+                             Create(neutronVip(poolId = poolId)))
 
-        midoOps should contain only
-                Create(midoVip(poolId = poolId, lbId = lbId))
+        verify(transaction, times(1))
+            .create(midoVip(poolId = poolId, lbId = lbId))
     }
 
     it should "not add an ARP entry when the tenant Router does not have a " +
     "gateway Port." in {
         bindLb(gwPortId = null)
         bindVipNetwork(external = true)
-        val midoOps = translator.translate(transaction,
-                                           Create(neutronVip(poolId = poolId)))
+        translator.translate(transaction,
+                             Create(neutronVip(poolId = poolId)))
 
-        midoOps should contain only
-                Create(midoVip(poolId = poolId, lbId = lbId))
+        verify(transaction, times(1))
+            .create(midoVip(poolId = poolId, lbId = lbId))
     }
 }
 
@@ -249,11 +249,11 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
         """)
 
     "Neutron VIP Update" should "update a Midonet VIP." in {
-        val midoOps = translator.translate(transaction,
-                                           Update(updatedNeutronVip))
+        translator.translate(transaction,
+                             Update(updatedNeutronVip))
 
-        midoOps should contain only Update(updatedMidoVip,
-                                                   VipUpdateValidator)
+        verify(transaction, times(1)).update(updatedMidoVip,
+            VipUpdateValidator.asInstanceOf[UpdateValidator[Object]])
     }
 
     protected val vipWithDifferentIp = nVIPFromTxt(s"""
@@ -288,11 +288,9 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
         bind(vipId, midoVip())
         bind(vipId, neutronVip())
 
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[NeutronVIP], vipId))
+        translator.translate(transaction, Delete(classOf[NeutronVIP], vipId))
 
-        midoOps should contain only
-                Delete(classOf[Vip], vipId)
+        verify(transaction, times(1)).delete(classOf[Vip], vipId, true)
     }
 
     it should "also delete an ARP entry when VIP is associated with a " +
@@ -301,11 +299,11 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
         bind(vipId, neutronVip())
         bind(gwPortId, neutronRouterGwPort)
 
-        val midoOps = translator.translate(transaction,
-                                           Delete(classOf[NeutronVIP], vipId))
+        translator.translate(transaction, Delete(classOf[NeutronVIP], vipId))
 
-        midoOps should contain (DeleteNode(
-                stateTableStorage.bridgeArpEntryPath(
-                    networkId, IPv4Addr(vipIpAddr), MAC.fromString(gwPortMac))))
+        verify(transaction, times(1)).deleteNode(
+            stateTableStorage.bridgeArpEntryPath(networkId,
+                                                 IPv4Addr(vipIpAddr),
+                                                 MAC.fromString(gwPortMac)))
     }
 }
