@@ -164,8 +164,8 @@ object RoutingHandler {
                 index = bgpIdx,
                 localVtyIp = bgpVtyLocalIp,
                 remoteVtyIp = bgpVtyPeerIp,
-                routerIp = new IPv4Subnet(routerPort.portAddress,
-                                          routerPort.portSubnet.getPrefixLen),
+                routerIp = new IPv4Subnet(routerPort.portAddressV4,
+                                          routerPort.portSubnetV4.getPrefixLen),
                 routerMac = routerPort.portMac,
                 vtyPortNumber = bgpVtyPort)
 
@@ -255,7 +255,7 @@ object RoutingHandler {
 
                 log.debug("Starting zebra server")
                 val socketAddress = new AfUnix.Address(zebraSocketFile.getAbsolutePath)
-                zebra = ZebraServer(socketAddress, zebraHandler, routerPort.portAddress,
+                zebra = ZebraServer(socketAddress, zebraHandler, routerPort.portAddressV4,
                                     bgpNetdevPortMirrorName, selectLoop)
             }
 
@@ -431,8 +431,8 @@ abstract class RoutingHandler(var routerPort: RouterPort,
 
     private def portUpdated(port: RouterPort): Future[_] = {
         if (bgpd.isAlive) {
-            if (port.portAddress != routerPort.portAddress ||
-                port.portSubnet != routerPort.portSubnet ||
+            if (port.portAddressV4 != routerPort.portAddressV4 ||
+                port.portSubnetV4 != routerPort.portSubnetV4 ||
                 port.portMac != routerPort.portMac) {
                 log.debug("Port addresses changed, restarting BGP daemon")
                 routerPort = port

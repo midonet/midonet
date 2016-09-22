@@ -308,8 +308,8 @@ class HaproxyTest extends MidolmanSpec
         val simPort = new RouterPort(port.getId.asJava,
                                      tunnelKey = port.getTunnelKey,
                                      routerId = routerId,
-                                     portAddress = HaproxyHealthMonitor.RouterIp,
-                                     portSubnet = HaproxyHealthMonitor.NetSubnet,
+                                     portAddressV4 = HaproxyHealthMonitor.RouterIp,
+                                     portSubnetV4 = HaproxyHealthMonitor.NetSubnet,
                                      portMac = HaproxyHealthMonitor.RouterMAC,
                                      hostId = hostId,
                                      interfaceName = hmName + "_dp")

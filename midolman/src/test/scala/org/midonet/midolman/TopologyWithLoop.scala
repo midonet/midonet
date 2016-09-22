@@ -90,17 +90,17 @@ class TopologyWithLoop extends MidolmanSpec {
     feature("A topology with a loop") {
         scenario ("Packets are dropped") {
             newRoute(edgeRouter,
-                "0.0.0.0", 0,
-                "0.0.0.0", 0,
-                Route.NextHop.PORT, interiorEdgeRouterPort,
-                fetchDevice[RouterPort](interiorTenantRouterPort).portAddress.toString,
-                10)
+                     "0.0.0.0", 0,
+                     "0.0.0.0", 0,
+                     Route.NextHop.PORT, interiorEdgeRouterPort,
+                     fetchDevice[RouterPort](interiorTenantRouterPort).portAddressV4.toString,
+                     10)
             newRoute(tenantRouter,
-                "0.0.0.0", 0,
-                "0.0.0.0", 0,
-                Route.NextHop.PORT, interiorTenantRouterPort,
-                fetchDevice[RouterPort](interiorEdgeRouterPort).portAddress.toString,
-                10)
+                     "0.0.0.0", 0,
+                     "0.0.0.0", 0,
+                     Route.NextHop.PORT, interiorTenantRouterPort,
+                     fetchDevice[RouterPort](interiorEdgeRouterPort).portAddressV4.toString,
+                     10)
 
             val pkt =
                 { eth src MAC.random dst fetchDevice[RouterPort](exteriorEdgeRouterPort).portMac } <<

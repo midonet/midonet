@@ -36,10 +36,34 @@ object IPSubnetUtil {
     }
 
     def fromV4Proto(subnet: Commons.IPSubnet): IPv4Subnet = {
+        val result = fromV4ProtoOrNull(subnet)
+        if (result eq null) {
+            throw new IllegalArgumentException("Can't make an ipv4 address v6")
+        }
+        result
+    }
+
+    def fromV4ProtoOrNull(subnet: Commons.IPSubnet): IPv4Subnet = {
         if (subnet.getVersion == Commons.IPVersion.V4) {
             new IPv4Subnet(subnet.getAddress, subnet.getPrefixLength)
         } else {
-            throw new IllegalArgumentException("Can't make an ipv4 address v6")
+            null
+        }
+    }
+
+    def fromV6Proto(subnet: Commons.IPSubnet): IPv6Subnet = {
+        val result = fromV6ProtoOrNull(subnet)
+        if (result eq null) {
+            throw new IllegalArgumentException("Can't make an ipv6 address v4")
+        }
+        result
+    }
+
+    def fromV6ProtoOrNull(subnet: Commons.IPSubnet): IPv6Subnet = {
+        if (subnet.getVersion == Commons.IPVersion.V6) {
+            new IPv6Subnet(subnet.getAddress, subnet.getPrefixLength)
+        } else {
+            null
         }
     }
 

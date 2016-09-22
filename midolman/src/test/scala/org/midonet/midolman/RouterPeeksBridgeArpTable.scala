@@ -116,7 +116,7 @@ class RouterPeeksBridgeArpTable extends MidolmanSpec {
 
             val pkt =
                 { eth src MAC.random dst fetchDevice[RouterPort](exteriorEdgeRouterPort).portMac } <<
-                { ip4 src "10.0.0.64" dst fetchDevice[RouterPort](interiorTenantRouterPort).portAddress } <<
+                { ip4 src "10.0.0.64" dst fetchDevice[RouterPort](interiorTenantRouterPort).portAddressV4 } <<
                 { icmp.echo.request id 203 seq 25 data "data" }
 
             val (simRes, _) = sendPacket (exteriorEdgeRouterPort, pkt)
@@ -127,11 +127,11 @@ class RouterPeeksBridgeArpTable extends MidolmanSpec {
             val gwMac = MAC.random
             val gwIp = IPv4Addr("10.0.3.128")
             newRoute(edgeRouter,
-                "0.0.0.0", 0,
-                "0.0.0.0", 0,
-                Route.NextHop.PORT, interiorEdgeRouterPort,
-                fetchDevice[RouterPort](interiorTenantRouterPort).portAddress.toString,
-                10)
+                     "0.0.0.0", 0,
+                     "0.0.0.0", 0,
+                     Route.NextHop.PORT, interiorEdgeRouterPort,
+                     fetchDevice[RouterPort](interiorTenantRouterPort).portAddressV4.toString,
+                     10)
             newRoute(tenantRouter,
                 "0.0.0.0", 0,
                 "0.0.0.0", 0,
